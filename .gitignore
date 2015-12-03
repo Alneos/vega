@@ -30,6 +30,9 @@
 # Eclipse generated files
 .cproject
 .project
+Debug
+Release
 
 # Cmake generated files
 build
+Testing
