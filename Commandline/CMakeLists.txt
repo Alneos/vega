@@ -47,9 +47,3 @@ install(TARGETS vegapp
 )
 #install examples
 set(NASTRAN_BASE ${PROJECT_SOURCE_DIR}/testdata/nastran2aster)
-install(DIRECTORY ${NASTRAN_BASE}/workshop/prob1
-        DESTINATION examples/nastran2aster
-        CONFIGURATIONS Release
-        COMPONENT Examples 
-        FILES_MATCHING PATTERN "*.dat" PATTERN "*.f06"
-)
