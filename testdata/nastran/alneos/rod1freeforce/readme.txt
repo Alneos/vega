@@ -1,0 +1,1 @@
+Testing ineffective (zero intensity) force over a free (no elements) grid, should cause no effect to the results.

@@ -1,0 +1,10 @@
+$$ Simplified version of Optistruct test fail in windows
+BEGIN BULK
+GRID     1000145        121.6843309.5861-228.087                        
+$  CTETRA elements 4-noded
+$
+CTETRA   9634834      12 1000574 1001225 1001399 1001401
+$
+
+$
+$$

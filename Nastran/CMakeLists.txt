@@ -1,0 +1,13 @@
+ADD_LIBRARY(nastran STATIC
+    NastranParser.cpp
+    NastranParser_geometry.cpp
+    NastranTokenizer.cpp
+    NastranFacade.cpp
+    NastranWriter.cpp
+    NastranRunner.cpp
+)
+
+target_link_libraries(
+    nastran 
+    abstract
+)

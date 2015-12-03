@@ -1,0 +1,4 @@
+$test for test include
+BEGIN BULK
+INCLUDE 'included.dat'
+INCLUDE included2.dat
