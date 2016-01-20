@@ -33,11 +33,14 @@ recompile, regenerate Project ->C/C++ Index and restart Eclipse.
 
 LINUX:
 
-cd /"wherever vegapp was downloaded"/vegapp/build/x86_64
+cd /"wherever vegapp was downloaded"/vega
+
+mkdir -p ./build/x86_64
+cd ./build/x86_64
 
 Build release (static linking):
 
-cmake -DCMAKE_BUILD_TYPE=Release .
+cmake -DCMAKE_BUILD_TYPE=Release ../..
 
 make -j 4
 
@@ -45,7 +48,7 @@ ctest .
 
 Build debug (default, dynamic linking):
 
-cmake -DCMAKE_BUILD_TYPE=Debug  .
+cmake -DCMAKE_BUILD_TYPE=Debug  ../..
 
 make -j 4
 
