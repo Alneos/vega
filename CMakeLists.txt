@@ -149,7 +149,7 @@ IF(NOT WIN32)
     set(Boost_USE_STATIC_RUNTIME ${STATIC_LINKING})
 ENDIF(NOT WIN32)
 
-find_package(Boost 1.57.0 COMPONENTS thread date_time program_options filesystem system regex unit_test_framework REQUIRED)
+find_package(Boost 1.54.0 COMPONENTS thread date_time program_options filesystem system regex unit_test_framework REQUIRED)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 link_directories ( ${Boost_LIBRARY_DIRS} )
 list(APPEND EXTERNAL_LIBRARIES ${Boost_LIBRARIES})

@@ -1,0 +1,18 @@
+language: cpp
+
+sudo: required
+
+install:
+    - sudo apt-get update
+    - sudo apt-get install gcc-4.8 g++-4.8 valgrind cmake
+    - sudo apt-get install libmedc1 libmedc-dev libboost-all-dev
+    - sudo apt-get install ccache
+
+before_script:
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_BUILD_TYPE=Debug ..
+
+script: 
+    - make
+    - ctest .
