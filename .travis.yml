@@ -4,10 +4,18 @@ sudo: required
 dist: trusty
 
 install:
-    - sudo apt-get update
-    - sudo apt-get install -y gcc-4.8 g++-4.8 valgrind cmake
-    - sudo apt-get install -y libmedc1 libmedc-dev libboost-all-dev
-    - sudo apt-get install -y ccache
+    - echo "deb http://ftp.debian.org/debian jessie main" >> /etc/apt/sources.list
+    - gpg --keyserver pgpkeys.mit.edu --recv-key 8B48AD6246925553
+    - gpg -a --export 8B48AD6246925553 | sudo apt-key add -
+    - gpg --keyserver pgpkeys.mit.edu --recv-key 7638D0442B90D010
+    - gpg -a --export 7638D0442B90D010 | sudo apt-key add -
+    - gpg --keyserver pgpkeys.mit.edu --recv-key CBF8D6FD518E17E1
+    - gpg -a --export CBF8D6FD518E17E1 | sudo apt-key add -
+    - sudo apt-get -qq update
+    - sudo apt-get install -y -qq gcc-4.8 g++-4.8 valgrind cmake
+    - sudo apt-get install -y -qq libmedc1 libmedc-dev libboost-all-dev
+    - sudo apt-get install -y -qq code-aster
+    - sudo apt-get install -y -qq ccache
 
 before_script:
     - mkdir build
@@ -15,5 +23,5 @@ before_script:
     - cmake -DCMAKE_BUILD_TYPE=Debug ..
 
 script: 
-    - make
+    - make -j
     - ctest .

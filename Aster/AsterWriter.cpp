@@ -1196,6 +1196,7 @@ double AsterWriterImpl::writeAnalysis(const AsterModel& asterModel, Analysis& an
 			}
 		}
 		out << "                           )," << endl;
+                out << "                    SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS')," << endl;
 		out << "                    );" << endl << endl;
 		break;
 	}
@@ -1302,7 +1303,7 @@ double AsterWriterImpl::writeAnalysis(const AsterModel& asterModel, Analysis& an
 			out << "                    ETAT_INIT=_F(EVOL_NOLI =RESU"
 					<< nonLinAnalysis.previousAnalysis->getId() << ")," << endl;
 		}
-		out << "                    SOLVEUR=_F(METHODE='MUMPS')," << endl;
+		out << "                    SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS')," << endl;
 		out << "                    );" << endl << endl;
 		break;
 	}
@@ -1353,6 +1354,7 @@ double AsterWriterImpl::writeAnalysis(const AsterModel& asterModel, Analysis& an
 		out << "                                    )," << endl;
 		out << "                       VERI_MODE=_F(STOP_ERREUR='NON',)," << endl;
 		out << "                       SOLVEUR=_F(METHODE='MUMPS'," << endl;
+		out << "                                  RENUM='PORD'," << endl;
 		out << "                                  NPREC=8," << endl;
 		out << "                                  )," << endl;
 		out << "                       );" << endl << endl;
@@ -1534,7 +1536,7 @@ double AsterWriterImpl::writeAnalysis(const AsterModel& asterModel, Analysis& an
 			}
 		}
 		out << "                                 )," << endl;
-		out << "                   SOLVEUR=_F(METHODE='MUMPS',NPREC=8)," << endl;
+		out << "                   SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS',NPREC=8)," << endl;
 		out << "                   );" << endl << endl;
 
 		out << "RESU" << linearDynaModalFreq.getId() << " = REST_GENE_PHYS(RESU_GENE = GENE"

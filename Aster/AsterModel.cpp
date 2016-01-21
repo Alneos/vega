@@ -80,7 +80,7 @@ const string AsterModel::getOutputFileName(string extension, bool absolute) cons
 }
 
 const string AsterModel::getAsterVersion() const {
-	string result = "STA11.4";
+	string result = "STABLE";
 	if (!this->configuration.solverVersion.empty()) {
 		result = this->configuration.solverVersion;
 	}
