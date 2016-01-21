@@ -6,7 +6,7 @@ dist: trusty
 install:
     - echo "deb http://archive.ubuntu.com/ubuntu trusty universe restricted multiverse" | sudo tee -a /etc/apt/sources.list
     - sudo apt-get -qq update
-    - sudo apt-get -y -qq upgrade
+    - yes | sudo apt-get -y -qq --force-yes upgrade
     - sudo apt-get -y -qq install gcc-4.8 g++-4.8 valgrind cmake
     - sudo apt-get -y -qq install libmedc1 libmedc-dev libboost-all-dev
     - sudo apt-get -y -qq install ccache
