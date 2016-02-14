@@ -6,7 +6,7 @@ Finite element format converter
 
 apt-get install cmake cmake-curses-gui gcc-4.8 valgrind
 
-apt-get install libmedc1 libmedc-dev boost-all-dev 
+apt-get install libmedc1 libmedc-dev libboost-all-dev 
 
 apt-get install ccache distcc distcc-pump graphviz
 
