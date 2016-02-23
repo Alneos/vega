@@ -56,8 +56,11 @@ else(WIN32)
         add_compile_options(-fPIC)
         set(CMAKE_EXE_LINKER_FLAGS "-pthread -shared-libgcc -rdynamic -pipe" CACHE INTERNAL "Linker flags")
     endif(STATIC_LINKING)
-    SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-    SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+    find_program(CCACHE_FOUND ccache)
+    if(CCACHE_FOUND)
+       SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+       SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+    endif(CCACHE_FOUND)
 endif(WIN32)
 
 
