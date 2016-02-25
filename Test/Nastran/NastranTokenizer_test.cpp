@@ -271,7 +271,7 @@ void countGridElems(NastranTokenizer& tok) {
 BOOST_AUTO_TEST_CASE(nastran_bar1r_grid) {
 	fs::path sourceFname(
 			string(PROJECT_BASE_DIR) + "/testdata/nastran/linstat/plate1r/plate1r.dat");
-	ifstream source(sourceFname.c_str());
+	ifstream source(sourceFname.string());
 	NastranTokenizer tok(source);
 	while (tok.nextSymbolString().find("BEGIN") == string::npos) {
 		tok.nextLine();

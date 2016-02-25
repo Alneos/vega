@@ -173,7 +173,7 @@ void CSVResultReader::add_assertions(const ConfigurationParameters& configuratio
 		shared_ptr<Model> model) {
 
 	if (!configuration.resultFile.empty()) {
-		ifstream in(configuration.resultFile.c_str());
+		ifstream in(configuration.resultFile.string());
 		in.unsetf(ios::skipws);
 		spirit::istream_iterator begin(in);
 		const spirit::istream_iterator end;

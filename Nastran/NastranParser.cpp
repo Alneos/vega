@@ -352,7 +352,8 @@ shared_ptr<Model> NastranParserImpl::parse(const ConfigurationParameters& config
 	shared_ptr<Model> model = shared_ptr<Model>(new Model(modelName, "UNKNOWN", NASTRAN,
 			configuration.getModelConfiguration()));
 	map<string, string> executive_section_context;
-	ifstream istream(inputFilePath.c_str());
+	const string inputFilePathStr = inputFilePath.string();
+	ifstream istream(inputFilePathStr);
 	NastranTokenizer tok = NastranTokenizer(istream, logLevel, inputFilePath.string());
 
 	parseExecutiveSection(tok, model, executive_section_context);

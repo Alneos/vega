@@ -358,7 +358,7 @@ int F06Parser::parseSubcase(int currentSubCase, const string& currentLine) {
 void F06Parser::add_assertions(const ConfigurationParameters& configuration,
 		shared_ptr<Model> model) {
 	if (!configuration.resultFile.empty()) {
-		ifstream istream(configuration.resultFile.c_str());
+		ifstream istream(configuration.resultFile.string());
 		string currentLine;
 		int currentSubCase = NO_SUBCASE;
 		double loadStep = -1;
