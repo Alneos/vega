@@ -9,7 +9,7 @@
  *      Author: devel
  */
 
-#ifdef __GNUC__
+#if defined VDEBUG && defined __GNUC__
 #include <valgrind/memcheck.h>
 #endif
 #include "Analysis.h"

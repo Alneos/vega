@@ -15,19 +15,31 @@ set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/build/cmake_files)
 
-SET(CMAKE_BUILD_TYPE Debug CACHE STRING  
-    "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel.")
+SET(CMAKE_BUILD_TYPE DDebug CACHE STRING  
+    "Choose the type of build, options are: None DDebug SDebug DRelease SRelease.")
 #make outputs build commands and options
 OPTION(CMAKE_VERBOSE_MAKEFILE "make outputs build commands" ON)
 project ( vegapp CXX C)
     
-IF(CMAKE_BUILD_TYPE MATCHES "[Dd][Ee][Bb][Uu][Gg]") 
-    message(STATUS "Debug mode selected") 
+IF(CMAKE_BUILD_TYPE MATCHES "[Dd][Dd][Ee][Bb][Uu][Gg]") 
+    message(STATUS "Dynamic Debug mode selected") 
     option(STATIC_LINKING "Static Linking" OFF)
-else(CMAKE_BUILD_TYPE MATCHES "[Dd][Ee][Bb][Uu][Gg]")
-    message(STATUS "Release mode")
+    add_definitions(-DVDEBUG)
+ENDIF(CMAKE_BUILD_TYPE MATCHES "[Dd][Dd][Ee][Bb][Uu][Gg]")
+IF(CMAKE_BUILD_TYPE MATCHES "[Ss][Dd][Ee][Bb][Uu][Gg]")
+    message(STATUS "Static Debug mode selected") 
     option(STATIC_LINKING "Static Linking" ON)
-ENDIF(CMAKE_BUILD_TYPE MATCHES "[Dd][Ee][Bb][Uu][Gg]") 
+    add_definitions(-DVDEBUG)
+ENDIF(CMAKE_BUILD_TYPE MATCHES "[Ss][Dd][Ee][Bb][Uu][Gg]") 
+IF(CMAKE_BUILD_TYPE MATCHES "[Dd][Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
+    message(STATUS "Dynamic Release mode selected") 
+    option(STATIC_LINKING "Static Linking" OFF)    
+ENDIF(CMAKE_BUILD_TYPE MATCHES "[Dd][Rr][Ee][Ll][Ee][Aa][Ss][Ee]") 
+IF(CMAKE_BUILD_TYPE MATCHES "[Ss][Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
+    message(STATUS "Static Release mode selected") 
+    option(STATIC_LINKING "Static Linking" ON)    
+ENDIF(CMAKE_BUILD_TYPE MATCHES "[Ss][Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
+
 
 if(WIN32)
     # Patch for MSVC10 generator, 64 bit

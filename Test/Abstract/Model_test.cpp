@@ -8,13 +8,6 @@
  *      Author: dallolio
  */
 
-/*
- * NastranParser_test.cpp
- *
- *  Created on: Dec 24, 2012
- *      Author: dallolio
- */
-
 #include "build_properties.h"
 #include "../../Abstract/ConfigurationParameters.h"
 #include "../../Abstract/Model.h"
@@ -22,7 +15,7 @@
 #include <new>
 #include <string>
 #include <vector>
-#ifdef __GNUC__
+#if defined VDEBUG && defined __GNUC__
 #include <valgrind/memcheck.h>
 #endif
 

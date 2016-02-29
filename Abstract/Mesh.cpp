@@ -10,7 +10,7 @@
 
 #include "Mesh.h"
 
-#ifdef __GNUC__
+#if defined VDEBUG && defined __GNUC__
 #include <valgrind/memcheck.h>
 #endif
 #include <boost/filesystem/operations.hpp>
@@ -114,7 +114,7 @@ const Node Mesh::findNode(int nodePosition) const {
 	Node node1 = Node(nodeData.id, nodeData.x, nodeData.y, nodeData.z, nodePosition, nodeData.dofs,
 			nodeData.displacementCS);
 	/*
-	 * #ifdef __GNUC__
+	 * #if defined VDEBUG && defined __GNUC__
 	 *	cerr << "node:" << node1 << endl;
 	 *	VALGRIND_CHECK_VALUE_IS_DEFINED(node1);
 	 *	cerr << "valid" << endl;

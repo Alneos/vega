@@ -18,7 +18,9 @@
 //dirty hack to circumvent a boost test dynamic link bug
 #ifdef __unix__
 #include <boost/test/included/unit_test.hpp>
+#if defined VDEBUG
 #include <valgrind/memcheck.h>
+#endif
 #else
 #include <boost/test/unit_test.hpp>
 #endif
@@ -95,7 +97,7 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
     if (string("ON") != TESTS_NIGHTLY_BUILD) {
         argv1.push_back("-d");
     }
-#ifdef __unix__
+#if defined __unix__ && defined VDEBUG
     //disable running Aster if running under Valgrind on Linux
     runSolver = runSolver && (RUNNING_ON_VALGRIND == 0);
 #endif

@@ -15,7 +15,7 @@
 #include <initializer_list>
 #include <boost/lexical_cast.hpp>
 #include <boost/assign.hpp>
-#ifdef __GNUC__
+#if defined VDEBUG && defined __GNUC__
 #include <valgrind/memcheck.h>
 #endif
 
@@ -27,7 +27,7 @@ unordered_map<SpaceDimension::Code, SpaceDimension*, hash<int>> SpaceDimension::
 
 SpaceDimension::SpaceDimension(Code code, int medcouplingRelativeMeshDimension) :
 		code(code), relativeMeshDimension(medcouplingRelativeMeshDimension) {
-#ifdef __GNUC__
+#if defined VDEBUG && defined __GNUC__
 	VALGRIND_CHECK_VALUE_IS_DEFINED(code);
 	VALGRIND_CHECK_VALUE_IS_DEFINED(*this);
 	VALGRIND_CHECK_VALUE_IS_DEFINED(SpaceDimension::dimensionByCode);

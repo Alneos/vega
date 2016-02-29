@@ -11,7 +11,7 @@
 #include "F06Parser.h"
 
 //#include <bits/basic_string.h>
-#ifdef __GNUC__
+#if defined VDEBUG && defined __GNUC__
 #include <valgrind/memcheck.h>
 #endif
 #include <cstdio>
