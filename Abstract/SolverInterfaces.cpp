@@ -15,7 +15,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
 #include <stdio.h>
-#ifdef __GNUC__
+#if defined VDEBUG && defined __GNUC__
 #include <execinfo.h>
 #endif
 
@@ -37,7 +37,7 @@ ParsingException::ParsingException(string arg, string fname, int lineNum) {
 
 #ifdef __GNUC__
 	//defined in top level cmake file
-#ifdef _DEBUG
+#ifdef VDEBUG
 	void *array[10];
 	size_t size;
 	char **strings;
@@ -77,7 +77,7 @@ WriterException::WriterException(string arg, string fname) {
 
 #ifdef __GNUC__
 	//flag defined by cmake in Release build
-#ifdef _DEBUG
+#ifdef VDEBUG
 	void *array[10];
 	size_t size;
 	char **strings;
