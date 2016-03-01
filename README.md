@@ -6,7 +6,7 @@ Finite element format converter
 
 apt-get install cmake cmake-curses-gui gcc-4.8 valgrind
 
-apt-get install libmedc1 libmedc-dev boost-all-dev 
+apt-get install libmedc1 libmedc-dev libboost-all-dev 
 
 apt-get install ccache distcc distcc-pump graphviz
 
@@ -22,7 +22,7 @@ in the text box entitled Command to get compiler specs append -std=c++11
 
 Generate eclipse project files
 
-cmake -G"Eclipse CDT4 - Unix Makefiles" -D CMAKE_BUILD_TYPE=Debug ..
+cmake -G"Eclipse CDT4 - Unix Makefiles" -D CMAKE_BUILD_TYPE=DDebug ..
 
 Then import generated directory to eclipse as standard eclipse project. Right click project and open
 
@@ -43,7 +43,7 @@ cd ./build/x86_64
 
 Build release (static linking):
 
-cmake -DCMAKE_BUILD_TYPE=Release ../..
+cmake -DCMAKE_BUILD_TYPE=SRelease ../..
 
 make -j 4
 
@@ -51,7 +51,7 @@ ctest .
 
 Build debug (default, dynamic linking):
 
-cmake -DCMAKE_BUILD_TYPE=Debug  ../..
+cmake -DCMAKE_BUILD_TYPE=DDebug  ../..
 
 make -j 4
 
