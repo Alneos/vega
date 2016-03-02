@@ -41,6 +41,7 @@ IF(CMAKE_BUILD_TYPE MATCHES "[Ss][Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
 ENDIF(CMAKE_BUILD_TYPE MATCHES "[Ss][Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
 
 
+# WARNING: WIN32 IS DEPRECATED AND SHOULD NOT BE USED
 if(WIN32)
     # Patch for MSVC10 generator, 64 bit
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHa /MP")
@@ -56,7 +57,9 @@ if(WIN32)
         #set(CMAKE_EXE_LINKER_FLAGS "-pthread -shared-libgcc -rdynamic -pipe" CACHE INTERNAL "Linker flags")
     endif(STATIC_LINKING)
 else(WIN32)
-    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fstack-protector-all -rdynamic")
+    
+    # Options generic to all "gnu" compilations
+    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fstack-protector-all")
     #SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2")
     #set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} -Wl,--strip-all")
     add_compile_options(-std=c++11 -Wall -Wextra -Winit-self -Wsuggest-attribute=const -Wconversion -pedantic -pedantic-errors)
@@ -66,8 +69,24 @@ else(WIN32)
         set(CMAKE_EXE_LINKER_FLAGS "-pthread -static-libgcc -static-libstdc++ -static" CACHE INTERNAL "Linker flags")
     else(STATIC_LINKING)
         add_compile_options(-fPIC)
-        set(CMAKE_EXE_LINKER_FLAGS "-pthread -shared-libgcc -rdynamic -pipe" CACHE INTERNAL "Linker flags")
+        set(CMAKE_EXE_LINKER_FLAGS "-pthread -shared-libgcc -pipe" CACHE INTERNAL "Linker flags")
     endif(STATIC_LINKING)
+        
+    IF(CYGWIN)
+        # Specific options for Cygwin
+        add_compile_options(-D_XOPEN_SOURCE=500)
+    ELSE(CYGWIN)
+        # Specific options for Linux compilations
+        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -rdynamic")
+        if(STATIC_LINKING)
+            # Nothing to do
+        else(STATIC_LINKING)
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_CXX_FLAGS_DEBUG} -rdynamic " CACHE INTERNAL "Linker flags")
+            message("CMAKE_EXE_LINKER_FLAGS: ${CMAKE_CXX_FLAGS_DEBUG}")
+        endif(STATIC_LINKING)
+    ENDIF(CYGWIN)
+    
+    # Optional use of ccache
     find_program(CCACHE_FOUND ccache)
     if(CCACHE_FOUND)
        SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
@@ -149,7 +168,10 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmakemodules/")
-set(MEDFile_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmakemodules/" CACHE PATH "MEDFile cmake config path")
+# Default value for MEDFile_DIR
+IF(NOT DEFINED MEDFile_DIR)
+    set(MEDFile_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmakemodules/" CACHE PATH "MEDFile cmake config path")
+ENDIF(NOT DEFINED MEDFile_DIR)
 if(IS_DIRECTORY ${MEDFile_DIR})
     mark_as_advanced(MEDFile_DIR)
 endif(IS_DIRECTORY ${MEDFile_DIR})
@@ -178,6 +200,11 @@ include_directories(SYSTEM ${MPI_CXX_INCLUDE_PATH})
 #link_directories ( ${MEDFILE_LIBRARY_DIR} )
 list(APPEND EXTERNAL_LIBRARIES ${MEDFILE_C_LIBRARIES})
 #list(APPEND EXTERNAL_LIBRARIES ${HDF5_LIBRARIES})
+
+# On Cygwin, we need to explicitely look some libraries on /lib
+IF(CYGWIN)
+  link_directories("${CYGWIN_MOUNT}/lib")
+ENDIF(CYGWIN)
 
 #necessary to find build_properties.h
 include_directories(${CMAKE_BINARY_DIR})
