@@ -81,8 +81,7 @@ else(WIN32)
         if(STATIC_LINKING)
             # Nothing to do
         else(STATIC_LINKING)
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_CXX_FLAGS_DEBUG} -rdynamic " CACHE INTERNAL "Linker flags")
-            message("CMAKE_EXE_LINKER_FLAGS: ${CMAKE_CXX_FLAGS_DEBUG}")
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -rdynamic " CACHE INTERNAL "Linker flags")
         endif(STATIC_LINKING)
     ENDIF(CYGWIN)
     
