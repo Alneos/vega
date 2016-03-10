@@ -367,7 +367,7 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
 
         if (vm.count("version")) {
             cout << "Vega, version " << VEGA_VERSION_MAJOR << "." << VEGA_VERSION_MINOR << "."
-                    << VEGA_VERSION_PATCH << endl;
+                    << VEGA_VERSION_PATCH << " " << VEGA_VERSION_EXTRA << endl;
             return OK;
         }
 

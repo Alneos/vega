@@ -6,9 +6,13 @@
 
 cmake_minimum_required(VERSION 2.8.2 FATAL_ERROR)
 
+# Definition of the VEGA version
 set(VEGA_MAJOR_VERSION 1)
 set(VEGA_MINOR_VERSION 8)
 set(VEGA_PATCH_VERSION 5)
+IF(NOT DEFINED VEGA_EXTRA_VERSION)
+    set(VEGA_EXTRA_VERSION "" CACHE STRING "Vega extra version string")
+ENDIF(NOT DEFINED VEGA_EXTRA_VERSION)
     
 # add this options before PROJECT keyword
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
@@ -105,7 +109,7 @@ option(ENABLE_NASTRAN "Enable Nastran" ${DEFAULT})
 option(ENABLE_SYSTUS "Enable Systus" ${DEFAULT})
 option(ENABLE_WRAP_PYTHON "Build Python wrappers" OFF)
 
-set(VEGA_EXTRA_VERSION "" CACHE STRING "Vega extra version string")
+
 set(VEGA_VERSION "${VEGA_MAJOR_VERSION}.${VEGA_MINOR_VERSION}")
 set(VEGA_VERSION "${VEGA_VERSION}.${VEGA_PATCH_VERSION}${VEGA_EXTRA_VERSION}")
 set(VEGA_SHORT_LICENSE "GPL")
