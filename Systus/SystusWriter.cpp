@@ -498,38 +498,56 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
 }
 
 void SystusWriter::writeMaterials(const SystusModel& systusModel, ostream& out) {
-	out << "BEGIN_MATERIALS " << systusModel.model->elementSets.size() << " "
-			<< 3 * systusModel.model->elementSets.size() << endl;
-	for (auto elementSet : systusModel.model->elementSets) {
+
+	ostringstream omat;
+	omat.precision(DBL_DIG);
+	int nbmaterials= 0;
+	int nbelements = 0;
+
+    for (auto elementSet : systusModel.model->elementSets) {
 		auto material = elementSet->material;
 		if (material != nullptr && elementSet->cellGroup != nullptr) {
 			const shared_ptr<Nature> nature = material->findNature(Nature::NATURE_ELASTIC);
 			if (nature) {
 				const ElasticNature& elasticNature = dynamic_cast<ElasticNature&>(*nature);
-				out << elementSet->getId() << " 0 " << "4 " << elasticNature.getRho() << " 5 "
-						<< elasticNature.getE() << " 6 " << elasticNature.getNu() << " ";
+				omat << elementSet->getId() << " 0 ";
+				if (elasticNature.getRho()>0.0){
+					omat << "4 " << elasticNature.getRho() << " ";
+					nbelements++;
+				}
+				if (elasticNature.getE()>0.0){
+					omat << "5 " << elasticNature.getE() << " ";
+					nbelements++;
+				}
+				if (elasticNature.getNu()>0.0){
+					omat << "6 " << elasticNature.getNu() << " ";
+					nbelements++;
+				}
 				switch (elementSet->type) {
 				case (ElementSet::GENERIC_SECTION_BEAM): {
 					shared_ptr<const GenericSectionBeam> genericBeam = static_pointer_cast<
 							const GenericSectionBeam>(elementSet);
-					out << "11 " << genericBeam->getAreaCrossSection() << " ";
-					out << "12 " << genericBeam->getShearAreaFactorY() << " ";
-					out << "13 " << genericBeam->getShearAreaFactorZ() << " ";
-					out << "14 " << genericBeam->getTorsionalConstant() << " ";
-					out << "15 " << genericBeam->getMomentOfInertiaY() << " ";
-					out << "16 " << genericBeam->getMomentOfInertiaZ() << " ";
+					omat << "11 " << genericBeam->getAreaCrossSection() << " ";
+					omat << "12 " << genericBeam->getShearAreaFactorY() << " ";
+					omat << "13 " << genericBeam->getShearAreaFactorZ() << " ";
+					omat << "14 " << genericBeam->getTorsionalConstant() << " ";
+					omat << "15 " << genericBeam->getMomentOfInertiaY() << " ";
+					omat << "16 " << genericBeam->getMomentOfInertiaZ() << " ";
+					nbelements=nbelements+6;
 					break;
 				}
 				case (ElementSet::CIRCULAR_SECTION_BEAM): {
 					shared_ptr<const CircularSectionBeam> circularBeam = static_pointer_cast<
 							const CircularSectionBeam>(elementSet);
-					out << "11 " << circularBeam->getAreaCrossSection() << " ";
+					omat << "11 " << circularBeam->getAreaCrossSection() << " ";
+					nbelements++;
 					break;
 				}
 
 				case (ElementSet::SHELL): {
 					shared_ptr<const Shell> shell = static_pointer_cast<const Shell>(elementSet);
-					out << "21 " << shell->thickness << " ";
+					omat << "21 " << shell->thickness << " ";
+					nbelements++;
 					break;
 				}
 				case (ElementSet::CONTINUUM): {
@@ -538,19 +556,27 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel, ostream& out) 
 				default:
 					cout << "Warning : " << *elementSet << " not supported" << endl;
 				}
-				out << endl;
+				nbmaterials++;
+				omat << endl;
 			}
 		}
 	}
 	// adding rbars materials for rbe2s and rbe3s
 	if (RBE2rbarPositions.size()){
-		out << RBE2rbarsElementId << " 0 200 9 61 19 197 1 5 1" << endl;
+		omat << RBE2rbarsElementId << " 0 200 9 61 19 197 1 5 1" << endl;
+		nbmaterials++;
+		nbelements=nbelements+4;
 	}
 	if (RBE3rbarPositions.size()){
 		cout << "Warning : RBE3 material emulated by beam with low rigidity" << endl;
-		out << RBE3rbarsElementId << " 0 4 0 5 1e-12 6 0 11 3.14159265358979e-06" << endl;
+		omat << RBE3rbarsElementId << " 0 4 0 5 1e-12 6 0 11 3.14159265358979e-06" << endl;
+		nbmaterials++;
+		nbelements=nbelements+4;
 	}
 
+	// Stream to output
+	out << "BEGIN_MATERIALS " << nbmaterials << " " << nbelements << endl;
+	out << omat.str();
 	out << "END_MATERIALS" << endl;
 }
 
