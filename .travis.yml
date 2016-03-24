@@ -5,9 +5,12 @@ dist: trusty
 
 install:
     - sudo apt-get -qq update
-    - sudo apt-get -y -qq install gcc-4.8 g++-4.8 valgrind cmake
+    - sudo apt-get -y -qq install gcc-4.8 g++-4.8 valgrind cmake wget
     - sudo apt-get -y -qq install libmedc1 libmedc-dev libboost-all-dev
     - sudo apt-get -y -qq install ccache
+    - wget http://download.alneos.com/files/codeaster-2013.1-1_amd64.deb
+    - dpkg -i --ignore-depends=xterm codeaster-2013.1-1_amd64.deb
+    - ln -s /opt/codeaster-2013.1/STA11.3 /opt/codeaster-2013.1/STABLE
 
 before_script:
     - mkdir build
