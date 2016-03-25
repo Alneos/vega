@@ -66,6 +66,12 @@ string SystusWriter::writeModel(const shared_ptr<Model> model,
 		string message = string("Can't open file ") + dat_path + " for writing.";
 		throw ios::failure(message);
 	}
+
+	/* Work to Do Only once */
+	getSystusInformations(systusModel);
+	generateRBEs(systusModel);
+
+
 	for (auto it : systusModel.model->analyses) {
 		const Analysis& analysis = *it;
 
@@ -130,7 +136,7 @@ void SystusWriter::getSystusInformations(const SystusModel& systusModel) {
 
 }
 
-void SystusWriter::generateRBEs(const SystusModel& systusModel, const Analysis& analysis) {
+void SystusWriter::generateRBEs(const SystusModel& systusModel) {
 
 	shared_ptr<Mesh> mesh = systusModel.model->mesh;
 	vector<shared_ptr<ConstraintSet>> commonConstraintSets = systusModel.model->getCommonConstraintSets();
@@ -139,7 +145,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel, const Analysis& 
 		for (auto constraint : constraints) {
 			std::shared_ptr<RigidConstraint> rbe2 = std::static_pointer_cast<RigidConstraint>(constraint);
 
-			CellGroup* group = mesh->createCellGroup("RBE2_"+std::to_string(analysis.getId())+"_"+std::to_string(constraint->getId()));
+			CellGroup* group = mesh->createCellGroup("RBE2_"+std::to_string(constraint->getId()));
 
 			Node master = mesh->findNode(rbe2->getMaster());
 			int master_rot_id = 0;
@@ -169,7 +175,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel, const Analysis& 
 		for (auto constraint : constraints) {
 			std::shared_ptr<RBE3> rbe3 = std::static_pointer_cast<RBE3>(constraint);
 
-			CellGroup* group = mesh->createCellGroup("RBE3_"+std::to_string(analysis.getId())+"_"+std::to_string(constraint->getId()));
+			CellGroup* group = mesh->createCellGroup("RBE3_"+std::to_string(constraint->getId()));
 
 			Node master = mesh->findNode(rbe3->getMaster());
 			for (int position : rbe3->getSlaves()){
@@ -395,10 +401,6 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const Analysis& ana
 
 
 void SystusWriter::writeAsc(const SystusModel &systusModel, const Analysis& analysis, ostream& out) {
-
-	getSystusInformations(systusModel);
-
-	generateRBEs(systusModel, analysis);
 
 	fillLoads(systusModel, analysis);
 

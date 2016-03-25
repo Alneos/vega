@@ -215,7 +215,7 @@ class SystusWriter: public Writer {
 	void fillLoads(const SystusModel&, const Analysis&);
 	void fillVectors(const SystusModel&, const Analysis&);
 	void fillLists(const SystusModel&, const Analysis&);
-	void generateRBEs(const SystusModel&, const Analysis&);
+	void generateRBEs(const SystusModel&);
 	void writeHeader(const SystusModel&, std::ostream&);
 	void writeInformations(const SystusModel&, std::ostream&);
 	void writeNodes(const SystusModel&, std::ostream&);
