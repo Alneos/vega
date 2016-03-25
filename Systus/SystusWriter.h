@@ -43,10 +43,13 @@ class SystusWriter: public Writer {
 		}
 	};
 	vector<List> lists;
+	map<int, vector<double>> vectors;
 	vector<int> RBE2rbarPositions;
 	vector<int> RBE3rbarPositions;
 	int RBE2rbarsElementId = 0;
 	int RBE3rbarsElementId = 0;
+	map<int, int> localLoadingListIdByLoadingListId;
+	map<int, int> localVectorIdByLoadingListId;
 	map<int, int> loadingListIdByNodePosition;
 	map<int, int> constraintListIdByNodePosition;
 	map<int, char> constraintByNodePosition;
@@ -207,19 +210,21 @@ class SystusWriter: public Writer {
 	 *
 	 */
 	static const std::unordered_map<CellType::Code, vector<int>, hash<int>> systus2medNodeConnectByCellType;
-	void writeAsc(const SystusModel&, std::ostream&);
+	void writeAsc(const SystusModel&, const Analysis&, std::ostream&);
 	void getSystusInformations(const SystusModel&);
-	void fillLists(const SystusModel&);
-	void generateRBEs(const SystusModel&);
+	void fillLoads(const SystusModel&, const Analysis&);
+	void fillVectors(const SystusModel&, const Analysis&);
+	void fillLists(const SystusModel&, const Analysis&);
+	void generateRBEs(const SystusModel&, const Analysis&);
 	void writeHeader(const SystusModel&, std::ostream&);
 	void writeInformations(const SystusModel&, std::ostream&);
 	void writeNodes(const SystusModel&, std::ostream&);
 	void writeElements(const SystusModel&, std::ostream&);
 	void writeGroups(const SystusModel&, std::ostream&);
 	void writeMaterials(const SystusModel&, std::ostream&);
-	void writeLoads(const SystusModel&, std::ostream&);
+	void writeLoads(const SystusModel&, const Analysis&, std::ostream&);
 	void writeLists(const SystusModel&, std::ostream&);
-	void writeVectors(const SystusModel&, std::ostream&);
+	void writeVectors(const SystusModel&, const Analysis&, std::ostream&);
 	void writeDat(const SystusModel&, const Analysis&, std::ostream&);
 	void writeConstraint(const SystusModel& systusModel, const ConstraintSet&, std::ostream&);
 	void writeLoad(const LoadSet&, std::ostream&);

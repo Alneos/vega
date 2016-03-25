@@ -59,18 +59,6 @@ string SystusWriter::writeModel(const shared_ptr<Model> model,
 		throw iostream::failure("Directory " + path + " don't exist.");
 	}
 
-	string asc_path = systusModel.getOutputFileName("_DATA1.ASC");
-
-	ofstream asc_file_ofs;
-	asc_file_ofs.precision(DBL_DIG);
-	asc_file_ofs.open(asc_path.c_str(), ios::trunc | ios::out);
-	if (!asc_file_ofs.is_open()) {
-		string message = string("Can't open file ") + asc_path + " for writing.";
-		throw ios::failure(message);
-	}
-	this->writeAsc(systusModel, asc_file_ofs);
-	asc_file_ofs.close();
-
 	ofstream dat_file_ofs;
 	string dat_path = systusModel.getOutputFileName(".DAT");
 	dat_file_ofs.open(dat_path.c_str(), ios::trunc);
@@ -80,10 +68,23 @@ string SystusWriter::writeModel(const shared_ptr<Model> model,
 	}
 	for (auto it : systusModel.model->analyses) {
 		const Analysis& analysis = *it;
+
+		/* ASCI file */
+		string asc_path = systusModel.getOutputFileName("_DATA" + to_string(analysis.getId()) + ".ASC");
+		ofstream asc_file_ofs;
+		asc_file_ofs.precision(DBL_DIG);
+		asc_file_ofs.open(asc_path.c_str(), ios::trunc | ios::out);
+		if (!asc_file_ofs.is_open()) {
+			string message = string("Can't open file ") + asc_path + " for writing.";
+			throw ios::failure(message);
+		}
+		this->writeAsc(systusModel, analysis, asc_file_ofs);
+		asc_file_ofs.close();
+
+		/* Analysis file */
 		ofstream analyse_file_ofs;
 		analyse_file_ofs.precision(DBL_DIG);
-		string analyse_path = systusModel.getOutputFileName(
-				"_" + to_string(analysis.getId()) + ".DAT");
+		string analyse_path = systusModel.getOutputFileName("_" + to_string(analysis.getId()) + ".DAT");
 		analyse_file_ofs.open(analyse_path.c_str(), ios::trunc);
 		if (!analyse_file_ofs.is_open()) {
 			string message = string("Can't open file ") + analyse_path + " for writing.";
@@ -129,7 +130,7 @@ void SystusWriter::getSystusInformations(const SystusModel& systusModel) {
 
 }
 
-void SystusWriter::generateRBEs(const SystusModel& systusModel) {
+void SystusWriter::generateRBEs(const SystusModel& systusModel, const Analysis& analysis) {
 
 	shared_ptr<Mesh> mesh = systusModel.model->mesh;
 	vector<shared_ptr<ConstraintSet>> commonConstraintSets = systusModel.model->getCommonConstraintSets();
@@ -138,7 +139,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel) {
 		for (auto constraint : constraints) {
 			std::shared_ptr<RigidConstraint> rbe2 = std::static_pointer_cast<RigidConstraint>(constraint);
 
-			CellGroup* group = mesh->createCellGroup("RBE2_"+std::to_string(constraint->getId()));
+			CellGroup* group = mesh->createCellGroup("RBE2_"+std::to_string(analysis.getId())+"_"+std::to_string(constraint->getId()));
 
 			Node master = mesh->findNode(rbe2->getMaster());
 			int master_rot_id = 0;
@@ -168,7 +169,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel) {
 		for (auto constraint : constraints) {
 			std::shared_ptr<RBE3> rbe3 = std::static_pointer_cast<RBE3>(constraint);
 
-			CellGroup* group = mesh->createCellGroup("RBE3_"+std::to_string(constraint->getId()));
+			CellGroup* group = mesh->createCellGroup("RBE3_"+std::to_string(analysis.getId())+"_"+std::to_string(constraint->getId()));
 
 			Node master = mesh->findNode(rbe3->getMaster());
 			for (int position : rbe3->getSlaves()){
@@ -183,18 +184,139 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel) {
 
 }
 
-void SystusWriter::fillLists(const SystusModel& systusModel) {
+// Select the Loads of the current analysis and give them a local Systus number.
+void SystusWriter::fillLoads(const SystusModel& systusModel, const Analysis& analysis){
 
-	map<int, map<int, int>> loadingByLoadSetByNodePosition;
-	vector<shared_ptr<LoadSet>> commonLoadSets = systusModel.model->getCommonLoadSets();
-	for (auto loadSet : commonLoadSets) {
+	int idSystusLoad=1;
+
+	localLoadingListIdByLoadingListId.clear();
+
+	vector<shared_ptr<LoadSet>> analysisLoadSets = analysis.getLoadSets();
+	for (auto loadSet : analysisLoadSets) {
+		localLoadingListIdByLoadingListId[loadSet->getId()]= idSystusLoad;
+		idSystusLoad++;
+	}
+
+
+	// We discarded this part, as it creates a useless loadcase
+	// It's a "wrong" translation but it does not create problems
+	/*for (auto constraintSet : commonConstraintSets) {
+			out << idSystusLoad << " \"CONSTRAINTSET_"<< constraintSet->getId() << "\" ";
+			out << "0 0 0 0 0 0 0 7" << endl;
+			idSystusLoad++;
+		}*/
+	// TODO : Check if all loadings are taken into account
+	// TODO : What are GRAVITY Loading
+	/*
+		 for (auto loading : systusModel.model->loadings){
+		 switch (loading->type) {
+		 case Loading::GRAVITY:{
+		 shared_ptr<Gravity> gravity = static_pointer_cast<Gravity>(loading);
+		 out << systusModel.model->loadings.size() + loading->id << " \"LOADING_" <<  loading->id << "\" ";
+		 out << "0 " << loading->id << " 0 0 0 0 0 7" << endl;
+		 break;
+		 }
+		 default:{
+		 // Nothing to do for other cases
+		 }
+		 }
+		 }
+	 */
+}
+
+// Fill the vectors field with Vectors relative to Loadings
+//TODO: add all vectors in this function
+void SystusWriter::fillVectors(const SystusModel& systusModel, const Analysis& analysis){
+
+	int vectorId=1;
+
+	// Cleaning from previous analysis
+	vectors.clear();
+	localVectorIdByLoadingListId.clear();
+
+	// Work
+	for (auto loadset : analysis.getLoadSets()){
+		for (auto loading : loadset->getLoadings()) {
+			vector<double> vec;
+
+			switch (loading->type) {
+			case Loading::NODAL_FORCE: {
+				shared_ptr<NodalForce> nodalForce = static_pointer_cast<NodalForce>(loading);
+				VectorialValue force = nodalForce->getForce();
+				VectorialValue moment = nodalForce->getMoment();
+
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(force.x());
+				vec.push_back(force.y());
+				vec.push_back(force.z());
+				vec.push_back(moment.x());
+				vec.push_back(moment.y());
+				vec.push_back(moment.z());
+
+				vectors[vectorId]=vec;
+				localVectorIdByLoadingListId[loading->getId()]=vectorId;
+				vectorId++;
+				break;
+			}
+			case Loading::GRAVITY: {
+				shared_ptr<Gravity> gravity = static_pointer_cast<Gravity>(loading);
+				VectorialValue acceleration = gravity->getAccelerationVector();
+
+				vec.push_back(1);
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(acceleration.x());
+				vec.push_back(acceleration.y());
+				vec.push_back(acceleration.z());
+
+				vectors[vectorId]=vec;
+				localVectorIdByLoadingListId[loading->getId()]=vectorId;
+				vectorId++;
+				break;
+			}
+			case Loading::DYNAMIC_EXCITATION:{
+				// Nothing to be done here
+				break;
+			}
+			default: {
+				//TODO : throw WriterException("Loading type not supported");
+				cout << "Warning : " << *loading << " not supported" << endl;
+			}
+			}
+		}
+	}
+}
+
+
+void SystusWriter::fillLists(const SystusModel& systusModel, const Analysis& analysis) {
+
+	// Cleaning from previous analysis
+	lists.clear();
+	loadingListIdByNodePosition.clear();
+
+	// Filling lists for Loadings
+	// Format is (indice of list, local loading number, local vector)
+	//TODO: here we take here the indice of the node, but it may not be a good idea
+	map<int, map<int, int>> localVectorsByLocalLoadingByNodePosition;
+	for (auto loadSet : analysis.getLoadSets()) {
 		set<shared_ptr<Loading>> loadings = loadSet->getLoadings();
 		for (auto loading : loadings) {
 			switch (loading->type) {
 			case Loading::NODAL_FORCE: {
 				shared_ptr<NodalForce> nodalForce = static_pointer_cast<NodalForce>(loading);
 				int node = nodalForce->getNode().position;
-				loadingByLoadSetByNodePosition[node][loadSet->getId()] = loading->getId();
+				int localLoadingId = localLoadingListIdByLoadingListId[loadSet->getId()];
+				int localVectorId  = localVectorIdByLoadingListId[loading->getId()];
+
+				localVectorsByLocalLoadingByNodePosition[node][localLoadingId]=localVectorId;
 				break;
 			}
 			case Loading::GRAVITY: {
@@ -211,7 +333,7 @@ void SystusWriter::fillLists(const SystusModel& systusModel) {
 		}
 	}
 
-	for (auto it : loadingByLoadSetByNodePosition) {
+	for (auto it : localVectorsByLocalLoadingByNodePosition) {
 		List list(it.second);
 		lists.push_back(list);
 		loadingListIdByNodePosition[it.first] = list.getId();
@@ -225,6 +347,8 @@ void SystusWriter::fillLists(const SystusModel& systusModel) {
 	else
 		throw WriterException("systusOption not supported");
 
+	//TODO: Constraints are not correctly done
+	constraintByNodePosition.clear();
 	map<int, map<int, int>> constraintByConstraintSetByNodePosition;
 	vector<shared_ptr<ConstraintSet>> commonConstraintSets =
 			systusModel.model->getCommonConstraintSets();
@@ -261,6 +385,7 @@ void SystusWriter::fillLists(const SystusModel& systusModel) {
 		}
 	}
 
+	constraintListIdByNodePosition.clear();
 	for (auto it : constraintByConstraintSetByNodePosition) {
 		List list(it.second);
 		lists.push_back(list);
@@ -269,13 +394,17 @@ void SystusWriter::fillLists(const SystusModel& systusModel) {
 }
 
 
-void SystusWriter::writeAsc(const SystusModel &systusModel, ostream& out) {
+void SystusWriter::writeAsc(const SystusModel &systusModel, const Analysis& analysis, ostream& out) {
 
 	getSystusInformations(systusModel);
 
-	fillLists(systusModel);
+	generateRBEs(systusModel, analysis);
 
-	generateRBEs(systusModel);
+	fillLoads(systusModel, analysis);
+
+	fillVectors(systusModel, analysis);
+
+	fillLists(systusModel, analysis);
 
 	writeHeader(systusModel, out);
 
@@ -292,11 +421,11 @@ void SystusWriter::writeAsc(const SystusModel &systusModel, ostream& out) {
 	out << "BEGIN_MEDIA 0" << endl;
 	out << "END_MEDIA" << endl;
 
-	writeLoads(systusModel, out);
+	writeLoads(systusModel, analysis, out);
 
 	writeLists(systusModel, out);
 
-	writeVectors(systusModel, out);
+	writeVectors(systusModel, analysis, out);
 
 	out << "BEGIN_RELEASES 0" << endl;
 	out << "END_RELEASES" << endl;
@@ -580,87 +709,48 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel, ostream& out) 
 	out << "END_MATERIALS" << endl;
 }
 
-void SystusWriter::writeLoads(const SystusModel& systusModel, ostream& out) {
+void SystusWriter::writeLoads(const SystusModel& systusModel, const Analysis & analysis, ostream& out) {
+
 	out << "BEGIN_LOADS ";
-	vector<shared_ptr<LoadSet>> commonLoadSets = systusModel.model->getCommonLoadSets();
-	vector<shared_ptr<ConstraintSet>> commonConstraintSets =
-			systusModel.model->getCommonConstraintSets();
-	out << commonLoadSets.size() + commonConstraintSets.size() << endl;
-	for (auto loadSet : commonLoadSets) {
-		out << loadSet->getId() << " \"LOADSET_" << loadSet->getId() << "\" ";
+
+	// Number of written loads
+	out << localLoadingListIdByLoadingListId.size() << endl;
+
+	// Writing Loads
+	for (auto load : localLoadingListIdByLoadingListId) {
+		out << load.second << " \"LOADSET_" << load.first << "\" ";
 		out << "0 0 0 0 0 0 0 7" << endl;
 	}
-	for (auto constraintSet : commonConstraintSets) {
-		out << LoadSet::lastAutoId() + constraintSet->getId() << " \"CONSTRAINTSET_"
-				<< constraintSet->getId() << "\" ";
-		out << "0 0 0 0 0 0 0 7" << endl;
-	}
-	// TODO : attention à la confusion de concept :
-	// - risque de Load systus en double (id de LoadSet != id de Loading)
-	// - ajout de loadings non common à toutes les analyses
-	// - ajout de loadings non utilisés à toutes les analyses
-	// il faut faire un save data ascii à partir d'un .DAT pour voir commment traiter ces chargements dans le .ASC (s'il sont "commons" évidement)
-	/*
-	 for (auto loading : systusModel.model->loadings){
-	 switch (loading->type) {
-	 case Loading::GRAVITY:{
-	 shared_ptr<Gravity> gravity = static_pointer_cast<Gravity>(loading);
-	 out << systusModel.model->loadings.size() + loading->id << " \"LOADING_" <<  loading->id << "\" ";
-	 out << "0 " << loading->id << " 0 0 0 0 0 7" << endl;
-	 break;
-	 }
-	 default:{
-	 // Nothing to do for other cases
-	 }
-	 }
-	 }
-	 */
+
 	out << "END_LOADS" << endl;
+
 }
 
 void SystusWriter::writeLists(const SystusModel& systusModel, ostream& out) {
 	UNUSEDV(systusModel);
 	out << "BEGIN_LISTS ";
-	out << lists.size() << " 2" << endl;
+	out << lists.size() << " " <<2*lists.size() << endl;
 	for (auto list : lists) {
 		list.write(out);
 	}
 	out << "END_LISTS" << endl;
 }
 
-void SystusWriter::writeVectors(const SystusModel& systusModel, ostream& out) {
+void SystusWriter::writeVectors(const SystusModel& systusModel, const Analysis & analysis, ostream& out) {
+
 	out << "BEGIN_VECTORS "
-			<< systusModel.model->loadings.size() + systusModel.model->constraints.size()
+			<< vectors.size() + systusModel.model->constraints.size()
 					+ systusModel.model->coordinateSystems.size() << endl;
 
-	for (auto loading : systusModel.model->loadings) {
-		switch (loading->type) {
-		case Loading::NODAL_FORCE: {
-			shared_ptr<NodalForce> nodalForce = static_pointer_cast<NodalForce>(loading);
-			VectorialValue force = nodalForce->getForce();
-			VectorialValue moment = nodalForce->getMoment();
-			out << loading->getId() << " 0 0 0 0 0 0 ";
-			out << force.x() << " " << force.y() << " " << force.z() << " ";
-			out << moment.x() << " " << moment.y() << " " << moment.z() << endl;
-			break;
-		}
-		case Loading::GRAVITY: {
-			shared_ptr<Gravity> gravity = static_pointer_cast<Gravity>(loading);
-			out << loading->getId() << " 1 0 0 0 0 0 ";
-			VectorialValue acceleration = gravity->getAccelerationVector();
-			out << acceleration.x() << " " << acceleration.y() << " " << acceleration.z() << endl;
-			break;
-		}
-		case Loading::DYNAMIC_EXCITATION:{
-			// Nothing to be done here
-			break;
-		}
-		default: {
-			//TODO : throw WriterException("Loading type not supported");
-			cout << "Warning : " << *loading << " not supported" << endl;
-		}
-		}
+	// Writing vectors from Loads
+	for (auto vector : vectors) {
+		out << vector.first;
+		for (auto d : vector.second)
+			out << " " << d;
+		out << endl;
 	}
+
+	//TODO: transfer the construction of these vectors to the fillVectors function
 	for (auto constraint : systusModel.model->constraints) {
 		switch (constraint->type) {
 		case Constraint::SPC: {
@@ -670,7 +760,7 @@ void SystusWriter::writeVectors(const SystusModel& systusModel, ostream& out) {
 				cout << "Warning : " << *constraint
 						<< " SPC with references to functions not supported" << endl;
 			} else {
-				out << Loading::lastAutoId() + constraint->getId() << " 4 0 0 0 0 0 ";
+				out << vectors.size() + constraint->getId() << " 4 0 0 0 0 0 ";
 				DOFS spcDOFS = spc->getDOFSForNode(0);
 				for (DOF dof : DOFS::ALL_DOFS) {
 					out << (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0) << " ";
@@ -693,7 +783,7 @@ void SystusWriter::writeVectors(const SystusModel& systusModel, ostream& out) {
 	}
 	for (auto coordinateSystem : systusModel.model->coordinateSystems) {
 		VectorialValue angles = coordinateSystem->getEulerAnglesIntrinsicZYX();
-		out << Loading::lastAutoId() + Constraint::lastAutoId() + coordinateSystem->getId()
+		out << vectors.size() + Constraint::lastAutoId() + coordinateSystem->getId()
 				<< " 0 0 0 0 0 0 ";
 		out << angles.x() << " " << angles.y() << " " << angles.z() << endl;
 	}
