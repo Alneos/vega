@@ -60,7 +60,7 @@ string SystusWriter::writeModel(const shared_ptr<Model> model,
 	}
 
 	ofstream dat_file_ofs;
-	string dat_path = systusModel.getOutputFileName(".DAT");
+	string dat_path = systusModel.getOutputFileName("_ALL.DAT");
 	dat_file_ofs.open(dat_path.c_str(), ios::trunc);
 	if (!dat_file_ofs.is_open()) {
 		string message = string("Can't open file ") + dat_path + " for writing.";
@@ -76,7 +76,7 @@ string SystusWriter::writeModel(const shared_ptr<Model> model,
 		const Analysis& analysis = *it;
 
 		/* ASCI file */
-		string asc_path = systusModel.getOutputFileName("_DATA" + to_string(analysis.getId()) + ".ASC");
+		string asc_path = systusModel.getOutputFileName("_SC" + to_string(analysis.getId())+ "_DATA1.ASC");
 		ofstream asc_file_ofs;
 		asc_file_ofs.precision(DBL_DIG);
 		asc_file_ofs.open(asc_path.c_str(), ios::trunc | ios::out);
@@ -90,16 +90,17 @@ string SystusWriter::writeModel(const shared_ptr<Model> model,
 		/* Analysis file */
 		ofstream analyse_file_ofs;
 		analyse_file_ofs.precision(DBL_DIG);
-		string analyse_path = systusModel.getOutputFileName("_" + to_string(analysis.getId()) + ".DAT");
+		string analyse_path = systusModel.getOutputFileName("_SC" + to_string(analysis.getId()) + ".DAT");
 		analyse_file_ofs.open(analyse_path.c_str(), ios::trunc);
+
 		if (!analyse_file_ofs.is_open()) {
 			string message = string("Can't open file ") + analyse_path + " for writing.";
 			throw ios::failure(message);
 		}
 		this->writeDat(systusModel, analysis, analyse_file_ofs);
-		dat_file_ofs << "READ " << systusModel.getName() << "_" << analysis.getId() << ".DAT"
-				<< endl;
 		analyse_file_ofs.close();
+
+		dat_file_ofs << "READ " << systusModel.getName() << "_SC" << analysis.getId() << ".DAT" << endl;
 	}
 	dat_file_ofs.close();
 
@@ -861,143 +862,108 @@ void SystusWriter::writeMasses(const SystusModel &systusModel, ostream& out) {
 
 void SystusWriter::writeDat(const SystusModel& systusModel, const Analysis& analysis,
 		ostream& out) {
-	set<shared_ptr<ConstraintSet>> uncommonConstaintSets =
-			systusModel.model->getUncommonConstraintSets();
-	set<shared_ptr<LoadSet>> uncommonLoadSets = systusModel.model->getUncommonLoadSets();
-	out << "NAME " << systusModel.getName() << "_" << endl;
-	out << endl;
-	out << "SEARCH DATA 1 ASCII" << endl << endl;
 
-	out << "DEFINITION REST" << endl;
-	out << "CONSTRAINTS CONT" << endl;
-	for (auto constraintSet : analysis.getConstraintSets()) {
-		if (uncommonConstaintSets.find(constraintSet) != uncommonConstaintSets.end())
-			writeConstraint(systusModel, *constraintSet, out);
-	}
-	size_t number_of_loads = systusModel.model->getCommonConstraintSets().size()
-					+ systusModel.model->getCommonLoadSets().size();
-	if (number_of_loads)
-		out << "LOADS CONT" << endl;
-	else
-		out << "LOADS" << endl;
-	for (auto loadSet : analysis.getLoadSets()) {
-		if (uncommonLoadSets.find(loadSet) != uncommonLoadSets.end()) {
-			out << ++number_of_loads << " \"LOADSET_" << loadSet->getId() << "\" /";
-			out << " NOTHING" << endl;
-			writeLoad(*loadSet, out);
-		}
-	}
-	for (auto constraintSet : analysis.getConstraintSets()) {
-		if (uncommonConstaintSets.find(constraintSet) != uncommonConstaintSets.end()) {
-			out << ++number_of_loads << " \"CONSTRAINTSET_" << constraintSet->getId() << "\" /";
-			out << " NOTHING" << endl;
-			writeLoad(*constraintSet, out);
-		}
-	}
-	out << "RETURN" << endl << endl;
+	out << "NAME " << systusModel.getName() << "_SC" << analysis.getId() << "_" << endl;
+	out << endl;
+	out << "SEARCH DATA 1 ASCII" << endl;
+	out << endl;
 
 	switch (analysis.type) {
 	case Analysis::LINEAR_MECA_STAT: {
+
 		out << "SOLVE METHOD OPTIMISED" << endl;
-		out << "COMB STOR RESU" << endl;
-		out << " ANALYSE " << analysis.getId() << " /";
-		for (size_t i_load = 1; i_load <= number_of_loads; i_load++)
-			out << " 1 " << i_load;
-		out << endl << "RETURN" << endl;
-		out << "SAVE DATA RESU " << analysis.getId() << endl;
-		out << "CONVERT RESU" << endl;
-		out << "POST " << analysis.getId() << endl;
-		out << "RETURN" << endl;
-		out << "COMB DISP BOUN" << endl;
-		out << "LOAD 1" << endl;
-		out << "RETURN" << endl;
-		out << endl;
 		break;
 	}
 	case Analysis::LINEAR_MODAL:
 	case Analysis::LINEAR_DYNA_MODAL_FREQ: {
-		map<int, shared_ptr<DynamicExcitation>> DynamicExcitationByLoadId;
-		if (analysis.type == Analysis::LINEAR_DYNA_MODAL_FREQ){
-			out << "DEFINITION REST" << endl;
-			if (number_of_loads)
-				out << "LOADS CONT" << endl;
-			else
-				out << "LOADS" << endl;
-			for (auto loadSet : analysis.getLoadSets()) {
-				if (loadSet->type != LoadSet::DLOAD)
-					throw WriterException(to_str(*loadSet) + "is not a DLOAD type");
-				for (auto loading : loadSet->getLoadings()) {
-					if (loading->type != Loading::DYNAMIC_EXCITATION)
-						throw WriterException(to_str(*loading) + "is not a DYNAMIC_EXCITATION type");
-					shared_ptr<DynamicExcitation> dynamicExcitation = static_pointer_cast<DynamicExcitation>(loading);
-					DynamicExcitationByLoadId[int(++number_of_loads)] = dynamicExcitation;
-					out << number_of_loads << " \"DYNAMIC_EXCITATION_" << number_of_loads << "\" /";
-					out << " NOTHING" << endl;
-					writeLoad(*(dynamicExcitation->getLoadSet()), out);
-				}
-			}
-			out << "RETURN" << endl << endl;
-		}
-
+		out << "# SOLVE FILE TO USE THE DYNAMIC SOLVER" << endl;
+		out << "# USE FOR EIGEN FREQUENCY CRITERION" << endl;
+		out << endl;
+		out << "# COMPUTING MASS MATRIX" << endl;
+		out << "# AS THE COMMAND DYNAMIC COMPUTE THEM, IT SHOULD BE USELESS." << endl;
+		out << "# BUT THERE SEEM TO BE BUGS ON THE COMMAND, SO WE USE EXPLICITLY THE COMMAND" << endl;
+		out << "SOLVE STIFFNESS MASS" << endl;
+		out << endl;
+		out << "# COMPUTE MODES" << endl;
 		out << "DYNAMIC" << endl;
+		out << endl;
+
 		const LinearModal& linearModal = static_cast<const LinearModal&>(analysis);
 		FrequencyBand& frequencyBand = *(linearModal.getFrequencyBand());
-		out << "MODES SUBSPACE " << (is_equal(frequencyBand.upper, vega::Globals::UNAVAILABLE_DOUBLE) ? "BLOCK 3":"BAND") << endl;
-		out << "METHOD OPTI" << endl;
-		out << "VECTORS " << (frequencyBand.num_max == vega::Globals::UNAVAILABLE_INT ? "":to_string(frequencyBand.num_max)+" ");
+		string smodes= (frequencyBand.num_max == vega::Globals::UNAVAILABLE_INT ? "":to_string(frequencyBand.num_max));
+		string siters= (frequencyBand.num_max == vega::Globals::UNAVAILABLE_INT ? "":to_string(2*frequencyBand.num_max));
+		out << "# WE COMPUTE "<< smodes << " MODES." << endl;
+		out << "# IT'S AN ITERATIVE MEHOD, WITH A MAXIMUM OF "<< siters <<" ITERATIONS" << endl;
+		out << "MODE SUBSPACE " << (is_equal(frequencyBand.upper, vega::Globals::UNAVAILABLE_DOUBLE) ? "BLOCK 6":"BAND") << endl;
+		out << "METHOD OPTIMIZED" << endl;
+		out << "VECTOR "<< smodes <<" ITER "<< siters <<" EPSILON 1*-5";
 		if (!is_equal(frequencyBand.upper, vega::Globals::UNAVAILABLE_DOUBLE))
-			out << "STURM FREQ " << frequencyBand.upper;
+			out << " STURM FREQ " << frequencyBand.upper;
+		else
+			out << " NORM MASS";
 		out << endl;
 		if (!is_equal(frequencyBand.lower, vega::Globals::UNAVAILABLE_DOUBLE) && !is_equal(frequencyBand.lower, 0))
 			cout << "Warning : lower frequencyBand not supported" << endl;
-		out << "RETURN" << endl << endl;
+		out << "RETURN" << endl;
 
-		if (analysis.type == Analysis::LINEAR_DYNA_MODAL_FREQ){
+		out << endl;
+		out << "# COMPUTE THE 'TENSEUR DE DÉFORMATION ET DE CONTRAINTES' (IN FRENCH IN THE TEXT ;)" << endl;
+		out << "# MANDATORY TO COMPUTE THE GRADIENTS OF THE FREQUENCY CRITERIONS." << endl;
+		out << "SOLVE FORCE" << endl;
 
-			const LinearDynaModalFreq& linearDynaModalFreq = static_cast<const LinearDynaModalFreq&>(analysis);
-
-			out << "DYNAMIC" << endl;
-			out << "PARTICIPATION DOUBLE FORCE DISPL" << endl;
-			out << "RETURN" << endl;
-			out << "SOLVE FORCE MODAL" << endl << endl;
-
-			out << "DYNAMIC" << endl;
-			out << "HARMONIC RESPONSE MODAL FORCE DISPL" << endl;
-
-			shared_ptr<StepRange> freqValueSteps = linearDynaModalFreq.getFrequencyValues()->getStepRange();
-			out << "FREQUENCY INITIAL " << freqValueSteps->start - freqValueSteps->step << endl;
-			out << " " << freqValueSteps->end << " STEP " << freqValueSteps->step << endl;
-
-			shared_ptr<FunctionTable> modalDampingTable = linearDynaModalFreq.getModalDamping()->getFunctionTable();
-			out << "DAMPING MODAL" << endl;
-			for (auto it = modalDampingTable->getBeginValuesXY(); it != modalDampingTable->getEndValuesXY(); it++){
-				out << " " << it->first << " / (GAMMA) " << it->second << endl;
-				cout << "modal damping must be defined by {mode num}/value and not frequence/value " << endl;
-			}
-			out << endl;
-
-			for (auto it : DynamicExcitationByLoadId){
-				cout << "phase and amplitude not taken into account for load " << it.first << endl;
-				it.second->getDynaPhase();
-				it.second->getFunctionTableB();
-			}
-
-			out << "TRANSFER STATIONARY" << endl;
-			out << "DISPLACEMENT" << endl;
-			out << "RETURN" << endl << endl;
-
-			string("Analysis " + Analysis::stringByType.at(analysis.type) + " not (finish) implemented");
-		}
-		out << "SAVE DATA RESU " << analysis.getId() << endl;
-		out << "CONVERT RESU" << endl;
-		out << "POST " << analysis.getId() << endl;
-		out << "RETURN" << endl << endl;
+		//TODO: Disable for now. Is it useful?
+		//		if (analysis.type == Analysis::LINEAR_DYNA_MODAL_FREQ){
+		//
+		//			const LinearDynaModalFreq& linearDynaModalFreq = static_cast<const LinearDynaModalFreq&>(analysis);
+		//
+		//			out << "DYNAMIC" << endl;
+		//			out << "PARTICIPATION DOUBLE FORCE DISPL" << endl;
+		//			out << "RETURN" << endl;
+		//			out << "SOLVE FORCE MODAL" << endl << endl;
+		//
+		//			out << "DYNAMIC" << endl;
+		//			out << "HARMONIC RESPONSE MODAL FORCE DISPL" << endl;
+		//
+		//			shared_ptr<StepRange> freqValueSteps = linearDynaModalFreq.getFrequencyValues()->getStepRange();
+		//			out << "FREQUENCY INITIAL " << freqValueSteps->start - freqValueSteps->step << endl;
+		//			out << " " << freqValueSteps->end << " STEP " << freqValueSteps->step << endl;
+		//
+		//			shared_ptr<FunctionTable> modalDampingTable = linearDynaModalFreq.getModalDamping()->getFunctionTable();
+		//			out << "DAMPING MODAL" << endl;
+		//			for (auto it = modalDampingTable->getBeginValuesXY(); it != modalDampingTable->getEndValuesXY(); it++){
+		//				out << " " << it->first << " / (GAMMA) " << it->second << endl;
+		//				cout << "modal damping must be defined by {mode num}/value and not frequence/value " << endl;
+		//			}
+		//			out << endl;
+		//
+		//			for (auto it : DynamicExcitationByLoadId){
+		//				cout << "phase and amplitude not taken into account for load " << it.first << endl;
+		//				it.second->getDynaPhase();
+		//				it.second->getFunctionTableB();
+		//			}
+		//
+		//			out << "TRANSFER STATIONARY" << endl;
+		//			out << "DISPLACEMENT" << endl;
+		//			out << "RETURN" << endl << endl;
+		//
+		//			string("Analysis " + Analysis::stringByType.at(analysis.type) + " not (finish) implemented");
+		//		}
+		//		out << "SAVE DATA RESU " << analysis.getId() << endl;
+		//		out << "CONVERT RESU" << endl;
+		//		out << "POST " << analysis.getId() << endl;
+		//		out << "RETURN" << endl << endl;
 		break;
 	}
 	default:
 		throw WriterException(
 				string("Analysis " + Analysis::stringByType.at(analysis.type) + " not (yet) implemented"));
 	}
+
+    // We Save Result
+	out << endl;
+	out << "# Saving result" << endl;
+	out << "SAVE DATA RESU 1" << endl;
+	out << endl;
 
 	vector<shared_ptr<Assertion>> assertions = analysis.getAssertions();
 	if (!assertions.empty()) {
@@ -1030,6 +996,8 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const Analysis& anal
 		out << "end;" << endl;
 	}
 }
+
+
 
 void SystusWriter::writeConstraint(const SystusModel& systusModel,
 		const ConstraintSet& constraintSet, ostream& out) {
