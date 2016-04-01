@@ -230,7 +230,7 @@ void SystusWriter::fillLoads(const SystusModel& systusModel, const Analysis& ana
 	 */
 }
 
-// Fill the vectors field with Vectors relative to Loadings
+// Fill the vectors field with Vectors relative to Loadings and Castings
 //TODO: add all vectors in this function
 void SystusWriter::fillVectors(const SystusModel& systusModel, const Analysis& analysis){
 
@@ -239,8 +239,9 @@ void SystusWriter::fillVectors(const SystusModel& systusModel, const Analysis& a
 	// Cleaning from previous analysis
 	vectors.clear();
 	localVectorIdByLoadingListId.clear();
+	localVectorIdByConstraintListId.clear();
 
-	// Work
+	// Add Loadcase Loading Vectors
 	for (auto loadset : analysis.getLoadSets()){
 		for (auto loading : loadset->getLoadings()) {
 			vector<double> vec;
@@ -299,7 +300,102 @@ void SystusWriter::fillVectors(const SystusModel& systusModel, const Analysis& a
 			}
 		}
 	}
+
+
+	// Add Loadcase Constraint Vectors
+	// TODO: Add Subcase Constraint Vectors
+	for (auto constraintset : analysis.getConstraintSets()){
+		for (auto constraint : constraintset->getConstraints()) {
+			vector<double> vec;
+
+			switch (constraint->type) {
+			case Constraint::SPC: {
+				std::shared_ptr<SinglePointConstraint> spc = std::static_pointer_cast<SinglePointConstraint>(constraint);
+				//TODO: Null vectors should be overlooked
+				if (spc->hasReferences()) {
+					cout << "Warning : " << *constraint << " SPC with references to functions not supported" << endl;
+				} else {
+					vec.push_back(4);
+					vec.push_back(0);
+					vec.push_back(0);
+					vec.push_back(0);
+					vec.push_back(0);
+					vec.push_back(0);
+					DOFS spcDOFS = spc->getDOFSForNode(0);
+					for (DOF dof : DOFS::ALL_DOFS) {
+						vec.push_back( (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0) );
+					}
+					vectors[vectorId]=vec;
+					localVectorIdByConstraintListId[constraint->getId()]=vectorId;
+					vectorId++;
+				}
+				break;
+			}
+			case Constraint::RIGID:
+			case Constraint::RBE3:{
+				// Nothing to be done here
+				break;
+			}
+			default: {
+				//TODO : throw WriterException("Constraint type not supported");
+				cout << "Warning : " << *constraint << " not supported" << endl;
+			}
+			}
+		}
+	}
+
 }
+
+
+void SystusWriter::fillConstraintLists(const std::shared_ptr<ConstraintSet> & constraintSet, std::map<int, std::map<int, int>> & localVectorsByLocalLoadingByNodePosition){
+
+	char dofCode;
+	if (systusOption == 3)
+		dofCode = (char) DOFS::ALL_DOFS;
+	else if (systusOption == 4)
+		dofCode = (char) DOFS::TRANSLATIONS;
+	else
+		throw WriterException("systusOption not supported");
+
+
+	for (auto constraint : constraintSet->getConstraints()) {
+
+		switch (constraint->type) {
+		case Constraint::SPC: {
+			std::shared_ptr<SinglePointConstraint> spc = std::static_pointer_cast<
+					SinglePointConstraint>(constraint);
+			for (int nodePosition : constraint->nodePositions()) {
+
+				// TODO: We suppose here that the ConstrainSet have the same numbering as its corresponding LoadCase. Seems dangerous.
+				int localLoadingId = localLoadingListIdByLoadingListId[constraintSet->getId()];
+				int localVectorId  = localVectorIdByConstraintListId[constraint->getId()];
+
+				localVectorsByLocalLoadingByNodePosition[nodePosition][localLoadingId]=localVectorId;
+
+				// We compute the Degree Of Freedom of the node (see ASC Manual)
+				DOFS constrained = constraint->getDOFSForNode(nodePosition);
+				if (constraintByNodePosition.find(nodePosition) == constraintByNodePosition.end())
+					constraintByNodePosition[nodePosition] = char(constrained) & dofCode;
+				else
+					constraintByNodePosition[nodePosition] = (char(constrained) & dofCode)
+					| constraintByNodePosition[nodePosition];
+			}
+			break;
+		}
+		case Constraint::RIGID:
+		case Constraint::RBE3:{
+			// Nothing to be done here
+			break;
+		}
+		default: {
+			//cout << typeid(*constraint).name() << endl;
+			//TODO : throw WriterException("Constraint type not supported");
+			cout << "Warning : " << *constraint << " not supported" << endl;
+		}
+		}
+	}
+}
+
 
 
 void SystusWriter::fillLists(const SystusModel& systusModel, const Analysis& analysis) {
@@ -307,6 +403,8 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const Analysis& ana
 	// Cleaning from previous analysis
 	lists.clear();
 	loadingListIdByNodePosition.clear();
+	constraintListIdByNodePosition.clear();
+	constraintByNodePosition.clear();
 
 	// Filling lists for Loadings
 	// Format is (indice of list, local loading number, local vector)
@@ -345,54 +443,26 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const Analysis& ana
 		loadingListIdByNodePosition[it.first] = list.getId();
 	}
 
-	char dofCode;
-	if (systusOption == 3)
-		dofCode = (char) DOFS::ALL_DOFS;
-	else if (systusOption == 4)
-		dofCode = (char) DOFS::TRANSLATIONS;
-	else
-		throw WriterException("systusOption not supported");
 
-	//TODO: Constraints are not correctly done
-	constraintByNodePosition.clear();
-	map<int, map<int, int>> constraintByConstraintSetByNodePosition;
-	vector<shared_ptr<ConstraintSet>> commonConstraintSets =
-			systusModel.model->getCommonConstraintSets();
-	for (auto constraintSet : commonConstraintSets) {
-		set<shared_ptr<Constraint>> constraints = constraintSet->getConstraints();
-		for (auto constraint : constraints) {
-			switch (constraint->type) {
-			case Constraint::SPC: {
-				std::shared_ptr<SinglePointConstraint> spc = std::static_pointer_cast<
-						SinglePointConstraint>(constraint);
-				for (int nodePosition : constraint->nodePositions()) {
-					constraintByConstraintSetByNodePosition[nodePosition][LoadSet::lastAutoId()
-							+ constraintSet->getId()] = Loading::lastAutoId() + constraint->getId();
-					DOFS constrained = constraint->getDOFSForNode(nodePosition);
-					if (constraintByNodePosition.find(nodePosition) == constraintByNodePosition.end())
-						constraintByNodePosition[nodePosition] = char(constrained) & dofCode;
-					else
-						constraintByNodePosition[nodePosition] = (char(constrained) & dofCode)
-								| constraintByNodePosition[nodePosition];
-				}
-				break;
-			}
-			case Constraint::RIGID:
-			case Constraint::RBE3:{
-				// Nothing to be done here
-				break;
-			}
-			default: {
-				//cout << typeid(*constraint).name() << endl;
-				//TODO : throw WriterException("Constraint type not supported");
-				cout << "Warning : " << *constraint << " not supported" << endl;
-			}
-			}
-		}
+
+
+	// Filling lists for Common (Subcase?) Constraints
+	//TODO: This is still buggy, as I don't understand what VEGA put in "common" constraints
+	localVectorsByLocalLoadingByNodePosition.clear();
+    //vector<shared_ptr<ConstraintSet>> commonConstraintSets = systusModel.model->getCommonConstraintSets();
+    //for (auto constraintSet : commonConstraintSets){
+	//		cout << "Filling List for Common ConstraintSet "<<constraintSet->getId()<<" of size "<< constraintSet->size()<< endl;
+	//		fillConstraintLists(constraintSet, localVectorsByLocalLoadingByNodePosition);
+	//	}
+
+	// Filling lists for Loadcase Constraints
+	for (auto constraintSet : analysis.getConstraintSets()){
+		//cout << "Filling List for ConstraintSet "<<constraintSet->getId()<<" of size "<< constraintSet->size()<< endl;
+		fillConstraintLists(constraintSet, localVectorsByLocalLoadingByNodePosition);
 	}
 
 	constraintListIdByNodePosition.clear();
-	for (auto it : constraintByConstraintSetByNodePosition) {
+	for (auto it : localVectorsByLocalLoadingByNodePosition) {
 		List list(it.second);
 		lists.push_back(list);
 		constraintListIdByNodePosition[it.first] = list.getId();
@@ -741,8 +811,7 @@ void SystusWriter::writeLists(const SystusModel& systusModel, ostream& out) {
 void SystusWriter::writeVectors(const SystusModel& systusModel, const Analysis & analysis, ostream& out) {
 
 	out << "BEGIN_VECTORS "
-			<< vectors.size() + systusModel.model->constraints.size()
-					+ systusModel.model->coordinateSystems.size() << endl;
+			<< vectors.size() + systusModel.model->coordinateSystems.size() << endl;
 
 	// Writing vectors from Loads
 	for (auto vector : vectors) {
@@ -753,36 +822,6 @@ void SystusWriter::writeVectors(const SystusModel& systusModel, const Analysis &
 	}
 
 	//TODO: transfer the construction of these vectors to the fillVectors function
-	for (auto constraint : systusModel.model->constraints) {
-		switch (constraint->type) {
-		case Constraint::SPC: {
-			std::shared_ptr<SinglePointConstraint> spc = std::static_pointer_cast<
-					SinglePointConstraint>(constraint);
-			if (spc->hasReferences()) {
-				cout << "Warning : " << *constraint
-						<< " SPC with references to functions not supported" << endl;
-			} else {
-				out << vectors.size() + constraint->getId() << " 4 0 0 0 0 0 ";
-				DOFS spcDOFS = spc->getDOFSForNode(0);
-				for (DOF dof : DOFS::ALL_DOFS) {
-					out << (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0) << " ";
-				}
-				out << endl;
-			}
-			break;
-		}
-		case Constraint::RIGID:
-		case Constraint::RBE3:{
-			// Nothing to be done here
-			break;
-		}
-		default: {
-			//TODO : throw WriterException("Constraint type not supported");
-			cout << "Warning : " << *constraint << " not supported" << endl;
-		}
-		}
-
-	}
 	for (auto coordinateSystem : systusModel.model->coordinateSystems) {
 		VectorialValue angles = coordinateSystem->getEulerAnglesIntrinsicZYX();
 		out << vectors.size() + Constraint::lastAutoId() + coordinateSystem->getId()

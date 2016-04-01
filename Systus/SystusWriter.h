@@ -50,6 +50,7 @@ class SystusWriter: public Writer {
 	int RBE3rbarsElementId = 0;
 	map<int, int> localLoadingListIdByLoadingListId;
 	map<int, int> localVectorIdByLoadingListId;
+	map<int, int> localVectorIdByConstraintListId;
 	map<int, int> loadingListIdByNodePosition;
 	map<int, int> constraintListIdByNodePosition;
 	map<int, char> constraintByNodePosition;
@@ -214,6 +215,7 @@ class SystusWriter: public Writer {
 	void getSystusInformations(const SystusModel&);
 	void fillLoads(const SystusModel&, const Analysis&);
 	void fillVectors(const SystusModel&, const Analysis&);
+	void fillConstraintLists(const std::shared_ptr<ConstraintSet> & , std::map<int, std::map<int, int>> &);
 	void fillLists(const SystusModel&, const Analysis&);
 	void generateRBEs(const SystusModel&);
 	void writeHeader(const SystusModel&, std::ostream&);
