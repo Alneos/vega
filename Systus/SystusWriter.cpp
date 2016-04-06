@@ -367,8 +367,8 @@ void SystusWriter::fillConstraintLists(const std::shared_ptr<ConstraintSet> & co
 					SinglePointConstraint>(constraint);
 			for (int nodePosition : constraint->nodePositions()) {
 
-				// TODO: We suppose here that the ConstrainSet have the same numbering as its corresponding LoadCase. Seems dangerous.
-				int localLoadingId = localLoadingListIdByLoadingListId[constraintSet->getId()];
+				// TODO: We suppose here that the ConstrainSet applies to the loadcase 1. Only work with one loadcase, obviously.
+				int localLoadingId = 1;
 				int localVectorId  = localVectorIdByConstraintListId[constraint->getId()];
 
 				localVectorsByLocalLoadingByNodePosition[nodePosition][localLoadingId]=localVectorId;
@@ -406,6 +406,7 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const Analysis& ana
 	loadingListIdByNodePosition.clear();
 	constraintListIdByNodePosition.clear();
 	constraintByNodePosition.clear();
+	int idSystusList=1;
 
 	// Filling lists for Loadings
 	// Format is (indice of list, local loading number, local vector)
@@ -439,9 +440,9 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const Analysis& ana
 	}
 
 	for (auto it : localVectorsByLocalLoadingByNodePosition) {
-		List list(it.second);
-		lists.push_back(list);
-		loadingListIdByNodePosition[it.first] = list.getId();
+		lists[idSystusList]=it.second;
+		loadingListIdByNodePosition[it.first] = idSystusList;
+		idSystusList++;
 	}
 
 
@@ -464,9 +465,9 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const Analysis& ana
 
 	constraintListIdByNodePosition.clear();
 	for (auto it : localVectorsByLocalLoadingByNodePosition) {
-		List list(it.second);
-		lists.push_back(list);
-		constraintListIdByNodePosition[it.first] = list.getId();
+		lists[idSystusList]=it.second;
+		constraintListIdByNodePosition[it.first] = idSystusList;
+		idSystusList++;
 	}
 }
 
@@ -625,13 +626,13 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 		}
 		default: {
 			//TODO : throw WriterException("ElementSet type not supported");
-			cout << "Warning : " << *elementSet << " not supported" << endl;
+			cout << "Warning in Elements: " << *elementSet << " not supported" << endl;
 		}
 		}
 		for (const Cell& cell : cellGroup->getCells()) {
 			auto systus2med_it = systus2medNodeConnectByCellType.find(cell.type.code);
 			if (systus2med_it == systus2medNodeConnectByCellType.end()) {
-				cout << "Warning : " << cell << " not supported in Systus" << endl;
+				cout << "Warning in Elements: " << cell << " not supported in Systus" << endl;
 				continue;
 			}
 			out << cell.id << " " << dim << 0 << setfill('0') << setw(2)
@@ -756,7 +757,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel, ostream& out) 
 					break;
 				}
 				default:
-					cout << "Warning : " << *elementSet << " not supported" << endl;
+					cout << "Warning in Materials: " << *elementSet << " not supported" << endl;
 				}
 				nbmaterials++;
 				omat << endl;
@@ -802,9 +803,13 @@ void SystusWriter::writeLoads(const SystusModel& systusModel, const Analysis & a
 void SystusWriter::writeLists(const SystusModel& systusModel, ostream& out) {
 	UNUSEDV(systusModel);
 	out << "BEGIN_LISTS ";
+	//TODO: The second number should be the total number of elements of all lists. It is false for generic lists.
 	out << lists.size() << " " <<2*lists.size() << endl;
 	for (auto list : lists) {
-		list.write(out);
+		out << list.first;
+		for (auto d : list.second)
+			out << " " << d.first << " " << d.second;
+		out << endl;
 	}
 	out << "END_LISTS" << endl;
 }

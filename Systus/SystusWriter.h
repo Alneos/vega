@@ -29,20 +29,8 @@ class SystusWriter: public Writer {
 	int systusOption = 0;
 	int maxNumNodes = 0;
 	int nbNodes = 0;
-	class List: public Identifiable<List> {
-		map<int, int> iVectByiLoad;
-	public:
-		List(const map<int, int>& iVectByiLoad) :
-				Identifiable(), iVectByiLoad(iVectByiLoad) {
-		}
-		void write(std::ostream& out) {
-			out << getId();
-			for (auto it : iVectByiLoad)
-				out << " " << it.first << " " << it.second;
-			out << endl;
-		}
-	};
-	vector<List> lists;
+	
+	map<int, map<int, int>> lists;
 	map<int, vector<double>> vectors;
 	vector<int> RBE2rbarPositions;
 	vector<int> RBE3rbarPositions;
