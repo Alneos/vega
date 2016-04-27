@@ -619,9 +619,11 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 			dim = 3;
 			break;
 		}
-		case ElementSet::NODAL_MASS:
-			case ElementSet::DISCRETE_0D:
-			case ElementSet::DISCRETE_1D: {
+		case ElementSet::NODAL_MASS:{
+			continue;
+		}
+		case ElementSet::DISCRETE_0D:
+		case ElementSet::DISCRETE_1D: {
 			continue;
 		}
 		default: {
@@ -675,6 +677,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 	out << "END_ELEMENTS" << endl;
 }
 
+// TODO: Add an option to only write the User groups, and not all vega-created groups.
 void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
 	vector<NodeGroup*> nodeGroups = systusModel.model->mesh->getNodeGroups();
 	vector<CellGroup*> cellGroups = systusModel.model->mesh->getCellGroups();
@@ -683,11 +686,17 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
 	out << cellGroups.size() + nodeGroups.size() << endl;
 	for (auto cellGroup : cellGroups) {
 		//1 E2D 2 0 "SYST DIMENSION 2" "" "Comments of the group" 101 102 103 201 202 203 301 302 303
-		out << cellGroup->getId() << " " << cellGroup->getName()
-				<< " 2 0 \"No method\" \"\" \"No Comments\"";
-		for (auto cell : cellGroup->getCells())
-			out << " " << cell.id;
-		out << endl;
+
+		// We don't write the groups of Nodal Mass, as they are not cells in Systus
+		// It IS an Ugly Fix. I know it is.
+		// TODO: DO better
+		if (cellGroup->getName().substr(0,2)!="MN"){
+			out << cellGroup->getId() << " " << cellGroup->getName()
+						<< " 2 0 \"No method\" \"\" \"No Comments\"";
+			for (auto cell : cellGroup->getCells())
+				out << " " << cell.id;
+			out << endl;
+		}
 	}
 
 	for (auto nodeGroup : nodeGroups) {
@@ -702,8 +711,8 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
 
 void SystusWriter::writeMaterials(const SystusModel& systusModel, ostream& out) {
 
-	ostringstream omat;
-	omat.precision(DBL_DIG);
+	ostringstream ogmat;
+	ogmat.precision(DBL_DIG);
 	int nbmaterials= 0;
 	int nbelements = 0;
 
@@ -712,19 +721,22 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel, ostream& out) 
 		if (material != nullptr && elementSet->cellGroup != nullptr) {
 			const shared_ptr<Nature> nature = material->findNature(Nature::NATURE_ELASTIC);
 			if (nature) {
+				ostringstream omat;
+				omat.precision(DBL_DIG);
+				int nbElementsMaterial=0;
 				const ElasticNature& elasticNature = dynamic_cast<ElasticNature&>(*nature);
 				omat << elementSet->getId() << " 0 ";
 				if (elasticNature.getRho()>0.0){
 					omat << "4 " << elasticNature.getRho() << " ";
-					nbelements++;
+					nbElementsMaterial++;
 				}
 				if (elasticNature.getE()>0.0){
 					omat << "5 " << elasticNature.getE() << " ";
-					nbelements++;
+					nbElementsMaterial++;
 				}
 				if (elasticNature.getNu()>0.0){
 					omat << "6 " << elasticNature.getNu() << " ";
-					nbelements++;
+					nbElementsMaterial++;
 				}
 				switch (elementSet->type) {
 				case (ElementSet::GENERIC_SECTION_BEAM): {
@@ -736,50 +748,56 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel, ostream& out) 
 					omat << "14 " << genericBeam->getTorsionalConstant() << " ";
 					omat << "15 " << genericBeam->getMomentOfInertiaY() << " ";
 					omat << "16 " << genericBeam->getMomentOfInertiaZ() << " ";
-					nbelements=nbelements+6;
+					nbElementsMaterial=nbElementsMaterial+6;
 					break;
 				}
 				case (ElementSet::CIRCULAR_SECTION_BEAM): {
 					shared_ptr<const CircularSectionBeam> circularBeam = static_pointer_cast<
 							const CircularSectionBeam>(elementSet);
 					omat << "11 " << circularBeam->getAreaCrossSection() << " ";
-					nbelements++;
+					nbElementsMaterial=nbElementsMaterial++;
 					break;
 				}
 
 				case (ElementSet::SHELL): {
 					shared_ptr<const Shell> shell = static_pointer_cast<const Shell>(elementSet);
 					omat << "21 " << shell->thickness << " ";
-					nbelements++;
+					nbElementsMaterial=nbElementsMaterial++;
 					break;
 				}
 				case (ElementSet::CONTINUUM): {
 					break;
 				}
+				// Nodal Masses are not material in Systus
+				case (ElementSet::NODAL_MASS): {
+					continue;
+				}
 				default:
 					cout << "Warning in Materials: " << *elementSet << " not supported" << endl;
 				}
 				nbmaterials++;
+				nbelements=nbelements+nbElementsMaterial;
 				omat << endl;
+				ogmat << omat.str();
 			}
 		}
 	}
 	// adding rbars materials for rbe2s and rbe3s
 	if (RBE2rbarPositions.size()){
-		omat << RBE2rbarsElementId << " 0 200 9 61 19 197 1 5 1" << endl;
+		ogmat << RBE2rbarsElementId << " 0 200 9 61 19 197 1 5 1" << endl;
 		nbmaterials++;
 		nbelements=nbelements+4;
 	}
 	if (RBE3rbarPositions.size()){
 		cout << "Warning : RBE3 material emulated by beam with low rigidity" << endl;
-		omat << RBE3rbarsElementId << " 0 4 0 5 1e-12 6 0 11 3.14159265358979e-06" << endl;
+		ogmat << RBE3rbarsElementId << " 0 4 0 5 1e-12 6 0 11 3.14159265358979e-06" << endl;
 		nbmaterials++;
 		nbelements=nbelements+4;
 	}
 
 	// Stream to output
 	out << "BEGIN_MATERIALS " << nbmaterials << " " << nbelements << endl;
-	out << omat.str();
+	out << ogmat.str();
 	out << "END_MATERIALS" << endl;
 }
 
@@ -851,9 +869,19 @@ void SystusWriter::writeMasses(const SystusModel &systusModel, ostream& out) {
 				//	NBR:			Number of values [INTEGER]
 				//  VAL(NBR):	Masses values [DOUBLE[NBR]]
 				//	NODEi:		List of NODES index [INTEGER[*]]
-				out << "VALUES 6 " << nodalMass->getMass() << " " << nodalMass->getMass() << " "
-						<< nodalMass->getMass() << " " << nodalMass->ixx << " " << nodalMass->iyy
-						<< " " << nodalMass->izz;
+				if ((nodalMass->ixy != 0.0) || (nodalMass->iyz != 0.0) || (nodalMass->ixz != 0.0)){
+					throw WriterException(
+							string("Asymetric masses are not (yet) implemented."));
+
+				}
+				if ((nodalMass->ixx != 0.0) || (nodalMass->iyy != 0.0) || (nodalMass->izz != 0.0)){
+					out << "VALUES 6 " << nodalMass->getMass() << " " << nodalMass->getMass() << " "
+							<< nodalMass->getMass() << " " << nodalMass->ixx << " " << nodalMass->iyy
+							<< " " << nodalMass->izz;
+				}else{
+					out << "VALUES 3 " << nodalMass->getMass() << " " << nodalMass->getMass() << " "
+							<< nodalMass->getMass();
+				}
 				for (auto cell : mass->cellGroup->getCells()) {
 					// NODEi
 					out << " " << cell.nodeIds[0];
