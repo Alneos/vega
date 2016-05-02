@@ -755,14 +755,14 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel, ostream& out) 
 					shared_ptr<const CircularSectionBeam> circularBeam = static_pointer_cast<
 							const CircularSectionBeam>(elementSet);
 					omat << "11 " << circularBeam->getAreaCrossSection() << " ";
-					nbElementsMaterial=nbElementsMaterial++;
+					nbElementsMaterial++;
 					break;
 				}
 
 				case (ElementSet::SHELL): {
 					shared_ptr<const Shell> shell = static_pointer_cast<const Shell>(elementSet);
 					omat << "21 " << shell->thickness << " ";
-					nbElementsMaterial=nbElementsMaterial++;
+					nbElementsMaterial++;
 					break;
 				}
 				case (ElementSet::CONTINUUM): {
