@@ -1492,7 +1492,7 @@ void NastranParserImpl::parseSPC1(NastranTokenizer& tok, shared_ptr<Model> model
 		spcNodeGroup->addNode(g1);
 		if (!pos2.empty()) {
 			spcNodeGroup->addNode(lexical_cast<int>(pos2));
-			while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
+			while (tok.isNextInt()) {
 				int nodeId = tok.nextInt();
 				spcNodeGroup->addNode(nodeId);
 			}
