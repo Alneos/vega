@@ -176,6 +176,10 @@ private:
         void add(const ElementSet&);
         void add(const Material&);
 
+        /* Get the Id of all elements belonging to set */
+        //TODO: make a template, general function?
+        const vector<int> getMaterialsId() const;
+        const vector<int> getElementSetsId() const;
         /**
          * Remove any kind of object from the model, by giving a reference.
          */

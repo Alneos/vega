@@ -137,16 +137,28 @@ void SystusWriter::getSystusInformations(const SystusModel& systusModel) {
 
 }
 
+// Generation (and more generaly translation) should not be done in the Writer
 void SystusWriter::generateRBEs(const SystusModel& systusModel) {
 
 	shared_ptr<Mesh> mesh = systusModel.model->mesh;
 	vector<shared_ptr<ConstraintSet>> commonConstraintSets = systusModel.model->getCommonConstraintSets();
+	RBE2rbarPositions.clear();
+	RBE3rbarPositions.clear();
+	
+    // Material Id are usually computed from the corresponding ElementSet Id
+    // TODO: It should be the material...
+	vector<int> v= systusModel.model->getElementSetsId();
+	int idMaterial=*std::max_element(v.begin(), v.end());
+
 	for (auto constraintSet : commonConstraintSets) {
+
+		// Translation of RBAR and RBE2 (RBE2 are viewed as an assembly of RBAR)
 		set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::RIGID);
 		for (auto constraint : constraints) {
 			std::shared_ptr<RigidConstraint> rbe2 = std::static_pointer_cast<RigidConstraint>(constraint);
 
-			CellGroup* group = mesh->createCellGroup("RBE2_"+std::to_string(constraint->getId()));
+			CellGroup* group = mesh->createCellGroup("RBE2_"+std::to_string(constraint->getOriginalId()));
+			idMaterial++;
 
 			Node master = mesh->findNode(rbe2->getMaster());
 			int master_rot_id = 0;
@@ -168,7 +180,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel) {
 					cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG3, nodes, true);
 				else if (systusOption == 4)
 					cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG4, nodes, true);
-				RBE2rbarPositions.push_back(cellPosition);
+				RBE2rbarPositions[idMaterial].push_back(cellPosition);
 				group->addCell(mesh->findCell(cellPosition).id);
 			}
 		}
@@ -176,14 +188,15 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel) {
 		for (auto constraint : constraints) {
 			std::shared_ptr<RBE3> rbe3 = std::static_pointer_cast<RBE3>(constraint);
 
-			CellGroup* group = mesh->createCellGroup("RBE3_"+std::to_string(constraint->getId()));
+			CellGroup* group = mesh->createCellGroup("RBE3_"+std::to_string(constraint->getOriginalId()));
+			idMaterial++;
 
 			Node master = mesh->findNode(rbe3->getMaster());
 			for (int position : rbe3->getSlaves()){
 				Node slave = mesh->findNode(position);
 				vector<int> nodes = {master.id, slave.id};
 				int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
-				RBE3rbarPositions.push_back(cellPosition);
+				RBE3rbarPositions[idMaterial].push_back(cellPosition);
 				group->addCell(mesh->findCell(cellPosition).id);
 			}
 		}
@@ -652,22 +665,21 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 			out << endl;
 		}
 	}
-	// adding rbars elements corresponding to rbe2 and rbe3
-	if (RBE2rbarPositions.size()){
-		RBE2rbarsElementId = ElementSet::lastAutoId() + 1;
-		for (int position : RBE2rbarPositions){
+
+	// Adding rbars elements corresponding to rbe2 and rbe3
+	for (auto rbe2 : RBE2rbarPositions){
+		for (int position : rbe2.second){
 			Cell cell = mesh->findCell(position);
-			out << cell.id << " 190" << cell.nodeIds.size() << " " << RBE2rbarsElementId << " 0 0";
+			out << cell.id << " 190" << cell.nodeIds.size() << " " << rbe2.first << " 0 0";
 			for (int nodeId : cell.nodeIds)
 				out << " " << mesh->findNodePosition(nodeId) + 1;
 			out << endl;
 		}
 	}
-	if (RBE3rbarPositions.size()){
-		RBE3rbarsElementId = ElementSet::lastAutoId() + 2;
-		for (int position : RBE3rbarPositions){
+	for (auto rbe3 : RBE3rbarPositions){
+		for (int position : rbe3.second){
 			Cell cell = mesh->findCell(position);
-			out << cell.id << " 100" << cell.nodeIds.size() << " " << RBE3rbarsElementId << " 0 0";
+			out << cell.id << " 100" << cell.nodeIds.size() << " " << rbe3.first << " 0 0";
 			for (int nodeId : cell.nodeIds)
 				out << " " << mesh->findNodePosition(nodeId) + 1;
 			out << endl;
@@ -782,15 +794,16 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel, ostream& out) 
 			}
 		}
 	}
-	// adding rbars materials for rbe2s and rbe3s
-	if (RBE2rbarPositions.size()){
-		ogmat << RBE2rbarsElementId << " 0 200 9 61 19 197 1 5 1" << endl;
+	// Adding rbars materials for rbe2s and rbe3s
+	for (auto rbe2 : RBE2rbarPositions){
+		ogmat << rbe2.first << " 0 200 9 61 19 197 1 5 1" << endl;
 		nbmaterials++;
 		nbelements=nbelements+4;
-	}
-	if (RBE3rbarPositions.size()){
+		}
+
+	for (auto rbe3 : RBE3rbarPositions){
 		cout << "Warning : RBE3 material emulated by beam with low rigidity" << endl;
-		ogmat << RBE3rbarsElementId << " 0 4 0 5 1e-12 6 0 11 3.14159265358979e-06" << endl;
+		ogmat << rbe3.first << " 0 4 0 5 1e-12 6 0 11 3.14159265358979e-06" << endl;
 		nbmaterials++;
 		nbelements=nbelements+4;
 	}

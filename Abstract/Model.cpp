@@ -205,6 +205,23 @@ void Model::add(const ElementSet& elementSet) {
     elementSets.add(elementSet);
 }
 
+
+const vector<int> Model::getMaterialsId() const{
+	vector<int> v;
+	for (auto material : materials){
+		v.push_back(material->getId());
+	}
+	return v;
+}
+
+const vector<int> Model::getElementSetsId() const{
+	vector<int> v;
+	for (auto elementSet : elementSets){
+		v.push_back(elementSet->getId());
+	}
+	return v;
+}
+
 template<>
 void Model::remove(const Reference<Constraint> constraintReference) {
     for (auto it : constraintReferences_by_constraintSet_ids) {
