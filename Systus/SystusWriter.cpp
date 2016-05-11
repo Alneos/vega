@@ -69,7 +69,7 @@ string SystusWriter::writeModel(const shared_ptr<Model> model,
 
 	/* Work to Do Only once */
 	getSystusInformations(systusModel);
-	generateRBEs(systusModel);
+	generateRBEs(systusModel, configuration);
 
 
 	for (auto it : systusModel.model->analyses) {
@@ -84,7 +84,7 @@ string SystusWriter::writeModel(const shared_ptr<Model> model,
 			string message = string("Can't open file ") + asc_path + " for writing.";
 			throw ios::failure(message);
 		}
-		this->writeAsc(systusModel, analysis, asc_file_ofs);
+		this->writeAsc(systusModel, configuration, analysis, asc_file_ofs);
 		asc_file_ofs.close();
 
 		/* Analysis file */
@@ -137,8 +137,9 @@ void SystusWriter::getSystusInformations(const SystusModel& systusModel) {
 
 }
 
-// Generation (and more generaly translation) should not be done in the Writer
-void SystusWriter::generateRBEs(const SystusModel& systusModel) {
+// Generation (and more generally translation) should not be done in the Writer
+void SystusWriter::generateRBEs(const SystusModel& systusModel,
+		const vega::ConfigurationParameters &configuration) {
 
 	shared_ptr<Mesh> mesh = systusModel.model->mesh;
 	vector<shared_ptr<ConstraintSet>> commonConstraintSets = systusModel.model->getCommonConstraintSets();
@@ -153,9 +154,11 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel) {
 	for (auto constraintSet : commonConstraintSets) {
 
 		// Translation of RBAR and RBE2 (RBE2 are viewed as an assembly of RBAR)
+		// See Systus Reference Analysis Manual: RIGID BoDY Element (page 498)
 		set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::RIGID);
 		for (auto constraint : constraints) {
 			std::shared_ptr<RigidConstraint> rbe2 = std::static_pointer_cast<RigidConstraint>(constraint);
+
 
 			CellGroup* group = mesh->createCellGroup("RBE2_"+std::to_string(constraint->getOriginalId()));
 			idMaterial++;
@@ -169,21 +172,37 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel) {
 
 			for (int position : rbe2->getSlaves()){
 				Node slave = mesh->findNode(position);
-				int slave_lagr_position = mesh->addNode(Node::AUTO_ID, slave.x, slave.y, slave.z, slave.displacementCS);
-				int slave_lagr_id = mesh->findNode(slave_lagr_position).id;
 				vector<int> nodes = {master.id, slave.id};
 				if (systusOption == 4)
 					nodes.push_back(master_rot_id);
-				nodes.push_back(slave_lagr_id);
+
+				// With a Lagrangain formulation, we add a langrange node.
+				if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
+					int slave_lagr_position = mesh->addNode(Node::AUTO_ID, slave.x, slave.y, slave.z, slave.displacementCS);
+					int slave_lagr_id = mesh->findNode(slave_lagr_position).id;
+					nodes.push_back(slave_lagr_id);
+				}
+
 				int cellPosition;
-				if (systusOption == 3)
+				switch (nodes.size()){
+				case (2):{
+					cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
+					break;
+				}
+				case (3):{
 					cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG3, nodes, true);
-				else if (systusOption == 4)
+					break;
+				}
+				case(4):{
 					cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG4, nodes, true);
+					break;
+				}
+				}
 				RBE2rbarPositions[idMaterial].push_back(cellPosition);
 				group->addCell(mesh->findCell(cellPosition).id);
 			}
 		}
+
 		constraints = constraintSet->getConstraintsByType(Constraint::RBE3);
 		for (auto constraint : constraints) {
 			std::shared_ptr<RBE3> rbe3 = std::static_pointer_cast<RBE3>(constraint);
@@ -485,7 +504,8 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const Analysis& ana
 }
 
 
-void SystusWriter::writeAsc(const SystusModel &systusModel, const Analysis& analysis, ostream& out) {
+void SystusWriter::writeAsc(const SystusModel &systusModel, const vega::ConfigurationParameters &configuration,
+		const Analysis& analysis, ostream& out) {
 
 	fillLoads(systusModel, analysis);
 
@@ -503,7 +523,7 @@ void SystusWriter::writeAsc(const SystusModel &systusModel, const Analysis& anal
 
 	writeGroups(systusModel, out);
 
-	writeMaterials(systusModel, out);
+	writeMaterials(systusModel, configuration, out);
 
 	out << "BEGIN_MEDIA 0" << endl;
 	out << "END_MEDIA" << endl;
@@ -721,12 +741,14 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
 	out << "END_GROUPS" << endl;
 }
 
-void SystusWriter::writeMaterials(const SystusModel& systusModel, ostream& out) {
+void SystusWriter::writeMaterials(const SystusModel& systusModel,
+		const vega::ConfigurationParameters &configuration, ostream& out) {
 
 	ostringstream ogmat;
 	ogmat.precision(DBL_DIG);
 	int nbmaterials= 0;
 	int nbelements = 0;
+	double maxE=0.0;
 
     for (auto elementSet : systusModel.model->elementSets) {
 		auto material = elementSet->material;
@@ -738,12 +760,18 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel, ostream& out) 
 				int nbElementsMaterial=0;
 				const ElasticNature& elasticNature = dynamic_cast<ElasticNature&>(*nature);
 				omat << elementSet->getId() << " 0 ";
+
+				// 182: Systus Material Id
+				omat << "182 "<< elementSet->getId() << " ";
+				nbElementsMaterial++;
+
 				if (elasticNature.getRho()>0.0){
 					omat << "4 " << elasticNature.getRho() << " ";
 					nbElementsMaterial++;
 				}
 				if (elasticNature.getE()>0.0){
 					omat << "5 " << elasticNature.getE() << " ";
+					maxE=max(maxE,elasticNature.getE());
 					nbElementsMaterial++;
 				}
 				if (elasticNature.getNu()>0.0){
@@ -796,10 +824,16 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel, ostream& out) 
 	}
 	// Adding rbars materials for rbe2s and rbe3s
 	for (auto rbe2 : RBE2rbarPositions){
-		ogmat << rbe2.first << " 0 200 9 61 19 197 1 5 1" << endl;
 		nbmaterials++;
-		nbelements=nbelements+4;
+		if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
+           ogmat << rbe2.first << " 0 200 9 61 19 197 1 5 1 182 " << rbe2.first << endl;
+		   nbelements=nbelements+4;
+		}else{
+		double rbe2E= configuration.systusRBE2PenaltyFactor*maxE;
+	       ogmat << rbe2.first << " 0 200 9 61 9 197 1 5 " << rbe2E << " 182 " << rbe2.first << endl;
+		   nbelements=nbelements+4;
 		}
+	}
 
 	for (auto rbe3 : RBE3rbarPositions){
 		cout << "Warning : RBE3 material emulated by beam with low rigidity" << endl;

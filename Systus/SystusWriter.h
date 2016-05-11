@@ -197,19 +197,19 @@ class SystusWriter: public Writer {
 	 *
 	 */
 	static const std::unordered_map<CellType::Code, vector<int>, hash<int>> systus2medNodeConnectByCellType;
-	void writeAsc(const SystusModel&, const Analysis&, std::ostream&);
+	void writeAsc(const SystusModel&, const ConfigurationParameters&, const Analysis&, std::ostream&);
 	void getSystusInformations(const SystusModel&);
 	void fillLoads(const SystusModel&, const Analysis&);
 	void fillVectors(const SystusModel&, const Analysis&);
 	void fillConstraintLists(const std::shared_ptr<ConstraintSet> & , std::map<int, std::map<int, int>> &);
 	void fillLists(const SystusModel&, const Analysis&);
-	void generateRBEs(const SystusModel&);
+	void generateRBEs(const SystusModel&, const ConfigurationParameters&);
 	void writeHeader(const SystusModel&, std::ostream&);
 	void writeInformations(const SystusModel&, std::ostream&);
 	void writeNodes(const SystusModel&, std::ostream&);
 	void writeElements(const SystusModel&, std::ostream&);
 	void writeGroups(const SystusModel&, std::ostream&);
-	void writeMaterials(const SystusModel&, std::ostream&);
+	void writeMaterials(const SystusModel&, const ConfigurationParameters&, std::ostream&);
 	void writeLoads(const SystusModel&, const Analysis&, std::ostream&);
 	void writeLists(const SystusModel&, std::ostream&);
 	void writeVectors(const SystusModel&, const Analysis&, std::ostream&);

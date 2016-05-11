@@ -83,7 +83,8 @@ public:
     const bool replaceDirectMatrices;
     const bool removeRedundantSpcs;
 };
-
+// TODO: THe Configuration Parameters should be much more generalized. With this,
+// it's a pain in the keyboard to add options!!
 class ConfigurationParameters {
 public:
     enum TranslationMode {
@@ -96,7 +97,8 @@ public:
             "", std::string outputFile = "vega", std::string outputPath = ".", LogLevel logLevel =
             LogLevel::INFO, TranslationMode translationMode = BEST_EFFORT, fs::path resultFile = "",
             double testTolerance = 0.02, bool runSolver = false, std::string solverServer = "",
-            std::string solverCommand = "");
+            std::string solverCommand = "",
+			std::string systusRBE2TranslationMode = "lagrangian", double systusRBE2PenaltyFactor=10.0);
     const ModelConfiguration getModelConfiguration() const;
     virtual ~ConfigurationParameters();
 
@@ -112,6 +114,8 @@ public:
     const bool runSolver;
     const std::string solverServer;
     const std::string solverCommand;
+    const std::string systusRBE2TranslationMode;
+    const double systusRBE2PenaltyFactor;
 };
 
 }

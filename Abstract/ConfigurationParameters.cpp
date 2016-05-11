@@ -22,11 +22,13 @@ namespace vega {
 ConfigurationParameters::ConfigurationParameters(string inputFile, Solver outputSolver,
         string solverVersion, string outputFile, string outputPath, LogLevel logLevel,
         TranslationMode translationMode, fs::path resultFile, double tolerance, bool runSolver,
-        string solverServer, string solverCommand) :
+        string solverServer, string solverCommand,
+		string systusRBE2TranslationMode, double systusRBE2PenaltyFactor) :
         inputFile(inputFile), outputSolver(outputSolver), solverVersion(solverVersion), outputFile(
                 outputFile), outputPath(outputPath), logLevel(logLevel), translationMode(
                 translationMode), resultFile(resultFile), testTolerance(tolerance), runSolver(
-                runSolver), solverServer(solverServer), solverCommand(solverCommand) {
+                runSolver), solverServer(solverServer), solverCommand(solverCommand),
+				systusRBE2TranslationMode(systusRBE2TranslationMode), systusRBE2PenaltyFactor(systusRBE2PenaltyFactor) {
 
 }
 

@@ -237,9 +237,30 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
         solverServer = vm["solver-server"].as<string>();
         boost::algorithm::trim(solverServer);
     }
+
+    // Option for Systus Conversion
+    string systusRBE2TranslationMode="lagrangian";
+    if (vm.count("systus.RBE2TranslationMode")){
+    	systusRBE2TranslationMode = vm["systus.RBE2TranslationMode"].as<string>();
+    	set<string> availableTranlation { "lagrangian", "penalty" };
+    	set<string>::iterator it = availableTranlation.find(systusRBE2TranslationMode);
+    	if (it == availableTranlation.end()) {
+    		throw invalid_argument("Systus RBE2 Translation Mode must be either lagrangian (default) or penalty.");
+    	}
+    }
+    double systusRBE2Penalty=10.0;
+    if (vm.count("systus.RBE2PenaltyFactor")){
+    	systusRBE2Penalty = vm["systus.RBE2PenaltyFactor"].as<double>();
+    	if (systusRBE2Penalty<= 0.0){
+    		throw invalid_argument("Systus RBE2 Penalty Factor must be positive.");
+    	}
+    }
+
+
     ConfigurationParameters configuration = ConfigurationParameters(inputFile.string(), solver,
             solverVersion, modelName, outputDir, logLevel, translationMode, testFnamePath,
-            tolerance, runSolver, solverServer, solverCommand);
+            tolerance, runSolver, solverServer, solverCommand,
+			systusRBE2TranslationMode,systusRBE2Penalty);
     return configuration;
 }
 
@@ -318,7 +339,11 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
                 "translated, unknown keywords are skipped.") //
         ("mesh-at-least,m", "If the source study is fully understood it is translated, "
                 " otherwise it is translated only the mesh.") //
-        ("strict,s", "Stops translation at the first "
+		("systus.RBE2TranslationMode",po::value<string>()->default_value("lagrangian"), 
+		        "Translation mode of RBE2 from Nastran To Systus: lagrangian or penalty.") //
+	    ("systus.RBE2PenaltyFactor", po::value<double>()->default_value(10.0),
+	            "Penalty RBE2 will have a rigidity of max rigidity*this value.") //
+		("strict,s", "Stops translation at the first "
                 "unrecognized keyword or parameter.");
 
         // Hidden options, will be allowed both on command line and
@@ -376,6 +401,8 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
             printHelp(visible);
             return NO_INPUT_FILE;
         }
+
+
 
         const ConfigurationParameters configuration = readCommandLineParameters(vm);
         if (configuration.resultFile.string().size() >= 1) {
