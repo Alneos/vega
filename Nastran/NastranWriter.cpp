@@ -33,7 +33,7 @@ ostream &operator<<(ostream &out, const Line& line) {
 	out << left << setw(8);
 	out << line.keyword;
 	int fieldCount = 0;
-	for(auto& field : line.fields) {
+	for(const auto& field : line.fields) {
 		fieldCount++;
 		if (fieldCount % line.fieldNum == 0) {
 			out << endl;
@@ -175,7 +175,7 @@ void NastranWriterImpl::writeSOL(const shared_ptr<vega::Model>& model, ofstream&
 
 void NastranWriterImpl::writeCells(const shared_ptr<vega::Model>& model, ofstream& out)
 		{
-	for (auto elementSet : model->elementSets) {
+	for (const auto& elementSet : model->elementSets) {
 		if (elementSet->isDiscrete() || elementSet->isMatrixElement()) {
 			continue;
 		}
@@ -232,7 +232,7 @@ void NastranWriterImpl::writeNodes(const shared_ptr<vega::Model>& model, ofstrea
 
 void NastranWriterImpl::writeMaterials(const shared_ptr<vega::Model>& model, ofstream& out)
 		{
-	for (auto material : model->materials) {
+	for (const auto& material : model->materials) {
 		Line mat1("MAT1");
 		mat1.add(material->bestId());
 		const shared_ptr<Nature> enature = material->findNature(Nature::NATURE_ELASTIC);
@@ -249,7 +249,7 @@ void NastranWriterImpl::writeMaterials(const shared_ptr<vega::Model>& model, ofs
 
 void NastranWriterImpl::writeConstraints(const shared_ptr<vega::Model>& model, ofstream& out)
 		{
-	for (auto constraintSet : model->constraintSets) {
+	for (const auto& constraintSet : model->constraintSets) {
 		const set<shared_ptr<Constraint> > spcs = constraintSet->getConstraintsByType(
 				Constraint::SPC);
 		if (spcs.size() > 0) {
@@ -287,7 +287,7 @@ void NastranWriterImpl::writeConstraints(const shared_ptr<vega::Model>& model, o
 
 void NastranWriterImpl::writeLoadings(const shared_ptr<vega::Model>& model, ofstream& out)
 		{
-	for (auto loadingSet : model->loadSets) {
+	for (const auto& loadingSet : model->loadSets) {
 		const set<shared_ptr<Loading> > gravities = loadingSet->getLoadingsByType(Loading::GRAVITY);
 		if (gravities.size() > 0) {
 			for (shared_ptr<Loading> loading : gravities) {
@@ -395,7 +395,7 @@ string NastranWriterImpl::writeModel(const shared_ptr<vega::Model> model,
 	out << "$ " << model->name << endl;
 	writeSOL(model, out);
 	out << "TIME 10000" << endl;
-	for (auto analysis : model->analyses) {
+	for (const auto& analysis : model->analyses) {
 		out << "SUBCASE " << analysis->bestId() << endl;
 		for (shared_ptr<LoadSet> loadSet : analysis->getLoadSets()) {
 			string typeName = loadSet->stringByType.find(loadSet->type)->second;

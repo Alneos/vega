@@ -72,7 +72,7 @@ string SystusWriter::writeModel(const shared_ptr<Model> model,
 	generateRBEs(systusModel, configuration);
 
 
-	for (auto it : systusModel.model->analyses) {
+	for (const auto& it : systusModel.model->analyses) {
 		const Analysis& analysis = *it;
 
 		/* ASCI file */
@@ -152,12 +152,12 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 	vector<int> v= systusModel.model->getElementSetsId();
 	int idMaterial=*std::max_element(v.begin(), v.end());
 
-	for (auto constraintSet : commonConstraintSets) {
+	for (const auto& constraintSet : commonConstraintSets) {
 
 		// Translation of RBAR and RBE2 (RBE2 are viewed as an assembly of RBAR)
 		// See Systus Reference Analysis Manual: RIGID BoDY Element (page 498)
 		set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::RIGID);
-		for (auto constraint : constraints) {
+		for (const auto& constraint : constraints) {
 			std::shared_ptr<RigidConstraint> rbe2 = std::static_pointer_cast<RigidConstraint>(constraint);
 
 
@@ -205,7 +205,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 		}
 
 		constraints = constraintSet->getConstraintsByType(Constraint::QUASI_RIGID);
-		for (auto constraint : constraints) {
+		for (const auto& constraint : constraints) {
 			std::shared_ptr<QuasiRigidConstraint> rbar = std::static_pointer_cast<QuasiRigidConstraint>(constraint);
 
 			if (!(rbar->isCompletelyRigid())){
@@ -217,7 +217,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 			idMaterial++;
 
 			vector<int> nodes;
-			for (auto slave : rbar->getSlaves()){
+			for (const auto& slave : rbar->getSlaves()){
 				Node slaveNode = mesh->findNode(slave);
 				nodes.push_back(slaveNode.id);
 			}
@@ -233,7 +233,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 
 
 		constraints = constraintSet->getConstraintsByType(Constraint::RBE3);
-		for (auto constraint : constraints) {
+		for (const auto& constraint : constraints) {
 			std::shared_ptr<RBE3> rbe3 = std::static_pointer_cast<RBE3>(constraint);
 
 			CellGroup* group = mesh->createCellGroup("RBE3_"+std::to_string(constraint->getOriginalId()));
@@ -260,7 +260,7 @@ void SystusWriter::fillLoads(const SystusModel& systusModel, const Analysis& ana
 	localLoadingListIdByLoadingListId.clear();
 
 	vector<shared_ptr<LoadSet>> analysisLoadSets = analysis.getLoadSets();
-	for (auto loadSet : analysisLoadSets) {
+	for (const auto& loadSet : analysisLoadSets) {
 		localLoadingListIdByLoadingListId[loadSet->getId()]= idSystusLoad;
 		idSystusLoad++;
 	}
@@ -304,8 +304,8 @@ void SystusWriter::fillVectors(const SystusModel& systusModel, const Analysis& a
 	localVectorIdByConstraintListId.clear();
 
 	// Add Loadcase Loading Vectors
-	for (auto loadset : analysis.getLoadSets()){
-		for (auto loading : loadset->getLoadings()) {
+	for (const auto& loadset : analysis.getLoadSets()){
+		for (const auto& loading : loadset->getLoadings()) {
 			vector<double> vec;
 
 			switch (loading->type) {
@@ -366,8 +366,8 @@ void SystusWriter::fillVectors(const SystusModel& systusModel, const Analysis& a
 
 	// Add Loadcase Constraint Vectors
 	// TODO: Add Subcase Constraint Vectors
-	for (auto constraintset : analysis.getConstraintSets()){
-		for (auto constraint : constraintset->getConstraints()) {
+	for (const auto& constraintset : analysis.getConstraintSets()){
+		for (const auto& constraint : constraintset->getConstraints()) {
 			vector<double> vec;
 
 			switch (constraint->type) {
@@ -421,7 +421,7 @@ void SystusWriter::fillConstraintLists(const std::shared_ptr<ConstraintSet> & co
 		throw WriterException("systusOption not supported");
 
 
-	for (auto constraint : constraintSet->getConstraints()) {
+	for (const auto& constraint : constraintSet->getConstraints()) {
 
 		switch (constraint->type) {
 		case Constraint::SPC: {
@@ -475,9 +475,9 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const Analysis& ana
 	// Format is (indice of list, local loading number, local vector)
 	//TODO: here we take here the indice of the node, but it may not be a good idea
 	map<int, map<int, int>> localVectorsByLocalLoadingByNodePosition;
-	for (auto loadSet : analysis.getLoadSets()) {
+	for (const auto& loadSet : analysis.getLoadSets()) {
 		set<shared_ptr<Loading>> loadings = loadSet->getLoadings();
-		for (auto loading : loadings) {
+		for (const auto& loading : loadings) {
 			switch (loading->type) {
 			case Loading::NODAL_FORCE: {
 				shared_ptr<NodalForce> nodalForce = static_pointer_cast<NodalForce>(loading);
@@ -502,7 +502,7 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const Analysis& ana
 		}
 	}
 
-	for (auto it : localVectorsByLocalLoadingByNodePosition) {
+	for (const auto& it : localVectorsByLocalLoadingByNodePosition) {
 		lists[idSystusList]=it.second;
 		loadingListIdByNodePosition[it.first] = idSystusList;
 		idSystusList++;
@@ -521,13 +521,13 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const Analysis& ana
 	//	}
 
 	// Filling lists for Loadcase Constraints
-	for (auto constraintSet : analysis.getConstraintSets()){
+	for (const auto& constraintSet : analysis.getConstraintSets()){
 		//cout << "Filling List for ConstraintSet "<<constraintSet->getId()<<" of size "<< constraintSet->size()<< endl;
 		fillConstraintLists(constraintSet, localVectorsByLocalLoadingByNodePosition);
 	}
 
 	constraintListIdByNodePosition.clear();
-	for (auto it : localVectorsByLocalLoadingByNodePosition) {
+	for (const auto& it : localVectorsByLocalLoadingByNodePosition) {
 		lists[idSystusList]=it.second;
 		constraintListIdByNodePosition[it.first] = idSystusList;
 		idSystusList++;
@@ -631,7 +631,7 @@ void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
 	out << mesh->countNodes();
 	out << " 3" << endl; // number of coordinates
 
-	for (auto node : mesh->nodes) {
+	for (const auto& node : mesh->nodes) {
 		int nid = node.position + 1;
 		int iconst = 0;
 		auto it = constraintByNodePosition.find(node.position);
@@ -661,7 +661,7 @@ void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
 void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 	shared_ptr<Mesh> mesh = systusModel.model->mesh;
 	out << "BEGIN_ELEMENTS " << mesh->countCells() << endl;
-	for (auto elementSet : systusModel.model->elementSets) {
+	for (const auto& elementSet : systusModel.model->elementSets) {
 		//if (elementSet->getElementType() == ElementSet::ELEMENT_UNDEFINED || elementSet->cellGroup == nullptr)
 		//	continue;
 		CellGroup* cellGroup = elementSet->cellGroup;
@@ -718,7 +718,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 	}
 
 	// Adding rbars elements corresponding to rbe2 and rbe3
-	for (auto rbe2 : RBE2rbarPositions){
+	for (const auto& rbe2 : RBE2rbarPositions){
 		for (int position : rbe2.second){
 			Cell cell = mesh->findCell(position);
 			out << cell.id << " 190" << cell.nodeIds.size() << " " << rbe2.first << " 0 0";
@@ -728,7 +728,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 		}
 	}
 
-	for (auto rbar : RbarPositions){
+	for (const auto& rbar : RbarPositions){
 		for (int position : rbar.second){
 			Cell cell = mesh->findCell(position);
 			out << cell.id << " 100" << cell.nodeIds.size() << " " << rbar.first << " 0 0";
@@ -738,7 +738,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 		}
 	}
 
-	for (auto rbe3 : RBE3rbarPositions){
+	for (const auto& rbe3 : RBE3rbarPositions){
 		for (int position : rbe3.second){
 			Cell cell = mesh->findCell(position);
 			out << cell.id << " 100" << cell.nodeIds.size() << " " << rbe3.first << " 0 0";
@@ -758,7 +758,7 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
 
 	out << "BEGIN_GROUPS ";
 	out << cellGroups.size() + nodeGroups.size() << endl;
-	for (auto cellGroup : cellGroups) {
+	for (const auto& cellGroup : cellGroups) {
 		//1 E2D 2 0 "SYST DIMENSION 2" "" "Comments of the group" 101 102 103 201 202 203 301 302 303
 
 		// We don't write the groups of Nodal Mass, as they are not cells in Systus
@@ -767,13 +767,13 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
 		if (cellGroup->getName().substr(0,2)!="MN"){
 			out << cellGroup->getId() << " " << cellGroup->getName()
 						<< " 2 0 \"No method\" \"\" \"No Comments\"";
-			for (auto cell : cellGroup->getCells())
+			for (const auto& cell : cellGroup->getCells())
 				out << " " << cell.id;
 			out << endl;
 		}
 	}
 
-	for (auto nodeGroup : nodeGroups) {
+	for (const auto& nodeGroup : nodeGroups) {
 		out << nodeGroup->getId() << " " << nodeGroup->getName()
 				<< " 1 0 \"No method\" \"\" \"No Comments\"";
 		for (int id : nodeGroup->nodePositions())
@@ -792,8 +792,8 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 	int nbelements = 0;
 	double maxE=0.0;
 
-    for (auto elementSet : systusModel.model->elementSets) {
-		auto material = elementSet->material;
+    for (const auto& elementSet : systusModel.model->elementSets) {
+		const auto& material = elementSet->material;
 		if (material != nullptr && elementSet->cellGroup != nullptr) {
 			const shared_ptr<Nature> nature = material->findNature(Nature::NATURE_ELASTIC);
 			if (nature) {
@@ -865,7 +865,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 		}
 	}
 	// Adding rbars materials for rbe2s and rbe3s
-	for (auto rbe2 : RBE2rbarPositions){
+	for (const auto& rbe2 : RBE2rbarPositions){
 		nbmaterials++;
 		if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
            ogmat << rbe2.first << " 0 200 9 61 19 197 1 5 1 182 " << rbe2.first << endl;
@@ -876,7 +876,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 		   nbelements=nbelements+5;
 		}
 	}
-	for (auto rbar : RbarPositions){
+	for (const auto& rbar : RbarPositions){
 		nbmaterials++;
 		if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
 			ogmat << rbar.first << " 0 200 9 61 19 197 1 5 1 182 " << rbar.first << endl;
@@ -888,7 +888,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 		}
 	}
 
-	for (auto rbe3 : RBE3rbarPositions){
+	for (const auto& rbe3 : RBE3rbarPositions){
 		cout << "Warning : RBE3 material emulated by beam with low rigidity" << endl;
 		ogmat << rbe3.first << " 0 4 0 5 1e-12 6 0 11 3.14159265358979e-06" << endl;
 		nbmaterials++;
@@ -909,7 +909,7 @@ void SystusWriter::writeLoads(const SystusModel& systusModel, const Analysis & a
 	out << localLoadingListIdByLoadingListId.size() << endl;
 
 	// Writing Loads
-	for (auto load : localLoadingListIdByLoadingListId) {
+	for (const auto& load : localLoadingListIdByLoadingListId) {
 		out << load.second << " \"LOADSET_" << load.first << "\" ";
 		out << "0 0 0 0 0 0 0 7" << endl;
 	}
@@ -923,9 +923,9 @@ void SystusWriter::writeLists(const SystusModel& systusModel, ostream& out) {
 	out << "BEGIN_LISTS ";
 	//TODO: The second number should be the total number of elements of all lists. It is false for generic lists.
 	out << lists.size() << " " <<2*lists.size() << endl;
-	for (auto list : lists) {
+	for (const auto& list : lists) {
 		out << list.first;
-		for (auto d : list.second)
+		for (const auto& d : list.second)
 			out << " " << d.first << " " << d.second;
 		out << endl;
 	}
@@ -938,15 +938,15 @@ void SystusWriter::writeVectors(const SystusModel& systusModel, const Analysis &
 			<< vectors.size() + systusModel.model->coordinateSystems.size() << endl;
 
 	// Writing vectors from Loads
-	for (auto vector : vectors) {
+	for (const auto& vector : vectors) {
 		out << vector.first;
-		for (auto d : vector.second)
+		for (const auto& d : vector.second)
 			out << " " << d;
 		out << endl;
 	}
 
 	//TODO: transfer the construction of these vectors to the fillVectors function
-	for (auto coordinateSystem : systusModel.model->coordinateSystems) {
+	for (const auto& coordinateSystem : systusModel.model->coordinateSystems) {
 		VectorialValue angles = coordinateSystem->getEulerAnglesIntrinsicZYX();
 		out << vectors.size() + Constraint::lastAutoId() + coordinateSystem->getId()
 				<< " 0 0 0 0 0 0 ";
@@ -962,7 +962,7 @@ void SystusWriter::writeMasses(const SystusModel &systusModel, ostream& out) {
 			ElementSet::NODAL_MASS);
 	out << "BEGIN_MASSES " << masses.size() << endl;
 	if (masses.size() > 0) {
-		for (auto mass : masses) {
+		for (const auto& mass : masses) {
 			if (mass->cellGroup != nullptr) {
 				shared_ptr<NodalMass> nodalMass = static_pointer_cast<NodalMass>(mass);
 				//	VALUES NBR VAL(NBR) NODEi
@@ -982,7 +982,7 @@ void SystusWriter::writeMasses(const SystusModel &systusModel, ostream& out) {
 					out << "VALUES 3 " << nodalMass->getMass() << " " << nodalMass->getMass() << " "
 							<< nodalMass->getMass();
 				}
-				for (auto cell : mass->cellGroup->getCells()) {
+				for (const auto& cell : mass->cellGroup->getCells()) {
 					// NODEi
 					out << " " << cell.nodeIds[0];
 				}
@@ -1106,7 +1106,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const Analysis& anal
 		out << "iResu=open_file(\"" << systusModel.getName() << "_" << analysis.getId()
 				<< ".RESU\", \"write\");" << endl << endl;
 
-		for (auto assertion : assertions) {
+		for (const auto& assertion : assertions) {
 			switch (assertion->type) {
 			case Assertion::NODAL_DISPLACEMENT_ASSERTION:
 				writeNodalDisplacementAssertion(*assertion, out);
@@ -1134,7 +1134,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const Analysis& anal
 
 void SystusWriter::writeConstraint(const SystusModel& systusModel,
 		const ConstraintSet& constraintSet, ostream& out) {
-	for (auto constraint : constraintSet.getConstraints()) {
+	for (const auto& constraint : constraintSet.getConstraints()) {
 		switch (constraint->type) {
 		case Constraint::SPC: {
 			std::shared_ptr<SinglePointConstraint> spc = std::static_pointer_cast<
@@ -1176,7 +1176,7 @@ void SystusWriter::writeConstraint(const SystusModel& systusModel,
 }
 
 void SystusWriter::writeLoad(const LoadSet& loadSet, ostream& out) {
-	for (auto loading : loadSet.getLoadings()) {
+	for (const auto& loading : loadSet.getLoadings()) {
 		switch (loading->type) {
 		case Loading::NODAL_FORCE: {
 			shared_ptr<NodalForce> nodalForce = static_pointer_cast<NodalForce>(loading);
@@ -1233,7 +1233,7 @@ void SystusWriter::writeLoad(const LoadSet& loadSet, ostream& out) {
 }
 
 void SystusWriter::writeLoad(const ConstraintSet& constraintSet, std::ostream& out) {
-	for (auto constraint : constraintSet.getConstraints()) {
+	for (const auto& constraint : constraintSet.getConstraints()) {
 		switch (constraint->type) {
 		case Constraint::SPC: {
 			std::shared_ptr<SinglePointConstraint> spc = std::static_pointer_cast<

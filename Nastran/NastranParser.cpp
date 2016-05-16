@@ -939,7 +939,7 @@ void NastranParserImpl::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model
 		 * computed. Stresses are computed at both ends of the bar.
 		 */
 		// Output and stress assertions, currently ignored
-		string message = "PBAR Stress coefficients not implemented.";
+		string message = "PBAR Stress coefficients are dismissed and taken as 0.0";
 		handleParsingWarning(message, tok, model);
 	}
 	const double k1 = tok.nextDouble(true, 0.0);

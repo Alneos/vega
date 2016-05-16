@@ -170,6 +170,9 @@ private:
 	void parseMAT1(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void parseMATS1(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void parseMOMENT(NastranTokenizer& tok, std::shared_ptr<Model> model);
+	/**
+	 * Parse the PBAR keyword. Neither Stress coefficients nor i12 are supported.
+	 * */
 	void parsePBAR(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void parsePBARL(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void parsePBEAM(NastranTokenizer& tok, std::shared_ptr<Model> model);

@@ -537,7 +537,7 @@ CellGroup* Mesh::createCellGroup(const string& name, int group_id) {
 
 vector<NodeGroup*> Mesh::getNodeGroups() const {
 	vector<NodeGroup*> groups;
-	for (auto it : groupByName) {
+	for (const auto& it : groupByName) {
 		Group* group = it.second;
 		if (group->type != Group::NODEGROUP) {
 			continue;
@@ -547,9 +547,9 @@ vector<NodeGroup*> Mesh::getNodeGroups() const {
 	return groups;
 }
 
-vector<CellGroup*> Mesh::getCellGroups() {
+vector<CellGroup*> Mesh::getCellGroups() const {
 	vector<CellGroup*> groups;
-	for (auto it : groupByName) {
+	for (const auto& it : groupByName) {
 		Group* group = it.second;
 		if (group->type != Group::CELLGROUP) {
 			continue;

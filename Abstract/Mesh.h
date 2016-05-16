@@ -136,7 +136,7 @@ public:
 	NodeGroup* createNodeGroup(const string& name, int groupId = Group::NO_ORIGINAL_ID);
 	std::vector<NodeGroup*> getNodeGroups() const;
 	CellGroup* createCellGroup(const string& name, int groupId = Group::NO_ORIGINAL_ID);
-	std::vector<CellGroup*> getCellGroups();
+	std::vector<CellGroup*> getCellGroups() const;
 	Group* findGroup(string) const;
 	/**
 	 * Find a group by its "original" id: the id provided by the input solver. If not found
