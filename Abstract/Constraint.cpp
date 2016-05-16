@@ -165,6 +165,12 @@ shared_ptr<Constraint> QuasiRigidConstraint::clone() const {
 	return shared_ptr<Constraint>(new QuasiRigidConstraint(*this));
 }
 
+set<int> QuasiRigidConstraint::getSlaves() const {
+	return this->slavePositions;
+}
+
+
+
 RigidConstraint::RigidConstraint(Model& model, int masterId, int constraintGroup,
 		const set<int>& slaveIds) :
 		HomogeneousConstraint(model, RIGID, DOFS::ALL_DOFS, masterId, constraintGroup, slaveIds) {

@@ -143,6 +143,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 
 	shared_ptr<Mesh> mesh = systusModel.model->mesh;
 	vector<shared_ptr<ConstraintSet>> commonConstraintSets = systusModel.model->getCommonConstraintSets();
+	RbarPositions.clear();
 	RBE2rbarPositions.clear();
 	RBE3rbarPositions.clear();
 	
@@ -202,6 +203,34 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 				group->addCell(mesh->findCell(cellPosition).id);
 			}
 		}
+
+		constraints = constraintSet->getConstraintsByType(Constraint::QUASI_RIGID);
+		for (auto constraint : constraints) {
+			std::shared_ptr<QuasiRigidConstraint> rbar = std::static_pointer_cast<QuasiRigidConstraint>(constraint);
+
+			if (!(rbar->isCompletelyRigid())){
+				cerr << "QUASI_RIDID constraint not available yet. Constraint "
+						<< constraint->getOriginalId()<< "translated as rigid constraint."<<endl;
+			}
+
+			CellGroup* group = mesh->createCellGroup("RBAR_"+std::to_string(constraint->getOriginalId()));
+			idMaterial++;
+
+			vector<int> nodes;
+			for (auto slave : rbar->getSlaves()){
+				Node slaveNode = mesh->findNode(slave);
+				nodes.push_back(slaveNode.id);
+			}
+			if (nodes.size()!=2){
+				throw WriterException(string("QUASI_RIDID constraint must have exactly two slaves."));
+			}
+			int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
+			RbarPositions[idMaterial].push_back(cellPosition);
+			group->addCell(mesh->findCell(cellPosition).id);
+		}
+
+
+
 
 		constraints = constraintSet->getConstraintsByType(Constraint::RBE3);
 		for (auto constraint : constraints) {
@@ -365,7 +394,8 @@ void SystusWriter::fillVectors(const SystusModel& systusModel, const Analysis& a
 				break;
 			}
 			case Constraint::RIGID:
-			case Constraint::RBE3:{
+			case Constraint::RBE3:
+			case Constraint::QUASI_RIGID:{
 				// Nothing to be done here
 				break;
 			}
@@ -416,7 +446,8 @@ void SystusWriter::fillConstraintLists(const std::shared_ptr<ConstraintSet> & co
 			break;
 		}
 		case Constraint::RIGID:
-		case Constraint::RBE3:{
+		case Constraint::RBE3:
+		case Constraint::QUASI_RIGID:{
 			// Nothing to be done here
 			break;
 		}
@@ -696,6 +727,17 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 			out << endl;
 		}
 	}
+
+	for (auto rbar : RbarPositions){
+		for (int position : rbar.second){
+			Cell cell = mesh->findCell(position);
+			out << cell.id << " 100" << cell.nodeIds.size() << " " << rbar.first << " 0 0";
+			for (int nodeId : cell.nodeIds)
+				out << " " << mesh->findNodePosition(nodeId) + 1;
+			out << endl;
+		}
+	}
+
 	for (auto rbe3 : RBE3rbarPositions){
 		for (int position : rbe3.second){
 			Cell cell = mesh->findCell(position);
@@ -827,11 +869,22 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 		nbmaterials++;
 		if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
            ogmat << rbe2.first << " 0 200 9 61 19 197 1 5 1 182 " << rbe2.first << endl;
-		   nbelements=nbelements+4;
+		   nbelements=nbelements+5;
 		}else{
 		double rbe2E= configuration.systusRBE2PenaltyFactor*maxE;
 	       ogmat << rbe2.first << " 0 200 9 61 9 197 1 5 " << rbe2E << " 182 " << rbe2.first << endl;
-		   nbelements=nbelements+4;
+		   nbelements=nbelements+5;
+		}
+	}
+	for (auto rbar : RbarPositions){
+		nbmaterials++;
+		if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
+			ogmat << rbar.first << " 0 200 9 61 19 197 1 5 1 182 " << rbar.first << endl;
+			nbelements=nbelements+5;
+		}else{
+			double rbarE= configuration.systusRBE2PenaltyFactor*maxE;
+			ogmat << rbar.first << " 0 200 9 61 9 197 1 5 " << rbarE << " 182 " << rbar.first << endl;
+			nbelements=nbelements+5;
 		}
 	}
 

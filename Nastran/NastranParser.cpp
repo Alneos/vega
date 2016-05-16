@@ -1340,8 +1340,7 @@ void NastranParserImpl::parseRBE3(NastranTokenizer& tok, shared_ptr<Model> model
 }
 
 void NastranParserImpl::parseRBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
-	/*int elemId = */
-	tok.nextInt(); //Element id not supported in model
+	int original_id=tok.nextInt();
 	int ga = tok.nextInt();
 	int gb = tok.nextInt();
 	int cna = tok.nextInt(true, 0);
@@ -1354,13 +1353,13 @@ void NastranParserImpl::parseRBAR(NastranTokenizer& tok, shared_ptr<Model> model
 		cna = 123456;
 	}
 	if (cna != 0) {
-		QuasiRigidConstraint qrc = QuasiRigidConstraint(*model, DOFS::nastranCodeToDOFS(cna));
+		QuasiRigidConstraint qrc = QuasiRigidConstraint(*model, DOFS::nastranCodeToDOFS(cna), HomogeneousConstraint::UNAVAILABLE_MASTER, original_id);
 		qrc.addSlave(ga);
 		qrc.addSlave(gb);
 		model->add(qrc);
 		model->addConstraintIntoConstraintSet(qrc, model->commonConstraintSet);
 	} else if (cnb != 0) {
-		QuasiRigidConstraint qrc = QuasiRigidConstraint(*model, DOFS::nastranCodeToDOFS(cnb));
+		QuasiRigidConstraint qrc = QuasiRigidConstraint(*model, DOFS::nastranCodeToDOFS(cnb), HomogeneousConstraint::UNAVAILABLE_MASTER, original_id);
 		qrc.addSlave(ga);
 		qrc.addSlave(gb);
 		model->add(qrc);
@@ -1378,13 +1377,12 @@ void NastranParserImpl::parseRBAR(NastranTokenizer& tok, shared_ptr<Model> model
 }
 
 void NastranParserImpl::parseRBAR1(NastranTokenizer& tok, shared_ptr<Model> model) {
-	/*int elemId = */
-	tok.nextInt(); //Element id not supported in model
+	int original_id=tok.nextInt();
 	int ga = tok.nextInt();
 	int gb = tok.nextInt();
 	int cna = tok.nextInt(true, 0);
 
-	QuasiRigidConstraint qrc = QuasiRigidConstraint(*model, DOFS::nastranCodeToDOFS(cna));
+	QuasiRigidConstraint qrc = QuasiRigidConstraint(*model, DOFS::nastranCodeToDOFS(cna), HomogeneousConstraint::UNAVAILABLE_MASTER, original_id);
 	qrc.addSlave(ga);
 	qrc.addSlave(gb);
 	model->add(qrc);

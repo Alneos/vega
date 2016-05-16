@@ -107,6 +107,7 @@ public:
 	inline bool isCompletelyRigid() const {
 		return this->dofs == DOFS::ALL_DOFS;
 	}
+	std::set<int> getSlaves() const override; /** Get the two nodes bound by this Quasi-Rigid constraint */
 	virtual ~QuasiRigidConstraint() {
 	}
 };

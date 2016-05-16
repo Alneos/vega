@@ -32,8 +32,9 @@ class SystusWriter: public Writer {
 	
 	map<int, map<int, int>> lists;
 	map<int, vector<double>> vectors;
-	map<int, vector<int>> RBE2rbarPositions; // <material, <cells>> for all RBE2 (1902/1903/1904) elements
-	map<int, vector<int>> RBE3rbarPositions; // <material, <cells>> for all RBE3 elements
+	map<int, vector<int>> RbarPositions;     /** <material, <cells>> for all RBar (1002) elements. */
+	map<int, vector<int>> RBE2rbarPositions; /** <material, <cells>> for all RBE2 (1902/1903/1904) elements. */
+	map<int, vector<int>> RBE3rbarPositions; /** <material, <cells>> for all RBE3 elements. */
 	map<int, int> localLoadingListIdByLoadingListId;
 	map<int, int> localVectorIdByLoadingListId;
 	map<int, int> localVectorIdByConstraintListId;
