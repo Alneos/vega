@@ -209,6 +209,22 @@ class SystusWriter: public Writer {
 	void writeInformations(const SystusModel&, std::ostream&);
 	void writeNodes(const SystusModel&, std::ostream&);
 	void writeElements(const SystusModel&, std::ostream&);
+	/**
+	 * Write the Cells and Nodes groups in ASC format.
+	 *
+	 * Cells groups follow the format:
+	 *   id NAME 2 0 "Subcommand"  ""  "Comment" elem1 elem2 ... elemN
+	 *
+	 *   Visual Enviromnent will use the Cells Groups where "Subcommand" is of the form "PART_ID k" (k integer positive) to build a partition of the domain.
+	 *   For this to work, these groups must verify:
+	 *       - Each group has a different part number k.
+	 *       - Every cell of the mesh must belong to one "Part" Cells Group and one only.
+	 *
+	 *   VEGA normally ensures the second condition (if not, there a bug in the Reader), allowing us to write Cells groups as PARTs here.
+	 *     
+	 * Nodes Groups follow the format:
+	 *  id NAME 1 0 "No methods"  ""  "Comment" node1 node2 ... nodeM
+	 */
 	void writeGroups(const SystusModel&, std::ostream&);
 	void writeMaterials(const SystusModel&, const ConfigurationParameters&, std::ostream&);
 	void writeLoads(const SystusModel&, const Analysis&, std::ostream&);

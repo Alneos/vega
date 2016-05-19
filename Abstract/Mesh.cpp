@@ -457,7 +457,7 @@ CellGroup* Mesh::getOrCreateCellGroupForOrientation(const shared_ptr<Orientation
 			gmaName = string("C") + id;
 		}
 		cellGroupName_by_orientation[orientation] = gmaName;
-		result = createCellGroup(gmaName);
+		result = createCellGroup(gmaName, CellGroup::NO_ORIGINAL_ID, string("Orientation"));
 	}
 	return result;
 }
@@ -492,7 +492,7 @@ void Mesh::finish() {
 
 }
 
-NodeGroup* Mesh::createNodeGroup(const string& name, int group_id) {
+NodeGroup* Mesh::createNodeGroup(const string& name, int group_id, const string & comment) {
 	if (name.empty()) {
 		throw invalid_argument("Can't create a nodeGroup with empty name ");
 	}
@@ -504,33 +504,38 @@ NodeGroup* Mesh::createNodeGroup(const string& name, int group_id) {
 		string errorMessage = "Another group exists with same id : " + to_string(group_id);
 		throw invalid_argument(errorMessage);
 	}
-	NodeGroup* group = new NodeGroup(this, name, group_id);
+	NodeGroup* group = new NodeGroup(this, name, group_id, comment);
 	this->groupByName[name] = group;
-	if (group_id != Group::NO_ORIGINAL_ID) {
+	if (group_id != NodeGroup::NO_ORIGINAL_ID) {
 		this->groupById[group_id] = group;
+	}
+
+	if (this->logLevel >= LogLevel::DEBUG) {
+		cout << "Created Node Group:" << name <<" with comment: "<<comment<< endl;
 	}
 	return group;
 }
 
-CellGroup* Mesh::createCellGroup(const string& name, int group_id) {
+CellGroup* Mesh::createCellGroup(const string& name, int group_id, const string & comment) {
 	if (name.empty()) {
 		throw invalid_argument("Can't create a cellGroup with empty name ");
 	}
 	if (this->groupByName.find(name) != this->groupByName.end()) {
 		throw invalid_argument("Another group exists with same name : " + name);
 	}
-	if (group_id != NodeGroup::NO_ORIGINAL_ID
+	if (group_id != CellGroup::NO_ORIGINAL_ID
 			&& this->groupById.find(group_id) != this->groupById.end()) {
 		string errorMessage = "Another group exists with same id : " + to_string(group_id);
 		throw invalid_argument(errorMessage);
 	}
-	CellGroup* group = new CellGroup(this, name);
+	CellGroup* group= new CellGroup(this, name, group_id, comment);
 	this->groupByName[name] = group;
-	if (group_id != Group::NO_ORIGINAL_ID) {
+	if (group_id != CellGroup::NO_ORIGINAL_ID) {
 		this->groupById[group_id] = group;
 	}
+
 	if (this->logLevel >= LogLevel::DEBUG) {
-		cout << "created Group MA :" << name << endl;
+		cout << "Created Cell Group:" << name <<" with comment: "<<comment<< endl;
 	}
 	return group;
 }

@@ -161,7 +161,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 			std::shared_ptr<RigidConstraint> rbe2 = std::static_pointer_cast<RigidConstraint>(constraint);
 
 
-			CellGroup* group = mesh->createCellGroup("RBE2_"+std::to_string(constraint->getOriginalId()));
+			CellGroup* group = mesh->createCellGroup("RBE2_"+std::to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBE2");
 			idMaterial++;
 
 			Node master = mesh->findNode(rbe2->getMaster());
@@ -213,7 +213,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 						<< constraint->getOriginalId()<< "translated as rigid constraint."<<endl;
 			}
 
-			CellGroup* group = mesh->createCellGroup("RBAR_"+std::to_string(constraint->getOriginalId()));
+			CellGroup* group = mesh->createCellGroup("RBAR_"+std::to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBAR");
 			idMaterial++;
 
 			vector<int> nodes;
@@ -236,7 +236,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 		for (const auto& constraint : constraints) {
 			std::shared_ptr<RBE3> rbe3 = std::static_pointer_cast<RBE3>(constraint);
 
-			CellGroup* group = mesh->createCellGroup("RBE3_"+std::to_string(constraint->getOriginalId()));
+			CellGroup* group = mesh->createCellGroup("RBE3_"+std::to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBE3");
 			idMaterial++;
 
 			Node master = mesh->findNode(rbe3->getMaster());
@@ -756,30 +756,40 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
 	vector<NodeGroup*> nodeGroups = systusModel.model->mesh->getNodeGroups();
 	vector<CellGroup*> cellGroups = systusModel.model->mesh->getCellGroups();
 
-	out << "BEGIN_GROUPS ";
-	out << cellGroups.size() + nodeGroups.size() << endl;
-	for (const auto& cellGroup : cellGroups) {
-		//1 E2D 2 0 "SYST DIMENSION 2" "" "Comments of the group" 101 102 103 201 202 203 301 302 303
+	ostringstream osgr;
+	int nbGroups=0;
 
+	// Write CellGroups
+	for (const auto& cellGroup : cellGroups) {
 		// We don't write the groups of Nodal Mass, as they are not cells in Systus
 		// It IS an Ugly Fix. I know it is.
 		// TODO: DO better
-		if (cellGroup->getName().substr(0,2)!="MN"){
-			out << cellGroup->getId() << " " << cellGroup->getName()
-						<< " 2 0 \"No method\" \"\" \"No Comments\"";
-			for (const auto& cell : cellGroup->getCells())
-				out << " " << cell.id;
-			out << endl;
+        if (cellGroup->getComment().substr(0,10)!="NODAL MASS"){
+			nbGroups++;
+			osgr << cellGroup->getId() << " " << cellGroup->getName() << " 2 0 ";
+			osgr << "\"PART_ID "<<nbGroups<< "\"  \"\"  ";
+			osgr << "\"PART built in VEGA from "<< cellGroup->getComment() << "\"";
+
+        	for (const auto& cell : cellGroup->getCells())
+        		osgr << " " << cell.id;
+        	osgr << endl;
 		}
 	}
 
+	// Write NodeGroups
 	for (const auto& nodeGroup : nodeGroups) {
-		out << nodeGroup->getId() << " " << nodeGroup->getName()
+        //cout << "Groups info: "<< nodeGroup->getId() << " "<< nodeGroup->getOriginalId()<<" "<<nodeGroup->getName()<< " " << nodeGroup->getComment()<<endl;
+        nbGroups++;
+        osgr << nodeGroup->getId() << " " << nodeGroup->getName()
 				<< " 1 0 \"No method\" \"\" \"No Comments\"";
 		for (int id : nodeGroup->nodePositions())
-			out << " " << id;
-		out << endl;
+			osgr << " " << id;
+		osgr << endl;
 	}
+
+	// Stream to output
+	out << "BEGIN_GROUPS " << nbGroups << endl;
+	out <<	osgr.str();
 	out << "END_GROUPS" << endl;
 }
 

@@ -116,13 +116,24 @@ const CellType* CellType::findByCode(CellType::Code code) {
 	return CellType::typeByCode[code];
 }
 
-Group::Group(Mesh* mesh, string name, Type type, int _id) :
-		Identifiable(_id), mesh(mesh), name(name), type(type) {
+Group::Group(Mesh* mesh, string name, Type type, int _id, string comment) :
+		Identifiable(_id), mesh(mesh), name(name), type(type), comment(comment) {
 }
 
 const string Group::getName() const {
 	return this->name;
+}
 
+void Group::setName(string name) {
+	this->name=name;
+}
+
+const string Group::getComment() const {
+	return this->comment;
+}
+
+void Group::setComment(string comment) {
+	this->comment=comment;
 }
 
 Group::~Group() {
@@ -131,8 +142,8 @@ Group::~Group() {
 /*******************
  * NodeGroup
  */
-NodeGroup::NodeGroup(Mesh* mesh, const string& name, int groupId) :
-		Group(mesh, name, NODEGROUP, groupId) {
+NodeGroup::NodeGroup(Mesh* mesh, const string& name, int groupId, const string& comment) :
+		Group(mesh, name, NODEGROUP, groupId, comment) {
 }
 
 void NodeGroup::addNode(int nodeId) {
@@ -170,8 +181,8 @@ const set<int> NodeGroup::getNodeIds() const {
 	return nodeIds;
 }
 
-CellGroup::CellGroup(Mesh* mesh, string name) :
-		Group(mesh, name, CELLGROUP) {
+CellGroup::CellGroup(Mesh* mesh, const string& name, int groupId, const string& comment ) :
+		Group(mesh, name, CELLGROUP, groupId, comment) {
 
 }
 /*

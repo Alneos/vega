@@ -157,13 +157,17 @@ public:
 		CELLGROUP = 3
 	};
 protected:
-	Group(Mesh* mesh, std::string name, Type, int id = NO_ORIGINAL_ID);
+	Group(Mesh* mesh, std::string name, Type, int id = NO_ORIGINAL_ID, std::string comment=" ");
 	Mesh* const mesh;
 	std::string name;
 public:
 	//const SpaceDimension dimension;
 	const Type type;
-	const std::string getName() const;
+	std::string comment; /** A comment string, usually use to retain the command which created the group. **/
+	const std::string getName() const;   /** Getter for the "name" field. **/
+	void setName(std::string name);      /** Setter for the "name" field. **/
+	const std::string getComment() const;/** Getter for the "comment" field. **/
+	void setComment(std::string comment);/** Setter for the "comment" field. **/
 	virtual const std::set<int> nodePositions() const = 0;
 	virtual ~Group();
 };
@@ -171,7 +175,7 @@ public:
 class NodeGroup final : public Group {
 private:
 	friend Mesh;
-	NodeGroup(Mesh* mesh, const std::string& name, int groupId);
+	NodeGroup(Mesh* mesh, const std::string& name, int groupId, const std::string& comment="	");
 	/**
 	 * Positions of the nodes participating to the group
 	 */
@@ -286,7 +290,7 @@ public:
 class CellGroup final: public Group {
 private:
 	friend Mesh;
-	CellGroup(Mesh* mesh, std::string name);
+	CellGroup(Mesh* mesh, const std::string & name, int id = NO_ORIGINAL_ID, const std::string & comment = "");
 public:
 	std::unordered_set<int> cellIds;
 	void addCell(int cellId);

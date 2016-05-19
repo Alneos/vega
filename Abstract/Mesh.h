@@ -133,9 +133,9 @@ public:
 	NodeStorage nodes;
 	CellStorage cells;
 
-	NodeGroup* createNodeGroup(const string& name, int groupId = Group::NO_ORIGINAL_ID);
+	NodeGroup* createNodeGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
 	std::vector<NodeGroup*> getNodeGroups() const;
-	CellGroup* createCellGroup(const string& name, int groupId = Group::NO_ORIGINAL_ID);
+	CellGroup* createCellGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
 	std::vector<CellGroup*> getCellGroups() const;
 	Group* findGroup(string) const;
 	/**

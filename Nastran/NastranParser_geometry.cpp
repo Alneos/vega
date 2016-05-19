@@ -84,15 +84,23 @@ void NastranParserImpl::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model
 }
 
 void NastranParserImpl::addProperty(int property_id, int cell_id, shared_ptr<Model> model) {
-	CellGroup* cellGroup = getOrCreateGroup(property_id, model);
+	CellGroup* cellGroup = getOrCreateCellGroup(property_id, model);
 	cellGroup->addCell(cell_id);
 }
 
-CellGroup* NastranParserImpl::getOrCreateGroup(int property_id, shared_ptr<Model> model) {
-	string cellGroupId = string("GM") + lexical_cast<string>(property_id);
-	CellGroup* cellGroup = dynamic_cast<CellGroup*>(model->mesh->findGroup(cellGroupId));
-	if (cellGroup == nullptr)
-		cellGroup = model->mesh->createCellGroup(cellGroupId);
+CellGroup* NastranParserImpl::getOrCreateCellGroup(int property_id, shared_ptr<Model> model, const string & command) {
+	CellGroup* cellGroup = dynamic_cast<CellGroup*>(model->mesh->findGroup(property_id));
+
+	string cellGroupName= command + string("_") + lexical_cast<string>(property_id);
+	if (cellGroup == nullptr){
+		cellGroup = model->mesh->createCellGroup(cellGroupName, property_id, command);
+	}else{
+		/* If the Group already exists, and if it was not already done, we enforce the name and comment of the Group */
+		if (cellGroup->getName().substr(0,6)=="CGVEGA"){
+			cellGroup->setName(cellGroupName);
+			cellGroup->setComment(command);
+		}
+	}
 	return cellGroup;
 }
 

@@ -631,8 +631,8 @@ void NastranParserImpl::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> mode
 	NodalMass nodalMass(*model, mass, i11, i22, i33, -i21, -i31, -i32, x1, x2, x3, elemId);
 
 	int cellPosition = model->mesh->addCell(elemId, CellType::POINT1, { g });
-	string mn = string("MN") + lexical_cast<string>(elemId);
-	CellGroup* mnodale = model->mesh->createCellGroup(mn);
+	string mn = string("CONM2_") + lexical_cast<string>(elemId);
+	CellGroup* mnodale = model->mesh->createCellGroup(mn, CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
 	mnodale->addCell(model->mesh->findCell(cellPosition).id);
 	nodalMass.assignCellGroup(mnodale);
 	nodalMass.assignMaterial(model->getVirtualMaterial());
@@ -953,7 +953,7 @@ void NastranParserImpl::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model
 	GenericSectionBeam genericSectionBeam(*model, area, i2, i1, j, k1, k2, Beam::EULER, nsm,
 			elemId);
 	genericSectionBeam.assignMaterial(material_id);
-	genericSectionBeam.assignCellGroup(getOrCreateGroup(elemId, model));
+	genericSectionBeam.assignCellGroup(getOrCreateCellGroup(elemId, model, "PBAR"));
 	model->add(genericSectionBeam);
 }
 
@@ -971,7 +971,7 @@ void NastranParserImpl::parsePBARL(NastranTokenizer& tok, shared_ptr<Model> mode
 		RectangularSectionBeam rectangularSectionBeam(*model, width, height, Beam::EULER, nsm,
 				elemId);
 		rectangularSectionBeam.assignMaterial(material_id);
-		rectangularSectionBeam.assignCellGroup(getOrCreateGroup(elemId, model));
+		rectangularSectionBeam.assignCellGroup(getOrCreateCellGroup(elemId, model, "PBARL"));
 		model->add(rectangularSectionBeam);
 	} else if (type == "ROD") {
 		tok.skip(4);
@@ -979,7 +979,7 @@ void NastranParserImpl::parsePBARL(NastranTokenizer& tok, shared_ptr<Model> mode
 		nsm = tok.nextDouble(true, 0.0);
 		CircularSectionBeam circularSectionBeam(*model, radius, Beam::EULER, nsm, elemId);
 		circularSectionBeam.assignMaterial(material_id);
-		circularSectionBeam.assignCellGroup(getOrCreateGroup(elemId, model));
+		circularSectionBeam.assignCellGroup(getOrCreateCellGroup(elemId, model, "PBARL"));
 		model->add(circularSectionBeam);
 	} else {
 		string message = "PBARL type " + type + " not implemented.";
@@ -1044,7 +1044,7 @@ void NastranParserImpl::parsePBEAM(NastranTokenizer& tok, shared_ptr<Model> mode
 				moment_of_inertia_Z, torsionalConstant, 0.0, 0.0, GenericSectionBeam::EULER, nsm,
 				elemId);
 		genericSectionBeam.assignMaterial(material_id);
-		genericSectionBeam.assignCellGroup(getOrCreateGroup(elemId, model));
+		genericSectionBeam.assignCellGroup(getOrCreateCellGroup(elemId, model, "PBEAM"));
 		model->add(genericSectionBeam);
 		numBeamParts++;
 	}
@@ -1064,7 +1064,7 @@ void NastranParserImpl::parsePBEAML(NastranTokenizer& tok, shared_ptr<Model> mod
 		nsm = tok.nextDouble(true, 0.0);
 		RectangularSectionBeam rectangularSectionBeam(*model, width, height, Beam::EULER, nsm, pid);
 		rectangularSectionBeam.assignMaterial(mid);
-		rectangularSectionBeam.assignCellGroup(getOrCreateGroup(pid, model));
+		rectangularSectionBeam.assignCellGroup(getOrCreateCellGroup(pid, model,"PBEAML"));
 		model->add(rectangularSectionBeam);
 	} else if (type == "ROD") {
 		tok.skip(4);
@@ -1072,7 +1072,7 @@ void NastranParserImpl::parsePBEAML(NastranTokenizer& tok, shared_ptr<Model> mod
 		nsm = tok.nextDouble(true, 0.0);
 		CircularSectionBeam circularSectionBeam(*model, radius, Beam::EULER, nsm, pid);
 		circularSectionBeam.assignMaterial(mid);
-		circularSectionBeam.assignCellGroup(getOrCreateGroup(pid, model));
+		circularSectionBeam.assignCellGroup(getOrCreateCellGroup(pid, model,"PBEAML"));
 		model->add(circularSectionBeam);
 	} else if (type == "I") {
 		tok.skip(4);
@@ -1088,7 +1088,7 @@ void NastranParserImpl::parsePBEAML(NastranTokenizer& tok, shared_ptr<Model> mod
 				upper_flange_thickness, lower_flange_thickness, beam_height, web_thickness,
 				Beam::EULER, nsm, pid);
 		iSectionBeam.assignMaterial(mid);
-		iSectionBeam.assignCellGroup(getOrCreateGroup(pid, model));
+		iSectionBeam.assignCellGroup(getOrCreateCellGroup(pid, model,"PBEAML"));
 		model->add(iSectionBeam);
 	} else {
 		string message = "PBEAML type " + type + " not implemented.";
@@ -1212,7 +1212,7 @@ void NastranParserImpl::parsePROD(NastranTokenizer& tok, shared_ptr<Model> model
 			propId);
 	genericSectionBeam.assignMaterial(material_id);
 	genericSectionBeam.assignMaterial(material_id);
-	genericSectionBeam.assignCellGroup(getOrCreateGroup(propId, model));
+	genericSectionBeam.assignCellGroup(getOrCreateCellGroup(propId, model, "PROD"));
 	model->add(genericSectionBeam);
 }
 
@@ -1252,7 +1252,7 @@ void NastranParserImpl::parsePSHELL(NastranTokenizer& tok, shared_ptr<Model> mod
 
 	Shell shell(*model, thickness, nsm, propId);
 	shell.assignMaterial(material_id1);
-	shell.assignCellGroup(getOrCreateGroup(propId, model));
+	shell.assignCellGroup(getOrCreateCellGroup(propId, model,"PSHELL"));
 	model->add(shell);
 }
 
@@ -1292,7 +1292,7 @@ void NastranParserImpl::parsePSOLID(NastranTokenizer& tok, shared_ptr<Model> mod
 	}
 	Continuum continuum(*model, modelType, elemId);
 	continuum.assignMaterial(material_id);
-	continuum.assignCellGroup(getOrCreateGroup(elemId, model));
+	continuum.assignCellGroup(getOrCreateCellGroup(elemId, model, "PSOLID"));
 	model->add(continuum);
 }
 
@@ -1476,10 +1476,12 @@ void NastranParserImpl::parseSPC1(NastranTokenizer& tok, shared_ptr<Model> model
 	const int dofInt = tok.nextInt();
 	const int g1 = tok.nextInt();
 	SinglePointConstraint spc = SinglePointConstraint(*model, DOFS::nastranCodeToDOFS(dofInt), 0.0);
-	string name = string("SPC") + "_" + to_string(spc.getId());
-
+	//string name = string("SPC1") + "_" + to_string(set_id);
+    //cout << "parse SPC does not work with new method."<<endl;
+    string name = string("SPC1") + "_" + to_string(set_id);
+	
 	string pos2 = trim_copy(tok.nextString(true));
-	NodeGroup *spcNodeGroup = model->mesh->createNodeGroup(name);
+	NodeGroup *spcNodeGroup = model->mesh->createNodeGroup(name,NodeGroup::NO_ORIGINAL_ID, "SPC1");
 	if (pos2 == "THRU") {
 		//parse "through" format
 		const int g2 = tok.nextInt();
