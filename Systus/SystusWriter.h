@@ -199,7 +199,7 @@ class SystusWriter: public Writer {
 	 */
 	static const std::unordered_map<CellType::Code, vector<int>, hash<int>> systus2medNodeConnectByCellType;
 	void writeAsc(const SystusModel&, const ConfigurationParameters&, const Analysis&, std::ostream&);
-	void getSystusInformations(const SystusModel&);
+	void getSystusInformations(const SystusModel&, const ConfigurationParameters&);
 	void fillLoads(const SystusModel&, const Analysis&);
 	void fillVectors(const SystusModel&, const Analysis&);
 	void fillConstraintLists(const std::shared_ptr<ConstraintSet> & , std::map<int, std::map<int, int>> &);

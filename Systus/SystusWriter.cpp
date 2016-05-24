@@ -68,7 +68,7 @@ string SystusWriter::writeModel(const shared_ptr<Model> model,
 	}
 
 	/* Work to Do Only once */
-	getSystusInformations(systusModel);
+	getSystusInformations(systusModel, configuration);
 	generateRBEs(systusModel, configuration);
 
 
@@ -107,7 +107,7 @@ string SystusWriter::writeModel(const shared_ptr<Model> model,
 	return dat_path;
 }
 
-void SystusWriter::getSystusInformations(const SystusModel& systusModel) {
+void SystusWriter::getSystusInformations(const SystusModel& systusModel, const ConfigurationParameters& configurationParameters) {
 
 	CellType cellType[20] = { CellType::POINT1, CellType::SEG2, CellType::SEG3, CellType::SEG4,
 			CellType::TRI3, CellType::QUAD4, CellType::TRI6, CellType::TRI7, CellType::QUAD8,
@@ -126,13 +126,20 @@ void SystusWriter::getSystusInformations(const SystusModel& systusModel) {
 	for (int i = 0; i < 10; i++)
 		has1DOr2DElements = hasElement[i] || has1DOr2DElements;
 
-	if (has1DOr2DElements)
-		systusOption = 3;
-	else
-		systusOption = 4;
-
+	if (configurationParameters.systusOptionAnalysis =="auto"){
+		if (has1DOr2DElements){
+			systusOption = 3;
+		}else{
+			systusOption = 4;
+		}
+	}else{
+		if (configurationParameters.systusOptionAnalysis =="shell"){
+			systusOption = 3;
+		}else{
+			systusOption = 4;
+		}
+	}
 	maxNumNodes = *max_element(numNodes, numNodes + 20);
-
 	nbNodes = systusModel.model->mesh->countNodes();
 
 }
