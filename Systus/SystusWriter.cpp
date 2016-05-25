@@ -48,6 +48,13 @@ const unordered_map<CellType::Code, vector<int>, hash<int>> SystusWriter::systus
 						6, 13, 5, 12 } }
 		};
 
+
+/** Converts a vega node Id in its ASC counterpart (i.e add one!) **/
+int SystusWriter::getAscNodeId(const int vega_id) const{
+	return vega_id+1;
+}
+
+
 string SystusWriter::writeModel(const shared_ptr<Model> model,
 		const vega::ConfigurationParameters &configuration) {
 	SystusModel systusModel = SystusModel(&(*model), configuration);
@@ -639,7 +646,7 @@ void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
 	out << " 3" << endl; // number of coordinates
 
 	for (const auto& node : mesh->nodes) {
-		int nid = node.position + 1;
+		int nid = getAscNodeId(node.position);
 		int iconst = 0;
 		auto it = constraintByNodePosition.find(node.position);
 		if (it != constraintByNodePosition.end())
@@ -718,7 +725,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 			for (unsigned int i = 0; i < cell.type.numNodes; i++)
 				systusConnect.push_back(medConnect[systus2medNodeConnect[i]]);
 			for (int node : systusConnect) {
-				out << " " << mesh->findNodePosition(node) + 1;
+				out << " " << getAscNodeId(mesh->findNodePosition(node));
 			}
 			out << endl;
 		}
@@ -730,7 +737,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 			Cell cell = mesh->findCell(position);
 			out << cell.id << " 190" << cell.nodeIds.size() << " " << rbe2.first << " 0 0";
 			for (int nodeId : cell.nodeIds)
-				out << " " << mesh->findNodePosition(nodeId) + 1;
+				out << " " << getAscNodeId(mesh->findNodePosition(nodeId));
 			out << endl;
 		}
 	}
@@ -740,7 +747,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 			Cell cell = mesh->findCell(position);
 			out << cell.id << " 100" << cell.nodeIds.size() << " " << rbar.first << " 0 0";
 			for (int nodeId : cell.nodeIds)
-				out << " " << mesh->findNodePosition(nodeId) + 1;
+				out << " " << getAscNodeId(mesh->findNodePosition(nodeId));
 			out << endl;
 		}
 	}
@@ -750,7 +757,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 			Cell cell = mesh->findCell(position);
 			out << cell.id << " 100" << cell.nodeIds.size() << " " << rbe3.first << " 0 0";
 			for (int nodeId : cell.nodeIds)
-				out << " " << mesh->findNodePosition(nodeId) + 1;
+				out << " " << getAscNodeId(mesh->findNodePosition(nodeId));
 			out << endl;
 		}
 	}
@@ -1001,7 +1008,7 @@ void SystusWriter::writeMasses(const SystusModel &systusModel, ostream& out) {
 				}
 				for (const auto& cell : mass->cellGroup->getCells()) {
 					// NODEi
-					out << " " << cell.nodeIds[0];
+					out << " " << getAscNodeId(cell.nodeIds[0]);
 				}
 				out << endl;
 			}
@@ -1200,7 +1207,7 @@ void SystusWriter::writeLoad(const LoadSet& loadSet, ostream& out) {
 			int node = nodalForce->getNode().position;
 			VectorialValue force = nodalForce->getForce();
 			VectorialValue moment = nodalForce->getMoment();
-			out << " NODE " << node + 1 << " /";
+			out << " NODE " << getAscNodeId(node) << " /";
 			if (!is_zero(force.x()))
 				out << " FX " << force.x();
 			if (!is_zero(force.y()))
@@ -1302,8 +1309,8 @@ void SystusWriter::writeNodalDisplacementAssertion(Assertion& assertion, ostream
 
 	if (!is_equal(nda.instant, -1))
 		throw WriterException("Instant in NodalDisplacementAssertion not supported");
-	int nodePos = nda.nodePosition + 1;
-	int dofPos = nda.dof.position + 1;
+	int nodePos = getAscNodeId(nda.nodePosition);
+	int dofPos = getAscNodeId(nda.dof.position);
 
 	out << scientific;
 	out << "displacement = node_displacement(1" << "," << nodePos << ");" << endl;
@@ -1327,8 +1334,8 @@ void SystusWriter::writeNodalDisplacementAssertion(Assertion& assertion, ostream
 void SystusWriter::writeNodalComplexDisplacementAssertion(Assertion& assertion, ostream& out) {
 	NodalComplexDisplacementAssertion& ncda = dynamic_cast<NodalComplexDisplacementAssertion&>(assertion);
 
-	int nodePos = ncda.nodePosition + 1;
-	int dofPos = ncda.dof.position + 1;
+	int nodePos = getAscNodeId(ncda.nodePosition);
+	int dofPos = getAscNodeId(ncda.dof.position);
 	double puls = ncda.frequency*2*M_PI;
 	out << scientific;
 	out << "nb_map = number_of_tran_maps(1);" << endl;

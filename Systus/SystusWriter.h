@@ -197,6 +197,7 @@ class SystusWriter: public Writer {
 	 *        6-----7-----0                  1-----8-----0\endcode
 	 *
 	 */
+	int getAscNodeId(const int vega_id) const; /** Converts a vega node Id in its ASC counterpart (i.e add one!) **/
 	static const std::unordered_map<CellType::Code, vector<int>, hash<int>> systus2medNodeConnectByCellType;
 	void writeAsc(const SystusModel&, const ConfigurationParameters&, const Analysis&, std::ostream&);
 	void getSystusInformations(const SystusModel&, const ConfigurationParameters&);
@@ -240,7 +241,7 @@ class SystusWriter: public Writer {
 	virtual string toString() {
 		return string("SystusWriter");
 	}
-	void writeMasses(const SystusModel&, std::ostream& out);
+	void writeMasses(const SystusModel&, std::ostream& out); /** Write Nodal Masses on outstream. **/
 
 public:
 	SystusWriter();

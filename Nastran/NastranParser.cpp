@@ -609,7 +609,7 @@ void NastranParserImpl::addAnalysis(shared_ptr<Model> model, map<string, string>
 
 void NastranParserImpl::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> model) {
 	int elemId = tok.nextInt();
-	int g = tok.nextInt();
+	int g = tok.nextInt(); // Grid point identification number
 	int ci = tok.nextInt(true, 0);
 	if (ci != 0) {
 		string message = "CONM2 coordinate system not implemented.";
@@ -630,7 +630,8 @@ void NastranParserImpl::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> mode
 
 	NodalMass nodalMass(*model, mass, i11, i22, i33, -i21, -i31, -i32, x1, x2, x3, elemId);
 
-	int cellPosition = model->mesh->addCell(elemId, CellType::POINT1, { g });
+	int nodePosition = model->mesh->findOrReserveNode(g);
+	int cellPosition = model->mesh->addCell(elemId, CellType::POINT1, { nodePosition });
 	string mn = string("CONM2_") + lexical_cast<string>(elemId);
 	CellGroup* mnodale = model->mesh->createCellGroup(mn, CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
 	mnodale->addCell(model->mesh->findCell(cellPosition).id);
