@@ -84,6 +84,7 @@ const CellType CellType::POINT1 = CellType(POINT1_CODE, 1, SpaceDimension::DIMEN
 const CellType CellType::SEG2 = CellType(SEG2_CODE, 2, SpaceDimension::DIMENSION_1D, "SEG2");
 const CellType CellType::SEG3 = CellType(SEG3_CODE, 3, SpaceDimension::DIMENSION_1D, "SEG3");
 const CellType CellType::SEG4 = CellType(SEG4_CODE, 4, SpaceDimension::DIMENSION_1D, "SEG4");
+const CellType CellType::SEG5 = CellType(SEG5_CODE, 5, SpaceDimension::DIMENSION_1D, "SEG5");
 const CellType CellType::POLYL = CellType(POLYL_CODE, -1, SpaceDimension::DIMENSION_1D, "POLYL");
 const CellType CellType::TRI3 = CellType(TRI3_CODE, 3, SpaceDimension::DIMENSION_2D, "TRI3");
 const CellType CellType::QUAD4 = CellType(QUAD4_CODE, 4, SpaceDimension::DIMENSION_2D, "QUAD4");

@@ -32,17 +32,17 @@ class SystusWriter: public Writer {
 	
 	map<int, map<int, int>> lists;
 	map<int, vector<double>> vectors;
-	map<int, vector<int>> RbarPositions;     /** <material, <cells>> for all RBar (1002) elements. */
-	map<int, vector<int>> RBE2rbarPositions; /** <material, <cells>> for all RBE2 (1902/1903/1904) elements. */
-	map<int, vector<int>> RBE3rbarPositions; /** <material, <cells>> for all RBE3 elements. */
+	map<int, vector<int>> RbarPositions;     /** <material, <cells>> for all RBar (1002) elements. **/
+	map<int, vector<int>> RBE2rbarPositions; /** <material, <cells>> for all RBE2 (1902/1903/1904) elements. **/
+	map<int, vector<int>> RBE3rbarPositions; /** <material, <cells>> for all RBE3 elements. **/
+	map<int, vector<DOFS>> RBE3Dofs;         /** <material, <master DOFS, slaves DOFS>> for all RBE3 elements. **/
+	map<int, double> RBE3Coefs;              /** <material, coeff>  for all RBE3 elements. **/
 	map<int, int> localLoadingListIdByLoadingListId;
 	map<int, int> localVectorIdByLoadingListId;
 	map<int, int> localVectorIdByConstraintListId;
 	map<int, int> loadingListIdByNodePosition;
 	map<int, int> constraintListIdByNodePosition;
 	map<int, char> constraintByNodePosition;
-	// vs 2013 compiler bug	in initializer list {{3,6}, {4,3}} not supported
-	map<int, int> numberOfDofBySystusOption = boost::assign::map_list_of(3, 6)(4, 3);
 	/**
 	 * Renumbers the nodes
 	 * see Systus ref manual chapter 15 or chapter 13 2.7
@@ -196,8 +196,17 @@ class SystusWriter: public Writer {
 	 *       \|          \|                 \|          \|
 	 *        6-----7-----0                  1-----8-----0\endcode
 	 *
-	 */
-	int getAscNodeId(const int vega_id) const; /** Converts a vega node Id in its ASC counterpart (i.e add one!) **/
+	 **/
+	// vs 2013 compiler bug	in initializer list {{3,6}, {4,3}} not supported
+	map<int, int> numberOfDofBySystusOption = boost::assign::map_list_of(3, 6)(4, 3);
+	/** Converts a vega node Id in its ASC counterpart (i.e add one!) **/
+	int getAscNodeId(const int vega_id) const;
+	 /** Converts a vega DOFS to its ASC material counterpart.
+	  *  Return the number of material field filled.
+	  **/
+	int DOFSToAsc(const DOFS dofs, ostream& out) const;
+	/** Converts a vega DOFS to its integer Systus couterpart **/
+	int DOFSToInt(const DOFS dofs) const;
 	static const std::unordered_map<CellType::Code, vector<int>, hash<int>> systus2medNodeConnectByCellType;
 	void writeAsc(const SystusModel&, const ConfigurationParameters&, const Analysis&, std::ostream&);
 	void getSystusInformations(const SystusModel&, const ConfigurationParameters&);

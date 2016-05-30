@@ -1329,11 +1329,11 @@ void NastranParserImpl::parseRBE3(NastranTokenizer& tok, shared_ptr<Model> model
 	RBE3 rbe3(*model, masterId, dofs, original_id);
 	while (tok.isNextDouble()) {
 		double coef = tok.nextDouble();
-		int nastranDofs = tok.nextInt();
-		DOFS dofs = DOFS::nastranCodeToDOFS(nastranDofs);
+		int nastranSDofs = tok.nextInt();
+		DOFS sdofs = DOFS::nastranCodeToDOFS(nastranSDofs);
 		while (tok.isNextInt()) {
 			int slaveId = tok.nextInt();
-			rbe3.addSlave(slaveId, dofs, coef);
+			rbe3.addSlave(slaveId, sdofs, coef);
 		}
 	}
 	model->add(rbe3);

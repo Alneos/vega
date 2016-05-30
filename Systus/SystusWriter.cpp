@@ -54,6 +54,52 @@ int SystusWriter::getAscNodeId(const int vega_id) const{
 	return vega_id+1;
 }
 
+int SystusWriter::DOFSToAsc(const DOFS dofs, ostream& out) const{
+	int nelem=0;
+	if (dofs.contains(DOF::DX)){
+		nelem++;
+		out << " 31 1.0";
+	}
+	if (dofs.contains(DOF::DY)){
+		nelem++;
+		out << " 32 1.0";
+	}
+	if (dofs.contains(DOF::DZ)){
+		nelem++;
+		out << " 33 1.0";
+	}
+	if (dofs.contains(DOF::RX)){
+		nelem++;
+		out << " 14 1.0";
+	}
+	if (dofs.contains(DOF::RY)){
+		nelem++;
+		out << " 15 1.0";
+	}
+	if (dofs.contains(DOF::RZ)){
+		out << " 16 1.0";
+		nelem++;
+	}
+	return nelem;
+}
+
+int SystusWriter::DOFSToInt(const DOFS dofs) const{
+	int iout=0;
+	if (dofs.contains(DOF::DX))
+		iout=iout+1;
+	if (dofs.contains(DOF::DY))
+		iout=iout+2;
+	if (dofs.contains(DOF::DZ))
+		iout=iout+4;
+	if (dofs.contains(DOF::RX))
+		iout=iout+8;
+	if (dofs.contains(DOF::RY))
+		iout=iout+16;
+	if (dofs.contains(DOF::RZ))
+		iout=iout+32;
+    return iout;
+}
+
 
 string SystusWriter::writeModel(const shared_ptr<Model> model,
 		const vega::ConfigurationParameters &configuration) {
@@ -116,21 +162,21 @@ string SystusWriter::writeModel(const shared_ptr<Model> model,
 
 void SystusWriter::getSystusInformations(const SystusModel& systusModel, const ConfigurationParameters& configurationParameters) {
 
-	CellType cellType[20] = { CellType::POINT1, CellType::SEG2, CellType::SEG3, CellType::SEG4,
+	CellType cellType[21] = { CellType::POINT1, CellType::SEG2, CellType::SEG3, CellType::SEG4, CellType::SEG5,
 			CellType::TRI3, CellType::QUAD4, CellType::TRI6, CellType::TRI7, CellType::QUAD8,
 			CellType::QUAD9, CellType::TETRA4, CellType::PYRA5, CellType::PENTA6, CellType::HEXA8,
 			CellType::TETRA10, CellType::HEXGP12, CellType::PYRA13, CellType::PENTA15,
 			CellType::HEXA20, CellType::HEXA27 };
 
-	bool hasElement[20];
-	int numNodes[20];
-	for (int i = 0; i < 20; i++) {
+	bool hasElement[21];
+	int numNodes[21];
+	for (int i = 0; i < 21; i++) {
 		hasElement[i] = !!systusModel.model->mesh->countCells(cellType[i]);
 		numNodes[i] = hasElement[i] ? cellType[i].numNodes : 0;
 	}
 
 	bool has1DOr2DElements = false;
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 11; i++)
 		has1DOr2DElements = hasElement[i] || has1DOr2DElements;
 
 	if (configurationParameters.systusOptionAnalysis =="auto"){
@@ -146,7 +192,7 @@ void SystusWriter::getSystusInformations(const SystusModel& systusModel, const C
 			systusOption = 4;
 		}
 	}
-	maxNumNodes = *max_element(numNodes, numNodes + 20);
+	maxNumNodes = *max_element(numNodes, numNodes + 21);
 	nbNodes = systusModel.model->mesh->countNodes();
 
 }
@@ -160,6 +206,8 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 	RbarPositions.clear();
 	RBE2rbarPositions.clear();
 	RBE3rbarPositions.clear();
+	RBE3Dofs.clear();
+	RBE3Coefs.clear();
 	
     // Material Id are usually computed from the corresponding ElementSet Id
     // TODO: It should be the material...
@@ -245,20 +293,68 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 
 
 
-
+        /* See Systus Reference Analysis Manual, Section 8.8 "Special Elements",
+         * Subsection "Use of Averaging Type Solid Elements", p500.
+         */
 		constraints = constraintSet->getConstraintsByType(Constraint::RBE3);
 		for (const auto& constraint : constraints) {
+
+			std::map<DOFS, std::map<double, int>> materialByCoefByDOFS;
+
 			std::shared_ptr<RBE3> rbe3 = std::static_pointer_cast<RBE3>(constraint);
-
 			CellGroup* group = mesh->createCellGroup("RBE3_"+std::to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBE3");
-			idMaterial++;
-
 			Node master = mesh->findNode(rbe3->getMaster());
+			const DOFS mDOFS = rbe3->getDOFS();
+
+			// Creating a Lagrange node
+			int master_lagr_position = mesh->addNode(Node::AUTO_ID, master.x, master.y, master.z, master.displacementCS);
+			int master_lagr_id = mesh->findNode(master_lagr_position).id;
+
+
+			// Creating rotation nodes if needed
+			int master_rot_id=0;
+			int master_lagr_rot_id=0;
+			if (systusOption == 4){
+				int master_rot_position = mesh->addNode(Node::AUTO_ID, master.x, master.y, master.z, master.displacementCS);
+				master_rot_id = mesh->findNode(master_rot_position).id;
+				int master_lagr_rot_position = mesh->addNode(Node::AUTO_ID, master.x, master.y, master.z, master.displacementCS);
+				master_lagr_rot_id = mesh->findNode(master_lagr_rot_position).id;
+			}
+
 			for (int position : rbe3->getSlaves()){
 				Node slave = mesh->findNode(position);
 				vector<int> nodes = {master.id, slave.id};
-				int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
-				RBE3rbarPositions[idMaterial].push_back(cellPosition);
+				if (systusOption == 4){
+					nodes.push_back(master_rot_id);
+				}
+				nodes.push_back(master_lagr_id);
+				if (systusOption == 4){
+					nodes.push_back(master_lagr_rot_id);
+				}
+				int cellPosition;
+				switch (nodes.size()){
+				case (3):{
+					cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG3, nodes, true);
+					break;
+				}
+				case (5):{
+					cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG5, nodes, true);
+					break;
+				}
+				}
+
+				/* We build a material for each value of "Slave DOFS" and "Slave Coeff" */
+				const DOFS dDOFS = rbe3->getDOFSForNode(position);
+				const double dCoef = rbe3->getCoefForNode(position);
+				if (materialByCoefByDOFS[dDOFS][dCoef]==0){
+					idMaterial++;
+					materialByCoefByDOFS[dDOFS][dCoef] =idMaterial;
+					RBE3Dofs[idMaterial]= {mDOFS, dDOFS};
+					RBE3Coefs[idMaterial]= dCoef;
+				}
+				int idCMaterial = materialByCoefByDOFS[dDOFS][dCoef];
+				RBE3rbarPositions[idCMaterial].push_back(cellPosition);
+
 				group->addCell(mesh->findCell(cellPosition).id);
 			}
 		}
@@ -755,7 +851,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 	for (const auto& rbe3 : RBE3rbarPositions){
 		for (int position : rbe3.second){
 			Cell cell = mesh->findCell(position);
-			out << cell.id << " 100" << cell.nodeIds.size() << " " << rbe3.first << " 0 0";
+			out << cell.id << " 190" << cell.nodeIds.size() << " " << rbe3.first << " 0 0";
 			for (int nodeId : cell.nodeIds)
 				out << " " << getAscNodeId(mesh->findNodePosition(nodeId));
 			out << endl;
@@ -903,20 +999,23 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 	for (const auto& rbar : RbarPositions){
 		nbmaterials++;
 		if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-			ogmat << rbar.first << " 0 200 9 61 19 197 1 5 1 182 " << rbar.first << endl;
+			ogmat << rbar.first << " 0 182 " << rbar.first <<" 200 9 61 19 197 1 5 1" << endl;
 			nbelements=nbelements+5;
 		}else{
 			double rbarE= configuration.systusRBE2PenaltyFactor*maxE;
-			ogmat << rbar.first << " 0 200 9 61 9 197 1 5 " << rbarE << " 182 " << rbar.first << endl;
+			ogmat << rbar.first << " 0 182 " << rbar.first<< " 200 9 61 9 197 1 5 " << rbarE << endl;
 			nbelements=nbelements+5;
 		}
 	}
 
 	for (const auto& rbe3 : RBE3rbarPositions){
-		cout << "Warning : RBE3 material emulated by beam with low rigidity" << endl;
-		ogmat << rbe3.first << " 0 4 0 5 1e-12 6 0 11 3.14159265358979e-06" << endl;
 		nbmaterials++;
-		nbelements=nbelements+4;
+		ogmat << rbe3.first << " 0 182 " << rbe3.first; // Material Id, VE Part Id
+		ogmat << " 61 19 197 3"; // Shape 19 Level 3
+		int nbFieldDOFS = DOFSToAsc(RBE3Dofs[rbe3.first].front(), ogmat); // KX KY KZ IX IY IZ
+		ogmat << " 56 "  << RBE3Coefs[rbe3.first];  // COEFF key: RBE3 weight
+		ogmat << " 184 " << DOFSToInt(RBE3Dofs[rbe3.first].back()) << endl; // DEPENDS key: DOFs of slave nodes.
+		nbelements=nbelements+5+nbFieldDOFS;
 	}
 
 	// Stream to output

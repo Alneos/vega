@@ -89,6 +89,7 @@ public:
 	virtual std::set<int> getSlaves() const;
 	std::set<int> nodePositions() const override;
 	const DOFS getDOFSForNode(int nodePosition) const override;
+	const DOFS getDOFS() const;
 	void removeNode(int nodePosition) override;
 	bool ineffective() const override;
 	virtual ~HomogeneousConstraint();

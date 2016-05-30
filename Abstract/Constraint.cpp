@@ -110,6 +110,11 @@ int HomogeneousConstraint::getMaster() const {
 	}
 }
 
+/** Getter for dofs data. **/
+const DOFS HomogeneousConstraint::getDOFS() const {
+	return this->dofs;
+}
+
 void HomogeneousConstraint::addSlave(int slaveId) {
 	this->slavePositions.insert(model.mesh->findOrReserveNode(slaveId));
 }

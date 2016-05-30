@@ -165,7 +165,11 @@ public:
 	void add_orientation(int cellId, const Orientation& orientation);
 	int countCells() const;
 	int countCells(const CellType &type) const;
-	int addCell(int id, const CellType &type, const std::vector<int> &connectivity,
+	/** Add a cell to the mesh.
+	 *  The vector nodesIds regroups the nodes use to build the cell. Nodes Ids are expressed as "input node number"
+	 *  and will be added to the model if not already defined.
+	 **/
+	int addCell(int id, const CellType &type, const std::vector<int> &nodesIds,
 			bool virtualCell = false, const Orientation* = nullptr, int elementId = UNAVAILABLE_ELEM);
 	int findCellPosition(int cellId) const;
 	const Cell findCell(int cellPosition) const;

@@ -27,6 +27,9 @@
 #define MESGERR 1
 #include <med.h>
 
+// Add specific elements not already defined by MED
+typedef enum {MED_SEG5=105} vega_med_geometrie_element;
+
 namespace vega {
 
 class SpaceDimension final {
@@ -75,6 +78,7 @@ public:
 		SEG2_CODE = MED_SEG2,
 		SEG3_CODE = MED_SEG3,
 		SEG4_CODE = MED_SEG4,
+		SEG5_CODE = MED_SEG5,
 		POLYL_CODE = MED_POLYGON,
 		TRI3_CODE = MED_TRIA3,
 		QUAD4_CODE = MED_QUAD4,
@@ -106,6 +110,7 @@ public:
 	static const CellType SEG2;
 	static const CellType SEG3;
 	static const CellType SEG4;
+	static const CellType SEG5;
 	static const CellType POLYL;
 	static const CellType TRI3;
 	static const CellType QUAD4;
