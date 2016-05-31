@@ -48,9 +48,11 @@ private:
 	const LogLevel logLevel;
 	std::vector<NodeData> nodeDatas;
 	std::map<int, int> nodepositionById;
-	/*
-	 * Reserve a node position given an id
-	 */
+	/**
+	 * Reserve a node position (VEGA Id) given a node id (input model id).
+	 * WARNING! Reserving an already created node will erase the previous value
+	 * of NodeData ! Use Mesh::findOrReserveNode to avoid this problem.
+	 **/
 	int reserveNodePosition(int nodeId);
 	static const double RESERVED_POSITION;
 public:

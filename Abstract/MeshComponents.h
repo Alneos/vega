@@ -168,11 +168,11 @@ protected:
 public:
 	//const SpaceDimension dimension;
 	const Type type;
-	std::string comment; /** A comment string, usually use to retain the command which created the group. **/
-	const std::string getName() const;   /** Getter for the "name" field. **/
-	void setName(std::string name);      /** Setter for the "name" field. **/
-	const std::string getComment() const;/** Getter for the "comment" field. **/
-	void setComment(std::string comment);/** Setter for the "comment" field. **/
+	std::string comment; ///< A comment string, usually use to retain the command which created the group.
+	const std::string getName() const;   ///< Getter for the "name" field.
+	void setName(std::string name);      ///< Setter for the "name" field.
+	const std::string getComment() const;///< Getter for the "comment" field.
+	void setComment(std::string comment);///< Setter for the "comment" field.
 	virtual const std::set<int> nodePositions() const = 0;
 	virtual ~Group();
 };
@@ -216,7 +216,14 @@ private:
 			int displacementCS = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
 public:
 	static const int AUTO_ID = INT_MIN;
+	/** Usually, the original id of the node, from the input mesh.
+	 *  Can also be an automatic generated id.
+	 *  Unique by mesh.
+	 **/
 	const int id;
+	/** Position, or VEGA id, of the node in the model.
+	 *  Unique by mesh.
+	 **/
 	const int position;
 	const double x;
 	const double y;
