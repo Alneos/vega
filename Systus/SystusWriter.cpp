@@ -742,7 +742,7 @@ void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
 	out << " 3" << endl; // number of coordinates
 
 	for (const auto& node : mesh->nodes) {
-		int nid = getAscNodeId(node.position);
+		int nid = mesh->findNode(node.position).id;
 		int iconst = 0;
 		auto it = constraintByNodePosition.find(node.position);
 		if (it != constraintByNodePosition.end())
@@ -821,7 +821,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 			for (unsigned int i = 0; i < cell.type.numNodes; i++)
 				systusConnect.push_back(medConnect[systus2medNodeConnect[i]]);
 			for (int node : systusConnect) {
-				out << " " << getAscNodeId(mesh->findNodePosition(node));
+				out << " " << node; //getAscNodeId(mesh->findNodePosition(node));
 			}
 			out << endl;
 		}

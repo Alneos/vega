@@ -32,11 +32,11 @@ class SystusWriter: public Writer {
 	
 	map<int, map<int, int>> lists;
 	map<int, vector<double>> vectors;
-	map<int, vector<int>> RbarPositions;     /** <material, <cells>> for all RBar (1002) elements. **/
-	map<int, vector<int>> RBE2rbarPositions; /** <material, <cells>> for all RBE2 (1902/1903/1904) elements. **/
-	map<int, vector<int>> RBE3rbarPositions; /** <material, <cells>> for all RBE3 elements. **/
-	map<int, vector<DOFS>> RBE3Dofs;         /** <material, <master DOFS, slaves DOFS>> for all RBE3 elements. **/
-	map<int, double> RBE3Coefs;              /** <material, coeff>  for all RBE3 elements. **/
+	map<int, vector<int>> RbarPositions;     /**< <material, <cells>> for all RBar (1002) elements. **/
+	map<int, vector<int>> RBE2rbarPositions; /**< <material, <cells>> for all RBE2 (1902/1903/1904) elements. **/
+	map<int, vector<int>> RBE3rbarPositions; /**< <material, <cells>> for all RBE3 elements. **/
+	map<int, vector<DOFS>> RBE3Dofs;         /**< <material, <master DOFS, slaves DOFS>> for all RBE3 elements. **/
+	map<int, double> RBE3Coefs;              /**< <material, coeff>  for all RBE3 elements. **/
 	map<int, int> localLoadingListIdByLoadingListId;
 	map<int, int> localVectorIdByLoadingListId;
 	map<int, int> localVectorIdByConstraintListId;
@@ -199,7 +199,9 @@ class SystusWriter: public Writer {
 	 **/
 	// vs 2013 compiler bug	in initializer list {{3,6}, {4,3}} not supported
 	map<int, int> numberOfDofBySystusOption = boost::assign::map_list_of(3, 6)(4, 3);
-	/** Converts a vega node Id in its ASC counterpart (i.e add one!) **/
+	/** Converts a vega node Id in its ASC counterpart (i.e add one!) 
+	 *  Now useless, as we now used the model id, which (normally) start to one.
+	 **/
 	int getAscNodeId(const int vega_id) const;
 	 /** Converts a vega DOFS to its ASC material counterpart.
 	  *  Return the number of material field filled.
@@ -217,6 +219,11 @@ class SystusWriter: public Writer {
 	void generateRBEs(const SystusModel&, const ConfigurationParameters&);
 	void writeHeader(const SystusModel&, std::ostream&);
 	void writeInformations(const SystusModel&, std::ostream&);
+	
+	/**
+	 * Write the Nodes in ASC format. 
+	 * If possible, nodes numbers copy the numbers of the input model. 
+	 **/
 	void writeNodes(const SystusModel&, std::ostream&);
 	void writeElements(const SystusModel&, std::ostream&);
 	/**
