@@ -821,7 +821,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 			for (unsigned int i = 0; i < cell.type.numNodes; i++)
 				systusConnect.push_back(medConnect[systus2medNodeConnect[i]]);
 			for (int node : systusConnect) {
-				out << " " << node; //getAscNodeId(mesh->findNodePosition(node));
+				out << " " << node;
 			}
 			out << endl;
 		}
@@ -833,7 +833,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 			Cell cell = mesh->findCell(position);
 			out << cell.id << " 190" << cell.nodeIds.size() << " " << rbe2.first << " 0 0";
 			for (int nodeId : cell.nodeIds)
-				out << " " << getAscNodeId(mesh->findNodePosition(nodeId));
+				out << " " << nodeId;
 			out << endl;
 		}
 	}
@@ -843,7 +843,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 			Cell cell = mesh->findCell(position);
 			out << cell.id << " 100" << cell.nodeIds.size() << " " << rbar.first << " 0 0";
 			for (int nodeId : cell.nodeIds)
-				out << " " << getAscNodeId(mesh->findNodePosition(nodeId));
+				out << " " << nodeId;
 			out << endl;
 		}
 	}
@@ -853,7 +853,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 			Cell cell = mesh->findCell(position);
 			out << cell.id << " 190" << cell.nodeIds.size() << " " << rbe3.first << " 0 0";
 			for (int nodeId : cell.nodeIds)
-				out << " " << getAscNodeId(mesh->findNodePosition(nodeId));
+				out << " " << nodeId;
 			out << endl;
 		}
 	}

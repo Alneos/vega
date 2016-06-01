@@ -74,8 +74,14 @@ CellData::CellData(int id, CellType type, bool isvirtual, int elementId, int cel
 
 int Mesh::addNode(int id, double x, double y, double z, int cd_id) {
 	int nodePosition;
-	if (id == Node::AUTO_ID)
+
+	// In auto mode, we assign the first free node, starting from the biggest possible number
+	if (id == Node::AUTO_ID){
 		id = Node::auto_node_id--;
+		while (findNodePosition(id)!= UNAVAILABLE_NODE){
+			id = Node::auto_node_id--;
+		}
+	}
 	auto positionIterator = nodes.nodepositionById.find(id);
 	if (positionIterator == nodes.nodepositionById.end()) {
 		nodePosition = static_cast<int>(nodes.nodeDatas.size());
