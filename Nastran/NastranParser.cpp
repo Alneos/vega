@@ -630,8 +630,7 @@ void NastranParserImpl::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> mode
 
 	NodalMass nodalMass(*model, mass, i11, i22, i33, -i21, -i31, -i32, x1, x2, x3, elemId);
 
-	int nodePosition = model->mesh->findOrReserveNode(g);
-	int cellPosition = model->mesh->addCell(elemId, CellType::POINT1, { nodePosition });
+	int cellPosition = model->mesh->addCell(elemId, CellType::POINT1, { g });
 	string mn = string("CONM2_") + lexical_cast<string>(elemId);
 	CellGroup* mnodale = model->mesh->createCellGroup(mn, CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
 	mnodale->addCell(model->mesh->findCell(cellPosition).id);

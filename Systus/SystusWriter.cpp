@@ -763,6 +763,11 @@ void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
 		out << nid << " " << iconst << " " << imeca << " " << iangl << " " << isol << " " << idisp
 				<< " ";
 		out << node.x << " " << node.y << " " << node.z << endl;
+		
+		// Small warning against "infinite" node.
+		if (node.x < -1.0e+300){
+			cerr << "Infinite node with Id: " << nid<<endl;
+		}
 	}
 
 	out << "END_NODES" << endl;
@@ -1106,7 +1111,7 @@ void SystusWriter::writeMasses(const SystusModel &systusModel, ostream& out) {
 				}
 				for (const auto& cell : mass->cellGroup->getCells()) {
 					// NODEi
-					out << " " << getAscNodeId(cell.nodeIds[0]);
+					out << " " << cell.nodeIds[0];
 				}
 				out << endl;
 			}
