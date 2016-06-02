@@ -124,9 +124,6 @@ private:
 	void createFamilies(med_idt fid, const char meshname[MED_NAME_SIZE + 1],
 			vector<Family>& families);
 public:
-	static const int UNAVAILABLE_NODE = INT_MIN;
-	static const int UNAVAILABLE_CELL = INT_MIN;
-	static const int UNAVAILABLE_ELEM = INT_MIN;
 
 	//TODO: maybe add a field into Orientation?, make it private?
 	std::map<std::shared_ptr<Orientation>, string> cellGroupName_by_orientation;
@@ -157,7 +154,7 @@ public:
 	/**
 	 * given an Id from the model returns an internal node position
 	 * use together with findNode.
-	 * @return UNAVAILABLE_NODE if not found
+	 * @return Node::UNAVAILABLE_NODE if not found
 	 */
 	int findNodePosition(const int nodeId) const;
 	int findOrReserveNode(int nodeId);
@@ -172,7 +169,7 @@ public:
 	 *  and will be added to the model if not already defined.
 	 **/
 	int addCell(int id, const CellType &type, const std::vector<int> &nodesIds,
-			bool virtualCell = false, const Orientation* = nullptr, int elementId = UNAVAILABLE_ELEM);
+			bool virtualCell = false, const Orientation* = nullptr, int elementId = Cell::UNAVAILABLE_CELL);
 	int findCellPosition(int cellId) const;
 	const Cell findCell(int cellPosition) const;
 	bool hasCell(int cellId) const;

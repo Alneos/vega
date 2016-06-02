@@ -216,6 +216,8 @@ private:
 			int displacementCS = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
 public:
 	static const int AUTO_ID = INT_MIN;
+	static const int UNAVAILABLE_NODE = INT_MIN;
+
 	/** Usually, the original id of the node, from the input mesh.
 	 *  Can also be an automatic generated id.
 	 *  Unique by mesh.
@@ -259,7 +261,7 @@ private:
 			const Orientation*, int elementId, int cellTypePosition);
 public:
 	static const int AUTO_ID = INT_MIN;
-	static const int UNAVAILABLE_ELEM = INT_MIN;
+	static const int UNAVAILABLE_CELL = INT_MIN;
 	int id;
 	int hasOrientation;
 	CellType type;

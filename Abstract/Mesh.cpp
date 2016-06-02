@@ -78,7 +78,7 @@ int Mesh::addNode(int id, double x, double y, double z, int cd_id) {
 	// In auto mode, we assign the first free node, starting from the biggest possible number
 	if (id == Node::AUTO_ID){
 		id = Node::auto_node_id--;
-		while (findNodePosition(id)!= UNAVAILABLE_NODE){
+		while (findNodePosition(id)!= Node::UNAVAILABLE_NODE){
 			id = Node::auto_node_id--;
 		}
 	}
@@ -112,7 +112,7 @@ int Mesh::countNodes() const {
 }
 
 const Node Mesh::findNode(int nodePosition) const {
-	if (nodePosition == UNAVAILABLE_NODE) {
+	if (nodePosition == Node::UNAVAILABLE_NODE) {
 		throw invalid_argument(
 				string("Node position ") + lexical_cast<string>(nodePosition) + " not found.");
 	}
@@ -132,7 +132,7 @@ const Node Mesh::findNode(int nodePosition) const {
 int Mesh::findOrReserveNode(int nodeId) {
 
 	int nodePosition = findNodePosition(nodeId);
-	return nodePosition != UNAVAILABLE_NODE ? nodePosition : nodes.reserveNodePosition(nodeId);
+	return nodePosition != Node::UNAVAILABLE_NODE ? nodePosition : nodes.reserveNodePosition(nodeId);
 
 }
 
@@ -148,7 +148,7 @@ set<int> Mesh::findOrReserveNodes(const set<int>& nodeIds) {
 int Mesh::findNodePosition(const int nodeId) const {
 	auto positionIterator = this->nodes.nodepositionById.find(nodeId);
 	if (positionIterator == this->nodes.nodepositionById.end()) {
-		return UNAVAILABLE_NODE;
+		return Node::UNAVAILABLE_NODE;
 	}
 	return positionIterator->second;
 }
@@ -162,7 +162,7 @@ bool NodeStorage::validate() const {
 	bool validNodes = true;
 	for (size_t i = 0; i < nodeDatas.size(); ++i) {
 		const NodeData &nodeData = nodeDatas[i];
-		if (nodeData.id == Mesh::UNAVAILABLE_NODE) {
+		if (nodeData.id == Node::UNAVAILABLE_NODE) {
 			validNodes = false;
 			cerr << "Node in position " << i << " has been reserved, but never defined" << endl;
 		}
@@ -198,8 +198,13 @@ int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &node
 		bool virtualCell, const Orientation* orientation, int elementId) {
 	int cellId;
 	const int cellPosition = static_cast<int>(cells.cellDatas.size());
+
+	// In "auto" mode, we choose the first available Id, starting from the maximum authorized number
 	if (id == Cell::AUTO_ID) {
 		cellId = Cell::auto_cell_id--;
+		while (findCellPosition(cellId)!= Cell::UNAVAILABLE_CELL){
+			cellId = Cell::auto_cell_id--;
+		}
 	} else {
 		cellId = id;
 	}
@@ -253,7 +258,7 @@ int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &node
 }
 
 const Cell Mesh::findCell(int cellPosition) const {
-	if (cellPosition == Mesh::UNAVAILABLE_CELL) {
+	if (cellPosition == Cell::UNAVAILABLE_CELL) {
 		throw logic_error("Unavailable cell requested.");
 	}
 	const CellData& cellData = cells.cellDatas[cellPosition];
@@ -611,7 +616,7 @@ bool Mesh::hasCell(int cellId) const {
 int Mesh::findCellPosition(int cellId) const {
 	auto it = this->cells.cellpositionById.find(cellId);
 	if (it == this->cells.cellpositionById.end()) {
-		return UNAVAILABLE_CELL;
+		return Cell::UNAVAILABLE_CELL;
 	}
 	return it->second;
 }

@@ -361,7 +361,7 @@ bool ElementLoading::appliedToGeometry() {
 	vector<Cell> cells = getCells(true);
 	for (Cell cell : cells) {
 		int element_id = cell.elementId;
-		if (element_id != Cell::UNAVAILABLE_ELEM) {
+		if (element_id != Cell::UNAVAILABLE_CELL) {
 			shared_ptr<ElementSet> element = model.find(
 					Reference<ElementSet>(ElementSet::UNKNOWN, Reference<ElementSet>::NO_ID,
 							element_id));
