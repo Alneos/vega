@@ -888,11 +888,10 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
 
 	// Write NodeGroups
 	for (const auto& nodeGroup : nodeGroups) {
-        //cout << "Groups info: "<< nodeGroup->getId() << " "<< nodeGroup->getOriginalId()<<" "<<nodeGroup->getName()<< " " << nodeGroup->getComment()<<endl;
         nbGroups++;
         osgr << nodeGroup->getId() << " " << nodeGroup->getName()
 				<< " 1 0 \"No method\" \"\" \"No Comments\"";
-		for (int id : nodeGroup->nodePositions())
+		for (int id : nodeGroup->getNodeIds())
 			osgr << " " << id;
 		osgr << endl;
 	}
