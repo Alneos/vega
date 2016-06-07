@@ -29,6 +29,7 @@ class SystusWriter: public Writer {
 	int systusOption = 0;
 	int maxNumNodes = 0;
 	int nbNodes = 0;
+	static int auto_part_id;                 /**< Next available numer for Systus Part ID >**/
 	
 	map<int, map<int, int>> lists;
 	map<int, vector<double>> vectors;
@@ -209,6 +210,9 @@ class SystusWriter: public Writer {
 	int DOFSToAsc(const DOFS dofs, ostream& out) const;
 	/** Converts a vega DOFS to its integer Systus couterpart **/
 	int DOFSToInt(const DOFS dofs) const;
+	/** Find an available Part Id for a Cell Group.
+	 * If possible, try to use the suffix (_NN) of the Group Name. **/
+	int getPartId(const string partName, std::set<int> & usedPartId);
 	static const std::unordered_map<CellType::Code, vector<int>, hash<int>> systus2medNodeConnectByCellType;
 	void writeAsc(const SystusModel&, const ConfigurationParameters&, const Analysis&, std::ostream&);
 	void getSystusInformations(const SystusModel&, const ConfigurationParameters&);

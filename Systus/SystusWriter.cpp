@@ -101,6 +101,35 @@ int SystusWriter::DOFSToInt(const DOFS dofs) const{
 }
 
 
+int SystusWriter::auto_part_id = 99999999;
+
+int SystusWriter::getPartId(const string partName, set<int> & usedPartId) {
+
+	int partId;
+
+	// First, we try to cast an integer from the suffix of the PartName
+	std::size_t pos=partName.rfind("_");
+	if (pos!=std::string::npos){
+		try{
+			partId = std::stoi(partName.substr(pos+1));
+		}catch(...){
+			partId = auto_part_id--;
+		}
+	}else{
+		partId = auto_part_id--;
+	}
+
+	// If the Part Id is unavailable, we find another one.
+	while (usedPartId.find(partId)!= usedPartId.end()){
+		partId = auto_part_id--;
+	}
+
+    usedPartId.insert(partId);
+    return partId;
+}
+
+
+
 string SystusWriter::writeModel(const shared_ptr<Model> model,
 		const vega::ConfigurationParameters &configuration) {
 	SystusModel systusModel = SystusModel(&(*model), configuration);
@@ -875,14 +904,17 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
 	int nbGroups=0;
 
 	// Write CellGroups
+	set<int> pids= {};
 	for (const auto& cellGroup : cellGroups) {
 		// We don't write the groups of Nodal Mass, as they are not cells in Systus
+		// We don't write the Orientation groups, they are not parts.
 		// It IS an Ugly Fix. I know it is.
 		// TODO: DO better
-        if (cellGroup->getComment().substr(0,10)!="NODAL MASS"){
+        if ((cellGroup->getComment().substr(0,10)!="NODAL MASS")&&
+        	(cellGroup->getComment()!="Orientation")){
 			nbGroups++;
-			osgr << cellGroup->getId() << " " << cellGroup->getName() << " 2 0 ";
-			osgr << "\"PART_ID "<<nbGroups<< "\"  \"\"  ";
+			osgr << nbGroups << " " << cellGroup->getName() << " 2 0 ";
+			osgr << "\"PART_ID "<< getPartId(cellGroup->getName(), pids) << "\"  \"\"  ";
 			osgr << "\"PART built in VEGA from "<< cellGroup->getComment() << "\"";
 
         	for (const auto& cell : cellGroup->getCells())
@@ -890,11 +922,11 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
         	osgr << endl;
 		}
 	}
-
+    //cout << pids << endl;
 	// Write NodeGroups
 	for (const auto& nodeGroup : nodeGroups) {
         nbGroups++;
-        osgr << nodeGroup->getId() << " " << nodeGroup->getName()
+        osgr << nbGroups << " " << nodeGroup->getName()
 				<< " 1 0 \"No method\" \"\" \"No Comments\"";
 		for (int id : nodeGroup->getNodeIds())
 			osgr << " " << id;
