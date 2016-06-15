@@ -207,18 +207,28 @@ void SystusWriter::getSystusInformations(const SystusModel& systusModel, const C
 	bool has1DOr2DElements = false;
 	for (int i = 0; i < 11; i++)
 		has1DOr2DElements = hasElement[i] || has1DOr2DElements;
+	bool has3DElements = false;
+	for (int i = 11; i < 21; i++)
+		has3DElements = hasElement[i] || has3DElements;
 
 	if (configurationParameters.systusOptionAnalysis =="auto"){
 		if (has1DOr2DElements){
 			systusOption = 3;
+			systusSubOption = has3DElements ? 3 : 0;
 		}else{
 			systusOption = 4;
+			systusSubOption = 0;
 		}
 	}else{
 		if (configurationParameters.systusOptionAnalysis =="shell"){
 			systusOption = 3;
+			systusSubOption = 0;
+		}else if(configurationParameters.systusOptionAnalysis =="shell-multi"){
+			systusOption = 3;
+			systusSubOption = 3;
 		}else{
 			systusOption = 4;
+			systusSubOption = 0;
 		}
 	}
 	maxNumNodes = *max_element(numNodes, numNodes + 21);
@@ -268,7 +278,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 				if (systusOption == 4)
 					nodes.push_back(master_rot_id);
 
-				// With a Lagrangain formulation, we add a langrange node.
+				// With a Lagrangian formulation, we add a Lagrange node.
 				if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
 					int slave_lagr_position = mesh->addNode(Node::AUTO_ID, slave.x, slave.y, slave.z, slave.displacementCS);
 					int slave_lagr_id = mesh->findNode(slave_lagr_position).id;
@@ -753,7 +763,7 @@ void SystusWriter::writeHeader(const SystusModel& systusModel, ostream& out) {
 void SystusWriter::writeInformations(const SystusModel& systusModel, ostream& out) {
 	out << "BEGIN_INFORMATIONS" << endl;
 	out << systusModel.getName().substr(0, 80) << endl; //should be less than 80
-	out << " " << systusOption << " 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0" << endl;
+	out << " " << systusOption << " 0 0 1 0 0 0 0 0 0 0 1 0 "<< systusSubOption<<" 0 0 0 0 0 0" << endl;
 	out << " 0 0 0 0 0 0 0 0 0 0 ";
 
 	int numberOfDof = numberOfDofBySystusOption[systusOption];

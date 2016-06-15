@@ -258,10 +258,10 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     string systusOptionAnalysis="auto";
     if (vm.count("systus.OptionAnalysis")){
     	systusOptionAnalysis = vm["systus.OptionAnalysis"].as<string>();
-    	set<string> availableTranlation { "auto", "3D", "shell" };
+    	set<string> availableTranlation { "auto", "3D", "shell", "shell-multi" };
     	set<string>::iterator it = availableTranlation.find(systusOptionAnalysis);
     	if (it == availableTranlation.end()) {
-    		throw invalid_argument("Systus OPTION analysis must be either auto (default), 3D or shell.");
+    		throw invalid_argument("Systus OPTION analysis must be either auto (default), 3D, shell or shell-multi");
     	}
     }
 
@@ -352,7 +352,7 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
 	    ("systus.RBE2PenaltyFactor", po::value<double>()->default_value(10.0),
 	            "Penalty RBE2 will have a rigidity of max rigidity*this value.") //
 		("systus.OptionAnalysis",po::value<string>()->default_value("auto"),
-				"Type of analysis used by the Systus writer (Systus OPTION command): auto (default), 3D or shell.") //
+				"Type of analysis used by the Systus writer (Systus OPTION command): auto (default), 3D, shell or shell-multi.") //
 		("strict,s", "Stops translation at the first "
                 "unrecognized keyword or parameter.");
 

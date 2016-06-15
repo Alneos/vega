@@ -27,8 +27,9 @@ namespace vega {
 
 class SystusWriter: public Writer {
 	int systusOption = 0;
+	int systusSubOption = 0;
 	int maxNumNodes = 0;
-	int nbNodes = 0;
+	int nbNodes = 0;						 /**< Useless >**/
 	static int auto_part_id;                 /**< Next available numer for Systus Part ID >**/
 	
 	map<int, map<int, int>> lists;
