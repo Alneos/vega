@@ -317,15 +317,47 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 			CellGroup* group = mesh->createCellGroup("RBAR_"+std::to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBAR");
 			idMaterial++;
 
-			vector<int> nodes;
-			for (const auto& slave : rbar->getSlaves()){
-				Node slaveNode = mesh->findNode(slave);
-				nodes.push_back(slaveNode.id);
-			}
-			if (nodes.size()!=2){
+			if (rbar->getSlaves().size()!=2){
 				throw WriterException(string("QUASI_RIDID constraint must have exactly two slaves."));
 			}
-			int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
+
+			// Master Node : first one
+			Node masterNode = mesh->findNode(*rbar->getSlaves().begin());
+			vector<int> nodes = {masterNode.id};
+
+			// Slave Node : second and last one
+			Node slaveNode = mesh->findNode(*rbar->getSlaves().rbegin());
+			nodes.push_back(slaveNode.id);
+
+			// Master Rotation Node (if needed)
+			if (systusOption == 4){
+				int master_rot_position = mesh->addNode(Node::AUTO_ID, masterNode.x, masterNode.y, masterNode.z, masterNode.displacementCS);
+				int master_rot_id = mesh->findNode(master_rot_position).id;
+				nodes.push_back(master_rot_id);
+			}
+
+			// With a Lagrangian formulation, we add a Lagrange node.
+			if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
+				int slave_lagr_position = mesh->addNode(Node::AUTO_ID, slaveNode.x, slaveNode.y, slaveNode.z, slaveNode.displacementCS);
+				int slave_lagr_id = mesh->findNode(slave_lagr_position).id;
+				nodes.push_back(slave_lagr_id);
+			}
+
+			int cellPosition;
+			switch (nodes.size()){
+			case (2):{
+				cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
+				break;
+			}
+			case (3):{
+				cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG3, nodes, true);
+				break;
+			}
+			case(4):{
+				cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG4, nodes, true);
+				break;
+			}
+			}
 			RbarPositions[idMaterial].push_back(cellPosition);
 			group->addCell(mesh->findCell(cellPosition).id);
 		}
@@ -885,7 +917,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 	for (const auto& rbar : RbarPositions){
 		for (int position : rbar.second){
 			Cell cell = mesh->findCell(position);
-			out << cell.id << " 100" << cell.nodeIds.size() << " " << rbar.first << " 0 0";
+			out << cell.id << " 190" << cell.nodeIds.size() << " " << rbar.first << " 0 0";
 			for (int nodeId : cell.nodeIds)
 				out << " " << nodeId;
 			out << endl;
@@ -1034,11 +1066,11 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 	for (const auto& rbe2 : RBE2rbarPositions){
 		nbmaterials++;
 		if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-           ogmat << rbe2.first << " 0 200 9 61 19 197 1 5 1 182 " << rbe2.first << endl;
+           ogmat << rbe2.first << " 0 182 " << rbe2.first <<" 0 200 9 61 19 197 1 5 1" << endl;
 		   nbelements=nbelements+5;
 		}else{
 		double rbe2E= configuration.systusRBE2PenaltyFactor*maxE;
-	       ogmat << rbe2.first << " 0 200 9 61 9 197 1 5 " << rbe2E << " 182 " << rbe2.first << endl;
+	       ogmat << rbe2.first << " 0 182 " << rbe2.first <<" 0 200 9 61 9 197 1 5 " << rbe2E << endl;
 		   nbelements=nbelements+5;
 		}
 	}
