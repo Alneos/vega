@@ -51,7 +51,7 @@ bool VectorialValue::iszero() const {
 
 VectorialValue VectorialValue::orthonormalized(const VectorialValue& other) const {
 	ublas::vector<double> v0rth = this->value
-			- (other.value * dot(other)) / ublas::norm_2(other.value);
+			- (other.value * dot(other)) / (pow(ublas::norm_2(other.value),2));
 	//v - numpy.dot(v,v2)*v2/numpy.linalg.norm(v2)
 	v0rth = v0rth / ublas::norm_2(v0rth);
 	return VectorialValue(v0rth);
