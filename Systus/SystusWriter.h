@@ -230,6 +230,11 @@ class SystusWriter: public Writer {
 	 * If possible, nodes numbers copy the numbers of the input model. 
 	 **/
 	void writeNodes(const SystusModel&, std::ostream&);
+	/**
+	 *  Write the Euler Angles corresponding to the cid local referentiel.
+	 *  Depending of the type of element, some angles may be dismissed.
+	 **/
+	void writeElementLocalReferentiel(const SystusModel& systusModel, const ElementSet::Type type, const int cid, ostream& out);
 	void writeElements(const SystusModel&, std::ostream&);
 	/**
 	 * Write the Cells and Nodes groups in ASC format.

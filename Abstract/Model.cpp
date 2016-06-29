@@ -205,6 +205,52 @@ void Model::add(const ElementSet& elementSet) {
     elementSets.add(elementSet);
 }
 
+int Model::addOrFindOrientation(const OrientationCoordinateSystem & ocs){
+
+	int idOrientation = findOrientation(ocs);
+	if (idOrientation==0){
+		this->add(ocs);
+		idOrientation = ocs.getId();
+	}
+	return idOrientation;
+}
+
+int Model::findOrientation(const OrientationCoordinateSystem & ocs) const{
+	int idOrientation=0;
+	for (shared_ptr<CoordinateSystem> coordinateSystem : coordinateSystems) {
+		if (coordinateSystem->type==CoordinateSystem::Type::ORIENTATION){
+			std::shared_ptr<OrientationCoordinateSystem> mocs = std::static_pointer_cast<OrientationCoordinateSystem>(coordinateSystem);
+			if ((ocs.nO != mocs->nO) || (ocs.nX != mocs->nX)){
+				continue;
+			}
+			if (ocs.nV == Node::UNAVAILABLE_NODE){
+				if (ocs.v != mocs->v){
+					continue;
+				}
+			}else{
+				if (ocs.nV != mocs->nV){
+					continue;
+				}
+			}
+			idOrientation = mocs->getId();
+			break;
+		}
+	}
+	return idOrientation;
+}
+
+std::shared_ptr<vega::CoordinateSystem> Model::getCoordinateSystem(const int cid) const{
+	std::shared_ptr<vega::CoordinateSystem> result=nullptr;
+	for (shared_ptr<CoordinateSystem> coordinateSystem : coordinateSystems) {
+		if (coordinateSystem->getId()==cid){
+			result = coordinateSystem;
+			break;
+		}
+	}
+	return result;
+}
+
+
 
 const vector<int> Model::getMaterialsId() const{
 	vector<int> v;
@@ -829,7 +875,7 @@ void Model::emulateAdditionalMass() {
             vector<Cell> cells = elementSet->cellGroup->getCells();
             for (auto cell : cells) {
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, cell.type, cell.nodeIds, cell.isvirtual,
-                        &*cell.orientation, cell.elementId);
+                        cell.cid, cell.elementId);
                 newCellGroup->addCell(mesh->findCell(cellPosition).id);
             }
         }
@@ -1304,6 +1350,11 @@ void Model::removeRedundantSpcs()
 void Model::finish() {
     if (finished) {
         return;
+    }
+
+    /* Build the coordinate systems from their definition points */
+    for (shared_ptr<CoordinateSystem> coordinateSystem : coordinateSystems) {
+        coordinateSystem->build();
     }
 
     for (shared_ptr<ElementSet> elementSet : elementSets) {

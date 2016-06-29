@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE( test_CoordinateSystem ) {
 
 		// translation
 		CartesianCoordinateSystem Ztran(model, Z, X, Y);
-		BOOST_CHECK(!!(Ztran.origin == Z));
+		BOOST_CHECK(!!(Ztran.getOrigin() == Z));
 		BOOST_CHECK(!!(k * X == XYZ.vectorToGlobal(k * X)));
 		BOOST_CHECK(!!(k * Y == XYZ.vectorToGlobal(k * Y)));
 		BOOST_CHECK(!!(k * Z == XYZ.vectorToGlobal(k * Z)));
@@ -89,7 +89,7 @@ BOOST_AUTO_TEST_CASE( test_CoordinateSystem ) {
 
 		// translation over Z (no changes)
 		CylindricalCoordinateSystem Ztran(model, Z, X, Y);
-		BOOST_CHECK(!!(Ztran.origin == Z));
+		BOOST_CHECK(!!(Ztran.getOrigin() == Z));
 		BOOST_CHECK(!!(k * X == Ztran.vectorToGlobal(k * X)));
 		BOOST_CHECK(!!(k * Y == Ztran.vectorToGlobal(k * Y)));
 		BOOST_CHECK(!!(k * Z == Ztran.vectorToGlobal(k * Z)));

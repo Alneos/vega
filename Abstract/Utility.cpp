@@ -111,6 +111,11 @@ bool operator==(const VectorialValue& left, const VectorialValue& right) {
 	return (left - right).norm() / norm < 1e-8;
 }
 
+bool operator!=(const VectorialValue& left, const VectorialValue& right) {
+	return !(left==right);
+}
+
+
 const VectorialValue VectorialValue::X(1, 0, 0);
 const VectorialValue VectorialValue::Y(0, 1, 0);
 const VectorialValue VectorialValue::Z(0, 0, 1);

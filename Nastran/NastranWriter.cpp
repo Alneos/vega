@@ -415,15 +415,15 @@ string NastranWriterImpl::writeModel(const shared_ptr<vega::Model> model,
 		switch (coordinateSystem->type) {
 			case CoordinateSystem::CARTESIAN:
 				// TODO LD complete
-				out << Line("CORD2R").add(coordinateSystem->bestId()).add(coordinateSystem->origin);
+				out << Line("CORD2R").add(coordinateSystem->bestId()).add(coordinateSystem->getOrigin());
 				break;
 			case CoordinateSystem::SPHERICAL:
 				// TODO LD complete
-				out << Line("CORD2S").add(coordinateSystem->bestId()).add(coordinateSystem->origin);
+				out << Line("CORD2S").add(coordinateSystem->bestId()).add(coordinateSystem->getOrigin());
 				break;
 			case CoordinateSystem::CYLINDRICAL:
 				// TODO LD complete
-				out << Line("CORD2C").add(coordinateSystem->bestId()).add(coordinateSystem->origin);
+				out << Line("CORD2C").add(coordinateSystem->bestId()).add(coordinateSystem->getOrigin());
 				break;
 			default:
 				throw logic_error("Unimplemented coordinate system type");

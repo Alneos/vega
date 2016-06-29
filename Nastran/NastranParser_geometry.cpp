@@ -104,23 +104,25 @@ CellGroup* NastranParserImpl::getOrCreateCellGroup(int property_id, shared_ptr<M
 	return cellGroup;
 }
 
-Orientation* NastranParserImpl::parseOrientation(int point1, int cell_id, NastranTokenizer& tok,
+int NastranParserImpl::parseOrientation(int point1, int point2, NastranTokenizer& tok,
 		shared_ptr<Model> model) {
-	UNUSEDV(cell_id);
+
 	vector<string> line = tok.currentDataLine();
 	bool alternateFormat = line.size() < 8 || line[6].empty() || line[7].empty();
-	Orientation* orientation;
+	OrientationCoordinateSystem* ocs;
 	if (alternateFormat) {
 		int g0 = tok.nextInt();
-		orientation = new TwoNodesOrientation(*model, point1, g0);
+		ocs = new OrientationCoordinateSystem(*model, point1, point2, g0);
 	} else {
 		double x1, x2, x3;
 		x1 = tok.nextDouble();
 		x2 = tok.nextDouble();
 		x3 = tok.nextDouble();
-		orientation = new VectY(x1, x2, x3);
+		ocs = new OrientationCoordinateSystem(*model, point1, point2, VectorialValue(x1,x2,x3));
 	}
-	return orientation;
+	const int idOCS = model->addOrFindOrientation(*ocs);
+	delete(ocs);
+	return idOCS;
 }
 
 void NastranParserImpl::parseCBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -128,7 +130,7 @@ void NastranParserImpl::parseCBAR(NastranTokenizer& tok, shared_ptr<Model> model
 	int property_id = tok.nextInt();
 	int point1 = tok.nextInt();
 	int point2 = tok.nextInt();
-	Orientation* orientation = parseOrientation(point1, cell_id, tok, model);
+	int cid = parseOrientation(point1, point2, tok, model);
 	string offt = tok.nextString(true);
 	if (!offt.empty() && offt != "GGG") {
 		string message = string("CBAR OFFT not supported.") + string(" OFFT:") + offt;
@@ -136,9 +138,7 @@ void NastranParserImpl::parseCBAR(NastranTokenizer& tok, shared_ptr<Model> model
 	}
 	vector<int> connectivity;
 	connectivity += point1, point2;
-
-	model->mesh->addCell(cell_id, CellType::SEG2, connectivity, false, orientation);
-	delete (orientation);
+	model->mesh->addCell(cell_id, CellType::SEG2, connectivity, false, cid);
 	addProperty(property_id, cell_id, model);
 }
 
@@ -147,7 +147,7 @@ void NastranParserImpl::parseCBEAM(NastranTokenizer& tok, shared_ptr<Model> mode
 	int property_id = tok.nextInt();
 	int point1 = tok.nextInt();
 	int point2 = tok.nextInt();
-	Orientation* orientation = parseOrientation(point1, cell_id, tok, model);
+	int cid = parseOrientation(point1, point2, tok, model);
 	string offt = tok.nextString(true);
 	if (!offt.empty() && offt != "GGG") {
 		string message = string("CBEAM OFFT not supported.") + string(" OFFT:") + offt;
@@ -166,8 +166,7 @@ void NastranParserImpl::parseCBEAM(NastranTokenizer& tok, shared_ptr<Model> mode
 	vector<int> connectivity;
 	connectivity += point1, point2;
 
-	model->mesh->addCell(cell_id, CellType::SEG2, connectivity, false, orientation);
-	delete (orientation);
+	model->mesh->addCell(cell_id, CellType::SEG2, connectivity, false, cid);
 	addProperty(property_id, cell_id, model);
 }
 
@@ -202,12 +201,11 @@ void NastranParserImpl::parseElem(NastranTokenizer& tok, shared_ptr<Model> model
 }
 
 void NastranParserImpl::parseCGAP(NastranTokenizer& tok, shared_ptr<Model> model) {
-	int eid = tok.nextInt();
+	int eid = tok.nextInt(); UNUSEDV(eid);
 	int pid = tok.nextInt();
 	int ga = tok.nextInt();
 	int gb = tok.nextInt();
-	Orientation* orientation = parseOrientation(ga, eid, tok, model);
-	delete (orientation);
+	parseOrientation(ga, gb, tok, model);
 
 	shared_ptr<Constraint> gapPtr = model->find(Reference<Constraint>(Constraint::GAP, pid));
 	if (!gapPtr) {

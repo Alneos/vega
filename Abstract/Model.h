@@ -176,6 +176,23 @@ private:
         void add(const ElementSet&);
         void add(const Material&);
 
+        /**
+         * Add or Find an Orientation Coordinate System in the model.
+         * Return the Id of the Orientation Coordinate System.
+         */
+        int addOrFindOrientation(const OrientationCoordinateSystem & ocs);
+        /**
+         * Find an Orientation Coordinate System in the model.
+         * Return 0 if nothing has been found.
+         */
+        int findOrientation(const OrientationCoordinateSystem & ocs) const;
+        /**
+         * Get a Coordinate System in the model from its cid.
+         * Return nullptr if nothing has been found.
+         */
+         std::shared_ptr<vega::CoordinateSystem> getCoordinateSystem(const int cid) const;
+
+
         /* Get the Id of all elements belonging to set */
         //TODO: make a template, general function?
         const vector<int> getMaterialsId() const;

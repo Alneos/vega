@@ -568,16 +568,20 @@ void AsterWriterImpl::writeAffeCaraElem(const AsterModel& asterModel, ostream& o
 
 	//orientations
 	bool orientationsPrinted = false;
-	for (auto coordinateSystem : asterModel.model.mesh->cellGroupName_by_orientation) {
+	for (auto it : asterModel.model.mesh->cellGroupNameByCID){
 		if (!orientationsPrinted) {
 			out << "                    ORIENTATION=(" << endl;
 			orientationsPrinted = true;
+		}	
+		std::shared_ptr<vega::CoordinateSystem> cs= asterModel.model.getCoordinateSystem(it.first);
+		if (cs->type!=CoordinateSystem::Type::ORIENTATION){
+		   throw WriterException(string("Coordinate System of Group "+ it.second+" is not an ORIENTATION."));
 		}
+		std::shared_ptr<OrientationCoordinateSystem> ocs = std::static_pointer_cast<OrientationCoordinateSystem>(cs);
+		
 		out << "                                 _F(CARA ='VECT_Y',VALE=(";
-		VectY vectY = coordinateSystem.first->toVectY();
-		out << vectY.vectY.x() << "," << vectY.vectY.y() << "," << vectY.vectY.z() << "),GROUP_MA='"
-				<< coordinateSystem.second << "')," << endl;
-
+		out << ocs->v.x() << "," << ocs->v.y() << "," << ocs->v.z() << ")";
+        cout<<",GROUP_MA='"<< it.second << "')," << endl;
 	}
 	if (orientationsPrinted) {
 		out << "                                 )," << endl;

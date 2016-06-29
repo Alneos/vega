@@ -844,6 +844,44 @@ void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
 	out << "END_NODES" << endl;
 }
 
+
+void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel, const ElementSet::Type type, const int cid, ostream& out){
+
+	shared_ptr<CoordinateSystem> cs = systusModel.model->getCoordinateSystem(cid);
+	VectorialValue angles = cs->getEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
+
+	switch (type) {
+	// For 1D element, only PHI should be defined
+	case ElementSet::CIRCULAR_SECTION_BEAM:
+		case ElementSet::GENERIC_SECTION_BEAM:
+		case ElementSet::I_SECTION_BEAM:
+		case ElementSet::RECTANGULAR_BEAM: {
+		out << " 3 0.0 0.0 " << angles.z();
+		break;
+	}
+	// For 2D Element, only PSI should be defined
+	case ElementSet::SHELL: {
+		out << "1 "<< angles.x();
+		break;
+	}
+	// These types are not translated as element in Systus, so we
+	case ElementSet::NODAL_MASS:
+	case ElementSet::DISCRETE_0D:
+	case ElementSet::DISCRETE_1D: {
+		cerr << "Warning in Angle Elements: "<< type << "is not translated as an Element in Systus."<<endl;
+		break;
+	}
+	default: {
+		//TODO : throw WriterException("ElementSet type not supported");
+		cerr << "Warning in Angle Elements: " << type << " is not supported. Local referentiel dismissed." << endl;
+		out << " 0";
+	}
+	}
+}
+
+
+
+
 void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 	shared_ptr<Mesh> mesh = systusModel.model->mesh;
 	out << "BEGIN_ELEMENTS " << mesh->countCells() << endl;
@@ -890,7 +928,17 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 			out << cell.id << " " << dim << 0 << setfill('0') << setw(2)
 					<< cell.nodeIds.size();
 			//out << " " << material->getId() << " " << 0 << " " << 0 << " ";
-			out << " " << elementSet->getId() << " 0 0";
+			out << " " << elementSet->getId(); // Material Id (it's an ugly fix)
+			out << " 0"; // Loading List:  index that describes solicitation list (not supported yet)
+			
+			// Local Orientation
+			if (cell.hasOrientation){
+				writeElementLocalReferentiel(systusModel, elementSet->type, cell.cid, out);
+			}else{
+		        out << " 0";
+			} 
+			
+			// Nodes
 			vector<int> systus2medNodeConnect = systus2med_it->second;
 			vector<int> medConnect = cell.nodeIds;
 			vector<int> systusConnect;

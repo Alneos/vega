@@ -258,7 +258,7 @@ private:
 	 */
 
 	Cell(int id, const CellType &type, const std::vector<int> &nodeIds, const std::vector<int> &nodePositions, bool isvirtual,
-			const Orientation*, int elementId, int cellTypePosition);
+			int cid, int elementId, int cellTypePosition);
 public:
 	static const int AUTO_ID = INT_MIN;
 	static const int UNAVAILABLE_CELL = INT_MIN;
@@ -268,10 +268,9 @@ public:
 	std::vector<int> nodeIds;
 	std::vector<int> nodePositions;
 	bool isvirtual;
-	std::shared_ptr<Orientation> orientation;
 	int elementId;
 	int cellTypePosition;
-
+    int cid; /**< Id of local Coordinate System **/
 	/**
 	 * @param node1: grid point connected to a corner of the face.
 	 * Required data for solid elements only.

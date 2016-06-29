@@ -226,7 +226,7 @@ private:
 	void handleParseException(vega::ParsingException &e, std::shared_ptr<Model> model, string message = "");
 	void handleParsingError(const string& message, NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void handleParsingWarning(const string& message, NastranTokenizer& tok, std::shared_ptr<Model> model);
-	Orientation* parseOrientation(int point1, int cell_id, NastranTokenizer& tok,
+	int parseOrientation(int point1, int point2, NastranTokenizer& tok,
 			std::shared_ptr<Model> model);
 
 	/**

@@ -195,7 +195,7 @@ Mesh::~Mesh() {
 }
 
 int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &nodeIds,
-		bool virtualCell, const Orientation* orientation, int elementId) {
+		bool virtualCell, const int cid, int elementId) {
 	int cellId;
 	const int cellPosition = static_cast<int>(cells.cellDatas.size());
 
@@ -247,13 +247,12 @@ int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &node
 		int nodePosition = findOrReserveNode(nodeIds[i]);
 		nodePositionsPtr->push_back(nodePosition);
 	}
-	cells.cellDatas.push_back(cellData);
-	if (orientation != nullptr) {
-		CellGroup* coordinateSystemCellGroup = this->getOrCreateCellGroupForOrientation(
-				orientation->clone());
+	if (cid != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+		CellGroup* coordinateSystemCellGroup = this->getOrCreateCellGroupForOrientation(cid);
 		coordinateSystemCellGroup->addCell(cellId);
-		cellData.orientationId = orientation->getId();
-	}
+		cellData.coordinateId = cid;
+		}
+	cells.cellDatas.push_back(cellData);
 	return cellPosition;
 }
 
@@ -275,16 +274,10 @@ const Cell Mesh::findCell(int cellPosition) const {
 		const NodeData &nodeData = nodes.nodeDatas[nodePositions[i]];
 		nodeIds[i] = nodeData.id;
 	}
-	Cell cell(cellData.id, *type, nodeIds, nodePositions, false, nullptr, cellData.elementId, cellData.cellTypePosition);
+	Cell cell(cellData.id, *type, nodeIds, nodePositions, false, cellData.coordinateId, cellData.elementId, cellData.cellTypePosition);
 	return cell;
 }
 
-void Mesh::add_orientation(int cellId, const Orientation& orientation) {
-	shared_ptr<Orientation> orientation_ptr = orientation.clone();
-	CellGroup* coordinateSystemCellGroup = this->getOrCreateCellGroupForOrientation(
-			orientation_ptr);
-	coordinateSystemCellGroup->addCell(cellId);
-}
 
 void Mesh::createFamilies(med_idt fid, const char meshname[MED_NAME_SIZE + 1],
 		vector<Family>& families) {
@@ -452,22 +445,21 @@ void Mesh::writeMED(const char* medFileName) {
 	}
 }
 
-CellGroup* Mesh::getOrCreateCellGroupForOrientation(const shared_ptr<Orientation> orientation) {
-
+CellGroup* Mesh::getOrCreateCellGroupForOrientation(int cid){
 	CellGroup * result;
-	auto cellGroupNameIter = cellGroupName_by_orientation.find(orientation);
-	if (cellGroupNameIter != cellGroupName_by_orientation.end()) {
+	auto cellGroupNameIter = cellGroupNameByCID.find(cid);
+	if (cellGroupNameIter != cellGroupNameByCID.end()) {
 		string cellGroupName = cellGroupNameIter->second;
 		result = dynamic_cast<CellGroup *>(findGroup(cellGroupName));
 	} else {
 		string gmaName;
-		string id = lexical_cast<string>(cellGroupName_by_orientation.size() + 1);
+		string id = lexical_cast<string>(cellGroupNameByCID.size() + 1);
 		if (id.length() > 7) {
 			gmaName = string("C") + id.substr(id.length() - 7, 7);
 		} else {
 			gmaName = string("C") + id;
 		}
-		cellGroupName_by_orientation[orientation] = gmaName;
+		cellGroupNameByCID[cid] = gmaName;
 		result = createCellGroup(gmaName, CellGroup::NO_ORIGINAL_ID, string("Orientation"));
 	}
 	return result;

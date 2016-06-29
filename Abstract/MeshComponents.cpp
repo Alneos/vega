@@ -332,12 +332,10 @@ unordered_map<CellType::Code, vector<vector<int>>, hash<int> > Cell::init_faceBy
 
 Cell::Cell(int id, const CellType &type, const std::vector<int> &nodeIds,
 		const std::vector<int> &nodePositions, bool isvirtual,
-		const Orientation* orientation, int element_id, int cellTypePosition) :
-		id(id), hasOrientation(orientation != nullptr), type(type),
+		int cid, int element_id, int cellTypePosition) :
+		id(id), hasOrientation(cid!=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID), type(type),
 				nodeIds(nodeIds), nodePositions(nodePositions), isvirtual(isvirtual), elementId(
-						element_id), cellTypePosition(cellTypePosition) {
-	if (hasOrientation)
-		this->orientation = orientation->clone();
+						element_id), cellTypePosition(cellTypePosition), cid(cid) {
 }
 
 string Cell::getMedName() const {

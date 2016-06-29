@@ -71,7 +71,7 @@ public:
 	int id;
 	CellType::Code typeCode;
 	bool isvirtual;
-	int orientationId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
+	int coordinateId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
 	int elementId;
 	int cellTypePosition;
 };
@@ -120,13 +120,12 @@ private:
 	 */
 	map<int, Group*> groupById;
 
-	CellGroup * getOrCreateCellGroupForOrientation(const std::shared_ptr<Orientation> orientation);
+	CellGroup * getOrCreateCellGroupForOrientation(const int cid);
 	void createFamilies(med_idt fid, const char meshname[MED_NAME_SIZE + 1],
 			vector<Family>& families);
 public:
 
-	//TODO: maybe add a field into Orientation?, make it private?
-	std::map<std::shared_ptr<Orientation>, string> cellGroupName_by_orientation;
+	std::map<int, string> cellGroupNameByCID;
 	Mesh(LogLevel logLevel, const string& name);
 	~Mesh();
 	NodeStorage nodes;
@@ -161,7 +160,6 @@ public:
 	//returns a set of nodePositions
 	set<int> findOrReserveNodes(const std::set<int>& nodeIds);
 
-	void add_orientation(int cellId, const Orientation& orientation);
 	int countCells() const;
 	int countCells(const CellType &type) const;
 	/** Add a cell to the mesh.
@@ -169,7 +167,7 @@ public:
 	 *  and will be added to the model if not already defined.
 	 **/
 	int addCell(int id, const CellType &type, const std::vector<int> &nodesIds,
-			bool virtualCell = false, const Orientation* = nullptr, int elementId = Cell::UNAVAILABLE_CELL);
+			bool virtualCell = false, const int cid=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int elementId = Cell::UNAVAILABLE_CELL);
 	int findCellPosition(int cellId) const;
 	const Cell findCell(int cellPosition) const;
 	bool hasCell(int cellId) const;

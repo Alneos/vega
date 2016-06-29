@@ -80,6 +80,7 @@ final {
 		friend const VectorialValue operator*(const double&, const VectorialValue&);
 		friend const VectorialValue operator/(const VectorialValue&, const double&);
 		friend bool operator==(const VectorialValue&, const VectorialValue&);
+		friend bool operator!=(const VectorialValue&, const VectorialValue&);
 
 		static const VectorialValue X;
 		static const VectorialValue Y;

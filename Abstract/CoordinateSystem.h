@@ -31,6 +31,7 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
 	enum Type {
 		CARTESIAN,
 		CYLINDRICAL,
+		ORIENTATION,
 		SPHERICAL,
 		UNKNOWN
 	};
@@ -38,18 +39,34 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
 	const Model &model;
 	public:
 	const Type type;
+
+	protected:
+	VectorialValue origin;
+	VectorialValue ex;
+	VectorialValue ey;
+	VectorialValue ez;
+
+	public:
 	static const string name;
 	static const map<Type, string> stringByType;
-	const VectorialValue origin;
-	const VectorialValue ex;
-	const VectorialValue ey;
-	const VectorialValue ez;
+	inline const VectorialValue getOrigin() const {return origin;}
+	inline const VectorialValue getEx() const {return ex;}
+	inline const VectorialValue getEy() const {return ey;}
+	inline const VectorialValue getEz() const {return ez;}
+
 	protected:
 	CoordinateSystem(const Model&, Type, const VectorialValue origin, const VectorialValue ex,
 			const VectorialValue ey, int original_id = NO_ORIGINAL_ID);
 	public:
 	virtual void updateLocalBase(const VectorialValue&) {
 	}
+	virtual void build(){
+	}
+	/**
+	 *  Translate a vector, expressed in this local Coordinate system,
+	 *   to its global counterpart. Warning, it does not take the origin into
+	 *   account, so do NOT use this to convert coordinates.
+	 **/
 	virtual const VectorialValue vectorToGlobal(const VectorialValue&) const = 0;
 	virtual const VectorialValue getEulerAnglesIntrinsicZYX() const;
 	virtual std::shared_ptr<CoordinateSystem> clone() const = 0;
@@ -64,6 +81,37 @@ public:
 	std::shared_ptr<CoordinateSystem> clone() const override;
 };
 
+/**
+ *  A Cartesian Coordinate System computed from a element-specific orientation.
+ *  Axis are  ex=OX, V is in the Oxy plane, in direct sense, and ez=OX^V.
+ *  For more information, see, among others, the CBAR entry of the NASTRAN manual.
+ **/
+class OrientationCoordinateSystem: public CoordinateSystem {
+public:
+	OrientationCoordinateSystem(const Model&, const int nO, const int nX,
+			const int nV, int original_id = NO_ORIGINAL_ID);
+	OrientationCoordinateSystem(const Model&, const int nO, const int nX,
+				const VectorialValue v, int original_id = NO_ORIGINAL_ID);
+
+	const int nO;  /**< Id of Origin Node **/
+	const int nX;  /**< X axis is built with ex=OX **/
+	VectorialValue v; /**< Orientation vector **/
+	const int nV;  /**< Alternate method to supply v: v= OV **/
+
+	void build() override; /**< Build (O,ex,ey,ez) from the node and v **/
+	const VectorialValue getOrigin() const;
+	const VectorialValue getEx() const;
+	const VectorialValue getEy() const;
+	const VectorialValue getEz() const;
+
+	const VectorialValue vectorToGlobal(const VectorialValue&) const override;
+	std::shared_ptr<CoordinateSystem> clone() const override;
+protected:
+	bool isVirtual=true;
+
+};
+
+
 class CylindricalCoordinateSystem: public CoordinateSystem {
 	VectorialValue ur;
 	VectorialValue utheta;
@@ -71,7 +119,16 @@ class CylindricalCoordinateSystem: public CoordinateSystem {
 	CylindricalCoordinateSystem(const Model&, const VectorialValue origin, const VectorialValue ex,
 			const VectorialValue ey, int original_id = NO_ORIGINAL_ID);
 
-	void updateLocalBase(const VectorialValue&);
+	/**
+	 *  Compute the local cylindrical base (ur, utheta, uz) corresponding to point.
+	 *   Point must be expressed in the reference cartesian coordinate system.
+	 **/
+	void updateLocalBase(const VectorialValue & point);
+	/**
+	 *  Translate a vector, expressed in this coordinate system (ur, utheta, uz),
+	 *   to its global counterpart. Warning, it does not take the origin into
+	 *   account, so do NOT use this to convert coordinates.
+	 **/
 	const VectorialValue vectorToGlobal(const VectorialValue&) const override;
 	std::shared_ptr<CoordinateSystem> clone() const override;
 };
@@ -83,54 +140,20 @@ class SphericalCoordinateSystem: public CoordinateSystem {
 	public:
 	SphericalCoordinateSystem(const Model&, const VectorialValue origin, const VectorialValue ex,
 			const VectorialValue ey, int original_id = NO_ORIGINAL_ID);
-
-	void updateLocalBase(const VectorialValue&);
+	/**
+	 *  Compute the local spheric base (ur, utheta, uphi) corresponding to point.
+	 *   Point must be expressed in the reference cartesian coordinate system.
+	 **/
+	void updateLocalBase(const VectorialValue& point);
+	/**
+	 *  Translate a vector, expressed in this coordinate system (ur, utheta, uphi),
+	 *   to its global counterpart. Warning, it does not take the origin into
+	 *   account, so do NOT use this to convert coordinates.
+	 **/
 	const VectorialValue vectorToGlobal(const VectorialValue&) const override;
 	std::shared_ptr<CoordinateSystem> clone() const override;
 };
 
-class VectY;
-
-/**
- * Permit to orient a cell
- */
-class Orientation : public Identifiable<Orientation> {
-protected:
-	Orientation() {
-	}
-	;
-	public:
-	virtual std::shared_ptr<Orientation> clone() const = 0;
-	virtual VectY toVectY() const = 0;
-	bool operator==(const Orientation&) const;
-	virtual ~Orientation() {
-	}
-};
-
-class VectY: public Orientation {
-public:
-	const VectorialValue vectY;
-	VectY(double x, double y, double z);
-	VectY(const VectorialValue);
-	VectY toVectY() const;
-	std::shared_ptr<Orientation> clone() const;
-};
-
-class TwoNodesOrientation: public Orientation {
-	const Model& model;
-	public:
-	const int node_id1, node_id2;
-	TwoNodesOrientation(const Model&, int node_id1, int node_id2);
-	VectY toVectY() const;
-	std::shared_ptr<Orientation> clone() const;
-};
-
-class RotationAngleX: public Orientation {
-	double theta;
-	RotationAngleX(const Model&, double theta);
-	VectY toVectY() const;
-	std::shared_ptr<Orientation> clone() const;
-};
 
 } /* namespace vega */
 #endif /* COORDINATESYSTEM_H_ */
