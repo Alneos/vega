@@ -58,6 +58,7 @@ const unordered_map<string, NastranParserImpl::parseElementFPtr> NastranParserIm
 				{ "CHEXA", &NastranParserImpl::parseCHEXA },
 				{ "CMASS2", &NastranParserImpl::parseCMASS2 },
 				{ "CONM2", &NastranParserImpl::parseCONM2 },
+				{ "CORD1R", &NastranParserImpl::parseCORD1R },
 				{ "CORD2C", &NastranParserImpl::parseCORD2C },
 				{ "CORD2R", &NastranParserImpl::parseCORD2R },
 				{ "CPENTA", &NastranParserImpl::parseCPENTA },
@@ -638,6 +639,18 @@ void NastranParserImpl::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> mode
 	nodalMass.assignMaterial(model->getVirtualMaterial());
 
 	model->add(nodalMass);
+}
+
+void NastranParserImpl::parseCORD1R(NastranTokenizer& tok, shared_ptr<Model> model) {
+
+	while (tok.isNextInt()) {
+		int cid = tok.nextInt();
+		int nA  = tok.nextInt();
+		int nB  = tok.nextInt();
+		int nC  = tok.nextInt();
+	    CartesianCoordinateSystem coordinateSystem(*model, nA, nB, nC, cid);
+	    model->add(coordinateSystem);
+		}
 }
 
 void NastranParserImpl::parseCORD2R(NastranTokenizer& tok, shared_ptr<Model> model) {

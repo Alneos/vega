@@ -155,6 +155,7 @@ private:
 	void parseCHEXA(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
 	void parseCMASS2(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void parseCONM2(NastranTokenizer& tok, std::shared_ptr<Model> model);
+	void parseCORD1R(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void parseCORD2R(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void parseCPENTA(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
 	void parseCPYRAM(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp

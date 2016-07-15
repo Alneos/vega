@@ -20,6 +20,7 @@ CoordinateSystem::CoordinateSystem(const Model& model, Type type, const Vectoria
 				ey.orthonormalized(this->ex)), ez(this->ex.cross(this->ey)) {
 }
 
+
 const string CoordinateSystem::name = "CoordinateSystem";
 
 const map<CoordinateSystem::Type, string> CoordinateSystem::stringByType = {
@@ -49,10 +50,19 @@ const VectorialValue CoordinateSystem::getEulerAnglesIntrinsicZYX() const {
 	return VectorialValue(ax, ay, az);
 }
 
+
 CartesianCoordinateSystem::CartesianCoordinateSystem(const Model& model,
 		const VectorialValue& origin, const VectorialValue& ex, const VectorialValue& ey,
 		int _original_id) :
 		CoordinateSystem(model, CARTESIAN, origin, ex, ey, _original_id) {
+}
+CartesianCoordinateSystem::CartesianCoordinateSystem(const Model& model,
+		int nO, int nZ, int nXZ, int _original_id) :
+		CoordinateSystem(model, CARTESIAN, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), _original_id){
+	nodesId.push_back(nO);
+	nodesId.push_back(nZ);
+	nodesId.push_back(nXZ);
+	isVirtual=true;
 }
 
 const VectorialValue CartesianCoordinateSystem::vectorToGlobal(const VectorialValue& local) const {
@@ -65,6 +75,29 @@ const VectorialValue CartesianCoordinateSystem::vectorToGlobal(const VectorialVa
 shared_ptr<CoordinateSystem> CartesianCoordinateSystem::clone() const {
 	return shared_ptr<CoordinateSystem>(new CartesianCoordinateSystem(*this));
 }
+
+void CartesianCoordinateSystem::build(){
+
+	if (isVirtual){
+		int nO  = this->nodesId[0];
+		int nZ  = this->nodesId[1];
+		int nXZ = this->nodesId[2];
+
+		Node nodeO = model.mesh->findNode(model.mesh->findNodePosition(nO));
+		this->origin = VectorialValue(nodeO.x, nodeO.y, nodeO.z);
+
+		Node nodeZ = model.mesh->findNode(model.mesh->findNodePosition(nZ));
+		this->ez = VectorialValue(nodeZ.x - nodeO.x, nodeZ.y - nodeO.y, nodeZ.z - nodeO.z).normalized();
+
+		Node nodeXZ = model.mesh->findNode(model.mesh->findNodePosition(nXZ));
+		VectorialValue v = VectorialValue(nodeXZ.x - nodeO.x, nodeXZ.y - nodeO.y, nodeXZ.z - nodeO.z).normalized();
+
+		this->ex = v.orthonormalized(this->ez);
+		this->ey = this->ez.cross(this->ex);
+		isVirtual=false;
+	}
+}
+
 
 CylindricalCoordinateSystem::CylindricalCoordinateSystem(const Model& model,
 		const VectorialValue origin, const VectorialValue ex, const VectorialValue ey,
@@ -90,71 +123,47 @@ shared_ptr<CoordinateSystem> CylindricalCoordinateSystem::clone() const {
 	return shared_ptr<CoordinateSystem>(new CylindricalCoordinateSystem(*this));
 }
 
-//bool Orientation::operator ==(const Orientation& orientation) const {
-//	VectorialValue vect = (this->toVectY().vectY - orientation.toVectY().vectY);
-//	return is_equal(vect.norm(), 0);
-//}
-//
-//VectY::VectY(double x, double y, double z) :
-//		vectY(VectorialValue(x, y, z)) {
-//}
-//
-//VectY::VectY(VectorialValue vectY) :
-//		vectY(vectY) {
-//}
-//
-//VectY VectY::toVectY() const {
-//	return *this;
-//}
-//
-//shared_ptr<Orientation> VectY::clone() const {
-//	return shared_ptr<Orientation>(new VectY(*this));
-//}
-//
-//TwoNodesOrientation::TwoNodesOrientation(const Model& model, int node_id1, int node_id2) :
-//		model(model), node_id1(node_id1), node_id2(node_id2) {
-//}
-//
-//VectY TwoNodesOrientation::toVectY() const {
-//	Node node1 = model.mesh->findNode(model.mesh->findNodePosition(node_id1));
-//	Node node2 = model.mesh->findNode(model.mesh->findNodePosition(node_id2));
-//	return VectY(node2.x - node1.x, node2.y - node1.y, node2.z - node1.z);
-//}
-//
-//shared_ptr<Orientation> TwoNodesOrientation::clone() const {
-//	return shared_ptr<Orientation>(new TwoNodesOrientation(*this));
-//}
+
 
 
 
 OrientationCoordinateSystem::OrientationCoordinateSystem(const Model& model, const int nO, const int nX,
 		const int nV, int original_id) :
-		CoordinateSystem(model, ORIENTATION, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), original_id),
-		nO(nO),	nX(nX), nV(nV) {
+		CoordinateSystem(model, ORIENTATION, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), original_id){
+	nodesId.push_back(nO);
+	nodesId.push_back(nX);
+	nodesId.push_back(nV);
+	isVirtual=true;
 }
 
 OrientationCoordinateSystem::OrientationCoordinateSystem(const Model& model, const int nO, const int nX,
 		const  VectorialValue v, int original_id) :
 		CoordinateSystem(model, ORIENTATION, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), original_id),
-		nO(nO),	nX(nX), v(v.normalized()), nV(Node::UNAVAILABLE_NODE){
+		v(v.normalized()){
+	nodesId.push_back(nO);
+	nodesId.push_back(nX);
+	int a = Node::UNAVAILABLE_NODE;
+	nodesId.push_back(a);
+	isVirtual=true;
 }
 
 void OrientationCoordinateSystem::build(){
 
-	Node nodeO = model.mesh->findNode(model.mesh->findNodePosition(this->nO));
-	this->origin = VectorialValue(nodeO.x, nodeO.y, nodeO.z);
-	//this->updateLocalBase(this->origin);
+	if (isVirtual){
+		Node nodeO = model.mesh->findNode(model.mesh->findNodePosition(this->getNodeO()));
+		this->origin = VectorialValue(nodeO.x, nodeO.y, nodeO.z);
 
-	Node nodeX = model.mesh->findNode(model.mesh->findNodePosition(this->nX));
-	this->ex = VectorialValue(nodeX.x - nodeO.x, nodeX.y - nodeO.y, nodeX.z - nodeO.z).normalized();
+		Node nodeX = model.mesh->findNode(model.mesh->findNodePosition(this->getNodeX()));
+		this->ex = VectorialValue(nodeX.x - nodeO.x, nodeX.y - nodeO.y, nodeX.z - nodeO.z).normalized();
 
-	if(this->nV != Node::UNAVAILABLE_NODE){
-		Node nodeV = model.mesh->findNode(model.mesh->findNodePosition(this->nV));
-	    this->v = VectorialValue(nodeV.x - nodeO.x, nodeV.y - nodeO.y, nodeV.z - nodeO.z).normalized();
+		if(this->getNodeV() != Node::UNAVAILABLE_NODE){
+			Node nodeV = model.mesh->findNode(model.mesh->findNodePosition(this->getNodeV()));
+			this->v = VectorialValue(nodeV.x - nodeO.x, nodeV.y - nodeO.y, nodeV.z - nodeO.z).normalized();
+		}
+		this->ey = this->v.orthonormalized(this->ex);
+		this->ez = this->ex.cross(this->ey);
+		isVirtual=false;
 	}
-	this->ey = this->v.orthonormalized(this->ex);
-	this->ez = this->ex.cross(this->ey);
-	isVirtual=false;
 }
 
 const VectorialValue OrientationCoordinateSystem::getOrigin() const{
@@ -180,6 +189,18 @@ const VectorialValue OrientationCoordinateSystem::getEz() const {
 		throw logic_error("Coordinate System is still virtual.");
 	}
 	return ez;
+}
+
+bool OrientationCoordinateSystem::operator ==(const OrientationCoordinateSystem& ocs) const {
+	if ((this->getNodeO() != ocs.getNodeO()) || (this->getNodeX() != ocs.getNodeX())){
+		return false;
+	}
+	if (this->getNodeV() == Node::UNAVAILABLE_NODE){
+		VectorialValue vect = (this->getV() - ocs.getV());
+		return is_equal(vect.norm(), 0);
+	}else{
+		return (this->getNodeV() == ocs.getNodeV());
+	}
 }
 
 const VectorialValue OrientationCoordinateSystem::vectorToGlobal(const VectorialValue& local) const {

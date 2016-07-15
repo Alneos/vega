@@ -74,6 +74,9 @@ final {
 		double norm() const;
 		bool iszero() const;
 		VectorialValue cross(const VectorialValue& other) const;
+		/**
+		 *  Return a vector orthonormal to "other", computed from this->value
+		 **/
 		VectorialValue orthonormalized(const VectorialValue& other) const;
 		friend const VectorialValue operator+(const VectorialValue&, const VectorialValue&);
 		friend const VectorialValue operator-(const VectorialValue&, const VectorialValue&);

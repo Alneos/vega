@@ -45,14 +45,16 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
 	VectorialValue ex;
 	VectorialValue ey;
 	VectorialValue ez;
+	bool isVirtual=false;
+	std::vector<int> nodesId;
 
 	public:
 	static const string name;
 	static const map<Type, string> stringByType;
-	inline const VectorialValue getOrigin() const {return origin;}
-	inline const VectorialValue getEx() const {return ex;}
-	inline const VectorialValue getEy() const {return ey;}
-	inline const VectorialValue getEz() const {return ez;}
+	inline const VectorialValue getOrigin() const {return origin;};
+	inline const VectorialValue getEx() const {return ex;};
+	inline const VectorialValue getEy() const {return ey;};
+	inline const VectorialValue getEz() const {return ez;};
 
 	protected:
 	CoordinateSystem(const Model&, Type, const VectorialValue origin, const VectorialValue ex,
@@ -76,7 +78,15 @@ class CartesianCoordinateSystem: public CoordinateSystem {
 public:
 	CartesianCoordinateSystem(const Model&, const VectorialValue& origin, const VectorialValue& ex,
 			const VectorialValue& ey, int original_id = NO_ORIGINAL_ID);
+	CartesianCoordinateSystem(const Model& model, int nO, int nZ, int nXZ, int original_id = NO_ORIGINAL_ID);
 
+	/**
+	 * Build (O, ex,ey,ez) from nodesId.
+	 *    - nodesId[0] is the Origin point O.
+	 *    - nodesId[1] is the Z point: ez=OZ.
+	 *    - nodesId[2] is in the x-z plane.
+	 **/
+	void build() override;
 	const VectorialValue vectorToGlobal(const VectorialValue&) const override;
 	std::shared_ptr<CoordinateSystem> clone() const override;
 };
@@ -85,6 +95,7 @@ public:
  *  A Cartesian Coordinate System computed from a element-specific orientation.
  *  Axis are  ex=OX, V is in the Oxy plane, in direct sense, and ez=OX^V.
  *  For more information, see, among others, the CBAR entry of the NASTRAN manual.
+ *
  **/
 class OrientationCoordinateSystem: public CoordinateSystem {
 public:
@@ -92,23 +103,24 @@ public:
 			const int nV, int original_id = NO_ORIGINAL_ID);
 	OrientationCoordinateSystem(const Model&, const int nO, const int nX,
 				const VectorialValue v, int original_id = NO_ORIGINAL_ID);
-
-	const int nO;  /**< Id of Origin Node **/
-	const int nX;  /**< X axis is built with ex=OX **/
+				
+protected:
 	VectorialValue v; /**< Orientation vector **/
-	const int nV;  /**< Alternate method to supply v: v= OV **/
 
+public:
 	void build() override; /**< Build (O,ex,ey,ez) from the node and v **/
 	const VectorialValue getOrigin() const;
 	const VectorialValue getEx() const;
 	const VectorialValue getEy() const;
 	const VectorialValue getEz() const;
+	inline const VectorialValue getV() const {return v;};
+	inline int getNodeO() const {return nodesId[0];}; /**< Return node Id of O (Origin point) **/
+	inline int getNodeX() const {return nodesId[1];}; /**< Return node Id of X (X axis is built with ex=OX) **/
+	inline int getNodeV() const {return nodesId[2];}; /**< Return node Id of V point (alternate method to supply v: v= OV) **/
+	bool operator==(const OrientationCoordinateSystem&) const;  /**< Equal operator **/
 
 	const VectorialValue vectorToGlobal(const VectorialValue&) const override;
 	std::shared_ptr<CoordinateSystem> clone() const override;
-protected:
-	bool isVirtual=true;
-
 };
 
 

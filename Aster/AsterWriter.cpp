@@ -580,7 +580,7 @@ void AsterWriterImpl::writeAffeCaraElem(const AsterModel& asterModel, ostream& o
 		std::shared_ptr<OrientationCoordinateSystem> ocs = std::static_pointer_cast<OrientationCoordinateSystem>(cs);
 		
 		out << "                                 _F(CARA ='VECT_Y',VALE=(";
-		out << ocs->v.x() << "," << ocs->v.y() << "," << ocs->v.z() << ")";
+		out << ocs->getV().x() << "," << ocs->getV().y() << "," << ocs->getV().z() << ")";
         cout<<",GROUP_MA='"<< it.second << "')," << endl;
 	}
 	if (orientationsPrinted) {

@@ -220,20 +220,11 @@ int Model::findOrientation(const OrientationCoordinateSystem & ocs) const{
 	for (shared_ptr<CoordinateSystem> coordinateSystem : coordinateSystems) {
 		if (coordinateSystem->type==CoordinateSystem::Type::ORIENTATION){
 			std::shared_ptr<OrientationCoordinateSystem> mocs = std::static_pointer_cast<OrientationCoordinateSystem>(coordinateSystem);
-			if ((ocs.nO != mocs->nO) || (ocs.nX != mocs->nX)){
-				continue;
+
+			if (ocs == *mocs){
+				idOrientation = mocs->getId();
+				break;
 			}
-			if (ocs.nV == Node::UNAVAILABLE_NODE){
-				if (ocs.v != mocs->v){
-					continue;
-				}
-			}else{
-				if (ocs.nV != mocs->nV){
-					continue;
-				}
-			}
-			idOrientation = mocs->getId();
-			break;
 		}
 	}
 	return idOrientation;
