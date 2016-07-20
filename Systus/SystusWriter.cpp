@@ -1071,12 +1071,22 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 					shared_ptr<const GenericSectionBeam> genericBeam = static_pointer_cast<
 							const GenericSectionBeam>(elementSet);
 					omat << "11 " << genericBeam->getAreaCrossSection() << " ";
-					omat << "12 " << genericBeam->getShearAreaFactorY() << " ";
-					omat << "13 " << genericBeam->getShearAreaFactorZ() << " ";
+
+					// VEGA stocks the inverse of our needed Shear Area Factors.
+					const double k1= genericBeam->getInvShearAreaFactorY();
+					if (!is_equal(k1, vega::Globals::UNAVAILABLE_DOUBLE)){
+						omat << "12 " << k1 << " ";
+						nbElementsMaterial++;
+					}
+					const double k2= genericBeam->getInvShearAreaFactorZ();
+					if (!is_equal(k2, vega::Globals::UNAVAILABLE_DOUBLE)){
+						omat << "13 " << k2 << " ";
+						nbElementsMaterial++;
+					}
 					omat << "14 " << genericBeam->getTorsionalConstant() << " ";
 					omat << "15 " << genericBeam->getMomentOfInertiaY() << " ";
 					omat << "16 " << genericBeam->getMomentOfInertiaZ() << " ";
-					nbElementsMaterial=nbElementsMaterial+6;
+					nbElementsMaterial=nbElementsMaterial+4;
 					break;
 				}
 				case (ElementSet::CIRCULAR_SECTION_BEAM): {
@@ -1218,12 +1228,12 @@ void SystusWriter::writeMasses(const SystusModel &systusModel, ostream& out) {
 				//	NBR:			Number of values [INTEGER]
 				//  VAL(NBR):	Masses values [DOUBLE[NBR]]
 				//	NODEi:		List of NODES index [INTEGER[*]]
-				if ((nodalMass->ixy != 0.0) || (nodalMass->iyz != 0.0) || (nodalMass->ixz != 0.0)){
+				if (!is_zero(nodalMass->ixy) || !is_zero(nodalMass->iyz) || !is_zero(nodalMass->ixz)){
 					throw WriterException(
 							string("Asymetric masses are not (yet) implemented."));
 
 				}
-				if ((nodalMass->ixx != 0.0) || (nodalMass->iyy != 0.0) || (nodalMass->izz != 0.0)){
+				if (!is_zero(nodalMass->ixx) || !is_zero(nodalMass->iyy) || !is_zero(nodalMass->izz)){
 					out << "VALUES 6 " << nodalMass->getMass() << " " << nodalMass->getMass() << " "
 							<< nodalMass->getMass() << " " << nodalMass->ixx << " " << nodalMass->iyy
 							<< " " << nodalMass->izz;

@@ -10,6 +10,7 @@
 
 #include "Element.h"
 #include "Model.h"
+#include "SolverInterfaces.h"
 #include <boost/assign.hpp>
 #include <ciso646>
 
@@ -201,11 +202,20 @@ double GenericSectionBeam::getTorsionalConstant() const {
 	return torsional_constant;
 }
 double GenericSectionBeam::getShearAreaFactorY() const {
-	return (!is_zero(shear_area_factor_Y)) ? 1 / shear_area_factor_Y : 1.0;
+	return shear_area_factor_Y;
 }
 double GenericSectionBeam::getShearAreaFactorZ() const {
-	return (!is_zero(shear_area_factor_Z)) ? 1 / shear_area_factor_Z : 1.0;
+	return shear_area_factor_Z;
 }
+double GenericSectionBeam::getInvShearAreaFactorY() const {
+	return (!is_zero(shear_area_factor_Y)) ? 1 / shear_area_factor_Y : Globals::UNAVAILABLE_DOUBLE;
+}
+double GenericSectionBeam::getInvShearAreaFactorZ() const {
+	return (!is_zero(shear_area_factor_Z)) ? 1 / shear_area_factor_Z : Globals::UNAVAILABLE_DOUBLE;
+}
+
+
+
 
 Shell::Shell(Model& model, double thickness, double additional_mass, int original_id) :
 		ElementSet(model, ElementSet::SHELL, nullptr, original_id), thickness(thickness), additional_mass(

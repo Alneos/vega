@@ -955,15 +955,30 @@ void NastranParserImpl::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model
 		string message = "PBAR Stress coefficients are dismissed and taken as 0.0";
 		handleParsingWarning(message, tok, model);
 	}
-	const double k1 = tok.nextDouble(true, 0.0);
-	const double k2 = tok.nextDouble(true, 0.0);
+
+	// K1, K2: Area factors for shear. VEGA works with 1/K1 and 1/K2
+	// Default values is infinite
+	const double k1 = tok.nextDouble(true);
+	const double k2 = tok.nextDouble(true);
+	double invk1, invk2;
+	if (is_equal(k1, NastranTokenizer::UNAVAILABLE_DOUBLE)){
+		invk1= 0.0;
+	}else{
+		invk1 = is_zero(k1) ? NastranTokenizer::UNAVAILABLE_DOUBLE : 1.0/k1;
+	}
+	if (is_equal(k2, NastranTokenizer::UNAVAILABLE_DOUBLE)){
+		invk2= 0.0;
+	}else{
+		invk2 = is_zero(k2) ? NastranTokenizer::UNAVAILABLE_DOUBLE : 1.0/k2;
+	}
+
 	double i12 = tok.nextDouble(true, 0.0);
 	if (!is_equal(i12, 0)) {
 		string message = "PBAR i12 not implemented.";
 		handleParsingError(message, tok, model);
 	}
 
-	GenericSectionBeam genericSectionBeam(*model, area, i2, i1, j, k1, k2, Beam::EULER, nsm,
+	GenericSectionBeam genericSectionBeam(*model, area, i2, i1, j, invk1, invk2, Beam::EULER, nsm,
 			elemId);
 	genericSectionBeam.assignMaterial(material_id);
 	genericSectionBeam.assignCellGroup(getOrCreateCellGroup(elemId, model, "PBAR"));

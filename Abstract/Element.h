@@ -171,6 +171,8 @@ public:
 	double getTorsionalConstant() const override;
 	double getShearAreaFactorY() const override;
 	double getShearAreaFactorZ() const override;
+	double getInvShearAreaFactorY() const;
+	double getInvShearAreaFactorZ() const;
 	std::shared_ptr<ElementSet> clone() const;
 };
 
