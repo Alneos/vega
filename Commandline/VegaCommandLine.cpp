@@ -264,11 +264,20 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     		throw invalid_argument("Systus OPTION analysis must be either auto (default), 3D, shell or shell-multi");
     	}
     }
+    string systusOutputProduct="systus";
+    if (vm.count("systus.OutputProduct")){
+    	systusOutputProduct = vm["systus.OutputProduct"].as<string>();
+    	set<string> availableTranlation { "systus", "topolev" };
+    	set<string>::iterator it = availableTranlation.find(systusOutputProduct);
+    	if (it == availableTranlation.end()) {
+    		throw invalid_argument("Systus output product must be either systus (default) or topolev");
+    	}
+    }
 
     ConfigurationParameters configuration = ConfigurationParameters(inputFile.string(), solver,
             solverVersion, modelName, outputDir, logLevel, translationMode, testFnamePath,
             tolerance, runSolver, solverServer, solverCommand,
-			systusRBE2TranslationMode,systusRBE2Penalty, systusOptionAnalysis);
+			systusRBE2TranslationMode,systusRBE2Penalty, systusOptionAnalysis, systusOutputProduct);
     return configuration;
 }
 
@@ -353,6 +362,8 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
 	            "Penalty RBE2 will have a rigidity of max rigidity*this value.") //
 		("systus.OptionAnalysis",po::value<string>()->default_value("auto"),
 				"Type of analysis used by the Systus writer (Systus OPTION command): auto (default), 3D, shell or shell-multi.") //
+		("systus.OutputProduct",po::value<string>()->default_value("systus"),
+								"Output format for the Systus writer: systus (default) or topolev.") //
 		("strict,s", "Stops translation at the first "
                 "unrecognized keyword or parameter.");
 

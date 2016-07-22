@@ -257,7 +257,7 @@ class SystusWriter: public Writer {
 	void writeLoads(const SystusModel&, const Analysis&, std::ostream&);
 	void writeLists(const SystusModel&, std::ostream&);
 	void writeVectors(const SystusModel&, const Analysis&, std::ostream&);
-	void writeDat(const SystusModel&, const Analysis&, std::ostream&);
+	void writeDat(const SystusModel&, const Analysis&, const ConfigurationParameters &, std::ostream&);
 	void writeConstraint(const SystusModel& systusModel, const ConstraintSet&, std::ostream&);
 	void writeLoad(const LoadSet&, std::ostream&);
 	void writeLoad(const ConstraintSet&, std::ostream&);

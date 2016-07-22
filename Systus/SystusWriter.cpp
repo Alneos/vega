@@ -31,22 +31,22 @@ SystusWriter::~SystusWriter() {
 }
 
 const unordered_map<CellType::Code, vector<int>, hash<int>> SystusWriter::systus2medNodeConnectByCellType =
-		{
-				{ CellType::POINT1_CODE, { 0 } },
-				{ CellType::SEG2_CODE, { 0, 1 } },
-				{ CellType::SEG3_CODE, { 0, 2, 1 } },
-				{ CellType::TRI3_CODE, { 0, 2, 1 } },
-				{ CellType::TRI6_CODE, { 0, 5, 2, 4, 1, 3 } },
-				{ CellType::QUAD4_CODE, { 0, 3, 2, 1 } },
-				{ CellType::QUAD8_CODE, { 0, 7, 3, 6, 2, 5, 1, 4 } },
-				{ CellType::TETRA4_CODE, { 0, 2, 1, 3 } },
-				{ CellType::TETRA10_CODE, { 0, 6, 2, 5, 1, 4, 7, 9, 8, 3 } },
-				{ CellType::PENTA6_CODE, { 0, 2, 1, 3, 5, 4 } },
-				{ CellType::PENTA15_CODE, { 0, 8, 2, 7, 1, 6, 12, 14, 13, 3, 11, 5, 10, 4, 9 } },
-				{ CellType::HEXA8_CODE, { 0, 3, 2, 1, 4, 7, 6, 5 } },
-				{ CellType::HEXA20_CODE, { 0, 11, 3, 10, 2, 9, 1, 8, 16, 19, 18, 17, 4, 15, 7, 14,
-						6, 13, 5, 12 } }
-		};
+{
+		{ CellType::POINT1_CODE, { 0 } },
+		{ CellType::SEG2_CODE, { 0, 1 } },
+		{ CellType::SEG3_CODE, { 0, 2, 1 } },
+		{ CellType::TRI3_CODE, { 0, 2, 1 } },
+		{ CellType::TRI6_CODE, { 0, 5, 2, 4, 1, 3 } },
+		{ CellType::QUAD4_CODE, { 0, 3, 2, 1 } },
+		{ CellType::QUAD8_CODE, { 0, 7, 3, 6, 2, 5, 1, 4 } },
+		{ CellType::TETRA4_CODE, { 0, 2, 1, 3 } },
+		{ CellType::TETRA10_CODE, { 0, 6, 2, 5, 1, 4, 7, 9, 8, 3 } },
+		{ CellType::PENTA6_CODE, { 0, 2, 1, 3, 5, 4 } },
+		{ CellType::PENTA15_CODE, { 0, 8, 2, 7, 1, 6, 12, 14, 13, 3, 11, 5, 10, 4, 9 } },
+		{ CellType::HEXA8_CODE, { 0, 3, 2, 1, 4, 7, 6, 5 } },
+		{ CellType::HEXA20_CODE, { 0, 11, 3, 10, 2, 9, 1, 8, 16, 19, 18, 17, 4, 15, 7, 14,
+				6, 13, 5, 12 } }
+};
 
 
 /** Converts a vega node Id in its ASC counterpart (i.e add one!) **/
@@ -97,7 +97,7 @@ int SystusWriter::DOFSToInt(const DOFS dofs) const{
 		iout=iout+16;
 	if (dofs.contains(DOF::RZ))
 		iout=iout+32;
-    return iout;
+	return iout;
 }
 
 
@@ -124,8 +124,8 @@ int SystusWriter::getPartId(const string partName, set<int> & usedPartId) {
 		partId = auto_part_id--;
 	}
 
-    usedPartId.insert(partId);
-    return partId;
+	usedPartId.insert(partId);
+	return partId;
 }
 
 
@@ -141,12 +141,15 @@ string SystusWriter::writeModel(const shared_ptr<Model> model,
 		throw iostream::failure("Directory " + path + " don't exist.");
 	}
 
+	// On Systus output, we build a "general" solver file
 	ofstream dat_file_ofs;
 	string dat_path = systusModel.getOutputFileName("_ALL.DAT");
-	dat_file_ofs.open(dat_path.c_str(), ios::trunc);
-	if (!dat_file_ofs.is_open()) {
-		string message = string("Can't open file ") + dat_path + " for writing.";
-		throw ios::failure(message);
+	if (configuration.systusOutputProduct=="systus"){
+		dat_file_ofs.open(dat_path.c_str(), ios::trunc);
+		if (!dat_file_ofs.is_open()) {
+			string message = string("Can't open file ") + dat_path + " for writing.";
+			throw ios::failure(message);
+		}
 	}
 
 	/* Work to Do Only once */
@@ -179,13 +182,17 @@ string SystusWriter::writeModel(const shared_ptr<Model> model,
 			string message = string("Can't open file ") + analyse_path + " for writing.";
 			throw ios::failure(message);
 		}
-		this->writeDat(systusModel, analysis, analyse_file_ofs);
+		this->writeDat(systusModel, analysis, configuration, analyse_file_ofs);
 		analyse_file_ofs.close();
 
-		dat_file_ofs << "READ " << systusModel.getName() << "_SC" << analysis.getId() << ".DAT" << endl;
+		if (configuration.systusOutputProduct=="systus"){
+			dat_file_ofs << "READ " << systusModel.getName() << "_SC" << analysis.getId() << ".DAT" << endl;
+		}
 	}
-	dat_file_ofs.close();
 
+	if (configuration.systusOutputProduct=="systus"){
+		dat_file_ofs.close();
+	}
 	return dat_path;
 }
 
@@ -247,9 +254,9 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 	RBE3rbarPositions.clear();
 	RBE3Dofs.clear();
 	RBE3Coefs.clear();
-	
-    // Material Id are usually computed from the corresponding ElementSet Id
-    // TODO: It should be the material...
+
+	// Material Id are usually computed from the corresponding ElementSet Id
+	// TODO: It should be the material...
 	vector<int> v= systusModel.model->getElementSetsId();
 	int idMaterial=*std::max_element(v.begin(), v.end());
 
@@ -364,9 +371,9 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 
 
 
-        /* See Systus Reference Analysis Manual, Section 8.8 "Special Elements",
-         * Subsection "Use of Averaging Type Solid Elements", p500.
-         */
+		/* See Systus Reference Analysis Manual, Section 8.8 "Special Elements",
+		 * Subsection "Use of Averaging Type Solid Elements", p500.
+		 */
 		constraints = constraintSet->getConstraintsByType(Constraint::RBE3);
 		for (const auto& constraint : constraints) {
 
@@ -695,8 +702,8 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const Analysis& ana
 	// Filling lists for Common (Subcase?) Constraints
 	//TODO: This is still buggy, as I don't understand what VEGA put in "common" constraints
 	localVectorsByLocalLoadingByNodePosition.clear();
-    //vector<shared_ptr<ConstraintSet>> commonConstraintSets = systusModel.model->getCommonConstraintSets();
-    //for (auto constraintSet : commonConstraintSets){
+	//vector<shared_ptr<ConstraintSet>> commonConstraintSets = systusModel.model->getCommonConstraintSets();
+	//for (auto constraintSet : commonConstraintSets){
 	//		cout << "Filling List for Common ConstraintSet "<<constraintSet->getId()<<" of size "<< constraintSet->size()<< endl;
 	//		fillConstraintLists(constraintSet, localVectorsByLocalLoadingByNodePosition);
 	//	}
@@ -784,7 +791,7 @@ void SystusWriter::writeHeader(const SystusModel& systusModel, ostream& out) {
 	out << systusModel.getName().substr(0, 20) << endl; //should be less than 24
 	out << " 100000 " << systusOption << " " << systusModel.model->mesh->countNodes() << " ";
 	out << systusModel.model->mesh->countCells() << " " << systusModel.model->loadSets.size()
-			<< " ";
+					<< " ";
 
 	// TODO : wrong if a model possess bar and volume elements only, maybe check the model
 	int numberOfDof = numberOfDofBySystusOption[systusOption];
@@ -834,7 +841,7 @@ void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
 		out << nid << " " << iconst << " " << imeca << " " << iangl << " " << isol << " " << idisp
 				<< " ";
 		out << node.x << " " << node.y << " " << node.z << endl;
-		
+
 		// Small warning against "infinite" node.
 		if (node.x < -1.0e+300){
 			cerr << "Infinite node with Id: " << nid<<endl;
@@ -853,9 +860,9 @@ void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel, 
 	switch (type) {
 	// For 1D element, only PHI should be defined
 	case ElementSet::CIRCULAR_SECTION_BEAM:
-		case ElementSet::GENERIC_SECTION_BEAM:
-		case ElementSet::I_SECTION_BEAM:
-		case ElementSet::RECTANGULAR_BEAM: {
+	case ElementSet::GENERIC_SECTION_BEAM:
+	case ElementSet::I_SECTION_BEAM:
+	case ElementSet::RECTANGULAR_BEAM: {
 		out << " 3 0.0 0.0 " << angles.z();
 		break;
 	}
@@ -893,9 +900,9 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 		int dim = 0;
 		switch (elementSet->type) {
 		case ElementSet::CIRCULAR_SECTION_BEAM:
-			case ElementSet::GENERIC_SECTION_BEAM:
-			case ElementSet::I_SECTION_BEAM:
-			case ElementSet::RECTANGULAR_BEAM: {
+		case ElementSet::GENERIC_SECTION_BEAM:
+		case ElementSet::I_SECTION_BEAM:
+		case ElementSet::RECTANGULAR_BEAM: {
 			dim = 1;
 			break;
 		}
@@ -926,18 +933,18 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 				continue;
 			}
 			out << cell.id << " " << dim << 0 << setfill('0') << setw(2)
-					<< cell.nodeIds.size();
+							<< cell.nodeIds.size();
 			//out << " " << material->getId() << " " << 0 << " " << 0 << " ";
 			out << " " << elementSet->getId(); // Material Id (it's an ugly fix)
 			out << " 0"; // Loading List:  index that describes solicitation list (not supported yet)
-			
+
 			// Local Orientation
 			if (cell.hasOrientation){
 				writeElementLocalReferentiel(systusModel, elementSet->type, cell.cid, out);
 			}else{
-		        out << " 0";
+				out << " 0";
 			} 
-			
+
 			// Nodes
 			vector<int> systus2medNodeConnect = systus2med_it->second;
 			vector<int> medConnect = cell.nodeIds;
@@ -1000,24 +1007,24 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
 		// We don't write the Orientation groups, they are not parts.
 		// It IS an Ugly Fix. I know it is.
 		// TODO: DO better
-        if ((cellGroup->getComment().substr(0,10)!="NODAL MASS")&&
-        	(cellGroup->getComment()!="Orientation")){
+		if ((cellGroup->getComment().substr(0,10)!="NODAL MASS")&&
+				(cellGroup->getComment()!="Orientation")){
 			nbGroups++;
 			osgr << nbGroups << " " << cellGroup->getName() << " 2 0 ";
 			osgr << "\"PART_ID "<< getPartId(cellGroup->getName(), pids) << "\"  \"\"  ";
 			osgr << "\"PART built in VEGA from "<< cellGroup->getComment() << "\"";
 
-        	for (const auto& cell : cellGroup->getCells())
-        		osgr << " " << cell.id;
-        	osgr << endl;
+			for (const auto& cell : cellGroup->getCells())
+				osgr << " " << cell.id;
+			osgr << endl;
 		}
 	}
-    //cout << pids << endl;
+	//cout << pids << endl;
 	// Write NodeGroups
 	for (const auto& nodeGroup : nodeGroups) {
-        nbGroups++;
-        osgr << nbGroups << " " << nodeGroup->getName()
-				<< " 1 0 \"No method\" \"\" \"No Comments\"";
+		nbGroups++;
+		osgr << nbGroups << " " << nodeGroup->getName()
+						<< " 1 0 \"No method\" \"\" \"No Comments\"";
 		for (int id : nodeGroup->getNodeIds())
 			osgr << " " << id;
 		osgr << endl;
@@ -1038,7 +1045,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 	int nbelements = 0;
 	double maxE=0.0;
 
-    for (const auto& elementSet : systusModel.model->elementSets) {
+	for (const auto& elementSet : systusModel.model->elementSets) {
 		const auto& material = elementSet->material;
 		if (material != nullptr && elementSet->cellGroup != nullptr) {
 			const shared_ptr<Nature> nature = material->findNature(Nature::NATURE_ELASTIC);
@@ -1124,12 +1131,12 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 	for (const auto& rbe2 : RBE2rbarPositions){
 		nbmaterials++;
 		if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-           ogmat << rbe2.first << " 0 182 " << rbe2.first <<" 0 200 9 61 19 197 1 5 1" << endl;
-		   nbelements=nbelements+5;
+			ogmat << rbe2.first << " 0 182 " << rbe2.first <<" 0 200 9 61 19 197 1 5 1" << endl;
+			nbelements=nbelements+5;
 		}else{
-		double rbe2E= configuration.systusRBE2PenaltyFactor*maxE;
-	       ogmat << rbe2.first << " 0 182 " << rbe2.first <<" 0 200 9 61 9 197 1 5 " << rbe2E << endl;
-		   nbelements=nbelements+5;
+			double rbe2E= configuration.systusRBE2PenaltyFactor*maxE;
+			ogmat << rbe2.first << " 0 182 " << rbe2.first <<" 0 200 9 61 9 197 1 5 " << rbe2E << endl;
+			nbelements=nbelements+5;
 		}
 	}
 	for (const auto& rbar : RbarPositions){
@@ -1208,7 +1215,7 @@ void SystusWriter::writeVectors(const SystusModel& systusModel, const Analysis &
 	for (const auto& coordinateSystem : systusModel.model->coordinateSystems) {
 		VectorialValue angles = coordinateSystem->getEulerAnglesIntrinsicZYX();
 		out << vectors.size() + Constraint::lastAutoId() + coordinateSystem->getId()
-				<< " 0 0 0 0 0 0 ";
+						<< " 0 0 0 0 0 0 ";
 		out << angles.x() << " " << angles.y() << " " << angles.z() << endl;
 	}
 
@@ -1252,12 +1259,17 @@ void SystusWriter::writeMasses(const SystusModel &systusModel, ostream& out) {
 	out << "END_MASSES" << endl;
 }
 
-void SystusWriter::writeDat(const SystusModel& systusModel, const Analysis& analysis,
+void SystusWriter::writeDat(const SystusModel& systusModel, const Analysis& analysis, const vega::ConfigurationParameters &configuration,
 		ostream& out) {
 
-	out << "NAME " << systusModel.getName() << "_SC" << analysis.getId() << "_" << endl;
+	string comment="";
+	if (configuration.systusOutputProduct=="topolev"){
+		comment="###TOPOLEV###";
+	}
+
+	out << comment<<"NAME " << systusModel.getName() << "_SC" << analysis.getId() << "_" << endl;
 	out << endl;
-	out << "SEARCH DATA 1 ASCII" << endl;
+	out << comment<<"SEARCH DATA 1 ASCII" << endl;
 	out << endl;
 
 	switch (analysis.type) {
@@ -1351,11 +1363,20 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const Analysis& anal
 				string("Analysis " + Analysis::stringByType.at(analysis.type) + " not (yet) implemented"));
 	}
 
-    // We Save Result
+	// We Save Results
 	out << endl;
-	out << "# Saving result" << endl;
-	out << "SAVE DATA RESU 1" << endl;
+	out << "# SAVING RESULT" << endl;
+	out << comment<<"SAVE DATA RESU 1" << endl;
 	out << endl;
+
+	// We Post-Treat Results
+	out << endl;
+	out << "# CONVERSION OF RESULTS FOR POST-PROCESSING" << endl;
+	out << comment<<"CONVERT RESU" << endl;
+	out << comment<<"POST 1" << endl;
+	out << comment<<"RETURN" << endl;
+	out << endl;
+
 
 	vector<shared_ptr<Assertion>> assertions = analysis.getAssertions();
 	if (!assertions.empty()) {
@@ -1363,7 +1384,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const Analysis& anal
 		out << "variable displacement[" << numberOfDofBySystusOption[systusOption] << "],"
 				"frequency, phase[" << numberOfDofBySystusOption[systusOption] << "];" << endl;
 		out << "iResu=open_file(\"" << systusModel.getName() << "_" << analysis.getId()
-				<< ".RESU\", \"write\");" << endl << endl;
+						<< ".RESU\", \"write\");" << endl << endl;
 
 		for (const auto& assertion : assertions) {
 			switch (assertion->type) {
@@ -1555,8 +1576,8 @@ void SystusWriter::writeNodalDisplacementAssertion(Assertion& assertion, ostream
 	out << "fprintf(iResu,\" ------------------------ TEST_RESU DISPLACEMENT ASSERTION ------------------------\\n\")"
 			<< endl;
 	out
-			<< "fprintf(iResu,\"      NOEUD        NUM_CMP      VALE_REFE             VALE_CALC    ERREUR       TOLE\\n\");"
-			<< endl;
+	<< "fprintf(iResu,\"      NOEUD        NUM_CMP      VALE_REFE             VALE_CALC    ERREUR       TOLE\\n\");"
+	<< endl;
 	out << "if (diff > abs(" << nda.tolerance
 			<< ")) fprintf(iResu,\" NOOK \"); else fprintf(iResu,\" OK   \");" << endl;
 	out << "fprintf(iResu,\"" << setw(8) << nodePos << "     " << setw(8) << dofPos << "     "
@@ -1587,9 +1608,9 @@ void SystusWriter::writeNodalComplexDisplacementAssertion(Assertion& assertion, 
 	out << "fprintf(iResu,\" ------------------------ TEST_RESU COMPLEX DISPLACEMENT ASSERTION ----------------\\n\")"
 			<< endl;
 	out
-			<< "fprintf(iResu,\"      NOEUD        NUM_CMP      FREQUENCE             VALE_REFE                                     "
-			<< "VALE_CALC                     ERREUR       TOLE\\n\");"
-			<< endl;
+	<< "fprintf(iResu,\"      NOEUD        NUM_CMP      FREQUENCE             VALE_REFE                                     "
+	<< "VALE_CALC                     ERREUR       TOLE\\n\");"
+	<< endl;
 	out << "if (diff > abs(" << ncda.tolerance << ")) fprintf(iResu,\" NOOK \"); else fprintf(iResu,\" OK   \");" << endl;
 	out << "fprintf(iResu,\"" << setw(8) << nodePos << "     " << setw(8) << dofPos << "     " << ncda.frequency << " "
 			<< ncda.value << " (%e,%e) %e " << ncda.tolerance << " \\n\\n\", displacement_real, displacement_imag, diff);"

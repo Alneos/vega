@@ -24,13 +24,13 @@ ConfigurationParameters::ConfigurationParameters(string inputFile, Solver output
         TranslationMode translationMode, fs::path resultFile, double tolerance, bool runSolver,
         string solverServer, string solverCommand,
 		string systusRBE2TranslationMode, double systusRBE2PenaltyFactor,
-		string systusOptionAnalysis) :
+		string systusOptionAnalysis, string systusOutputProduct) :
         inputFile(inputFile), outputSolver(outputSolver), solverVersion(solverVersion), outputFile(
                 outputFile), outputPath(outputPath), logLevel(logLevel), translationMode(
                 translationMode), resultFile(resultFile), testTolerance(tolerance), runSolver(
                 runSolver), solverServer(solverServer), solverCommand(solverCommand),
 				systusRBE2TranslationMode(systusRBE2TranslationMode), systusRBE2PenaltyFactor(systusRBE2PenaltyFactor),
-				systusOptionAnalysis(systusOptionAnalysis) {
+				systusOptionAnalysis(systusOptionAnalysis), systusOutputProduct(systusOutputProduct) {
 
 }
 
