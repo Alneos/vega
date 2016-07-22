@@ -1131,11 +1131,11 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 	for (const auto& rbe2 : RBE2rbarPositions){
 		nbmaterials++;
 		if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-			ogmat << rbe2.first << " 0 182 " << rbe2.first <<" 0 200 9 61 19 197 1 5 1" << endl;
+			ogmat << rbe2.first << " 0 182 " << rbe2.first <<" 200 9 61 19 197 1 5 1" << endl;
 			nbelements=nbelements+5;
 		}else{
 			double rbe2E= configuration.systusRBE2PenaltyFactor*maxE;
-			ogmat << rbe2.first << " 0 182 " << rbe2.first <<" 0 200 9 61 9 197 1 5 " << rbe2E << endl;
+			ogmat << rbe2.first << " 0 182 " << rbe2.first <<" 200 9 61 9 197 1 5 " << rbe2E << endl;
 			nbelements=nbelements+5;
 		}
 	}
