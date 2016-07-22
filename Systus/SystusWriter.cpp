@@ -1274,7 +1274,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const Analysis& anal
 		out << "# COMPUTING MASS MATRIX" << endl;
 		out << "# AS THE COMMAND DYNAMIC COMPUTE THEM, IT SHOULD BE USELESS." << endl;
 		out << "# BUT THERE SEEM TO BE BUGS ON THE COMMAND, SO WE USE EXPLICITLY THE COMMAND" << endl;
-		out << "SOLVE STIFFNESS MASS" << endl;
+		out << "CLOSE STIFFNESS MASS" << endl;
 		out << endl;
 		out << "# COMPUTE MODES" << endl;
 		out << "DYNAMIC" << endl;
@@ -1299,7 +1299,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const Analysis& anal
 		out << "RETURN" << endl;
 
 		out << endl;
-		out << "# COMPUTE THE 'TENSEUR DE DÉFORMATION ET DE CONTRAINTES' (IN FRENCH IN THE TEXT ;)" << endl;
+		out << "# COMPUTE THE STRESS TENSORS." << endl;
 		out << "# MANDATORY TO COMPUTE THE GRADIENTS OF THE FREQUENCY CRITERIONS." << endl;
 		out << "SOLVE FORCE" << endl;
 
