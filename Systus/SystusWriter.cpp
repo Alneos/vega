@@ -1288,7 +1288,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const Analysis& anal
 		out << "# IT'S AN ITERATIVE MEHOD, WITH A MAXIMUM OF "<< siters <<" ITERATIONS" << endl;
 		out << "MODE SUBSPACE " << (is_equal(frequencyBand.upper, vega::Globals::UNAVAILABLE_DOUBLE) ? "BLOCK 6":"BAND") << endl;
 		out << "METHOD OPTIMIZED" << endl;
-		out << "VECTOR "<< smodes <<" ITER "<< siters <<" EPSILON 1*-5";
+		out << "VECTOR "<< smodes <<" ITER "<< siters <<" PRECISION 1*-5";
 		if (!is_equal(frequencyBand.upper, vega::Globals::UNAVAILABLE_DOUBLE))
 			out << " STURM FREQ " << frequencyBand.upper;
 		else
