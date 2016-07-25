@@ -279,6 +279,15 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     	}
     }
 
+    if (vm.count("listOptions")){
+    	cout << "VEGA options for this translation are: "<< endl;
+    	cout << "\t Output directory: "<< outputDir << endl;
+    	cout << "\t Systus RBE2 Translation Mode: "<< systusRBE2TranslationMode << endl;
+    	cout << "\t Systus RBE2 Rigidity (for penalty mode only): " << systusRBE2Rigidity << endl;
+    	cout << "\t Systus OPTION analysis: " << systusOptionAnalysis << endl;
+    	cout << "\t Systus output product: " << systusOutputProduct << endl;
+    }
+
     ConfigurationParameters configuration = ConfigurationParameters(inputFile.string(), solver,
             solverVersion, modelName, outputDir, logLevel, translationMode, testFnamePath,
             tolerance, runSolver, solverServer, solverCommand,
@@ -359,8 +368,9 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
         ("tolerance,x", po::value<double>(), "use TOLERANCE during tests.") //
         ("best-effort,b", "All the recognized keywords in the source file are "
                 "translated, unknown keywords are skipped.") //
-        ("mesh-at-least,m", "If the source study is fully understood it is translated, "
-                " otherwise it is translated only the mesh.") //
+        ("listOptions,l", "Print the options used by current translation.") //
+		("mesh-at-least,m", "If the source study is fully understood it is translated, "
+		        " otherwise it is translated only the mesh.") //
 		("systus.RBE2TranslationMode",po::value<string>()->default_value("lagrangian"), 
 		        "Translation mode of RBE2 from Nastran To Systus: lagrangian or penalty.") //
 	    ("systus.RBE2Rigidity", po::value<double>(),
