@@ -248,13 +248,18 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     		throw invalid_argument("Systus RBE2 Translation Mode must be either lagrangian (default) or penalty.");
     	}
     }
-    double systusRBE2Penalty=10.0;
-    if (vm.count("systus.RBE2PenaltyFactor")){
-    	systusRBE2Penalty = vm["systus.RBE2PenaltyFactor"].as<double>();
-    	if (systusRBE2Penalty<= 0.0){
-    		throw invalid_argument("Systus RBE2 Penalty Factor must be positive.");
+    double systusRBE2Rigidity=0.0;
+    if (systusRBE2TranslationMode=="penalty"){
+    	if (!vm.count("systus.RBE2Rigidity")){
+    		throw invalid_argument("You must specify a REB2 rigidity when translating RBE2 with the penalty method.");
+    	}else{
+    		systusRBE2Rigidity = vm["systus.RBE2Rigidity"].as<double>();
+    		if (systusRBE2Rigidity<= 0.0){
+    			throw invalid_argument("Systus RBE2 Rigidity must be positive.");
+    		}
     	}
     }
+
     string systusOptionAnalysis="auto";
     if (vm.count("systus.OptionAnalysis")){
     	systusOptionAnalysis = vm["systus.OptionAnalysis"].as<string>();
@@ -277,7 +282,7 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     ConfigurationParameters configuration = ConfigurationParameters(inputFile.string(), solver,
             solverVersion, modelName, outputDir, logLevel, translationMode, testFnamePath,
             tolerance, runSolver, solverServer, solverCommand,
-			systusRBE2TranslationMode,systusRBE2Penalty, systusOptionAnalysis, systusOutputProduct);
+			systusRBE2TranslationMode,systusRBE2Rigidity, systusOptionAnalysis, systusOutputProduct);
     return configuration;
 }
 
@@ -358,8 +363,8 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
                 " otherwise it is translated only the mesh.") //
 		("systus.RBE2TranslationMode",po::value<string>()->default_value("lagrangian"), 
 		        "Translation mode of RBE2 from Nastran To Systus: lagrangian or penalty.") //
-	    ("systus.RBE2PenaltyFactor", po::value<double>()->default_value(10.0),
-	            "Penalty RBE2 will have a rigidity of max rigidity*this value.") //
+	    ("systus.RBE2Rigidity", po::value<double>(),
+	            "Rigidity of RBE2 (for penalty translation only).") //
 		("systus.OptionAnalysis",po::value<string>()->default_value("auto"),
 				"Type of analysis used by the Systus writer (Systus OPTION command): auto (default), 3D, shell or shell-multi.") //
 		("systus.OutputProduct",po::value<string>()->default_value("systus"),

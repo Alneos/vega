@@ -98,7 +98,7 @@ public:
             LogLevel::INFO, TranslationMode translationMode = BEST_EFFORT, fs::path resultFile = "",
             double testTolerance = 0.02, bool runSolver = false, std::string solverServer = "",
             std::string solverCommand = "",
-			std::string systusRBE2TranslationMode = "lagrangian", double systusRBE2PenaltyFactor=10.0,
+			std::string systusRBE2TranslationMode = "lagrangian", double systusRBE2Rigidity= 0.0,
 			std::string systusOptionAnalysis="auto", std::string systusOutputProduct="systus");
     const ModelConfiguration getModelConfiguration() const;
     virtual ~ConfigurationParameters();
@@ -116,7 +116,7 @@ public:
     const std::string solverServer;
     const std::string solverCommand;
     const std::string systusRBE2TranslationMode;
-    const double systusRBE2PenaltyFactor;
+    const double systusRBE2Rigidity;
     const std::string systusOptionAnalysis;
     const std::string systusOutputProduct;
 };

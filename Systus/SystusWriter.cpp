@@ -1043,7 +1043,6 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 	ogmat.precision(DBL_DIG);
 	int nbmaterials= 0;
 	int nbelements = 0;
-	double maxE=0.0;
 
 	for (const auto& elementSet : systusModel.model->elementSets) {
 		const auto& material = elementSet->material;
@@ -1066,7 +1065,6 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 				}
 				if (elasticNature.getE()>0.0){
 					omat << "5 " << elasticNature.getE() << " ";
-					maxE=max(maxE,elasticNature.getE());
 					nbElementsMaterial++;
 				}
 				if (elasticNature.getNu()>0.0){
@@ -1134,7 +1132,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 			ogmat << rbe2.first << " 0 182 " << rbe2.first <<" 200 9 61 19 197 1 5 1" << endl;
 			nbelements=nbelements+5;
 		}else{
-			double rbe2E= configuration.systusRBE2PenaltyFactor*maxE;
+			double rbe2E= configuration.systusRBE2Rigidity;
 			ogmat << rbe2.first << " 0 182 " << rbe2.first <<" 200 9 61 9 197 1 5 " << rbe2E << endl;
 			nbelements=nbelements+5;
 		}
@@ -1145,7 +1143,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 			ogmat << rbar.first << " 0 182 " << rbar.first <<" 200 9 61 19 197 1 5 1" << endl;
 			nbelements=nbelements+5;
 		}else{
-			double rbarE= configuration.systusRBE2PenaltyFactor*maxE;
+			double rbarE= configuration.systusRBE2Rigidity;
 			ogmat << rbar.first << " 0 182 " << rbar.first<< " 200 9 61 9 197 1 5 " << rbarE << endl;
 			nbelements=nbelements+5;
 		}
