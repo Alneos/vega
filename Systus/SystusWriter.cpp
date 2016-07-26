@@ -855,32 +855,50 @@ void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
 void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel, const ElementSet::Type type, const int cid, ostream& out){
 
 	shared_ptr<CoordinateSystem> cs = systusModel.model->getCoordinateSystem(cid);
-	VectorialValue angles = cs->getEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
 
-	switch (type) {
-	// For 1D element, only PHI should be defined
-	case ElementSet::CIRCULAR_SECTION_BEAM:
-	case ElementSet::GENERIC_SECTION_BEAM:
-	case ElementSet::I_SECTION_BEAM:
-	case ElementSet::RECTANGULAR_BEAM: {
-		out << " 3 0.0 0.0 " << angles.z();
+	switch (cs->type){
+	// Cartesian referentiel: we give all three angles.
+	case CoordinateSystem::CARTESIAN:{
+		VectorialValue angles = cs->getEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
+		out << "3 "<< angles.x() <<" " << angles.y()<< " "<< angles.z();
 		break;
 	}
-	// For 2D Element, only PSI should be defined
-	case ElementSet::SHELL: {
-		out << "1 "<< angles.x();
-		break;
-	}
-	// These types are not translated as element in Systus, so we
-	case ElementSet::NODAL_MASS:
-	case ElementSet::DISCRETE_0D:
-	case ElementSet::DISCRETE_1D: {
-		cerr << "Warning in Angle Elements: "<< type << "is not translated as an Element in Systus."<<endl;
+	// Element orientation : it depends of the kind of elements.
+	case CoordinateSystem::ORIENTATION:{
+		VectorialValue angles = cs->getEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
+
+		switch (type) {
+		// For 1D element, only PHI should be defined
+		case ElementSet::CIRCULAR_SECTION_BEAM:
+		case ElementSet::GENERIC_SECTION_BEAM:
+		case ElementSet::I_SECTION_BEAM:
+		case ElementSet::RECTANGULAR_BEAM: {
+			out << " 3 0.0 0.0 " << angles.z();
+			break;
+		}
+		// For 2D Element, only PSI should be defined
+		case ElementSet::SHELL: {
+			out << "1 "<< angles.x();
+			break;
+		}
+		// These types are not translated as element in Systus, so we dismissed them
+		// The function should not be called on them anyway.
+		case ElementSet::NODAL_MASS:
+		case ElementSet::DISCRETE_0D:
+		case ElementSet::DISCRETE_1D: {
+			cerr << "Warning in Angle Elements: "<< type << "is not translated as an Element in Systus."<<endl;
+			break;
+		}
+		default: {
+			//TODO : throw WriterException("ElementSet type not supported");
+			cerr << "Warning in Angle Elements: " << type << " is not supported. Local referentiel dismissed." << endl;
+			out << " 0";
+		}
+		}
 		break;
 	}
 	default: {
-		//TODO : throw WriterException("ElementSet type not supported");
-		cerr << "Warning in Angle Elements: " << type << " is not supported. Local referentiel dismissed." << endl;
+		cerr << "Warning in Angle Elements: " << cs->type << " is not supported. Referentiel dismissed." << endl;
 		out << " 0";
 	}
 	}
