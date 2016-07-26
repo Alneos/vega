@@ -161,6 +161,7 @@ public:
 		bool hasRotations() const;
 		bool isDiagonal() const;
 		bool isSymmetric() const;
+		bool isEmpty() const;
 };
 
 } /* namespace vega */

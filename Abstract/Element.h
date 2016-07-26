@@ -54,6 +54,7 @@ public:
 		RECTANGULAR_BEAM,
 		I_SECTION_BEAM,
 		GENERIC_SECTION_BEAM,
+		STRUCTURAL_SEGMENT,
 		SHELL,
 		CONTINUUM,
 		STIFFNESS_MATRIX,
@@ -312,6 +313,29 @@ public:
 	vector<double> asVector(bool addRotationsIfNotPresent = false);
 	std::shared_ptr<ElementSet> clone() const override;
 };
+
+
+/** Generalized Structural Two points elements : used for spring, damper elements. 
+ *  It may overlapped some functionnalities of DiscreteSegment.*/
+class StructuralSegment final : public Discrete {
+private:
+	DOFMatrix stiffness;
+	DOFMatrix mass;
+	DOFMatrix damping;
+public:
+	StructuralSegment(Model&, bool symmetric = true, int original_id = NO_ORIGINAL_ID);
+	bool hasTranslations() const override;
+	bool hasRotations() const override;
+	bool hasStiffness() const;
+	bool hasMass() const;
+	bool hasDamping() const;
+	void addStiffness(DOF rowdof, DOF coldof, double value);
+	void addMass(DOF rowdof, DOF coldof, double value);
+	void addDamping(DOF rowdof, DOF coldof, double value);
+	double findStiffness(DOF rowdof, DOF coldof) const;
+	std::shared_ptr<ElementSet> clone() const override;
+};
+
 
 class NodalMass: public ElementSet {
 	const double m;

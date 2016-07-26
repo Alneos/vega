@@ -872,7 +872,8 @@ void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel, 
 		case ElementSet::CIRCULAR_SECTION_BEAM:
 		case ElementSet::GENERIC_SECTION_BEAM:
 		case ElementSet::I_SECTION_BEAM:
-		case ElementSet::RECTANGULAR_BEAM: {
+		case ElementSet::RECTANGULAR_BEAM:
+		case ElementSet::STRUCTURAL_SEGMENT: {
 			out << " 3 0.0 0.0 " << angles.z();
 			break;
 		}
@@ -911,17 +912,27 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 	shared_ptr<Mesh> mesh = systusModel.model->mesh;
 	out << "BEGIN_ELEMENTS " << mesh->countCells() << endl;
 	for (const auto& elementSet : systusModel.model->elementSets) {
-		//if (elementSet->getElementType() == ElementSet::ELEMENT_UNDEFINED || elementSet->cellGroup == nullptr)
-		//	continue;
+
 		CellGroup* cellGroup = elementSet->cellGroup;
-		//const Material* material = element->material;
 		int dim = 0;
+		int typecell=0;
+
 		switch (elementSet->type) {
 		case ElementSet::CIRCULAR_SECTION_BEAM:
 		case ElementSet::GENERIC_SECTION_BEAM:
 		case ElementSet::I_SECTION_BEAM:
 		case ElementSet::RECTANGULAR_BEAM: {
 			dim = 1;
+			break;
+		}
+		case ElementSet::STRUCTURAL_SEGMENT:{
+			dim=1;
+			typecell=6;
+			// We treat only Stiffness matrixes for now, with 16XX Elements
+			shared_ptr<StructuralSegment> se = static_pointer_cast<StructuralSegment>(elementSet);
+			if ((se->hasMass()) or (se->hasDamping())){
+				cerr << "WARNING in Structural Elements: mass and damping are not supported and will be dismissed."<<endl;
+			}
 			break;
 		}
 		case ElementSet::SHELL: {
@@ -950,8 +961,8 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 				cout << "Warning in Elements: " << cell << " not supported in Systus" << endl;
 				continue;
 			}
-			out << cell.id << " " << dim << 0 << setfill('0') << setw(2)
-							<< cell.nodeIds.size();
+			out << cell.id << " " << dim << typecell;              // Dimension and type of cell;
+			out << setfill('0') << setw(2) << cell.nodeIds.size(); // Number of nodes in two caracters: 01, 02, 05, 10, etc.
 			//out << " " << material->getId() << " " << 0 << " " << 0 << " ";
 			out << " " << elementSet->getId(); // Material Id (it's an ugly fix)
 			out << " 0"; // Loading List:  index that describes solicitation list (not supported yet)
@@ -1064,85 +1075,128 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 
 	for (const auto& elementSet : systusModel.model->elementSets) {
 		const auto& material = elementSet->material;
-		if (material != nullptr && elementSet->cellGroup != nullptr) {
-			const shared_ptr<Nature> nature = material->findNature(Nature::NATURE_ELASTIC);
-			if (nature) {
-				ostringstream omat;
-				omat.precision(DBL_DIG);
-				int nbElementsMaterial=0;
-				const ElasticNature& elasticNature = dynamic_cast<ElasticNature&>(*nature);
-				omat << elementSet->getId() << " 0 ";
 
-				// 182: Systus Material Id
-				omat << "182 "<< elementSet->getId() << " ";
-				nbElementsMaterial++;
+		if (elementSet->cellGroup != nullptr){
 
-				if (elasticNature.getRho()>0.0){
-					omat << "4 " << elasticNature.getRho() << " ";
-					nbElementsMaterial++;
-				}
-				if (elasticNature.getE()>0.0){
-					omat << "5 " << elasticNature.getE() << " ";
-					nbElementsMaterial++;
-				}
-				if (elasticNature.getNu()>0.0){
-					omat << "6 " << elasticNature.getNu() << " ";
-					nbElementsMaterial++;
-				}
-				switch (elementSet->type) {
-				case (ElementSet::GENERIC_SECTION_BEAM): {
-					shared_ptr<const GenericSectionBeam> genericBeam = static_pointer_cast<
-							const GenericSectionBeam>(elementSet);
-					omat << "11 " << genericBeam->getAreaCrossSection() << " ";
+			ostringstream omat;
+			omat.precision(DBL_DIG);
+			int nbElementsMaterial=0;
+			// Elements with VEGA material
+			if (material != nullptr){
+				const shared_ptr<Nature> nature = material->findNature(Nature::NATURE_ELASTIC);
+				if (nature) {
+					const ElasticNature& elasticNature = dynamic_cast<ElasticNature&>(*nature);
+					omat << elementSet->getId() << " 0 ";
 
-					// VEGA stocks the inverse of our needed Shear Area Factors.
-					const double k1= genericBeam->getInvShearAreaFactorY();
-					if (!is_equal(k1, vega::Globals::UNAVAILABLE_DOUBLE)){
-						omat << "12 " << k1 << " ";
+					// 182: Systus Material Id
+					omat << "182 "<< elementSet->getId() << " ";
+					nbElementsMaterial++;
+
+					if (elasticNature.getRho()>0.0){
+						omat << "4 " << elasticNature.getRho() << " ";
 						nbElementsMaterial++;
 					}
-					const double k2= genericBeam->getInvShearAreaFactorZ();
-					if (!is_equal(k2, vega::Globals::UNAVAILABLE_DOUBLE)){
-						omat << "13 " << k2 << " ";
+					if (elasticNature.getE()>0.0){
+						omat << "5 " << elasticNature.getE() << " ";
 						nbElementsMaterial++;
 					}
-					omat << "14 " << genericBeam->getTorsionalConstant() << " ";
-					omat << "15 " << genericBeam->getMomentOfInertiaY() << " ";
-					omat << "16 " << genericBeam->getMomentOfInertiaZ() << " ";
-					nbElementsMaterial=nbElementsMaterial+4;
-					break;
-				}
-				case (ElementSet::CIRCULAR_SECTION_BEAM): {
-					shared_ptr<const CircularSectionBeam> circularBeam = static_pointer_cast<
-							const CircularSectionBeam>(elementSet);
-					omat << "11 " << circularBeam->getAreaCrossSection() << " ";
-					nbElementsMaterial++;
-					break;
-				}
+					if (elasticNature.getNu()>0.0){
+						omat << "6 " << elasticNature.getNu() << " ";
+						nbElementsMaterial++;
+					}
+					switch (elementSet->type) {
+					case (ElementSet::GENERIC_SECTION_BEAM): {
+						shared_ptr<const GenericSectionBeam> genericBeam = static_pointer_cast<
+								const GenericSectionBeam>(elementSet);
+						omat << "11 " << genericBeam->getAreaCrossSection() << " ";
 
-				case (ElementSet::SHELL): {
-					shared_ptr<const Shell> shell = static_pointer_cast<const Shell>(elementSet);
-					omat << "21 " << shell->thickness << " ";
-					nbElementsMaterial++;
-					break;
+						// VEGA stocks the inverse of our needed Shear Area Factors.
+						const double k1= genericBeam->getInvShearAreaFactorY();
+						if (!is_equal(k1, vega::Globals::UNAVAILABLE_DOUBLE)){
+							omat << "12 " << k1 << " ";
+							nbElementsMaterial++;
+						}
+						const double k2= genericBeam->getInvShearAreaFactorZ();
+						if (!is_equal(k2, vega::Globals::UNAVAILABLE_DOUBLE)){
+							omat << "13 " << k2 << " ";
+							nbElementsMaterial++;
+						}
+						omat << "14 " << genericBeam->getTorsionalConstant() << " ";
+						omat << "15 " << genericBeam->getMomentOfInertiaY() << " ";
+						omat << "16 " << genericBeam->getMomentOfInertiaZ() << " ";
+						nbElementsMaterial=nbElementsMaterial+4;
+						break;
+					}
+					case (ElementSet::CIRCULAR_SECTION_BEAM): {
+						shared_ptr<const CircularSectionBeam> circularBeam = static_pointer_cast<
+								const CircularSectionBeam>(elementSet);
+						omat << "11 " << circularBeam->getAreaCrossSection() << " ";
+						nbElementsMaterial++;
+						break;
+					}
+
+					case (ElementSet::SHELL): {
+						shared_ptr<const Shell> shell = static_pointer_cast<const Shell>(elementSet);
+						omat << "21 " << shell->thickness << " ";
+						nbElementsMaterial++;
+						break;
+					}
+					case (ElementSet::CONTINUUM): {
+						break;
+					}
+					// Nodal Masses are not material in Systus
+					case (ElementSet::NODAL_MASS): {
+						continue;
+					}
+					default:
+						cout << "Warning in Materials: " << *elementSet << " has not an Elatic nature." << endl;
+					}
+					nbmaterials++;
+					omat << endl;
+				}else{
+					cout << "Warning in Materials: " << *elementSet << " not supported" << endl;
 				}
-				case (ElementSet::CONTINUUM): {
+			}else{
+				// Element without VEGA Material
+				switch (elementSet->type){
+				case (ElementSet::STRUCTURAL_SEGMENT):{
+
+					omat << elementSet->getId() << " 0 "; // Material number
+                    omat << "182 "<< elementSet->getId() << " "; // 182: Systus Material Id
+                    nbElementsMaterial++;
+
+                    shared_ptr<const StructuralSegment> sS = static_pointer_cast<const StructuralSegment>(elementSet);
+                    // K Matrix
+					omat << "14 " << sS->findStiffness(DOF::RX, DOF::RX) << " "; // 14: IX
+					omat << "15 " << sS->findStiffness(DOF::RY, DOF::RY) << " "; // 15: IY
+					omat << "16 " << sS->findStiffness(DOF::RZ, DOF::RZ) << " "; // 16: IZ
+					omat << "31 " << sS->findStiffness(DOF::DX, DOF::DX) << " "; // 31: KX
+					omat << "32 " << sS->findStiffness(DOF::DY, DOF::DY) << " "; // 32: KY
+					omat << "33 " << sS->findStiffness(DOF::DZ, DOF::DZ) << " "; // 33: KZ
+					nbElementsMaterial=nbElementsMaterial+6;
+
+					// A few warning
+					if (sS->hasMass()){
+						cout << "Warning in Materials: mass in " << *elementSet << " is not supported and will be dismissed." << endl;
+					}
+					if (sS->hasDamping()){
+						cout << "Warning in Materials: damping in " << *elementSet << " is not supported and will be dismissed." << endl;
+					}
+
+					nbmaterials++;
+					omat <<endl;
 					break;
-				}
-				// Nodal Masses are not material in Systus
-				case (ElementSet::NODAL_MASS): {
-					continue;
 				}
 				default:
 					cout << "Warning in Materials: " << *elementSet << " not supported" << endl;
 				}
-				nbmaterials++;
-				nbelements=nbelements+nbElementsMaterial;
-				omat << endl;
-				ogmat << omat.str();
 			}
+			nbelements=nbelements+nbElementsMaterial;
+			ogmat << omat.str();
 		}
 	}
+
+
 	// Adding rbars materials for rbe2s and rbe3s
 	for (const auto& rbe2 : RBE2rbarPositions){
 		nbmaterials++;

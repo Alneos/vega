@@ -43,6 +43,7 @@ const map<ElementSet::Type, string> ElementSet::stringByType = {
 		{ RECTANGULAR_BEAM, "RECTANGULAR_BEAM" },
 		{ I_SECTION_BEAM, "I_SECTION_BEAM" },
 		{ GENERIC_SECTION_BEAM, "GENERIC_SECTION_BEAM" },
+		{ STRUCTURAL_SEGMENT, "STRUCTURAL_SEGMENT" },
 		{ SHELL, "SHELL" },
 		{ CONTINUUM, "CONTINUUM" },
 		{ STIFFNESS_MATRIX, "STIFFNESS_MATRIX" },
@@ -436,6 +437,68 @@ vector<double> DiscreteSegment::asVector(bool addRotationsIfNotPresent) {
 	}
 	return result;
 }
+
+
+StructuralSegment::StructuralSegment(Model& model, bool symmetric, int original_id) :
+				Discrete(model, ElementSet::STRUCTURAL_SEGMENT, symmetric, original_id) {
+	this->stiffness = symmetric;
+	this->mass = symmetric;
+	this->damping = symmetric;
+}
+
+bool StructuralSegment::hasTranslations() const {
+	return (stiffness.hasTranslations() or mass.hasTranslations() or damping.hasTranslations());
+}
+
+bool StructuralSegment::hasRotations() const {
+	return (stiffness.hasRotations() or mass.hasRotations() or damping.hasRotations());
+}
+
+bool StructuralSegment::hasStiffness() const {
+	return !(stiffness.isEmpty());
+}
+
+bool StructuralSegment::hasMass() const {
+	return !(mass.isEmpty());
+}
+
+bool StructuralSegment::hasDamping() const {
+	return !(damping.isEmpty());
+}
+
+void StructuralSegment::addStiffness(DOF rowdof, DOF coldof, double value){
+	stiffness.componentByDofs[make_pair(rowdof, coldof)] = value;
+}
+void StructuralSegment::addMass(DOF rowdof, DOF coldof, double value){
+	mass.componentByDofs[make_pair(rowdof, coldof)] = value;
+}
+void StructuralSegment::addDamping(DOF rowdof, DOF coldof, double value){
+	damping.componentByDofs[make_pair(rowdof, coldof)] = value;
+}
+
+double StructuralSegment::findStiffness(DOF rowdof, DOF coldof) const{
+	double result=0.0;
+	auto itFind = stiffness.componentByDofs.find(make_pair(rowdof, coldof));
+	if (itFind != stiffness.componentByDofs.end()) {
+		result = itFind->second;
+	}else{
+		if (symmetric){
+			itFind = stiffness.componentByDofs.find(make_pair(coldof, rowdof));
+			if (itFind != stiffness.componentByDofs.end()) {
+				result = itFind->second;
+			}
+		}
+	}
+	return result;
+}
+
+std::shared_ptr<ElementSet> StructuralSegment::clone() const{
+	return shared_ptr<ElementSet>(new StructuralSegment(*this));
+}
+
+
+
+
 
 NodalMass::NodalMass(Model& model, double m, double ixx, double iyy, double izz, double ixy,
 		double iyz, double ixz, double ex, double ey, double ez, int original_id) :

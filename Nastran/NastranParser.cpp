@@ -52,6 +52,7 @@ const unordered_map<string, NastranParserImpl::parseElementFPtr> NastranParserIm
 		{
 				{ "CBAR", &NastranParserImpl::parseCBAR },
 				{ "CBEAM", &NastranParserImpl::parseCBEAM },
+				{ "CBUSH", &NastranParserImpl::parseCBUSH },
 				{ "CGAP", &NastranParserImpl::parseCGAP },
 				{ "CELAS2", &NastranParserImpl::parseCELAS2 },
 				{ "CELAS4", &NastranParserImpl::parseCELAS4 },
@@ -88,6 +89,7 @@ const unordered_map<string, NastranParserImpl::parseElementFPtr> NastranParserIm
 				{ "PBARL", &NastranParserImpl::parsePBARL },
 				{ "PBEAM", &NastranParserImpl::parsePBEAM },
 				{ "PBEAML", &NastranParserImpl::parsePBEAML },
+				{ "PBUSH", &NastranParserImpl::parsePBUSH },
 				{ "PGAP", &NastranParserImpl::parsePGAP },
 				{ "PLOAD4", &NastranParserImpl::parsePLOAD4 },
 				{ "PROD", &NastranParserImpl::parsePROD },
@@ -1125,6 +1127,100 @@ void NastranParserImpl::parsePBEAML(NastranTokenizer& tok, shared_ptr<Model> mod
 
 }
 
+
+
+/** Parse the NASTRAN PBUSH Keyword: Generalized Spring-And-Damper Property **/
+void NastranParserImpl::parsePBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
+
+	int pid = tok.nextInt();
+	double k1=0.0;
+	double k2=0.0;
+	double k3=0.0;
+	double k4=0.0;
+	double k5=0.0;
+	double k6=0.0;
+	double b1=0.0;
+	double b2=0.0;
+	double b3=0.0;
+	double b4=0.0;
+	double b5=0.0;
+	double b6=0.0;
+	double ge1=0.0;
+	double ge2=0.0;
+	double ge3=0.0;
+	double ge4=0.0;
+	double ge5=0.0;
+	double ge6=0.0;
+	double sa=1.0;
+	double st=1.0;
+	double ea=1.0;
+	double et=1.0;
+
+    // Parsing the keyword: done this way to avoid warning message when the user
+	// speficied null B or null GE.
+	while (!(tok.isEmptyUntilNextKeyword())){
+		tok.skipToNotEmpty();
+		string flag = tok.nextString();
+		if (flag=="K"){ // Stiffness values (Default 0.0)
+			k1=tok.nextDouble(true, 0.0);
+			k2=tok.nextDouble(true, 0.0);
+			k3=tok.nextDouble(true, 0.0);
+			k4=tok.nextDouble(true, 0.0);
+			k5=tok.nextDouble(true, 0.0);
+			k6=tok.nextDouble(true, 0.0);
+		}else if (flag=="B"){ // Force-Per-velocity Damping (Default 0.0)
+			b1=tok.nextDouble(true, 0.0);
+			b2=tok.nextDouble(true, 0.0);
+			b3=tok.nextDouble(true, 0.0);
+			b4=tok.nextDouble(true, 0.0);
+			b5=tok.nextDouble(true, 0.0);
+			b6=tok.nextDouble(true, 0.0);
+		}else if (flag=="GE"){ // Structural Damping constants (Default 0.0)
+			ge1=tok.nextDouble(true, 0.0);
+			ge2=tok.nextDouble(true, 0.0);
+			ge3=tok.nextDouble(true, 0.0);
+			ge4=tok.nextDouble(true, 0.0);
+			ge5=tok.nextDouble(true, 0.0);
+			ge6=tok.nextDouble(true, 0.0);
+		}else if(flag=="RCV"){ // Stress and Strain recovery coefficient (Default 1.0)
+			sa=tok.nextDouble(true, 1.0);
+			st=tok.nextDouble(true, 1.0);
+			ea=tok.nextDouble(true, 1.0);
+			et=tok.nextDouble(true, 1.0);
+		}else{
+			handleParsingWarning(string("PBUSH: unknown flag: ")+string(flag), tok, model);
+		}
+	}
+	// Ony K is supported yet
+	if (!is_equal(b1, 0) || !is_equal(b2, 0) || !is_equal(b3, 0) || !is_equal(b4, 0)
+			|| !is_equal(b5, 0) || !is_equal(b6, 0) ) {
+		b1=0.0; b2=0.0; b3=0.0; b4=0.0; b5=0.0; b6=0.0;
+		handleParsingWarning(string("PBUSH: Force-Per-velocity Damping B not supported. Default (0.0) assumed."), tok, model);
+	}
+	if (!is_equal(ge1, 0) || !is_equal(ge2, 0) || !is_equal(ge3, 0) || !is_equal(ge4, 0)
+			|| !is_equal(ge5, 0) || !is_equal(ge6, 0) ) {
+		ge1=0.0; ge2=0.0; ge3=0.0; ge4=0.0; ge5=0.0; ge6=0.0;
+		handleParsingWarning(string("PBUSH: Structural Damping constants GE not supported. Default (0.0) assumed."), tok, model);
+	}
+	if (!is_equal(sa, 1.0) || !is_equal(st, 1.0) || !is_equal(ea, 1.0) || !is_equal(et,1.0)) {
+		sa=1.0; st=1.0; ea=1.0; et=1.0;
+		handleParsingWarning(string("PBUSH: Stress and Strain recovery coefficients (SA, ST, EA, ET ) not supported. Default (1.0) assumed."), tok, model);
+	}
+
+	StructuralSegment structuralElement(*model, true, pid);
+	structuralElement.assignCellGroup(getOrCreateCellGroup(pid, model, "PBUSH"));
+	structuralElement.addStiffness(DOF::DX, DOF::DX, k1);
+	structuralElement.addStiffness(DOF::DY, DOF::DY, k2);
+	structuralElement.addStiffness(DOF::DZ, DOF::DZ, k3);
+	structuralElement.addStiffness(DOF::RX, DOF::RX, k4);
+	structuralElement.addStiffness(DOF::RY, DOF::RY, k5);
+	structuralElement.addStiffness(DOF::RZ, DOF::RZ, k6);
+
+	model->add(structuralElement);
+
+}
+
+
 void NastranParserImpl::parsePGAP(NastranTokenizer& tok, shared_ptr<Model> model) {
 	int pid = tok.nextInt();
 	double u0 = tok.nextDouble();
@@ -2158,7 +2254,7 @@ void NastranParserImpl::handleParsingError(const string& message, NastranTokeniz
 
 void NastranParserImpl::handleParsingWarning(const string& message, NastranTokenizer& tok,
 		shared_ptr<Model> model) {
-	model->onlyMesh = model->onlyMesh && true; // LD : only to suppress warning :.(
+	UNUSEDV(model);
 	cerr << message << " Warning: Line: " << tok.lineNumber << " in file: " << tok.fileName << endl;
 }
 

@@ -328,4 +328,8 @@ bool DOFMatrix::isSymmetric() const {
 	return symmetric;
 }
 
+bool DOFMatrix::isEmpty() const {
+	return componentByDofs.empty();
+}
+
 }

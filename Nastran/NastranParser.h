@@ -148,6 +148,7 @@ private:
 	static const std::unordered_map<CellType::Code, vector<int>, std::hash<int>> nastran2medNodeConnectByCellType;
 	void parseCBAR(NastranTokenizer& tok, std::shared_ptr<Model> model); //in NastranParser_geometry.cpp
 	void parseCBEAM(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+	void parseCBUSH(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
 	void parseElem(NastranTokenizer& tok, std::shared_ptr<Model> model, vector<CellType>);//in NastranParser_geometry.cpp
 	void parseCELAS2(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void parseCELAS4(NastranTokenizer& tok, std::shared_ptr<Model> model);
@@ -178,6 +179,7 @@ private:
 	void parsePBARL(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void parsePBEAM(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void parsePBEAML(NastranTokenizer& tok, std::shared_ptr<Model> model);
+	void parsePBUSH(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
 	void parsePGAP(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void parsePLOAD4(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void parsePROD(NastranTokenizer& tok, std::shared_ptr<Model> model);

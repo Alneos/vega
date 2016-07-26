@@ -112,6 +112,8 @@ int NastranParserImpl::parseOrientation(int point1, int point2, NastranTokenizer
 	OrientationCoordinateSystem* ocs;
 	if (alternateFormat) {
 		int g0 = tok.nextInt();
+		tok.nextDouble(true);
+		tok.nextDouble(true);
 		ocs = new OrientationCoordinateSystem(*model, point1, point2, g0);
 	} else {
 		double x1, x2, x3;
@@ -169,6 +171,66 @@ void NastranParserImpl::parseCBEAM(NastranTokenizer& tok, shared_ptr<Model> mode
 	model->mesh->addCell(cell_id, CellType::SEG2, connectivity, false, cid);
 	addProperty(property_id, cell_id, model);
 }
+
+
+void NastranParserImpl::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
+	int eid = tok.nextInt(); // Cell Id
+	int pid = tok.nextInt(); // Property Id
+	int ga = tok.nextInt();  // Node A
+	int gb = tok.nextInt(true);  // Node B
+
+	// Local element coordinate system
+    int cid = 0;
+    vector<string> line = tok.currentDataLine();
+    if ( (line.size()>8) && !(line[8].empty())){
+    	// A CID is provided by the user
+        tok.nextInt(true);
+        tok.nextInt(true);
+        tok.nextInt(true);
+       	cid = tok.nextInt();
+    }else{
+    	// Local definition of the element coordinate system
+    	cid = parseOrientation(ga, gb, tok, model);
+    	tok.nextInt(true);
+    }
+    
+    // TODO: I think i need to reserve the number: possible confusion of orientation?
+    //model->add(coordinateSystemReference);
+    //Reference<ConstraintSet> constraintReference(ConstraintSet::SPC, id);
+    //				analysis.add(constraintReference);
+
+
+    // Spring damper location (S): not supported.
+	double s=tok.nextDouble(true, 0.5);
+	if (!is_equal(s,0.5)){
+		handleParsingWarning(string("CBUSH: S keyword not supported. Default (0.5) used."), tok, model);
+	    s=0.5;
+	}
+
+	// Coordinate system identification of spring-damper offset (OCID): not supported.
+	int ocid =tok.nextInt(true, -1);
+	double s1=tok.nextDouble(true);
+	double s2=tok.nextDouble(true);
+	double s3=tok.nextDouble(true);
+	if (ocid!=-1){
+		handleParsingWarning(string("CBUSH: OCID keyword not supported. Default (-1) used."), tok, model);
+		handleParsingWarning(string("CBUSH: S1 S2 S3 dismissed :")+std::to_string(s1)+ string(" ")+std::to_string(s2)+ string(" ")+std::to_string(s3), tok, model);
+	    ocid=-1;
+	}
+
+	// Add cell
+	vector<int> connectivity;
+	if (gb == NastranTokenizer::UNAVAILABLE_INT){
+		//connectivity += ga;
+		//model->mesh->addCell(eid, CellType::POINT1, connectivity, false, cid);
+		handleParsingWarning(string("CBUSH is only available between two nodes."), tok, model);
+	}else{
+		connectivity += ga, gb;
+	    model->mesh->addCell(eid, CellType::SEG2, connectivity, false, cid);
+	    addProperty(pid, eid, model);
+	}
+}
+
 
 void NastranParserImpl::parseElem(NastranTokenizer& tok, shared_ptr<Model> model,
 								  vector<CellType> cellTypes) {
@@ -353,6 +415,11 @@ void NastranParserImpl::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> 
 	addProperty(property_id, cell_id, model);
 
 }
+
+
+
+
+
 
 } /* namespace nastran */
 
