@@ -545,7 +545,7 @@ void SystusWriter::fillVectors(const SystusModel& systusModel, const Analysis& a
 			}
 			default: {
 				//TODO : throw WriterException("Loading type not supported");
-				cout << "Warning : " << *loading << " not supported" << endl;
+				cout << "WARNING: " << *loading << " not supported" << endl;
 			}
 			}
 		}
@@ -589,7 +589,7 @@ void SystusWriter::fillVectors(const SystusModel& systusModel, const Analysis& a
 			}
 			default: {
 				//TODO : throw WriterException("Constraint type not supported");
-				cout << "Warning : " << *constraint << " not supported" << endl;
+				cout << "WARNING: " << *constraint << " not supported" << endl;
 			}
 			}
 		}
@@ -642,7 +642,7 @@ void SystusWriter::fillConstraintLists(const std::shared_ptr<ConstraintSet> & co
 		default: {
 			//cout << typeid(*constraint).name() << endl;
 			//TODO : throw WriterException("Constraint type not supported");
-			cout << "Warning : " << *constraint << " not supported" << endl;
+			cout << "WARNING: " << *constraint << " not supported" << endl;
 		}
 		}
 	}
@@ -685,7 +685,7 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const Analysis& ana
 				break;
 			}
 			default:
-				throw WriterException("Loading type not supported");
+				cerr<< "WARNING in Lists: Loading type "<<to_string(loading->type)<< " not supported and dismissed."<<endl;
 			}
 		}
 	}
@@ -1341,15 +1341,13 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const Analysis& anal
 	out << endl;
 	out << comment<<"SEARCH DATA 1 ASCII" << endl;
 	out << endl;
-
 	switch (analysis.type) {
 	case Analysis::LINEAR_MECA_STAT: {
 
 		out << "SOLVE METHOD OPTIMISED" << endl;
 		break;
 	}
-	case Analysis::LINEAR_MODAL:
-	case Analysis::LINEAR_DYNA_MODAL_FREQ: {
+	case Analysis::LINEAR_MODAL:{
 		out << "# SOLVE FILE TO USE THE DYNAMIC SOLVER" << endl;
 		out << "# USE FOR EIGEN FREQUENCY CRITERION" << endl;
 		out << endl;
@@ -1364,28 +1362,45 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const Analysis& anal
 
 		const LinearModal& linearModal = static_cast<const LinearModal&>(analysis);
 		FrequencyBand& frequencyBand = *(linearModal.getFrequencyBand());
-		string smodes= (frequencyBand.num_max == vega::Globals::UNAVAILABLE_INT ? "":to_string(frequencyBand.num_max));
-		string siters= (frequencyBand.num_max == vega::Globals::UNAVAILABLE_INT ? "":to_string(2*frequencyBand.num_max));
+		string smodes= (frequencyBand.num_max == vega::Globals::UNAVAILABLE_INT ? "12":to_string(frequencyBand.num_max));
+		string siters= (frequencyBand.num_max == vega::Globals::UNAVAILABLE_INT ? "24":to_string(2*frequencyBand.num_max));
+		if (!is_equal(frequencyBand.upper, vega::Globals::UNAVAILABLE_DOUBLE)){
+			cout << "WARNING: Modal analysis with upper bound frequency not supported. Will search for "<<smodes<<" Eigenmodes instead."<<endl;
+			// Mechanical commands for Systus 2017
+			out << "###SYSTUS2017#### THE NEXT COMMANDS ARE NOT AVAILABLE YET IN SYSTUS." << endl;
+			out << "###SYSTUS2017#### WE KEEP THEM FOR THE SAKE OF COMPLETION." << endl;
+			out << "###SYSTUS2017#### WE COMPUTE ALL MODES (max "<< smodes << ") under "<<frequencyBand.upper<<" Hz." << endl;
+			out << "###SYSTUS2017###MODE SUBSPACE BAND" << endl;
+			out << "###SYSTUS2017###METHOD OPTIMIZED" << endl;
+			out << "###SYSTUS2017###VECTOR "<< smodes << "PRECISION 1*-5 STURM FREQ " << frequencyBand.upper;
+			out << "###SYSTUS2017###RETURN" << endl;
+		}
+		if (!is_equal(frequencyBand.lower, vega::Globals::UNAVAILABLE_DOUBLE) && !is_equal(frequencyBand.lower, 0)){
+			cout << "WARNING: Modal analysis with lower bound frequency not supported. Will search for "<<smodes<<" Eigenmodes instead."<<endl;
+		}
+
 		out << "# WE COMPUTE "<< smodes << " MODES." << endl;
 		out << "# IT'S AN ITERATIVE MEHOD, WITH A MAXIMUM OF "<< siters <<" ITERATIONS" << endl;
-		out << "MODE SUBSPACE " << (is_equal(frequencyBand.upper, vega::Globals::UNAVAILABLE_DOUBLE) ? "BLOCK 6":"BAND") << endl;
+		out << "MODE SUBSPACE BLOCK 6" << endl;
 		out << "METHOD OPTIMIZED" << endl;
-		out << "VECTOR "<< smodes <<" ITER "<< siters <<" PRECISION 1*-5";
-		if (!is_equal(frequencyBand.upper, vega::Globals::UNAVAILABLE_DOUBLE))
-			out << " STURM FREQ " << frequencyBand.upper;
-		else
-			out << " NORM MASS";
-		out << endl;
-		if (!is_equal(frequencyBand.lower, vega::Globals::UNAVAILABLE_DOUBLE) && !is_equal(frequencyBand.lower, 0))
-			cout << "Warning : lower frequencyBand not supported" << endl;
+		out << "VECTOR "<< smodes <<" ITER "<< siters <<" PRECISION 1*-5 NORM MASS"<< endl;
 		out << "RETURN" << endl;
 
 		out << endl;
 		out << "# COMPUTE THE STRESS TENSORS." << endl;
 		out << "# MANDATORY TO COMPUTE THE GRADIENTS OF THE FREQUENCY CRITERIONS." << endl;
 		out << "SOLVE FORCE" << endl;
+		break;
+	}
+    // Not Done Yet
+	case Analysis::LINEAR_DYNA_MODAL_FREQ: {
+		cout << "WARNING: Dynamic modal analysis is not supported."<<endl;
 
-		//TODO: Disable for now. Is it useful?
+		out << "# DYNAMIC MODAL ANALYSIS IS NOT SUPPORTED." << endl;
+		out << "# NO SYSTUS COMMANDS GENERATED." << endl;
+		out << endl;
+
+        //TODO: Disable for now. Is it useful?
 		//		if (analysis.type == Analysis::LINEAR_DYNA_MODAL_FREQ){
 		//
 		//			const LinearDynaModalFreq& linearDynaModalFreq = static_cast<const LinearDynaModalFreq&>(analysis);
@@ -1519,7 +1534,7 @@ void SystusWriter::writeConstraint(const SystusModel& systusModel,
 		}
 		default: {
 			//TODO : throw WriterException("Constraint type not supported");
-			cout << "Warning : " << *constraint << " not supported" << endl;
+			cout << "WARNING: " << *constraint << " not supported" << endl;
 		}
 		}
 	}
@@ -1624,7 +1639,7 @@ void SystusWriter::writeLoad(const ConstraintSet& constraintSet, std::ostream& o
 		}
 		default: {
 			//TODO : throw WriterException("Constraint type not supported");
-			cout << "Warning : " << *constraint << " not supported" << endl;
+			cout << "WARNING: " << *constraint << " not supported" << endl;
 		}
 		}
 	}
