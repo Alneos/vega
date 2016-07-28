@@ -39,6 +39,7 @@ class SystusWriter: public Writer {
 	map<int, vector<int>> RBE3rbarPositions; /**< <material, <cells>> for all RBE3 elements. **/
 	map<int, vector<DOFS>> RBE3Dofs;         /**< <material, <master DOFS, slaves DOFS>> for all RBE3 elements. **/
 	map<int, double> RBE3Coefs;              /**< <material, coeff>  for all RBE3 elements. **/
+	map<int, int> rotationNodeIdByTranslationNodeId; /**< nodeId, nodeId > :  map between the reference node and the reference rotation for 190X elements in 3D mode.**/
 	map<int, int> localLoadingListIdByLoadingListId;
 	map<int, int> localVectorIdByLoadingListId;
 	map<int, int> localVectorIdByConstraintListId;
@@ -219,7 +220,7 @@ class SystusWriter: public Writer {
 	void getSystusInformations(const SystusModel&, const ConfigurationParameters&);
 	void fillLoads(const SystusModel&, const Analysis&);
 	void fillVectors(const SystusModel&, const Analysis&);
-	void fillConstraintLists(const std::shared_ptr<ConstraintSet> & , std::map<int, std::map<int, int>> &);
+	void fillConstraintLists(const SystusModel&, const std::shared_ptr<ConstraintSet> & , std::map<int, std::map<int, int>> &);
 	void fillLists(const SystusModel&, const Analysis&);
 	void generateRBEs(const SystusModel&, const ConfigurationParameters&);
 	void writeHeader(const SystusModel&, std::ostream&);

@@ -243,7 +243,6 @@ void SystusWriter::getSystusInformations(const SystusModel& systusModel, const C
 
 }
 
-// Generation (and more generally translation) should not be done in the Writer
 void SystusWriter::generateRBEs(const SystusModel& systusModel,
 		const vega::ConfigurationParameters &configuration) {
 
@@ -254,6 +253,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 	RBE3rbarPositions.clear();
 	RBE3Dofs.clear();
 	RBE3Coefs.clear();
+	rotationNodeIdByTranslationNodeId.clear();
 
 	// Material Id are usually computed from the corresponding ElementSet Id
 	// TODO: It should be the material...
@@ -277,6 +277,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 			if (systusOption == 4){
 				int master_rot_position = mesh->addNode(Node::AUTO_ID, master.x, master.y, master.z, master.displacementCS);
 				master_rot_id = mesh->findNode(master_rot_position).id;
+				rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
 			}
 
 			for (int position : rbe2->getSlaves()){
@@ -341,6 +342,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 				int master_rot_position = mesh->addNode(Node::AUTO_ID, masterNode.x, masterNode.y, masterNode.z, masterNode.displacementCS);
 				int master_rot_id = mesh->findNode(master_rot_position).id;
 				nodes.push_back(master_rot_id);
+				rotationNodeIdByTranslationNodeId[masterNode.id]=master_rot_id;
 			}
 
 			// With a Lagrangian formulation, we add a Lagrange node.
@@ -395,6 +397,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 			if (systusOption == 4){
 				int master_rot_position = mesh->addNode(Node::AUTO_ID, master.x, master.y, master.z, master.displacementCS);
 				master_rot_id = mesh->findNode(master_rot_position).id;
+				rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
 				int master_lagr_rot_position = mesh->addNode(Node::AUTO_ID, master.x, master.y, master.z, master.displacementCS);
 				master_lagr_rot_id = mesh->findNode(master_lagr_rot_position).id;
 			}
@@ -511,13 +514,35 @@ void SystusWriter::fillVectors(const SystusModel& systusModel, const Analysis& a
 				vec.push_back(force.x());
 				vec.push_back(force.y());
 				vec.push_back(force.z());
-				vec.push_back(moment.x());
-				vec.push_back(moment.y());
-				vec.push_back(moment.z());
-
+				if (systusOption == 3){
+					vec.push_back(moment.x());
+					vec.push_back(moment.y());
+					vec.push_back(moment.z());
+				}
 				vectors[vectorId]=vec;
 				localVectorIdByLoadingListId[loading->getId()]=vectorId;
 				vectorId++;
+
+				// Rigid Body Element in option 3D.
+				// We report the force from the master node to the master rotational node.
+				//TODO: We use a bad trick, stocking the second vector in "A[-i]" if the first vector is in A[i].
+				int node = nodalForce->getNode().position;
+				int nid = systusModel.model->mesh->findNode(node).id;
+				if ((systusOption == 4) && (rotationNodeIdByTranslationNodeId.find(nid)!=rotationNodeIdByTranslationNodeId.end())){
+					vec.clear();
+					vec.push_back(0);
+					vec.push_back(0);
+					vec.push_back(0);
+					vec.push_back(0);
+					vec.push_back(0);
+					vec.push_back(0);
+					vec.push_back(moment.x());
+					vec.push_back(moment.y());
+					vec.push_back(moment.z());
+					vectors[vectorId]=vec;
+					localVectorIdByLoadingListId[-loading->getId()]=vectorId;
+					vectorId++;
+				}
 				break;
 			}
 			case Loading::GRAVITY: {
@@ -572,12 +597,46 @@ void SystusWriter::fillVectors(const SystusModel& systusModel, const Analysis& a
 					vec.push_back(0);
 					vec.push_back(0);
 					DOFS spcDOFS = spc->getDOFSForNode(0);
-					for (DOF dof : DOFS::ALL_DOFS) {
-						vec.push_back( (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0) );
-					}
+					if (systusOption == 3){
+						for (DOF dof : DOFS::ALL_DOFS)
+							vec.push_back( (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0) );
+					}else if (systusOption == 4) {
+						for (DOF dof : DOFS::TRANSLATIONS)
+							vec.push_back( (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0) );
+					}else
+						throw WriterException("systusOption not supported");
 					vectors[vectorId]=vec;
 					localVectorIdByConstraintListId[constraint->getId()]=vectorId;
 					vectorId++;
+
+					// Rigid Body Element in option 3D.
+					// We report the constraints from the master node to the master rotational node.
+					//TODO: We use a bad trick, stocking the second vector in "A[-i]" if the first vector is in A[i].
+					if (systusOption==4){
+						bool isTransfertNeeded=false;
+						for (int nodePosition : constraint->nodePositions()){
+							int nid = systusModel.model->mesh->findNode(nodePosition).id;
+							if (rotationNodeIdByTranslationNodeId.find(nid)!=rotationNodeIdByTranslationNodeId.end()){
+								isTransfertNeeded=true;
+								break;
+							}
+						}
+						if (isTransfertNeeded){
+							vec.clear();
+							vec.push_back(4);
+							vec.push_back(0);
+							vec.push_back(0);
+							vec.push_back(0);
+							vec.push_back(0);
+							vec.push_back(0);
+							vec.push_back( (spcDOFS.contains(DOF::RX) ? spc->getDoubleForDOF(DOF::RX) : 0) );
+							vec.push_back( (spcDOFS.contains(DOF::RY) ? spc->getDoubleForDOF(DOF::RY) : 0) );
+							vec.push_back( (spcDOFS.contains(DOF::RZ) ? spc->getDoubleForDOF(DOF::RZ) : 0) );
+							vectors[vectorId]=vec;
+							localVectorIdByConstraintListId[-constraint->getId()]=vectorId;
+							vectorId++;
+						}
+					}
 				}
 				break;
 			}
@@ -598,8 +657,9 @@ void SystusWriter::fillVectors(const SystusModel& systusModel, const Analysis& a
 }
 
 
-void SystusWriter::fillConstraintLists(const std::shared_ptr<ConstraintSet> & constraintSet, std::map<int, std::map<int, int>> & localVectorsByLocalLoadingByNodePosition){
+void SystusWriter::fillConstraintLists(const SystusModel& systusModel, const std::shared_ptr<ConstraintSet> & constraintSet, std::map<int, std::map<int, int>> & localVectorsByLocalLoadingByNodePosition){
 
+	const shared_ptr<Mesh> mesh = systusModel.model->mesh;
 	char dofCode;
 	if (systusOption == 3)
 		dofCode = (char) DOFS::ALL_DOFS;
@@ -625,11 +685,33 @@ void SystusWriter::fillConstraintLists(const std::shared_ptr<ConstraintSet> & co
 
 				// We compute the Degree Of Freedom of the node (see ASC Manual)
 				DOFS constrained = constraint->getDOFSForNode(nodePosition);
-				if (constraintByNodePosition.find(nodePosition) == constraintByNodePosition.end())
+				if (constraintByNodePosition.find(nodePosition) == constraintByNodePosition.end()){
 					constraintByNodePosition[nodePosition] = char(constrained) & dofCode;
-				else
+				}else{
 					constraintByNodePosition[nodePosition] = (char(constrained) & dofCode)
 					| constraintByNodePosition[nodePosition];
+				}
+
+				// Rigid Body Element in option 3D.
+				// We report the constraints from the master node to the master rotational node.
+				if (systusOption==4){
+					int nid =  mesh->findNode(nodePosition).id;
+					const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
+					if (it != rotationNodeIdByTranslationNodeId.end()){
+						DOFS constrainedRot(constrained.contains(DOF::RX),constrained.contains(DOF::RY),constrained.contains(DOF::RZ));
+						int rotNodePosition= mesh->findNodePosition(it->second);
+						if (constraintByNodePosition.find(rotNodePosition) == constraintByNodePosition.end()){
+							constraintByNodePosition[rotNodePosition] = char(constrainedRot) & dofCode;
+						}else{
+							constraintByNodePosition[rotNodePosition] = (char(constrainedRot) & dofCode)
+							| constraintByNodePosition[rotNodePosition];
+						}
+						//TODO: This is a bad trick i think, using A[-i] to stock the second vector.
+						int localRotVectorId = localVectorIdByConstraintListId[-constraint->getId()];
+						localVectorsByLocalLoadingByNodePosition[rotNodePosition][localLoadingId]=localRotVectorId;
+					}
+				}
+
 			}
 			break;
 		}
@@ -672,8 +754,20 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const Analysis& ana
 				int node = nodalForce->getNode().position;
 				int localLoadingId = localLoadingListIdByLoadingListId[loadSet->getId()];
 				int localVectorId  = localVectorIdByLoadingListId[loading->getId()];
-
 				localVectorsByLocalLoadingByNodePosition[node][localLoadingId]=localVectorId;
+
+				// Rigid Body Element in option 3D.
+				// We report the force from the master node to the master rotational node.
+				if (systusOption==4){
+					int nid = systusModel.model->mesh->findNode(node).id;
+					const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
+					if (it != rotationNodeIdByTranslationNodeId.end()){
+						//TODO: This is a bad trick i think, using A[-i] to stock the second vector.
+						int localRotVectorId = localVectorIdByLoadingListId[-loading->getId()];
+						int rotNodePosition= systusModel.model->mesh->findNodePosition(it->second);
+						localVectorsByLocalLoadingByNodePosition[rotNodePosition][localLoadingId]=localRotVectorId;
+					}
+				}
 				break;
 			}
 			case Loading::GRAVITY: {
@@ -711,7 +805,7 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const Analysis& ana
 	// Filling lists for Loadcase Constraints
 	for (const auto& constraintSet : analysis.getConstraintSets()){
 		//cout << "Filling List for ConstraintSet "<<constraintSet->getId()<<" of size "<< constraintSet->size()<< endl;
-		fillConstraintLists(constraintSet, localVectorsByLocalLoadingByNodePosition);
+		fillConstraintLists(systusModel,constraintSet, localVectorsByLocalLoadingByNodePosition);
 	}
 
 	constraintListIdByNodePosition.clear();
