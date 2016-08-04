@@ -24,6 +24,13 @@
 namespace fs = boost::filesystem;
 
 namespace vega {
+
+
+string SMFToString(SMF key){
+	return SMFtoString.find(key)->second;
+}
+
+
 SystusWriter::SystusWriter() {
 }
 
@@ -56,30 +63,18 @@ int SystusWriter::getAscNodeId(const int vega_id) const{
 
 int SystusWriter::DOFSToAsc(const DOFS dofs, ostream& out) const{
 	int nelem=0;
-	if (dofs.contains(DOF::DX)){
-		nelem++;
-		out << " 31 1.0";
-	}
-	if (dofs.contains(DOF::DY)){
-		nelem++;
-		out << " 32 1.0";
-	}
-	if (dofs.contains(DOF::DZ)){
-		nelem++;
-		out << " 33 1.0";
-	}
-	if (dofs.contains(DOF::RX)){
-		nelem++;
-		out << " 14 1.0";
-	}
-	if (dofs.contains(DOF::RY)){
-		nelem++;
-		out << " 15 1.0";
-	}
-	if (dofs.contains(DOF::RZ)){
-		out << " 16 1.0";
-		nelem++;
-	}
+	if (dofs.contains(DOF::DX))
+		writeMaterialField(SMF::KX, 1.0, nelem, out);
+	if (dofs.contains(DOF::DY))
+		writeMaterialField(SMF::KY, 1.0, nelem, out);
+	if (dofs.contains(DOF::DZ))
+		writeMaterialField(SMF::KZ, 1.0, nelem, out);
+	if (dofs.contains(DOF::RX))
+		writeMaterialField(SMF::IX, 1.0, nelem, out);
+	if (dofs.contains(DOF::RY))
+		writeMaterialField(SMF::IY, 1.0, nelem, out);
+	if (dofs.contains(DOF::RZ))
+		writeMaterialField(SMF::IZ, 1.0, nelem, out);
 	return nelem;
 }
 
@@ -126,6 +121,66 @@ int SystusWriter::getPartId(const string partName, set<int> & usedPartId) {
 
 	usedPartId.insert(partId);
 	return partId;
+}
+
+void SystusWriter::writeMaterialField(const SMF key, const double value, int& nbfields, ostream& out) const{
+	switch(key){
+	case(RHO):
+	case(E):
+	case(NU):{
+		if (value>0.0){
+			out << " " << key << " "<<value;
+		    nbfields++;
+		}
+		break;
+	}
+	case(S):
+	case(IX):
+	case(IY):
+	case(IZ):
+	case(H):
+	case(KX):
+	case(KY):
+	case(KZ):
+	case(COEF):{
+		out << " " << key << " "<<value;
+		nbfields++;
+		break;
+	}
+	case(AY):
+	case(AZ):{
+		if (!is_equal(value, vega::Globals::UNAVAILABLE_DOUBLE)){
+			out << " " << key << " " << value;
+		    nbfields++;
+		}
+		break;
+	}
+	default:{
+		cerr << "Warning : Unrecognized material field (double value) "<< SMFtoString(key) <<endl;
+	}
+	}
+}
+
+void SystusWriter::writeMaterialField(const SMF key, const int value, int& nbfields, ostream& out) const{
+
+	switch(key){
+	case(ID):{  //ID is the very beginning of the line. Its format is "N 0"
+			out << value<<" 0";
+			break;
+		}
+	case(SHAPE):
+	case(MID):
+	case(DEPEND):
+	case(LEVEL):
+	case(TYPE):{
+		out << " " << key << " "<<value;
+		nbfields++;
+		break;
+	}
+	default:{
+		cerr << "Warning : Unrecognized material field (integer value) "<< SMFtoString(key) <<endl;
+	}
+	}
 }
 
 
@@ -1007,8 +1062,7 @@ void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
 void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel, const ElementSet::Type type, const int cpos, ostream& out){
 
 	shared_ptr<CoordinateSystem> cs = systusModel.model->getCoordinateSystemByPosition(cpos);
-
-	switch (cs->type){
+    switch (cs->type){
 	// Cartesian referentiel: we give all three angles.
 	case CoordinateSystem::CARTESIAN:{
 		VectorialValue angles = cs->getEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
@@ -1217,6 +1271,7 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
 	out << "END_GROUPS" << endl;
 }
 
+
 void SystusWriter::writeMaterials(const SystusModel& systusModel,
 		const vega::ConfigurationParameters &configuration, ostream& out) {
 
@@ -1227,70 +1282,49 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 
 	for (const auto& elementSet : systusModel.model->elementSets) {
 		const auto& material = elementSet->material;
-
 		if (elementSet->cellGroup != nullptr){
 
 			ostringstream omat;
 			omat.precision(DBL_DIG);
 			int nbElementsMaterial=0;
+			bool isValid=true;
 			// Elements with VEGA material
 			if (material != nullptr){
 				const shared_ptr<Nature> nature = material->findNature(Nature::NATURE_ELASTIC);
 				if (nature) {
 					const ElasticNature& elasticNature = dynamic_cast<ElasticNature&>(*nature);
-					omat << elementSet->getId() << " 0 ";
 
-					// 182: Systus Material Id
-					omat << "182 "<< elementSet->getId() << " ";
-					nbElementsMaterial++;
+					writeMaterialField(SMF::ID, elementSet->getId(), nbElementsMaterial, omat);
+					writeMaterialField(SMF::MID, elementSet->getId(), nbElementsMaterial, omat);
+					writeMaterialField(SMF::RHO, elasticNature.getRho(), nbElementsMaterial, omat);
+					writeMaterialField(SMF::E, elasticNature.getE(), nbElementsMaterial, omat);
+					writeMaterialField(SMF::NU, elasticNature.getNu(), nbElementsMaterial, omat);
 
-					if (elasticNature.getRho()>0.0){
-						omat << "4 " << elasticNature.getRho() << " ";
-						nbElementsMaterial++;
-					}
-					if (elasticNature.getE()>0.0){
-						omat << "5 " << elasticNature.getE() << " ";
-						nbElementsMaterial++;
-					}
-					if (elasticNature.getNu()>0.0){
-						omat << "6 " << elasticNature.getNu() << " ";
-						nbElementsMaterial++;
-					}
 					switch (elementSet->type) {
 					case (ElementSet::GENERIC_SECTION_BEAM): {
 						shared_ptr<const GenericSectionBeam> genericBeam = static_pointer_cast<
 								const GenericSectionBeam>(elementSet);
-						omat << "11 " << genericBeam->getAreaCrossSection() << " ";
+						writeMaterialField(SMF::S, genericBeam->getAreaCrossSection(), nbElementsMaterial, omat);
 
 						// VEGA stocks the inverse of our needed Shear Area Factors.
-						const double k1= genericBeam->getInvShearAreaFactorY();
-						if (!is_equal(k1, vega::Globals::UNAVAILABLE_DOUBLE)){
-							omat << "12 " << k1 << " ";
-							nbElementsMaterial++;
-						}
-						const double k2= genericBeam->getInvShearAreaFactorZ();
-						if (!is_equal(k2, vega::Globals::UNAVAILABLE_DOUBLE)){
-							omat << "13 " << k2 << " ";
-							nbElementsMaterial++;
-						}
-						omat << "14 " << genericBeam->getTorsionalConstant() << " ";
-						omat << "15 " << genericBeam->getMomentOfInertiaY() << " ";
-						omat << "16 " << genericBeam->getMomentOfInertiaZ() << " ";
-						nbElementsMaterial=nbElementsMaterial+4;
+						writeMaterialField(SMF::AY, genericBeam->getInvShearAreaFactorY(), nbElementsMaterial, omat);
+						writeMaterialField(SMF::AZ, genericBeam->getInvShearAreaFactorZ(), nbElementsMaterial, omat);
+
+						writeMaterialField(SMF::IX, genericBeam->getTorsionalConstant(), nbElementsMaterial, omat);
+						writeMaterialField(SMF::IY, genericBeam->getMomentOfInertiaY(), nbElementsMaterial, omat);
+						writeMaterialField(SMF::IZ, genericBeam->getMomentOfInertiaZ(), nbElementsMaterial, omat);
 						break;
 					}
 					case (ElementSet::CIRCULAR_SECTION_BEAM): {
 						shared_ptr<const CircularSectionBeam> circularBeam = static_pointer_cast<
 								const CircularSectionBeam>(elementSet);
-						omat << "11 " << circularBeam->getAreaCrossSection() << " ";
-						nbElementsMaterial++;
+						writeMaterialField(SMF::S, circularBeam->getAreaCrossSection(), nbElementsMaterial, omat);
 						break;
 					}
 
 					case (ElementSet::SHELL): {
 						shared_ptr<const Shell> shell = static_pointer_cast<const Shell>(elementSet);
-						omat << "21 " << shell->thickness << " ";
-						nbElementsMaterial++;
+						writeMaterialField(SMF::H, shell->thickness, nbElementsMaterial, omat);
 						break;
 					}
 					case (ElementSet::CONTINUUM): {
@@ -1300,51 +1334,53 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 					case (ElementSet::NODAL_MASS): {
 						continue;
 					}
+					// Default : we only print the default fields: E, NU, etc.
 					default:
-						cout << "Warning in Materials: " << *elementSet << " has not an Elatic nature." << endl;
+						cout << "Warning in Materials: " << *elementSet << " not supported." << endl;
 					}
-					nbmaterials++;
-					omat << endl;
 				}else{
-					cout << "Warning in Materials: " << *elementSet << " not supported" << endl;
+					isValid=false;
+					cout << "Warning in Materials: " << *elementSet << " has not an Elatic nature." << endl;
 				}
 			}else{
 				// Element without VEGA Material
 				switch (elementSet->type){
 				case (ElementSet::STRUCTURAL_SEGMENT):{
 
-					omat << elementSet->getId() << " 0 "; // Material number
-                    omat << "182 "<< elementSet->getId() << " "; // 182: Systus Material Id
-                    nbElementsMaterial++;
+					writeMaterialField(SMF::ID, elementSet->getId(), nbElementsMaterial, omat);
+					writeMaterialField(SMF::MID, elementSet->getId(), nbElementsMaterial, omat);
 
                     shared_ptr<const StructuralSegment> sS = static_pointer_cast<const StructuralSegment>(elementSet);
                     // K Matrix
-					omat << "14 " << sS->findStiffness(DOF::RX, DOF::RX) << " "; // 14: IX
-					omat << "15 " << sS->findStiffness(DOF::RY, DOF::RY) << " "; // 15: IY
-					omat << "16 " << sS->findStiffness(DOF::RZ, DOF::RZ) << " "; // 16: IZ
-					omat << "31 " << sS->findStiffness(DOF::DX, DOF::DX) << " "; // 31: KX
-					omat << "32 " << sS->findStiffness(DOF::DY, DOF::DY) << " "; // 32: KY
-					omat << "33 " << sS->findStiffness(DOF::DZ, DOF::DZ) << " "; // 33: KZ
-					nbElementsMaterial=nbElementsMaterial+6;
+                    writeMaterialField(SMF::IX, sS->findStiffness(DOF::RX, DOF::RX), nbElementsMaterial, omat);
+                    writeMaterialField(SMF::IY, sS->findStiffness(DOF::RY, DOF::RY), nbElementsMaterial, omat);
+                    writeMaterialField(SMF::IZ, sS->findStiffness(DOF::RZ, DOF::RZ), nbElementsMaterial, omat);
+                    writeMaterialField(SMF::KX, sS->findStiffness(DOF::DX, DOF::DX), nbElementsMaterial, omat);
+                    writeMaterialField(SMF::KY, sS->findStiffness(DOF::DY, DOF::DY), nbElementsMaterial, omat);
+                    writeMaterialField(SMF::KZ, sS->findStiffness(DOF::DZ, DOF::DZ), nbElementsMaterial, omat);
 
-					// A few warning
-					if (sS->hasMass()){
-						cout << "Warning in Materials: mass in " << *elementSet << " is not supported and will be dismissed." << endl;
-					}
-					if (sS->hasDamping()){
-						cout << "Warning in Materials: damping in " << *elementSet << " is not supported and will be dismissed." << endl;
-					}
+                    // A few warning
+                    if (sS->hasMass()){
+                    	cout << "Warning in Materials: mass in " << *elementSet << " is not supported and will be dismissed." << endl;
+                    }
+                    if (sS->hasDamping()){
+                    	cout << "Warning in Materials: damping in " << *elementSet << " is not supported and will be dismissed." << endl;
+                    }
 
-					nbmaterials++;
-					omat <<endl;
-					break;
+                    break;
 				}
-				default:
+				default:{
+					isValid=false;
 					cout << "Warning in Materials: " << *elementSet << " not supported" << endl;
 				}
+				}
 			}
-			nbelements=nbelements+nbElementsMaterial;
-			ogmat << omat.str();
+			if (isValid){
+				nbelements=nbelements+nbElementsMaterial;
+				nbmaterials++;
+				omat << endl;
+				ogmat << omat.str();
+			}
 		}
 	}
 
@@ -1352,35 +1388,52 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 	// Adding rbars materials for rbe2s and rbe3s
 	for (const auto& rbe2 : RBE2rbarPositions){
 		nbmaterials++;
+		int nbElementsMaterial=0;
+		writeMaterialField(SMF::ID, rbe2.first, nbElementsMaterial, ogmat);
+		writeMaterialField(SMF::MID, rbe2.first, nbElementsMaterial, ogmat);
+		writeMaterialField(SMF::LEVEL, 1, nbElementsMaterial, ogmat);
+		writeMaterialField(SMF::TYPE, 9, nbElementsMaterial, ogmat);
 		if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-			ogmat << rbe2.first << " 0 182 " << rbe2.first <<" 200 9 61 19 197 1 5 1" << endl;
-			nbelements=nbelements+5;
+			writeMaterialField(SMF::SHAPE, 19, nbElementsMaterial, ogmat);
+			writeMaterialField(SMF::E, 1.0, nbElementsMaterial, ogmat);
 		}else{
-			double rbe2E= configuration.systusRBE2Rigidity;
-			ogmat << rbe2.first << " 0 182 " << rbe2.first <<" 200 9 61 9 197 1 5 " << rbe2E << endl;
-			nbelements=nbelements+5;
+			writeMaterialField(SMF::SHAPE, 9, nbElementsMaterial, ogmat);
+			writeMaterialField(SMF::E, configuration.systusRBE2Rigidity, nbElementsMaterial, ogmat);
 		}
+		ogmat << endl;
+		nbelements=nbelements+nbElementsMaterial;
 	}
 	for (const auto& rbar : RbarPositions){
 		nbmaterials++;
+		int nbElementsMaterial=0;
+		writeMaterialField(SMF::ID, rbar.first, nbElementsMaterial, ogmat);
+		writeMaterialField(SMF::MID, rbar.first, nbElementsMaterial, ogmat);
+		writeMaterialField(SMF::LEVEL, 1, nbElementsMaterial, ogmat);
+		writeMaterialField(SMF::TYPE, 9, nbElementsMaterial, ogmat);
 		if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-			ogmat << rbar.first << " 0 182 " << rbar.first <<" 200 9 61 19 197 1 5 1" << endl;
-			nbelements=nbelements+5;
+			writeMaterialField(SMF::SHAPE, 19, nbElementsMaterial, ogmat);
+			writeMaterialField(SMF::E, 1.0, nbElementsMaterial, ogmat);
 		}else{
-			double rbarE= configuration.systusRBE2Rigidity;
-			ogmat << rbar.first << " 0 182 " << rbar.first<< " 200 9 61 9 197 1 5 " << rbarE << endl;
-			nbelements=nbelements+5;
+			writeMaterialField(SMF::SHAPE, 9, nbElementsMaterial, ogmat);
+			writeMaterialField(SMF::E, configuration.systusRBE2Rigidity, nbElementsMaterial, ogmat);
 		}
+		ogmat << endl;
+		nbelements=nbelements+nbElementsMaterial;
 	}
+
 
 	for (const auto& rbe3 : RBE3rbarPositions){
 		nbmaterials++;
-		ogmat << rbe3.first << " 0 182 " << rbe3.first; // Material Id, VE Part Id
-		ogmat << " 61 19 197 3"; // Shape 19 Level 3
-		int nbFieldDOFS = DOFSToAsc(RBE3Dofs[rbe3.first].front(), ogmat); // KX KY KZ IX IY IZ
-		ogmat << " 56 "  << RBE3Coefs[rbe3.first];  // COEFF key: RBE3 weight
-		ogmat << " 184 " << DOFSToInt(RBE3Dofs[rbe3.first].back()) << endl; // DEPENDS key: DOFs of slave nodes.
-		nbelements=nbelements+5+nbFieldDOFS;
+		int nbElementsMaterial=0;
+		writeMaterialField(SMF::ID, rbe3.first, nbElementsMaterial, ogmat);
+		writeMaterialField(SMF::MID, rbe3.first, nbElementsMaterial, ogmat);
+		writeMaterialField(SMF::SHAPE, 19, nbElementsMaterial, ogmat);
+		writeMaterialField(SMF::LEVEL, 3, nbElementsMaterial, ogmat);
+        int nbFieldDOFS = DOFSToAsc(RBE3Dofs[rbe3.first].front(), ogmat); // KX KY KZ IX IY IZ
+        writeMaterialField(SMF::COEF, RBE3Coefs[rbe3.first], nbElementsMaterial, ogmat);
+        writeMaterialField(SMF::DEPEND, DOFSToInt(RBE3Dofs[rbe3.first].back()), nbElementsMaterial, ogmat);
+        nbelements=nbelements+nbElementsMaterial+nbFieldDOFS;
+		ogmat << endl;
 	}
 
 	// Stream to output

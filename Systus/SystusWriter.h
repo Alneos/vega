@@ -25,6 +25,62 @@
 
 namespace vega {
 
+/**
+ *  This enum regroups all physical caracteristics stocked in Systus Materials.
+ *  The order is important, as it follows the Systus order, thus allowing us
+ *  to write materials with good keys. (See SNOMAT.FMT in Systus Code Source)
+ */
+enum SMF {
+		ID,
+		PSI, THETA, PHI, RHO, E, NU, G, LX, LY, LZ,
+		S, AY, AZ, IX, IY, IZ, LOCAL, XX, YY, ZZ,
+		H, SURF, INTEG, PRESS, TEMP, TABLE, VARI, DIAME, DIAH, UNIT,
+		KX, KY, KZ, C, ALPHA, BETA, R, IG, FT, SECT,
+		VY, VPY, VZ, VPZ, PHASE, DYNA, MODEL, CREEP, SLOPE, YIELD,
+		FLEXI, NODE, VX, OMEGA, ENTHAL, COEF, COEG, CRIT ,PLAT, TREF,
+		SHAPE, PCA, PCB, PNA, PCC, PNC, FSB, FSN, CURVE, COMP,
+		LAYER, FCURE, OOGC, ZC, YC, MATE, AUST, MART, LAW, PERX,
+		PERY, PERZ, SIGX, SIGY, SIGZ, SATU, HCX, HCY, HCZ, DUCT,
+		GROUP, EMIS, TF, FLUID, INTG, PERV, EX, EY, EZ, CARACT,
+		XCEN, YCEN, ZCEN, XINT, YINT, ZINT, XEXT, YEXT, ZEXT, XCOEF,
+		YCOEF, ZCOEF, TRANSF, SURF2, HYPER, MRCB, DMASS, REAC, OFFSET, PISOTR,
+		DISSIP, AUXI, EVOL, DILA, PREC, GAMA, CYIE, CSTR, GRAI, SELE,
+		REDU, GAUS, DEFO, STAT, IDENT, RHOMF, RHOF, EZREG, EZSUP, TECS,
+		SHEETS, TRIA, VSIG, VPER, VEPS, PROPOR, VCURV, METAL, SARGIN, PRICE,
+		SATX, STAY, SATZ, TSAT, TPIEZO, EPSX, EPSY, EPSZ, TEPS, TMAGNE,
+		PCX, PCY, PCZ, TSIG, PENALI, PEIX, PEIY, PEIZ, TPER, TRAJ,
+		EPIX, EPIY, EPIZ, INFOS, MATRIX, SERI, CRES, TLIQ, TSOL, CRACK,
+		PID, MID, FSOL, DEPEND, OAHE, OAHF, OAHG, OAHH, OAHI, SWELL,
+		OAIA, OAIB, OAIC, OAID, EPSI, TOLE, LEVEL, GAP, EXTRAC, TYPE
+	};
+
+static const std::map<SMF, string> SMFtoString = {
+		{SMF::ID, "ID"},
+		{SMF::PSI, "PSI"}, {SMF::THETA, "THETA"}, {SMF::PHI, "PHI"}, {SMF::RHO, "RHO"}, {SMF::E, "E"}, {SMF::NU, "NU"}, {SMF::G, "G"}, {SMF::LX, "LX"}, {SMF::LY, "LY"}, {SMF::LZ, "LZ"},
+		{SMF::S, "S"}, {SMF::AY, "AY"}, {SMF::AZ, "AZ"}, {SMF::IX, "IX"}, {SMF::IY, "IY"}, {SMF::IZ, "IZ"}, {SMF::LOCAL, "LOCAL"}, {SMF::XX, "XX"}, {SMF::YY, "YY"}, {SMF::ZZ, "ZZ"},
+		{SMF::H, "H"}, {SMF::SURF, "SURF"}, {SMF::INTEG, "INTEG"}, {SMF::PRESS, "PRESS"}, {SMF::TEMP, "TEMP"}, {SMF::TABLE, "TABLE"}, {SMF::VARI, "VARI"}, {SMF::DIAME, "DIAME"}, {SMF::DIAH, "DIAH"}, {SMF::UNIT, "UNIT"},
+		{SMF::KX, "KX"}, {SMF::KY, "KY"}, {SMF::KZ, "KZ"}, {SMF::C, "C"}, {SMF::ALPHA, "ALPHA"}, {SMF::BETA, "BETA"}, {SMF::R, "R"}, {SMF::IG, "IG"}, {SMF::FT, "FT"}, {SMF::SECT, "SECT"},
+		{SMF::VY, "VY"}, {SMF::VPY, "VPY"}, {SMF::VZ, "VZ"}, {SMF::VPZ, "VPZ"}, {SMF::PHASE, "PHASE"}, {SMF::DYNA, "DYNA"}, {SMF::MODEL, "MODEL"}, {SMF::CREEP, "CREEP"}, {SMF::SLOPE, "SLOPE"}, {SMF::YIELD, "YIELD"},
+		{SMF::FLEXI, "FLEXI"}, {SMF::NODE, "NODE"}, {SMF::VX, "VX"}, {SMF::OMEGA, "OMEGA"}, {SMF::ENTHAL, "ENTHAL"}, {SMF::COEF, "COEF"}, {SMF::COEG, "COEG"}, {SMF::CRIT, "CRIT"}, {SMF::PLAT, "PLAT"}, {SMF::TREF, "TREF"},
+		{SMF::SHAPE, "SHAPE"}, {SMF::PCA, "PCA"}, {SMF::PCB, "PCB"}, {SMF::PNA, "PNA"}, {SMF::PCC, "PCC"}, {SMF::PNC, "PNC"}, {SMF::FSB, "FSB"}, {SMF::FSN, "FSN"}, {SMF::CURVE, "CURVE"}, {SMF::COMP, "COMP"},
+		{SMF::LAYER, "LAYER"}, {SMF::FCURE, "FCURE"}, {SMF::OOGC, "OOGC"}, {SMF::ZC, "ZC"}, {SMF::YC, "YC"}, {SMF::MATE, "MATE"}, {SMF::AUST, "AUST"}, {SMF::MART, "MART"}, {SMF::LAW, "LAW"}, {SMF::PERX, "PERX"},
+		{SMF::PERY, "PERY"}, {SMF::PERZ, "PERZ"}, {SMF::SIGX, "SIGX"}, {SMF::SIGY, "SIGY"}, {SMF::SIGZ, "SIGZ"}, {SMF::SATU, "SATU"}, {SMF::HCX, "HCX"}, {SMF::HCY, "HCY"}, {SMF::HCZ, "HCZ"}, {SMF::DUCT, "DUCT"},
+		{SMF::GROUP, "GROUP"}, {SMF::EMIS, "EMIS"}, {SMF::TF, "TF"}, {SMF::FLUID, "FLUID"}, {SMF::INTG, "INTG"}, {SMF::PERV, "PERV"}, {SMF::EX, "EX"}, {SMF::EY, "EY"}, {SMF::EZ, "EZ"}, {SMF::CARACT, "CARACT"},
+		{SMF::XCEN, "XCEN"}, {SMF::YCEN, "YCEN"}, {SMF::ZCEN, "ZCEN"}, {SMF::XINT, "XINT"}, {SMF::YINT, "YINT"}, {SMF::ZINT, "ZINT"}, {SMF::XEXT, "XEXT"}, {SMF::YEXT, "YEXT"}, {SMF::ZEXT, "ZEXT"}, {SMF::XCOEF, "XCOEF"},
+		{SMF::YCOEF, "YCOEF"}, {SMF::ZCOEF, "ZCOEF"}, {SMF::TRANSF, "TRANSF"}, {SMF::SURF2, "SURF2"}, {SMF::HYPER, "HYPER"}, {SMF::MRCB, "MRCB"}, {SMF::DMASS, "DMASS"}, {SMF::REAC, "REAC"}, {SMF::OFFSET, "OFFSET"}, {SMF::PISOTR, "PISOTR"},
+		{SMF::DISSIP, "DISSIP"}, {SMF::AUXI, "AUXI"}, {SMF::EVOL, "EVOL"}, {SMF::DILA, "DILA"}, {SMF::PREC, "PREC"}, {SMF::GAMA, "GAMA"}, {SMF::CYIE, "CYIE"}, {SMF::CSTR, "CSTR"}, {SMF::GRAI, "GRAI"}, {SMF::SELE, "SELE"},
+		{SMF::REDU, "REDU"}, {SMF::GAUS, "GAUS"}, {SMF::DEFO, "DEFO"}, {SMF::STAT, "STAT"}, {SMF::IDENT, "IDENT"}, {SMF::RHOMF, "RHOMF"}, {SMF::RHOF, "RHOF"}, {SMF::EZREG, "EZREG"}, {SMF::EZSUP, "EZSUP"}, {SMF::TECS, "TECS"},
+		{SMF::SHEETS, "SHEETS"}, {SMF::TRIA, "TRIA"}, {SMF::VSIG, "VSIG"}, {SMF::VPER, "VPER"}, {SMF::VEPS, "VEPS"}, {SMF::PROPOR, "PROPOR"}, {SMF::VCURV, "VCURV"}, {SMF::METAL, "METAL"}, {SMF::SARGIN, "SARGIN"}, {SMF::PRICE, "PRICE"},
+		{SMF::SATX, "SATX"}, {SMF::STAY, "STAY"}, {SMF::SATZ, "SATZ"}, {SMF::TSAT, "TSAT"}, {SMF::TPIEZO, "TPIEZO"}, {SMF::EPSX, "EPSX"}, {SMF::EPSY, "EPSY"}, {SMF::EPSZ, "EPSZ"}, {SMF::TEPS, "TEPS"}, {SMF::TMAGNE, "TMAGNE"},
+		{SMF::PCX, "PCX"}, {SMF::PCY, "PCY"}, {SMF::PCZ, "PCZ"}, {SMF::TSIG, "TSIG"}, {SMF::PENALI, "PENALI"}, {SMF::PEIX, "PEIX"}, {SMF::PEIY, "PEIY"}, {SMF::PEIZ, "PEIZ"}, {SMF::TPER, "TPER"}, {SMF::TRAJ, "TRAJ"},
+		{SMF::EPIX, "EPIX"}, {SMF::EPIY, "EPIY"}, {SMF::EPIZ, "EPIZ"}, {SMF::INFOS, "INFOS"}, {SMF::MATRIX, "MATRIX"}, {SMF::SERI, "SERI"}, {SMF::CRES, "CRES"}, {SMF::TLIQ, "TLIQ"}, {SMF::TSOL, "TSOL"}, {SMF::CRACK, "CRACK"},
+		{SMF::PID, "PID"}, {SMF::MID, "MID"}, {SMF::FSOL, "FSOL"}, {SMF::DEPEND, "DEPEND"}, {SMF::OAHE, "OAHE"}, {SMF::OAHF, "OAHF"}, {SMF::OAHG, "OAHG"}, {SMF::OAHH, "OAHH"}, {SMF::OAHI, "OAHI"}, {SMF::SWELL, "SWELL"},
+		{SMF::OAIA, "OAIA"}, {SMF::OAIB, "OAIB"}, {SMF::OAIC, "OAIC"}, {SMF::OAID, "OAID"}, {SMF::EPSI, "EPSI"}, {SMF::TOLE, "TOLE"}, {SMF::LEVEL, "LEVEL"}, {SMF::GAP, "GAP"}, {SMF::EXTRAC, "EXTRAC"}, {SMF::TYPE, "TYPE"},
+};
+
+std::string SMFToString(SMF key);
+
+
 class SystusWriter: public Writer {
 	int systusOption = 0;
 	int systusSubOption = 0;
@@ -255,6 +311,20 @@ class SystusWriter: public Writer {
 	 *  id NAME 1 0 "No methods"  ""  "Comment" node1 node2 ... nodeM
 	 */
 	void writeGroups(const SystusModel&, std::ostream&);
+    /**
+     * Writes a Material Field in the ASC Material lines.
+     * Output verifies the syntax " number value" where the number is
+     * the integer conversion of the SMF::key.
+     * Value here is a double.
+     */
+	void writeMaterialField(const SMF key, const double value, int& nbfields, ostream& out) const;
+    /**
+     * Writes a Material Field in the ASC Material lines.
+     * Output verifies the syntax " number value" where the number is
+     * the integer conversion of the SMF::key.
+     * Value here is an integer.
+     */
+	void writeMaterialField(const SMF key, const int value, int& nbfields, ostream& out) const ;
 	void writeMaterials(const SystusModel&, const ConfigurationParameters&, std::ostream&);
 	void writeLoads(const SystusModel&, const Analysis&, std::ostream&);
 	void writeLists(const SystusModel&, std::ostream&);
