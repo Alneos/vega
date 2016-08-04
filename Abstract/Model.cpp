@@ -32,6 +32,7 @@ Model::Model(string name, string inputSolverVersion, SolverName inputSolver,
     this->mesh = shared_ptr<Mesh>(new Mesh(configuration.logLevel, name));
     this->finished = false;
     this->onlyMesh = false;
+    this->coordinateSystemStorage = shared_ptr<CoordinateSystemStorage>(new CoordinateSystemStorage(this, configuration.logLevel));
 
 }
 
@@ -196,6 +197,7 @@ void Model::add(const CoordinateSystem& coordinateSystem) {
         cout << "Adding " << coordinateSystem << endl;
     }
     coordinateSystems.add(coordinateSystem);
+    coordinateSystemStorage->add(coordinateSystem);
 }
 
 void Model::add(const ElementSet& elementSet) {
@@ -205,33 +207,43 @@ void Model::add(const ElementSet& elementSet) {
     elementSets.add(elementSet);
 }
 
+int Model::findOrReserveCoordinateSystem(int cid){
+	if (cid == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID)
+		return CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
+	int cpos = coordinateSystemStorage->findPositionByUserId(cid);
+	if (cpos == CoordinateSystemStorage::UNAVAILABLE_POSITION)
+		cpos = coordinateSystemStorage->reserve(cid);
+	return cpos;
+}
+
+
 int Model::addOrFindOrientation(const OrientationCoordinateSystem & ocs){
 
-	int idOrientation = findOrientation(ocs);
-	if (idOrientation==0){
+	int posOrientation = findOrientation(ocs);
+	if (posOrientation==0){
 		this->add(ocs);
-		idOrientation = ocs.getId();
+		posOrientation = coordinateSystemStorage->findPositionById(ocs.getId());
 	}
-	return idOrientation;
+	return posOrientation;
 }
 
 int Model::findOrientation(const OrientationCoordinateSystem & ocs) const{
-	int idOrientation=0;
+	int posOrientation=0;
 	for (shared_ptr<CoordinateSystem> coordinateSystem : coordinateSystems) {
 		if (coordinateSystem->type==CoordinateSystem::Type::ORIENTATION){
 			std::shared_ptr<OrientationCoordinateSystem> mocs = std::static_pointer_cast<OrientationCoordinateSystem>(coordinateSystem);
-
 			if (ocs == *mocs){
-				idOrientation = mocs->getId();
+				posOrientation = coordinateSystemStorage->findPositionById(mocs->getId());
 				break;
 			}
 		}
 	}
-	return idOrientation;
+	return posOrientation;
 }
 
-std::shared_ptr<vega::CoordinateSystem> Model::getCoordinateSystem(const int cid) const{
+std::shared_ptr<vega::CoordinateSystem> Model::getCoordinateSystemByPosition(const int pos) const{
 	std::shared_ptr<vega::CoordinateSystem> result=nullptr;
+	const int cid =  coordinateSystemStorage->getId(pos);
 	for (shared_ptr<CoordinateSystem> coordinateSystem : coordinateSystems) {
 		if (coordinateSystem->getId()==cid){
 			result = coordinateSystem;
@@ -389,7 +401,7 @@ const shared_ptr<CoordinateSystem> Model::find(const Reference<CoordinateSystem>
     if (reference.type == CoordinateSystem::UNKNOWN
             && reference.id == Reference<CoordinateSystem>::NO_ID)
         // retrieve by original_id
-        coordinateSystem = coordinateSystems.find(reference.original_id);
+        coordinateSystem = coordinateSystems.find(reference.original_id);//PB?
     else
         coordinateSystem = coordinateSystems.find(reference);
     return coordinateSystem;
@@ -799,9 +811,7 @@ void Model::emulateLocalDisplacementConstraint() {
             for (int nodePosition : spc->nodePositions()) {
                 Node node = mesh->findNode(nodePosition);
                 if (node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-                    shared_ptr<CoordinateSystem> coordSystem = find(
-                            Reference<CoordinateSystem>(CoordinateSystem::UNKNOWN,
-                                    node.displacementCS));
+                    shared_ptr<CoordinateSystem> coordSystem = getCoordinateSystemByPosition(node.displacementCS);
                     coordSystem->updateLocalBase(VectorialValue(node.x, node.y, node.z));
                     DOFS dofs = constraint->getDOFSForNode(nodePosition);
                     for (int i = 0; i < 6; i++) {

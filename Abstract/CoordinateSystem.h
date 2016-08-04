@@ -17,7 +17,7 @@
 #include "Utility.h"
 #include "Object.h"
 #include <map>
-
+#include "ConfigurationParameters.h"
 using namespace std;
 
 namespace vega {
@@ -165,6 +165,52 @@ class SphericalCoordinateSystem: public CoordinateSystem {
 	const VectorialValue vectorToGlobal(const VectorialValue&) const override;
 	std::shared_ptr<CoordinateSystem> clone() const override;
 };
+
+
+/** This class allows the model to store Coordinate System BEFORE they are created.
+ *  Each CS, user-defined or model-defined (Orientation) get a unique Position number
+ *  when it's created or reserved (whatever comes first).
+ *  This Position number is stored into CellData and NodeData, for further use.
+ *  
+ *  When the CS is created, we associate its model ID (Vega Identifiable number) 
+ *  and user ID (provided by the input file) to the POSITION.
+ *  When the CS is reserved, we associate its user ID to the POSITION.
+ *  **/
+class CoordinateSystemStorage final {
+private:
+	friend Model;
+	friend CoordinateSystem;
+	static int cs_next_position;		  /**< Static token for the next CS Position. **/
+	static const int UNAVAILABLE_ID = -INT_MAX;
+	static const int UNAVAILABLE_POSITION = -INT_MAX;
+	const LogLevel logLevel;
+	std::map<int, int> modelIdByPosition; /**< A map < Position, VEGA Id > to keep track of coordinate System. **/
+	std::map<int, int> userIdByPosition;  /**< A map < Position, Original Id > to keep track of coordinate System. **/
+	
+	/**
+	 * Reserve a CS position given a user id (input model id).
+	 **/
+	int reserve(int user_id);
+public:
+	Model* model;
+	CoordinateSystemStorage(Model* model, LogLevel logLevel);
+	/** Find the Position related to the input user id.
+	 *  Return UNAVAILABLE_POSITION if nothing is found.
+	 **/
+	int findPositionByUserId(int user_id) const; 
+	/** Find the Position related to the input model id.
+	 *  Return UNAVAILABLE_POSITION if nothing is found.
+	 **/
+	int findPositionById(int model_id) const;
+    /** Update the maps with the data (id, original_id)
+	 *  of this CS. 
+	 *  Return the corresponding Position.
+	 **/
+	int add(const CoordinateSystem& coordinateSystem);
+	int getId(int cpos) const;
+	//bool validate() const;
+};
+
 
 
 } /* namespace vega */

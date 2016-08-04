@@ -218,4 +218,99 @@ shared_ptr<CoordinateSystem> OrientationCoordinateSystem::clone() const {
 	return shared_ptr<CoordinateSystem>(new OrientationCoordinateSystem(*this));
 }
 
+
+
+
+
+/**
+ * Coordinate System Container class
+ */
+int CoordinateSystemStorage::cs_next_position= CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID + 1;
+
+
+CoordinateSystemStorage::CoordinateSystemStorage(Model* model, LogLevel logLevel) :
+		logLevel(logLevel), model(model) {
+}
+
+int CoordinateSystemStorage::getId(int cpos) const{
+	const auto it=modelIdByPosition.find(cpos);
+	if (it!= modelIdByPosition.end()){
+		return it->second;
+	}
+	return UNAVAILABLE_ID;
+}
+
+int CoordinateSystemStorage::findPositionByUserId(int user_id) const{
+	int cpos = UNAVAILABLE_POSITION;
+	for (auto it= userIdByPosition.begin(); it!=userIdByPosition.end(); ++it){
+		if (it->second == user_id){
+			cpos = it->first;
+			break;
+		}
+	}
+	return cpos;
+}
+
+int CoordinateSystemStorage::findPositionById(int model_id) const{
+	int cpos = UNAVAILABLE_POSITION;
+	for (auto it= modelIdByPosition.begin(); it!=modelIdByPosition.end(); ++it){
+		if (it->second == model_id){
+			cpos = it->first;
+			break;
+		}
+	}
+	return cpos;
+}
+
+int CoordinateSystemStorage::add(const CoordinateSystem& coordinateSystem){
+	int vid = coordinateSystem.getId();  // Model intern number
+	int uid = coordinateSystem.getOriginalId(); // User Original number
+	int cpos = UNAVAILABLE_POSITION;
+
+	// Is this CS already reserved ?
+	if (uid != Identifiable<CoordinateSystem>::NO_ORIGINAL_ID)
+		cpos = findPositionByUserId(uid);
+
+	if (cpos == UNAVAILABLE_POSITION){
+		cpos = cs_next_position;
+		cs_next_position++;
+	}
+
+	// We check some errors
+	const auto it= modelIdByPosition.find(cpos);
+	if ((it!=modelIdByPosition.end()) && (it->second!=UNAVAILABLE_ID)){
+		throw logic_error("Coordinate system already added: Position "+to_string(cpos)+" VEGA Ids: "+ to_string(vid));
+	}
+	const auto it2= userIdByPosition.find(cpos);
+	if ((it2!=userIdByPosition.end()) && (it2->second!=uid)){
+		throw logic_error("Mismatch in coordinate system: Position "+to_string(cpos)+" has two original Ids: "+ to_string(uid) + " "+ to_string(it2->second));
+	}
+
+    userIdByPosition[cpos] = uid;
+	modelIdByPosition[cpos] = vid;
+
+	if (this->logLevel >= LogLevel::TRACE) {
+		cout << "Add coordinate system id:" << vid << " (user id: "<<uid<<") in position:" << cpos << endl;
+	}
+	return cpos;
+}
+
+int CoordinateSystemStorage::reserve(int user_id) {
+
+	if (user_id==CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
+		throw logic_error("We don't reserve a position for the GLOBAL Coordinate System "+to_string(CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID));
+	}
+
+    int cpos= cs_next_position;
+    cs_next_position++;
+
+    userIdByPosition[cpos] = user_id;
+	modelIdByPosition[cpos] = UNAVAILABLE_ID;
+
+	if (this->logLevel >= LogLevel::TRACE) {
+		cout << "Reserve coordinate user id:" << user_id << " in position:" << cpos << endl;
+	}
+	return cpos;
+}
+
 } /* namespace vega */

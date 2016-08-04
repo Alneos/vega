@@ -48,11 +48,16 @@ const unordered_map<CellType::Code, vector<int>, hash<int>> NastranParserImpl::n
 		};
 
 void NastranParserImpl::parseGRDSET(NastranTokenizer& tok, shared_ptr<Model> model) {
-	UNUSEDV(model);
 	tok.skip(1);
 	grdSet.cp = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+	if (grdSet.cp != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
+		grdSet.cp = model->findOrReserveCoordinateSystem(grdSet.cp);
+		}
 	tok.skip(3);
 	grdSet.cd = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+	if (grdSet.cd != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
+		grdSet.cd = model->findOrReserveCoordinateSystem(grdSet.cd);
+		}
 	grdSet.ps = tok.nextInt(true, 0);
 	grdSet.seid = tok.nextInt(true, 0);
 
@@ -67,8 +72,15 @@ void NastranParserImpl::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model
 	double x1 = tok.nextDouble();
 	double x2 = tok.nextDouble();
 	double x3 = tok.nextDouble();
+
+	/* Coordinate System for Displacement */
 	int cd = tok.nextInt(true, grdSet.cd);
-	model->mesh->addNode(id, x1, x2, x3, cd);
+    int cpos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
+	if (cd != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
+		cpos = model->findOrReserveCoordinateSystem(cd);
+		}
+	model->mesh->addNode(id, x1, x2, x3, cpos);
+
 	int ps = tok.nextInt(true, grdSet.ps);
 	if (ps) {
 		string spcName = string("SPC") + lexical_cast<string>(id);
@@ -132,7 +144,7 @@ void NastranParserImpl::parseCBAR(NastranTokenizer& tok, shared_ptr<Model> model
 	int property_id = tok.nextInt();
 	int point1 = tok.nextInt();
 	int point2 = tok.nextInt();
-	int cid = parseOrientation(point1, point2, tok, model);
+	int cpos = parseOrientation(point1, point2, tok, model);
 	string offt = tok.nextString(true);
 	if (!offt.empty() && offt != "GGG") {
 		string message = string("CBAR OFFT not supported.") + string(" OFFT:") + offt;
@@ -140,7 +152,7 @@ void NastranParserImpl::parseCBAR(NastranTokenizer& tok, shared_ptr<Model> model
 	}
 	vector<int> connectivity;
 	connectivity += point1, point2;
-	model->mesh->addCell(cell_id, CellType::SEG2, connectivity, false, cid);
+	model->mesh->addCell(cell_id, CellType::SEG2, connectivity, false, cpos);
 	addProperty(property_id, cell_id, model);
 }
 
@@ -149,7 +161,7 @@ void NastranParserImpl::parseCBEAM(NastranTokenizer& tok, shared_ptr<Model> mode
 	int property_id = tok.nextInt();
 	int point1 = tok.nextInt();
 	int point2 = tok.nextInt();
-	int cid = parseOrientation(point1, point2, tok, model);
+	int cpos = parseOrientation(point1, point2, tok, model);
 	string offt = tok.nextString(true);
 	if (!offt.empty() && offt != "GGG") {
 		string message = string("CBEAM OFFT not supported.") + string(" OFFT:") + offt;
@@ -168,7 +180,7 @@ void NastranParserImpl::parseCBEAM(NastranTokenizer& tok, shared_ptr<Model> mode
 	vector<int> connectivity;
 	connectivity += point1, point2;
 
-	model->mesh->addCell(cell_id, CellType::SEG2, connectivity, false, cid);
+	model->mesh->addCell(cell_id, CellType::SEG2, connectivity, false, cpos);
 	addProperty(property_id, cell_id, model);
 }
 
@@ -180,26 +192,21 @@ void NastranParserImpl::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> mode
 	int gb = tok.nextInt(true);  // Node B
 
 	// Local element coordinate system
-    int cid = 0;
+    int cpos = 0;
     vector<string> line = tok.currentDataLine();
     if ( (line.size()>8) && !(line[8].empty())){
     	// A CID is provided by the user
         tok.nextInt(true);
         tok.nextInt(true);
         tok.nextInt(true);
-       	cid = tok.nextInt();
+       	int cid = tok.nextInt();
+       	cpos = model->findOrReserveCoordinateSystem(cid);
     }else{
     	// Local definition of the element coordinate system
-    	cid = parseOrientation(ga, gb, tok, model);
+    	cpos = parseOrientation(ga, gb, tok, model);
     	tok.nextInt(true);
     }
     
-    // TODO: I think i need to reserve the number: possible confusion of orientation?
-    //model->add(coordinateSystemReference);
-    //Reference<ConstraintSet> constraintReference(ConstraintSet::SPC, id);
-    //				analysis.add(constraintReference);
-
-
     // Spring damper location (S): not supported.
 	double s=tok.nextDouble(true, 0.5);
 	if (!is_equal(s,0.5)){
@@ -226,7 +233,7 @@ void NastranParserImpl::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> mode
 		handleParsingWarning(string("CBUSH is only available between two nodes."), tok, model);
 	}else{
 		connectivity += ga, gb;
-	    model->mesh->addCell(eid, CellType::SEG2, connectivity, false, cid);
+	    model->mesh->addCell(eid, CellType::SEG2, connectivity, false, cpos);
 	    addProperty(pid, eid, model);
 	}
 }

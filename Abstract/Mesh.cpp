@@ -72,7 +72,7 @@ CellData::CellData(int id, CellType type, bool isvirtual, int elementId, int cel
 				elementId), cellTypePosition(cellTypePosition) {
 }
 
-int Mesh::addNode(int id, double x, double y, double z, int cd_id) {
+int Mesh::addNode(int id, double x, double y, double z, int cpos) {
 	int nodePosition;
 
 	// In auto mode, we assign the first free node, starting from the biggest possible number
@@ -92,7 +92,7 @@ int Mesh::addNode(int id, double x, double y, double z, int cd_id) {
 		nodeData.y = y;
 		nodeData.z = z;
 		nodeData.dofs = DOFS::NO_DOFS;
-		nodeData.displacementCS = cd_id;
+		nodeData.csPos = cpos;
 		nodes.nodeDatas.push_back(nodeData);
 		nodes.nodepositionById[id] = nodePosition;
 	} else {
@@ -101,7 +101,7 @@ int Mesh::addNode(int id, double x, double y, double z, int cd_id) {
 		nodeData.x = x;
 		nodeData.y = y;
 		nodeData.z = z;
-		nodeData.displacementCS = cd_id;
+		nodeData.csPos = cpos;
 	}
 
 	return nodePosition;
@@ -118,7 +118,7 @@ const Node Mesh::findNode(int nodePosition) const {
 	}
 	const NodeData &nodeData = nodes.nodeDatas[nodePosition];
 	Node node1 = Node(nodeData.id, nodeData.x, nodeData.y, nodeData.z, nodePosition, nodeData.dofs,
-			nodeData.displacementCS);
+			nodeData.csPos);
 	/*
 	 * #if defined VDEBUG && defined __GNUC__
 	 *	cerr << "node:" << node1 << endl;
@@ -195,7 +195,7 @@ Mesh::~Mesh() {
 }
 
 int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &nodeIds,
-		bool virtualCell, const int cid, int elementId) {
+		bool virtualCell, const int cpos, int elementId) {
 	int cellId;
 	const int cellPosition = static_cast<int>(cells.cellDatas.size());
 
@@ -247,10 +247,10 @@ int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &node
 		int nodePosition = findOrReserveNode(nodeIds[i]);
 		nodePositionsPtr->push_back(nodePosition);
 	}
-	if (cid != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-		CellGroup* coordinateSystemCellGroup = this->getOrCreateCellGroupForOrientation(cid);
+	if (cpos != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+		CellGroup* coordinateSystemCellGroup = this->getOrCreateCellGroupForOrientation(cpos);
 		coordinateSystemCellGroup->addCell(cellId);
-		cellData.coordinateId = cid;
+		cellData.csPos = cpos;
 		}
 	cells.cellDatas.push_back(cellData);
 	return cellPosition;
@@ -274,7 +274,7 @@ const Cell Mesh::findCell(int cellPosition) const {
 		const NodeData &nodeData = nodes.nodeDatas[nodePositions[i]];
 		nodeIds[i] = nodeData.id;
 	}
-	Cell cell(cellData.id, *type, nodeIds, nodePositions, false, cellData.coordinateId, cellData.elementId, cellData.cellTypePosition);
+	Cell cell(cellData.id, *type, nodeIds, nodePositions, false, cellData.csPos, cellData.elementId, cellData.cellTypePosition);
 	return cell;
 }
 

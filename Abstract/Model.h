@@ -150,7 +150,7 @@ private:
         Container<ElementSet> elementSets;
         Container<Material> materials;
         std::map<Parameter, double> parameters;
-
+        std::shared_ptr<CoordinateSystemStorage> coordinateSystemStorage; /**< Container for Coordinate System numerotations. **/
         bool onlyMesh;
 
         Model(string name, string inputSolverVersion = string("UNKNOWN"),
@@ -177,21 +177,25 @@ private:
         void add(const Material&);
 
         /**
+         * Find or Reserve a Coordinate System in the model by Input Id.
+         * Return the VEGA Id (position) of the Coordinate System.
+         */
+        int findOrReserveCoordinateSystem(int cid);
+        /**
          * Add or Find an Orientation Coordinate System in the model.
-         * Return the Id of the Orientation Coordinate System.
+         * Return the Position of the Orientation Coordinate System.
          */
         int addOrFindOrientation(const OrientationCoordinateSystem & ocs);
         /**
-         * Find an Orientation Coordinate System in the model.
+         * Find an Orientation Coordinate System in the model, by checking its axis.
          * Return 0 if nothing has been found.
          */
         int findOrientation(const OrientationCoordinateSystem & ocs) const;
         /**
-         * Get a Coordinate System in the model from its cid.
+         * Get a Coordinate System in the model from its VEGA Position.
          * Return nullptr if nothing has been found.
          */
-         std::shared_ptr<vega::CoordinateSystem> getCoordinateSystem(const int cid) const;
-
+        std::shared_ptr<vega::CoordinateSystem> getCoordinateSystemByPosition(const int pos) const;
 
         /* Get the Id of all elements belonging to set */
         //TODO: make a template, general function?

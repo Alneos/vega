@@ -37,7 +37,7 @@ public:
 	double x;
 	double y;
 	double z;
-	int displacementCS;
+	int csPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID; /**< Vega Position Number for the CS **/;
 };
 
 class NodeStorage final {
@@ -71,7 +71,7 @@ public:
 	int id;
 	CellType::Code typeCode;
 	bool isvirtual;
-	int coordinateId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
+	int csPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID; /**< Vega Position Number for the CS **/
 	int elementId;
 	int cellTypePosition;
 };
@@ -142,7 +142,7 @@ public:
 	 */
 	Group* findGroup(int originalId) const;
 
-	int addNode(int id, double x, double y, double z = 0, int cd_id =
+	int addNode(int id, double x, double y, double z = 0, int cpos =
 				CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
 	int countNodes() const;
 	void allowDOFS(int nodePosition, const DOFS allowed);
@@ -167,7 +167,7 @@ public:
 	 *  and will be added to the model if not already defined.
 	 **/
 	int addCell(int id, const CellType &type, const std::vector<int> &nodesIds,
-			bool virtualCell = false, const int cid=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int elementId = Cell::UNAVAILABLE_CELL);
+			bool virtualCell = false, const int cpos=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int elementId = Cell::UNAVAILABLE_CELL);
 	int findCellPosition(int cellId) const;
 	const Cell findCell(int cellPosition) const;
 	bool hasCell(int cellId) const;

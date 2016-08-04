@@ -43,6 +43,7 @@ class SystusWriter: public Writer {
 	map<int, int> localLoadingListIdByLoadingListId;
 	map<int, int> localVectorIdByLoadingListId;
 	map<int, int> localVectorIdByConstraintListId;
+	map<int, int> localVectorIdByCoordinateSystemPos;
 	map<int, int> loadingListIdByNodePosition;
 	map<int, int> constraintListIdByNodePosition;
 	map<int, char> constraintByNodePosition;
@@ -232,10 +233,10 @@ class SystusWriter: public Writer {
 	 **/
 	void writeNodes(const SystusModel&, std::ostream&);
 	/**
-	 *  Write the Euler Angles corresponding to the cid local referentiel.
+	 *  Write the Euler Angles corresponding to the cpos local referentiel.
 	 *  Depending of the type of element, some angles may be dismissed.
 	 **/
-	void writeElementLocalReferentiel(const SystusModel& systusModel, const ElementSet::Type type, const int cid, ostream& out);
+	void writeElementLocalReferentiel(const SystusModel& systusModel, const ElementSet::Type type, const int cpos, ostream& out);
 	void writeElements(const SystusModel&, std::ostream&);
 	/**
 	 * Write the Cells and Nodes groups in ASC format.

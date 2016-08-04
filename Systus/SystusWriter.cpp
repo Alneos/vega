@@ -493,6 +493,7 @@ void SystusWriter::fillVectors(const SystusModel& systusModel, const Analysis& a
 	vectors.clear();
 	localVectorIdByLoadingListId.clear();
 	localVectorIdByConstraintListId.clear();
+	localVectorIdByCoordinateSystemPos.clear();
 
 	// Add Loadcase Loading Vectors
 	for (const auto& loadset : analysis.getLoadSets()){
@@ -654,6 +655,63 @@ void SystusWriter::fillVectors(const SystusModel& systusModel, const Analysis& a
 		}
 	}
 
+
+	// Add vectors for Node Coordinate System
+	// Remark: Element Coordinate System are not translated as vectors
+	const shared_ptr<Mesh> mesh = systusModel.model->mesh;
+	for (const auto& node : mesh->nodes) {
+		if ((node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID)
+				&& ( localVectorIdByCoordinateSystemPos.find(node.displacementCS)==localVectorIdByCoordinateSystemPos.end())){
+			const auto cs = systusModel.model->getCoordinateSystemByPosition(node.displacementCS);
+			vector<double> vec;
+			switch (cs->type){
+			case CoordinateSystem::CARTESIAN:{
+				VectorialValue angles = cs->getEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(angles.x());
+				vec.push_back(angles.y());
+				vec.push_back(angles.z());
+				break;
+			}
+			// Element orientation : it depends of the kind of elements.
+			case CoordinateSystem::ORIENTATION:{
+				cerr << "WARNING: local coordinate system are forbidden for nodes."<<endl;
+				cerr << "WARNING: we will fill a null vector for the nodes"<< mesh->findNode(node.position).id<<endl;
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0.0);
+				vec.push_back(0.0);
+				vec.push_back(0.0);
+				break;
+			}
+			default: {
+				cerr << "Warning: coordinate system of Type " << cs->type << " is not supported. Referentiel dismissed." << endl;
+				cerr << "WARNING: we will fill a null vector for the nodes"<< mesh->findNode(node.position).id<<endl;
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0);
+				vec.push_back(0.0);
+				vec.push_back(0.0);
+				vec.push_back(0.0);
+			}
+			}
+			vectors[vectorId]=vec;
+			localVectorIdByCoordinateSystemPos[node.displacementCS]=vectorId;
+			vectorId++;
+		}
+	}
 }
 
 
@@ -921,9 +979,9 @@ void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
 			iconst = int(it->second);
 		int imeca = 0;
 		int iangl = 0;
-		if (node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID)
-			iangl = Constraint::lastAutoId() + Loading::lastAutoId()
-				+systusModel.model->find(Reference<CoordinateSystem>(CoordinateSystem::UNKNOWN, node.displacementCS))->getId();
+		if (node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
+			iangl = localVectorIdByCoordinateSystemPos[node.displacementCS];
+		}
 		int isol = 0;
 		auto it2 = loadingListIdByNodePosition.find(node.position);
 		if (it2 != loadingListIdByNodePosition.end())
@@ -946,15 +1004,15 @@ void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
 }
 
 
-void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel, const ElementSet::Type type, const int cid, ostream& out){
+void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel, const ElementSet::Type type, const int cpos, ostream& out){
 
-	shared_ptr<CoordinateSystem> cs = systusModel.model->getCoordinateSystem(cid);
+	shared_ptr<CoordinateSystem> cs = systusModel.model->getCoordinateSystemByPosition(cpos);
 
 	switch (cs->type){
 	// Cartesian referentiel: we give all three angles.
 	case CoordinateSystem::CARTESIAN:{
 		VectorialValue angles = cs->getEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
-		out << "3 "<< angles.x() <<" " << angles.y()<< " "<< angles.z();
+		out << " 3 "<< angles.x() <<" " << angles.y()<< " "<< angles.z();
 		break;
 	}
 	// Element orientation : it depends of the kind of elements.
@@ -1363,26 +1421,13 @@ void SystusWriter::writeLists(const SystusModel& systusModel, ostream& out) {
 }
 
 void SystusWriter::writeVectors(const SystusModel& systusModel, const Analysis & analysis, ostream& out) {
-
-	out << "BEGIN_VECTORS "
-			<< vectors.size() + systusModel.model->coordinateSystems.size() << endl;
-
-	// Writing vectors from Loads
+	out << "BEGIN_VECTORS " << vectors.size() << endl;
 	for (const auto& vector : vectors) {
 		out << vector.first;
 		for (const auto& d : vector.second)
 			out << " " << d;
 		out << endl;
 	}
-
-	//TODO: transfer the construction of these vectors to the fillVectors function
-	for (const auto& coordinateSystem : systusModel.model->coordinateSystems) {
-		VectorialValue angles = coordinateSystem->getEulerAnglesIntrinsicZYX();
-		out << vectors.size() + Constraint::lastAutoId() + coordinateSystem->getId()
-						<< " 0 0 0 0 0 0 ";
-		out << angles.x() << " " << angles.y() << " " << angles.z() << endl;
-	}
-
 	out << "END_VECTORS" << endl;
 }
 

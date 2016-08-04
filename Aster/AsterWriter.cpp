@@ -573,7 +573,7 @@ void AsterWriterImpl::writeAffeCaraElem(const AsterModel& asterModel, ostream& o
 			out << "                    ORIENTATION=(" << endl;
 			orientationsPrinted = true;
 		}	
-		std::shared_ptr<vega::CoordinateSystem> cs= asterModel.model.getCoordinateSystem(it.first);
+		std::shared_ptr<vega::CoordinateSystem> cs= asterModel.model.getCoordinateSystemByPosition(it.first);
 		if (cs->type!=CoordinateSystem::Type::ORIENTATION){
 		   throw WriterException(string("Coordinate System of Group "+ it.second+" is not an ORIENTATION."));
 		}
