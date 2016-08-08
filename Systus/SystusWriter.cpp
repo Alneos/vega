@@ -156,7 +156,7 @@ void SystusWriter::writeMaterialField(const SMF key, const double value, int& nb
 		break;
 	}
 	default:{
-		cerr << "Warning : Unrecognized material field (double value) "<< SMFtoString(key) <<endl;
+		cerr << "Warning : Unrecognized material field (double value) "<< SMFToString(key) <<endl;
 	}
 	}
 }
@@ -178,7 +178,7 @@ void SystusWriter::writeMaterialField(const SMF key, const int value, int& nbfie
 		break;
 	}
 	default:{
-		cerr << "Warning : Unrecognized material field (integer value) "<< SMFtoString(key) <<endl;
+		cerr << "Warning : Unrecognized material field (integer value) "<< SMFToString(key) <<endl;
 	}
 	}
 }
@@ -1059,7 +1059,8 @@ void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
 }
 
 
-void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel, const ElementSet::Type type, const int cpos, ostream& out){
+void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel,
+		const ElementSet::Type type, const int cpos, const bool allowOrientation, ostream& out){
 
 	shared_ptr<CoordinateSystem> cs = systusModel.model->getCoordinateSystemByPosition(cpos);
     switch (cs->type){
@@ -1071,8 +1072,14 @@ void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel, 
 	}
 	// Element orientation : it depends of the kind of elements.
 	case CoordinateSystem::ORIENTATION:{
-		VectorialValue angles = cs->getEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
 
+		// If Orientation are not allowed (for 0D elements for example)
+		// we print them nonetheless, but issue a warning.
+		if (!allowOrientation){
+			cerr << "WARNING: Local orientation used instead of a global referentiel system."<<endl;
+		}
+
+		VectorialValue angles = cs->getEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
 		switch (type) {
 		// For 1D element, only PHI should be defined
 		case ElementSet::CIRCULAR_SECTION_BEAM:
@@ -1122,6 +1129,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 		CellGroup* cellGroup = elementSet->cellGroup;
 		int dim = 0;
 		int typecell=0;
+        bool allowOrientation=true;
 
 		switch (elementSet->type) {
 		case ElementSet::CIRCULAR_SECTION_BEAM:
@@ -1132,9 +1140,8 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 			break;
 		}
 		case ElementSet::STRUCTURAL_SEGMENT:{
-			dim=1;
 			typecell=6;
-			// We treat only Stiffness matrixes for now, with 16XX Elements
+			// We treat only Stiffness matrixes for now, with 1602 and 0601 Elements
 			shared_ptr<StructuralSegment> se = static_pointer_cast<StructuralSegment>(elementSet);
 			if ((se->hasMass()) or (se->hasDamping())){
 				cerr << "WARNING in Structural Elements: mass and damping are not supported and will be dismissed."<<endl;
@@ -1167,6 +1174,14 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 				cout << "Warning in Elements: " << cell << " not supported in Systus" << endl;
 				continue;
 			}
+
+			if (elementSet->type==ElementSet::STRUCTURAL_SEGMENT){
+				dim = cell.nodeIds.size()-1;
+				//TODO: We should also check whether nodes are coincident or not
+				// because coincidents 1602 can't have an Orientation.
+				allowOrientation = (dim!=0);
+			}
+
 			out << cell.id << " " << dim << typecell;              // Dimension and type of cell;
 			out << setfill('0') << setw(2) << cell.nodeIds.size(); // Number of nodes in two caracters: 01, 02, 05, 10, etc.
 			//out << " " << material->getId() << " " << 0 << " " << 0 << " ";
@@ -1175,7 +1190,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 
 			// Local Orientation
 			if (cell.hasOrientation){
-				writeElementLocalReferentiel(systusModel, elementSet->type, cell.cid, out);
+				writeElementLocalReferentiel(systusModel, elementSet->type, cell.cid, allowOrientation, out);
 			}else{
 				out << " 0";
 			} 

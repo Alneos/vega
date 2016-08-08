@@ -292,7 +292,7 @@ class SystusWriter: public Writer {
 	 *  Write the Euler Angles corresponding to the cpos local referentiel.
 	 *  Depending of the type of element, some angles may be dismissed.
 	 **/
-	void writeElementLocalReferentiel(const SystusModel& systusModel, const ElementSet::Type type, const int cpos, ostream& out);
+	void writeElementLocalReferentiel(const SystusModel& systusModel, const ElementSet::Type type, const int cpos, const bool allowOrientation, std::ostream& out);
 	void writeElements(const SystusModel&, std::ostream&);
 	/**
 	 * Write the Cells and Nodes groups in ASC format.

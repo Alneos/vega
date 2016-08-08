@@ -190,21 +190,26 @@ void NastranParserImpl::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> mode
 	int pid = tok.nextInt(); // Property Id
 	int ga = tok.nextInt();  // Node A
 	int gb = tok.nextInt(true);  // Node B
+    bool forbidOrientation = (gb == NastranTokenizer::UNAVAILABLE_INT);
 
 	// Local element coordinate system
     int cpos = 0;
     vector<string> line = tok.currentDataLine();
     if ( (line.size()>8) && !(line[8].empty())){
     	// A CID is provided by the user
-        tok.nextInt(true);
-        tok.nextInt(true);
-        tok.nextInt(true);
+        tok.skip(3);
        	int cid = tok.nextInt();
        	cpos = model->findOrReserveCoordinateSystem(cid);
     }else{
     	// Local definition of the element coordinate system
-    	cpos = parseOrientation(ga, gb, tok, model);
-    	tok.nextInt(true);
+    	if (forbidOrientation){
+    		handleParsingWarning(string("CBUSH: Single node CBUSH can't support local orientation. Orientation dismissed."), tok, model);
+    		tok.skip(4);
+    		cpos = 0;
+    	}else{
+    		cpos = parseOrientation(ga, gb, tok, model);
+    		tok.nextInt(true);
+    	}
     }
     
     // Spring damper location (S): not supported.
@@ -228,14 +233,13 @@ void NastranParserImpl::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> mode
 	// Add cell
 	vector<int> connectivity;
 	if (gb == NastranTokenizer::UNAVAILABLE_INT){
-		//connectivity += ga;
-		//model->mesh->addCell(eid, CellType::POINT1, connectivity, false, cid);
-		handleParsingWarning(string("CBUSH is only available between two nodes."), tok, model);
+		connectivity += ga;
+		model->mesh->addCell(eid, CellType::POINT1, connectivity, false, cpos);
 	}else{
 		connectivity += ga, gb;
 	    model->mesh->addCell(eid, CellType::SEG2, connectivity, false, cpos);
-	    addProperty(pid, eid, model);
 	}
+	addProperty(pid, eid, model);
 }
 
 
