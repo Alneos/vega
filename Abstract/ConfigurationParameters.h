@@ -99,7 +99,8 @@ public:
             double testTolerance = 0.02, bool runSolver = false, std::string solverServer = "",
             std::string solverCommand = "",
 			std::string systusRBE2TranslationMode = "lagrangian", double systusRBE2Rigidity= 0.0,
-			std::string systusOptionAnalysis="auto", std::string systusOutputProduct="systus");
+			std::string systusOptionAnalysis="auto", std::string systusOutputProduct="systus",
+			std::vector< std::vector<int> > systusSubcases = {});
     const ModelConfiguration getModelConfiguration() const;
     virtual ~ConfigurationParameters();
 
@@ -119,6 +120,7 @@ public:
     const double systusRBE2Rigidity;
     const std::string systusOptionAnalysis;
     const std::string systusOutputProduct;
+    const std::vector< std::vector<int> > systusSubcases;
 };
 
 }

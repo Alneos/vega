@@ -97,12 +97,13 @@ class SystusWriter: public Writer {
 	map<int, double> RBE3Coefs;              /**< <material, coeff>  for all RBE3 elements. **/
 	map<int, int> rotationNodeIdByTranslationNodeId; /**< nodeId, nodeId > :  map between the reference node and the reference rotation for 190X elements in 3D mode.**/
 	map<int, int> localLoadingListIdByLoadingListId;
-	map<int, int> localVectorIdByLoadingListId;
-	map<int, int> localVectorIdByConstraintListId;
+	map<int, map<int, int>> localVectorIdByLoadingListIdByLoadcaseId;
+	map<int, map<int, int>> localVectorIdByConstraintListIdByLoadcaseId;
 	map<int, int> localVectorIdByCoordinateSystemPos;
 	map<int, int> loadingListIdByNodePosition;
 	map<int, int> constraintListIdByNodePosition;
 	map<int, char> constraintByNodePosition;
+	vector< vector<int> > systusSubcases;   /**< < subcase , <loadcases ids> > : Ids of loadcases composing the subcase **/
 	/**
 	 * Renumbers the nodes
 	 * see Systus ref manual chapter 15 or chapter 13 2.7
@@ -273,13 +274,18 @@ class SystusWriter: public Writer {
 	 * If possible, try to use the suffix (_NN) of the Group Name. **/
 	int getPartId(const string partName, std::set<int> & usedPartId);
 	static const std::unordered_map<CellType::Code, vector<int>, hash<int>> systus2medNodeConnectByCellType;
-	void writeAsc(const SystusModel&, const ConfigurationParameters&, const Analysis&, std::ostream&);
+	void writeAsc(const SystusModel&, const ConfigurationParameters&, const int idSubcase, std::ostream&);
 	void getSystusInformations(const SystusModel&, const ConfigurationParameters&);
-	void fillLoads(const SystusModel&, const Analysis&);
-	void fillVectors(const SystusModel&, const Analysis&);
-	void fillConstraintLists(const SystusModel&, const std::shared_ptr<ConstraintSet> & , std::map<int, std::map<int, int>> &);
-	void fillLists(const SystusModel&, const Analysis&);
+	void fillLoads(const SystusModel&, const int idSubcase);
+	void fillVectors(const SystusModel&, const int idSubcase);
+	void fillConstraintLists(const SystusModel&, const int idLoadcase, const std::shared_ptr<ConstraintSet> & , std::map<int, std::map<int, int>> &);
+	void fillLists(const SystusModel&, const int idSubcase);
 	void generateRBEs(const SystusModel&, const ConfigurationParameters&);
+	/** Following a user-defined list, we regroup analyzes in order to build
+	 *  multi-loadcases Subcases.
+	 *  Default result is "each analysis on its own subcase".
+	 */
+	void generateSubcases(const SystusModel&, const ConfigurationParameters&);
 	void writeHeader(const SystusModel&, std::ostream&);
 	void writeInformations(const SystusModel&, std::ostream&);
 	
@@ -326,10 +332,10 @@ class SystusWriter: public Writer {
      */
 	void writeMaterialField(const SMF key, const int value, int& nbfields, ostream& out) const ;
 	void writeMaterials(const SystusModel&, const ConfigurationParameters&, std::ostream&);
-	void writeLoads(const SystusModel&, const Analysis&, std::ostream&);
-	void writeLists(const SystusModel&, std::ostream&);
-	void writeVectors(const SystusModel&, const Analysis&, std::ostream&);
-	void writeDat(const SystusModel&, const Analysis&, const ConfigurationParameters &, std::ostream&);
+	void writeLoads(std::ostream&);
+	void writeLists(std::ostream&);
+	void writeVectors(std::ostream&);
+	void writeDat(const SystusModel&, const ConfigurationParameters &, const int idSubcase, std::ostream&);
 	void writeConstraint(const SystusModel& systusModel, const ConstraintSet&, std::ostream&);
 	void writeLoad(const LoadSet&, std::ostream&);
 	void writeLoad(const ConstraintSet&, std::ostream&);

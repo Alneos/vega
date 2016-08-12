@@ -279,6 +279,29 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     	}
     }
 
+    vector< vector<int> > systusSubcases;
+    if (vm.count("systus.Subcase")){
+    	vector<string> subcases = vm["systus.Subcase"].as< vector<string>>();
+    	std::string delimiter=",";
+    	std::string allowedchars="0123456789"+delimiter;
+    	for (size_t i = 0; i < subcases.size(); ++i){
+    		vector<int> vec;
+    		string soptions = subcases[i];
+        	if (strspn(soptions.c_str(), allowedchars.c_str()) != soptions.size() ){
+        		throw invalid_argument("Systus Subcase list must verify the syntax 'n1,n2,n3'.");
+        	}
+    		size_t pos = 0;
+    		while ((pos = soptions.find(delimiter)) != string::npos) {
+    		    string token = soptions.substr(0, pos);
+    		    soptions.erase(0, pos + delimiter.length());
+    		    vec.push_back(  atoi(token.c_str()) );
+    		}
+    		vec.push_back(atoi(soptions.c_str()));
+    		systusSubcases.push_back(vec);
+    	}
+    }
+
+
     if (vm.count("listOptions")){
     	cout << "VEGA options for this translation are: "<< endl;
     	cout << "\t Output directory: "<< outputDir << endl;
@@ -286,12 +309,19 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     	cout << "\t Systus RBE2 Rigidity (for penalty mode only): " << systusRBE2Rigidity << endl;
     	cout << "\t Systus OPTION analysis: " << systusOptionAnalysis << endl;
     	cout << "\t Systus output product: " << systusOutputProduct << endl;
+        for (size_t i = 0; i < systusSubcases.size(); ++i) {
+           cout <<"\t Systus Subcase "<<(i+1)<<": ";
+           for (size_t j = 0; j < systusSubcases[i].size(); ++j)
+              cout << systusSubcases[i][j] << ' ';
+           cout << endl;
+        }
     }
 
     ConfigurationParameters configuration = ConfigurationParameters(inputFile.string(), solver,
             solverVersion, modelName, outputDir, logLevel, translationMode, testFnamePath,
             tolerance, runSolver, solverServer, solverCommand,
-			systusRBE2TranslationMode,systusRBE2Rigidity, systusOptionAnalysis, systusOutputProduct);
+			systusRBE2TranslationMode,systusRBE2Rigidity, systusOptionAnalysis, systusOutputProduct,
+			systusSubcases);
     return configuration;
 }
 
@@ -375,6 +405,8 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
 		        "Translation mode of RBE2 from Nastran To Systus: lagrangian or penalty.") //
 	    ("systus.RBE2Rigidity", po::value<double>(),
 	            "Rigidity of RBE2 (for penalty translation only).") //
+	    ("systus.Subcase", po::value<std::vector<std::string>>(), //systus.Subcase
+			            "List 'n1,n2,...,nN' of loadcases numbers belonging to the same subcase.") //
 		("systus.OptionAnalysis",po::value<string>()->default_value("auto"),
 				"Type of analysis used by the Systus writer (Systus OPTION command): auto (default), 3D, shell or shell-multi.") //
 		("systus.OutputProduct",po::value<string>()->default_value("systus"),

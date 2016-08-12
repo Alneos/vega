@@ -210,13 +210,12 @@ string SystusWriter::writeModel(const shared_ptr<Model> model,
 	/* Work to Do Only once */
 	getSystusInformations(systusModel, configuration);
 	generateRBEs(systusModel, configuration);
+    generateSubcases(systusModel, configuration);
 
-
-	for (const auto& it : systusModel.model->analyses) {
-		const Analysis& analysis = *it;
+    for (unsigned idSubcase = 0; idSubcase< systusSubcases.size(); idSubcase++){
 
 		/* ASCI file */
-		string asc_path = systusModel.getOutputFileName("_SC" + to_string(analysis.getId())+ "_DATA1.ASC");
+		string asc_path = systusModel.getOutputFileName("_SC" + to_string(idSubcase+1)+ "_DATA1.ASC");
 		ofstream asc_file_ofs;
 		asc_file_ofs.precision(DBL_DIG);
 		asc_file_ofs.open(asc_path.c_str(), ios::trunc | ios::out);
@@ -224,24 +223,24 @@ string SystusWriter::writeModel(const shared_ptr<Model> model,
 			string message = string("Can't open file ") + asc_path + " for writing.";
 			throw ios::failure(message);
 		}
-		this->writeAsc(systusModel, configuration, analysis, asc_file_ofs);
+		this->writeAsc(systusModel, configuration, idSubcase, asc_file_ofs);
 		asc_file_ofs.close();
 
 		/* Analysis file */
 		ofstream analyse_file_ofs;
 		analyse_file_ofs.precision(DBL_DIG);
-		string analyse_path = systusModel.getOutputFileName("_SC" + to_string(analysis.getId()) + ".DAT");
+		string analyse_path = systusModel.getOutputFileName("_SC" + to_string(idSubcase+1) + ".DAT");
 		analyse_file_ofs.open(analyse_path.c_str(), ios::trunc);
 
 		if (!analyse_file_ofs.is_open()) {
 			string message = string("Can't open file ") + analyse_path + " for writing.";
 			throw ios::failure(message);
 		}
-		this->writeDat(systusModel, analysis, configuration, analyse_file_ofs);
+		this->writeDat(systusModel, configuration, idSubcase, analyse_file_ofs);
 		analyse_file_ofs.close();
 
 		if (configuration.systusOutputProduct=="systus"){
-			dat_file_ofs << "READ " << systusModel.getName() << "_SC" << analysis.getId() << ".DAT" << endl;
+			dat_file_ofs << "READ " << systusModel.getName() << "_SC" << to_string(idSubcase+1) << ".DAT" << endl;
 		}
 	}
 
@@ -498,218 +497,282 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 
 }
 
-// Select the Loads of the current analysis and give them a local Systus number.
-void SystusWriter::fillLoads(const SystusModel& systusModel, const Analysis& analysis){
 
-	int idSystusLoad=1;
+void SystusWriter::generateSubcases(const SystusModel& systusModel,
+		const vega::ConfigurationParameters &configuration) {
 
-	localLoadingListIdByLoadingListId.clear();
+	systusSubcases.clear();
 
-	vector<shared_ptr<LoadSet>> analysisLoadSets = analysis.getLoadSets();
-	for (const auto& loadSet : analysisLoadSets) {
-		localLoadingListIdByLoadingListId[loadSet->getId()]= idSystusLoad;
-		idSystusLoad++;
+    // Default is "each analysis on its own subcase".
+	if (configuration.systusSubcases.empty()){
+		for (const auto& it : systusModel.model->analyses) {
+			const Analysis& analysis = *it;
+			systusSubcases.push_back({analysis.getId()});
+		}
+	}else{
+
+		// We make a correspondance between the User defined Id (aka "Original Id")
+		// and the internal Id.
+		map<int, int> analysisIdByOriginalId;
+		for (const auto& it : systusModel.model->analyses) {
+			const Analysis& analysis = *it;
+			const int originalId = analysis.getOriginalId();
+            if (originalId!=Analysis::NO_ORIGINAL_ID){
+            	if (analysisIdByOriginalId.find(originalId)!= analysisIdByOriginalId.end() ){
+            		cerr << "Warning: Systus is building Subcases from a list of Analysis Original Ids,"<<endl;
+            		cerr << "Warning: but the Original Id "<<originalId<<" corresponds to several analyzes. Only the first one will be kept."<<endl;
+            	}else{
+            		analysisIdByOriginalId[originalId]=analysis.getId();
+            	}
+            }else{
+            	cerr << "Warning: Systus is building Subcases from a list of Analysis Original Ids,"<<endl;
+            	cerr << "Warning: but the Analysis "<<analysis.getId()<< " has no original Id and will be dismissed."<<endl;
+            }
+		}
+
+		// Building the vector of AnalysisIds By SubcaseIds
+		for (const vector<int> subcase : configuration.systusSubcases){
+			vector<int> sub;
+			for (int oId : subcase){
+				if (analysisIdByOriginalId.find(oId)== analysisIdByOriginalId.end() ){
+					cerr << "Warning: Systus is building Subcases from a list of Analysis Original Ids,"<<endl;
+					cerr << "Warning: but we can't find the Analysis "<<oId<<endl;
+				}else{
+					sub.push_back(analysisIdByOriginalId[oId]);
+				}
+			}
+			if (!sub.empty())
+			   systusSubcases.push_back(sub);
+		}
+
+		// We test if every analysis in a subcase is of the same type
+		for (unsigned i = 0 ; i< systusSubcases.size(); i++){
+			const vector<int> subcase = systusSubcases[i];
+			const auto refAnalysis = systusModel.model->analyses.find(subcase[0]);
+			const Analysis::Type refType = refAnalysis->type;
+			for (unsigned j = 1; j < subcase.size(); j++){
+				const auto analysis = systusModel.model->analyses.find(subcase[j]);
+				if (analysis->type!= refType){
+					cerr << "Warning: The user-defined subcase "<<(i+1)<<" regroups analysis of different types: "
+							<<Analysis::stringByType.at(refType)<< " "<< Analysis::stringByType.at(analysis->type)<<endl;
+					cerr << "Warning: "<< Analysis::stringByType.at(refType) <<" will be used."<<endl;
+					break;
+				}
+			}
+		}
 	}
 
+}
 
-	// We discarded this part, as it creates a useless loadcase
-	// It's a "wrong" translation but it does not create problems
-	/*for (auto constraintSet : commonConstraintSets) {
-			out << idSystusLoad << " \"CONSTRAINTSET_"<< constraintSet->getId() << "\" ";
-			out << "0 0 0 0 0 0 0 7" << endl;
+// Select the Loads of the current analysis and give them a local Systus number.
+void SystusWriter::fillLoads(const SystusModel& systusModel, const int idSubcase){
+
+	int idSystusLoad=1;
+	localLoadingListIdByLoadingListId.clear();
+
+	// All analysis to do
+	const vector<int> analysisId = systusSubcases[idSubcase];
+
+	for (unsigned i = 0 ; i < analysisId.size(); i++) {
+		const shared_ptr<Analysis> analysis = systusModel.model->analyses.find(analysisId[i]);
+
+		if (analysis==nullptr){
+			cerr << "Warning in Filling Loads : wrong analysis number. Analysis dismissed"<<endl;
+			break;
+		}
+
+		const vector<shared_ptr<LoadSet>> analysisLoadSets = analysis->getLoadSets();
+		for (const auto& loadSet : analysisLoadSets) {
+			localLoadingListIdByLoadingListId[loadSet->getId()]= idSystusLoad;
 			idSystusLoad++;
-		}*/
-	// TODO : Check if all loadings are taken into account
-	// TODO : What are GRAVITY Loading
-	/*
-		 for (auto loading : systusModel.model->loadings){
-		 switch (loading->type) {
-		 case Loading::GRAVITY:{
-		 shared_ptr<Gravity> gravity = static_pointer_cast<Gravity>(loading);
-		 out << systusModel.model->loadings.size() + loading->id << " \"LOADING_" <<  loading->id << "\" ";
-		 out << "0 " << loading->id << " 0 0 0 0 0 7" << endl;
-		 break;
-		 }
-		 default:{
-		 // Nothing to do for other cases
-		 }
-		 }
-		 }
-	 */
+		}
+	}
 }
 
 // Fill the vectors field with Vectors relative to Loadings and Castings
 //TODO: add all vectors in this function
-void SystusWriter::fillVectors(const SystusModel& systusModel, const Analysis& analysis){
+void SystusWriter::fillVectors(const SystusModel& systusModel, const int idSubcase){
 
 	int vectorId=1;
 
 	// Cleaning from previous analysis
 	vectors.clear();
-	localVectorIdByLoadingListId.clear();
-	localVectorIdByConstraintListId.clear();
+	localVectorIdByLoadingListIdByLoadcaseId.clear();
+	localVectorIdByConstraintListIdByLoadcaseId.clear();
 	localVectorIdByCoordinateSystemPos.clear();
 
-	// Add Loadcase Loading Vectors
-	for (const auto& loadset : analysis.getLoadSets()){
-		for (const auto& loading : loadset->getLoadings()) {
-			vector<double> vec;
+	// All analysis to do
+	const vector<int> analysisId = systusSubcases[idSubcase];
 
-			switch (loading->type) {
-			case Loading::NODAL_FORCE: {
-				shared_ptr<NodalForce> nodalForce = static_pointer_cast<NodalForce>(loading);
-				VectorialValue force = nodalForce->getForce();
-				VectorialValue moment = nodalForce->getMoment();
 
-				vec.push_back(0);
-				vec.push_back(0);
-				vec.push_back(0);
-				vec.push_back(0);
-				vec.push_back(0);
-				vec.push_back(0);
-				vec.push_back(force.x());
-				vec.push_back(force.y());
-				vec.push_back(force.z());
-				if (systusOption == 3){
-					vec.push_back(moment.x());
-					vec.push_back(moment.y());
-					vec.push_back(moment.z());
-				}
-				vectors[vectorId]=vec;
-				localVectorIdByLoadingListId[loading->getId()]=vectorId;
-				vectorId++;
-
-				// Rigid Body Element in option 3D.
-				// We report the force from the master node to the master rotational node.
-				//TODO: We use a bad trick, stocking the second vector in "A[-i]" if the first vector is in A[i].
-				int node = nodalForce->getNode().position;
-				int nid = systusModel.model->mesh->findNode(node).id;
-				if ((systusOption == 4) && (rotationNodeIdByTranslationNodeId.find(nid)!=rotationNodeIdByTranslationNodeId.end())){
-					vec.clear();
-					vec.push_back(0);
-					vec.push_back(0);
-					vec.push_back(0);
-					vec.push_back(0);
-					vec.push_back(0);
-					vec.push_back(0);
-					vec.push_back(moment.x());
-					vec.push_back(moment.y());
-					vec.push_back(moment.z());
-					vectors[vectorId]=vec;
-					localVectorIdByLoadingListId[-loading->getId()]=vectorId;
-					vectorId++;
-				}
-				break;
-			}
-			case Loading::GRAVITY: {
-				shared_ptr<Gravity> gravity = static_pointer_cast<Gravity>(loading);
-				VectorialValue acceleration = gravity->getAccelerationVector();
-
-				vec.push_back(1);
-				vec.push_back(0);
-				vec.push_back(0);
-				vec.push_back(0);
-				vec.push_back(0);
-				vec.push_back(0);
-				vec.push_back(acceleration.x());
-				vec.push_back(acceleration.y());
-				vec.push_back(acceleration.z());
-
-				vectors[vectorId]=vec;
-				localVectorIdByLoadingListId[loading->getId()]=vectorId;
-				vectorId++;
-				break;
-			}
-			case Loading::DYNAMIC_EXCITATION:{
-				// Nothing to be done here
-				break;
-			}
-			default: {
-				//TODO : throw WriterException("Loading type not supported");
-				cout << "WARNING: " << *loading << " not supported" << endl;
-			}
-			}
+	for (unsigned i = 0 ; i < analysisId.size(); i++) {
+		const shared_ptr<Analysis> analysis = systusModel.model->analyses.find(analysisId[i]);
+        const int idLoadcase = i+1;
+		if (analysis==nullptr){
+			cerr << "Warning in Building Vectors : wrong analysis number. Analysis dismissed"<<endl;
+			break;
 		}
-	}
 
+		// Add Loadcase Loading Vectors
+		for (const auto& loadset : analysis->getLoadSets()){
+			for (const auto& loading : loadset->getLoadings()) {
+				vector<double> vec;
 
-	// Add Loadcase Constraint Vectors
-	// TODO: Add Subcase Constraint Vectors
-	for (const auto& constraintset : analysis.getConstraintSets()){
-		for (const auto& constraint : constraintset->getConstraints()) {
-			vector<double> vec;
+				switch (loading->type) {
+				case Loading::NODAL_FORCE: {
+					shared_ptr<NodalForce> nodalForce = static_pointer_cast<NodalForce>(loading);
+					VectorialValue force = nodalForce->getForce();
+					VectorialValue moment = nodalForce->getMoment();
 
-			switch (constraint->type) {
-			case Constraint::SPC: {
-				std::shared_ptr<SinglePointConstraint> spc = std::static_pointer_cast<SinglePointConstraint>(constraint);
-				//TODO: Null vectors should be overlooked
-				if (spc->hasReferences()) {
-					cout << "Warning : " << *constraint << " SPC with references to functions not supported" << endl;
-				} else {
-					vec.push_back(4);
 					vec.push_back(0);
 					vec.push_back(0);
 					vec.push_back(0);
 					vec.push_back(0);
 					vec.push_back(0);
-					DOFS spcDOFS = spc->getDOFSForNode(0);
+					vec.push_back(0);
+					vec.push_back(force.x());
+					vec.push_back(force.y());
+					vec.push_back(force.z());
 					if (systusOption == 3){
-						for (DOF dof : DOFS::ALL_DOFS)
-							vec.push_back( (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0) );
-					}else if (systusOption == 4) {
-						for (DOF dof : DOFS::TRANSLATIONS)
-							vec.push_back( (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0) );
-					}else
-						throw WriterException("systusOption not supported");
+						vec.push_back(moment.x());
+						vec.push_back(moment.y());
+						vec.push_back(moment.z());
+					}
 					vectors[vectorId]=vec;
-					localVectorIdByConstraintListId[constraint->getId()]=vectorId;
+					localVectorIdByLoadingListIdByLoadcaseId[idLoadcase][loading->getId()]=vectorId;
 					vectorId++;
 
 					// Rigid Body Element in option 3D.
-					// We report the constraints from the master node to the master rotational node.
+					// We report the force from the master node to the master rotational node.
 					//TODO: We use a bad trick, stocking the second vector in "A[-i]" if the first vector is in A[i].
-					if (systusOption==4){
-						bool isTransfertNeeded=false;
-						for (int nodePosition : constraint->nodePositions()){
-							int nid = systusModel.model->mesh->findNode(nodePosition).id;
-							if (rotationNodeIdByTranslationNodeId.find(nid)!=rotationNodeIdByTranslationNodeId.end()){
-								isTransfertNeeded=true;
-								break;
+					int node = nodalForce->getNode().position;
+					int nid = systusModel.model->mesh->findNode(node).id;
+					if ((systusOption == 4) && (rotationNodeIdByTranslationNodeId.find(nid)!=rotationNodeIdByTranslationNodeId.end())){
+						vec.clear();
+						vec.push_back(0);
+						vec.push_back(0);
+						vec.push_back(0);
+						vec.push_back(0);
+						vec.push_back(0);
+						vec.push_back(0);
+						vec.push_back(moment.x());
+						vec.push_back(moment.y());
+						vec.push_back(moment.z());
+						vectors[vectorId]=vec;
+						localVectorIdByLoadingListIdByLoadcaseId[idLoadcase][-loading->getId()]=vectorId;
+						vectorId++;
+					}
+					break;
+				}
+				case Loading::GRAVITY: {
+					shared_ptr<Gravity> gravity = static_pointer_cast<Gravity>(loading);
+					VectorialValue acceleration = gravity->getAccelerationVector();
+
+					vec.push_back(1);
+					vec.push_back(0);
+					vec.push_back(0);
+					vec.push_back(0);
+					vec.push_back(0);
+					vec.push_back(0);
+					vec.push_back(acceleration.x());
+					vec.push_back(acceleration.y());
+					vec.push_back(acceleration.z());
+
+					vectors[vectorId]=vec;
+					localVectorIdByLoadingListIdByLoadcaseId[idLoadcase][loading->getId()]=vectorId;
+					vectorId++;
+					break;
+				}
+				case Loading::DYNAMIC_EXCITATION:{
+					// Nothing to be done here
+					break;
+				}
+				default: {
+					//TODO : throw WriterException("Loading type not supported");
+					cout << "WARNING: " << *loading << " not supported" << endl;
+				}
+				}
+			}
+		}
+
+
+		// Add Loadcase Constraint Vectors
+		// TODO: Add Subcase Constraint Vectors
+		for (const auto& constraintset : analysis->getConstraintSets()){
+			for (const auto& constraint : constraintset->getConstraints()) {
+				vector<double> vec;
+
+				switch (constraint->type) {
+				case Constraint::SPC: {
+					std::shared_ptr<SinglePointConstraint> spc = std::static_pointer_cast<SinglePointConstraint>(constraint);
+					//TODO: Null vectors should be overlooked
+					if (spc->hasReferences()) {
+						cout << "Warning : " << *constraint << " SPC with references to functions not supported" << endl;
+					} else {
+						vec.push_back(4);
+						vec.push_back(0);
+						vec.push_back(0);
+						vec.push_back(0);
+						vec.push_back(0);
+						vec.push_back(0);
+						DOFS spcDOFS = spc->getDOFSForNode(0);
+						if (systusOption == 3){
+							for (DOF dof : DOFS::ALL_DOFS)
+								vec.push_back( (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0) );
+						}else if (systusOption == 4) {
+							for (DOF dof : DOFS::TRANSLATIONS)
+								vec.push_back( (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0) );
+						}else
+							throw WriterException("systusOption not supported");
+						vectors[vectorId]=vec;
+						localVectorIdByConstraintListIdByLoadcaseId[idLoadcase][constraint->getId()]=vectorId;
+						vectorId++;
+
+						// Rigid Body Element in option 3D.
+						// We report the constraints from the master node to the master rotational node.
+						//TODO: We use a bad trick, stocking the second vector in "A[-i]" if the first vector is in A[i].
+						if (systusOption==4){
+							bool isTransfertNeeded=false;
+							for (int nodePosition : constraint->nodePositions()){
+								int nid = systusModel.model->mesh->findNode(nodePosition).id;
+								if (rotationNodeIdByTranslationNodeId.find(nid)!=rotationNodeIdByTranslationNodeId.end()){
+									isTransfertNeeded=true;
+									break;
+								}
+							}
+							if (isTransfertNeeded){
+								vec.clear();
+								vec.push_back(4);
+								vec.push_back(0);
+								vec.push_back(0);
+								vec.push_back(0);
+								vec.push_back(0);
+								vec.push_back(0);
+								vec.push_back( (spcDOFS.contains(DOF::RX) ? spc->getDoubleForDOF(DOF::RX) : 0) );
+								vec.push_back( (spcDOFS.contains(DOF::RY) ? spc->getDoubleForDOF(DOF::RY) : 0) );
+								vec.push_back( (spcDOFS.contains(DOF::RZ) ? spc->getDoubleForDOF(DOF::RZ) : 0) );
+								vectors[vectorId]=vec;
+								localVectorIdByConstraintListIdByLoadcaseId[idLoadcase][-constraint->getId()]=vectorId;
+								vectorId++;
 							}
 						}
-						if (isTransfertNeeded){
-							vec.clear();
-							vec.push_back(4);
-							vec.push_back(0);
-							vec.push_back(0);
-							vec.push_back(0);
-							vec.push_back(0);
-							vec.push_back(0);
-							vec.push_back( (spcDOFS.contains(DOF::RX) ? spc->getDoubleForDOF(DOF::RX) : 0) );
-							vec.push_back( (spcDOFS.contains(DOF::RY) ? spc->getDoubleForDOF(DOF::RY) : 0) );
-							vec.push_back( (spcDOFS.contains(DOF::RZ) ? spc->getDoubleForDOF(DOF::RZ) : 0) );
-							vectors[vectorId]=vec;
-							localVectorIdByConstraintListId[-constraint->getId()]=vectorId;
-							vectorId++;
-						}
 					}
+					break;
 				}
-				break;
-			}
-			case Constraint::RIGID:
-			case Constraint::RBE3:
-			case Constraint::QUASI_RIGID:{
-				// Nothing to be done here
-				break;
-			}
-			default: {
-				//TODO : throw WriterException("Constraint type not supported");
-				cout << "WARNING: " << *constraint << " not supported" << endl;
-			}
+				case Constraint::RIGID:
+				case Constraint::RBE3:
+				case Constraint::QUASI_RIGID:{
+					// Nothing to be done here
+					break;
+				}
+				default: {
+					//TODO : throw WriterException("Constraint type not supported");
+					cout << "WARNING: " << *constraint << " not supported" << endl;
+				}
+				}
 			}
 		}
 	}
-
 
 	// Add vectors for Node Coordinate System
 	// Remark: Element Coordinate System are not translated as vectors
@@ -770,7 +833,7 @@ void SystusWriter::fillVectors(const SystusModel& systusModel, const Analysis& a
 }
 
 
-void SystusWriter::fillConstraintLists(const SystusModel& systusModel, const std::shared_ptr<ConstraintSet> & constraintSet, std::map<int, std::map<int, int>> & localVectorsByLocalLoadingByNodePosition){
+void SystusWriter::fillConstraintLists(const SystusModel& systusModel, const int idLoadcase, const std::shared_ptr<ConstraintSet> & constraintSet, std::map<int, std::map<int, int>> & localVectorsByLocalLoadingByNodePosition){
 
 	const shared_ptr<Mesh> mesh = systusModel.model->mesh;
 	char dofCode;
@@ -790,9 +853,8 @@ void SystusWriter::fillConstraintLists(const SystusModel& systusModel, const std
 					SinglePointConstraint>(constraint);
 			for (int nodePosition : constraint->nodePositions()) {
 
-				// TODO: We suppose here that the ConstrainSet applies to the loadcase 1. Only work with one loadcase, obviously.
-				int localLoadingId = 1;
-				int localVectorId  = localVectorIdByConstraintListId[constraint->getId()];
+				int localLoadingId = idLoadcase;
+				int localVectorId  = localVectorIdByConstraintListIdByLoadcaseId[idLoadcase][constraint->getId()];
 
 				localVectorsByLocalLoadingByNodePosition[nodePosition][localLoadingId]=localVectorId;
 
@@ -820,7 +882,7 @@ void SystusWriter::fillConstraintLists(const SystusModel& systusModel, const std
 							| constraintByNodePosition[rotNodePosition];
 						}
 						//TODO: This is a bad trick i think, using A[-i] to stock the second vector.
-						int localRotVectorId = localVectorIdByConstraintListId[-constraint->getId()];
+						int localRotVectorId = localVectorIdByConstraintListIdByLoadcaseId[idLoadcase][-constraint->getId()];
 						localVectorsByLocalLoadingByNodePosition[rotNodePosition][localLoadingId]=localRotVectorId;
 					}
 				}
@@ -845,7 +907,7 @@ void SystusWriter::fillConstraintLists(const SystusModel& systusModel, const std
 
 
 
-void SystusWriter::fillLists(const SystusModel& systusModel, const Analysis& analysis) {
+void SystusWriter::fillLists(const SystusModel& systusModel, const int idSubcase) {
 
 	// Cleaning from previous analysis
 	lists.clear();
@@ -858,71 +920,72 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const Analysis& ana
 	// Format is (indice of list, local loading number, local vector)
 	//TODO: here we take here the indice of the node, but it may not be a good idea
 	map<int, map<int, int>> localVectorsByLocalLoadingByNodePosition;
-	for (const auto& loadSet : analysis.getLoadSets()) {
-		set<shared_ptr<Loading>> loadings = loadSet->getLoadings();
-		for (const auto& loading : loadings) {
-			switch (loading->type) {
-			case Loading::NODAL_FORCE: {
-				shared_ptr<NodalForce> nodalForce = static_pointer_cast<NodalForce>(loading);
-				int node = nodalForce->getNode().position;
-				int localLoadingId = localLoadingListIdByLoadingListId[loadSet->getId()];
-				int localVectorId  = localVectorIdByLoadingListId[loading->getId()];
-				localVectorsByLocalLoadingByNodePosition[node][localLoadingId]=localVectorId;
+	map<int, map<int, int>> localVectorsByLocalLoadingByNodePositionC;
 
-				// Rigid Body Element in option 3D.
-				// We report the force from the master node to the master rotational node.
-				if (systusOption==4){
-					int nid = systusModel.model->mesh->findNode(node).id;
-					const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
-					if (it != rotationNodeIdByTranslationNodeId.end()){
-						//TODO: This is a bad trick i think, using A[-i] to stock the second vector.
-						int localRotVectorId = localVectorIdByLoadingListId[-loading->getId()];
-						int rotNodePosition= systusModel.model->mesh->findNodePosition(it->second);
-						localVectorsByLocalLoadingByNodePosition[rotNodePosition][localLoadingId]=localRotVectorId;
+	// We build lists corresponding to all the loadcases
+	const vector<int> analysisId = systusSubcases[idSubcase];
+	for (unsigned i = 0 ; i < analysisId.size(); i++) {
+		const shared_ptr<Analysis> analysis = systusModel.model->analyses.find(analysisId[i]);
+        const int idLoadcase = i+1;
+		if (analysis==nullptr){
+			cerr << "Warning in Building Vectors : wrong analysis number. Analysis dismissed"<<endl;
+			break;
+		}
+
+		for (const auto& loadSet : analysis->getLoadSets()) {
+			set<shared_ptr<Loading>> loadings = loadSet->getLoadings();
+			for (const auto& loading : loadings) {
+				switch (loading->type) {
+				case Loading::NODAL_FORCE: {
+					shared_ptr<NodalForce> nodalForce = static_pointer_cast<NodalForce>(loading);
+					int node = nodalForce->getNode().position;
+					int localLoadingId = localLoadingListIdByLoadingListId[loadSet->getId()];
+					int localVectorId  = localVectorIdByLoadingListIdByLoadcaseId[idLoadcase][loading->getId()];
+					localVectorsByLocalLoadingByNodePosition[node][localLoadingId]=localVectorId;
+					// Rigid Body Element in option 3D.
+					// We report the force from the master node to the master rotational node.
+					if (systusOption==4){
+						int nid = systusModel.model->mesh->findNode(node).id;
+						const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
+						if (it != rotationNodeIdByTranslationNodeId.end()){
+							//TODO: This is a bad trick i think, using A[-i] to stock the second vector.
+							int localRotVectorId = localVectorIdByLoadingListIdByLoadcaseId[idLoadcase][-loading->getId()];
+							int rotNodePosition= systusModel.model->mesh->findNodePosition(it->second);
+							localVectorsByLocalLoadingByNodePosition[rotNodePosition][localLoadingId]=localRotVectorId;
+						}
 					}
+					break;
 				}
-				break;
+				case Loading::GRAVITY: {
+					// Nothing to be done here
+					break;
+				}
+				case Loading::ROTATION: {
+					// Nothing to be done here
+					break;
+				}
+				default:
+					cerr<< "WARNING in Lists: Loading type "<<to_string(loading->type)<< " not supported and dismissed."<<endl;
+				}
 			}
-			case Loading::GRAVITY: {
-				// Nothing to be done here
-				break;
-			}
-			case Loading::ROTATION: {
-				// Nothing to be done here
-				break;
-			}
-			default:
-				cerr<< "WARNING in Lists: Loading type "<<to_string(loading->type)<< " not supported and dismissed."<<endl;
-			}
+		}
+
+		// We build list corresponding to the Constraints.
+		// We assumed that, in a subcase, the constraints are on the same nodes for every
+		// analysis.
+		for (const auto& constraintSet : analysis->getConstraintSets()){
+			fillConstraintLists(systusModel, i+1, constraintSet, localVectorsByLocalLoadingByNodePositionC);
 		}
 	}
 
+	// We store our lists to the right place
 	for (const auto& it : localVectorsByLocalLoadingByNodePosition) {
 		lists[idSystusList]=it.second;
 		loadingListIdByNodePosition[it.first] = idSystusList;
 		idSystusList++;
 	}
 
-
-
-
-	// Filling lists for Common (Subcase?) Constraints
-	//TODO: This is still buggy, as I don't understand what VEGA put in "common" constraints
-	localVectorsByLocalLoadingByNodePosition.clear();
-	//vector<shared_ptr<ConstraintSet>> commonConstraintSets = systusModel.model->getCommonConstraintSets();
-	//for (auto constraintSet : commonConstraintSets){
-	//		cout << "Filling List for Common ConstraintSet "<<constraintSet->getId()<<" of size "<< constraintSet->size()<< endl;
-	//		fillConstraintLists(constraintSet, localVectorsByLocalLoadingByNodePosition);
-	//	}
-
-	// Filling lists for Loadcase Constraints
-	for (const auto& constraintSet : analysis.getConstraintSets()){
-		//cout << "Filling List for ConstraintSet "<<constraintSet->getId()<<" of size "<< constraintSet->size()<< endl;
-		fillConstraintLists(systusModel,constraintSet, localVectorsByLocalLoadingByNodePosition);
-	}
-
-	constraintListIdByNodePosition.clear();
-	for (const auto& it : localVectorsByLocalLoadingByNodePosition) {
+	for (const auto& it : localVectorsByLocalLoadingByNodePositionC) {
 		lists[idSystusList]=it.second;
 		constraintListIdByNodePosition[it.first] = idSystusList;
 		idSystusList++;
@@ -931,13 +994,13 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const Analysis& ana
 
 
 void SystusWriter::writeAsc(const SystusModel &systusModel, const vega::ConfigurationParameters &configuration,
-		const Analysis& analysis, ostream& out) {
+		const int idSubcase, ostream& out) {
 
-	fillLoads(systusModel, analysis);
+	fillLoads(systusModel, idSubcase);
 
-	fillVectors(systusModel, analysis);
+	fillVectors(systusModel, idSubcase);
 
-	fillLists(systusModel, analysis);
+	fillLists(systusModel, idSubcase);
 
 	writeHeader(systusModel, out);
 
@@ -954,11 +1017,11 @@ void SystusWriter::writeAsc(const SystusModel &systusModel, const vega::Configur
 	out << "BEGIN_MEDIA 0" << endl;
 	out << "END_MEDIA" << endl;
 
-	writeLoads(systusModel, analysis, out);
+	writeLoads(out);
 
-	writeLists(systusModel, out);
+	writeLists(out);
 
-	writeVectors(systusModel, analysis, out);
+	writeVectors(out);
 
 	out << "BEGIN_RELEASES 0" << endl;
 	out << "END_RELEASES" << endl;
@@ -1176,7 +1239,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 			}
 
 			if (elementSet->type==ElementSet::STRUCTURAL_SEGMENT){
-				dim = cell.nodeIds.size()-1;
+				dim = (cell.nodeIds.size()==2) ? 1 : 0 ;
 				//TODO: We should also check whether nodes are coincident or not
 				// because coincidents 1602 can't have an Orientation.
 				allowOrientation = (dim!=0);
@@ -1457,38 +1520,39 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 	out << "END_MATERIALS" << endl;
 }
 
-void SystusWriter::writeLoads(const SystusModel& systusModel, const Analysis & analysis, ostream& out) {
-
+void SystusWriter::writeLoads(ostream& out) {
 	out << "BEGIN_LOADS ";
-
 	// Number of written loads
 	out << localLoadingListIdByLoadingListId.size() << endl;
-
 	// Writing Loads
 	for (const auto& load : localLoadingListIdByLoadingListId) {
 		out << load.second << " \"LOADSET_" << load.first << "\" ";
 		out << "0 0 0 0 0 0 0 7" << endl;
 	}
-
 	out << "END_LOADS" << endl;
 
 }
 
-void SystusWriter::writeLists(const SystusModel& systusModel, ostream& out) {
-	UNUSEDV(systusModel);
-	out << "BEGIN_LISTS ";
-	//TODO: The second number should be the total number of elements of all lists. It is false for generic lists.
-	out << lists.size() << " " <<2*lists.size() << endl;
+void SystusWriter::writeLists(ostream& out) {
+
+	ostringstream olist;
+	olist.precision(DBL_DIG);
+	int nbElements=0;
 	for (const auto& list : lists) {
-		out << list.first;
+		olist << list.first;
 		for (const auto& d : list.second)
-			out << " " << d.first << " " << d.second;
-		out << endl;
+			olist << " " << d.first << " " << d.second;
+		olist << endl;
+		nbElements = nbElements + list.second.size();
 	}
+
+	out << "BEGIN_LISTS ";
+	out << lists.size() << " " << nbElements << endl;
+	out << olist.str();
 	out << "END_LISTS" << endl;
 }
 
-void SystusWriter::writeVectors(const SystusModel& systusModel, const Analysis & analysis, ostream& out) {
+void SystusWriter::writeVectors(ostream& out) {
 	out << "BEGIN_VECTORS " << vectors.size() << endl;
 	for (const auto& vector : vectors) {
 		out << vector.first;
@@ -1536,19 +1600,27 @@ void SystusWriter::writeMasses(const SystusModel &systusModel, ostream& out) {
 	out << "END_MASSES" << endl;
 }
 
-void SystusWriter::writeDat(const SystusModel& systusModel, const Analysis& analysis, const vega::ConfigurationParameters &configuration,
-		ostream& out) {
+void SystusWriter::writeDat(const SystusModel& systusModel, const vega::ConfigurationParameters &configuration,
+		const int idSubcase, ostream& out) {
+
+	// We find the first Analysis of the Subcase, which will be our reference
+	const int idAnalysis = systusSubcases[idSubcase][0];
+	const shared_ptr<Analysis> analysis = systusModel.model->analyses.find(idAnalysis);
+    if (analysis== nullptr){
+		throw WriterException(string("Analysis " + to_string(idAnalysis) + " not found."));
+    }
+
 
 	string comment="";
 	if (configuration.systusOutputProduct=="topolev"){
 		comment="###TOPOLEV###";
 	}
 
-	out << comment<<"NAME " << systusModel.getName() << "_SC" << analysis.getId() << "_" << endl;
+	out << comment<<"NAME " << systusModel.getName() << "_SC" << (idSubcase+1) << "_" << endl;
 	out << endl;
 	out << comment<<"SEARCH DATA 1 ASCII" << endl;
 	out << endl;
-	switch (analysis.type) {
+	switch (analysis->type) {
 	case Analysis::LINEAR_MECA_STAT: {
 
 		out << "SOLVE METHOD OPTIMISED" << endl;
@@ -1567,7 +1639,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const Analysis& anal
 		out << "DYNAMIC" << endl;
 		out << endl;
 
-		const LinearModal& linearModal = static_cast<const LinearModal&>(analysis);
+		const LinearModal& linearModal = static_cast<const LinearModal&>(*analysis);
 		FrequencyBand& frequencyBand = *(linearModal.getFrequencyBand());
 		string smodes= (frequencyBand.num_max == vega::Globals::UNAVAILABLE_INT ? "12":to_string(frequencyBand.num_max));
 		string siters= (frequencyBand.num_max == vega::Globals::UNAVAILABLE_INT ? "24":to_string(2*frequencyBand.num_max));
@@ -1652,7 +1724,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const Analysis& anal
 	}
 	default:
 		throw WriterException(
-				string("Analysis " + Analysis::stringByType.at(analysis.type) + " not (yet) implemented"));
+				string("Analysis " + Analysis::stringByType.at(analysis->type) + " not (yet) implemented"));
 	}
 
 	// We Save Results
@@ -1670,12 +1742,12 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const Analysis& anal
 	out << endl;
 
 
-	vector<shared_ptr<Assertion>> assertions = analysis.getAssertions();
+	vector<shared_ptr<Assertion>> assertions = analysis->getAssertions();
 	if (!assertions.empty()) {
 		out << "LANGAGE" << endl;
 		out << "variable displacement[" << numberOfDofBySystusOption[systusOption] << "],"
 				"frequency, phase[" << numberOfDofBySystusOption[systusOption] << "];" << endl;
-		out << "iResu=open_file(\"" << systusModel.getName() << "_" << analysis.getId()
+		out << "iResu=open_file(\"" << systusModel.getName() << "_" << analysis->getId()
 						<< ".RESU\", \"write\");" << endl << endl;
 
 		for (const auto& assertion : assertions) {
@@ -1684,7 +1756,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const Analysis& anal
 				writeNodalDisplacementAssertion(*assertion, out);
 				break;
 			case Assertion::FREQUENCY_ASSERTION:
-				if (analysis.type == Analysis::LINEAR_DYNA_MODAL_FREQ)
+				if (analysis->type == Analysis::LINEAR_DYNA_MODAL_FREQ)
 					break;
 				writeFrequencyAssertion(*assertion, out);
 				break;

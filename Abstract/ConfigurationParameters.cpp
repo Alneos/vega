@@ -24,13 +24,14 @@ ConfigurationParameters::ConfigurationParameters(string inputFile, Solver output
         TranslationMode translationMode, fs::path resultFile, double tolerance, bool runSolver,
         string solverServer, string solverCommand,
 		string systusRBE2TranslationMode, double systusRBE2Rigidity,
-		string systusOptionAnalysis, string systusOutputProduct) :
+		string systusOptionAnalysis, string systusOutputProduct, vector<vector<int> > systusSubcases) :
         inputFile(inputFile), outputSolver(outputSolver), solverVersion(solverVersion), outputFile(
                 outputFile), outputPath(outputPath), logLevel(logLevel), translationMode(
                 translationMode), resultFile(resultFile), testTolerance(tolerance), runSolver(
                 runSolver), solverServer(solverServer), solverCommand(solverCommand),
 				systusRBE2TranslationMode(systusRBE2TranslationMode), systusRBE2Rigidity(systusRBE2Rigidity),
-				systusOptionAnalysis(systusOptionAnalysis), systusOutputProduct(systusOutputProduct) {
+				systusOptionAnalysis(systusOptionAnalysis), systusOutputProduct(systusOutputProduct),
+				systusSubcases(systusSubcases){
 
 }
 
