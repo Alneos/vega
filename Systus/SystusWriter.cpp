@@ -548,10 +548,10 @@ void SystusWriter::generateSubcases(const SystusModel& systusModel,
 		// We test if every analysis in a subcase is of the same type
 		for (unsigned i = 0 ; i< systusSubcases.size(); i++){
 			const vector<int> subcase = systusSubcases[i];
-			const auto refAnalysis = systusModel.model->analyses.find(subcase[0]);
+			const auto refAnalysis = systusModel.model->getAnalysis(subcase[0]);
 			const Analysis::Type refType = refAnalysis->type;
 			for (unsigned j = 1; j < subcase.size(); j++){
-				const auto analysis = systusModel.model->analyses.find(subcase[j]);
+				const auto analysis = systusModel.model->getAnalysis(subcase[j]);
 				if (analysis->type!= refType){
 					cerr << "Warning: The user-defined subcase "<<(i+1)<<" regroups analysis of different types: "
 							<<Analysis::stringByType.at(refType)<< " "<< Analysis::stringByType.at(analysis->type)<<endl;
@@ -574,10 +574,10 @@ void SystusWriter::fillLoads(const SystusModel& systusModel, const int idSubcase
 	const vector<int> analysisId = systusSubcases[idSubcase];
 
 	for (unsigned i = 0 ; i < analysisId.size(); i++) {
-		const shared_ptr<Analysis> analysis = systusModel.model->analyses.find(analysisId[i]);
+		const shared_ptr<Analysis> analysis = systusModel.model->getAnalysis(analysisId[i]);
 
 		if (analysis==nullptr){
-			cerr << "Warning in Filling Loads : wrong analysis number. Analysis dismissed"<<endl;
+			cerr << "Warning in Filling Loads : wrong analysis number ("<< analysisId[i]<<") Analysis dismissed"<<endl;
 			break;
 		}
 
@@ -606,7 +606,7 @@ void SystusWriter::fillVectors(const SystusModel& systusModel, const int idSubca
 
 
 	for (unsigned i = 0 ; i < analysisId.size(); i++) {
-		const shared_ptr<Analysis> analysis = systusModel.model->analyses.find(analysisId[i]);
+		const shared_ptr<Analysis> analysis = systusModel.model->getAnalysis(analysisId[i]);
         const int idLoadcase = i+1;
 		if (analysis==nullptr){
 			cerr << "Warning in Building Vectors : wrong analysis number. Analysis dismissed"<<endl;
@@ -925,7 +925,7 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const int idSubcase
 	// We build lists corresponding to all the loadcases
 	const vector<int> analysisId = systusSubcases[idSubcase];
 	for (unsigned i = 0 ; i < analysisId.size(); i++) {
-		const shared_ptr<Analysis> analysis = systusModel.model->analyses.find(analysisId[i]);
+		const shared_ptr<Analysis> analysis = systusModel.model->getAnalysis(analysisId[i]);
         const int idLoadcase = i+1;
 		if (analysis==nullptr){
 			cerr << "Warning in Building Vectors : wrong analysis number. Analysis dismissed"<<endl;
@@ -1605,7 +1605,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
 
 	// We find the first Analysis of the Subcase, which will be our reference
 	const int idAnalysis = systusSubcases[idSubcase][0];
-	const shared_ptr<Analysis> analysis = systusModel.model->analyses.find(idAnalysis);
+	const shared_ptr<Analysis> analysis = systusModel.model->getAnalysis(idAnalysis);
     if (analysis== nullptr){
 		throw WriterException(string("Analysis " + to_string(idAnalysis) + " not found."));
     }

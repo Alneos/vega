@@ -134,7 +134,8 @@ private:
                     void add(std::shared_ptr<T> T_ptr);
                     void erase(const Reference<T>);
                     std::shared_ptr<T> find(const Reference<T>&) const;
-                    std::shared_ptr<T> find(int) const;
+                    std::shared_ptr<T> find(int) const; /**< Find an object by its Original Id **/
+                    std::shared_ptr<T> get(int) const; /**< Return an object by its Vega Id **/
                     bool validate() const;
                 };
         std::unordered_map<int,CellContainer> material_assignment_by_material_id;
@@ -175,6 +176,19 @@ private:
         void add(const CoordinateSystem&);
         void add(const ElementSet&);
         void add(const Material&);
+
+        // Get functions : get object by their VEGA Id.
+        // Mainly here in order to instanciate all template type for the Container template functions
+        std::shared_ptr<Analysis> getAnalysis(int id) const; /**< Return an Analysis by its Vega Id **/
+        std::shared_ptr<Loading> getLoading(int id) const;   /**< Return a Loading by its Vega Id **/
+        std::shared_ptr<LoadSet> getLoadSet(int id) const;   /**< Return a LoadSet by its Vega Id **/
+        std::shared_ptr<Constraint> getConstraint(int id) const; /**< Return a Constraint by its Vega Id **/
+        std::shared_ptr<ConstraintSet> getConstraintSet(int id) const; /**< Return a ConstraintSet by its Vega Id **/
+        std::shared_ptr<Objective> getObjective(int id) const; /**< Return an Objective by its Vega Id **/
+        std::shared_ptr<Value> getValue(int id) const; /**< Return a Value by its Vega Id **/
+        std::shared_ptr<CoordinateSystem> getCoordinateSystem(int id) const; /**< Return a CoordinateSystem by its Vega Id **/
+        std::shared_ptr<ElementSet> getElementSet(int id) const; /**< Return an ElementSet by its Vega Id **/
+        std::shared_ptr<Material> getMaterial(int id) const; /**< Return a Material by its Vega Id **/
 
         /**
          * Find or Reserve a Coordinate System in the model by Input Id.

@@ -132,6 +132,16 @@ shared_ptr<T> Model::Container<T>::find(int original_id) const {
 }
 
 template<class T>
+shared_ptr<T> Model::Container<T>::get(int id) const {
+    shared_ptr<T> t = nullptr;
+    auto it = by_id.find(id);
+    if (it != by_id.end()) {
+    	t = it->second;
+    }
+    return t;
+}
+
+template<class T>
 bool Model::Container<T>::validate() const {
     bool isValid = true;
     for (shared_ptr<T> t : *this) {
@@ -217,6 +227,50 @@ int Model::findOrReserveCoordinateSystem(int cid){
 }
 
 
+std::shared_ptr<Analysis> Model::getAnalysis(int id) const {
+	return analyses.get(id);
+}
+
+std::shared_ptr<Loading> Model::getLoading(int id) const {
+    return loadings.get(id);
+}
+
+std::shared_ptr<LoadSet> Model::getLoadSet(int id)  const {
+    return loadSets.get(id);
+}
+
+std::shared_ptr<Constraint> Model::getConstraint(int id) const {
+    return constraints.get(id);
+}
+
+std::shared_ptr<ConstraintSet> Model::getConstraintSet(int id) const {
+    return constraintSets.get(id);
+}
+
+std::shared_ptr<Objective> Model::getObjective(int id) const {
+    return objectives.get(id);
+}
+
+std::shared_ptr<Value> Model::getValue(int id) const {
+    return values.get(id);
+}
+
+std::shared_ptr<CoordinateSystem> Model::getCoordinateSystem(int id) const {
+    return coordinateSystems.get(id);
+}
+
+std::shared_ptr<ElementSet> Model::getElementSet(int id) const {
+    return elementSets.get(id);
+}
+
+std::shared_ptr<Material> Model::getMaterial(int id) const {
+    return materials.get(id);
+}
+
+
+
+
+
 int Model::addOrFindOrientation(const OrientationCoordinateSystem & ocs){
 
 	int posOrientation = findOrientation(ocs);
@@ -242,15 +296,8 @@ int Model::findOrientation(const OrientationCoordinateSystem & ocs) const{
 }
 
 std::shared_ptr<vega::CoordinateSystem> Model::getCoordinateSystemByPosition(const int pos) const{
-	std::shared_ptr<vega::CoordinateSystem> result=nullptr;
 	const int cid =  coordinateSystemStorage->getId(pos);
-	for (shared_ptr<CoordinateSystem> coordinateSystem : coordinateSystems) {
-		if (coordinateSystem->getId()==cid){
-			result = coordinateSystem;
-			break;
-		}
-	}
-	return result;
+	return getCoordinateSystem(cid);
 }
 
 
