@@ -287,7 +287,12 @@ class SystusWriter: public Writer {
 	 */
 	void generateSubcases(const SystusModel&, const ConfigurationParameters&);
 	void writeHeader(const SystusModel&, std::ostream&);
-	void writeInformations(const SystusModel&, std::ostream&);
+
+	/**
+	 *  Write the informations field of the ASC file, including the long title
+	 *  and the codes of the model (See NCODE(20) in Systus code for more details).
+	 **/
+	void writeInformations(const ConfigurationParameters &, const int idSubcase, std::ostream&);
 	
 	/**
 	 * Write the Nodes in ASC format. 

@@ -20,6 +20,7 @@
 #include "SystusWriter.h"
 #include "build_properties.h"
 #include "cmath" /* M_PI */
+#include <ctime>
 
 namespace fs = boost::filesystem;
 
@@ -1004,7 +1005,7 @@ void SystusWriter::writeAsc(const SystusModel &systusModel, const vega::Configur
 
 	writeHeader(systusModel, out);
 
-	writeInformations(systusModel, out);
+	writeInformations(configuration, idSubcase, out);
 
 	writeNodes(systusModel, out);
 
@@ -1069,9 +1070,32 @@ void SystusWriter::writeHeader(const SystusModel& systusModel, ostream& out) {
 
 }
 
-void SystusWriter::writeInformations(const SystusModel& systusModel, ostream& out) {
+void SystusWriter::writeInformations(const ConfigurationParameters &configuration, int idSubcase , ostream& out) {
 	out << "BEGIN_INFORMATIONS" << endl;
-	out << systusModel.getName().substr(0, 80) << endl; //should be less than 80
+
+	//Subcase
+	string ssubcase = " SC"+ to_string(idSubcase+1) +" ";
+
+	// Logiciel version
+	ostringstream otmp;
+	otmp << "Built by VEGA "<<VEGA_VERSION_MAJOR << "." << VEGA_VERSION_MINOR << "."
+            << VEGA_VERSION_PATCH << " " << VEGA_VERSION_EXTRA<< " from ";
+	std::string slogiciel = otmp.str();
+
+	// Date
+    time_t rawtime;
+    struct tm * timeinfo;
+    char buffer[11];
+    time (&rawtime);
+    timeinfo = localtime (&rawtime);
+    strftime (buffer,11,"%F",timeinfo);
+    string sdate(buffer);
+
+    // We have 80 characters
+    long unsigned sizeleft =  80 - ssubcase.length() - sdate.length() - slogiciel.length();
+    out << slogiciel << configuration.inputFile.substr(0, sizeleft) << ssubcase << sdate<< endl;
+
+
 	out << " " << systusOption << " 0 0 1 0 0 0 0 0 0 0 1 0 "<< systusSubOption<<" 0 0 0 0 0 0" << endl;
 	out << " 0 0 0 0 0 0 0 0 0 0 ";
 
@@ -1537,7 +1561,7 @@ void SystusWriter::writeLists(ostream& out) {
 
 	ostringstream olist;
 	olist.precision(DBL_DIG);
-	int nbElements=0;
+	long unsigned int nbElements=0;
 	for (const auto& list : lists) {
 		olist << list.first;
 		for (const auto& d : list.second)
