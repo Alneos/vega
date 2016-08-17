@@ -1360,8 +1360,9 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
 	// Write NodeGroups
 	for (const auto& nodeGroup : nodeGroups) {
 		nbGroups++;
-		osgr << nbGroups << " " << nodeGroup->getName()
-						<< " 1 0 \"No method\" \"\" \"No Comments\"";
+		osgr << nbGroups << " " << nodeGroup->getName() << " 1 0 ";
+        osgr << "\"No method\"  \"\"  ";
+        osgr << "\"Group built in VEGA from "<< nodeGroup->getComment() << "\"";
 		for (int id : nodeGroup->getNodeIds())
 			osgr << " " << id;
 		osgr << endl;
