@@ -401,18 +401,24 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
         ("listOptions,l", "Print the options used by current translation.") //
 		("mesh-at-least,m", "If the source study is fully understood it is translated, "
 		        " otherwise it is translated only the mesh.") //
+		("strict,s", "Stops translation at the first "
+                "unrecognized keyword or parameter.");
+
+        // Systus specific options
+        // TODO: Some of these options are not so specific: rename and move them.
+        po::options_description systusOptions("Systus specific options");
+        systusOptions.add_options() //
 		("systus.RBE2TranslationMode",po::value<string>()->default_value("lagrangian"), 
-		        "Translation mode of RBE2 from Nastran To Systus: lagrangian or penalty.") //
-	    ("systus.RBE2Rigidity", po::value<double>(),
-	            "Rigidity of RBE2 (for penalty translation only).") //
-	    ("systus.Subcase", po::value<std::vector<std::string>>(), //systus.Subcase
-			            "List 'n1,n2,...,nN' of loadcases numbers belonging to the same subcase.") //
+				"Translation mode of RBE2 from Nastran To Systus: lagrangian or penalty.") //
+		("systus.RBE2Rigidity", po::value<double>(),
+		        "Rigidity of RBE2 (for penalty translation only).") //
+		("systus.Subcase", po::value<std::vector<std::string>>(), //systus.Subcase
+				"List 'n1,n2,...,nN' of analysis numbers belonging to the same subcase.") //
 		("systus.OptionAnalysis",po::value<string>()->default_value("auto"),
 				"Type of analysis used by the Systus writer (Systus OPTION command): auto (default), 3D, shell or shell-multi.") //
 		("systus.OutputProduct",po::value<string>()->default_value("systus"),
-								"Output format for the Systus writer: systus (default) or topolev.") //
-		("strict,s", "Stops translation at the first "
-                "unrecognized keyword or parameter.");
+				"Output format for the Systus writer: systus (default) or topolev."); //
+
 
         // Hidden options, will be allowed both on command line and
         // in config file, but will not be shown to the user.
@@ -425,10 +431,10 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
                 "output format. Allowed formats are ASTER, SYSTUS");
 
         po::options_description cmdline_options;
-        cmdline_options.add(commandLine).add(generic).add(hidden);
+        cmdline_options.add(commandLine).add(generic).add(systusOptions).add(hidden);
 
         po::options_description config_file_options;
-        config_file_options.add(generic).add(hidden);
+        config_file_options.add(generic).add(systusOptions).add(hidden);
 
         po::positional_options_description p;
         p.add("input-file", 1);
@@ -436,7 +442,7 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
         p.add("output-format", 1);
 
         po::options_description visible("Options");
-        visible.add(commandLine).add(generic);
+        visible.add(commandLine).add(generic).add(systusOptions);
 
         po::variables_map vm;
         store(po::command_line_parser(ac, av).options(cmdline_options).positional(p).run(), vm);
