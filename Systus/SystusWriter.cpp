@@ -504,62 +504,123 @@ void SystusWriter::generateSubcases(const SystusModel& systusModel,
 
 	systusSubcases.clear();
 
-    // Default is "each analysis on its own subcase".
+	vector< vector<long unsigned int> > characteristicAnalysis;
+    // Default is "Automatic merge of static subcases".
 	if (configuration.systusSubcases.empty()){
 		for (const auto& it : systusModel.model->analyses) {
 			const Analysis& analysis = *it;
-			systusSubcases.push_back({analysis.getId()});
+
+			// We create a vector with the caracteristic of the Analysis
+			vector<long unsigned int> cAna;
+			cAna.push_back(analysis.type); //Analysis type
+
+			const vector<shared_ptr<ConstraintSet>> constraintSets = analysis.getConstraintSets();
+			cAna.push_back(constraintSets.size());
+			for (auto constraintSet : constraintSets){
+				cAna.push_back(constraintSet->getId());
+			}
+			//TODO Maybe we need to test that to?
+			//const vector<shared_ptr<BoundaryCondition>> boundaryConditions= analysis.getBoundaryConditions();
+			//cAna.push_back(boundaryConditions.size());
+			//for (auto boundaryCondition : boundaryConditions){
+			//	cAna.push_back(boundaryCondition->getId());
+			//}
+
+
+			// For mechanical static problem, we search the already defined subcases for the same characteristic
+            long unsigned int idSubcase = systusSubcases.size();
+            if (analysis.type == Analysis::Type::LINEAR_MECA_STAT){
+            	for (long unsigned int i=0; i<characteristicAnalysis.size(); i++){
+            		if (cAna== characteristicAnalysis[i]){
+            			idSubcase= i;
+            			break;
+            		}
+            	}
+            }
+
+            // New Subcase
+			if (idSubcase == systusSubcases.size()){
+				characteristicAnalysis.push_back(cAna);
+				systusSubcases.push_back({analysis.getId()});
+			}else{
+			// Already existing subcases
+				systusSubcases[idSubcase].push_back(analysis.getId());
+			}
+
 		}
 	}else{
 
-		// We make a correspondance between the User defined Id (aka "Original Id")
-		// and the internal Id.
-		map<int, int> analysisIdByOriginalId;
-		for (const auto& it : systusModel.model->analyses) {
-			const Analysis& analysis = *it;
-			const int originalId = analysis.getOriginalId();
-            if (originalId!=Analysis::NO_ORIGINAL_ID){
-            	if (analysisIdByOriginalId.find(originalId)!= analysisIdByOriginalId.end() ){
-            		cerr << "Warning: Systus is building Subcases from a list of Analysis Original Ids,"<<endl;
-            		cerr << "Warning: but the Original Id "<<originalId<<" corresponds to several analyzes. Only the first one will be kept."<<endl;
-            	}else{
-            		analysisIdByOriginalId[originalId]=analysis.getId();
-            	}
-            }else{
-            	cerr << "Warning: Systus is building Subcases from a list of Analysis Original Ids,"<<endl;
-            	cerr << "Warning: but the Analysis "<<analysis.getId()<< " has no original Id and will be dismissed."<<endl;
-            }
-		}
+		// On "single mode", each analysis is in its own subcase.
+		if ((configuration.systusSubcases.size()==1) &&
+				(configuration.systusSubcases[0][0]==-1)){
+			for (const auto& it : systusModel.model->analyses) {
+				const Analysis& analysis = *it;
+				systusSubcases.push_back({analysis.getId()});
+			}
+		}else{
+        // We use the user defined lists
 
-		// Building the vector of AnalysisIds By SubcaseIds
-		for (const vector<int> subcase : configuration.systusSubcases){
-			vector<int> sub;
-			for (int oId : subcase){
-				if (analysisIdByOriginalId.find(oId)== analysisIdByOriginalId.end() ){
-					cerr << "Warning: Systus is building Subcases from a list of Analysis Original Ids,"<<endl;
-					cerr << "Warning: but we can't find the Analysis "<<oId<<endl;
+			// We make a correspondence between the User defined Id (aka "Original Id")
+			// and the internal Id.
+			map<int, int> analysisIdByOriginalId;
+			for (const auto& it : systusModel.model->analyses) {
+				const Analysis& analysis = *it;
+				const int originalId = analysis.getOriginalId();
+				if (originalId!=Analysis::NO_ORIGINAL_ID){
+					if (analysisIdByOriginalId.find(originalId)!= analysisIdByOriginalId.end() ){
+						cerr << "Warning: Systus is building Subcases from a list of Analysis Original Ids,"<<endl;
+						cerr << "Warning: but the Original Id "<<originalId<<" corresponds to several analyzes. Only the first one will be kept."<<endl;
+					}else{
+						analysisIdByOriginalId[originalId]=analysis.getId();
+					}
 				}else{
-					sub.push_back(analysisIdByOriginalId[oId]);
+					cerr << "Warning: Systus is building Subcases from a list of Analysis Original Ids,"<<endl;
+					cerr << "Warning: but the Analysis "<<analysis.getId()<< " has no original Id and will be dismissed."<<endl;
 				}
 			}
-			if (!sub.empty())
-			   systusSubcases.push_back(sub);
-		}
 
-		// We test if every analysis in a subcase is of the same type
+			// Building the vector of AnalysisIds By SubcaseIds
+			for (const vector<int> subcase : configuration.systusSubcases){
+				vector<int> sub;
+				for (int oId : subcase){
+					if (analysisIdByOriginalId.find(oId)== analysisIdByOriginalId.end() ){
+						cerr << "Warning: Systus is building Subcases from a list of Analysis Original Ids,"<<endl;
+						cerr << "Warning: but we can't find the Analysis "<<oId<<endl;
+					}else{
+						sub.push_back(analysisIdByOriginalId[oId]);
+					}
+				}
+				if (!sub.empty())
+					systusSubcases.push_back(sub);
+			}
+
+			// We test if every analysis in a subcase is of the same type
+			for (unsigned i = 0 ; i< systusSubcases.size(); i++){
+				const vector<int> subcase = systusSubcases[i];
+				const auto refAnalysis = systusModel.model->getAnalysis(subcase[0]);
+				const Analysis::Type refType = refAnalysis->type;
+				for (unsigned j = 1; j < subcase.size(); j++){
+					const auto analysis = systusModel.model->getAnalysis(subcase[j]);
+					if (analysis->type!= refType){
+						cerr << "Warning: The user-defined subcase "<<(i+1)<<" regroups analysis of different types: "
+								<<Analysis::stringByType.at(refType)<< " "<< Analysis::stringByType.at(analysis->type)<<endl;
+						cerr << "Warning: "<< Analysis::stringByType.at(refType) <<" will be used."<<endl;
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	// Log is life
+	if (configuration.logLevel >= LogLevel::INFO){
 		for (unsigned i = 0 ; i< systusSubcases.size(); i++){
 			const vector<int> subcase = systusSubcases[i];
-			const auto refAnalysis = systusModel.model->getAnalysis(subcase[0]);
-			const Analysis::Type refType = refAnalysis->type;
-			for (unsigned j = 1; j < subcase.size(); j++){
-				const auto analysis = systusModel.model->getAnalysis(subcase[j]);
-				if (analysis->type!= refType){
-					cerr << "Warning: The user-defined subcase "<<(i+1)<<" regroups analysis of different types: "
-							<<Analysis::stringByType.at(refType)<< " "<< Analysis::stringByType.at(analysis->type)<<endl;
-					cerr << "Warning: "<< Analysis::stringByType.at(refType) <<" will be used."<<endl;
-					break;
-				}
+			cout << "Subcase "<< (i+1) <<" regroups Analyzes:";
+			for (unsigned j = 0; j < subcase.size(); j++){
+				cout << " "<<subcase[j];
 			}
+			cout <<endl;
 		}
 	}
 

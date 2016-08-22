@@ -279,6 +279,7 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     	}
     }
 
+    // Default value is "auto", caracterized by a void systusSubcases
     vector< vector<int> > systusSubcases;
     if (vm.count("systus.Subcase")){
     	vector<string> subcases = vm["systus.Subcase"].as< vector<string>>();
@@ -287,7 +288,20 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     	for (size_t i = 0; i < subcases.size(); ++i){
     		vector<int> vec;
     		string soptions = subcases[i];
-        	if (strspn(soptions.c_str(), allowedchars.c_str()) != soptions.size() ){
+    		// Single: every analysis in a separate file, is caracterized by 
+    		// systusSubcases = < <-1> > 
+    		// TODO: Not very elegant. Do better.
+    		if (soptions=="single"){
+    			systusSubcases.clear();
+    			systusSubcases.push_back({-1});
+    			break;
+    		}
+    		if (soptions=="auto"){
+    			systusSubcases.clear();
+    			break;
+    		}
+
+    		if (strspn(soptions.c_str(), allowedchars.c_str()) != soptions.size() ){
         		throw invalid_argument("Systus Subcase list must verify the syntax 'n1,n2,n3'.");
         	}
     		size_t pos = 0;
@@ -412,8 +426,8 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
 				"Translation mode of RBE2 from Nastran To Systus: lagrangian or penalty.") //
 		("systus.RBE2Rigidity", po::value<double>(),
 		        "Rigidity of RBE2 (for penalty translation only).") //
-		("systus.Subcase", po::value<std::vector<std::string>>(), //systus.Subcase
-				"List 'n1,n2,...,nN' of analysis numbers belonging to the same subcase.") //
+		("systus.Subcase", po::value<std::vector<std::string>>(),
+				"'auto' (default), 'single' or lists 'n1,n2,...,nN' of analysis numbers belonging to the same subcase.") //
 		("systus.OptionAnalysis",po::value<string>()->default_value("auto"),
 				"Type of analysis used by the Systus writer (Systus OPTION command): auto (default), 3D, shell or shell-multi.") //
 		("systus.OutputProduct",po::value<string>()->default_value("systus"),
