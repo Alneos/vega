@@ -131,7 +131,12 @@ public:
 	NodeStorage nodes;
 	CellStorage cells;
 
-	NodeGroup* createNodeGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
+    NodeGroup* createNodeGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
+	/**
+	 * Find the NodeGroup named "name".
+	 * If it does not exists, create and return a NodeGroup with specified name, groupId and comment.
+	 **/
+	NodeGroup* findOrCreateNodeGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
 	std::vector<NodeGroup*> getNodeGroups() const;
 	CellGroup* createCellGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
 	std::vector<CellGroup*> getCellGroups() const;

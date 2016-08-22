@@ -519,6 +519,24 @@ NodeGroup* Mesh::createNodeGroup(const string& name, int group_id, const string 
 	return group;
 }
 
+NodeGroup* Mesh::findOrCreateNodeGroup(const string& name, int group_id, const string & comment) {
+	if (name.empty()) {
+		throw invalid_argument("Can't find or create a nodeGroup with empty name ");
+	}
+	Group* group = this->findGroup(name);
+	if (group==nullptr){
+		return this->createNodeGroup(name, group_id, comment);
+	}else{
+		if (group->type != Group::NODEGROUP) {
+			throw invalid_argument("Group " + name + " is not a nodeGroup.");
+		}
+		return static_cast<NodeGroup*>(group);
+	}
+}
+
+
+
+
 CellGroup* Mesh::createCellGroup(const string& name, int group_id, const string & comment) {
 	if (name.empty()) {
 		throw invalid_argument("Can't create a cellGroup with empty name ");

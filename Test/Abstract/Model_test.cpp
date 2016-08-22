@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE( test_model_spc ) {
 	model.mesh->addCell(29, CellType::SEG2, {2, 3});
 	model.mesh->addCell(30, CellType::SEG2, {3, 4});
 	model.mesh->addCell(31, CellType::POINT1, {1});
-	vega::NodeGroup* gn1 = model.mesh->createNodeGroup("GN1");
+	vega::NodeGroup* gn1 = model.mesh->findOrCreateNodeGroup("GN1");
 	gn1->addNode(0);
 	gn1->addNode(6);
 	vega::CellGroup* gm1 = model.mesh->createCellGroup("GM1");
@@ -313,7 +313,7 @@ BOOST_AUTO_TEST_CASE( test_find_methods ) {
 	for (i = 0; i < 18; i += 3) {
 		model.mesh->addNode(i / 3, coords[i], coords[i + 1], coords[i + 2]);
 	}
-	vega::NodeGroup* gn1 = model.mesh->createNodeGroup("GN1");
+	vega::NodeGroup* gn1 = model.mesh->findOrCreateNodeGroup("GN1");
 	BOOST_CHECKPOINT("find_methods: before add Node 0");
 	gn1->addNode(0);
 	BOOST_CHECKPOINT("find_methods: before add Node 5");

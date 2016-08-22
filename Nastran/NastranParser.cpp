@@ -1570,6 +1570,8 @@ void NastranParserImpl::parseRFORCE(NastranTokenizer& tok, shared_ptr<Model> mod
 
 void NastranParserImpl::parseSPC(NastranTokenizer& tok, shared_ptr<Model> model) {
 	int spcSet_id = tok.nextInt();
+	string name = string("SPC") + "_" + to_string(spcSet_id);
+	NodeGroup *spcNodeGroup = model->mesh->findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPC");
 	try {
 		while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
 			const int nodeId = tok.nextInt(true);
@@ -1585,6 +1587,7 @@ void NastranParserImpl::parseSPC(NastranTokenizer& tok, shared_ptr<Model> model)
 			SinglePointConstraint spc = SinglePointConstraint(*model, DOFS::nastranCodeToDOFS(gi),
 					displacement);
 			spc.addNodeId(nodeId);
+			spcNodeGroup->addNode(nodeId);
 
 			model->add(spc);
 			model->addConstraintIntoConstraintSet(spc,
@@ -1599,35 +1602,43 @@ void NastranParserImpl::parseSPC1(NastranTokenizer& tok, shared_ptr<Model> model
 	int set_id = tok.nextInt();
 	const int dofInt = tok.nextInt();
 	const int g1 = tok.nextInt();
+
+	// We create a constraint
 	SinglePointConstraint spc = SinglePointConstraint(*model, DOFS::nastranCodeToDOFS(dofInt), 0.0);
-	//string name = string("SPC1") + "_" + to_string(set_id);
-    //cout << "parse SPC does not work with new method."<<endl;
-    string name = string("SPC1") + "_" + to_string(set_id);
-	
+
+    // Nodes are added to the constraint Node Group
+	string name = string("SPC1") + "_" + to_string(set_id);
+	NodeGroup *spcNodeGroup = model->mesh->findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPC1");
+
+	// Parsing Nodes
 	string pos2 = trim_copy(tok.nextString(true));
-	NodeGroup *spcNodeGroup = model->mesh->createNodeGroup(name,NodeGroup::NO_ORIGINAL_ID, "SPC1");
 	if (pos2 == "THRU") {
 		//parse "through" format
 		const int g2 = tok.nextInt();
 		for (int curNode = g1; curNode <= g2; curNode++) {
 			spcNodeGroup->addNode(curNode);
+			spc.addNodeId(curNode);
 		}
 	} else {
 		spcNodeGroup->addNode(g1);
+		spc.addNodeId(g1);
 		if (!pos2.empty()) {
-			spcNodeGroup->addNode(lexical_cast<int>(pos2));
+		    int nodeG2 = lexical_cast<int>(pos2);
+			spcNodeGroup->addNode(nodeG2);
+			spc.addNodeId(nodeG2);
 			while (tok.isNextInt()) {
 				int nodeId = tok.nextInt();
 				spcNodeGroup->addNode(nodeId);
+				spc.addNodeId(nodeId);
 			}
 		}
 	}
 
-	spc.group = spcNodeGroup;
-	model->add(spc);
-
+	// Adding the constraint to the model
+    model->add(spc);
 	model->addConstraintIntoConstraintSet(spc,
 			Reference<ConstraintSet>(ConstraintSet::SPC, set_id));
+
 }
 
 void NastranParserImpl::parseSPCD(NastranTokenizer& tok, shared_ptr<Model> model) {
