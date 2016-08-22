@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 2.8.2 FATAL_ERROR)
 
 # Definition of the VEGA version
 set(VEGA_MAJOR_VERSION 2)
-set(VEGA_MINOR_VERSION 0)
+set(VEGA_MINOR_VERSION 1)
 set(VEGA_PATCH_VERSION 0)
 IF(NOT DEFINED VEGA_EXTRA_VERSION)
     set(VEGA_EXTRA_VERSION "" CACHE STRING "Vega extra version string")
