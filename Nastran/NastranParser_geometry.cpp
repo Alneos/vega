@@ -69,9 +69,9 @@ void NastranParserImpl::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model
 	if (cp != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID)
 		handleParsingError("GRID CP coordinate system not supported", tok, model);
 
-	double x1 = tok.nextDouble();
-	double x2 = tok.nextDouble();
-	double x3 = tok.nextDouble();
+	double x1 = tok.nextDouble(true, 0.0);
+	double x2 = tok.nextDouble(true, 0.0);
+	double x3 = tok.nextDouble(true, 0.0);
 
 	/* Coordinate System for Displacement */
 	int cd = tok.nextInt(true, grdSet.cd);
