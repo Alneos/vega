@@ -341,9 +341,7 @@ class SystusWriter: public Writer {
 	void writeLists(std::ostream&);
 	void writeVectors(std::ostream&);
 	void writeDat(const SystusModel&, const ConfigurationParameters &, const int idSubcase, std::ostream&);
-	void writeConstraint(const SystusModel& systusModel, const ConstraintSet&, std::ostream&);
-	void writeLoad(const LoadSet&, std::ostream&);
-	void writeLoad(const ConstraintSet&, std::ostream&);
+
 	void writeNodalDisplacementAssertion(Assertion& assertion, ostream& out);
 	void writeNodalComplexDisplacementAssertion(Assertion& assertion, ostream& out);
 	void writeFrequencyAssertion(Assertion& assertion, ostream& out);
