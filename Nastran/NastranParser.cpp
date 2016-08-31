@@ -932,22 +932,22 @@ void NastranParserImpl::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model
 	const double nsm = tok.nextDouble(true, 0.0);
 	if (!tok.isEmptyUntilNextKeyword())
 		tok.skip(1);
-	double c1 = tok.nextDouble(true);
-	double c2 = tok.nextDouble(true);
-	double d1 = tok.nextDouble(true);
-	double d2 = tok.nextDouble(true);
-	double e1 = tok.nextDouble(true);
-	double e2 = tok.nextDouble(true);
-	double f1 = tok.nextDouble(true);
-	double f2 = tok.nextDouble(true);
-	if (!is_equal(c1, NastranTokenizer::UNAVAILABLE_DOUBLE)
-			|| !is_equal(c2, NastranTokenizer::UNAVAILABLE_DOUBLE)
-			|| !is_equal(d1, NastranTokenizer::UNAVAILABLE_DOUBLE)
-			|| !is_equal(d2, NastranTokenizer::UNAVAILABLE_DOUBLE)
-			|| !is_equal(e1, NastranTokenizer::UNAVAILABLE_DOUBLE)
-			|| !is_equal(e2, NastranTokenizer::UNAVAILABLE_DOUBLE)
-			|| !is_equal(f1, NastranTokenizer::UNAVAILABLE_DOUBLE)
-			|| !is_equal(f2, NastranTokenizer::UNAVAILABLE_DOUBLE)) {
+	double c1 = tok.nextDouble(true, 0.0);
+	double c2 = tok.nextDouble(true, 0.0);
+	double d1 = tok.nextDouble(true, 0.0);
+	double d2 = tok.nextDouble(true, 0.0);
+	double e1 = tok.nextDouble(true, 0.0);
+	double e2 = tok.nextDouble(true, 0.0);
+	double f1 = tok.nextDouble(true, 0.0);
+	double f2 = tok.nextDouble(true, 0.0);
+	if (!is_equal(c1, 0.0)
+			|| !is_equal(c2, 0.0)
+			|| !is_equal(d1, 0.0)
+			|| !is_equal(d2, 0.0)
+			|| !is_equal(e1, 0.0)
+			|| !is_equal(e2, 0.0)
+			|| !is_equal(f1, 0.0)
+			|| !is_equal(f2, 0.0)) {
 		/* Ci, Di, Ei, Fi Stress recovery coefficients. (Real; Default = 0.0)
 		 * The stress recovery coefficients C1 and C2, etc., are the y and z coordinates
 		 * in the bar element coordinate system of a point at which stresses are
