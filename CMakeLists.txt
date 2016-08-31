@@ -81,7 +81,7 @@ else(WIN32)
         add_compile_options(-D_XOPEN_SOURCE=500)
     ELSE(CYGWIN)
         # Specific options for Linux compilations
-        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -rdynamic")
+        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
         if(STATIC_LINKING)
             # Nothing to do
         else(STATIC_LINKING)
@@ -179,7 +179,6 @@ if(IS_DIRECTORY ${MEDFile_DIR})
     mark_as_advanced(MEDFile_DIR)
 endif(IS_DIRECTORY ${MEDFile_DIR})
     
-include(MEDFileConfig)
 
 set(Boost_USE_STATIC_LIBS ${STATIC_LINKING})
 #set(Boost_USE_MULTITHREADED ON)
@@ -196,6 +195,7 @@ list(APPEND EXTERNAL_LIBRARIES ${Boost_LIBRARIES})
 
 #works only in Linux, in windows always choose the static version
 set(MEDFILE_USE_STATIC_LIBS ${STATIC_LINKING})
+SET(HDF5_USE_STATIC_LIBRARIES ${STATIC_LINKING})
 find_package(MEDFile CONFIG REQUIRED NO_DEFAULT_PATH)
 include_directories(SYSTEM ${MEDFILE_INCLUDE_DIRS})
 include_directories(SYSTEM ${HDF5_INCLUDE_DIR})
