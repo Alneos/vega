@@ -980,7 +980,7 @@ void NastranParserImpl::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model
 		handleParsingError(message, tok, model);
 	}
 
-	GenericSectionBeam genericSectionBeam(*model, area, i2, i1, j, invk1, invk2, Beam::EULER, nsm,
+	GenericSectionBeam genericSectionBeam(*model, area, i1, i2, j, invk1, invk2, Beam::EULER, nsm,
 			elemId);
 	genericSectionBeam.assignMaterial(material_id);
 	genericSectionBeam.assignCellGroup(getOrCreateCellGroup(elemId, model, "PBAR"));
@@ -1334,7 +1334,6 @@ void NastranParserImpl::parsePROD(NastranTokenizer& tok, shared_ptr<Model> model
 	}
 	GenericSectionBeam genericSectionBeam(*model, a, 0, 0, j, 0, 0, GenericSectionBeam::EULER, nsm,
 			propId);
-	genericSectionBeam.assignMaterial(material_id);
 	genericSectionBeam.assignMaterial(material_id);
 	genericSectionBeam.assignCellGroup(getOrCreateCellGroup(propId, model, "PROD"));
 	model->add(genericSectionBeam);
