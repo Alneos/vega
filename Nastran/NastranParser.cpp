@@ -398,9 +398,16 @@ void NastranParserImpl::addAnalysis(shared_ptr<Model> model, map<string, string>
 			analysis_str = "101";
 	}
 
+	// Finding label
+	string labelAnalysis="Analysis_"+to_string(analysis_id);
+	it = context.find("LABEL");
+	if (it != context.end())
+		labelAnalysis = trim_copy(it->second);
+
+
 	if (analysis_str == "101" || analysis_str == "SESTATIC") {
 
-		LinearMecaStat analysis(*model, analysis_id);
+		LinearMecaStat analysis(*model, labelAnalysis, analysis_id);
 
 		for (auto it = context.begin(); it != context.end(); it++) {
 			string key = it->first;
@@ -440,7 +447,7 @@ void NastranParserImpl::addAnalysis(shared_ptr<Model> model, map<string, string>
 		if (it == context.end())
 			throw ParsingException("METHOD not found for linear modal analysis", "", 0);
 
-		LinearModal analysis(*model, frequency_band_original_id, analysis_id);
+		LinearModal analysis(*model, frequency_band_original_id, labelAnalysis, analysis_id);
 
 		it = context.find("SPC");
 		if (it != context.end()) {
@@ -474,7 +481,7 @@ void NastranParserImpl::addAnalysis(shared_ptr<Model> model, map<string, string>
 		else
 			strategy_original_id = atoi(it->second.c_str());
 
-		NonLinearMecaStat analysis(*model, strategy_original_id, analysis_id);
+		NonLinearMecaStat analysis(*model, strategy_original_id, labelAnalysis, analysis_id);
 
 		for (auto it = context.begin(); it != context.end(); it++) {
 			string key = it->first;
@@ -583,7 +590,7 @@ void NastranParserImpl::addAnalysis(shared_ptr<Model> model, map<string, string>
 			residual_vector = true;
 
 		LinearDynaModalFreq analysis(*model, frequency_band_original_id, modal_damping_original_id,
-				frequency_value_original_id, residual_vector, analysis_id);
+				frequency_value_original_id, residual_vector, labelAnalysis, analysis_id);
 
 		it = context.find("SPC");
 		if (it != context.end()) {

@@ -39,6 +39,7 @@ class Analysis: public Identifiable<Analysis> {
 private:
 	friend ostream &operator<<(ostream &out, const Analysis& analysis);    //output
 	std::map<int, char> boundaryDOFSByNodePosition;
+	const string label;         /**< User defined label for this instance of Analysis. **/
 public:
 	enum Type {
 		LINEAR_MECA_STAT,
@@ -55,11 +56,11 @@ protected:
 public:
 	Model& model;
 	const Type type;
-	static const string name;
+	static const string name;     /**< String conversion of the object, i.e "Analysis" **/
 	static const map<Type,string> stringByType;
 	std::shared_ptr<Analysis> previousAnalysis;
 
-	Analysis(Model& model, const Type Type, const int original_id = NO_ORIGINAL_ID);
+	Analysis(Model& model, const Type Type, const string original_label = "", const int original_id = NO_ORIGINAL_ID);
 
 	void add(const Reference<LoadSet>&);
 	void add(const Reference<ConstraintSet>&);
@@ -72,6 +73,8 @@ public:
 	void remove(const Reference<LoadSet>);
 	void remove(const Reference<ConstraintSet>);
 	void remove(const Reference<Objective>);
+
+	const string getLabel() const {return label;}  /**< Getter for the label variable **/
 
 	/**
 	 * retrieve the ConstraintSets specific to this analysis
@@ -101,17 +104,17 @@ public:
 
 class LinearMecaStat: public Analysis {
 public:
-	LinearMecaStat(Model& model, const int original_id = NO_ORIGINAL_ID);
+	LinearMecaStat(Model& model, const string original_label = "", const int original_id = NO_ORIGINAL_ID);
 	std::shared_ptr<Analysis> clone() const;
 };
 
 class NonLinearMecaStat: public Analysis {
 public:
 	Reference<Objective> strategy_reference;
-	NonLinearMecaStat(Model& model, const NonLinearStrategy& strategy, const int original_id =
-			NO_ORIGINAL_ID);
-	NonLinearMecaStat(Model& model, const int strategy_original_id, const int original_id =
-			NO_ORIGINAL_ID);
+	NonLinearMecaStat(Model& model, const NonLinearStrategy& strategy, const string original_label = "",
+			const int original_id = NO_ORIGINAL_ID);
+	NonLinearMecaStat(Model& model, const int strategy_original_id, const string original_label = "",
+			const int original_id = NO_ORIGINAL_ID);
 	std::shared_ptr<Analysis> clone() const;
 	bool validate() const override;
 };
@@ -120,10 +123,10 @@ class LinearModal: public Analysis {
 protected:
 	Reference<Objective> frequency_band_reference;
 public:
-	LinearModal(Model& model, const FrequencyBand& frequency_band, const int original_id =
-			NO_ORIGINAL_ID, const Type type = LINEAR_MODAL);
-	LinearModal(Model& model, const int frequency_band_original_id, const int original_id =
-			NO_ORIGINAL_ID, const Type type = LINEAR_MODAL);
+	LinearModal(Model& model, const FrequencyBand& frequency_band, const string original_label = "",
+			const int original_id = NO_ORIGINAL_ID, const Type type = LINEAR_MODAL);
+	LinearModal(Model& model, const int frequency_band_original_id, const string original_label = "",
+			const int original_id = NO_ORIGINAL_ID, const Type type = LINEAR_MODAL);
 	std::shared_ptr<FrequencyBand> getFrequencyBand() const;
 	std::shared_ptr<Analysis> clone() const;
 	bool validate() const override;
@@ -136,10 +139,12 @@ protected:
 public:
 	LinearDynaModalFreq(Model& model, const FrequencyBand& frequency_band,
 			const ModalDamping& modal_damping, const FrequencyValues& frequency_values,
-			const bool residual_vector = false, const int original_id = NO_ORIGINAL_ID);
+			const bool residual_vector = false,
+			const string original_label = "", const int original_id = NO_ORIGINAL_ID);
 	LinearDynaModalFreq(Model& model, const int frequency_band_original_id,
 			const int modal_damping_original_id, const int frequency_value_original_id,
-			const bool residual_vector = false, const int original_id = NO_ORIGINAL_ID);
+			const bool residual_vector = false,
+			const string original_label = "", const int original_id = NO_ORIGINAL_ID);
 	const bool residual_vector;
 	std::shared_ptr<ModalDamping> getModalDamping() const;
 	std::shared_ptr<FrequencyValues> getFrequencyValues() const;

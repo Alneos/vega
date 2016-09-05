@@ -18,8 +18,8 @@
 
 namespace vega {
 
-Analysis::Analysis(Model& model, const Type Type, int original_id) :
-		Identifiable(original_id), model(model), type(Type) {
+Analysis::Analysis(Model& model, const Type Type, const string original_label, int original_id) :
+		Identifiable(original_id), label(original_label), model(model), type(Type) {
 }
 
 const string Analysis::name = "Analysis";
@@ -250,8 +250,8 @@ const set<int> Analysis::boundaryNodePositions() const {
 Analysis::~Analysis() {
 }
 
-LinearMecaStat::LinearMecaStat(Model& model, const int original_id) :
-		Analysis(model, Analysis::LINEAR_MECA_STAT, original_id) {
+LinearMecaStat::LinearMecaStat(Model& model, const string original_label, const int original_id) :
+		Analysis(model, Analysis::LINEAR_MECA_STAT, original_label, original_id) {
 
 }
 
@@ -259,8 +259,9 @@ shared_ptr<Analysis> LinearMecaStat::clone() const {
 	return shared_ptr<LinearMecaStat>(new LinearMecaStat(*this));
 }
 
-NonLinearMecaStat::NonLinearMecaStat(Model& model, const int strategy_id, const int original_id) :
-		Analysis(model, Analysis::NONLINEAR_MECA_STAT, original_id), strategy_reference(
+NonLinearMecaStat::NonLinearMecaStat(Model& model, const int strategy_id,
+	    const string original_label, const int original_id) :
+		Analysis(model, Analysis::NONLINEAR_MECA_STAT, original_label, original_id), strategy_reference(
 				Objective::NONLINEAR_STRATEGY, strategy_id) {
 
 }
@@ -273,9 +274,9 @@ bool NonLinearMecaStat::validate() const {
 	return Analysis::validate();
 }
 
-LinearModal::LinearModal(Model& model, const int frequency_band_original_id, const int original_id,
-		const Type type) :
-		Analysis(model, type, original_id), frequency_band_reference(Objective::FREQUENCY_BAND,
+LinearModal::LinearModal(Model& model, const int frequency_band_original_id,
+		const string original_label, const int original_id, const Type type) :
+		Analysis(model, type, original_label, original_id), frequency_band_reference(Objective::FREQUENCY_BAND,
 				frequency_band_original_id) {
 }
 
@@ -293,8 +294,8 @@ bool LinearModal::validate() const {
 
 LinearDynaModalFreq::LinearDynaModalFreq(Model& model, const int frequency_band_original_id,
 		const int modal_damping_original_id, const int frequency_value_original_id,
-		const bool residual_vector, const int original_id) :
-		LinearModal(model, frequency_band_original_id, original_id,
+		const bool residual_vector, const string original_label, const int original_id) :
+		LinearModal(model, frequency_band_original_id, original_label, original_id,
 				Analysis::LINEAR_DYNA_MODAL_FREQ), modal_damping_reference(Objective::MODAL_DAMPING,
 				modal_damping_original_id), frequency_values_reference(Objective::FREQUENCY_TARGET,
 				frequency_value_original_id), residual_vector(residual_vector) {

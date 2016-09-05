@@ -618,7 +618,8 @@ void SystusWriter::generateSubcases(const SystusModel& systusModel,
 			const vector<int> subcase = systusSubcases[i];
 			cout << "Subcase "<< (i+1) <<" regroups Analyzes:";
 			for (unsigned j = 0; j < subcase.size(); j++){
-				cout << " "<<subcase[j];
+				const auto analysis = systusModel.model->getAnalysis(subcase[j]);
+				cout << " \""<< analysis->getLabel()<<"\"";
 			}
 			cout <<endl;
 		}
@@ -631,6 +632,7 @@ void SystusWriter::fillLoads(const SystusModel& systusModel, const int idSubcase
 
 	int idSystusLoad=1;
 	localLoadingListIdByLoadingListId.clear();
+	localLoadingListName.clear();
 
 	// All analysis to do
 	const vector<int> analysisId = systusSubcases[idSubcase];
@@ -646,7 +648,11 @@ void SystusWriter::fillLoads(const SystusModel& systusModel, const int idSubcase
 		const vector<shared_ptr<LoadSet>> analysisLoadSets = analysis->getLoadSets();
 		for (const auto& loadSet : analysisLoadSets) {
 			localLoadingListIdByLoadingListId[loadSet->getId()]= idSystusLoad;
-			idSystusLoad++;
+			// Title of Loadset is of the form AnalysisName_lLoadId.
+			// It is limited to 80 characters
+			string suffixe = "_LOAD"+to_string(loadSet->bestId());
+			localLoadingListName[idSystusLoad]= analysis->getLabel().substr(0, 80 - suffixe.length())+ suffixe;
+		    idSystusLoad++;
 		}
 	}
 }
@@ -1609,11 +1615,11 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 void SystusWriter::writeLoads(ostream& out) {
 	out << "BEGIN_LOADS ";
 	// Number of written loads
-	out << localLoadingListIdByLoadingListId.size() << endl;
+	out << localLoadingListName.size() << endl;
 	// Writing Loads
-	for (const auto& load : localLoadingListIdByLoadingListId) {
-		out << load.second << " \"LOADSET_" << load.first << "\" ";
-		out << "0 0 0 0 0 0 0 7" << endl;
+	for (const auto& load : localLoadingListName) {
+		out << load.first << " \""<<load.second<< "\"";
+		out << " 0 0 0 0 0 0 0 7" << endl;
 	}
 	out << "END_LOADS" << endl;
 

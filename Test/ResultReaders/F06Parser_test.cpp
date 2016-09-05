@@ -48,8 +48,8 @@ BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 	shell.assignCellGroup(cn1);
 	model->add(shell);
 	//node 10 outside mesh, number of assertion = 6 nodes * 6 dofs
-	model->add(LinearMecaStat(*model, 1));
-	model->add(LinearMecaStat(*model, 2));
+	model->add(LinearMecaStat(*model, "", 1));
+	model->add(LinearMecaStat(*model, "", 2));
 
 	BOOST_CHECKPOINT("Before Parse");
 	f06parser.add_assertions(confParams, model);
@@ -95,8 +95,8 @@ BOOST_AUTO_TEST_CASE(node_not_in_elements) {
 	model->mesh->addNode(6, 2, 3, 4);
 	model->mesh->addNode(10, 2.1, 3.1, 4.1);
 
-	model->add(LinearMecaStat(*model, 1));
-	model->add(LinearMecaStat(*model, 2));
+	model->add(LinearMecaStat(*model, "", 1));
+	model->add(LinearMecaStat(*model, "", 2));
 
 	BOOST_CHECKPOINT("Before Parse");
 	f06parser.add_assertions(confParams, model);
@@ -142,7 +142,7 @@ BOOST_AUTO_TEST_CASE(test_4a) {
 	DiscretePoint discrete(*model, { });
 	discrete.assignCellGroup(cn2);
 	model->add(discrete);
-	model->add(LinearMecaStat(*model, 1));
+	model->add(LinearMecaStat(*model, "", 1));
 
 	BOOST_CHECKPOINT("Before Parse");
 	F06Parser f06parser;

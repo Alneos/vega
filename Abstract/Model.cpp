@@ -27,8 +27,8 @@ Model::Model(string name, string inputSolverVersion, SolverName inputSolver,
         name(name), inputSolverVersion(inputSolverVersion), //
         inputSolver(inputSolver), //
         modelType(ModelType::TRIDIMENSIONAL_SI), //
-        configuration(configuration), commonLoadSet(*this, LoadSet::ALL, LoadSet::COMMON_SET_ID), commonConstraintSet(
-                *this, ConstraintSet::ALL, ConstraintSet::COMMON_SET_ID) {
+        configuration(configuration), commonLoadSet(*this, LoadSet::ALL, LoadSet::COMMON_SET_ID),
+		commonConstraintSet(*this, ConstraintSet::ALL, ConstraintSet::COMMON_SET_ID) {
     this->mesh = shared_ptr<Mesh>(new Mesh(configuration.logLevel, name));
     this->finished = false;
     this->onlyMesh = false;
@@ -1135,7 +1135,7 @@ void Model::addDefaultAnalysis()
 {
     if (this->analyses.size() == 0 && (loadings.size() > 0 || constraints.size() > 0)) {
         //add an automatic linear analysis
-        LinearMecaStat analysis(*this, 1);
+        LinearMecaStat analysis(*this, "", 1);
         add(analysis);
         if (this->configuration.logLevel >= LogLevel::DEBUG) {
             cout << "Default linear analysis added." << endl;

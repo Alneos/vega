@@ -230,6 +230,7 @@ private:
 
         /**
          * Add a Loading reference into a LoadSet reference.
+         * If needed, create and add the LoadSet reference to the model.
          */
         void addLoadingIntoLoadSet(const Reference<Loading>&, const Reference<LoadSet>&);
 

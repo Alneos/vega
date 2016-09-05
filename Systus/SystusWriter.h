@@ -101,6 +101,7 @@ class SystusWriter: public Writer {
 	map<int, map<int, int>> localVectorIdByConstraintListIdByLoadcaseId;
 	map<int, int> localVectorIdByCoordinateSystemPos;
 	map<int, int> loadingListIdByNodePosition;
+	map<int, string> localLoadingListName;
 	map<int, int> constraintListIdByNodePosition;
 	map<int, char> constraintByNodePosition;
 	vector< vector<int> > systusSubcases;   /**< < subcase , <loadcases ids> > : Ids of loadcases composing the subcase **/
