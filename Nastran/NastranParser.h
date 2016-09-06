@@ -146,6 +146,10 @@ private:
 	 *
 	 */
 	static const std::unordered_map<CellType::Code, vector<int>, std::hash<int>> nastran2medNodeConnectByCellType;
+	/**
+	 * Parse the CBAR keyword (page 1154 of MDN Nastran 2006 Quick Reference Guide.)
+	 * Pin flags (PA, PB) and offset vectors (WA, WB) are not supported.
+	 */
 	void parseCBAR(NastranTokenizer& tok, std::shared_ptr<Model> model); //in NastranParser_geometry.cpp
 	void parseCBEAM(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
 	void parseCBUSH(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
@@ -178,8 +182,9 @@ private:
 	void parseMATS1(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void parseMOMENT(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	/**
-	 * Parse the PBAR keyword. Neither Stress coefficients nor i12 are supported.
-	 * */
+	 * Parse the PBAR keyword.
+	 * Neither Stress coefficients nor i12 are supported.
+	 */
 	void parsePBAR(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void parsePBARL(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void parsePBEAM(NastranTokenizer& tok, std::shared_ptr<Model> model);
