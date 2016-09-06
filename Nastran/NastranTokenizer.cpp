@@ -39,6 +39,44 @@ NastranTokenizer::NastranTokenizer(istream& input, vega::LogLevel logLevel, cons
 NastranTokenizer::~NastranTokenizer() {
 }
 
+NastranTokenizer::LineType NastranTokenizer::getLineType(const string& line) {
+	const string beginning = line.substr(0, 8);
+	if (beginning.find(",") == string::npos) {
+		if (beginning.find("*") == string::npos) {
+			return SHORT_FORMAT;
+		} else {
+			return LONG_FORMAT;
+		}
+	} else {
+		return FREE_FORMAT;
+	}
+}
+
+
+void NastranTokenizer::replaceTabs(string& line, bool longFormat) {
+	bool found = true;
+	do {
+		size_t pos = line.find("\t");
+		found = pos != string::npos;
+		if (found) {
+			int FIELD_SIZE = SFSIZE;
+			int offset = 0;
+			int ipos = static_cast<int>(pos);
+			if (longFormat){
+				if (ipos>7){
+					offset = SFSIZE;
+					FIELD_SIZE = LFSIZE;
+				}
+				if (ipos>71) FIELD_SIZE=LFSIZE;
+			}
+			int numSpacesNeeded = FIELD_SIZE - ((ipos-offset) % FIELD_SIZE);
+			string filler(numSpacesNeeded, ' ');
+			boost::replace_first(line, "\t", filler);
+		}
+	} while (found);
+}
+
+
 string NastranTokenizer::nextSymbolString() {
 	if (this->nextSymbolType == SYMBOL_EOF) {
 		ostringstream oss;
@@ -66,20 +104,6 @@ string NastranTokenizer::nextSymbolString() {
 		this->nextSymbolType = SYMBOL_FIELD;
 	}
 	return boost::trim_right_copy(result);
-}
-
-NastranTokenizer::LineType NastranTokenizer::getLineType(const string& line) {
-	const string beginning = line.substr(0, 8);
-	if (beginning.find(",") == string::npos) {
-		if (beginning.find("*") == string::npos) {
-			return SHORT_FORMAT;
-		} else {
-			return LONG_FORMAT;
-		}
-	} else {
-		return FREE_FORMAT;
-	}
-
 }
 
 bool NastranTokenizer::readLineSkipComment(string& line) {
@@ -168,19 +192,6 @@ void NastranTokenizer::parseParameters() {
 	split(currentLineVector, this->currentLine, boost::is_any_of("\\="));
 }
 
-void NastranTokenizer::replaceTabs(string& line) {
-	bool found = true;
-	do {
-		size_t pos = line.find("\t");
-		found = pos != string::npos;
-		if (found) {
-			int numSpacesNeeded = 4 - (static_cast<int>(pos) % TAB_SIZE);
-			string filler(numSpacesNeeded, ' ');
-			boost::replace_first(line, "\t", filler);
-		}
-	} while (found);
-}
-
 bool NastranTokenizer::isNextInt() {
 	if (nextSymbolType != NastranTokenizer::SYMBOL_FIELD) {
 		return false;
@@ -249,16 +260,16 @@ void NastranTokenizer::splitFixedFormat(string& line, const bool longFormat, con
 
 	int fieldMax;
 	if (longFormat) {
-		int offsets[] = { 8, 16, 16, 16, 16, 8 };
+		int offsets[] = { SFSIZE, LFSIZE, LFSIZE, LFSIZE, LFSIZE, SFSIZE };
 		fieldMax = 5;
 		f = offset_separator(offsets, offsets + 6);
 	} else {
-		int offsets[] = { 8, 8, 8, 8, 8, 8, 8, 8, 8, 8 };
+		int offsets[] = { SFSIZE, SFSIZE, SFSIZE, SFSIZE, SFSIZE, SFSIZE, SFSIZE, SFSIZE, SFSIZE, SFSIZE };
 		fieldMax = 9;
 		f = offset_separator(offsets, offsets + 10);
-
 	}
-	replaceTabs(line);
+
+	replaceTabs(line, longFormat);
 	tokenizer<offset_separator> tok(line, f);
 	tokenizer<offset_separator>::iterator beg = tok.begin();
 	int count = 0;
@@ -293,9 +304,11 @@ void NastranTokenizer::splitFixedFormat(string& line, const bool longFormat, con
 			throw "Continuation Expected: Line N " + this->lineNumber;
 		}
 	} else {
-		//test for automatic continuation
+		/** Test for automatic continuation : we allow tabulation
+		 *  Even if it's, strictly speaking, not authorized by Nastran
+		 */
 		char c = static_cast<char>(this->instrream.peek());
-		if (c == ' ' || c == '+' || c == '*') {
+		if (c == ' ' || c == '+' || c == '*' || c=='\t') {
 			readLineSkipComment(line2);
 			//fill the current line with empty fields
 			for (; count < fieldMax; count++) {

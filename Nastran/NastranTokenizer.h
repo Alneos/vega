@@ -30,17 +30,19 @@ private:
 		SHORT_FORMAT,
 		LONG_FORMAT
 	};
-	static const int TAB_SIZE = 4;
+	static const int SFSIZE = 8; /**< Short field size **/
+	static const int LFSIZE = 16;/**< Long field size **/
 
 	istream& instrream;
 	unsigned int currentField;
 	vector<string> currentLineVector;
 	string currentLine;
 
+	LineType getLineType(const string& line); /**< Determine the LineType of the line.**/
+	void replaceTabs(string &line, bool longFormat); /**< Replace all tabulation by the needed number of space. **/
+
 	void splitFixedFormat(string& line, bool longFormat, bool firstLine);
 
-	void replaceTabs(string &line);
-	LineType getLineType(const string& line);
 	bool readLineSkipComment(string& line);
 	void splitFreeFormat(string line, bool firstLine);
 	void parseBulkSectionLine(string line);
@@ -75,8 +77,10 @@ public:
 			const string fileName = "UNKNOWN");
 	virtual ~NastranTokenizer();
 
-	/*
-	 * 3 formats section
+	/**
+	 * Set the Tokenizer into BULK mode, which allows three formats: free,
+	 * short and long.
+	 * If a line was already read, it re-reads it in BULK mode.
 	 */
 	void bulkSection();
 	/*

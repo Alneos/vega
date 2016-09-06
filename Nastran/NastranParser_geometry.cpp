@@ -156,7 +156,7 @@ void NastranParserImpl::parseCBAR(NastranTokenizer& tok, shared_ptr<Model> model
 	int pb = tok.nextInt(true);
 	if ((pa != NastranTokenizer::UNAVAILABLE_INT) || (pb != NastranTokenizer::UNAVAILABLE_INT)) {
 		string message = string("CBAR Pin flags (PA, PB) not supported and dismissed.");
-		throw ParsingException(message, tok.fileName, tok.lineNumber);
+		handleParsingError(message, tok, model);
 	}
 	// Offset vectors : not supported
 	double w1a = tok.nextDouble(true, 0.0);
@@ -168,9 +168,8 @@ void NastranParserImpl::parseCBAR(NastranTokenizer& tok, shared_ptr<Model> model
 	if (! ( is_equal(w1a,0.0)&&is_equal(w2a,0.0)&&is_equal(w3a,0.0)
 			&&is_equal(w1b,0.0)&&is_equal(w2b,0.0)&&is_equal(w3b,0.0))){
 		string message = string("CBAR Offset vectors (WA, WB) not supported and taken as null.");
-		throw ParsingException(message, tok.fileName, tok.lineNumber);
+		handleParsingError(message, tok, model);
 	}
-
 	vector<int> connectivity;
 	connectivity += point1, point2;
 	model->mesh->addCell(cell_id, CellType::SEG2, connectivity, false, cpos);
