@@ -819,6 +819,32 @@ void NastranParserImpl::parseMAT1(NastranTokenizer& tok, shared_ptr<Model> model
 	double a = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
 	double tref = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
 	double ge = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
+    
+	// Default behavior from page 1664 of MDN Nastran 2006 Quick Reference Guide
+	if ((is_equal(e,NastranTokenizer::UNAVAILABLE_DOUBLE))&&(is_equal(g,NastranTokenizer::UNAVAILABLE_DOUBLE))){
+		string message = "Material " + to_string(material_id)+": E and G may not both be blank.";
+		handleParsingWarning(message, tok, model);
+	}
+	if (is_equal(nu,NastranTokenizer::UNAVAILABLE_DOUBLE)){
+		if (is_equal(g,NastranTokenizer::UNAVAILABLE_DOUBLE)){
+			nu = 0.0;
+			g = 0.0;
+		}else if (is_equal(e,NastranTokenizer::UNAVAILABLE_DOUBLE)){
+			nu = 0.0;
+			e = 0.0;
+		}else
+			nu = e/(2.0*g)-1;
+	}
+	if ((is_equal(e,NastranTokenizer::UNAVAILABLE_DOUBLE))&&
+			(!is_equal(g,NastranTokenizer::UNAVAILABLE_DOUBLE))&&(!is_equal(nu,NastranTokenizer::UNAVAILABLE_DOUBLE))){
+		e= 2.0 * (1+nu) * g;
+	}
+	if ((is_equal(g,NastranTokenizer::UNAVAILABLE_DOUBLE))&&
+			(!is_equal(e,NastranTokenizer::UNAVAILABLE_DOUBLE))&&(!is_equal(nu,NastranTokenizer::UNAVAILABLE_DOUBLE))){
+        g = e / (2.0 * (1+nu));
+	}
+
+
 	if (!is_equal(ge, NastranTokenizer::UNAVAILABLE_DOUBLE)) {
 		string message = "GE not supported line " + to_string(tok.lineNumber);
 		throw ParsingException(message, tok.fileName, tok.lineNumber);

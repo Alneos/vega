@@ -169,6 +169,11 @@ private:
 	void parseGRID(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
 	void parseGRAV(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void parseInclude(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+	/**
+	 * Parse the MAT1 keyword (page 1664 of MDN Nastran 2006 Quick Reference Guide.)
+	 * Structural element damping coefficient (GE) are not supported.
+	 */
 	void parseMAT1(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void parseMATS1(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void parseMOMENT(NastranTokenizer& tok, std::shared_ptr<Model> model);
