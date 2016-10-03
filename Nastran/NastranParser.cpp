@@ -959,9 +959,9 @@ void NastranParserImpl::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model
 	int elemId = tok.nextInt();
 	int material_id = tok.nextInt();
 	double area = tok.nextDouble();
-	const double i1 = tok.nextDouble(true, 0.0);
-	const double i2 = tok.nextDouble(true, 0.0);
-	const double j = tok.nextDouble(true, 0.0);
+	const double i1 = tok.nextDouble(true, 0.0); // I1 = Izz
+	const double i2 = tok.nextDouble(true, 0.0); // I2 = Iyy
+	const double j = tok.nextDouble(true, 0.0);  // J = Ixx
 	const double nsm = tok.nextDouble(true, 0.0);
 	if (!tok.isEmptyUntilNextKeyword())
 		tok.skip(1);
@@ -993,8 +993,8 @@ void NastranParserImpl::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model
 
 	// K1, K2: Area factors for shear. VEGA works with 1/K1 and 1/K2
 	// Default values is infinite
-	const double k1 = tok.nextDouble(true);
-	const double k2 = tok.nextDouble(true);
+	const double k1 = tok.nextDouble(true); // K1 = Kzz
+	const double k2 = tok.nextDouble(true); // K2 = Kyy
 	double invk1, invk2;
 	if (is_equal(k1, NastranTokenizer::UNAVAILABLE_DOUBLE)){
 		invk1= 0.0;
@@ -1013,7 +1013,7 @@ void NastranParserImpl::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model
 		handleParsingError(message, tok, model);
 	}
 
-	GenericSectionBeam genericSectionBeam(*model, area, i1, i2, j, invk1, invk2, Beam::EULER, nsm,
+	GenericSectionBeam genericSectionBeam(*model, area, i2, i1, j, invk2, invk1, Beam::EULER, nsm,
 			elemId);
 	genericSectionBeam.assignMaterial(material_id);
 	genericSectionBeam.assignCellGroup(getOrCreateCellGroup(elemId, model, "PBAR"));
@@ -1021,9 +1021,15 @@ void NastranParserImpl::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model
 }
 
 void NastranParserImpl::parsePBARL(NastranTokenizer& tok, shared_ptr<Model> model) {
-	int elemId = tok.nextInt();
+	int propertyId = tok.nextInt(); // PID
 	int material_id = tok.nextInt();
-	string group = tok.nextString(true);
+
+	string group = tok.nextString(true, "MSCBML0");
+	if (group!="MSCBML0"){
+	    string message = "PBARL users defined groups are not supported.";
+	    handleParsingWarning(message, tok, model);
+	}
+
 	string type = tok.nextString();
 	double nsm;
 	if (type == "BAR") {
@@ -1032,17 +1038,17 @@ void NastranParserImpl::parsePBARL(NastranTokenizer& tok, shared_ptr<Model> mode
 		double height = tok.nextDouble();
 		nsm = tok.nextDouble(true, 0.0);
 		RectangularSectionBeam rectangularSectionBeam(*model, width, height, Beam::EULER, nsm,
-				elemId);
+				propertyId);
 		rectangularSectionBeam.assignMaterial(material_id);
-		rectangularSectionBeam.assignCellGroup(getOrCreateCellGroup(elemId, model, "PBARL"));
+		rectangularSectionBeam.assignCellGroup(getOrCreateCellGroup(propertyId, model, "PBARL"));
 		model->add(rectangularSectionBeam);
 	} else if (type == "ROD") {
 		tok.skip(4);
 		double radius = tok.nextDouble();
 		nsm = tok.nextDouble(true, 0.0);
-		CircularSectionBeam circularSectionBeam(*model, radius, Beam::EULER, nsm, elemId);
+		CircularSectionBeam circularSectionBeam(*model, radius, Beam::EULER, nsm, propertyId);
 		circularSectionBeam.assignMaterial(material_id);
-		circularSectionBeam.assignCellGroup(getOrCreateCellGroup(elemId, model, "PBARL"));
+		circularSectionBeam.assignCellGroup(getOrCreateCellGroup(propertyId, model, "PBARL"));
 		model->add(circularSectionBeam);
 	} else {
 		string message = "PBARL type " + type + " not implemented.";

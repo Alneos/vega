@@ -121,7 +121,7 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
 		 */
 		break;
 	case ElementSet::CIRCULAR_SECTION_BEAM:
-	case ElementSet::RECTANGULAR_BEAM:
+	case ElementSet::RECTANGULAR_SECTION_BEAM:
 	case ElementSet::I_SECTION_BEAM:
 	case ElementSet::GENERIC_SECTION_BEAM: {
 		Beam::BeamModel beamModel = (static_pointer_cast<Beam>(elementSet))->beamModel;

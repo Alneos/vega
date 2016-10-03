@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE( test_Elements ) {
 	cout << "NODES:" << model.mesh->countNodes() << endl;
 	model.finish();
 	BOOST_CHECK(model.validate());
-	const vector<shared_ptr<ElementSet>> beams = model.filterElements(ElementSet::RECTANGULAR_BEAM);
+	const vector<shared_ptr<ElementSet>> beams = model.filterElements(ElementSet::RECTANGULAR_SECTION_BEAM);
 	BOOST_CHECK_EQUAL((size_t )1, beams.size());
 
 //no virtual elements

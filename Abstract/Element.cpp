@@ -40,7 +40,7 @@ const map<ElementSet::Type, string> ElementSet::stringByType = {
 		{ DISCRETE_1D, "DISCRETE_1D" },
 		{ NODAL_MASS, "NODAL_MASS" },
 		{ CIRCULAR_SECTION_BEAM, "CIRCULAR_SECTION_BEAM" },
-		{ RECTANGULAR_BEAM, "RECTANGULAR_BEAM" },
+		{ RECTANGULAR_SECTION_BEAM, "RECTANGULAR_SECTION_BEAM" },
 		{ I_SECTION_BEAM, "I_SECTION_BEAM" },
 		{ GENERIC_SECTION_BEAM, "GENERIC_SECTION_BEAM" },
 		{ STRUCTURAL_SEGMENT, "STRUCTURAL_SEGMENT" },
@@ -129,16 +129,16 @@ double CircularSectionBeam::getTorsionalConstant() const {
 }
 
 double CircularSectionBeam::getShearAreaFactorY() const {
-	throw logic_error("Not yet implemented");
+	return 10.0/9.0;
 }
 
 double CircularSectionBeam::getShearAreaFactorZ() const {
-	throw logic_error("Not yet implemented");
+	throw 10.0/9.0;
 }
 
 RectangularSectionBeam::RectangularSectionBeam(Model& model, double _width, double _height,
 		BeamModel beamModel, double additional_mass, int original_id) :
-		Beam(model, RECTANGULAR_BEAM, nullptr, beamModel, additional_mass, original_id), width(_width), height(
+		Beam(model, RECTANGULAR_SECTION_BEAM, nullptr, beamModel, additional_mass, original_id), width(_width), height(
 				_height) {
 
 }
@@ -156,20 +156,22 @@ double RectangularSectionBeam::getMomentOfInertiaZ() const {
 }
 
 double RectangularSectionBeam::getTorsionalConstant() const {
-	// http://en.wikipedia.org/wiki/Torsion_constant
-	if (width > height) {
-		return width * pow(height, 3) / 3;
-	} else {
-		return height * pow(width, 3) / 3;
-	}
+	//https://en.wikipedia.org/wiki/Torsion_constant#Rectangle
+	//if (width > height) {
+	//	return width * pow(height, 3) / 3;
+	//} else {
+	//	return height * pow(width, 3) / 3;
+	//}
+	
+	return width*pow(height, 3)*(1.0/3 -0.21*height*(1- pow(height,4)/(12*pow(width,4)))/width);
 }
 
 double RectangularSectionBeam::getShearAreaFactorY() const {
-	throw logic_error("Not yet implemented");
+	return 6.0/5.0;
 }
 
 double RectangularSectionBeam::getShearAreaFactorZ() const {
-	throw logic_error("Not yet implemented");
+	return 6.0/5.0;
 }
 
 shared_ptr<ElementSet> RectangularSectionBeam::clone() const {

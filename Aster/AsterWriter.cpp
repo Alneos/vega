@@ -592,7 +592,7 @@ void AsterWriterImpl::writeAffeCaraElemPoutre(const ElementSet& elementSet, ostr
 	out << "                            _F(GROUP_MA='" << elementSet.cellGroup->getName() << "',"
 			<< endl;
 	switch (elementSet.type) {
-	case ElementSet::RECTANGULAR_BEAM: {
+	case ElementSet::RECTANGULAR_SECTION_BEAM: {
 		const RectangularSectionBeam& rectBeam =
 				static_cast<const RectangularSectionBeam&>(elementSet);
 		out << "                               VARI_SECT='CONSTANT'," << endl;

@@ -1239,7 +1239,7 @@ void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel,
 		case ElementSet::CIRCULAR_SECTION_BEAM:
 		case ElementSet::GENERIC_SECTION_BEAM:
 		case ElementSet::I_SECTION_BEAM:
-		case ElementSet::RECTANGULAR_BEAM:
+		case ElementSet::RECTANGULAR_SECTION_BEAM:
 		case ElementSet::STRUCTURAL_SEGMENT: {
 			out << " 3 0.0 0.0 " << angles.z();
 			break;
@@ -1289,7 +1289,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 		case ElementSet::CIRCULAR_SECTION_BEAM:
 		case ElementSet::GENERIC_SECTION_BEAM:
 		case ElementSet::I_SECTION_BEAM:
-		case ElementSet::RECTANGULAR_BEAM: {
+		case ElementSet::RECTANGULAR_SECTION_BEAM: {
 			dim = 1;
 			break;
 		}
@@ -1474,11 +1474,12 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 					case (ElementSet::GENERIC_SECTION_BEAM): {
 						shared_ptr<const GenericSectionBeam> genericBeam = static_pointer_cast<
 								const GenericSectionBeam>(elementSet);
-						writeMaterialField(SMF::S, genericBeam->getAreaCrossSection(), nbElementsMaterial, omat);
+						const double S= genericBeam->getAreaCrossSection();
+						writeMaterialField(SMF::S, S, nbElementsMaterial, omat);
 
 						// VEGA stocks the inverse of our needed Shear Area Factors.
-						writeMaterialField(SMF::AY, genericBeam->getInvShearAreaFactorY(), nbElementsMaterial, omat);
-						writeMaterialField(SMF::AZ, genericBeam->getInvShearAreaFactorZ(), nbElementsMaterial, omat);
+						writeMaterialField(SMF::AY, S*genericBeam->getShearAreaFactorY(), nbElementsMaterial, omat);
+						writeMaterialField(SMF::AZ, S*genericBeam->getShearAreaFactorZ(), nbElementsMaterial, omat);
 
 						writeMaterialField(SMF::IX, genericBeam->getTorsionalConstant(), nbElementsMaterial, omat);
 						writeMaterialField(SMF::IY, genericBeam->getMomentOfInertiaY(), nbElementsMaterial, omat);
@@ -1488,7 +1489,29 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 					case (ElementSet::CIRCULAR_SECTION_BEAM): {
 						shared_ptr<const CircularSectionBeam> circularBeam = static_pointer_cast<
 								const CircularSectionBeam>(elementSet);
-						writeMaterialField(SMF::S, circularBeam->getAreaCrossSection(), nbElementsMaterial, omat);
+						const double S= circularBeam->getAreaCrossSection();
+
+						writeMaterialField(SMF::S, S, nbElementsMaterial, omat);
+						writeMaterialField(SMF::AY, S*circularBeam->getShearAreaFactorY(), nbElementsMaterial, omat);
+						writeMaterialField(SMF::AZ, S*circularBeam->getShearAreaFactorZ(), nbElementsMaterial, omat);
+
+						writeMaterialField(SMF::IX, circularBeam->getTorsionalConstant(), nbElementsMaterial, omat);
+						writeMaterialField(SMF::IY, circularBeam->getMomentOfInertiaY(), nbElementsMaterial, omat);
+						writeMaterialField(SMF::IZ, circularBeam->getMomentOfInertiaZ(), nbElementsMaterial, omat);
+						break;
+					}
+					case (ElementSet::RECTANGULAR_SECTION_BEAM): {
+						shared_ptr<const RectangularSectionBeam> rectangularBeam = static_pointer_cast<
+								const RectangularSectionBeam>(elementSet);
+						const double S= rectangularBeam->getAreaCrossSection();
+
+						writeMaterialField(SMF::S, S, nbElementsMaterial, omat);
+						writeMaterialField(SMF::AY, S*rectangularBeam->getShearAreaFactorY(), nbElementsMaterial, omat);
+						writeMaterialField(SMF::AZ, S*rectangularBeam->getShearAreaFactorZ(), nbElementsMaterial, omat);
+
+						writeMaterialField(SMF::IX, rectangularBeam->getTorsionalConstant(), nbElementsMaterial, omat);
+						writeMaterialField(SMF::IY, rectangularBeam->getMomentOfInertiaY(), nbElementsMaterial, omat);
+						writeMaterialField(SMF::IZ, rectangularBeam->getMomentOfInertiaZ(), nbElementsMaterial, omat);
 						break;
 					}
 
