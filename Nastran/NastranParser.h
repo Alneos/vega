@@ -165,8 +165,14 @@ private:
 	void parseCPENTA(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
 	void parseCPYRAM(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
 	void parseCQUAD(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+	void parseCQUAD4(NastranTokenizer& tok, shared_ptr<Model> model);//in NastranParser_geometry.cpp
+	void parseCQUAD8(NastranTokenizer& tok, shared_ptr<Model> model);//in NastranParser_geometry.cpp
+	void parseCQUADR(NastranTokenizer& tok, shared_ptr<Model> model);//in NastranParser_geometry.cpp
 	void parseCROD(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
 	void parseCTETRA(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+	void parseCTRIA3(NastranTokenizer& tok, shared_ptr<Model> model);//in NastranParser_geometry.cpp
+	void parseCTRIA6(NastranTokenizer& tok, shared_ptr<Model> model);//in NastranParser_geometry.cpp
+	void parseCTRIAR(NastranTokenizer& tok, shared_ptr<Model> model);//in NastranParser_geometry.cpp
 	void parseFORCE(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void parseFORCE1(NastranTokenizer& tok, std::shared_ptr<Model> model);
 	void parseGRDSET(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp

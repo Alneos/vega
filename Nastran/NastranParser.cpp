@@ -65,8 +65,14 @@ const unordered_map<string, NastranParserImpl::parseElementFPtr> NastranParserIm
 				{ "CPENTA", &NastranParserImpl::parseCPENTA },
 				{ "CPYRAMID", &NastranParserImpl::parseCPYRAM },
 				{ "CQUAD", &NastranParserImpl::parseCQUAD },
+				{ "CQUAD4", &NastranParserImpl::parseCQUAD4 },
+				{ "CQUAD8", &NastranParserImpl::parseCQUAD8 },
+				{ "CQUADR", &NastranParserImpl::parseCQUADR },
 				{ "CROD", &NastranParserImpl::parseCROD },
 				{ "CTETRA", &NastranParserImpl::parseCTETRA },
+				{ "CTRIA3", &NastranParserImpl::parseCTRIA3 },
+				{ "CTRIA6", &NastranParserImpl::parseCTRIA6 },
+				{ "CTRIAR", &NastranParserImpl::parseCTRIAR },
 				{ "DAREA", &NastranParserImpl::parseDAREA },
 				{ "DLOAD", &NastranParserImpl::parseDLOAD },
 				{ "DMIG", &NastranParserImpl::parseDMIG },
@@ -285,16 +291,7 @@ void NastranParserImpl::parseBULKSection(NastranTokenizer &tok, shared_ptr<Model
 		string keyword = tok.nextSymbolString();
 		trim(keyword);
 		unordered_map<string, NastranParserImpl::parseElementFPtr>::const_iterator parseFunctionFptrKeywordPair;
-		//TODO: move these to the map
-		if (keyword == "CQUAD4" || keyword == "CQUADR") {
-			parseShellElem(tok, model, CellType::QUAD4);
-		} else if (keyword == "CQUAD8") {
-			parseShellElem(tok, model, CellType::QUAD8);
-		} else if (keyword == "CTRIA3" || keyword == "CTRIAR") {
-			parseShellElem(tok, model, CellType::TRI3);
-		} else if (keyword == "CTRIA6") {
-			parseShellElem(tok, model, CellType::TRI6);
-		} else if ((parseFunctionFptrKeywordPair = PARSE_FUNCTION_BY_KEYWORD.find(keyword))
+        if ((parseFunctionFptrKeywordPair = PARSE_FUNCTION_BY_KEYWORD.find(keyword))
 				!= PARSE_FUNCTION_BY_KEYWORD.end()) {
 			try {
 				NastranParserImpl::parseElementFPtr fptr = parseFunctionFptrKeywordPair->second;

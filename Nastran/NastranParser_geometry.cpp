@@ -344,6 +344,18 @@ void NastranParserImpl::parseCQUAD(NastranTokenizer& tok, shared_ptr<Model> mode
 	}
 }
 
+void NastranParserImpl::parseCQUAD4(NastranTokenizer& tok, shared_ptr<Model> model) {
+	parseShellElem(tok, model, CellType::QUAD4);
+}
+
+void NastranParserImpl::parseCQUAD8(NastranTokenizer& tok, shared_ptr<Model> model) {
+	parseShellElem(tok, model, CellType::QUAD8);
+}
+
+void NastranParserImpl::parseCQUADR(NastranTokenizer& tok, shared_ptr<Model> model) {
+	parseShellElem(tok, model, CellType::QUAD4);
+}
+
 void NastranParserImpl::parseCROD(NastranTokenizer& tok, shared_ptr<Model> model) {
 	//not found in doc, copied from Vega
 	int cell_id = tok.nextInt();
@@ -363,6 +375,18 @@ void NastranParserImpl::parseCTETRA(NastranTokenizer& tok, shared_ptr<Model> mod
 	} catch (ParsingException &e) {
 		handleParseException(e, model, "TETRA mandatory field missing");
 	}
+}
+
+void NastranParserImpl::parseCTRIA3(NastranTokenizer& tok, shared_ptr<Model> model) {
+	parseShellElem(tok, model, CellType::TRI3);
+}
+
+void NastranParserImpl::parseCTRIA6(NastranTokenizer& tok, shared_ptr<Model> model) {
+	parseShellElem(tok, model, CellType::TRI6);
+}
+
+void NastranParserImpl::parseCTRIAR(NastranTokenizer& tok, shared_ptr<Model> model) {
+	parseShellElem(tok, model, CellType::TRI3);
 }
 
 void NastranParserImpl::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> model,
