@@ -2312,11 +2312,11 @@ void NastranParserImpl::parseCELAS2(NastranTokenizer& tok, shared_ptr<Model> mod
 	int eid = tok.nextInt();
 	double k = tok.nextDouble();
 	int g1 = tok.nextInt();
-	int c1 = tok.nextInt();
+	int c1 = tok.nextInt(); // Nastran coordinate goes from 1 to 6, VEGA from 0 to 5.
 	int g2 = tok.nextInt();
-	int c2 = tok.nextInt();
+	int c2 = tok.nextInt(); // Nastran coordinate goes from 1 to 6, VEGA from 0 to 5.
 	StiffnessMatrix matrix(*model, eid);
-	matrix.addStiffness(g1, DOF::findByPosition(c1), g2, DOF::findByPosition(c2), k);
+	matrix.addStiffness(g1, DOF::findByPosition(c1-1), g2, DOF::findByPosition(c2-1), k);
 	model->add(matrix);
 }
 
@@ -2338,11 +2338,11 @@ void NastranParserImpl::parseCMASS2(NastranTokenizer& tok, shared_ptr<Model> mod
 	int eid = tok.nextInt();
 	double m = tok.nextDouble();
 	int g1 = tok.nextInt();
-	int c1 = tok.nextInt();
+	int c1 = tok.nextInt(); // Nastran coordinate goes from 1 to 6, VEGA from 0 to 5.
 	int g2 = tok.nextInt();
-	int c2 = tok.nextInt();
+	int c2 = tok.nextInt(); // Nastran coordinate goes from 1 to 6, VEGA from 0 to 5.
 	MassMatrix matrix(*model, eid);
-	matrix.addComponent(g1, DOF::findByPosition(c1), g2, DOF::findByPosition(c2), m);
+	matrix.addComponent(g1, DOF::findByPosition(c1-1), g2, DOF::findByPosition(c2-1), m);
 	model->add(matrix);
 }
 
