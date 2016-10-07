@@ -119,8 +119,6 @@ const unordered_map<string, NastranParserImpl::parseElementFPtr> NastranParserIm
 
 NastranParserImpl::NastranParserImpl() :
 		Parser() {
-	this->translationMode = ConfigurationParameters::BEST_EFFORT;
-
 }
 
 string NastranParserImpl::parseSubcase(NastranTokenizer& tok, shared_ptr<Model> model,
@@ -137,7 +135,7 @@ string NastranParserImpl::parseSubcase(NastranTokenizer& tok, shared_ptr<Model> 
 		}
 		nextKeyword = tok.nextString();
 	}
-	addAnalysis(model, context, subCaseId);
+	addAnalysis(tok, model, context, subCaseId);
 	return nextKeyword;
 }
 
@@ -151,29 +149,30 @@ void NastranParserImpl::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<
 	bool subCaseFound = false;
 	string keyword = "";
 	do {
-		if (readNewKeyword) {
-			keyword = tok.nextSymbolString();
-			trim(keyword);
-		} else {
-			//new keyword was read by a parsing method
-			readNewKeyword = true;
-		}
-		if (keyword.find("BEGIN") != string::npos) {
-			if (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-				tok.nextLine();
+		try{
+			if (readNewKeyword) {
+				keyword = tok.nextSymbolString();
+				trim(keyword);
+			} else {
+				//new keyword was read by a parsing method
+				readNewKeyword = true;
 			}
-			if (!subCaseFound) {
-				addAnalysis(model, context);
-			}
-			canContinue = false;
-		} else if (keyword == "B2GG") {
-			// Selects direct input damping matrix or matrices.
-			string line;
-			while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-				line += tok.nextSymbolString();
-			}
-			trim(line);
-			/*
+			if (keyword.find("BEGIN") != string::npos) {
+				if (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
+					tok.nextLine();
+				}
+				if (!subCaseFound) {
+					addAnalysis(tok, model, context);
+				}
+				canContinue = false;
+			} else if (keyword == "B2GG") {
+				// Selects direct input damping matrix or matrices.
+				string line;
+				while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
+					line += tok.nextSymbolString();
+				}
+				trim(line);
+				/*
 			 The matrices are additive if multiple matrices are referenced on the B2GG
 			 command.
 			 The formats of the name list:
@@ -183,30 +182,30 @@ void NastranParserImpl::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<
 			 Each entry in the list consists of a factor followed by a star followed by a
 			 name. The entries are separated by comma or blank. The factors are real
 			 numbers. Each name must be with a factor including 1.0.
-			 */
-			if (line.find_first_of(", *") != std::string::npos) {
-				throw logic_error("complex names not yet implemented");
-			}
-			istringstream iss(line);
-			int num = 0;
-			if (!(iss >> num).fail()) {
-				throw logic_error("set references not yet implemented " + to_string(num));
-			}
-			DampingMatrix matrix(*model); // LD : TODO string identifier here
-			directMatrixByName[line] = matrix.getReference().clone();
-			model->add(matrix);
-		} else if (keyword == "CEND") {
-			while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-				tok.nextSymbolString();
-			}
-		} else if (keyword == "K2GG") {
-			// Selects direct input stiffness matrix or matrices.
-			string line;
-			while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-				line += tok.nextSymbolString();
-			}
-			trim(line);
-			/*
+				 */
+				if (line.find_first_of(", *") != std::string::npos) {
+					throw logic_error("complex names not yet implemented");
+				}
+				istringstream iss(line);
+				int num = 0;
+				if (!(iss >> num).fail()) {
+					throw logic_error("set references not yet implemented " + to_string(num));
+				}
+				DampingMatrix matrix(*model); // LD : TODO string identifier here
+				directMatrixByName[line] = matrix.getReference().clone();
+				model->add(matrix);
+			} else if (keyword == "CEND") {
+				while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
+					tok.nextSymbolString();
+				}
+			} else if (keyword == "K2GG") {
+				// Selects direct input stiffness matrix or matrices.
+				string line;
+				while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
+					line += tok.nextSymbolString();
+				}
+				trim(line);
+				/*
 			 The matrices are additive if multiple matrices are referenced on the K2GG
 			 command.
 			 The formats of the name list:
@@ -216,26 +215,26 @@ void NastranParserImpl::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<
 			 Each entry in the list consists of a factor followed by a star followed by a
 			 name. The entries are separated by comma or blank. The factors are real
 			 numbers. Each name must be with a factor including 1.0.
-			 */
-			if (line.find_first_of(", *") != std::string::npos) {
-				throw logic_error("complex names not yet implemented");
-			}
-			istringstream iss(line);
-			int num = 0;
-			if (!(iss >> num).fail()) {
-				throw logic_error("set references not yet implemented " + to_string(num));
-			}
-			StiffnessMatrix matrix(*model); // LD : TODO string identifier here
-			directMatrixByName[line] = matrix.getReference().clone();
-			model->add(matrix);
-		} else if (keyword == "M2GG") {
-			// Selects direct input mass matrix or matrices.
-			string line;
-			while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-				line += tok.nextSymbolString();
-			}
-			trim(line);
-			/*
+				 */
+				if (line.find_first_of(", *") != std::string::npos) {
+					throw logic_error("complex names not yet implemented");
+				}
+				istringstream iss(line);
+				int num = 0;
+				if (!(iss >> num).fail()) {
+					throw logic_error("set references not yet implemented " + to_string(num));
+				}
+				StiffnessMatrix matrix(*model); // LD : TODO string identifier here
+				directMatrixByName[line] = matrix.getReference().clone();
+				model->add(matrix);
+			} else if (keyword == "M2GG") {
+				// Selects direct input mass matrix or matrices.
+				string line;
+				while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
+					line += tok.nextSymbolString();
+				}
+				trim(line);
+				/*
 			 The matrices are additive if multiple matrices are referenced on the M2GG
 			 command.
 			 The formats of the name list:
@@ -245,44 +244,50 @@ void NastranParserImpl::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<
 			 Each entry in the list consists of a factor followed by a star followed by a
 			 name. The entries are separated by comma or blank. The factors are real
 			 numbers. Each name must be with a factor including 1.0.
-			 */
-			if (line.find_first_of(", *") != std::string::npos) {
-				throw logic_error("complex names not yet implemented");
-			}
-			istringstream iss(line);
-			int num = 0;
-			if (!(iss >> num).fail()) {
-				throw logic_error("set references not yet implemented " + to_string(num));
-			}
-			MassMatrix matrix(*model); // LD : TODO string identifier here
-			directMatrixByName[line] = matrix.getReference().clone();
-			model->add(matrix);
-		} else if (keyword == "SUBCASE") {
-			keyword = parseSubcase(tok, model, context);
-			readNewKeyword = false;
-			subCaseFound = true;
-		} else if (keyword == "SUBTITLE") {
-			string line;
-			while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD)
-				line += tok.nextSymbolString();
-			model->description = line;
-		} else if (keyword == "TITLE") {
-			string line;
-			while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD)
-				line += tok.nextSymbolString();
-			model->title = line;
-		} else {
-			if (tok.nextSymbolType != NastranTokenizer::SYMBOL_FIELD) {
-				context[keyword] = string("");
-			} else {
+				 */
+				if (line.find_first_of(", *") != std::string::npos) {
+					throw logic_error("complex names not yet implemented");
+				}
+				istringstream iss(line);
+				int num = 0;
+				if (!(iss >> num).fail()) {
+					throw logic_error("set references not yet implemented " + to_string(num));
+				}
+				MassMatrix matrix(*model); // LD : TODO string identifier here
+				directMatrixByName[line] = matrix.getReference().clone();
+				model->add(matrix);
+			} else if (keyword == "SUBCASE") {
+				keyword = parseSubcase(tok, model, context);
+				readNewKeyword = false;
+				subCaseFound = true;
+			} else if (keyword == "SUBTITLE") {
 				string line;
 				while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD)
 					line += tok.nextSymbolString();
-				context[keyword] = line;
+				model->description = line;
+			} else if (keyword == "TITLE") {
+				string line;
+				while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD)
+					line += tok.nextSymbolString();
+				model->title = line;
+			} else {
+				if (tok.nextSymbolType != NastranTokenizer::SYMBOL_FIELD) {
+					context[keyword] = string("");
+				} else {
+					string line;
+					while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD)
+						line += tok.nextSymbolString();
+					context[keyword] = line;
+				}
 			}
+			canContinue = canContinue && (tok.nextSymbolType != NastranTokenizer::SYMBOL_EOF);
+		} catch (std::string) {
+			// Parsing errors are catched by VegaCommandLine.
+			// If we are not in strict mode, we dismiss this command and continue, hoping for the best.
+			tok.skipToNextKeyword();
 		}
-		canContinue = canContinue && (tok.nextSymbolType != NastranTokenizer::SYMBOL_EOF);
 	} while (canContinue);
+
 }
 
 void NastranParserImpl::parseBULKSection(NastranTokenizer &tok, shared_ptr<Model> model) {
@@ -290,44 +295,39 @@ void NastranParserImpl::parseBULKSection(NastranTokenizer &tok, shared_ptr<Model
 	while (tok.nextSymbolType == NastranTokenizer::SYMBOL_KEYWORD) {
 		string keyword = tok.nextSymbolString();
 		trim(keyword);
+		tok.setCurrentKeyword(keyword);
 		unordered_map<string, NastranParserImpl::parseElementFPtr>::const_iterator parseFunctionFptrKeywordPair;
-        if ((parseFunctionFptrKeywordPair = PARSE_FUNCTION_BY_KEYWORD.find(keyword))
-				!= PARSE_FUNCTION_BY_KEYWORD.end()) {
-			try {
+		try{
+			if ((parseFunctionFptrKeywordPair = PARSE_FUNCTION_BY_KEYWORD.find(keyword))
+					!= PARSE_FUNCTION_BY_KEYWORD.end()) {
 				NastranParserImpl::parseElementFPtr fptr = parseFunctionFptrKeywordPair->second;
 				(this->*fptr)(tok, model);
-			} catch (ParsingException &e) {
-				if (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-					tok.nextLine();
-				}
-				string message = string("Error parsing keyword ")
-						+ parseFunctionFptrKeywordPair->first;
-				handleParseException(e, model, message);
-			}
-		} else if (IGNORED_KEYWORDS.find(keyword) != IGNORED_KEYWORDS.end()) {
-			if (model->configuration.logLevel >= LogLevel::TRACE) {
-				cout << "Keyword " << keyword << " ignored." << endl;
-			}
-			tok.nextLine();
-		} else if (keyword.empty()) {
-			continue;
-		} else {
-			handleParsingError(string("Unknown keyword ") + keyword, tok, model);
-			if (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-				tok.nextLine();
-			}
-			continue;
-		}
 
-		//there are unparsed fields. Skip the empty ones
-		if (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD && !tok.isNextEmpty()) {
-			string message(
-					string("Error parsing keyword ") + keyword
-							+ ": parsing of line not complete. ");
-			handleParsingError(message, tok, model);
-		}
-		while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-			tok.nextSymbolString();
+			} else if (IGNORED_KEYWORDS.find(keyword) != IGNORED_KEYWORDS.end()) {
+				if (model->configuration.logLevel >= LogLevel::TRACE) {
+					cout << "Keyword " << keyword << " ignored." << endl;
+				}
+				tok.nextLine();
+			} else if (keyword.empty()) {
+				continue;
+			} else {
+				handleParsingError(string("Unknown keyword."), tok, model);
+				tok.skipToNextKeyword();
+				continue;
+			}
+
+			//there are unparsed fields. Skip the empty ones
+			if (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD && !tok.isNextEmpty()) {
+				string message(string("Parsing of line not complete."));
+				handleParsingError(message, tok, model);
+			}
+			while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
+				tok.nextSymbolString();
+			}
+		} catch (std::string) {
+			// Parsing errors are catched by VegaCommandLine.
+			// If we are not in strict mode, we dismiss this command and continue, hoping for the best.
+			tok.skipToNextKeyword();
 		}
 	}
 
@@ -354,7 +354,7 @@ shared_ptr<Model> NastranParserImpl::parse(const ConfigurationParameters& config
 	map<string, string> executive_section_context;
 	const string inputFilePathStr = inputFilePath.string();
 	ifstream istream(inputFilePathStr);
-	NastranTokenizer tok = NastranTokenizer(istream, logLevel, inputFilePath.string());
+	NastranTokenizer tok = NastranTokenizer(istream, logLevel, inputFilePath.string(), this->translationMode);
 
 	parseExecutiveSection(tok, model, executive_section_context);
 
@@ -365,7 +365,7 @@ shared_ptr<Model> NastranParserImpl::parse(const ConfigurationParameters& config
 	return model;
 }
 
-void NastranParserImpl::addAnalysis(shared_ptr<Model> model, map<string, string> &context,
+void NastranParserImpl::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, map<string, string> &context,
 		int analysis_id) {
 
 	string analysis_str;
@@ -389,7 +389,7 @@ void NastranParserImpl::addAnalysis(shared_ptr<Model> model, map<string, string>
 				analysis_str = "111";
 			else {
 				string message = "Analysis " + analysis + " Not implemented";
-				throw ParsingException(message, "", 0);
+				handleParsingError(message, tok, model);
 			}
 		} else
 			analysis_str = "101";
@@ -442,7 +442,7 @@ void NastranParserImpl::addAnalysis(shared_ptr<Model> model, map<string, string>
 			}
 		}
 		if (it == context.end())
-			throw ParsingException("METHOD not found for linear modal analysis", "", 0);
+			handleParsingError("METHOD not found for linear modal analysis", tok, model);
 
 		LinearModal analysis(*model, frequency_band_original_id, labelAnalysis, analysis_id);
 
@@ -474,7 +474,7 @@ void NastranParserImpl::addAnalysis(shared_ptr<Model> model, map<string, string>
 		auto it = context.find("NLPARM");
 		int strategy_original_id = 0;
 		if (it == context.end())
-			throw ParsingException("NLPARM not found for non linear analysis", "", 0);
+			handleParsingError("NLPARM not found for non linear analysis", tok, model);
 		else
 			strategy_original_id = atoi(it->second.c_str());
 
@@ -540,14 +540,11 @@ void NastranParserImpl::addAnalysis(shared_ptr<Model> model, map<string, string>
 		}
 
 		if (frequency_band_original_id == 0)
-			throw ParsingException("METHOD not found for linear dynamic modal frequency analysis",
-					"", 0);
+			handleParsingError("METHOD not found for linear dynamic modal frequency analysis", tok, model);
 		if (modal_damping_original_id == 0)
-			throw ParsingException("SDAMPING not found for linear dynamic modal frequency analysis",
-					"", 0);
+			handleParsingError("SDAMPING not found for linear dynamic modal frequency analysis", tok, model);
 		if (frequency_value_original_id == 0)
-			throw ParsingException("FREQ not found for linear dynamic modal frequency analysis", "",
-					0);
+			handleParsingError("FREQ not found for linear dynamic modal frequency analysis", tok, model);
 
 		/*
 		 auto it = context.find("METHOD");
@@ -555,8 +552,7 @@ void NastranParserImpl::addAnalysis(shared_ptr<Model> model, map<string, string>
 		 if (it == context.end())
 		 it = context.find("METHOD(STRUCTURE)");
 		 if (it == context.end())
-		 throw ParsingException("METHOD not found for linear dynamic modal frequency analysis",
-		 "", 0);
+		 handleParsingError("METHOD not found for linear dynamic modal frequency analysis", tok, model);
 		 else
 		 frequency_band_original_id = atoi(it->second.c_str());
 
@@ -565,8 +561,7 @@ void NastranParserImpl::addAnalysis(shared_ptr<Model> model, map<string, string>
 		 if (it == context.end())
 		 it = context.find("SDAMPING(STRUCTURE)");
 		 if (it == context.end())
-		 throw ParsingException("SDAMPING not found for linear dynamic modal frequency analysis",
-		 "", 0);
+		 handleParsingError("SDAMPING not found for linear dynamic modal frequency analysis", tok, model);
 		 else
 		 modal_damping_original_id = atoi(it->second.c_str());
 
@@ -575,8 +570,7 @@ void NastranParserImpl::addAnalysis(shared_ptr<Model> model, map<string, string>
 		 if (it == context.end())
 		 it = context.find("FREQUENCY");
 		 if (it == context.end())
-		 throw ParsingException("FREQ not found for linear dynamic modal frequency analysis", "",
-		 0);
+		 handleParsingError("FREQ not found for linear dynamic modal frequency analysis", tok, model);
 		 else
 		 frequency_value_original_id = atoi(it->second.c_str());
 		 */
@@ -610,7 +604,7 @@ void NastranParserImpl::addAnalysis(shared_ptr<Model> model, map<string, string>
 
 	} else {
 		string message = "Analysis " + analysis_str + " Not implemented";
-		throw ParsingException(message, "", 0);
+		handleParsingError(message, tok, model);
 	}
 }
 
@@ -619,8 +613,9 @@ void NastranParserImpl::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> mode
 	int g = tok.nextInt(); // Grid point identification number
 	int ci = tok.nextInt(true, 0);
 	if (ci != 0) {
-		string message = "CONM2 coordinate system not implemented.";
-		throw ParsingException(message, tok.fileName, tok.lineNumber);
+		string message = "coordinate system CID not supported and dismissed.";
+		handleParsingWarning(message, tok, model);
+		ci = 0;
 	}
 	const double mass = tok.nextDouble();
 	const double x1 = tok.nextDouble(true, 0.0);
@@ -664,8 +659,8 @@ void NastranParserImpl::parseCORD2R(NastranTokenizer& tok, shared_ptr<Model> mod
 	//reference coordinate system 0 for global.
 	int rid = tok.nextInt(true, 0);
 	if (rid != 0) {
-		throw ParsingException("REference coordinate system != 0 not implemented", tok.fileName,
-				tok.lineNumber);
+		handleParsingWarning("Reference coordinate system != 0 not implemented", tok, model);
+		rid=0;
 	}
 	double coor[3];
 	VectorialValue vect[3];
@@ -688,8 +683,7 @@ void NastranParserImpl::parseCORD2C(NastranTokenizer& tok, shared_ptr<Model> mod
 	//reference coordinate system 0 for global.
 	int rid = tok.nextInt(true, 0);
 	if (rid != 0) {
-		throw ParsingException("REference coordinate system != 0 not implemented", tok.fileName,
-				tok.lineNumber);
+		handleParsingError("REference coordinate system != 0 not implemented", tok, model);
 	}
 
 	double coor[3];
@@ -751,8 +745,8 @@ void NastranParserImpl::parseGRAV(NastranTokenizer& tok, shared_ptr<Model> model
 	int sid = tok.nextInt();
 	int coordinate_system_id = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
 	if (coordinate_system_id != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-		string message = "GRAV : CoordinateSystem not supported" + tok.lineNumber;
-		throw ParsingException(message, tok.fileName, tok.lineNumber);
+		string message = "GRAV : CoordinateSystem not supported";
+		handleParsingError(message, tok, model);
 	}
 	double acceleration = tok.nextDouble(true, 0);
 	double x = tok.nextDouble(true, 0);
@@ -760,8 +754,8 @@ void NastranParserImpl::parseGRAV(NastranTokenizer& tok, shared_ptr<Model> model
 	double z = tok.nextDouble(true, 0);
 	int mb = tok.nextInt(true, 0);
 	if (mb != 0) {
-		string message = "GRAV MB not supported line" + tok.lineNumber;
-		throw ParsingException(message, tok.fileName, tok.lineNumber);
+		string message = "GRAV MB not supported.";
+		handleParsingError(message, tok, model);
 	}
 	Gravity gravity(*model, acceleration, VectorialValue(x, y, z));
 
@@ -780,29 +774,17 @@ void NastranParserImpl::parseInclude(NastranTokenizer& tok, shared_ptr<Model> mo
 	if (!fileName.compare(0, 1, "'")
 			&& !fileName.compare(fileName.size() - 1, fileName.size(), "'"))
 		fileName = fileName.substr(1, fileName.size() - 2);
-	fs::path currentFname(tok.fileName);
+	fs::path currentFname(tok.getFileName());
 	fs::path includePath = currentFname.parent_path() / fileName;
+	const string includePathStr = includePath.string();
 	if (fs::exists(includePath)) {
-		const string includePathStr = includePath.string();
 		ifstream istream(includePathStr);
-		NastranTokenizer tok2 = NastranTokenizer(istream, this->logLevel, includePathStr);
+		NastranTokenizer tok2 = NastranTokenizer(istream, this->logLevel, includePathStr, this->translationMode);
 		tok2.bulkSection();
-		try {
-			parseBULKSection(tok2, model);
-		} catch (ParsingException & e) {
-			cerr << e.what();
-			if (translationMode == ConfigurationParameters::MODE_STRICT) {
-				throw ParsingException(string("Error parsing include ") + includePathStr,
-						tok.fileName, tok.lineNumber);
-			}
-		}
+		parseBULKSection(tok2, model);
 		istream.close();
 	} else {
-		cerr << "File " << includePath << " included by " << tok.fileName << " at line "
-				<< tok.lineNumber << " can not be found" << endl;
-		if (translationMode == ConfigurationParameters::MODE_STRICT) {
-			throw ParsingException("Missing include", tok.fileName, tok.lineNumber);
-		}
+		handleParsingError("Missing include file "+includePathStr, tok, model);
 	}
 	tok.nextLine();
 }
@@ -843,8 +825,8 @@ void NastranParserImpl::parseMAT1(NastranTokenizer& tok, shared_ptr<Model> model
 
 
 	if (!is_equal(ge, NastranTokenizer::UNAVAILABLE_DOUBLE)) {
-		string message = "GE not supported line " + to_string(tok.lineNumber);
-		throw ParsingException(message, tok.fileName, tok.lineNumber);
+		string message = "GE not supported";
+		handleParsingError(message, tok, model);
 	}
 	/*	ST, SC, SS
 	 (Real)
@@ -933,8 +915,7 @@ void NastranParserImpl::parseMOMENT(NastranTokenizer& tok, shared_ptr<Model> mod
 	int node_id = tok.nextInt();
 	int coordinate_system_id = tok.nextInt(true, 0);
 	if (coordinate_system_id != 0) {
-		throw ParsingException("MOMENT coordinate system not supported", tok.fileName,
-				tok.lineNumber);
+		handleParsingError("MOMENT coordinate system not supported", tok, model);
 	}
 	double scale = tok.nextDouble(true);
 	double frx = tok.nextDouble(true) * scale;
@@ -1060,7 +1041,7 @@ void NastranParserImpl::parsePBEAM(NastranTokenizer& tok, shared_ptr<Model> mode
 	int numBeamParts = 0;
 	while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
 		if (numBeamParts > 0) {
-			throw ParsingException("PBEAM sections not supported", tok.fileName, tok.lineNumber);
+			handleParsingError("PBEAM sections not supported", tok, model);
 			tok.skip(2);
 		}
 		double area_cross_section = tok.nextDouble(true, 0.0);
@@ -1068,13 +1049,12 @@ void NastranParserImpl::parsePBEAM(NastranTokenizer& tok, shared_ptr<Model> mode
 		double moment_of_inertia_Y = tok.nextDouble(true, 0.0);
 		double areaProductOfInertia = tok.nextDouble(true, 0.0);
 		if (!is_equal(areaProductOfInertia, 0.0)) {
-			throw ParsingException("Area product of inertia not implemented", tok.fileName,
-					tok.lineNumber);
+			handleParsingError("Area product of inertia not implemented", tok, model);
 		}
 		double torsionalConstant = tok.nextDouble(true, 0.0);
 		double nsm = tok.nextDouble(true, 0.0);
 		if (!is_equal(nsm, 0.0)) {
-			throw ParsingException("PBEAM: NSM not implemented", tok.fileName, tok.lineNumber);
+			handleParsingError("PBEAM: NSM not implemented", tok, model);
 		}
 		double c1 = tok.nextDouble(true, 0.0);
 		double c2 = tok.nextDouble(true, 0.0);
@@ -1287,8 +1267,7 @@ void NastranParserImpl::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> mod
 	double p3 = tok.nextDouble(true, p1);
 	double p4 = tok.nextDouble(true, p1);
 	if (!is_equal(p2, p1) || !is_equal(p3, p1) || !is_equal(p4, p1)) {
-		throw ParsingException("Non uniform pressure not implemented", tok.fileName,
-				tok.lineNumber);
+		handleParsingError("Non uniform pressure not implemented", tok, model);
 	}
 	bool format1 = tok.isNextInt() || tok.isNextEmpty();
 	int g1 = NastranTokenizer::UNAVAILABLE_INT;
@@ -1303,13 +1282,12 @@ void NastranParserImpl::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> mod
 		eid2 = tok.nextInt();
 	} else {
 		//format not recognized
-		throw ParsingException(string("PLOAD4 format not recognized") + tok.currentRawDataLine(),
-				tok.fileName, tok.lineNumber);
+		handleParsingError(string("PLOAD4 format not recognized") + tok.currentRawDataLine(), tok, model);
 	}
 	int cid = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
 	if (cid != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-		string message = "PLOAD4 : CoordinateSystem not supported" + tok.lineNumber;
-		throw ParsingException(message, tok.fileName, tok.lineNumber);
+		string message = "PLOAD4 : CoordinateSystem not supported";
+		handleParsingError(message, tok, model);
 	}
 	double n1 = tok.nextDouble(true, 0.0);
 	double n2 = tok.nextDouble(true, 0.0);
@@ -1361,12 +1339,10 @@ void NastranParserImpl::parsePROD(NastranTokenizer& tok, shared_ptr<Model> model
 	double c = tok.nextDouble(true, 0.0);
 	double nsm = tok.nextDouble(true, 0.0);
 	if (!is_equal(c, 0)) {
-		throw ParsingException("PROD stress coefficient C not supported", tok.fileName,
-				tok.lineNumber);
+		handleParsingError("PROD stress coefficient C not supported", tok, model);
 	}
 	if (!is_equal(nsm, 0)) {
-		throw ParsingException("PROD Non Structural mass not supported", tok.fileName,
-				tok.lineNumber);
+		handleParsingError("PROD Non Structural mass not supported", tok, model);
 	}
 	GenericSectionBeam genericSectionBeam(*model, a, 0, 0, j, 0, 0, GenericSectionBeam::EULER, nsm,
 			propId);
@@ -1381,7 +1357,7 @@ void NastranParserImpl::parsePSHELL(NastranTokenizer& tok, shared_ptr<Model> mod
 	double thickness = tok.nextDouble(true, 0.0);
 	int material_id2 = tok.nextInt(true);
 	if (material_id2 != NastranTokenizer::UNAVAILABLE_INT && material_id2 != material_id1) {
-		throw ParsingException("Material 2 not yet supported", tok.fileName, tok.lineNumber);
+		handleParsingError("Material 2 not yet supported", tok, model);
 	}
 	double bending_moment = tok.nextDouble(true, 1.0);
 	if (!is_equal(bending_moment, 1.0)) {
@@ -1390,23 +1366,22 @@ void NastranParserImpl::parsePSHELL(NastranTokenizer& tok, shared_ptr<Model> mod
 	}
 	int material_id3 = tok.nextInt(true);
 	if (material_id3 != NastranTokenizer::UNAVAILABLE_INT && material_id3 != material_id1) {
-		throw ParsingException("Material 3 not yet supported", tok.fileName, tok.lineNumber);
+		handleParsingError("Material 3 not yet supported", tok, model);
 	}
 	double ts_t_ratio = tok.nextDouble(true, 0.833333);
 	if (!is_equal(ts_t_ratio, 0.833333)) {
-		throw ParsingException("ts/t ratio !=  0.833333 not supported", tok.fileName,
-				tok.lineNumber);
+		handleParsingError("ts/t ratio !=  0.833333 not supported", tok, model);
 	}
 	double nsm = tok.nextDouble(true, 0);
 	double z1 = tok.nextDouble(true);
 	double z2 = tok.nextDouble(true);
 	if (!is_equal(z1, NastranTokenizer::UNAVAILABLE_DOUBLE)
 			|| !is_equal(z2, NastranTokenizer::UNAVAILABLE_DOUBLE)) {
-		throw ParsingException("Fiber distances z1,z2 not supported", tok.fileName, tok.lineNumber);
+		handleParsingError("Fiber distances z1,z2 not supported", tok, model);
 	}
 	int material_id4 = tok.nextInt(true);
 	if (material_id4 != NastranTokenizer::UNAVAILABLE_INT && material_id4 != material_id1) {
-		throw ParsingException("Material 4 not yet supported", tok.fileName, tok.lineNumber);
+		handleParsingError("Material 4 not yet supported", tok, model);
 	}
 
 	Shell shell(*model, thickness, nsm, propId);
@@ -1420,7 +1395,7 @@ void NastranParserImpl::parsePSOLID(NastranTokenizer& tok, shared_ptr<Model> mod
 	int material_id = tok.nextInt();
 	int material_coordinate_system = tok.nextInt(true, 0);
 	if (material_coordinate_system != 0) {
-		handleParsingError("PSOLID: Material coordinate system!=0 not supported", tok, model);
+		handleParsingError("Material coordinate system!=0 not supported and dismissed.", tok, model);
 	}
 	string psolid_in = tok.nextString(true, "BUBBLE");
 	/*
@@ -1441,13 +1416,12 @@ void NastranParserImpl::parsePSOLID(NastranTokenizer& tok, shared_ptr<Model> mod
 	} else if ((psolid_in == "TWO" || psolid_in == "2") && (isop == "FULL" || isop == "1")) {
 		modelType = &ModelType::TRIDIMENSIONAL;
 	} else {
-		throw ParsingException("PSOLID IN " + psolid_in + " ISOP " + isop + " Not implemented",
-				tok.fileName, tok.lineNumber);
+		handleParsingError("PSOLID IN " + psolid_in + " ISOP " + isop + " Not implemented",
+				tok, model);
 	}
 	string fctn = tok.nextString(true, "SMECH");
 	if (fctn != "SMECH") {
-		throw ParsingException("PSOLID fctn " + fctn + " Not implemented", tok.fileName,
-				tok.lineNumber);
+		handleParsingError("PSOLID fctn " + fctn + " Not implemented", tok, model);
 	}
 	Continuum continuum(*model, modelType, elemId);
 	continuum.assignMaterial(material_id);
@@ -1468,8 +1442,7 @@ void NastranParserImpl::parseRBE2(NastranTokenizer& tok, shared_ptr<Model> model
 		model->addConstraintIntoConstraintSet(qrc, model->commonConstraintSet);
 
 	} else {
-		throw ParsingException("QuasiRigid constraint not yet implemented", tok.fileName,
-				tok.lineNumber);
+		handleParsingError("QuasiRigid constraint not supported.",tok, model);
 	}
 	double alpha = tok.nextDouble(true);
 	if (!is_equal(alpha, NastranTokenizer::UNAVAILABLE_DOUBLE)) {
@@ -1507,7 +1480,7 @@ void NastranParserImpl::parseRBAR(NastranTokenizer& tok, shared_ptr<Model> model
 	int cma = tok.nextInt(true, 0);
 	int cmb = tok.nextInt(true, 0);
 	if (cna != 0 && cnb != 0) {
-		throw ParsingException("RBAR cna & cnb both specified.", tok.fileName, tok.lineNumber);
+		handleParsingError("cna & cnb both specified.", tok, model);
 	} else if (cna == 0 && cnb == 0) {
 		cna = 123456;
 	}
@@ -1525,11 +1498,11 @@ void NastranParserImpl::parseRBAR(NastranTokenizer& tok, shared_ptr<Model> model
 		model->addConstraintIntoConstraintSet(qrc, model->commonConstraintSet);
 	}
 	if (cma != 0 || cmb != 0) {
-		throw ParsingException("RBAR cma or cmb not supported.", tok.fileName, tok.lineNumber);
+		handleParsingError("cma or cmb not supported.", tok, model);
 	}
 	double alpha = tok.nextDouble(true);
 	if (!is_equal(alpha, NastranTokenizer::UNAVAILABLE_DOUBLE)) {
-		handleParsingError("RBAR: ALPHA field: " + lexical_cast<string>(alpha) + " not supported",
+		handleParsingError("ALPHA field: " + lexical_cast<string>(alpha) + " not supported",
 				tok, model);
 	}
 
@@ -1561,8 +1534,9 @@ void NastranParserImpl::parseRFORCE(NastranTokenizer& tok, shared_ptr<Model> mod
 	int g = tok.nextInt();
 	int coordinate_system_id = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
 	if (coordinate_system_id != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-		string message = "RFORCE : CoordinateSystem not supported" + tok.lineNumber;
-		throw ParsingException(message, tok.fileName, tok.lineNumber);
+		coordinate_system_id = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
+		string message = "CoordinateSystem not supported and taken as 0.";
+		handleParsingWarning(message, tok, model);
 	}
 	double a = tok.nextDouble();
 	double r1 = tok.nextDouble();
@@ -1571,23 +1545,22 @@ void NastranParserImpl::parseRFORCE(NastranTokenizer& tok, shared_ptr<Model> mod
 	/*if (!tok.isNextEmpty()) {
 	 int method = tok.nextInt(true, 1);
 	 if (method != 1) {
-	 string message = "RFORCE METHOD not supported line"
-	 + tok.lineNumber;
-	 throw ParsingException(message, tok.fileName, tok.lineNumber);
+	 string message = "RFORCE METHOD not supported";
+	 handleParsingError(message, tok, model);
 	 }
 	 }
 	 if (!tok.isNextEmpty()) {
 	 double racc = tok.nextDouble(true, 0);
 	 if (racc != 0) {
-	 string message = "RFORCE RACC not supported line" + tok.lineNumber;
-	 throw ParsingException(message, tok.fileName, tok.lineNumber);
+	 string message = "RFORCE RACC not supported";
+	 handleParsingError(message, tok, model);
 	 }
 	 }
 	 if (!tok.isNextEmpty()) {
 	 int mb = tok.nextInt(true, 0);
 	 if (mb != 0) {
-	 string message = "RFORCE MB not supported line" + tok.lineNumber;
-	 throw ParsingException(message, tok.fileName, tok.lineNumber);
+	 string message = "RFORCE MB not supported";
+	 handleParsingError(message, tok, model);
 	 }
 	 }*/
 	tok.skip(255);
@@ -1607,29 +1580,22 @@ void NastranParserImpl::parseSPC(NastranTokenizer& tok, shared_ptr<Model> model)
 	int spcSet_id = tok.nextInt();
 	string name = string("SPC") + "_" + to_string(spcSet_id);
 	NodeGroup *spcNodeGroup = model->mesh->findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPC");
-	try {
-		while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-			const int nodeId = tok.nextInt(true);
-			if (nodeId == NastranTokenizer::UNAVAILABLE_INT) {
-				//space at the end of line found,consume it.
-				continue;
-			}
-			const int gi = tok.nextInt(true, 123456);
-			const double displacement = tok.nextDouble(true, 0.0);
-			//if (displacement != 0.0) {
-			//	handleParsingError(string("Displacement ") + boost::lexical_cast<string>(displacement) + "(!= 0) not supported", tok, model);
-			//}
-			SinglePointConstraint spc = SinglePointConstraint(*model, DOFS::nastranCodeToDOFS(gi),
-					displacement);
-			spc.addNodeId(nodeId);
-			spcNodeGroup->addNode(nodeId);
 
-			model->add(spc);
-			model->addConstraintIntoConstraintSet(spc,
-					Reference<ConstraintSet>(ConstraintSet::SPC, spcSet_id));
+	while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
+		const int nodeId = tok.nextInt(true);
+		if (nodeId == NastranTokenizer::UNAVAILABLE_INT) {
+			//space at the end of line found,consume it.
+			continue;
 		}
-	} catch (ParsingException &e) {
-		handleParseException(e, model, "Problem parsing SPC");
+		const int gi = tok.nextInt(true, 123456);
+		const double displacement = tok.nextDouble(true, 0.0);
+		SinglePointConstraint spc = SinglePointConstraint(*model, DOFS::nastranCodeToDOFS(gi), displacement);
+		spc.addNodeId(nodeId);
+		spcNodeGroup->addNode(nodeId);
+
+		model->add(spc);
+		model->addConstraintIntoConstraintSet(spc,
+				Reference<ConstraintSet>(ConstraintSet::SPC, spcSet_id));
 	}
 }
 
@@ -2219,26 +2185,8 @@ void NastranParserImpl::parsePARAM(NastranTokenizer& tok, shared_ptr<Model> mode
 		double value = tok.nextDouble(true, 1);
 		model->parameters[Model::MASS_OVER_FORCE_MULTIPLIER] = value;
 	} else {
-		handleParsingError(string("Ignored parameter ") + param + string(" in parsePARAM. "), tok,
+		handleParsingError(string("Unknown parameter ") + param + string(" is dismissed."), tok,
 				model);
-	}
-}
-
-void NastranParserImpl::handleParseException(vega::ParsingException &e, shared_ptr<Model> model,
-		string message) {
-	switch (translationMode) {
-	case ConfigurationParameters::MODE_STRICT:
-		throw e;
-	case ConfigurationParameters::MESH_AT_LEAST:
-		model->onlyMesh = true;
-		cerr << message << " " << e.what() << endl;
-		break;
-	case ConfigurationParameters::BEST_EFFORT:
-		cerr << message << " " << e.what() << endl;
-		break;
-	default:
-		cerr << "Unknown enum in Translation mode, assuming MODE_STRICT" << endl;
-		throw e;
 	}
 }
 
@@ -2279,30 +2227,6 @@ void NastranParserImpl::parseLOAD(NastranTokenizer& tok, shared_ptr<Model> model
 	model->add(loadSet);
 }
 
-void NastranParserImpl::handleParsingError(const string& message, NastranTokenizer& tok,
-		shared_ptr<Model> model) {
-
-	switch (translationMode) {
-	case ConfigurationParameters::MODE_STRICT:
-		throw ParsingException(message, tok.fileName, tok.lineNumber);
-	case ConfigurationParameters::MESH_AT_LEAST:
-		model->onlyMesh = true;
-		cerr << message << " Line: " << tok.lineNumber << " in file: " << tok.fileName << endl;
-		break;
-	case ConfigurationParameters::BEST_EFFORT:
-		cerr << message << " Line: " << tok.lineNumber << " in file: " << tok.fileName << endl;
-		break;
-	default:
-		cerr << "Unknown enum in Translation mode, assuming MODE_STRICT" << endl;
-		throw ParsingException(message, tok.fileName, tok.lineNumber);
-	}
-}
-
-void NastranParserImpl::handleParsingWarning(const string& message, NastranTokenizer& tok,
-		shared_ptr<Model> model) {
-	UNUSEDV(model);
-	cerr << message << " Warning: Line: " << tok.lineNumber << " in file: " << tok.fileName << endl;
-}
 
 void NastranParserImpl::parseCELAS2(NastranTokenizer& tok, shared_ptr<Model> model) {
 	// Defines a scalar spring element without reference to a property entry.

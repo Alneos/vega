@@ -44,7 +44,7 @@ private:
 	static const std::set<string> IGNORED_KEYWORDS;
 	static const std::unordered_map<string, parseElementFPtr> PARSE_FUNCTION_BY_KEYWORD;
 
-	void addAnalysis(std::shared_ptr<Model> model, std::map<std::string, std::string>& context, int analysis_id =
+	void addAnalysis(NastranTokenizer& tok, std::shared_ptr<Model> model, std::map<std::string, std::string>& context, int analysis_id =
 			Analysis::NO_ORIGINAL_ID);
 	void addCellIds(ElementLoading& loading, int eid1, int eid2);
 
@@ -242,16 +242,9 @@ private:
 	 */
 	CellGroup* getOrCreateCellGroup(int property_id, std::shared_ptr<Model> model, const std::string & command="CGVEGA");//in NastranParser_geometry.cpp
 
-	void handleParseException(vega::ParsingException &e, std::shared_ptr<Model> model, string message = "");
-	void handleParsingError(const string& message, NastranTokenizer& tok, std::shared_ptr<Model> model);
-	void handleParsingWarning(const string& message, NastranTokenizer& tok, std::shared_ptr<Model> model);
 	int parseOrientation(int point1, int point2, NastranTokenizer& tok,
 			std::shared_ptr<Model> model);
 
-	/**
-	 * This variable is not reentrant.
-	 */
-	ConfigurationParameters::TranslationMode translationMode;
 	LogLevel logLevel = LogLevel::INFO;
 public:
 	NastranParserImpl();

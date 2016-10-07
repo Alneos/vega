@@ -58,6 +58,7 @@ namespace vega {
 unordered_map<VegaCommandLine::ExitCode, string, hash<int>> VegaCommandLine::failureReason_by_ExitCode = {
         {OK, "OK"},
         {GENERIC_EXCEPTION, "An unexpected exception was thrown during translation."},
+		{PARSING_EXCEPTION, "While reading the input file, VEGA encountered an error and quit."},
         {NO_INPUT_FILE, "No input file was specified."},
         {OUTPUT_DIR_NOT_CREATED, "Output dir can't be created."},
         {INVALID_COMMAND_LINE, "Invalid command line argument."},
@@ -525,6 +526,9 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
     } catch (invalid_argument &e) {
         cerr << "\n Invalid argument:" << e.what() << "\n";
         return INVALID_COMMAND_LINE;
+    } catch (ParsingException & e) {   // A parsing error occured.
+    	cerr << "\n" << e.what() << "\n";
+    	return PARSING_EXCEPTION;
     } catch (logic_error& e) {
         cerr << "\n :" << e.what() << "\n";
         return GENERIC_EXCEPTION;

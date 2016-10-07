@@ -18,11 +18,12 @@
 #include <iostream>
 #include <limits>
 #include "../Abstract/ConfigurationParameters.h"
+#include "../Abstract/SolverInterfaces.h"
 
 using namespace std;
 
 //TODO implements iterator
-class NastranTokenizer {
+class NastranTokenizer : public vega::Tokenizer {
 
 private:
 	enum LineType {
@@ -33,7 +34,6 @@ private:
 	static const int SFSIZE = 8; /**< Short field size **/
 	static const int LFSIZE = 16;/**< Long field size **/
 
-	istream& instrream;
 	unsigned int currentField;
 	vector<string> currentLineVector;
 	string currentLine;
@@ -62,19 +62,13 @@ public:
 	static const int UNAVAILABLE_INT;
 	static const double UNAVAILABLE_DOUBLE;
 
-	vega::LogLevel logLevel;
 
-	/**
-	 * Filename is used only for logging reasons
-	 */
-	const string fileName;
-
-	int lineNumber;
 	SectionType currentSection;
 	SymbolType nextSymbolType;
 
 	NastranTokenizer(istream& stream, vega::LogLevel logLevel = vega::LogLevel::INFO,
-			const string fileName = "UNKNOWN");
+			const string fileName = "UNKNOWN",
+			const vega::ConfigurationParameters::TranslationMode translationMode = vega::ConfigurationParameters::BEST_EFFORT);
 	virtual ~NastranTokenizer();
 
 	/**
@@ -137,6 +131,11 @@ public:
 	 */
 	void skipToNotEmpty();
 
+	/**
+	 * Skip to the next keyword, dismissing the current content.
+	 * Does nothing if the next field is a keyword
+	 */
+	void skipToNextKeyword();
 	/**
 	 * Return a vector containing the full data line with unparsed arguments.
 	 */

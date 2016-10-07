@@ -10,7 +10,7 @@
  */
 
 #include "SolverInterfaces.h"
-
+#include "Model.h"
 #include "ConfigurationParameters.h"
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
@@ -27,13 +27,37 @@ using namespace std;
 
 const double Globals::UNAVAILABLE_DOUBLE = -DBL_MAX;
 
-ParsingException::ParsingException(string arg, string fname, int lineNum) {
-	msg.append("Parsing error in file :");
+
+string MessageException(string arg, string fname, int lineNum, string key){
+	string msg;
+	msg.append("Parsing error in ");
+	msg.append(key);
+	msg.append(" (file ");
 	msg.append(fname);
-	msg.append(" Line: ");
+	msg.append(" line ");
 	msg.append((lexical_cast<string>(lineNum)));
-	msg.append(": ");
+	msg.append("): ");
 	msg.append(arg);
+	return msg;
+}
+
+string MessageWarning(string arg, string fname, int lineNum, string key){
+	string msg;
+	msg.append("Parsing warning in ");
+	msg.append(key);
+	msg.append(" (file ");
+	msg.append(fname);
+	msg.append(" line ");
+	msg.append((lexical_cast<string>(lineNum)));
+	msg.append("): ");
+	msg.append(arg);
+	return msg;
+}
+
+
+ParsingException::ParsingException(string arg, string fname, int lineNum, string key) {
+
+	msg.append(MessageException(arg, fname, lineNum, key));
 
 #ifdef __GNUC__
 	//defined in top level cmake file
@@ -105,6 +129,69 @@ const char* WriterException::what() const throw () {
 
 WriterException::~WriterException() throw () {
 }
+
+
+Tokenizer::Tokenizer(istream& stream, vega::LogLevel logLevel,  string fileName, vega::ConfigurationParameters::TranslationMode translationMode) :
+	instrream(stream), logLevel(logLevel), fileName(fileName), translationMode(translationMode), lineNumber(0), currentKeyword(""){
+}
+
+void Tokenizer::handleParsingError(const string& message) {
+
+	switch (translationMode) {
+	case ConfigurationParameters::MODE_STRICT:
+		throw ParsingException(message, fileName, lineNumber, currentKeyword);
+	case ConfigurationParameters::MESH_AT_LEAST:
+		//model->onlyMesh = true;
+		cerr << MessageException(message, fileName, lineNumber, currentKeyword) << endl;
+		throw std::string("skipCommand");
+		break;
+	case ConfigurationParameters::BEST_EFFORT:
+		cerr << MessageException(message, fileName, lineNumber, currentKeyword) << endl;
+		throw std::string("skipCommand");
+		break;
+	default:
+		cerr << "Unknown enum in Translation mode, assuming MODE_STRICT" << endl;
+		throw ParsingException(message, fileName, lineNumber, currentKeyword);
+	}
+}
+
+void Tokenizer::handleParsingWarning(const string& message) {
+	cerr << MessageWarning(message, fileName, lineNumber, currentKeyword);
+}
+
+
+
+Parser::Parser(){
+	this->translationMode= ConfigurationParameters::BEST_EFFORT;
+}
+
+void Parser::handleParsingError(const string& message, Tokenizer& tok,
+		shared_ptr<Model> model) {
+
+	switch (translationMode) {
+	case ConfigurationParameters::MODE_STRICT:
+		throw ParsingException(message, tok.fileName, tok.lineNumber, tok.currentKeyword);
+	case ConfigurationParameters::MESH_AT_LEAST:
+		model->onlyMesh = true;
+		cerr << MessageException(message, tok.fileName, tok.lineNumber, tok.currentKeyword) << endl;
+		throw std::string("skipCommand");
+		break;
+	case ConfigurationParameters::BEST_EFFORT:
+		cerr << MessageException(message, tok.fileName, tok.lineNumber, tok.currentKeyword) << endl;
+		throw std::string("skipCommand");
+		break;
+	default:
+		cerr << "Unknown enum in Translation mode, assuming MODE_STRICT" << endl;
+		throw ParsingException(message, tok.fileName, tok.lineNumber, tok.currentKeyword);
+	}
+}
+
+void Parser::handleParsingWarning(const string& message, Tokenizer& tok,
+		shared_ptr<Model> model) {
+	UNUSEDV(model);
+	cerr << MessageWarning(message, tok.fileName, tok.lineNumber, tok.currentKeyword) << endl;
+}
+
 
 ostream& operator<<(ostream& out, Writer& f) {
 	out << f.toString() << endl;

@@ -15,11 +15,13 @@
 #include <climits>
 #include <iostream>
 #include <vector>
+#include <istream>
+#include "ConfigurationParameters.h"
+#include <string>
 
 namespace vega {
 //Forward declarations
 class Model;
-class ConfigurationParameters;
 class Assertion;
 
 class Globals {
@@ -28,15 +30,65 @@ public:
 	static const double UNAVAILABLE_DOUBLE;
 };
 
+
+std::string MessageException(std::string arg, std::string fname, int lineNum, std::string key);
+std::string MessageWarning(std::string arg, std::string fname, int lineNum, std::string key);
+
+
+
 class ParsingException: public std::exception {
 private:
 	std::string msg;
 
 public:
-	ParsingException(std::string message, std::string filename, int lineNum);
+	ParsingException(std::string message, std::string filename, int lineNum, std::string key="");
 	operator const char*() const;
 	virtual const char* what() const throw ();
 	virtual ~ParsingException() throw ();
+};
+
+
+/**
+ * Base class for all Tokenizers.
+ */
+class Tokenizer {
+	friend class Parser;
+protected:
+	Tokenizer(std::istream& stream, vega::LogLevel logLevel = vega::LogLevel::INFO,
+			const std::string fileName = "UNKNOWN",
+			const vega::ConfigurationParameters::TranslationMode translationMode = vega::ConfigurationParameters::BEST_EFFORT);
+	std::istream& instrream;
+	vega::LogLevel logLevel;
+	std::string fileName;    /**< Current fileName: only used for printout and error managment. **/
+	vega::ConfigurationParameters::TranslationMode translationMode;
+	int lineNumber;
+	std::string currentKeyword; /**< Current Keyword: only used for printout and error managment. **/
+
+public:
+	virtual ~Tokenizer() {
+	}
+	inline vega::LogLevel getLogLevel()const {return logLevel;};
+	inline std::string getFileName() const {return fileName;};
+	//inline vega::ConfigurationParameters::TranslationMode getTranslationMode() const {return translationMode;};
+	inline int getLineNumber() const {return lineNumber;};
+	inline std::string getCurrentKeyword() const {return currentKeyword;};
+	void setCurrentKeyword(std::string cK) {currentKeyword=cK;};
+
+    /**
+     * Generic handler for parsing exceptions.
+     * Throw a ParsingException in strict mode, which shuts the program, and a string otherwise, which
+     * should skip the problematic command.
+     */
+	void handleParsingError(const std::string& message);
+
+    /**
+     * Generic handler for parsing warnings.
+     * Print a warning message
+     */
+	//TODO: Decide of a politic for warning.
+	void handleParsingWarning(const std::string& message);
+
+
 };
 
 /**
@@ -45,10 +97,9 @@ public:
 class Parser {
 
 protected:
-	Parser() {
-	}
-
+	Parser();
 public:
+	ConfigurationParameters::TranslationMode translationMode;
 	/**
 	 * Read a model from a specific file format.
 	 *
@@ -57,6 +108,21 @@ public:
 	virtual std::shared_ptr<Model> parse(const ConfigurationParameters& configuration) = 0;
 	virtual ~Parser() {
 	}
+
+    /**
+     * Generic handler for parsing exceptions.
+     * Throw a ParsingException in strict mode, which shuts the program, and a string otherwise, which
+     * should skip the problematic command.
+     */
+	void handleParsingError(const std::string& message, Tokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * Generic handler for parsing exception.
+     * Throw a ParsingException in strict mode, which shuts the program, and a string otherwise, which
+     * should skip the problematic command.
+     */
+	//TODO: Do a difference of treatment in case of a "very-strict" conversion.
+	void handleParsingWarning(const std::string& message, Tokenizer& tok, std::shared_ptr<Model> model);
 
 };
 

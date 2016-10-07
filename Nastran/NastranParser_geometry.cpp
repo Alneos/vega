@@ -148,7 +148,7 @@ void NastranParserImpl::parseCBAR(NastranTokenizer& tok, shared_ptr<Model> model
 	string offt = tok.nextString(true);
 	if (!offt.empty() && offt != "GGG") {
 		string message = string("CBAR OFFT not supported.") + string(" OFFT:") + offt;
-		throw ParsingException(message, tok.fileName, tok.lineNumber);
+		handleParsingError(message, tok, model);
 	}
 
 	// Pin flags : not supported.
@@ -185,7 +185,7 @@ void NastranParserImpl::parseCBEAM(NastranTokenizer& tok, shared_ptr<Model> mode
 	string offt = tok.nextString(true);
 	if (!offt.empty() && offt != "GGG") {
 		string message = string("CBEAM OFFT not supported.") + string(" OFFT:") + offt;
-		throw ParsingException(message, tok.fileName, tok.lineNumber);
+		handleParsingError(message, tok, model);
 	}
 	double w1A = tok.nextDouble(true, 0.0);
 	double w2A = tok.nextDouble(true, 0.0);
@@ -273,7 +273,7 @@ void NastranParserImpl::parseElem(NastranTokenizer& tok, shared_ptr<Model> model
 	unsigned int i = 0;
 	while (tok.isNextInt()) {
 		if (it == cellTypes.end())
-			throw ParsingException("format element not supported", tok.fileName, tok.lineNumber);
+			handleParsingError("format element not supported", tok, model);
 		cellType = *it;
 		for (; i < cellType.numNodes; i++)
 			nastranConnect.push_back(tok.nextInt());
@@ -313,35 +313,19 @@ void NastranParserImpl::parseCGAP(NastranTokenizer& tok, shared_ptr<Model> model
 }
 
 void NastranParserImpl::parseCHEXA(NastranTokenizer& tok, shared_ptr<Model> model) {
-	try {
-		parseElem(tok, model, { CellType::HEXA8, CellType::HEXA20 });
-	} catch (ParsingException &e) {
-		handleParseException(e, model, "HEXA mandatory field missing");
-	}
+	parseElem(tok, model, { CellType::HEXA8, CellType::HEXA20 });
 }
 
 void NastranParserImpl::parseCPENTA(NastranTokenizer& tok, shared_ptr<Model> model) {
-	try {
-		parseElem(tok, model, { CellType::PENTA6, CellType::PENTA15 });
-	} catch (ParsingException &e) {
-		handleParseException(e, model, "PENTA mandatory field missing");
-	}
+	parseElem(tok, model, { CellType::PENTA6, CellType::PENTA15 });
 }
 
 void NastranParserImpl::parseCPYRAM(NastranTokenizer& tok, shared_ptr<Model> model) {
-	try {
-		parseElem(tok, model, { CellType::PYRA5, CellType::PYRA13 });
-	} catch (ParsingException &e) {
-		handleParseException(e, model, "PYRAM mandatory field missing");
-	}
+	parseElem(tok, model, { CellType::PYRA5, CellType::PYRA13 });
 }
 
 void NastranParserImpl::parseCQUAD(NastranTokenizer& tok, shared_ptr<Model> model) {
-	try {
-		parseElem(tok, model, { CellType::QUAD4, CellType::QUAD8, CellType::QUAD9 });
-	} catch (ParsingException &e) {
-		handleParseException(e, model, "QUAD mandatory field missing");
-	}
+	parseElem(tok, model, { CellType::QUAD4, CellType::QUAD8, CellType::QUAD9 });
 }
 
 void NastranParserImpl::parseCQUAD4(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -370,11 +354,7 @@ void NastranParserImpl::parseCROD(NastranTokenizer& tok, shared_ptr<Model> model
 }
 
 void NastranParserImpl::parseCTETRA(NastranTokenizer& tok, shared_ptr<Model> model) {
-	try {
-		parseElem(tok, model, { CellType::TETRA4, CellType::TETRA10 });
-	} catch (ParsingException &e) {
-		handleParseException(e, model, "TETRA mandatory field missing");
-	}
+	parseElem(tok, model, { CellType::TETRA4, CellType::TETRA10 });
 }
 
 void NastranParserImpl::parseCTRIA3(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -458,12 +438,7 @@ void NastranParserImpl::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> 
 			|| !is_equal(zoffs, NastranTokenizer::UNAVAILABLE_DOUBLE)
 			|| tflag != NastranTokenizer::UNAVAILABLE_INT) {
 		const string msg = "Keywords not supported in: " + tok.currentRawDataLine();
-		if (translationMode == ConfigurationParameters::MODE_STRICT) {
-			throw ParsingException(msg, tok.fileName, tok.lineNumber);
-		} else if (translationMode == ConfigurationParameters::MESH_AT_LEAST) {
-			model->onlyMesh = true;
-		}
-		cerr << msg << " file: " << tok.fileName << " line: " << tok.lineNumber << endl;
+		handleParsingError(msg, tok, model);
 	}
 
 	model->mesh->addCell(cell_id, cellType, coords);

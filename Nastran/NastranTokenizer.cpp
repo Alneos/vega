@@ -30,9 +30,10 @@ using boost::trim_copy;
 const int NastranTokenizer::UNAVAILABLE_INT = vega::Globals::UNAVAILABLE_INT;
 const double NastranTokenizer::UNAVAILABLE_DOUBLE = vega::Globals::UNAVAILABLE_DOUBLE;
 
-NastranTokenizer::NastranTokenizer(istream& input, vega::LogLevel logLevel, const string fileName) :
-		instrream(input), currentField(0), logLevel(logLevel), fileName(fileName), lineNumber(0), currentSection(
-				SECTION_EXECUTIVE) {
+NastranTokenizer::NastranTokenizer(istream& stream, vega::LogLevel logLevel, const string fileName,
+		const vega::ConfigurationParameters::TranslationMode translationMode) :
+		Tokenizer(stream, logLevel, fileName, translationMode),
+		currentField(0), currentSection(SECTION_EXECUTIVE) {
 	this->nextSymbolType = NastranTokenizer::SYMBOL_KEYWORD;
 }
 
@@ -354,6 +355,17 @@ void NastranTokenizer::skipToNotEmpty() {
 		this->skip(1);
 }
 
+void NastranTokenizer::skipToNextKeyword() {
+	if (this->nextSymbolType == SYMBOL_EOF) {
+		throw "Attempt to read past the end of file. Line:" + this->lineNumber;
+	}
+
+	if (this->nextSymbolType != SYMBOL_KEYWORD){
+	    nextLine();
+	}
+}
+
+
 int NastranTokenizer::nextInt(bool returnDefaultIfNotFoundOrBlank, int defaultValue) {
 	int result;
 	if (returnDefaultIfNotFoundOrBlank && this->nextSymbolType != SYMBOL_FIELD) {
@@ -368,9 +380,9 @@ int NastranTokenizer::nextInt(bool returnDefaultIfNotFoundOrBlank, int defaultVa
 	} catch (boost::bad_lexical_cast &) {
 		string currentFieldstr =
 				currentField == 0 ? string("LAST") : (lexical_cast<string>(currentField - 1));
-		string message = "Value: [" + value + "] can't be converted to int. Field Num:"
+		string message = "Value [" + value + "] can't be converted to int. Field Num: "
 				+ currentFieldstr;
-		throw vega::ParsingException(message, fileName, lineNumber);
+		handleParsingError(message);
 	}
 	return result;
 }
@@ -394,12 +406,12 @@ double NastranTokenizer::nextDouble(bool returnDefaultIfNotFoundOrBlank, double 
 	}
 	try {
 		result = lexical_cast<double>(value);
-	} catch (boost::bad_lexical_cast &e) {
+	} catch (boost::bad_lexical_cast &) {
 		string currentFieldstr =
 				currentField == 0 ? string("LAST") : (lexical_cast<string>(currentField - 1));
-		string message = "Value: [" + value + "]can't be converted to double. Field Num: "
-				+ currentFieldstr + " " + e.what();
-		throw vega::ParsingException(message, fileName, lineNumber);
+		string message = "Value [" + value + "] can't be converted to double. Field Num: "
+				+ currentFieldstr;
+		handleParsingError(message);
 	}
 	return result;
 }
