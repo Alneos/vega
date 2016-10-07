@@ -25,7 +25,7 @@
 namespace vega {
 namespace aster {
 
-class AsterWriterImpl {
+class AsterWriterImpl : public Writer{
 	string mail_name, sigm_noeu, sigm_elno, sief_elga;
 	bool calc_sigm = false;
 
@@ -66,6 +66,10 @@ public:
 	AsterWriterImpl();
 	virtual ~AsterWriterImpl();
 	string writeModel(const std::shared_ptr<Model> model_ptr, const ConfigurationParameters&);
+private:
+	//TODO: That's a dummy function to make the compiler happy. Do you want to write a real one?
+	virtual std::string toString() {return "";};
+
 };
 
 }

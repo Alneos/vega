@@ -189,7 +189,7 @@ void SystusWriter::writeMaterialField(const SMF key, const int value, int& nbfie
 string SystusWriter::writeModel(const shared_ptr<Model> model,
 		const vega::ConfigurationParameters &configuration) {
 	SystusModel systusModel = SystusModel(&(*model), configuration);
-	//string currentOutFile = asterModel.getOutputFileName();
+	this->translationMode= configuration.translationMode;
 	cout << "Systus writer" << endl;
 
 	string path = systusModel.configuration.outputPath;
@@ -381,7 +381,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 			idMaterial++;
 
 			if (rbar->getSlaves().size()!=2){
-				throw WriterException(string("QUASI_RIDID constraint must have exactly two slaves."));
+				handleWritingError(string("QUASI_RIDID constraint must have exactly two slaves."));
 			}
 
 			// Master Node : first one
@@ -791,7 +791,7 @@ void SystusWriter::fillVectors(const SystusModel& systusModel, const int idSubca
 							for (DOF dof : DOFS::TRANSLATIONS)
 								vec.push_back( (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0) );
 						}else
-							throw WriterException("systusOption not supported");
+							handleWritingError("systusOption not supported");
 						vectors[vectorId]=vec;
 						localVectorIdByConstraintListIdByLoadcaseId[idLoadcase][constraint->getId()]=vectorId;
 						vectorId++;
@@ -910,7 +910,7 @@ void SystusWriter::fillConstraintLists(const SystusModel& systusModel, const int
 	else if (systusOption == 4)
 		dofCode = (char) DOFS::TRANSLATIONS;
 	else
-		throw WriterException("systusOption not supported");
+		handleWritingError("systusOption not supported");
 
 
 	for (const auto& constraint : constraintSet->getConstraints()) {
@@ -1692,7 +1692,7 @@ void SystusWriter::writeMasses(const SystusModel &systusModel, ostream& out) {
 				//  VAL(NBR):	Masses values [DOUBLE[NBR]]
 				//	NODEi:		List of NODES index [INTEGER[*]]
 				if (!is_zero(nodalMass->ixy) || !is_zero(nodalMass->iyz) || !is_zero(nodalMass->ixz)){
-					throw WriterException(
+					handleWritingError(
 							string("Asymetric masses are not (yet) implemented."));
 
 				}
@@ -1722,7 +1722,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
 	const int idAnalysis = systusSubcases[idSubcase][0];
 	const shared_ptr<Analysis> analysis = systusModel.model->getAnalysis(idAnalysis);
     if (analysis== nullptr){
-		throw WriterException(string("Analysis " + to_string(idAnalysis) + " not found."));
+    	handleWritingError(string("Analysis " + to_string(idAnalysis) + " not found."));
     }
 
 
@@ -1838,7 +1838,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
 		break;
 	}
 	default:
-		throw WriterException(
+		handleWritingError(
 				string("Analysis " + Analysis::stringByType.at(analysis->type) + " not (yet) implemented"));
 	}
 
@@ -1879,7 +1879,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
 				writeNodalComplexDisplacementAssertion(*assertion, out);
 				break;
 			default:
-				throw WriterException(string("Not implemented"));
+				handleWritingError(string("Not implemented"));
 			}
 			out << endl;
 		}
@@ -1897,7 +1897,7 @@ void SystusWriter::writeNodalDisplacementAssertion(Assertion& assertion, ostream
 	NodalDisplacementAssertion& nda = dynamic_cast<NodalDisplacementAssertion&>(assertion);
 
 	if (!is_equal(nda.instant, -1))
-		throw WriterException("Instant in NodalDisplacementAssertion not supported");
+		handleWritingError("Instant in NodalDisplacementAssertion not supported");
 	int nodePos = getAscNodeId(nda.nodePosition);
 	int dofPos = getAscNodeId(nda.dof.position);
 

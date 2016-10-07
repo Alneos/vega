@@ -59,6 +59,7 @@ unordered_map<VegaCommandLine::ExitCode, string, hash<int>> VegaCommandLine::fai
         {OK, "OK"},
         {GENERIC_EXCEPTION, "An unexpected exception was thrown during translation."},
 		{PARSING_EXCEPTION, "While reading the input file, VEGA encountered an error and quit."},
+		{WRITING_EXCEPTION, "While writing the output file, VEGA encountered an error and quit."},
         {NO_INPUT_FILE, "No input file was specified."},
         {OUTPUT_DIR_NOT_CREATED, "Output dir can't be created."},
         {INVALID_COMMAND_LINE, "Invalid command line argument."},
@@ -524,16 +525,19 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
             result = runSolver(configuration, modelFile);
         }
     } catch (invalid_argument &e) {
-        cerr << "\n Invalid argument:" << e.what() << "\n";
+        cerr << "\nInvalid argument: " << e.what() << "\n";
         return INVALID_COMMAND_LINE;
-    } catch (ParsingException & e) {   // A parsing error occured.
+    } catch (ParsingException & e) {   // A parsing error occurred.
     	cerr << "\n" << e.what() << "\n";
     	return PARSING_EXCEPTION;
+    } catch (WritingException & e) {   // An error occurred in the Writer.
+    	cerr << "\n" << e.what() << "\n";
+    	return WRITING_EXCEPTION;
     } catch (logic_error& e) {
-        cerr << "\n :" << e.what() << "\n";
+        cerr << "\nLogic error: " << e.what() << "\n";
         return GENERIC_EXCEPTION;
     } catch (exception& e) {
-        cerr << "\n exception: " << e.what() << "\n";
+        cerr << "\nException: " << e.what() << "\n";
         return GENERIC_EXCEPTION;
     }
     return result;

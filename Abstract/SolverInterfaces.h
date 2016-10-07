@@ -31,9 +31,10 @@ public:
 };
 
 
-std::string MessageException(std::string arg, std::string fname, int lineNum, std::string key);
-std::string MessageWarning(std::string arg, std::string fname, int lineNum, std::string key);
-
+std::string ParserMessageException(std::string arg, std::string fname, int lineNum, std::string key);
+std::string ParserMessageWarning(std::string arg, std::string fname, int lineNum, std::string key);
+std::string WriterMessageException(std::string arg, std::string fname, std::string key);
+std::string WriterMessageWarning(std::string arg, std::string fname, std::string key);
 
 
 class ParsingException: public std::exception {
@@ -126,15 +127,15 @@ public:
 
 };
 
-class WriterException: public std::exception {
+class WritingException: public std::exception {
 private:
 	std::string msg;
 
 public:
-	WriterException(std::string message, std::string filename = std::string(""));
+	WritingException(std::string message, std::string key = std::string(""), std::string filename = std::string(""));
 	operator const char*() const;
 	virtual const char* what() const throw ();
-	virtual ~WriterException() throw ();
+	virtual ~WritingException() throw ();
 };
 
 class Writer {
@@ -144,10 +145,12 @@ private:
 	 * returns a std::string representation of the Writer useful for debugging
 	 */
 	virtual std::string toString() = 0;
-
+protected:
+	Writer();
 public:
 	virtual ~Writer() {
 	}
+	ConfigurationParameters::TranslationMode translationMode;
 	/**
 	 * Write a model to the disk.
 	 *
@@ -157,6 +160,20 @@ public:
 	 */
 	virtual std::string writeModel(const std::shared_ptr<Model> model_ptr,
 			const ConfigurationParameters &configuration) = 0;
+
+    /**
+     * Generic handler for writing exceptions.
+     * Throw a WritingException in strict mode, which shuts the program.
+     * Otherwise, print a message in cerr.
+     */
+	void handleWritingError(const std::string& message, const std::string& keyword="", const std::string& file="");
+
+    /**
+     * Generic handler for writing warnings.
+     * Print a warning message
+     */
+	//TODO: Decide of a politic for warning.
+	void handleWritingWarning(const std::string& message, const std::string& keyword="", const std::string& file="");
 };
 
 class Runner {

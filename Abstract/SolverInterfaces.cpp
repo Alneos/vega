@@ -28,7 +28,7 @@ using namespace std;
 const double Globals::UNAVAILABLE_DOUBLE = -DBL_MAX;
 
 
-string MessageException(string arg, string fname, int lineNum, string key){
+string ParsingMessageException(string arg, string fname, int lineNum, string key){
 	string msg;
 	msg.append("Parsing error in ");
 	msg.append(key);
@@ -41,7 +41,7 @@ string MessageException(string arg, string fname, int lineNum, string key){
 	return msg;
 }
 
-string MessageWarning(string arg, string fname, int lineNum, string key){
+string ParsingMessageWarning(string arg, string fname, int lineNum, string key){
 	string msg;
 	msg.append("Parsing warning in ");
 	msg.append(key);
@@ -54,10 +54,44 @@ string MessageWarning(string arg, string fname, int lineNum, string key){
 	return msg;
 }
 
+string WritingMessageException(string arg, string key, string fname){
+	string msg;
+	msg.append("Writing error");
+	if (key!=""){
+		msg.append(" in ");
+		msg.append(key);
+	}
+	if (fname!=""){
+	    msg.append(" (file ");
+		msg.append(fname);
+		msg.append(")");
+	}
+	msg.append(": ");
+	msg.append(arg);
+	return msg;
+}
+
+string WritingMessageWarning(string arg, string key, string fname){
+	string msg;
+	msg.append("Writing warning");
+	if (key!=""){
+		msg.append(" in ");
+		msg.append(key);
+	}
+	if (fname!=""){
+	    msg.append(" (file ");
+		msg.append(fname);
+		msg.append(")");
+	}
+	msg.append(": ");
+	msg.append(arg);
+	return msg;
+}
+
 
 ParsingException::ParsingException(string arg, string fname, int lineNum, string key) {
 
-	msg.append(MessageException(arg, fname, lineNum, key));
+	msg.append(ParsingMessageException(arg, fname, lineNum, key));
 
 #ifdef __GNUC__
 	//defined in top level cmake file
@@ -90,14 +124,8 @@ const char* ParsingException::what() const throw () {
 ParsingException::~ParsingException() throw () {
 }
 
-WriterException::WriterException(string arg, string fname) {
-	msg.append("Writing error ");
-	if (!fname.empty()) {
-		msg.append("in file ");
-		msg.append(fname);
-	}
-	msg.append(": ");
-	msg.append(arg);
+WritingException::WritingException(string arg, string key, string fname) {
+	msg.append(WritingMessageException(arg, key, fname));
 
 #ifdef __GNUC__
 	//flag defined by cmake in Release build
@@ -119,15 +147,15 @@ WriterException::WriterException(string arg, string fname) {
 
 }
 
-WriterException::operator const char*() const {
+WritingException::operator const char*() const {
 	return msg.c_str();
 }
 
-const char* WriterException::what() const throw () {
+const char* WritingException::what() const throw () {
 	return msg.c_str();
 }
 
-WriterException::~WriterException() throw () {
+WritingException::~WritingException() throw () {
 }
 
 
@@ -142,11 +170,11 @@ void Tokenizer::handleParsingError(const string& message) {
 		throw ParsingException(message, fileName, lineNumber, currentKeyword);
 	case ConfigurationParameters::MESH_AT_LEAST:
 		//model->onlyMesh = true;
-		cerr << MessageException(message, fileName, lineNumber, currentKeyword) << endl;
+		cerr << ParsingMessageException(message, fileName, lineNumber, currentKeyword) << endl;
 		throw std::string("skipCommand");
 		break;
 	case ConfigurationParameters::BEST_EFFORT:
-		cerr << MessageException(message, fileName, lineNumber, currentKeyword) << endl;
+		cerr << ParsingMessageException(message, fileName, lineNumber, currentKeyword) << endl;
 		throw std::string("skipCommand");
 		break;
 	default:
@@ -156,7 +184,7 @@ void Tokenizer::handleParsingError(const string& message) {
 }
 
 void Tokenizer::handleParsingWarning(const string& message) {
-	cerr << MessageWarning(message, fileName, lineNumber, currentKeyword);
+	cerr << ParsingMessageWarning(message, fileName, lineNumber, currentKeyword);
 }
 
 
@@ -173,11 +201,11 @@ void Parser::handleParsingError(const string& message, Tokenizer& tok,
 		throw ParsingException(message, tok.fileName, tok.lineNumber, tok.currentKeyword);
 	case ConfigurationParameters::MESH_AT_LEAST:
 		model->onlyMesh = true;
-		cerr << MessageException(message, tok.fileName, tok.lineNumber, tok.currentKeyword) << endl;
+		cerr << ParsingMessageException(message, tok.fileName, tok.lineNumber, tok.currentKeyword) << endl;
 		throw std::string("skipCommand");
 		break;
 	case ConfigurationParameters::BEST_EFFORT:
-		cerr << MessageException(message, tok.fileName, tok.lineNumber, tok.currentKeyword) << endl;
+		cerr << ParsingMessageException(message, tok.fileName, tok.lineNumber, tok.currentKeyword) << endl;
 		throw std::string("skipCommand");
 		break;
 	default:
@@ -189,8 +217,33 @@ void Parser::handleParsingError(const string& message, Tokenizer& tok,
 void Parser::handleParsingWarning(const string& message, Tokenizer& tok,
 		shared_ptr<Model> model) {
 	UNUSEDV(model);
-	cerr << MessageWarning(message, tok.fileName, tok.lineNumber, tok.currentKeyword) << endl;
+	cerr << ParsingMessageWarning(message, tok.fileName, tok.lineNumber, tok.currentKeyword) << endl;
 }
+
+
+Writer::Writer(){
+	this->translationMode= ConfigurationParameters::BEST_EFFORT;
+}
+
+void Writer::handleWritingError(const string& message, const string& keyword, const string& file) {
+	switch (translationMode) {
+	case ConfigurationParameters::MODE_STRICT:
+		throw WritingException(message, keyword, file);
+	case ConfigurationParameters::MESH_AT_LEAST:
+	case ConfigurationParameters::BEST_EFFORT:
+		cerr << WritingMessageException(message, keyword, file) << endl;
+		//throw std::string("skipCommand");
+		break;
+	default:
+		cerr << "Unknown enum in Translation mode, assuming MODE_STRICT" << endl;
+		throw WritingException(message, keyword, file);
+	}
+}
+
+void Writer::handleWritingWarning(const string& message, const string& keyword, const string& file){
+	cerr << WritingMessageWarning(message, keyword, file) << endl;
+}
+
 
 
 ostream& operator<<(ostream& out, Writer& f) {

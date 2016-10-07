@@ -37,6 +37,7 @@ public:
         INVALID_COMMAND_LINE = 4, //Invalid command line argument
         MODEL_VALIDATION_ERROR = 5, //Validation of model failed.
 		PARSING_EXCEPTION = 6, // Error in the Parser.
+		WRITING_EXCEPTION = 7, // Error in the Writer.
         SOLVER_NOT_FOUND = Runner::SOLVER_NOT_FOUND, //solver was not found
         SOLVER_KILLED = Runner::SOLVER_KILLED,
         SOLVER_EXIT_NOT_ZERO = Runner::SOLVER_EXIT_NOT_ZERO,

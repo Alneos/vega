@@ -248,7 +248,7 @@ void AsterWriterImpl::writeAnalyses(const AsterModel& asterModel, ostream& out) 
 					writeNodalComplexDisplacementAssertion(asterModel, *assertion, out);
 					break;
 				default:
-					throw WriterException(string("Not implemented"));
+					handleWritingError(string("Not implemented"));
 				}
 				out << "                     )," << endl;
 			}
@@ -377,7 +377,7 @@ string AsterWriterImpl::writeValue(Value& value, ostream& out) {
 	case Value::DYNA_PHASE:
 		break;
 	default:
-		throw WriterException(string("Not implemented"));
+		handleWritingError(string("Not implemented"));
 	}
 	return concept_name;
 }
@@ -575,7 +575,7 @@ void AsterWriterImpl::writeAffeCaraElem(const AsterModel& asterModel, ostream& o
 		}	
 		std::shared_ptr<vega::CoordinateSystem> cs= asterModel.model.getCoordinateSystemByPosition(it.first);
 		if (cs->type!=CoordinateSystem::Type::ORIENTATION){
-		   throw WriterException(string("Coordinate System of Group "+ it.second+" is not an ORIENTATION."));
+		   handleWritingError(string("Coordinate System of Group "+ it.second+" is not an ORIENTATION."));
 		}
 		std::shared_ptr<OrientationCoordinateSystem> ocs = std::static_pointer_cast<OrientationCoordinateSystem>(cs);
 		
@@ -1553,7 +1553,7 @@ double AsterWriterImpl::writeAnalysis(const AsterModel& asterModel, Analysis& an
 	}
 
 	default:
-		throw WriterException(
+		handleWritingError(
 				string("Analysis " + Analysis::stringByType.at(analysis.type) + " not (yet) implemented"));
 	}
 	return debut;
