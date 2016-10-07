@@ -6,6 +6,17 @@
 
 cmake_minimum_required(VERSION 2.8.2 FATAL_ERROR)
 
+########################################################################
+# Provide add_compile_options() when not available
+########################################################################
+if(CMAKE_VERSION VERSION_LESS "2.8.12")
+    function(add_compile_options)
+        add_definitions(${ARGN})
+    endfunction(add_compile_options)
+endif()
+
+
+
 # Definition of the VEGA version
 set(VEGA_MAJOR_VERSION 2)
 set(VEGA_MINOR_VERSION 1)
@@ -66,14 +77,19 @@ else(WIN32)
     SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fstack-protector-all")
     #SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2")
     #set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} -Wl,--strip-all")
-    add_compile_options(-std=c++11 -Wall -Wextra -Winit-self -Wsuggest-attribute=const -Wconversion -pedantic -pedantic-errors)
-    add_compile_options(-Wfloat-equal -Woverlength-strings -fmessage-length=0) # -Wshadow
+    IF(CMAKE_C_COMPILER_ID MATCHES "Intel")
+        add_compile_options(-std=c++11 -Wall -Wextra -Winit-self -Wconversion -pedantic -pedantic-errors)
+        add_compile_options(-Wfloat-equal -diag-disable 1170 -fmessage-length=0) # -Wshadow
+    ELSE()
+        add_compile_options(-std=c++11 -Wall -Wextra -Winit-self -Wsuggest-attribute=const -Wconversion -pedantic -pedantic-errors)
+        add_compile_options(-Wfloat-equal -Woverlength-strings -fmessage-length=0) # -Wshadow
+    ENDIF()
     if(STATIC_LINKING)
         add_compile_options(-fPIE)
-        set(CMAKE_EXE_LINKER_FLAGS "-pthread -static-libgcc -static-libstdc++ -static" CACHE INTERNAL "Linker flags")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -static-libgcc -static-libstdc++ -static" CACHE INTERNAL "Linker flags")
     else(STATIC_LINKING)
         add_compile_options(-fPIC)
-        set(CMAKE_EXE_LINKER_FLAGS "-pthread -shared-libgcc -pipe" CACHE INTERNAL "Linker flags")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -shared-libgcc -pipe" CACHE INTERNAL "Linker flags")
     endif(STATIC_LINKING)
         
     IF(CYGWIN)
