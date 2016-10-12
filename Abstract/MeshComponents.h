@@ -147,6 +147,7 @@ public:
 	bool operator<(const CellType& other) const;
 	//const CellType& operator=(const CellType& other);
 	static const CellType* findByCode(Code code);
+    std::string to_str() const;
 };
 
 class Mesh;

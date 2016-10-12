@@ -67,7 +67,7 @@ void NastranParserImpl::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model
 	int id = tok.nextInt();
 	int cp = tok.nextInt(true, grdSet.cp);
 	if (cp != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID)
-		handleParsingError("GRID CP coordinate system not supported", tok, model);
+		handleParsingWarning("CP coordinate system not supported, and taken as blank.", tok, model);
 
 	double x1 = tok.nextDouble(true, 0.0);
 	double x2 = tok.nextDouble(true, 0.0);
@@ -147,16 +147,16 @@ void NastranParserImpl::parseCBAR(NastranTokenizer& tok, shared_ptr<Model> model
 	int cpos = parseOrientation(point1, point2, tok, model);
 	string offt = tok.nextString(true);
 	if (!offt.empty() && offt != "GGG") {
-		string message = string("CBAR OFFT not supported.") + string(" OFFT:") + offt;
-		handleParsingError(message, tok, model);
+		string message = string("OFFT ") + offt + string(" not supported and taken as GGG.");
+		handleParsingWarning(message, tok, model);
 	}
 
 	// Pin flags : not supported.
 	int pa = tok.nextInt(true);
 	int pb = tok.nextInt(true);
 	if ((pa != NastranTokenizer::UNAVAILABLE_INT) || (pb != NastranTokenizer::UNAVAILABLE_INT)) {
-		string message = string("CBAR Pin flags (PA, PB) not supported and dismissed.");
-		handleParsingError(message, tok, model);
+		string message = string("Pin flags (PA, PB) not supported and dismissed.");
+		handleParsingWarning(message, tok, model);
 	}
 	// Offset vectors : not supported
 	double w1a = tok.nextDouble(true, 0.0);
@@ -167,8 +167,8 @@ void NastranParserImpl::parseCBAR(NastranTokenizer& tok, shared_ptr<Model> model
 	double w3b = tok.nextDouble(true, 0.0);
 	if (! ( is_equal(w1a,0.0)&&is_equal(w2a,0.0)&&is_equal(w3a,0.0)
 			&&is_equal(w1b,0.0)&&is_equal(w2b,0.0)&&is_equal(w3b,0.0))){
-		string message = string("CBAR Offset vectors (WA, WB) not supported and taken as null.");
-		handleParsingError(message, tok, model);
+		string message = string("Offset vectors (WA, WB) not supported and taken as null.");
+		handleParsingWarning(message, tok, model);
 	}
 	vector<int> connectivity;
 	connectivity += point1, point2;
@@ -184,9 +184,19 @@ void NastranParserImpl::parseCBEAM(NastranTokenizer& tok, shared_ptr<Model> mode
 	int cpos = parseOrientation(point1, point2, tok, model);
 	string offt = tok.nextString(true);
 	if (!offt.empty() && offt != "GGG") {
-		string message = string("CBEAM OFFT not supported.") + string(" OFFT:") + offt;
-		handleParsingError(message, tok, model);
+		string message = string("OFFT ") + offt + string(" not supported and taken as GGG.");
+		handleParsingWarning(message, tok, model);
 	}
+
+	// Pin flags : not supported.
+	int pa = tok.nextInt(true);
+	int pb = tok.nextInt(true);
+	if ((pa != NastranTokenizer::UNAVAILABLE_INT) || (pb != NastranTokenizer::UNAVAILABLE_INT)) {
+		string message = string("Pin flags (PA, PB) not supported and dismissed.");
+		handleParsingWarning(message, tok, model);
+	}
+
+	// Offset vectors : not supported
 	double w1A = tok.nextDouble(true, 0.0);
 	double w2A = tok.nextDouble(true, 0.0);
 	double w3A = tok.nextDouble(true, 0.0);
@@ -195,8 +205,17 @@ void NastranParserImpl::parseCBEAM(NastranTokenizer& tok, shared_ptr<Model> mode
 	double w3B = tok.nextDouble(true, 0.0);
 	if (!is_zero(w1A) || !is_zero(w2A) || !is_zero(w3A) || !is_zero(w1B) || !is_zero(w2B)
 			|| !is_zero(w3B)) {
-		handleParsingError("CBEAM Wxx parameter !=0.0 not supported.", tok, model);
+		handleParsingWarning("Offset vectors (WA, WB) not supported and taken as null.", tok, model);
 	}
+
+	// Scalar or grid point identification number: not supported.
+	int sa = tok.nextInt(true);
+	int sb = tok.nextInt(true);
+	if ((sa != NastranTokenizer::UNAVAILABLE_INT) || (sb != NastranTokenizer::UNAVAILABLE_INT)) {
+		string message = string("Grid point identification numbers (SA, SB) not supported and dismissed.");
+		handleParsingWarning(message, tok, model);
+	}
+
 	vector<int> connectivity;
 	connectivity += point1, point2;
 
@@ -223,7 +242,7 @@ void NastranParserImpl::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> mode
     }else{
     	// Local definition of the element coordinate system
     	if (forbidOrientation){
-    		handleParsingWarning(string("CBUSH: Single node CBUSH can't support local orientation. Orientation dismissed."), tok, model);
+    		handleParsingWarning(string("Single node CBUSH can't support local orientation. Orientation dismissed."), tok, model);
     		tok.skip(4);
     		cpos = 0;
     	}else{
@@ -235,7 +254,7 @@ void NastranParserImpl::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> mode
     // Spring damper location (S): not supported.
 	double s=tok.nextDouble(true, 0.5);
 	if (!is_equal(s,0.5)){
-		handleParsingWarning(string("CBUSH: S keyword not supported. Default (0.5) used."), tok, model);
+		handleParsingWarning(string("S keyword not supported. Default (0.5) used."), tok, model);
 	    s=0.5;
 	}
 
@@ -245,8 +264,8 @@ void NastranParserImpl::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> mode
 	double s2=tok.nextDouble(true);
 	double s3=tok.nextDouble(true);
 	if (ocid!=-1){
-		handleParsingWarning(string("CBUSH: OCID keyword not supported. Default (-1) used."), tok, model);
-		handleParsingWarning(string("CBUSH: S1 S2 S3 dismissed :")+std::to_string(s1)+ string(" ")+std::to_string(s2)+ string(" ")+std::to_string(s3), tok, model);
+		handleParsingWarning(string("OCID keyword not supported. Default (-1) used."), tok, model);
+		handleParsingWarning(string("S1 S2 S3 dismissed :")+std::to_string(s1)+ string(" ")+std::to_string(s2)+ string(" ")+std::to_string(s3), tok, model);
 	    ocid=-1;
 	}
 
@@ -262,6 +281,43 @@ void NastranParserImpl::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> mode
 	addProperty(pid, eid, model);
 }
 
+void NastranParserImpl::parseCELAS2(NastranTokenizer& tok, shared_ptr<Model> model) {
+	// Defines a scalar spring element without reference to a property entry.
+	int eid = tok.nextInt();
+	double k = tok.nextDouble();
+	int g1 = tok.nextInt();
+	int c1 = tok.nextInt(); // Nastran coordinate goes from 1 to 6, VEGA from 0 to 5.
+	int g2 = tok.nextInt();
+	int c2 = tok.nextInt(); // Nastran coordinate goes from 1 to 6, VEGA from 0 to 5.
+
+	// Ignored fields
+	double ge = tok.nextDouble(true);
+	if (!is_equal(ge, NastranTokenizer::UNAVAILABLE_DOUBLE)){
+		string message = "Damping coefficient (GE) not supported and dismissed.";
+		handleParsingWarning(message, tok, model);
+	}
+	double s = tok.nextDouble(true);
+	if (!is_equal(s, NastranTokenizer::UNAVAILABLE_DOUBLE)){
+		string message = "Stress coefficient (S) not supported and dismissed.";
+		handleParsingWarning(message, tok, model);
+	}
+	StiffnessMatrix matrix(*model, eid);
+	matrix.addStiffness(g1, DOF::findByPosition(c1-1), g2, DOF::findByPosition(c2-1), k);
+	model->add(matrix);
+}
+
+void NastranParserImpl::parseCELAS4(NastranTokenizer& tok, shared_ptr<Model> model) {
+	// Defines a scalar spring element that is connected only to scalar points, without
+	// reference to a property entry.
+	int eid = tok.nextInt();
+	double k = tok.nextDouble();
+	int s1 = tok.nextInt();
+	int s2 = tok.nextInt();
+	StiffnessMatrix matrix(*model, eid);
+	// LD : TODO scalar point dofs treated as DX in abstract?
+	matrix.addStiffness(s1, DOF::DX, s2, DOF::DX, k);
+	model->add(matrix);
+}
 
 void NastranParserImpl::parseElem(NastranTokenizer& tok, shared_ptr<Model> model,
 								  vector<CellType> cellTypes) {
@@ -273,7 +329,7 @@ void NastranParserImpl::parseElem(NastranTokenizer& tok, shared_ptr<Model> model
 	unsigned int i = 0;
 	while (tok.isNextInt()) {
 		if (it == cellTypes.end())
-			handleParsingError("format element not supported", tok, model);
+			handleParsingError("Format element not supported "+cellType.to_str(), tok, model);
 		cellType = *it;
 		for (; i < cellType.numNodes; i++)
 			nastranConnect.push_back(tok.nextInt());
@@ -294,11 +350,16 @@ void NastranParserImpl::parseElem(NastranTokenizer& tok, shared_ptr<Model> model
 }
 
 void NastranParserImpl::parseCGAP(NastranTokenizer& tok, shared_ptr<Model> model) {
-	int eid = tok.nextInt(); UNUSEDV(eid);
-	int pid = tok.nextInt();
+	int eid = tok.nextInt();
+	int pid = tok.nextInt(true, eid);
 	int ga = tok.nextInt();
 	int gb = tok.nextInt();
 	parseOrientation(ga, gb, tok, model);
+   	int cid = tok.nextInt(true,CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+
+	if (cid != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+	    handleParsingWarning(string("CID not supported and dismissed."), tok, model);
+	}
 
 	shared_ptr<Constraint> gapPtr = model->find(Reference<Constraint>(Constraint::GAP, pid));
 	if (!gapPtr) {
@@ -314,6 +375,19 @@ void NastranParserImpl::parseCGAP(NastranTokenizer& tok, shared_ptr<Model> model
 
 void NastranParserImpl::parseCHEXA(NastranTokenizer& tok, shared_ptr<Model> model) {
 	parseElem(tok, model, { CellType::HEXA8, CellType::HEXA20 });
+}
+
+void NastranParserImpl::parseCMASS2(NastranTokenizer& tok, shared_ptr<Model> model) {
+	// Defines a scalar mass element without reference to a property entry.
+	int eid = tok.nextInt();
+	double m = tok.nextDouble();
+	int g1 = tok.nextInt();
+	int c1 = tok.nextInt(); // Nastran coordinate goes from 1 to 6, VEGA from 0 to 5.
+	int g2 = tok.nextInt();
+	int c2 = tok.nextInt(); // Nastran coordinate goes from 1 to 6, VEGA from 0 to 5.
+	MassMatrix matrix(*model, eid);
+	matrix.addComponent(g1, DOF::findByPosition(c1-1), g2, DOF::findByPosition(c2-1), m);
+	model->add(matrix);
 }
 
 void NastranParserImpl::parseCPENTA(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -341,7 +415,6 @@ void NastranParserImpl::parseCQUADR(NastranTokenizer& tok, shared_ptr<Model> mod
 }
 
 void NastranParserImpl::parseCROD(NastranTokenizer& tok, shared_ptr<Model> model) {
-	//not found in doc, copied from Vega
 	int cell_id = tok.nextInt();
 	int property_id = tok.nextInt(true, cell_id);
 	int point1 = tok.nextInt();
@@ -437,8 +510,8 @@ void NastranParserImpl::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> 
 	if (!is_equal(thetaOrMCID, NastranTokenizer::UNAVAILABLE_DOUBLE)
 			|| !is_equal(zoffs, NastranTokenizer::UNAVAILABLE_DOUBLE)
 			|| tflag != NastranTokenizer::UNAVAILABLE_INT) {
-		const string msg = "Keywords not supported in: " + tok.currentRawDataLine();
-		handleParsingError(msg, tok, model);
+		const string msg = "Some keywords are not supported and dismissed.";
+		handleParsingWarning(msg, tok, model);
 	}
 
 	model->mesh->addCell(cell_id, cellType, coords);

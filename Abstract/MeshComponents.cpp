@@ -80,6 +80,11 @@ ostream &operator<<(ostream &out, const CellType& cellType) {
 	out << "CellType[" << cellType.description << "]";
 	return out;
 }
+
+string CellType::to_str() const{
+	return "CellType[" +this->description + "]";
+}
+
 const CellType CellType::POINT1 = CellType(POINT1_CODE, 1, SpaceDimension::DIMENSION_0D, "POINT1");
 const CellType CellType::SEG2 = CellType(SEG2_CODE, 2, SpaceDimension::DIMENSION_1D, "SEG2");
 const CellType CellType::SEG3 = CellType(SEG3_CODE, 3, SpaceDimension::DIMENSION_1D, "SEG3");
