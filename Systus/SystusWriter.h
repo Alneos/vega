@@ -88,18 +88,18 @@ class SystusWriter: public Writer {
 	int nbNodes = 0;						 /**< Useless >**/
 	static int auto_part_id;                 /**< Next available numer for Systus Part ID >**/
 	
-	map<int, map<int, int>> lists;
-	map<int, vector<double>> vectors;
+	map<int, vector<long unsigned int> > lists;
+	map<long unsigned int, vector<double>> vectors;
 	map<int, vector<int>> RbarPositions;     /**< <material, <cells>> for all RBar (1902) elements. **/
 	map<int, vector<int>> RBE2rbarPositions; /**< <material, <cells>> for all RBE2 (1902/1903/1904) elements. **/
 	map<int, vector<int>> RBE3rbarPositions; /**< <material, <cells>> for all RBE3 elements. **/
 	map<int, vector<DOFS>> RBE3Dofs;         /**< <material, <master DOFS, slaves DOFS>> for all RBE3 elements. **/
 	map<int, double> RBE3Coefs;              /**< <material, coeff>  for all RBE3 elements. **/
 	map<int, int> rotationNodeIdByTranslationNodeId; /**< nodeId, nodeId > :  map between the reference node and the reference rotation for 190X elements in 3D mode.**/
-	map<int, int> localLoadingListIdByLoadingListId;
-	map<int, map<int, int>> localVectorIdByLoadingListIdByLoadcaseId;
-	map<int, map<int, int>> localVectorIdByConstraintListIdByLoadcaseId;
-	map<int, int> localVectorIdByCoordinateSystemPos;
+	map<int, map<int, int>> localLoadingIdByLoadsetIdByAnalysisId;
+	map<int, map<int, vector<long unsigned int>>> loadingVectorsIdByLocalLoadingByNodePosition;
+	map<int, map<int, vector<long unsigned int>>> constraintVectorsIdByLocalLoadingByNodePosition;
+	map<int, long unsigned int> localVectorIdByCoordinateSystemPos;
 	map<int, int> loadingListIdByNodePosition;
 	map<int, string> localLoadingListName;
 	map<int, int> constraintListIdByNodePosition;
@@ -277,10 +277,15 @@ class SystusWriter: public Writer {
 	static const std::unordered_map<CellType::Code, vector<int>, hash<int>> systus2medNodeConnectByCellType;
 	void writeAsc(const SystusModel&, const ConfigurationParameters&, const int idSubcase, std::ostream&);
 	void getSystusInformations(const SystusModel&, const ConfigurationParameters&);
+
 	void fillLoads(const SystusModel&, const int idSubcase);
+	void fillConstraintsNodes(const SystusModel& systusModel, const int idLoadcase);
+	void fillConstraintsVectors(const SystusModel& systusModel, const int idSubcase);
+	void fillCoordinatesVectors(const SystusModel& systusModel, const int idSubcase);
+	void fillLoadingsVectors(const SystusModel& systusModel, const int idSubcase);
 	void fillVectors(const SystusModel&, const int idSubcase);
-	void fillConstraintLists(const SystusModel&, const int idLoadcase, const std::shared_ptr<ConstraintSet> & , std::map<int, std::map<int, int>> &);
 	void fillLists(const SystusModel&, const int idSubcase);
+
 	void generateRBEs(const SystusModel&, const ConfigurationParameters&);
 	/** Following a user-defined list, we regroup analyzes in order to build
 	 *  multi-loadcases Subcases.

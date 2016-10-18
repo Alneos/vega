@@ -37,6 +37,10 @@ ostream &operator<<(ostream &out, const Constraint& constraint) {
 	return out;
 }
 
+const string Constraint::to_str() const{
+	return stringByType.at(type);
+}
+
 ConstraintSet::ConstraintSet(const Model& model, Type type, int original_id) :
 		Identifiable(original_id), model(model), type(type) {
 }

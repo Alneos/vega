@@ -45,6 +45,7 @@ public:
 	const Type type;
 	static const std::string name;
 	static const std::map<Type, std::string> stringByType;
+	const std::string to_str() const;
 	virtual std::shared_ptr<Constraint> clone() const = 0;
 	virtual void removeNode(int nodePosition) = 0;
 };
