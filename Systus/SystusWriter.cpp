@@ -1350,6 +1350,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 		}
 		case ElementSet::SHELL: {
 			dim = 2;
+			typecell=4;
 			break;
 		}
 		case ElementSet::CONTINUUM: {
