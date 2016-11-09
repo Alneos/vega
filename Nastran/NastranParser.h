@@ -285,6 +285,12 @@ private:
 	 */
 	void parseFORCE1(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
+    /**
+     * Parse the FORCE2 keyword (page 1552 of MDN Nastran 2006 Quick Reference Guide.)
+     * Full support.
+     */
+    void parseFORCE2(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
 	/**
 	 * Parse the keyword FREQ1 (page 1556 of MDN Nastran 2006 Quick Reference Guide.)
 	 * Fully supported.

@@ -80,6 +80,7 @@ const unordered_map<string, NastranParserImpl::parseElementFPtr> NastranParserIm
 				{ "EIGRL", &NastranParserImpl::parseEIGRL },
 				{ "FORCE", &NastranParserImpl::parseFORCE },
 				{ "FORCE1", &NastranParserImpl::parseFORCE1 },
+				{ "FORCE2", &NastranParserImpl::parseFORCE2 },
 				{ "FREQ1", &NastranParserImpl::parseFREQ1 },
 				{ "GRAV", &NastranParserImpl::parseGRAV },
 				{ "GRID", &NastranParserImpl::parseGRID },
@@ -937,6 +938,27 @@ void NastranParserImpl::parseFORCE1(NastranTokenizer& tok, shared_ptr<Model> mod
 	}
 }
 
+void NastranParserImpl::parseFORCE2(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int sid = tok.nextInt();
+    int node_id = tok.nextInt();
+    double force = tok.nextDouble();
+    int node1 = tok.nextInt();
+    int node2 = tok.nextInt();
+    int node3 = tok.nextInt();
+    int node4 = tok.nextInt();
+
+    NodalForceFourNodes force2(*model, node_id, node1, node2, node3, node4, force);
+
+    model->add(force2);
+    Reference<vega::LoadSet> loadset_ref(LoadSet::LOAD, sid);
+    model->addLoadingIntoLoadSet(force2, loadset_ref);
+    if (!model->find(loadset_ref)) {
+        LoadSet loadSet(*model, LoadSet::LOAD, sid);
+        model->add(loadSet);
+    }
+}
+
+
 void NastranParserImpl::parseFREQ1(NastranTokenizer& tok, shared_ptr<Model> model) {
 	int original_id = tok.nextInt();
 	double start = tok.nextDouble();
@@ -1278,9 +1300,10 @@ void NastranParserImpl::parsePARAM(NastranTokenizer& tok, shared_ptr<Model> mode
 		 of gravity is reported for the cross section in the x-z plane.
 		 */
 		int value = tok.nextInt(true, -1);
-		handleParsingWarning(
-				string("Ignored parameter ") + param + string("value ") + to_string(value)
-						+ string(" in parsePARAM. "), tok, model);
+		if (value!=-1){
+			handleParsingWarning(
+					string("Ignored parameter ") + param + string(" value ") + to_string(value), tok, model);
+		}
 	} else if (param == "K6ROT") {
 		/* K6ROT specifies the scaling factor of the penalty stiffness to be added
 		 to the normal rotation for CQUAD4 and CTRIA3 elements. The

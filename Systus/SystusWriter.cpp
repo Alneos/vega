@@ -682,6 +682,7 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
 		// But, it's easier this way ;)
 		for (const auto& loadset : analysis->getLoadSets()){
 			const int idLoadCase = localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()][loadset->getId()];
+			loadingVectorIdByLocalLoading[idLoadCase]=0;
 			for (const auto& loading : loadset->getLoadings()) {
 				vector<double> vec;
 				double normvec = 0.0;
@@ -743,21 +744,25 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
 				case Loading::GRAVITY: {
 					shared_ptr<Gravity> gravity = static_pointer_cast<Gravity>(loading);
 					VectorialValue acceleration = gravity->getAccelerationVector();
-					vec.push_back(1);
+					vec.push_back(6);
 					vec.push_back(0);
 					vec.push_back(0);
 					vec.push_back(0);
 					vec.push_back(0);
 					vec.push_back(0);
 					vec.push_back(acceleration.x()); normvec=max(normvec, abs(acceleration.x()));
+					vec.push_back(0);
 					vec.push_back(acceleration.y()); normvec=max(normvec, abs(acceleration.y()));
+					vec.push_back(0);
 					vec.push_back(acceleration.z()); normvec=max(normvec, abs(acceleration.z()));
 					if (!is_zero(normvec)){
-						vectors[vectorId]=vec;
-						for (int node : gravity->nodePositions()){
-							loadingVectorsIdByLocalLoadingByNodePosition[node][idLoadCase].push_back(vectorId);
+						if (loadingVectorIdByLocalLoading[idLoadCase]!=0){
+							handleWritingWarning("GRAVITY already defined for this loadcase. Dismissing load "+ to_string(gravity->bestId()) );
+						}else{
+							vectors[vectorId]=vec;
+							loadingVectorIdByLocalLoading[idLoadCase]= vectorId;
+							vectorId++;
 						}
-						vectorId++;
 					}
 					break;
 				}
@@ -967,6 +972,7 @@ void SystusWriter::fillVectors(const SystusModel& systusModel, const int idSubca
 	// Cleaning from previous analysis
 	vectors.clear();
 	localVectorIdByCoordinateSystemPos.clear();
+	loadingVectorIdByLocalLoading.clear();
 	loadingVectorsIdByLocalLoadingByNodePosition.clear();
 	constraintVectorsIdByLocalLoadingByNodePosition.clear();
 
@@ -1682,7 +1688,9 @@ void SystusWriter::writeLoads(ostream& out) {
 	// Writing Loads
 	for (const auto& load : localLoadingListName) {
 		out << load.first << " \""<<load.second<< "\"";
-		out << " 0 0 0 0 0 0 0 7" << endl;
+		out << " 0 ";
+		out << loadingVectorIdByLocalLoading[load.first];
+		out << " 0 0 0 0 0 0 7" << endl;
 	}
 	out << "END_LOADS" << endl;
 

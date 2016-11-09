@@ -78,7 +78,6 @@ double VectorialValue::dot(const VectorialValue &v) const {
 	return x() * v.x() + y() * v.y() + z() * v.z();
 }
 
-// Cross product with another VectorialValue. Result is (this x v)
 VectorialValue VectorialValue::cross(const VectorialValue &v) const {
 	return VectorialValue(y() * v.z() - z() * v.y(), z() * v.x() - x() * v.z(),
 			x() * v.y() - y() * v.x());

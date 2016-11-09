@@ -334,6 +334,38 @@ bool NodalForceTwoNodes::ineffective() const {
 	return is_zero(magnitude) or getForce().iszero();
 }
 
+NodalForceFourNodes::NodalForceFourNodes(const Model& model, const int node_id, const int node1_id,
+        const int node2_id, const int node3_id, const int node4_id, double magnitude, const int original_id) :
+        NodalForce(model, node_id, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID),
+                node_position1(model.mesh->findOrReserveNode(node1_id)),
+                node_position2(model.mesh->findOrReserveNode(node2_id)),
+                node_position3(model.mesh->findOrReserveNode(node3_id)),
+                node_position4(model.mesh->findOrReserveNode(node4_id)), magnitude(magnitude) {
+}
+
+const VectorialValue NodalForceFourNodes::getForce() const {
+    Node node1 = model.mesh->findNode(node_position1);
+    Node node2 = model.mesh->findNode(node_position2);
+    Node node3 = model.mesh->findNode(node_position3);
+    Node node4 = model.mesh->findNode(node_position4);
+    VectorialValue v1 = VectorialValue(node2.x, node2.y, node2.z) - VectorialValue(node1.x, node1.y, node1.z);
+    VectorialValue v2 = VectorialValue(node4.x, node4.y, node4.z) - VectorialValue(node3.x, node3.y, node3.z);
+    VectorialValue direction = v1.cross(v2).normalized();
+    return magnitude * direction;
+}
+
+shared_ptr<Loading> NodalForceFourNodes::clone() const {
+    return shared_ptr<Loading>(new NodalForceFourNodes(*this));
+}
+
+void NodalForceFourNodes::scale(double factor) {
+    magnitude *= factor;
+}
+
+bool NodalForceFourNodes::ineffective() const {
+    return is_zero(magnitude) or getForce().iszero();
+}
+
 ElementLoading::ElementLoading(const Model& model, Loading::Type type, int original_id,
 		int coordinateSystemId) :
 		Loading(model, type, Loading::ELEMENT, original_id, coordinateSystemId), CellContainer(model.mesh) {

@@ -220,6 +220,25 @@ class NodalForceTwoNodes: public NodalForce {
 };
 
 /**
+ *  In this class, the vector force is defined by N1N2^N3N4.
+ */
+//TODO: We build three classes for Nodal Force... because we have 3 ways to define a vector. That's not good.
+class NodalForceFourNodes: public NodalForce {
+    const int node_position1;
+    const int node_position2;
+    const int node_position3;
+    const int node_position4;
+    double magnitude;
+    public:
+    NodalForceFourNodes(const Model&, const int node_id, const int node1_id, const int node2_id,
+            const int node3_id, const int node4_id, double magnitude, const int original_id = NO_ORIGINAL_ID);
+    const VectorialValue getForce() const;
+    std::shared_ptr<Loading> clone() const;
+    void scale(double factor) override;
+    bool ineffective() const override;
+};
+
+/**
  * Represent loading applied on cells
  */
 class ElementLoading: public Loading, public CellContainer {

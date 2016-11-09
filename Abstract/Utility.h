@@ -73,6 +73,9 @@ final {
 		double dot(const VectorialValue &v) const;
 		double norm() const;
 		bool iszero() const;
+		/**
+		 *  Cross product with another VectorialValue. Result is ("this" x "other")
+		 **/
 		VectorialValue cross(const VectorialValue& other) const;
 		/**
 		 *  Return a vector orthonormal to "other", computed from this->value

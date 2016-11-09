@@ -97,6 +97,7 @@ class SystusWriter: public Writer {
 	map<int, double> RBE3Coefs;              /**< <material, coeff>  for all RBE3 elements. **/
 	map<int, int> rotationNodeIdByTranslationNodeId; /**< nodeId, nodeId > :  map between the reference node and the reference rotation for 190X elements in 3D mode.**/
 	map<int, map<int, int>> localLoadingIdByLoadsetIdByAnalysisId;
+	map<int, long unsigned int> loadingVectorIdByLocalLoading;
 	map<int, map<int, vector<long unsigned int>>> loadingVectorsIdByLocalLoadingByNodePosition;
 	map<int, map<int, vector<long unsigned int>>> constraintVectorsIdByLocalLoadingByNodePosition;
 	map<int, long unsigned int> localVectorIdByCoordinateSystemPos;
