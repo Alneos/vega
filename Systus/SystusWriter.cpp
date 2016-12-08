@@ -1821,7 +1821,7 @@ void SystusWriter::writeLoads(ostream& out) {
 		out << load.first << " \""<<load.second<< "\"";
 		out << " 0 ";
 		out << loadingVectorIdByLocalLoading[load.first];
-		out << " 0 0 0 0 0 0 7" << endl;
+		out << " 0 0 0 0 0 7" << endl;
 	}
 	out << "END_LOADS" << endl;
 
