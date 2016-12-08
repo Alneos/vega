@@ -21,6 +21,7 @@
 #include "../Abstract/Model.h"
 #include "../Abstract/SolverInterfaces.h"
 #include "../Abstract/ConfigurationParameters.h"
+#include "../Abstract/CoordinateSystem.h"
 #include "SystusModel.h"
 
 namespace vega {
@@ -306,11 +307,19 @@ class SystusWriter: public Writer {
 	 * If possible, nodes numbers copy the numbers of the input model. 
 	 **/
 	void writeNodes(const SystusModel&, std::ostream&);
+	
 	/**
-	 *  Write the Euler Angles corresponding to the cpos local referentiel.
+	 *  Compute the default referentiel for an element, as described in the
+	 *  Systus Reference Manual secion "16.2 Local axes (X,Y,Z)"
+	 *  TODO: Should not be a part of the writer.
+	 **/
+	CartesianCoordinateSystem buildElementDefaultReferentiel(const SystusModel& systusModel, const vector<int> nodes, const int dim, const int celltype);
+
+	/**
+	 *  Write the Euler Angles corresponding to an element with local referentiel cpos.
 	 *  Depending of the type of element, some angles may be dismissed.
 	 **/
-	void writeElementLocalReferentiel(const SystusModel& systusModel, const ElementSet::Type type, const int cpos, const bool allowOrientation, std::ostream& out);
+	void writeElementLocalReferentiel(const SystusModel& systusModel, const int dim, const int celltype, const vector<int> nodes, const int cpos, ostream& out);
 	void writeElements(const SystusModel&, std::ostream&);
 	/**
 	 * Write the Cells and Nodes groups in ASC format.

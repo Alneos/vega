@@ -11,13 +11,16 @@
 
 #include "CoordinateSystem.h"
 #include "Model.h"
+#include <boost/numeric/ublas/matrix.hpp>
 
 namespace vega {
 
 CoordinateSystem::CoordinateSystem(const Model& model, Type type, const VectorialValue origin,
 		const VectorialValue ex, const VectorialValue ey, int original_id) :
 		Identifiable(original_id), model(model), type(type), origin(origin), ex(ex.normalized()), ey(
-				ey.orthonormalized(this->ex)), ez(this->ex.cross(this->ey)) {
+				ey.orthonormalized(this->ex)), ez(this->ex.cross(this->ey)),
+				inverseMatrix(3, 3){
+
 }
 
 
@@ -36,16 +39,28 @@ ostream &operator<<(ostream &out, const CoordinateSystem& coordinateSystem) {
 	return out;
 }
 
-const VectorialValue CoordinateSystem::getEulerAnglesIntrinsicZYX() const {
+const VectorialValue CoordinateSystem::getEulerAnglesIntrinsicZYX(const CoordinateSystem *rcs) const {
 	double ax, ay, az = 0;
-	double cy = sqrt(ez.z() * ez.z() + ey.z() * ey.z());
+	VectorialValue EX, EY, EZ;
+
+	if (rcs== nullptr){
+	    EX = this->ex;
+	    EY = this->ey;
+	    EZ = this->ez;
+	}else{
+	    EX = rcs->vectorToLocal(this->ex);
+        EY = rcs->vectorToLocal(this->ey);
+        EZ = rcs->vectorToLocal(this->ez);
+	}
+
+	double cy = sqrt(EZ.z() * EZ.z() + EY.z() * EY.z());
 	if (cy > 1e-8) {
-		ax = atan2(ex.y(), ex.x());
-		ay = atan2(-ex.z(), cy);
-		az = atan2(ey.z(), ez.z());
+		ax = atan2(EX.y(), EX.x());
+		ay = atan2(-EX.z(), cy);
+		az = atan2(EY.z(), EZ.z());
 	} else {
-		ax = atan2(-ey.x(), ey.y());
-		ay = atan2(-ex.z(), cy);
+		ax = atan2(-EY.x(), EY.y());
+		ay = atan2(-EX.z(), cy);
 	}
 	return VectorialValue(ax, ay, az);
 }
@@ -72,6 +87,13 @@ const VectorialValue CartesianCoordinateSystem::vectorToGlobal(const VectorialVa
 	return VectorialValue(x, y, z);
 }
 
+const VectorialValue CartesianCoordinateSystem::vectorToLocal(const VectorialValue& global) const {
+    double x = global.x() * this->inverseMatrix(0,0) + global.y() * this->inverseMatrix(0,1) + global.z() * this->inverseMatrix(0,2);
+    double y = global.x() * this->inverseMatrix(1,0) + global.y() * this->inverseMatrix(1,1) + global.z() * this->inverseMatrix(1,2);
+    double z = global.x() * this->inverseMatrix(2,0) + global.y() * this->inverseMatrix(2,1) + global.z() * this->inverseMatrix(2,2);
+    return VectorialValue(x, y, z);
+}
+
 shared_ptr<CoordinateSystem> CartesianCoordinateSystem::clone() const {
 	return shared_ptr<CoordinateSystem>(new CartesianCoordinateSystem(*this));
 }
@@ -96,6 +118,13 @@ void CartesianCoordinateSystem::build(){
 		this->ey = this->ez.cross(this->ex);
 		isVirtual=false;
 	}
+
+    boost::numeric::ublas::matrix<double> m(3, 3);
+    m(0,0)= this->ex.x() ; m(0,1)= this->ey.x() ; m(0,2)= this->ez.x() ;
+    m(1,0)= this->ex.y() ; m(1,1)= this->ey.y() ; m(1,2)= this->ez.y() ;
+    m(2,0)= this->ex.z() ; m(2,1)= this->ey.z() ; m(2,2)= this->ez.z() ;
+    InvertMatrix(m,this->inverseMatrix);
+
 }
 
 
@@ -118,6 +147,12 @@ const VectorialValue CylindricalCoordinateSystem::vectorToGlobal(
 	double z = local.x() * ur.z() + local.y() * utheta.z() + local.z() * ez.z();
 	return VectorialValue(x, y, z);
 }
+
+const VectorialValue CylindricalCoordinateSystem::vectorToLocal(const VectorialValue& global) const {
+    throw logic_error("Global To Local vector conversion not done for Cylindrical Coordinate System");
+    return VectorialValue(0,0,0);
+}
+
 
 shared_ptr<CoordinateSystem> CylindricalCoordinateSystem::clone() const {
 	return shared_ptr<CoordinateSystem>(new CylindricalCoordinateSystem(*this));
@@ -164,6 +199,12 @@ void OrientationCoordinateSystem::build(){
 		this->ez = this->ex.cross(this->ey);
 		isVirtual=false;
 	}
+    boost::numeric::ublas::matrix<double> m(3, 3);
+    m(0,0)= this->ex.x() ; m(0,1)= this->ey.x() ; m(0,2)= this->ez.x() ;
+    m(1,0)= this->ex.y() ; m(1,1)= this->ey.y() ; m(1,2)= this->ez.y() ;
+    m(2,0)= this->ex.z() ; m(2,1)= this->ey.z() ; m(2,2)= this->ez.z() ;
+    InvertMatrix(m,this->inverseMatrix);
+
 }
 
 const VectorialValue OrientationCoordinateSystem::getOrigin() const{
@@ -213,6 +254,12 @@ const VectorialValue OrientationCoordinateSystem::vectorToGlobal(const Vectorial
 	return VectorialValue(x, y, z);
 }
 
+const VectorialValue OrientationCoordinateSystem::vectorToLocal(const VectorialValue& global) const {
+    double x = global.x() * this->inverseMatrix(0,0) + global.y() * this->inverseMatrix(0,1) + global.z() * this->inverseMatrix(0,2);
+    double y = global.x() * this->inverseMatrix(1,0) + global.y() * this->inverseMatrix(1,1) + global.z() * this->inverseMatrix(1,2);
+    double z = global.x() * this->inverseMatrix(2,0) + global.y() * this->inverseMatrix(2,1) + global.z() * this->inverseMatrix(2,2);
+    return VectorialValue(x, y, z);
+}
 
 shared_ptr<CoordinateSystem> OrientationCoordinateSystem::clone() const {
 	return shared_ptr<CoordinateSystem>(new OrientationCoordinateSystem(*this));

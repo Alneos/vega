@@ -18,6 +18,7 @@
 #include <fstream>
 #include <boost/filesystem.hpp>
 #include "SystusWriter.h"
+#include "../Abstract/CoordinateSystem.h"
 #include "build_properties.h"
 #include "cmath" /* M_PI */
 #include <ctime>
@@ -96,6 +97,122 @@ int SystusWriter::DOFSToInt(const DOFS dofs) const{
 	return iout;
 }
 
+// TODO: That should not be in the Writer.
+CartesianCoordinateSystem SystusWriter::buildElementDefaultReferentiel(const SystusModel& systusModel, const vector<int> nodes, const int dim,
+        const int celltype){
+
+    VectorialValue O,x,y;
+
+    switch (dim){
+    case 0:
+    case 3:{
+        x = VectorialValue::X;
+        y = VectorialValue::Y;
+        O = VectorialValue(0,0,0);
+        break;
+    }
+
+    case 1:{
+        // Element 16XX use the global system as a default
+        if (celltype==6){
+            x = VectorialValue::X;
+            y = VectorialValue::Y;
+            O = VectorialValue(0,0,0);
+        // Other 1D elements are computed from the orientation of the "bar"
+        }else{
+            shared_ptr<Mesh> mesh = systusModel.model->mesh;
+            Node nO = mesh->findNode(mesh->findNodePosition(nodes[0]));
+            Node nX = mesh->findNode(mesh->findNodePosition(nodes[1]));
+            O = VectorialValue(nO.x, nO.y, nO.z);
+            x = VectorialValue(nX.x-nO.x, nX.y-nO.y, nX.z-nO.z);
+            // If the beam is parallel to Oz, we have a special treatment.
+            if (is_zero(x.x()) && is_zero(x.y())){
+                // If x is null, we use the global referentiel
+                if (is_zero(x.z())){
+                    handleWritingWarning("X-axis of element is undefined. Global referentiel chosen.", "Element Default Referentiel");
+                    x = VectorialValue::X;
+                }
+                y = VectorialValue::Y;
+            }else{
+                y = VectorialValue::Z.cross(x);
+            }
+        }
+        break;
+    }
+
+    case 2:{
+        shared_ptr<Mesh> mesh = systusModel.model->mesh;
+
+        // The origin of the referentiel is the center of the element.
+        O = VectorialValue(0,0,0);
+        int nbnodes=0;
+        for (auto n : nodes){
+            Node node = mesh->findNode(mesh->findNodePosition(n));
+            O = O + VectorialValue(node.x, node.y, node.z);
+            nbnodes++;
+        }
+        O = O/nbnodes;
+
+        // Shell must have at least 3 nodes.
+        if (nbnodes<3){
+            handleWritingWarning("2D element must have at least 3 nodes. Global referentiel chosen.", "Element Default Referentiel");
+            x = VectorialValue::X;
+            y = VectorialValue::Y;
+            break;
+        }
+
+        if (celltype==4){
+
+            //  See Systus Reference Manual, Section 16.2.2, subsection "Shell element with three nodes" page 1114
+            if (nbnodes==3){
+                Node nA0 = mesh->findNode(mesh->findNodePosition(nodes[0]));
+                Node nA1 = mesh->findNode(mesh->findNodePosition(nodes[1]));
+                Node nA2 = mesh->findNode(mesh->findNodePosition(nodes[2]));
+
+                VectorialValue a0a1 = VectorialValue(nA1.x-nA0.x, nA1.y-nA0.y, nA1.z-nA0.z);
+                VectorialValue a0a2 = VectorialValue(nA2.x-nA0.x, nA2.y-nA0.y, nA2.z-nA0.z);
+                VectorialValue z = a0a1.cross(a0a2);
+
+                x = VectorialValue::Z.cross(z);
+                y = z.cross(x);
+
+            }else{
+
+                // We don't treat this case yet.
+                handleWritingWarning("Default referentiel of element 2"+std::to_string(celltype)+std::to_string(nbnodes)+" not supported. Global referentiel chosen.", "Element Default Referentiel");
+                x = VectorialValue::X;
+                y = VectorialValue::Y;
+            }
+
+            // If x or y are null, we use the global referentiel
+            if (x.iszero() or y.iszero()){
+                handleWritingWarning("Local axis of 2D element are undefined. Global referentiel chosen.", "Element Default Referentiel");
+                x = VectorialValue::X;
+                y = VectorialValue::Y;
+            }
+
+        }else{
+            // We don't treat this case yet.
+            handleWritingWarning("Default referentiel of element 2"+std::to_string(celltype)+"XX not supported. Global referentiel chosen.", "Element Default Referentiel");
+            x = VectorialValue::X;
+            y = VectorialValue::Y;
+        }
+        break;
+
+    }
+    default:{
+        handleWritingError("Invalid dimension: "+ to_string(dim), "Element Default Referentiel");
+        x = VectorialValue::X;
+        y = VectorialValue::Y;
+        O = VectorialValue(0,0,0);
+    }
+    }
+
+    CartesianCoordinateSystem rcs = CartesianCoordinateSystem(*(systusModel.model), O, x, y);
+    rcs.build();
+    return rcs;
+
+}
 
 int SystusWriter::auto_part_id = 99999999;
 
@@ -1260,62 +1377,75 @@ void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
 
 
 void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel,
-		const ElementSet::Type type, const int cpos, const bool allowOrientation, ostream& out){
+		const int dim, const int celltype, const vector<int> nodes, const int cpos, ostream& out){
 
 	shared_ptr<CoordinateSystem> cs = systusModel.model->getCoordinateSystemByPosition(cpos);
-	switch (cs->type){
-	// Cartesian referentiel: we give all three angles.
-	case CoordinateSystem::CARTESIAN:{
-		VectorialValue angles = cs->getEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
-		out << " 3 "<< angles.x() <<" " << angles.y()<< " "<< angles.z();
-		break;
+	if (cs== nullptr){
+	    out << " 0";
+	    handleWritingWarning("Unknown coordinate system of position " +to_string(cpos), "Angle Elements");
+	    return;
 	}
-	// Element orientation : it depends of the kind of elements.
-	case CoordinateSystem::ORIENTATION:{
 
-		// If Orientation are not allowed (for 0D elements for example)
-		// we print them nonetheless, but issue a warning.
-		if (!allowOrientation){
-			cerr << "WARNING: Local orientation used instead of a global referentiel system."<<endl;
-		}
+    if ((cs->type!=CoordinateSystem::CARTESIAN) and (cs->type!=CoordinateSystem::ORIENTATION)){
+        out << " 0";
+        handleWritingWarning("Coordinate System "+ to_string(cs->type) + " is not supported. Referentiel dismissed.", "Angle Elements");
+        return;
+    }
+    
+    CartesianCoordinateSystem rcs = buildElementDefaultReferentiel(systusModel, nodes, dim, celltype);
+    VectorialValue angles = cs->getEulerAnglesIntrinsicZYX(&rcs); // (PSI, THETA, PHI)
+    
+    switch (dim) {
 
-		VectorialValue angles = cs->getEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
-		switch (type) {
-		// For 1D element, only PHI should be defined
-		case ElementSet::CIRCULAR_SECTION_BEAM:
-		case ElementSet::GENERIC_SECTION_BEAM:
-		case ElementSet::I_SECTION_BEAM:
-		case ElementSet::RECTANGULAR_SECTION_BEAM:
-		case ElementSet::STRUCTURAL_SEGMENT: {
-			out << " 3 0.0 0.0 " << angles.z();
-			break;
-		}
-		// For 2D Element, only PSI should be defined
-		case ElementSet::SHELL: {
-			out << "1 "<< angles.x();
-			break;
-		}
-		// These types are not translated as element in Systus, so we dismissed them
-		// The function should not be called on them anyway.
-		case ElementSet::NODAL_MASS:
-		case ElementSet::DISCRETE_0D:
-		case ElementSet::DISCRETE_1D: {
-			cerr << "Warning in Angle Elements: "<< type << "is not translated as an Element in Systus."<<endl;
-			break;
-		}
-		default: {
-			//TODO : throw WriterException("ElementSet type not supported");
-			cerr << "Warning in Angle Elements: " << type << " is not supported. Local referentiel dismissed." << endl;
-			out << " 0";
-		}
-		}
-		break;
-	}
-	default: {
-		cerr << "Warning in Angle Elements: " << cs->type << " is not supported. Referentiel dismissed." << endl;
-		out << " 0";
-	}
-	}
+    // Orientation are not allowed for 0d elements.
+    case 0: {
+        if (cs->type==CoordinateSystem::ORIENTATION){
+            out << " 0";
+            handleWritingWarning("Local orientation are not defined for 0D elements.",  "Angle Elements");
+        }else{
+            out << " 3 "<< angles.x() <<" " << angles.y()<< " "<< angles.z();
+        }
+        break;
+    }
+
+    // For 1D elements, only PHI should be defined
+    case 1: {
+        // Except 16XX elements which need a full coordinate system
+        if (celltype==6){
+            out << " 3 "<< angles.x() <<" " << angles.y()<< " "<< angles.z();
+        }else{
+            if (!is_zero(angles.x()) or !is_zero(angles.y())){
+                handleWritingWarning("Orientation of 1D Elements must be defined through the PHI angle only. PSI and THETA angles are dismissed.", "Angle Elements");
+            }
+            out << " 3 0.0 0.0 " << angles.z();
+        }
+        break;
+    }
+
+    // For 2D elements, only PSI should be defined
+    case 2: {
+        if (!is_zero(angles.y()) or !is_zero(angles.z())){
+            handleWritingWarning("Orientation of 2D Elements must be defined through the PSI angle only. THETA and PHI angles are dismissed.", "Angle Elements");
+        }
+        out << " 1 " << angles.x();
+        break;
+    }
+
+    // For 3D elements, three angles can be defined.
+    case 3: {
+        out << " 3 "<< angles.x() <<" " << angles.y()<< " "<< angles.z();
+        break;
+
+    }
+
+    // Should never happen
+    default: {
+        out << " 0";
+        handleWritingWarning("Dimension should be between 0 and 3", "Angle Elements");
+    }
+    }
+
+
 }
 
 
@@ -1327,9 +1457,9 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 	for (const auto& elementSet : systusModel.model->elementSets) {
 
 		CellGroup* cellGroup = elementSet->cellGroup;
-		int dim = 0;
+        int dim = 0;
 		int typecell=0;
-		bool allowOrientation=true;
+
 
 		switch (elementSet->type) {
 		case ElementSet::CIRCULAR_SECTION_BEAM:
@@ -1376,32 +1506,32 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 				continue;
 			}
 
+			// Putting all nodes in the Systus order
+			vector<int> systus2medNodeConnect = systus2med_it->second;
+			vector<int> medConnect = cell.nodeIds;
+			vector<int> systusConnect;
+			for (unsigned int i = 0; i < cell.type.numNodes; i++)
+			    systusConnect.push_back(medConnect[systus2medNodeConnect[i]]);
+
 			if (elementSet->type==ElementSet::STRUCTURAL_SEGMENT){
 				dim = (cell.nodeIds.size()==2) ? 1 : 0 ;
-				//TODO: We should also check whether nodes are coincident or not
-				// because coincidents 1602 can't have an Orientation.
-				allowOrientation = (dim!=0);
 			}
 
 			out << cell.id << " " << dim << typecell;              // Dimension and type of cell;
 			out << setfill('0') << setw(2) << cell.nodeIds.size(); // Number of nodes in two caracters: 01, 02, 05, 10, etc.
-			//out << " " << material->getId() << " " << 0 << " " << 0 << " ";
+
+			//TODO: We should write here the Material Id: we use the elementSet id which SHOULD be the same
 			out << " " << elementSet->getId(); // Material Id (it's an ugly fix)
 			out << " 0"; // Loading List:  index that describes solicitation list (not supported yet)
 
 			// Local Orientation
 			if (cell.hasOrientation){
-				writeElementLocalReferentiel(systusModel, elementSet->type, cell.cid, allowOrientation, out);
+			    writeElementLocalReferentiel(systusModel, dim, typecell, systusConnect, cell.cid, out);
 			}else{
 				out << " 0";
 			} 
 
-			// Nodes
-			vector<int> systus2medNodeConnect = systus2med_it->second;
-			vector<int> medConnect = cell.nodeIds;
-			vector<int> systusConnect;
-			for (unsigned int i = 0; i < cell.type.numNodes; i++)
-				systusConnect.push_back(medConnect[systus2medNodeConnect[i]]);
+			// Writing Nodes
 			for (int node : systusConnect) {
 				out << " " << node;
 			}

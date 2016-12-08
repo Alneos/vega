@@ -24,6 +24,7 @@
 #endif
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/io.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
 #include <boost/variant.hpp>
 
 namespace vega {
@@ -118,6 +119,13 @@ final {
 			bool operator<(const ValueOrReference& rhs) const;
 		};
 
-		ostream& operator<<(ostream &out, const ValueOrReference& valueOrReference);
+	ostream& operator<<(ostream &out, const ValueOrReference& valueOrReference);
+
+	/**
+	 * The following code inverts the matrix input using LU-decomposition with backsubstitution of unit vectors. Reference: Numerical Recipies in C, 2nd ed., by Press, Teukolsky, Vetterling & Flannery.
+	 * From https://gist.github.com/lilac/2464434
+	 */
+	bool InvertMatrix(const ublas::matrix<double>& input, ublas::matrix<double>& inverse);
+
 		} /* namespace vega */
 #endif /* UTILITY_H_ */

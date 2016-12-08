@@ -18,6 +18,7 @@
 #include "Object.h"
 #include <map>
 #include "ConfigurationParameters.h"
+#include <boost/numeric/ublas/matrix.hpp>
 using namespace std;
 
 namespace vega {
@@ -47,6 +48,7 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
 	VectorialValue ez;
 	bool isVirtual=false;
 	std::vector<int> nodesId;
+	boost::numeric::ublas::matrix<double> inverseMatrix;
 
 	public:
 	static const string name;
@@ -70,7 +72,18 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
 	 *   account, so do NOT use this to convert coordinates.
 	 **/
 	virtual const VectorialValue vectorToGlobal(const VectorialValue&) const = 0;
-	virtual const VectorialValue getEulerAnglesIntrinsicZYX() const;
+	/**
+	 *  Translate a vector, expressed in the global Coordinate system,
+	 *   to its local counterpart. Warning, it does not take the origin into
+	 *   account, so do NOT use this to convert coordinates.
+	 **/
+	virtual const VectorialValue vectorToLocal(const VectorialValue&) const = 0;
+	/**
+	 *  Compute the Euler Angles (PSI,THETA,PHI) around the axes (OZ, OY, OX) 
+	 *  of the reference coordinate system RCS. If no rcs is provided, the global
+	 *  coordinate system is used. 
+	 **/
+	virtual const VectorialValue getEulerAnglesIntrinsicZYX(const CoordinateSystem *rcs = nullptr) const;
 	virtual std::shared_ptr<CoordinateSystem> clone() const = 0;
 };
 
@@ -88,6 +101,7 @@ public:
 	 **/
 	void build() override;
 	const VectorialValue vectorToGlobal(const VectorialValue&) const override;
+	const VectorialValue vectorToLocal(const VectorialValue&) const override;
 	std::shared_ptr<CoordinateSystem> clone() const override;
 };
 
@@ -120,6 +134,7 @@ public:
 	bool operator==(const OrientationCoordinateSystem&) const;  /**< Equal operator **/
 
 	const VectorialValue vectorToGlobal(const VectorialValue&) const override;
+	const VectorialValue vectorToLocal(const VectorialValue&) const override;
 	std::shared_ptr<CoordinateSystem> clone() const override;
 };
 
@@ -142,6 +157,7 @@ class CylindricalCoordinateSystem: public CoordinateSystem {
 	 *   account, so do NOT use this to convert coordinates.
 	 **/
 	const VectorialValue vectorToGlobal(const VectorialValue&) const override;
+	const VectorialValue vectorToLocal(const VectorialValue&) const override;
 	std::shared_ptr<CoordinateSystem> clone() const override;
 };
 
@@ -163,6 +179,7 @@ class SphericalCoordinateSystem: public CoordinateSystem {
 	 *   account, so do NOT use this to convert coordinates.
 	 **/
 	const VectorialValue vectorToGlobal(const VectorialValue&) const override;
+	const VectorialValue vectorToLocal(const VectorialValue&) const override;
 	std::shared_ptr<CoordinateSystem> clone() const override;
 };
 
