@@ -1074,7 +1074,7 @@ void NastranParserImpl::parseMAT1(NastranTokenizer& tok, shared_ptr<Model> model
 
 	if (!is_equal(ge, NastranTokenizer::UNAVAILABLE_DOUBLE)) {
 		string message = "GE not supported";
-		handleParsingError(message, tok, model);
+		handleParsingWarning(message, tok, model);
 	}
 	/*	ST, SC, SS
 	 (Real)
