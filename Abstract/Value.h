@@ -1,7 +1,19 @@
 /*
  * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
- * Unauthorized copying of this file, via any medium is strictly prohibited. 
- * Proprietary and confidential.
+ * This file is part of Vega.
+ *
+ *   Vega is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 2 of the License, or
+ *   (at your option) any later version.
+ *
+ *   Vega is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with Vega.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Value.h
  *
@@ -30,59 +42,59 @@ class Model;
  */
 class Value: public Identifiable<Value> {
 private:
-	friend ostream &operator<<(ostream&, const Value&);    //output
+    friend ostream &operator<<(ostream&, const Value&);    //output
 public:
-	enum Type {
-		STEP_RANGE,
-		FUNCTION_TABLE,
-		DYNA_PHASE
-	};
-	enum ParaName {
-		NO_PARA_NAME,
-		FREQ,
-		INST,
-		AMOR
-	};
-	protected:
-	const Model& model;
-	public:
-	const Type type;
-	static const string name;
-	static const map<Type, string> stringByType;
-	protected:
-	ParaName paraX;
-	ParaName paraY;
-	Value(const Model&, Type, int original_id = NO_ORIGINAL_ID, ParaName paraX = NO_PARA_NAME,
-			ParaName paraY = NO_PARA_NAME);
-	public:
-	void setParaX(ParaName para) {
-		paraX = para;
-	}
+    enum Type {
+        STEP_RANGE,
+        FUNCTION_TABLE,
+        DYNA_PHASE
+    };
+    enum ParaName {
+        NO_PARA_NAME,
+        FREQ,
+        INST,
+        AMOR
+    };
+    protected:
+    const Model& model;
+    public:
+    const Type type;
+    static const string name;
+    static const map<Type, string> stringByType;
+    protected:
+    ParaName paraX;
+    ParaName paraY;
+    Value(const Model&, Type, int original_id = NO_ORIGINAL_ID, ParaName paraX = NO_PARA_NAME,
+            ParaName paraY = NO_PARA_NAME);
+    public:
+    void setParaX(ParaName para) {
+        paraX = para;
+    }
 
-	void setParaY(ParaName para) {
-		paraY = para;
-	}
+    void setParaY(ParaName para) {
+        paraY = para;
+    }
 
-	bool hasParaX() const {
-		return paraX != NO_PARA_NAME;
-	}
-	bool hasParaY() const {
-		return paraY != NO_PARA_NAME;
-	}
+    bool hasParaX() const {
+        return paraX != NO_PARA_NAME;
+    }
+    bool hasParaY() const {
+        return paraY != NO_PARA_NAME;
+    }
 
-	ParaName getParaX() const {
-		return paraX;
-	}
+    ParaName getParaX() const {
+        return paraX;
+    }
 
-	ParaName getParaY() const {
-		return paraY;
-	}
+    ParaName getParaY() const {
+        return paraY;
+    }
 
-	virtual bool isPlaceHolder() const {
-		return false;
-	}
+    virtual bool isPlaceHolder() const {
+        return false;
+    }
 
-	virtual std::shared_ptr<Value> clone() const =0;
+    virtual std::shared_ptr<Value> clone() const =0;
 };
 
 /**
@@ -90,91 +102,91 @@ public:
  */
 class ValuePlaceHolder: public Value {
 public:
-	ValuePlaceHolder(const Model&, Type, int original_id, ParaName paraX, ParaName paraY =
-			NO_PARA_NAME);
-	bool isPlaceHolder() const {
-		return true;
-	}
-	;
-	std::shared_ptr<Value> clone() const;
+    ValuePlaceHolder(const Model&, Type, int original_id, ParaName paraX, ParaName paraY =
+            NO_PARA_NAME);
+    bool isPlaceHolder() const {
+        return true;
+    }
+    ;
+    std::shared_ptr<Value> clone() const;
 
 };
 
 class ValueRange: public Value {
 protected:
-	ValueRange(const Model&, Type, int original_id = NO_ORIGINAL_ID);
-	public:
-	std::shared_ptr<Value> clone() const;
+    ValueRange(const Model&, Type, int original_id = NO_ORIGINAL_ID);
+    public:
+    std::shared_ptr<Value> clone() const;
 };
 
 class StepRange: public ValueRange {
 public:
-	const double start;
-	double step;
-	int count;
-	double end;
-	public:
-	StepRange(const Model& model, double start, double step, double end, int original_id =
-			NO_ORIGINAL_ID);
-	StepRange(const Model& model, double start, int count, double end, int original_id =
-			NO_ORIGINAL_ID);
-	StepRange(const Model& model, double start, double step, int count, int original_id =
-			NO_ORIGINAL_ID);
-	std::shared_ptr<Value> clone() const;
+    const double start;
+    double step;
+    int count;
+    double end;
+    public:
+    StepRange(const Model& model, double start, double step, double end, int original_id =
+            NO_ORIGINAL_ID);
+    StepRange(const Model& model, double start, int count, double end, int original_id =
+            NO_ORIGINAL_ID);
+    StepRange(const Model& model, double start, double step, int count, int original_id =
+            NO_ORIGINAL_ID);
+    std::shared_ptr<Value> clone() const;
 };
 
 class Function: public Value {
 protected:
-	Function(const Model&, Type, int original_id = NO_ORIGINAL_ID);
-	public:
-	std::shared_ptr<Value> clone() const;
+    Function(const Model&, Type, int original_id = NO_ORIGINAL_ID);
+    public:
+    std::shared_ptr<Value> clone() const;
 };
 
 class FunctionTable: public Function {
 protected:
-	std::vector<std::pair<double, double> > valuesXY;
-	public:
-	enum Interpolation {
-		LINEAR,
-		LOGARITHMIC,
-		CONSTANT,
-		NONE
-	};
+    std::vector<std::pair<double, double> > valuesXY;
+    public:
+    enum Interpolation {
+        LINEAR,
+        LOGARITHMIC,
+        CONSTANT,
+        NONE
+    };
 
-	const Interpolation parameter;
-	const Interpolation value;
-	const Interpolation left;
-	const Interpolation right;
+    const Interpolation parameter;
+    const Interpolation value;
+    const Interpolation left;
+    const Interpolation right;
 
 public:
-	FunctionTable(const Model&, Interpolation parameter = LINEAR, Interpolation value = LINEAR,
-			Interpolation left = NONE, Interpolation right = NONE,
-			int original_id = NO_ORIGINAL_ID);
-	void setXY(const double X, const double Y);
-	const std::vector<std::pair<double, double> >::const_iterator getBeginValuesXY() const;
-	const std::vector<std::pair<double, double> >::const_iterator getEndValuesXY() const;
-	std::shared_ptr<Value> clone() const;
+    FunctionTable(const Model&, Interpolation parameter = LINEAR, Interpolation value = LINEAR,
+            Interpolation left = NONE, Interpolation right = NONE,
+            int original_id = NO_ORIGINAL_ID);
+    void setXY(const double X, const double Y);
+    const std::vector<std::pair<double, double> >::const_iterator getBeginValuesXY() const;
+    const std::vector<std::pair<double, double> >::const_iterator getEndValuesXY() const;
+    std::shared_ptr<Value> clone() const;
 };
 
 class ConstantValue: public Value {
 protected:
-	double value;
-	ConstantValue(const Model&, Type, double value, int original_id = NO_ORIGINAL_ID);
-	public:
-	virtual double get() {
-		return value;
-	}
-	std::shared_ptr<Value> clone() const {
-		return std::shared_ptr<Value>(new ConstantValue(*this));
-	}
+    double value;
+    ConstantValue(const Model&, Type, double value, int original_id = NO_ORIGINAL_ID);
+    public:
+    virtual double get() {
+        return value;
+    }
+    std::shared_ptr<Value> clone() const {
+        return std::shared_ptr<Value>(new ConstantValue(*this));
+    }
 };
 
 class DynaPhase: public ConstantValue {
 public:
-	DynaPhase(const Model&, double value, int original_id = NO_ORIGINAL_ID);
-	std::shared_ptr<Value> clone() const {
-		return std::shared_ptr<Value>(new DynaPhase(*this));
-	}
+    DynaPhase(const Model&, double value, int original_id = NO_ORIGINAL_ID);
+    std::shared_ptr<Value> clone() const {
+        return std::shared_ptr<Value>(new DynaPhase(*this));
+    }
 };
 
 } /* namespace vega */

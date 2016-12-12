@@ -1,7 +1,19 @@
 /*
  * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
- * Unauthorized copying of this file, via any medium is strictly prohibited. 
- * Proprietary and confidential.
+ * This file is part of Vega.
+ *
+ *   Vega is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 2 of the License, or
+ *   (at your option) any later version.
+ *
+ *   Vega is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with Vega.  If not, see <http://www.gnu.org/licenses/>.
  *
  * ConfigurationParameters.h
  *
@@ -98,9 +110,9 @@ public:
             LogLevel::INFO, TranslationMode translationMode = BEST_EFFORT, fs::path resultFile = "",
             double testTolerance = 0.02, bool runSolver = false, std::string solverServer = "",
             std::string solverCommand = "",
-			std::string systusRBE2TranslationMode = "lagrangian", double systusRBE2Rigidity= 0.0,
-			std::string systusOptionAnalysis="auto", std::string systusOutputProduct="systus",
-			std::vector< std::vector<int> > systusSubcases = {});
+            std::string systusRBE2TranslationMode = "lagrangian", double systusRBE2Rigidity= 0.0,
+            std::string systusOptionAnalysis="auto", std::string systusOutputProduct="systus",
+            std::vector< std::vector<int> > systusSubcases = {});
     const ModelConfiguration getModelConfiguration() const;
     virtual ~ConfigurationParameters();
 
