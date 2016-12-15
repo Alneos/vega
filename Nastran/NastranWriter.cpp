@@ -242,6 +242,9 @@ void NastranWriterImpl::writeMaterials(const shared_ptr<vega::Model>& model, ofs
 			mat1.add(elasticNature.getG());
 			mat1.add(elasticNature.getNu());
 			mat1.add(elasticNature.getRho());
+			if (!is_zero(elasticNature.getGE())){
+			    cerr <<"Warning in Material: no support for GE material properties yet.";
+			}
 		}
 		out << mat1;
 	}

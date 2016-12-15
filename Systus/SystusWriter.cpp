@@ -277,6 +277,7 @@ void SystusWriter::writeMaterialField(const SMF key, const double value, int& nb
         nbfields++;
         break;
     }
+    case(ALPHA):
     case(AY):
     case(AZ):{
         if (!is_equal(value, vega::Globals::UNAVAILABLE_DOUBLE)){
@@ -1669,6 +1670,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                     writeMaterialField(SMF::RHO, elasticNature.getRho(), nbElementsMaterial, omat);
                     writeMaterialField(SMF::E, elasticNature.getE(), nbElementsMaterial, omat);
                     writeMaterialField(SMF::NU, elasticNature.getNu(), nbElementsMaterial, omat);
+                    writeMaterialField(SMF::ALPHA, 2*elasticNature.getGE(), nbElementsMaterial, omat);
 
                     switch (elementSet->type) {
                     case (ElementSet::GENERIC_SECTION_BEAM): {

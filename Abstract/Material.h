@@ -63,14 +63,16 @@ class ElasticNature: public Nature {
     double rho;
     double alpha;
     double tref;
+    double ge;
 public:
     ElasticNature(const Model&, const double e = UNAVAILABLE_DOUBLE, const double nu =
             UNAVAILABLE_DOUBLE, const double g = UNAVAILABLE_DOUBLE, const double rho =
             UNAVAILABLE_DOUBLE, const double alpha = UNAVAILABLE_DOUBLE, const double tref =
-            UNAVAILABLE_DOUBLE);
+            UNAVAILABLE_DOUBLE, const double ge = UNAVAILABLE_DOUBLE);
     double getE() const;
     double getNu() const;
     double getG() const;
+    double getGE() const;
     /**
      * Get mass density (in kg.m^{-3})
      */

@@ -398,6 +398,9 @@ void AsterWriterImpl::writeMaterials(const AsterModel& asterModel, ostream& out)
 			out << "                         NU=" << elasticNature.getNu() << "," << endl;
 			out << "                         RHO=" << elasticNature.getRho() << "," << endl;
 			out << "                         )," << endl;
+			if (!is_zero(elasticNature.getGE())){
+                cerr <<"Warning in Material: no support for GE material properties yet.";
+			}
 		}
 		const shared_ptr<Nature> binature = material->findNature(Nature::NATURE_BILINEAR_ELASTIC);
 		if (binature) {

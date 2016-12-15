@@ -1083,11 +1083,6 @@ void NastranParserImpl::parseMAT1(NastranTokenizer& tok, shared_ptr<Model> model
         g = e / (2.0 * (1+nu));
     }
 
-
-    if (!is_equal(ge, NastranTokenizer::UNAVAILABLE_DOUBLE)) {
-        string message = "GE not supported";
-        handleParsingWarning(message, tok, model);
-    }
     /*  ST, SC, SS
      (Real)
      Stress limits for tension, compression, and shear are optionally
@@ -1116,7 +1111,7 @@ void NastranParserImpl::parseMAT1(NastranTokenizer& tok, shared_ptr<Model> model
         handleParsingWarning("mcsid value ignored " + to_string(mcsid), tok, model);
     }
     shared_ptr<Material> material = model->getOrCreateMaterial(material_id);
-    material->addNature(ElasticNature(*model, e, nu, g, rho, a, tref));
+    material->addNature(ElasticNature(*model, e, nu, g, rho, a, tref, ge));
 }
 
 void NastranParserImpl::parseMATS1(NastranTokenizer& tok, shared_ptr<Model> model) {

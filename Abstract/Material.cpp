@@ -92,8 +92,8 @@ ElasticNature::~ElasticNature() {
 }
 
 ElasticNature::ElasticNature(const Model& model, const double e, const double nu, const double g,
-		const double rho, const double alpha, const double tref) :
-		Nature(model, NATURE_ELASTIC), e(e), nu(nu), g(g), rho(rho), alpha(alpha), tref(tref) {
+		const double rho, const double alpha, const double tref, const double ge) :
+		Nature(model, NATURE_ELASTIC), e(e), nu(nu), g(g), rho(rho), alpha(alpha), tref(tref), ge(ge) {
 
 	if (is_equal(e, UNAVAILABLE_DOUBLE) && is_equal(g, UNAVAILABLE_DOUBLE))
 		throw invalid_argument("E and G may not both be blank.");
@@ -144,6 +144,10 @@ double ElasticNature::getAlpha() const {
 
 double ElasticNature::getTref() const {
 	return (is_equal(tref, UNAVAILABLE_DOUBLE)) ? 0 : tref;
+}
+
+double ElasticNature::getGE() const {
+    return ge;
 }
 
 shared_ptr<Nature> BilinearElasticNature::clone() const {
