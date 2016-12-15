@@ -15,7 +15,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Vega.  If not, see <http://www.gnu.org/licenses/>.
  *
- * SystusBuilder.cpp
+ * SystusWriter.cpp
  *
  *  Created on: 2 octobre 2013
  *      Author: devel
@@ -442,7 +442,10 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
     // Material Id are usually computed from the corresponding ElementSet Id
     // TODO: It should be the material...
     vector<int> v= systusModel.model->getElementSetsId();
-    int idMaterial=*std::max_element(v.begin(), v.end());
+    int idMaterial=0;
+    if (v.size()!=0){
+        idMaterial=*std::max_element(v.begin(), v.end());
+    }
 
     for (const auto& constraintSet : commonConstraintSets) {
 
@@ -639,7 +642,7 @@ void SystusWriter::generateSubcases(const SystusModel& systusModel,
         for (const auto& it : systusModel.model->analyses) {
             const Analysis& analysis = *it;
 
-            // We create a vector with the caracteristic of the Analysis
+            // We create a vector with the characteristic of the Analysis
             vector<long unsigned int> cAna;
             cAna.push_back(analysis.type); //Analysis type
 
@@ -752,6 +755,11 @@ void SystusWriter::generateSubcases(const SystusModel& systusModel,
             }
             cout <<endl;
         }
+    }
+
+    // If there is no analysis, we will only translate the mesh
+    if (systusSubcases.size()==0){
+        systusSubcases.push_back({});
     }
 
 }
@@ -1131,6 +1139,9 @@ void SystusWriter::fillConstraintsNodes(const SystusModel& systusModel, const in
     // All analysis of the subcase
     // We only work on the first one, as they have the same constraints (normally!)
     const vector<int> analysisId = systusSubcases[idLoadcase];
+    if (analysisId.size()==0){//Mode: mesh_only
+        return;
+    }
     const shared_ptr<Analysis> analysis = systusModel.model->getAnalysis(analysisId[0]);
     if (analysis==nullptr){
         handleWritingError("Wrong analysis number in Constraint Node. Analysis dismissed.");
@@ -1909,6 +1920,24 @@ void SystusWriter::writeMasses(const SystusModel &systusModel, ostream& out) {
 void SystusWriter::writeDat(const SystusModel& systusModel, const vega::ConfigurationParameters &configuration,
         const int idSubcase, ostream& out) {
 
+    // For TOPOLEV, we comment a few lines.
+    string comment="";
+    if (configuration.systusOutputProduct=="topolev"){
+        comment="###TOPOLEV###";
+    }
+
+    // Same start for everyone
+    out << comment<<"NAME " << systusModel.getName() << "_SC" << (idSubcase+1) << "_" << endl;
+    out << endl;
+    out << comment<<"SEARCH DATA 1 ASCII" << endl;
+    out << endl;
+
+    // Special case : if the subcase is void, it means that we are only translating a mesh
+    // No analysis lines.
+    if (systusSubcases[idSubcase].size()==0){
+        return;
+    }
+
     // We find the first Analysis of the Subcase, which will be our reference
     const int idAnalysis = systusSubcases[idSubcase][0];
     const shared_ptr<Analysis> analysis = systusModel.model->getAnalysis(idAnalysis);
@@ -1916,16 +1945,6 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         handleWritingError(string("Analysis " + to_string(idAnalysis) + " not found."));
     }
 
-
-    string comment="";
-    if (configuration.systusOutputProduct=="topolev"){
-        comment="###TOPOLEV###";
-    }
-
-    out << comment<<"NAME " << systusModel.getName() << "_SC" << (idSubcase+1) << "_" << endl;
-    out << endl;
-    out << comment<<"SEARCH DATA 1 ASCII" << endl;
-    out << endl;
     switch (analysis->type) {
     case Analysis::LINEAR_MECA_STAT: {
 

@@ -105,6 +105,7 @@ VegaCommandLine::ExitCode VegaCommandLine::convertStudy(
         cout << "Selected writer: " << *writer << endl;
     }
 
+    // Parsing the input file
     Parser* parser = parserIterator->second;
     shared_ptr<Model> model = parser->parse(configuration);
 

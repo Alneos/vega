@@ -15,7 +15,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Vega.  If not, see <http://www.gnu.org/licenses/>.
  *
- * NastranParser.cpp
+ * NastranParser_geometry.cpp
  *
  *  Created on: Dec 24, 2012
  *      Author: dallolio
@@ -90,7 +90,7 @@ void NastranParserImpl::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model
     int cpos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
     if (cd != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
         cpos = model->findOrReserveCoordinateSystem(cd);
-        }
+    }
     model->mesh->addNode(id, x1, x2, x3, cpos);
 
     int ps = tok.nextInt(true, grdSet.ps);
