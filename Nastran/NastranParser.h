@@ -54,6 +54,7 @@ private:
     std::unordered_map<string, shared_ptr<Reference<ElementSet>>> directMatrixByName;
     typedef void (NastranParserImpl::*parseElementFPtr)(NastranTokenizer& tok, std::shared_ptr<Model> model);
     static const std::set<string> IGNORED_KEYWORDS;
+    static const std::set<string> IGNORED_PARAMS;
     static const std::unordered_map<string, parseElementFPtr> PARSE_FUNCTION_BY_KEYWORD;
 
     void addAnalysis(NastranTokenizer& tok, std::shared_ptr<Model> model, std::map<std::string, std::string>& context, int analysis_id =
