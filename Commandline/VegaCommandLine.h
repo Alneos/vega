@@ -54,6 +54,7 @@ private:
             const Solver& inputSolver);
     ExitCode runSolver(const ConfigurationParameters& configuration, std::string modelFile);
     static void printHelp(const po::options_description& visible);
+    static void printHeader();
     std::string expand_user(std::string path);
     static fs::path normalize_path(std::string path);
     std::unordered_map<SolverName, Parser *, std::hash<int>> parserBySolverName;

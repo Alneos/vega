@@ -362,6 +362,11 @@ void VegaCommandLine::printHelp(const po::options_description& visible) {
     cout << visible << "\n";
 }
 
+void VegaCommandLine::printHeader() {
+    cout << "Vega, version " << VEGA_VERSION_MAJOR << "." << VEGA_VERSION_MINOR << "."
+                        << VEGA_VERSION_PATCH << " " << VEGA_VERSION_EXTRA << endl;
+}
+
 string VegaCommandLine::expand_user(string path) {
     // http://stackoverflow.com/a/4891126
     if (not path.empty() and path[0] == '~') {
@@ -466,33 +471,42 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
 
         notify(vm);
 
-        config_file = expand_user(config_file);
-        ifstream ifs(config_file.c_str());
-        if (!ifs) {
-            cerr << "cannot open config file: " << config_file << "\n";
-            // return 0;
-        } else {
-            store(parse_config_file(ifs, config_file_options), vm);
-            notify(vm);
+        // By default, print a header with version number
+        printHeader();
+
+        // If we asked for version, nothing to do anymore.
+        if (vm.count("version")) {
+            //printHeader();
+            return OK;
         }
 
+        // Print help message and quit.
         if (vm.count("help")) {
             printHelp(visible);
             return OK;
         }
 
-        if (vm.count("version")) {
-            cout << "Vega, version " << VEGA_VERSION_MAJOR << "." << VEGA_VERSION_MINOR << "."
-                    << VEGA_VERSION_PATCH << " " << VEGA_VERSION_EXTRA << endl;
-            return OK;
+        // Read the Config File.
+        config_file = expand_user(config_file);
+        ifstream ifs(config_file.c_str());
+        if (!ifs) {
+            //TODO: Global Handler for error.
+            // We only make a warning if the user provided a config file
+            if (!vm["config"].defaulted()){
+               cerr << "Warning: cannot open configuration file " << config_file << ". Default behavior used.\n";
+            }
+        } else {
+            store(parse_config_file(ifs, config_file_options), vm);
+            notify(vm);
         }
+
+
 
         if (vm.count("input-file") == 0) {
             cout << "No input files specified." << endl << endl;
             printHelp(visible);
             return NO_INPUT_FILE;
         }
-
 
 
         const ConfigurationParameters configuration = readCommandLineParameters(vm);
@@ -515,6 +529,7 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
                 return OUTPUT_DIR_NOT_CREATED;
             }
         }
+
         Solver inputFormat(NASTRAN);
         if (vm.count("input-format")) {
             string inputSolverString = vm["input-format"].as<string>();
