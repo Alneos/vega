@@ -1150,23 +1150,23 @@ void Model::replaceDirectMatrices()
     map<int, DOFS> addedDofsByNode;
     map<int, DOFS> requiredDofsByNode;
     map<int, DOFS> ownedDofsByNode;
-    for (auto elementSet : elementSets) {
-        if (!elementSet->isMatrixElement()) {
+    for (auto elementSetM : elementSets) {
+        if (!elementSetM->isMatrixElement()) {
             continue;
         }
-        shared_ptr<MatrixElement> matrix = static_pointer_cast<MatrixElement>(elementSet);
+        shared_ptr<MatrixElement> matrix = static_pointer_cast<MatrixElement>(elementSetM);
         for (int nodePosition : matrix->nodePositions()) {
             requiredDofsByNode[nodePosition] = DOFS();
             Node node = mesh->findNode(nodePosition);
             DOFS owned;
-            for (const auto elementSet : elementSets) {
-                if (elementSet->cellGroup == nullptr) {
+            for (const auto elementSetI : elementSets) {
+                if (elementSetI->cellGroup == nullptr) {
                     continue;
                 }
-                for (Cell cell : elementSet->cellGroup->getCells()) {
+                for (Cell cell : elementSetI->cellGroup->getCells()) {
                     for (int nodeId : cell.nodeIds) {
                         if (nodeId == node.id) {
-                            if (elementSet->isBeam() or elementSet->isShell()) {
+                            if (elementSetI->isBeam() or elementSetI->isShell()) {
                                 owned += DOFS::ALL_DOFS;
                             } else {
                                 owned += DOFS::TRANSLATIONS;
@@ -1294,7 +1294,7 @@ void Model::replaceDirectMatrices()
                 this->add(discrete);
             }
         }
-        elementSetsToRemove.push_back(elementSet);
+        elementSetsToRemove.push_back(elementSetM);
     }
     for (auto& kv : addedDofsByNode) {
         int nodePosition = kv.first;
