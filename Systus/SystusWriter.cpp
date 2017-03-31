@@ -1515,7 +1515,8 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
             continue;
         }
         case ElementSet::DISCRETE_0D:
-        case ElementSet::DISCRETE_1D: {
+        case ElementSet::DISCRETE_1D:
+        case ElementSet::STIFFNESS_MATRIX:{
             continue;
         }
         default: {
@@ -1731,11 +1732,11 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                     }
                     // Default : we only print the default fields: E, NU, etc.
                     default:
-                        cout << "Warning in Materials: " << *elementSet << " not supported." << endl;
+                        cout << "Warning in Elastic Materials: " << *elementSet << " not supported." << endl;
                     }
                 }else{
                     isValid=false;
-                    cout << "Warning in Materials: " << *elementSet << " has not an Elatic nature." << endl;
+                    cout << "Warning in Materials: " << *elementSet << " has not an Elastic nature." << endl;
                 }
             }else{
                 // Element without VEGA Material
