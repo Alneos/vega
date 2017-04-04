@@ -611,10 +611,15 @@ MatrixElement::MatrixElement(Model& model, Type type, bool symmetric, int origin
 void MatrixElement::addComponent(const int nodeid1, const DOF dof1, const int nodeid2, const DOF dof2, const double value) {
 	int nodePosition1 = model.mesh->findOrReserveNode(nodeid1);
 	int nodePosition2 = model.mesh->findOrReserveNode(nodeid2);
+	DOF myDof1 = dof1;
+	DOF myDof2 = dof2;
+
 	if (nodePosition1 > nodePosition2) {
 		int swap = nodePosition2;
 		nodePosition2 = nodePosition1;
 		nodePosition1 = swap;
+		myDof1 = dof2;
+		myDof2 = dof1;
 	}
 	auto it = submatrixByNodes.find(make_pair(nodePosition1, nodePosition2));
 	shared_ptr<DOFMatrix> subMatrix = nullptr;
@@ -624,11 +629,7 @@ void MatrixElement::addComponent(const int nodeid1, const DOF dof1, const int no
 		subMatrix = make_shared<DOFMatrix>(DOFMatrix(symmetric && nodeid1 == nodeid2));
 		this->submatrixByNodes[make_pair(nodePosition1, nodePosition2)] = subMatrix;
 	}
-	if (nodePosition1 > nodePosition2) {
-		subMatrix->addComponent(dof2, dof1, value);
-	} else {
-		subMatrix->addComponent(dof1, dof2, value);
-	}
+    subMatrix->addComponent(myDof1, myDof2, value);
 }
 
 const shared_ptr<DOFMatrix> MatrixElement::findSubmatrix(const int nodePosition1, const int nodePosition2) const {
