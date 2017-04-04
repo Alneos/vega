@@ -539,14 +539,14 @@ NodeGroup* Mesh::findOrCreateNodeGroup(const string& name, int group_id, const s
 
 CellGroup* Mesh::createCellGroup(const string& name, int group_id, const string & comment) {
 	if (name.empty()) {
-		throw invalid_argument("Can't create a cellGroup with empty name ");
+		throw invalid_argument("Can't create a cellGroup with empty name.");
 	}
 	if (this->groupByName.find(name) != this->groupByName.end()) {
-		throw invalid_argument("Another group exists with same name : " + name);
+		throw invalid_argument("Another group exists with same name: " + name);
 	}
 	if (group_id != CellGroup::NO_ORIGINAL_ID
 			&& this->groupById.find(group_id) != this->groupById.end()) {
-		string errorMessage = "Another group exists with same id : " + to_string(group_id);
+		string errorMessage = "Another group exists with same id: " + to_string(group_id);
 		throw invalid_argument(errorMessage);
 	}
 	CellGroup* group= new CellGroup(this, name, group_id, comment);
@@ -556,7 +556,7 @@ CellGroup* Mesh::createCellGroup(const string& name, int group_id, const string 
 	}
 
 	if (this->logLevel >= LogLevel::DEBUG) {
-		cout << "Created Cell Group:" << name <<" with comment: "<<comment<< endl;
+		cout << "Created Cell Group: " << name <<" with comment: "<<comment<< endl;
 	}
 	return group;
 }
