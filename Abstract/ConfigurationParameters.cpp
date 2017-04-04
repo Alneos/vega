@@ -39,7 +39,7 @@ const ModelConfiguration ConfigurationParameters::getModelConfiguration() const 
     if (this->outputSolver.getSolverName() == CODE_ASTER) {
         return ModelConfiguration(true, this->logLevel, true);
     } else if (this->outputSolver.getSolverName() == SYSTUS) {
-        return ModelConfiguration(false, this->logLevel, true, false, false, true, true, true, false, false, true);
+        return ModelConfiguration(false, this->logLevel, true, false, false, true, true, true, false, false, true, true);
     } else if (this->outputSolver.getSolverName() == NASTRAN) {
         return ModelConfiguration(false, this->logLevel, false, false, false, false, false, false,
                 false, false, false);
@@ -86,13 +86,13 @@ Solver::~Solver() {
 ModelConfiguration::ModelConfiguration(bool virtualDiscrets, LogLevel logLevel, bool createSkin,
         bool emulateLocalDisplacement, bool displayHomogeneousConstraint,
         bool emulateAdditionalMass, bool replaceCombinedLoadSets, bool removeIneffectives,
-        bool partitionModel, bool replaceDirectMatrices, bool removeRedundantSpcs) :
+        bool partitionModel, bool replaceDirectMatrices, bool removeRedundantSpcs, bool makeCellsFromDirectMatrices) :
         virtualDiscrets(virtualDiscrets), logLevel(logLevel), createSkin(createSkin), emulateLocalDisplacement(
                 emulateLocalDisplacement), displayHomogeneousConstraint(
                 displayHomogeneousConstraint), emulateAdditionalMass(emulateAdditionalMass), replaceCombinedLoadSets(
                 replaceCombinedLoadSets), removeIneffectives(removeIneffectives), partitionModel(
                 partitionModel), replaceDirectMatrices(replaceDirectMatrices), removeRedundantSpcs(
-                removeRedundantSpcs) {
+                removeRedundantSpcs), makeCellsFromDirectMatrices(makeCellsFromDirectMatrices) {
 }
 
 }

@@ -73,7 +73,8 @@ public:
             bool displayHomogeneousConstraint = false, bool emulateAdditionalMass = true,
             bool replaceCombinedLoadSets = true, bool removeIneffectives = true,
             bool partitionModel = false, bool replaceDirectMatrices = true,
-            bool removeRedundantSpcs = true);
+            bool removeRedundantSpcs = true,
+            bool makeCellsFromDirectMatrices = false);
     virtual ~ModelConfiguration() {
     }
 
@@ -94,6 +95,14 @@ public:
     const bool partitionModel;
     const bool replaceDirectMatrices;
     const bool removeRedundantSpcs;
+    /**
+     *  ElementSets of Direct Matrices (DISCRETE_0D, DISCRETE_1D, STIFFNESS_MATRIX, MASS_MATRIX, DAMPING_MATRIX)
+     *  generally don't have associated cells/cellgroup. This may causes problems in generic element writer,
+     *  such as in SYSTUS.
+     *  This bool commands the use of Model::makeCellsFromDirectMatrices() in Model::finish(), which creates the
+     *  needed cells.
+     */
+    const bool makeCellsFromDirectMatrices;
 };
 // TODO: THe Configuration Parameters should be much more generalized. With this,
 // it's a pain in the keyboard to add options!!

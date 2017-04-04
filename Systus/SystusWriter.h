@@ -23,6 +23,7 @@
 #include "../Abstract/ConfigurationParameters.h"
 #include "../Abstract/CoordinateSystem.h"
 #include "SystusModel.h"
+#include "SystusAsc.h"
 
 namespace vega {
 
@@ -107,6 +108,8 @@ class SystusWriter: public Writer {
 	map<int, int> constraintListIdByNodePosition;
 	map<int, char> constraintByNodePosition;
 	vector< vector<int> > systusSubcases;   /**< < subcase , <loadcases ids> > : Ids of loadcases composing the subcase **/
+	vector<SystusTable> tables;
+	map<int, long unsigned int> tableByElementSet;
 	/**
 	 * Renumbers the nodes
 	 * see Systus ref manual chapter 15 or chapter 13 2.7
@@ -270,9 +273,12 @@ class SystusWriter: public Writer {
 	 /** Converts a vega DOFS to its ASC material counterpart.
 	  *  Return the number of material field filled.
 	  **/
-	int DOFSToAsc(const DOFS dofs, ostream& out) const;
-	/** Converts a vega DOFS to its integer Systus couterpart **/
+	int DOFSToMaterial(const DOFS dofs, ostream& out) const;
+	/** Converts a vega DOFS to its integer Systus counterpart **/
 	int DOFSToInt(const DOFS dofs) const;
+    /** Converts a vega DOF to its integer Systus counterpart **/
+    int DOFToInt(const DOF dof) const;
+
 	/** Find an available Part Id for a Cell Group.
 	 * If possible, try to use the suffix (_NN) of the Group Name. **/
 	int getPartId(const string partName, std::set<int> & usedPartId);
@@ -285,6 +291,7 @@ class SystusWriter: public Writer {
 	void fillConstraintsVectors(const SystusModel& systusModel, const int idSubcase);
 	void fillCoordinatesVectors(const SystusModel& systusModel, const int idSubcase);
 	void fillLoadingsVectors(const SystusModel& systusModel, const int idSubcase);
+	void fillTables(const SystusModel&, const int idSubcase);
 	void fillVectors(const SystusModel&, const int idSubcase);
 	void fillLists(const SystusModel&, const int idSubcase);
 
@@ -355,6 +362,10 @@ class SystusWriter: public Writer {
 	void writeMaterials(const SystusModel&, const ConfigurationParameters&, std::ostream&);
 	void writeLoads(std::ostream&);
 	void writeLists(std::ostream&);
+	/**
+	 * Writes the tables to the TABLE part of the ASC file.
+	 */
+	void writeTables(std::ostream&);
 	void writeVectors(std::ostream&);
 	void writeDat(const SystusModel&, const ConfigurationParameters &, const int idSubcase, std::ostream&);
 

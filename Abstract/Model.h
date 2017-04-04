@@ -62,6 +62,12 @@ private:
     void addDefaultAnalysis();
     void replaceDirectMatrices();
     void removeRedundantSpcs();
+    /**
+     * Build the corresponding cells of ElementSets of Direct Matrices (DISCRETE_0D, DISCRETE_1D,
+     * STIFFNESS_MATRIX, MASS_MATRIX, DAMPING_MATRIX). They enerally don't have associated cells/cellgroup.
+     * This may causes problems in a generic cell writer, such as in SYSTUS.
+     */
+    void makeCellsFromDirectMatrices();
 
 public:
     bool finished;

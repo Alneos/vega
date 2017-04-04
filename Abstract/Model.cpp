@@ -1395,6 +1395,72 @@ void Model::removeRedundantSpcs()
     }
 }
 
+
+void Model::makeCellsFromDirectMatrices(){
+
+    int idM=0;
+    for (auto elementSetM : elementSets) {
+        if (!elementSetM->isMatrixElement()) {
+            //TODO: Display informative message in debug mode.
+            continue;
+        }
+        // If cells already exists, we do nothing
+        if (elementSetM->cellGroup != nullptr){
+            //TODO: Display informative message in debug mode.
+            continue;
+        }
+
+        shared_ptr<MatrixElement> matrix = static_pointer_cast<MatrixElement>(elementSetM);
+
+        // If matrix is void, we do nothing (should not happen)
+        if (matrix->nodePositions().size()==0){
+            //TODO: Display informative message in debug mode.
+            continue;
+        }
+
+        // Create a Cell Group
+        idM++;
+        CellGroup* matrixGroup = mesh->createCellGroup("DM" + to_string(idM), Group::NO_ORIGINAL_ID, "Direct Matrix "+ elementSetM->name);
+        matrix->assignCellGroup(matrixGroup);
+
+        // Create a Cell and add it to the Cell Group
+        CellType cellType = CellType::POINT1;
+        switch (matrix->nodePositions().size()){
+        case 1:{
+            cellType = CellType::POINT1;
+            break;
+        }
+        case 2:{
+            cellType = CellType::SEG2;
+            break;
+        }
+        case 3:{
+            cellType = CellType::TRI3;
+            break;
+        }
+        default:{
+            cellType = CellType::POLYHED;
+        }
+        }
+        vector<int> vNodeIds;
+        for (int nodePosition : matrix->nodePositions()){
+            Node node = mesh->findNode(nodePosition);
+            vNodeIds.push_back(node.id);
+        }
+
+        int cellPosition = mesh->addCell(Cell::AUTO_ID, cellType, vNodeIds, true);
+        matrixGroup->addCell(mesh->findCell(cellPosition).id);
+        
+        if (configuration.logLevel >= LogLevel::DEBUG){
+           cout << "Built cells, in cellgroup "<<matrixGroup->getName()<<", for Matrix Elements in "<< elementSetM->name<<"."<<endl;
+        }
+        
+    }
+}
+
+
+
+
 void Model::finish() {
     if (finished) {
         return;
@@ -1454,6 +1520,10 @@ void Model::finish() {
 
     if (this->configuration.virtualDiscrets) {
         generateDiscrets();
+    }
+
+    if (this->configuration.makeCellsFromDirectMatrices){
+        makeCellsFromDirectMatrices();
     }
 
     assignElementsToCells();

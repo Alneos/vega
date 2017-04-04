@@ -30,6 +30,7 @@
 #include <fstream>
 #include <boost/filesystem.hpp>
 #include "SystusWriter.h"
+#include "SystusAsc.h"
 #include "../Abstract/CoordinateSystem.h"
 #include "build_properties.h"
 #include "cmath" /* M_PI */
@@ -75,7 +76,7 @@ int SystusWriter::getAscNodeId(const int vega_id) const{
     return vega_id+1;
 }
 
-int SystusWriter::DOFSToAsc(const DOFS dofs, ostream& out) const{
+int SystusWriter::DOFSToMaterial(const DOFS dofs, ostream& out) const{
     int nelem=0;
     if (dofs.contains(DOF::DX))
         writeMaterialField(SMF::KX, 1.0, nelem, out);
@@ -108,6 +109,24 @@ int SystusWriter::DOFSToInt(const DOFS dofs) const{
         iout=iout+32;
     return iout;
 }
+
+int SystusWriter::DOFToInt(const DOF dof) const{
+    if (dof == DOF::DX)
+        return 1;
+    if (dof == DOF::DY)
+        return 2;
+    if (dof == DOF::DZ)
+        return 3;
+    if (dof == DOF::RX)
+        return 4;
+    if (dof == DOF::RY)
+        return 5;
+    if (dof == DOF::RZ)
+        return 6;
+    return -1;
+}
+
+
 
 // TODO: That should not be in the Writer.
 CartesianCoordinateSystem SystusWriter::buildElementDefaultReferentiel(const SystusModel& systusModel, const vector<int> nodes, const int dim,
@@ -299,6 +318,7 @@ void SystusWriter::writeMaterialField(const SMF key, const int value, int& nbfie
         out << value<<" 0";
         break;
     }
+    case(TABLE):
     case(SHAPE):
     case(MID):
     case(DEPEND):
@@ -1246,6 +1266,137 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const int idSubcase
 }
 
 
+void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcase) {
+
+    // Suppressing warnings. Technically, we don't need these variables. We
+    // keep them to remember that only one kind of tables are translated yet,
+    // and we don't know what the others will need.
+    UNUSEDV(systusModel);
+    UNUSEDV(idSubcase);
+
+    // Cleaning from previous analysis
+    tables.clear();
+    tableByElementSet.clear();
+
+    
+    // Fill tables for Stifness, Mass and Damping elements
+    for (const auto& elementSet : systusModel.model->elementSets) {
+
+        
+        switch (elementSet->type) {
+        // None of these elements needs a table
+        case ElementSet::CIRCULAR_SECTION_BEAM:
+        case ElementSet::GENERIC_SECTION_BEAM:
+        case ElementSet::I_SECTION_BEAM:
+        case ElementSet::RECTANGULAR_SECTION_BEAM:
+        case ElementSet::STRUCTURAL_SEGMENT:
+        case ElementSet::SHELL:
+        case ElementSet::CONTINUUM:
+        case ElementSet::NODAL_MASS: {
+            continue;
+        }
+
+        // Those elements are not supported yet
+        case ElementSet::DISCRETE_0D:
+        case ElementSet::DISCRETE_1D:{
+            continue;
+        }
+
+        // Stiffness, Mass and Damping matrices are the same kind.
+        // Only the tableByElementSet value differs:
+        //   - Stiffness: 0000XX
+        //   - Mass     : 00XX00
+        //   - Damping  : XX0000
+        case ElementSet::STIFFNESS_MATRIX:{
+            shared_ptr<StiffnessMatrix> sm = static_pointer_cast<StiffnessMatrix>(elementSet);
+            long unsigned int tId= tables.size()+1;
+            SystusTable aTable = SystusTable(tId);
+
+            //Numbering the node internally to the element
+            map<int, int> positionToSytusNumber;
+            int iSystus= 1;
+            for (const int pos : sm->nodePositions()){
+                positionToSytusNumber[pos]=iSystus;
+                iSystus++;
+            }
+
+            // Building the table
+            for (const auto np : sm->nodePairs()){
+                int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
+                shared_ptr<DOFMatrix> dM = sm->findSubmatrix(np.first, np.second);
+                for (const auto dof: dM->componentByDofs){
+                    int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
+                    aTable.add(pairCode+dofCode);
+                    aTable.add(dof.second);
+                }
+            }
+            tables.push_back(aTable);
+            tableByElementSet[elementSet->getId()]=tId;
+            break;
+        }
+        case ElementSet::MASS_MATRIX:{
+            shared_ptr<MassMatrix> mm = static_pointer_cast<MassMatrix>(elementSet);
+            long unsigned int tId= tables.size()+1;
+            SystusTable aTable = SystusTable(tId);
+
+            //Numbering the node internally to the element
+            map<int, int> positionToSytusNumber;
+            int iSystus= 1;
+            for (const int pos : mm->nodePositions()){
+                positionToSytusNumber[pos]=iSystus;
+                iSystus++;
+            }
+
+            // Building the table
+            for (const auto np : mm->nodePairs()){
+                int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
+                shared_ptr<DOFMatrix> dM = mm->findSubmatrix(np.first, np.second);
+                for (const auto dof: dM->componentByDofs){
+                    int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
+                    aTable.add(pairCode+dofCode);
+                    aTable.add(dof.second);
+                }
+            }
+            tables.push_back(aTable);
+            tableByElementSet[elementSet->getId()]=tId*100;
+            break;
+        }
+        case ElementSet::DAMPING_MATRIX:{
+            shared_ptr<DampingMatrix> dm = static_pointer_cast<DampingMatrix>(elementSet);
+            long unsigned int tId= tables.size()+1;
+            SystusTable aTable = SystusTable(tId);
+
+            //Numbering the node internally to the element
+            map<int, int> positionToSytusNumber;
+            int iSystus= 1;
+            for (const int pos : dm->nodePositions()){
+                positionToSytusNumber[pos]=iSystus;
+                iSystus++;
+            }
+
+            // Building the table
+            for (const auto np : dm->nodePairs()){
+                int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
+                shared_ptr<DOFMatrix> dM = dm->findSubmatrix(np.first, np.second);
+                for (const auto dof: dM->componentByDofs){
+                    int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
+                    aTable.add(pairCode+dofCode);
+                    aTable.add(dof.second);
+                }
+            }
+            tables.push_back(aTable);
+            tableByElementSet[elementSet->getId()]=tId*10000;
+            break;
+        }
+
+        default: {
+            //TODO : throw WriterException("ElementSet type not supported");
+            cout << "Warning in FillTables: " << *elementSet << " not supported" << endl;
+        }
+        }
+    }
+}
+
 void SystusWriter::writeAsc(const SystusModel &systusModel, const vega::ConfigurationParameters &configuration,
         const int idSubcase, ostream& out) {
 
@@ -1256,6 +1407,8 @@ void SystusWriter::writeAsc(const SystusModel &systusModel, const vega::Configur
     fillVectors(systusModel, idSubcase);
 
     fillLists(systusModel, idSubcase);
+
+    fillTables(systusModel, idSubcase);
 
     writeHeader(systusModel, out);
 
@@ -1281,8 +1434,7 @@ void SystusWriter::writeAsc(const SystusModel &systusModel, const vega::Configur
     out << "BEGIN_RELEASES 0" << endl;
     out << "END_RELEASES" << endl;
 
-    out << "BEGIN_TABLES 0" << endl;
-    out << "END_TABLES" << endl;
+    writeTables(out);
 
     out << "BEGIN_TEMPERATURES 0 11" << endl;
     out << "END_TEMPERATURES" << endl;
@@ -1515,13 +1667,21 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
             continue;
         }
         case ElementSet::DISCRETE_0D:
-        case ElementSet::DISCRETE_1D:
-        case ElementSet::STIFFNESS_MATRIX:{
+        case ElementSet::DISCRETE_1D:{
             continue;
+        }    
+        case ElementSet::STIFFNESS_MATRIX:
+        case ElementSet::MASS_MATRIX:
+        case ElementSet::DAMPING_MATRIX:{
+            dim= 3;
+            typecell = 9;
+            break;
         }
         default: {
             //TODO : throw WriterException("ElementSet type not supported");
             cout << "Warning in Elements: " << *elementSet << " not supported" << endl;
+            dim= 3;
+            typecell = 0;
         }
         }
         for (const Cell& cell : cellGroup->getCells()) {
@@ -1544,6 +1704,10 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
 
             out << cell.id << " " << dim << typecell;              // Dimension and type of cell;
             out << setfill('0') << setw(2) << cell.nodeIds.size(); // Number of nodes in two caracters: 01, 02, 05, 10, etc.
+
+            if (cell.nodeIds.size()>20){
+                cerr<< "Warning in Elements: " << cell << " has " << cell.nodeIds.size() << " but SYSTUS only support up to 20 nodes by element."<<endl;
+            }
 
             //TODO: We should write here the Material Id: we use the elementSet id which SHOULD be the same
             out << " " << elementSet->getId(); // Material Id (it's an ugly fix)
@@ -1740,11 +1904,11 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                 }
             }else{
                 // Element without VEGA Material
+                writeMaterialField(SMF::ID, elementSet->getId(), nbElementsMaterial, omat);
+                writeMaterialField(SMF::MID, elementSet->getId(), nbElementsMaterial, omat);
                 switch (elementSet->type){
                 case (ElementSet::STRUCTURAL_SEGMENT):{
 
-                    writeMaterialField(SMF::ID, elementSet->getId(), nbElementsMaterial, omat);
-                    writeMaterialField(SMF::MID, elementSet->getId(), nbElementsMaterial, omat);
 
                     shared_ptr<const StructuralSegment> sS = static_pointer_cast<const StructuralSegment>(elementSet);
                     // K Matrix
@@ -1763,6 +1927,19 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                         cout << "Warning in Materials: damping in " << *elementSet << " is not supported and will be dismissed." << endl;
                     }
 
+                    break;
+                }
+
+                // For matrix elements, material is only a "pointer" to a table.
+                case ElementSet::STIFFNESS_MATRIX:
+                case ElementSet::MASS_MATRIX:
+                case ElementSet::DAMPING_MATRIX:{
+                    auto it = tableByElementSet.find(elementSet->getId());
+                    if (it == tableByElementSet.end()){
+                        cout << "Warning in Materials: "<< *elementSet << " has no table"<<endl;
+                        break;
+                    }
+                    writeMaterialField(SMF::TABLE, int(it->second), nbElementsMaterial, omat);
                     break;
                 }
                 default:{
@@ -1825,7 +2002,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
         writeMaterialField(SMF::MID, rbe3.first, nbElementsMaterial, ogmat);
         writeMaterialField(SMF::SHAPE, 19, nbElementsMaterial, ogmat);
         writeMaterialField(SMF::LEVEL, 3, nbElementsMaterial, ogmat);
-        int nbFieldDOFS = DOFSToAsc(RBE3Dofs[rbe3.first].front(), ogmat); // KX KY KZ IX IY IZ
+        int nbFieldDOFS = DOFSToMaterial(RBE3Dofs[rbe3.first].front(), ogmat); // KX KY KZ IX IY IZ
         writeMaterialField(SMF::COEF, RBE3Coefs[rbe3.first], nbElementsMaterial, ogmat);
         writeMaterialField(SMF::DEPEND, DOFSToInt(RBE3Dofs[rbe3.first].back()), nbElementsMaterial, ogmat);
         nbelements=nbelements+nbElementsMaterial+nbFieldDOFS;
@@ -1920,6 +2097,18 @@ void SystusWriter::writeMasses(const SystusModel &systusModel, ostream& out) {
     out << "END_MASSES" << endl;
 }
 
+
+void SystusWriter::writeTables(std::ostream& out){
+
+    out << "BEGIN_TABLES " << tables.size()<<endl;
+    for (const auto& table : tables){
+        out << table;
+    }
+    out << "END_TABLES" << endl;
+}
+
+
+
 void SystusWriter::writeDat(const SystusModel& systusModel, const vega::ConfigurationParameters &configuration,
         const int idSubcase, ostream& out) {
 
@@ -1952,6 +2141,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
     case Analysis::LINEAR_MECA_STAT: {
 
         out << "SOLVE METHOD OPTIMISED" << endl;
+        //out << "EXTRACT STIFFNESS ELEMENTS " <<endl;
         break;
     }
     case Analysis::LINEAR_MODAL:{
