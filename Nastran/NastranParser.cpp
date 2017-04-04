@@ -779,40 +779,58 @@ void NastranParserImpl::parseDLOAD(NastranTokenizer& tok, shared_ptr<Model> mode
 void NastranParserImpl::parseDMIG(NastranTokenizer& tok, shared_ptr<Model> model) {
     string name = tok.nextString();
     if (name == "UACCEL") {
-        throw logic_error(
-                "DMIG UACCEL Defines rigid body accelerations in the basic coordinate system.");
+        handleParsingWarning("UACCEL not supported and dismissed.", tok, model);
+        tok.skipToNextKeyword();
+        return;
     }
     if (name == "CDSHUT") {
+        handleParsingWarning("CDSHUT is ignored.", tok, model);
+        tok.skipToNextKeyword();
         return; // currently ignored, see CDPCH
     }
+
     auto it = directMatrixByName.find(name);
-    if (it == directMatrixByName.end()) {
-        throw logic_error("Missing declaration : " + name);
-    }
-    shared_ptr<MatrixElement> matrix = static_pointer_cast<MatrixElement>(
-            model->find(*(it->second)));
 
     int headerIndicator = tok.nextInt();
     if (headerIndicator == 0) {
+
+        // If the matrix doesn't exist, it means it's not used by the model.
+        // It's often the case on industrial cases, when various matrices are written in the same file, but only one is used.
+        if (it == directMatrixByName.end()) {
+            handleParsingWarning("Matrix "+name+" is not used by the model and ignored.", tok, model);
+            tok.skipToNextKeyword();
+            return;
+        }
+
         //  Field 3 of the header entry must contain an integer 0.
         int ifo = tok.nextInt();
         if (ifo != 6) {
-            throw logic_error("Non-symmetric DMIG not yet implemented");
+            handleParsingError("Non-symmetric DMIG not yet implemented.", tok, model);
         }
         int tin = tok.nextInt();
         if (tin != 1 && tin != 2) {
-            throw logic_error("Non-real or non-single precision DMIG not yet implemented");
+            handleParsingError("Non-real or non-single precision DMIG not yet implemented", tok, model);
         }
         int tout = tok.nextInt(true, 0);
         if (tout != 0) {
-            throw logic_error("TOUT in DMIG not yet implemented");
+            handleParsingError("TOUT in DMIG not yet implemented", tok, model);
         }
         int polar = tok.nextInt(true, 0);
         if (polar != 0) {
-            throw logic_error("POLAR in DMIG not yet implemented");
+            handleParsingError("POLAR in DMIG not yet implemented", tok, model);
         }
         return; // Actually ignoring header DMIG
+    }else{
+        // Matrix doesn't exists, we skip it (quietly, because the warning message was already displayed once).
+        if (it == directMatrixByName.end()) {
+            tok.skipToNextKeyword();
+            return;
+        }
     }
+
+    shared_ptr<MatrixElement> matrix = static_pointer_cast<MatrixElement>(
+                model->find(*(it->second)));
+
 
     int gj = headerIndicator;
     int cj = tok.nextInt();
