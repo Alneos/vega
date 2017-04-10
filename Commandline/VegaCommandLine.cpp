@@ -275,10 +275,10 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     string systusOutputProduct="systus";
     if (vm.count("systus.OutputProduct")){
     	systusOutputProduct = vm["systus.OutputProduct"].as<string>();
-    	set<string> availableTranlation { "systus", "topolev" };
+    	set<string> availableTranlation { "systus", "levelshape" };
     	set<string>::iterator it = availableTranlation.find(systusOutputProduct);
     	if (it == availableTranlation.end()) {
-    		throw invalid_argument("Systus output product must be either systus (default) or topolev");
+    		throw invalid_argument("Systus output product must be either systus (default) or levelshape");
     	}
     }
 
@@ -439,7 +439,7 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
 		("systus.OptionAnalysis",po::value<string>()->default_value("auto"),
 				"Type of analysis used by the Systus writer (Systus OPTION command): auto (default), 3D, shell or shell-multi.") //
 		("systus.OutputProduct",po::value<string>()->default_value("systus"),
-				"Output format for the Systus writer: systus (default) or topolev."); //
+				"Output format for the Systus writer: systus (default) or levelshape."); //
 
 
         // Hidden options, will be allowed both on command line and

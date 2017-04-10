@@ -2112,10 +2112,10 @@ void SystusWriter::writeTables(std::ostream& out){
 void SystusWriter::writeDat(const SystusModel& systusModel, const vega::ConfigurationParameters &configuration,
         const int idSubcase, ostream& out) {
 
-    // For TOPOLEV, we comment a few lines.
+    // For LEVELSHAPE, we comment a few lines.
     string comment="";
-    if (configuration.systusOutputProduct=="topolev"){
-        comment="###TOPOLEV###";
+    if (configuration.systusOutputProduct=="levelshape"){
+        comment="###LEVELSHAPE###";
     }
 
     // Same start for everyone
