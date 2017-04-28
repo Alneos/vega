@@ -282,6 +282,29 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     	}
     }
 
+    string systusOutputMatrix="table";
+    int systusSizeMatrix=9;
+    if (vm.count("systus.OutputMatrix")){
+        systusOutputMatrix = vm["systus.OutputMatrix"].as<string>();
+        set<string> availableTranlation { "table", "file" };
+        set<string>::iterator it = availableTranlation.find(systusOutputMatrix);
+        if (it == availableTranlation.end()) {
+            throw invalid_argument("Systus output matrix must be either 'table' (default) or 'file'");
+        }
+        if (systusOutputMatrix=="file"){
+            systusSizeMatrix=20;
+        }
+
+    }
+    if (vm.count("systus.SizeMatrix")){
+        systusSizeMatrix = vm["systus.SizeMatrix"].as<int>();
+        if (systusSizeMatrix < 2) {
+            throw invalid_argument("Systus Size of Matrix must be greater than 1.");
+        }
+    }
+
+
+
     // Default value is "auto", caracterized by a void systusSubcases
     vector< vector<int> > systusSubcases;
     if (vm.count("systus.Subcase")){
@@ -325,7 +348,9 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     	cout << "\t Systus RBE2 Translation Mode: "<< systusRBE2TranslationMode << endl;
     	cout << "\t Systus RBE2 Rigidity (for penalty mode only): " << systusRBE2Rigidity << endl;
     	cout << "\t Systus OPTION analysis: " << systusOptionAnalysis << endl;
-    	cout << "\t Systus output product: " << systusOutputProduct << endl;
+    	cout << "\t Systus Output product: " << systusOutputProduct << endl;
+    	cout << "\t Systus Output Matrix: " << systusOutputMatrix << endl;
+    	cout << "\t Systus Size Matrix: " << systusSizeMatrix << endl;
         for (size_t i = 0; i < systusSubcases.size(); ++i) {
            cout <<"\t Systus Subcase "<<(i+1)<<": ";
            for (size_t j = 0; j < systusSubcases[i].size(); ++j)
@@ -338,7 +363,7 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
             solverVersion, modelName, outputDir, logLevel, translationMode, testFnamePath,
             tolerance, runSolver, solverServer, solverCommand,
 			systusRBE2TranslationMode,systusRBE2Rigidity, systusOptionAnalysis, systusOutputProduct,
-			systusSubcases);
+			systusSubcases, systusOutputMatrix, systusSizeMatrix);
     return configuration;
 }
 
@@ -439,7 +464,11 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
 		("systus.OptionAnalysis",po::value<string>()->default_value("auto"),
 				"Type of analysis used by the Systus writer (Systus OPTION command): auto (default), 3D, shell or shell-multi.") //
 		("systus.OutputProduct",po::value<string>()->default_value("systus"),
-				"Output format for the Systus writer: systus (default) or levelshape."); //
+				"Output format for the Systus writer: systus (default) or levelshape.") //
+        ("systus.OutputMatrix",po::value<string>()->default_value("table"),
+                "Output of Matrix Elements (e.g Super Elements) to 'table' (default) or 'file'") //
+        ("systus.SizeMatrix", po::value<int>()->default_value(9),
+                "Maximum size of Systus Matrix Elements: default 9 for table, 20 for file."); //
 
 
         // Hidden options, will be allowed both on command line and

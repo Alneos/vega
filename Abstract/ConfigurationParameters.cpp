@@ -24,14 +24,17 @@ ConfigurationParameters::ConfigurationParameters(string inputFile, Solver output
         TranslationMode translationMode, fs::path resultFile, double tolerance, bool runSolver,
         string solverServer, string solverCommand,
 		string systusRBE2TranslationMode, double systusRBE2Rigidity,
-		string systusOptionAnalysis, string systusOutputProduct, vector<vector<int> > systusSubcases) :
+		string systusOptionAnalysis, string systusOutputProduct, vector<vector<int> > systusSubcases,
+		string systusOutputMatrix, int systusSizeMatrix) :
         inputFile(inputFile), outputSolver(outputSolver), solverVersion(solverVersion), outputFile(
                 outputFile), outputPath(outputPath), logLevel(logLevel), translationMode(
                 translationMode), resultFile(resultFile), testTolerance(tolerance), runSolver(
                 runSolver), solverServer(solverServer), solverCommand(solverCommand),
 				systusRBE2TranslationMode(systusRBE2TranslationMode), systusRBE2Rigidity(systusRBE2Rigidity),
 				systusOptionAnalysis(systusOptionAnalysis), systusOutputProduct(systusOutputProduct),
-				systusSubcases(systusSubcases){
+				systusSubcases(systusSubcases),
+				systusOutputMatrix(systusOutputMatrix), systusSizeMatrix(systusSizeMatrix)
+{
 
 }
 
@@ -39,7 +42,7 @@ const ModelConfiguration ConfigurationParameters::getModelConfiguration() const 
     if (this->outputSolver.getSolverName() == CODE_ASTER) {
         return ModelConfiguration(true, this->logLevel, true);
     } else if (this->outputSolver.getSolverName() == SYSTUS) {
-        return ModelConfiguration(false, this->logLevel, true, false, false, true, true, true, false, false, true, true);
+        return ModelConfiguration(false, this->logLevel, true, false, false, true, true, true, false, false, true, true, true);
     } else if (this->outputSolver.getSolverName() == NASTRAN) {
         return ModelConfiguration(false, this->logLevel, false, false, false, false, false, false,
                 false, false, false);
@@ -86,13 +89,13 @@ Solver::~Solver() {
 ModelConfiguration::ModelConfiguration(bool virtualDiscrets, LogLevel logLevel, bool createSkin,
         bool emulateLocalDisplacement, bool displayHomogeneousConstraint,
         bool emulateAdditionalMass, bool replaceCombinedLoadSets, bool removeIneffectives,
-        bool partitionModel, bool replaceDirectMatrices, bool removeRedundantSpcs, bool makeCellsFromDirectMatrices) :
+        bool partitionModel, bool replaceDirectMatrices, bool removeRedundantSpcs, bool splitDirectMatrices, bool makeCellsFromDirectMatrices) :
         virtualDiscrets(virtualDiscrets), logLevel(logLevel), createSkin(createSkin), emulateLocalDisplacement(
                 emulateLocalDisplacement), displayHomogeneousConstraint(
                 displayHomogeneousConstraint), emulateAdditionalMass(emulateAdditionalMass), replaceCombinedLoadSets(
                 replaceCombinedLoadSets), removeIneffectives(removeIneffectives), partitionModel(
                 partitionModel), replaceDirectMatrices(replaceDirectMatrices), removeRedundantSpcs(
-                removeRedundantSpcs), makeCellsFromDirectMatrices(makeCellsFromDirectMatrices) {
+                removeRedundantSpcs), splitDirectMatrices(splitDirectMatrices), makeCellsFromDirectMatrices(makeCellsFromDirectMatrices) {
 }
 
 }

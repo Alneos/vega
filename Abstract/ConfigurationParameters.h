@@ -74,7 +74,9 @@ public:
             bool replaceCombinedLoadSets = true, bool removeIneffectives = true,
             bool partitionModel = false, bool replaceDirectMatrices = true,
             bool removeRedundantSpcs = true,
-            bool makeCellsFromDirectMatrices = false);
+            bool splitDirectMatrices = false,
+            bool makeCellsFromDirectMatrices = false
+            );
     virtual ~ModelConfiguration() {
     }
 
@@ -95,6 +97,13 @@ public:
     const bool partitionModel;
     const bool replaceDirectMatrices;
     const bool removeRedundantSpcs;
+    /**
+     *  Direct Matrices (DISCRETE_0D, DISCRETE_1D, STIFFNESS_MATRIX, MASS_MATRIX, DAMPING_MATRIX) may be
+     *  too big to be handled by some solver (eg Systus).
+     *  This bool commands the use of Model::splitDirectMatrices() in Model::finish(), which splits the matrices
+     *  into smaller ones.
+     */
+    const bool splitDirectMatrices;
     /**
      *  ElementSets of Direct Matrices (DISCRETE_0D, DISCRETE_1D, STIFFNESS_MATRIX, MASS_MATRIX, DAMPING_MATRIX)
      *  generally don't have associated cells/cellgroup. This may causes problems in generic element writer,
@@ -121,7 +130,8 @@ public:
             std::string solverCommand = "",
             std::string systusRBE2TranslationMode = "lagrangian", double systusRBE2Rigidity= 0.0,
             std::string systusOptionAnalysis="auto", std::string systusOutputProduct="systus",
-            std::vector< std::vector<int> > systusSubcases = {});
+            std::vector< std::vector<int> > systusSubcases = {},
+            std::string systusOutputMatrix="table", int systusSizeMatrix=9);
     const ModelConfiguration getModelConfiguration() const;
     virtual ~ConfigurationParameters();
 
@@ -142,6 +152,16 @@ public:
     const std::string systusOptionAnalysis;
     const std::string systusOutputProduct;
     const std::vector< std::vector<int> > systusSubcases;
+    /**
+     * Output of Matrix Elements (e.g Super Elements) to 'table' (default) or 'file'
+     * (needs a Systus tool to convert the output to the correct format)
+     */
+    const std::string systusOutputMatrix;
+    /**
+     * Maximum size of Systus Matrix Elements: 9 for a 'table' output, '20' for a file output.
+     * Oversized matrix are splitted.
+     */
+    const int systusSizeMatrix;
 };
 
 }
