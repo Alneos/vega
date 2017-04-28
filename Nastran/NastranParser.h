@@ -497,6 +497,12 @@ private:
     void parseSPCD(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
+     * Parse the keyword SPOINT (page 2498 of MDN Nastran 2006 Quick Reference Guide.)
+     * Full support.
+     */
+    void parseSPOINT(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
      * Parse the keyword TABDMP1 (page 2512 of MDN Nastran 2006 Quick Reference Guide.)
      * Only CRIT type is supported, with an unknown reliability.
      */
@@ -530,6 +536,13 @@ private:
      */
     int parseOrientation(int point1, int point2, NastranTokenizer& tok,
             std::shared_ptr<Model> model);
+
+    /**
+     * Parse a DOF Nastran field to return a VEGA DOF
+     *   - Scalar point have a "0" Nastran DOF, translated as a "0" (DX) Vega DOF
+     *   - Classic Nastran dofs go from 1 to 6, VEGA from 0 to 5.
+     */
+    int parseDOF(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     LogLevel logLevel = LogLevel::INFO;
 public:

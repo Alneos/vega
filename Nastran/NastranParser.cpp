@@ -124,6 +124,7 @@ const unordered_map<string, NastranParserImpl::parseElementFPtr> NastranParserIm
                 { "SPC1", &NastranParserImpl::parseSPC1 },
                 { "SPCD", &NastranParserImpl::parseSPCD },
                 { "SPCADD", &NastranParserImpl::parseSPCADD },
+                { "SPOINT", &NastranParserImpl::parseSPOINT },
                 { "TABDMP1", &NastranParserImpl::parseTABDMP1 },
                 { "DPHASE", &NastranParserImpl::parseDPHASE },
                 { "TABLED1", &NastranParserImpl::parseTABLED1 },
@@ -2190,6 +2191,27 @@ void NastranParserImpl::parseTABLED1(NastranTokenizer& tok, shared_ptr<Model> mo
     model->add(functionTable);
 
 }
+
+
+int NastranParserImpl::parseDOF(NastranTokenizer& tok, shared_ptr<Model> model){
+
+    int dofread = tok.nextInt();
+
+    // Check for errors
+    if ((dofread<0) || (dofread>6)){
+        string message = "Out of bound degrees of freedom : " + std::to_string(dofread);
+        handleParsingWarning(message, tok, model);
+    }
+    // Scalar point have a "0" Nastran DOF, translated as a "0" (DX) Vega DOF
+    if (dofread==0){
+        return 0;
+    }
+    // Nastran dofs goes from 1 to 6, VEGA from 0 to 5.
+    return dofread-1;
+
+}
+
+
 
 } //namespace nastran
 

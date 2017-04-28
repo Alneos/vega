@@ -298,9 +298,9 @@ void NastranParserImpl::parseCELAS2(NastranTokenizer& tok, shared_ptr<Model> mod
     int eid = tok.nextInt();
     double k = tok.nextDouble();
     int g1 = tok.nextInt();
-    int c1 = tok.nextInt(); // Nastran coordinate goes from 1 to 6, VEGA from 0 to 5.
+    int c1 = parseDOF(tok,model);
     int g2 = tok.nextInt();
-    int c2 = tok.nextInt(); // Nastran coordinate goes from 1 to 6, VEGA from 0 to 5.
+    int c2 = parseDOF(tok,model);
 
     // Ignored fields
     double ge = tok.nextDouble(true);
@@ -314,7 +314,7 @@ void NastranParserImpl::parseCELAS2(NastranTokenizer& tok, shared_ptr<Model> mod
         handleParsingWarning(message, tok, model);
     }
     StiffnessMatrix matrix(*model, eid);
-    matrix.addStiffness(g1, DOF::findByPosition(c1-1), g2, DOF::findByPosition(c2-1), k);
+    matrix.addStiffness(g1, DOF::findByPosition(c1), g2, DOF::findByPosition(c2), k);
     model->add(matrix);
 }
 
@@ -531,7 +531,64 @@ void NastranParserImpl::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> 
 
 }
 
+/*
+ * Defining allowDOFS::ONE should suffice for VEGA to know, during the translation
+ * that these GRID points have only one DOF. IT's not the case, so we create SPC to
+ * compensate.
+ */
+void NastranParserImpl::parseSPOINT(NastranTokenizer& tok, shared_ptr<Model> model) {
 
+    int id1 = tok.nextInt();
+    double x1 = 0.0;
+    double x2 = 0.0;
+    double x3 = 0.0;
+    int cpos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
+
+    // Creating or finding the Node Group and Constraint
+    SinglePointConstraint spc = SinglePointConstraint(*model, DOFS::ALL_DOFS-DOFS::ONE, 0.0);
+    string name = string("SPC_SPOINT");
+    NodeGroup *spcNodeGroup = model->mesh->findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPOINT");
+
+    int nodePosition = model->mesh->addNode(id1, x1, x2, x3, cpos);
+    model->mesh->allowDOFS(nodePosition, DOFS::DOFS::ONE);
+    spcNodeGroup->addNode(id1);
+    spc.addNodeId(id1);
+    if (this->logLevel >= LogLevel::TRACE) {
+        cout << fixed << "SPOINT " << id1 << endl;
+    }
+
+    bool format1 = tok.isNextInt() || tok.isEmptyUntilNextKeyword();
+    if (format1) {
+        while (tok.isNextInt()){
+            const int id2 = tok.nextInt();
+            nodePosition = model->mesh->addNode(id2, x1, x2, x3, cpos);
+            model->mesh->allowDOFS(nodePosition, DOFS::DOFS::ONE);
+            spcNodeGroup->addNode(id2);
+            spc.addNodeId(id2);
+            if (this->logLevel >= LogLevel::TRACE) {
+                cout << fixed << "SPOINT " << id2 << endl;
+            }
+        }
+    } else if (tok.nextString() == "THRU") {
+        //format2
+        const int id2 = tok.nextInt();
+        for (int id=id1+1; id<=id2; id++){
+            nodePosition = model->mesh->addNode(id, x1, x2, x3, cpos);
+            model->mesh->allowDOFS(nodePosition, DOFS::DOFS::ONE);
+            spcNodeGroup->addNode(id);
+            spc.addNodeId(id);
+            if (this->logLevel >= LogLevel::TRACE) {
+                cout << fixed << "SPOINT " << id << endl;
+            }
+        }
+    } else {
+        handleParsingError("Invalid format.", tok, model);
+    }
+
+    // Adding the constraint to the model
+    model->add(spc);
+    model->addConstraintIntoConstraintSet(spc, model->commonConstraintSet);
+}
 
 
 

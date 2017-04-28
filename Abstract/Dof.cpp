@@ -45,7 +45,7 @@ const DOF DOF::RZ(RZ_CODE, false, true, "RZ", 5);
 
 DOF DOF::findByPosition(int position) {
 	if (position < 0 || position > 5) {
-		throw invalid_argument("DOF Position not allowed");
+        throw invalid_argument("DOF Position not allowed : "+std::to_string(position));
 	}
 	auto dofIter = dofByPosition.find(position);
 	if (dofIter == dofByPosition.end()) {
@@ -75,6 +75,7 @@ const boost::bimap<int, char> DOFS::DOF_BY_NASTRANCODE = boost::assign::list_of<
 		( 6, DOF::RZ_CODE );
 
 const DOFS DOFS::NO_DOFS((char) 0);
+const DOFS DOFS::ONE((char) DOF::DX_CODE);
 const DOFS DOFS::TRANSLATIONS((char) (DOF::DX_CODE | DOF::DY_CODE | DOF::DZ_CODE));
 const DOFS DOFS::ROTATIONS((char) (DOF::RX_CODE | DOF::RY_CODE | DOF::RZ_CODE));
 const DOFS DOFS::ALL_DOFS = TRANSLATIONS + ROTATIONS;
@@ -162,8 +163,15 @@ int DOFS::nastranCode() const {
 	return dofs.size() >= 1 ? boost::lexical_cast<int>(dofs) : 0;
 }
 
+// Should be in NastranTokenizer, imho
+// TODO: move to NastranTokenizer
 DOFS DOFS::nastranCodeToDOFS(int nastranCode) {
 	int number = nastranCode;
+
+	// Dirty hack for scalar points, which have one DOF numbered 0
+	if (number==0){
+	    number=1;
+	}
 	DOFS dofs = DOFS::NO_DOFS;
 	while (number) {
 		int nastranDigit = number % 10;
