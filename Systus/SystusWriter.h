@@ -88,7 +88,11 @@ class SystusWriter: public Writer {
 	int systusSubOption = 0;
 	int maxNumNodes = 0;
 	int nbNodes = 0;						 /**< Useless >**/
-	static int auto_part_id;                 /**< Next available numer for Systus Part ID >**/
+	static int auto_part_id;                 /**< Next available numer for Systus Part ID **/
+	static const int DampingAccessId;        /**< Access Id for the Damping Matrices file (Element X9XX type 0)**/
+	static const int MassAccessId;			 /**< Access Id for the Mass Matrices file (Element X9XX type 0)**/
+	static const int StiffnessAccessId;      /**< Access Id for the Stiffness Matrices file (Element X9XX type 0)**/
+
 	
 	map<int, vector<long unsigned int> > lists;
 	map<long unsigned int, vector<double>> vectors;
@@ -109,7 +113,12 @@ class SystusWriter: public Writer {
 	map<int, char> constraintByNodePosition;
 	vector< vector<int> > systusSubcases;   /**< < subcase , <loadcases ids> > : Ids of loadcases composing the subcase **/
 	vector<SystusTable> tables;
+	SystusMatrices dampingMatrices;   	    /**< All needed damping matrices (element X9XX type 0). **/
+	SystusMatrices massMatrices ;           /**< All needed mass matrices (element X9XX type 0). **/
+	SystusMatrices stiffnessMatrices;       /**< All needed rigidity matrices (element X9XX type 0). **/
 	map<int, long unsigned int> tableByElementSet;
+	map<int, long unsigned int> seIdByElementSet; /**< Number of the matrix associated to SE (element X9XX type 0). **/
+	map<int, std::string > filebyAccessId;        /**< Names of matrix files **/
 	/**
 	 * Renumbers the nodes
 	 * see Systus ref manual chapter 15 or chapter 13 2.7
@@ -286,11 +295,23 @@ class SystusWriter: public Writer {
 	void writeAsc(const SystusModel&, const ConfigurationParameters&, const int idSubcase, std::ostream&);
 	void getSystusInformations(const SystusModel&, const ConfigurationParameters&);
 
+    /** 
+     * Clear all maps, vectors, lists filled during a previous translation.
+     */
+	void clear();
+	
+	/**
+	 * Translate the model into a Systus compatible format.
+	 * It fills all needed tables, vectors, lists, and so on.
+	 */
+	void translate(const SystusModel &systusModel, const int idSubcase);
+
 	void fillLoads(const SystusModel&, const int idSubcase);
 	void fillConstraintsNodes(const SystusModel& systusModel, const int idLoadcase);
 	void fillConstraintsVectors(const SystusModel& systusModel, const int idSubcase);
 	void fillCoordinatesVectors(const SystusModel& systusModel, const int idSubcase);
 	void fillLoadingsVectors(const SystusModel& systusModel, const int idSubcase);
+	void fillMatrices(const SystusModel& systusModel, const int idSubcase);
 	void fillTables(const SystusModel&, const int idSubcase);
 	void fillVectors(const SystusModel&, const int idSubcase);
 	void fillLists(const SystusModel&, const int idSubcase);
@@ -376,6 +397,13 @@ class SystusWriter: public Writer {
 		return string("SystusWriter");
 	}
 	void writeMasses(const SystusModel&, std::ostream& out); /** Write Nodal Masses on outstream. **/
+
+	/**
+	 * Write all matrix files to an ASC format. To be used by SYSTUS, these files must be converted to
+	 * a BINARY format (tool filematrix of the ESI Systus Package)
+	 */
+	void writeMatrixFiles(const SystusModel& systusModel, const int idSubcase);
+
 
 public:
 	SystusWriter();

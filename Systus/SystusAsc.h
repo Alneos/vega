@@ -65,5 +65,56 @@ public:
 
 };
 
+
+/**
+ * Modelizes a Systus Matrix (stiffness or mass). They are used by elements X9XX type 0.
+ */
+class SystusMatrix{
+public:
+    
+    long unsigned int id; /**< Id. Correspond to a "E id" in the material, or "REDUCTION id" in the reduction process.>**/
+    int nbDOFS;			  
+    int nbNodes;
+    int size;
+    std::vector<double> values;
+
+    SystusMatrix(long unsigned int id, int nbNodes, int nbDOFS);
+    virtual ~SystusMatrix();
+
+    void setValue(int i, int j, int dofi, int dofj, double value);
+    /**
+     * Print a SystusMatrix to the output stream.
+     */
+    friend std::ostream &operator<<(std::ostream &out, const SystusMatrix& sm);
+
+};
+
+
+
+/**
+ * Modelizes a Systus Matrix (stiffness or mass). They are used by elements X9XX type 0.
+ */
+class SystusMatrices{
+public:
+
+    std::vector<SystusMatrix> matrices;
+    int nbDOFS;
+
+    SystusMatrices();
+    virtual ~SystusMatrices();
+
+    void add(SystusMatrix sm);
+    void clear();
+    long unsigned int size();
+    /**
+     * Print SystusMatrices to the output stream, in a ASCII format.
+     * To be used by SYSTUS, output file must be translated to BINARY format, using the filematrix tool.
+     */
+    friend std::ostream &operator<<(std::ostream &out, const SystusMatrices& sms);
+
+};
+
+
+
 }
 #endif /* SYSTUSASC_H_ */
