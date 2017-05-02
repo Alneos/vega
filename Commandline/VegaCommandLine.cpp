@@ -467,7 +467,7 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
 				"Output format for the Systus writer: systus (default) or levelshape.") //
         ("systus.OutputMatrix",po::value<string>()->default_value("table"),
                 "Output of Matrix Elements (e.g Super Elements) to 'table' (default) or 'file'") //
-        ("systus.SizeMatrix", po::value<int>()->default_value(9),
+        ("systus.SizeMatrix", po::value<int>(),
                 "Maximum size of Systus Matrix Elements: default 9 for table, 20 for file."); //
 
 
