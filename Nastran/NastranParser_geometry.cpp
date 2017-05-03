@@ -315,6 +315,14 @@ void NastranParserImpl::parseCELAS2(NastranTokenizer& tok, shared_ptr<Model> mod
     }
     StiffnessMatrix matrix(*model, eid);
     matrix.addStiffness(g1, DOF::findByPosition(c1), g2, DOF::findByPosition(c2), k);
+
+    // Create a Cell and a cellgroup
+    CellGroup* matrixGroup = model->mesh->createCellGroup("CELAS2_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS2");
+    matrix.assignCellGroup(matrixGroup);
+    vector<int> connectivity;
+    connectivity += g1, g2;
+    int cellPosition= model->mesh->addCell(eid, CellType::SEG2, connectivity);
+    matrixGroup->addCell(model->mesh->findCell(cellPosition).id);
     model->add(matrix);
 }
 
@@ -329,6 +337,16 @@ void NastranParserImpl::parseCELAS4(NastranTokenizer& tok, shared_ptr<Model> mod
     // LD : TODO scalar point dofs treated as DX in abstract?
     matrix.addStiffness(s1, DOF::DX, s2, DOF::DX, k);
     model->add(matrix);
+
+    // Create a Cell and a cellgroup
+    CellGroup* matrixGroup = model->mesh->createCellGroup("CELAS4_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS4");
+    matrix.assignCellGroup(matrixGroup);
+    vector<int> connectivity;
+    connectivity += s1, s2;
+    int cellPosition= model->mesh->addCell(eid, CellType::SEG2, connectivity);
+    matrixGroup->addCell(model->mesh->findCell(cellPosition).id);
+    model->add(matrix);
+
 }
 
 void NastranParserImpl::parseElem(NastranTokenizer& tok, shared_ptr<Model> model,

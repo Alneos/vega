@@ -117,7 +117,7 @@ std::ostream& operator<<(std::ostream& os, const SystusMatrix & sm)
       }
   }
 
-  os << "0"<<std::endl;  
+  //os << "0"<<std::endl;
   return os;
 }
 
