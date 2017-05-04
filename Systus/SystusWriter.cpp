@@ -67,7 +67,25 @@ const unordered_map<CellType::Code, vector<int>, hash<int>> SystusWriter::systus
         { CellType::PENTA15_CODE, { 0, 8, 2, 7, 1, 6, 12, 14, 13, 3, 11, 5, 10, 4, 9 } },
         { CellType::HEXA8_CODE, { 0, 3, 2, 1, 4, 7, 6, 5 } },
         { CellType::HEXA20_CODE, { 0, 11, 3, 10, 2, 9, 1, 8, 16, 19, 18, 17, 4, 15, 7, 14,
-                6, 13, 5, 12 } }
+                6, 13, 5, 12 } },
+        { CellType::POLY4_CODE, { 0, 1, 2, 3  } }, 
+        { CellType::POLY5_CODE, { 0, 1, 2, 3, 4  } },
+        { CellType::POLY6_CODE, { 0, 1, 2, 3, 4, 5 } },
+        { CellType::POLY7_CODE, { 0, 1, 2, 3, 4, 5, 6 } },
+        { CellType::POLY8_CODE, { 0, 1, 2, 3, 4, 5, 6, 7 } },
+        { CellType::POLY9_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8 } },
+        { CellType::POLY10_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } },
+        { CellType::POLY11_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 } },
+        { CellType::POLY12_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 } },
+        { CellType::POLY13_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 } },
+        { CellType::POLY14_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 } },
+        { CellType::POLY15_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 } },
+        { CellType::POLY16_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } },
+        { CellType::POLY17_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 } },
+        { CellType::POLY18_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 } },
+        { CellType::POLY19_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 } },
+        { CellType::POLY20_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 } }
+
 };
 
 const int SystusWriter::DampingAccessId=41;
@@ -1461,7 +1479,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
                     }
                 }
 
-                tableByElementSet[elementSet->getId()]=-SystusWriter::DampingAccessId;
+                tableByElementSet[elementSet->getId()]=-SystusWriter::DampingAccessId*10000;
                 seIdByElementSet[elementSet->getId()]= seId;
                 dampingMatrices.add(aMatrix);
                 break;
@@ -1469,7 +1487,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
 
             case ElementSet::MASS_MATRIX:{
                 shared_ptr<MassMatrix> mm = static_pointer_cast<MassMatrix>(elementSet);
-                long unsigned int seId= stiffnessMatrices.size()+1;
+                long unsigned int seId= massMatrices.size()+1;
 
                 // Numbering the node internally to the element
                 map<int, int> positionToSytusNumber;
@@ -1493,7 +1511,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
                     }
                 }
 
-                tableByElementSet[elementSet->getId()]=-SystusWriter::MassAccessId;
+                tableByElementSet[elementSet->getId()]=-SystusWriter::MassAccessId*100;
                 seIdByElementSet[elementSet->getId()]= seId;
                 massMatrices.add(aMatrix);
                 break;

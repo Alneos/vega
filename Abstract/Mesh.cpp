@@ -228,9 +228,9 @@ int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &node
 					string("CellId: ") + lexical_cast<string>(cellId) + " Already used.");
 		}
 	}
-	if (cellType.numNodes != nodeIds.size()) {
-		cerr << "Cell " << cellId << "not added  because connectivity array differs from expected "
-				"lenght";
+	if ((cellType.specificSize) && (cellType.numNodes != nodeIds.size())) {
+		cerr << "Cell " << cellId << " not added because connectivity array differs from expected "
+				"length";
 		throw logic_error("Invalid cell");
 	}
 
@@ -243,7 +243,7 @@ int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &node
 		cells.nodepositionsByCelltype[cellType] = make_shared<deque<int>>(deque<int>());
 	}
 	shared_ptr<deque<int>> nodePositionsPtr = cells.nodepositionsByCelltype[cellType];
-	for (unsigned int i = 0; i < cellType.numNodes; i++) {
+	for (unsigned int i = 0; i < nodeIds.size(); i++) {
 		int nodePosition = findOrReserveNode(nodeIds[i]);
 		nodePositionsPtr->push_back(nodePosition);
 	}

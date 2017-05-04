@@ -42,7 +42,7 @@ const ModelConfiguration ConfigurationParameters::getModelConfiguration() const 
     if (this->outputSolver.getSolverName() == CODE_ASTER) {
         return ModelConfiguration(true, this->logLevel, true);
     } else if (this->outputSolver.getSolverName() == SYSTUS) {
-        return ModelConfiguration(false, this->logLevel, true, false, false, true, true, true, false, false, true, true, true);
+        return ModelConfiguration(false, this->logLevel, true, false, false, true, true, true, false, false, true, true, this->systusSizeMatrix, true);
     } else if (this->outputSolver.getSolverName() == NASTRAN) {
         return ModelConfiguration(false, this->logLevel, false, false, false, false, false, false,
                 false, false, false);
@@ -89,13 +89,15 @@ Solver::~Solver() {
 ModelConfiguration::ModelConfiguration(bool virtualDiscrets, LogLevel logLevel, bool createSkin,
         bool emulateLocalDisplacement, bool displayHomogeneousConstraint,
         bool emulateAdditionalMass, bool replaceCombinedLoadSets, bool removeIneffectives,
-        bool partitionModel, bool replaceDirectMatrices, bool removeRedundantSpcs, bool splitDirectMatrices, bool makeCellsFromDirectMatrices) :
+        bool partitionModel, bool replaceDirectMatrices, bool removeRedundantSpcs, bool splitDirectMatrices, int sizeDirectMatrices,
+        bool makeCellsFromDirectMatrices) :
         virtualDiscrets(virtualDiscrets), logLevel(logLevel), createSkin(createSkin), emulateLocalDisplacement(
                 emulateLocalDisplacement), displayHomogeneousConstraint(
                 displayHomogeneousConstraint), emulateAdditionalMass(emulateAdditionalMass), replaceCombinedLoadSets(
                 replaceCombinedLoadSets), removeIneffectives(removeIneffectives), partitionModel(
                 partitionModel), replaceDirectMatrices(replaceDirectMatrices), removeRedundantSpcs(
-                removeRedundantSpcs), splitDirectMatrices(splitDirectMatrices), makeCellsFromDirectMatrices(makeCellsFromDirectMatrices) {
+                removeRedundantSpcs), splitDirectMatrices(splitDirectMatrices), sizeDirectMatrices(sizeDirectMatrices),
+                makeCellsFromDirectMatrices(makeCellsFromDirectMatrices) {
 }
 
 }

@@ -632,6 +632,11 @@ void MatrixElement::addComponent(const int nodeid1, const DOF dof1, const int no
     subMatrix->addComponent(myDof1, myDof2, value);
 }
 
+void MatrixElement::clear() {
+    submatrixByNodes.clear();
+}
+
+
 const shared_ptr<DOFMatrix> MatrixElement::findSubmatrix(const int nodePosition1, const int nodePosition2) const {
 	shared_ptr<DOFMatrix> result = make_shared<DOFMatrix>(DOFMatrix(symmetric));
 	auto it = submatrixByNodes.find(make_pair(nodePosition1, nodePosition2));

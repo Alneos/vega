@@ -40,7 +40,10 @@
 #include <med.h>
 
 // Add specific elements not already defined by MED
-typedef enum {MED_SEG5=105} vega_med_geometrie_element;
+typedef enum {MED_SEG5=105, MED_POLY4=304
+    , MED_POLY5=305, MED_POLY6=306, MED_POLY7=307, MED_POLY8=308, MED_POLY9=309, MED_POLY10=310
+    , MED_POLY11=311, MED_POLY12=312, MED_POLY13=313, MED_POLY14=314, MED_POLY15=315, MED_POLY16=316
+    , MED_POLY17=317, MED_POLY18=318, MED_POLY19=319, MED_POLY20=320} vega_med_geometrie_element;
 
 namespace vega {
 
@@ -112,6 +115,25 @@ public:
         HEXA20_CODE = MED_HEXA20,
         HEXA27_CODE = MED_HEXA27,
         POLYHED_CODE = MED_POLYHEDRON,
+	
+        POLY4_CODE = MED_POLY4,
+        POLY5_CODE = MED_POLY5,
+        POLY6_CODE = MED_POLY6,
+        POLY7_CODE = MED_POLY7,
+        POLY8_CODE = MED_POLY8,
+        POLY9_CODE = MED_POLY9,
+        POLY10_CODE = MED_POLY10,
+        POLY11_CODE = MED_POLY11,
+        POLY12_CODE = MED_POLY12,
+        POLY13_CODE = MED_POLY13,
+        POLY14_CODE = MED_POLY14,
+        POLY15_CODE = MED_POLY15,
+        POLY16_CODE = MED_POLY16,
+        POLY17_CODE = MED_POLY17,
+        POLY18_CODE = MED_POLY18,
+        POLY19_CODE = MED_POLY19,
+        POLY20_CODE = MED_POLY20,
+	
         //type for reserved (but not yet defined) scells
         RESERVED = -1
     };
@@ -143,6 +165,23 @@ public:
     static const CellType HEXA20;
     static const CellType HEXA27;
     static const CellType POLYHED;
+    static const CellType POLY4; 
+    static const CellType POLY5;
+    static const CellType POLY6; 
+    static const CellType POLY7;
+    static const CellType POLY8;
+    static const CellType POLY9;
+    static const CellType POLY10;
+    static const CellType POLY11;
+    static const CellType POLY12;
+    static const CellType POLY13;
+    static const CellType POLY14;
+    static const CellType POLY15;
+    static const CellType POLY16;
+    static const CellType POLY17;
+    static const CellType POLY18;
+    static const CellType POLY19;
+    static const CellType POLY20;
 
 private:
 
@@ -160,6 +199,7 @@ public:
     //const CellType& operator=(const CellType& other);
     static const CellType* findByCode(Code code);
     std::string to_str() const;
+    bool specificSize; /**< True for all Type except the POLY ones, where the number of Nodes varies */
 };
 
 class Mesh;

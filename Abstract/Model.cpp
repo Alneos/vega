@@ -1396,6 +1396,128 @@ void Model::removeRedundantSpcs()
 }
 
 
+void Model::splitDirectMatrices(const unsigned int sizeMax){
+
+
+    if (sizeMax<2){
+        throw logic_error("Model can't split matrices to a size under 2.");
+    }
+
+    vector<shared_ptr<ElementSet>> esToErase;
+    vector<shared_ptr<ElementSet>> esToAdd;
+    const int sizeStack = (int)sizeMax/2;
+
+    for (auto elementSetM : elementSets) {
+        if (!elementSetM->isMatrixElement()) {
+            //TODO: Display informative message in debug mode.
+            continue;
+        }
+
+        shared_ptr<MatrixElement> matrix = static_pointer_cast<MatrixElement>(elementSetM);
+
+        // If matrix is small enough, we do nothing
+        if (matrix->nodePositions().size()<=sizeMax){
+            //TODO: Display informative in debug mode.
+            continue;
+        }
+
+        // It's too big, we have work to do
+        esToErase.push_back(elementSetM);
+        map<int, int> nodeIdOfElement;
+        for (auto & v : matrix->nodePositions()){
+            nodeIdOfElement[v] = mesh->findNode(v).id;
+        }
+
+        // Dummy ElementSet for the splitting
+        shared_ptr<ElementSet> dummyElement = elementSetM->clone();
+        shared_ptr<MatrixElement> dummyMatrix = static_pointer_cast<MatrixElement>(dummyElement);
+        dummyMatrix->clear();
+
+
+        map<int,int> stackOfNodesByNodes;
+        map<pair<int, int>, shared_ptr<ElementSet>>  esToAddByStackNumber;
+
+        // Splitting the matrices, pairs of nodes by pairs of node (I,J).
+        for (const auto np : matrix->nodePairs()){
+
+            // We attribute a stack of sizeStack to each node.
+            int sI, sJ;
+            auto it = stackOfNodesByNodes.find(np.first);
+            if (it == stackOfNodesByNodes.end()){
+                sI = (int)stackOfNodesByNodes.size()/sizeStack;
+                stackOfNodesByNodes[np.first]=sI;
+            }else{
+                sI = it->second;
+            }
+            it = stackOfNodesByNodes.find(np.second);
+            if (it == stackOfNodesByNodes.end()){
+                sJ = (int)stackOfNodesByNodes.size()/sizeStack;
+                stackOfNodesByNodes[np.second]=sJ;
+            }else{
+                sJ = it->second;
+            }
+
+            // We attribute a elementSet to the pair (sI, sJ), and create it if needed
+            pair<int, int> ps;
+            if (sI<sJ){
+                ps = make_pair(sI,sJ);
+            }else{
+                ps = make_pair(sJ,sI);
+            }
+            auto it2 = esToAddByStackNumber.find(ps);
+            shared_ptr<ElementSet> newElementSet = nullptr;
+            if (it2 == esToAddByStackNumber.end()){
+
+                newElementSet = dummyElement->clone();
+                newElementSet->resetId();
+                esToAdd.push_back(newElementSet);
+                esToAddByStackNumber[ps]=newElementSet;
+
+                // Special add for the submatrices on the diagonal:
+                // One submatrix corresponds to 3 pairs of stacks id
+                int stF = ps.first - ps.first%2;
+                int stS = ps.second - ps.second%2;
+                if (stF == stS){
+                    esToAddByStackNumber[make_pair(stF,stF)]=newElementSet;
+                    esToAddByStackNumber[make_pair(stF,stF+1)]=newElementSet;
+                    esToAddByStackNumber[make_pair(stF+1,stF+1)]=newElementSet;
+                }
+            }else{
+                newElementSet = it2->second;
+            }
+
+            // We copy the values
+            shared_ptr<MatrixElement> nM = static_pointer_cast<MatrixElement>(newElementSet);
+            shared_ptr<DOFMatrix> dM = matrix->findSubmatrix(np.first, np.second);
+            for (const auto dof: dM->componentByDofs){
+                nM->addComponent(nodeIdOfElement[np.first], dof.first.first, nodeIdOfElement[np.second], dof.first.second, dof.second);
+            }
+
+        }
+
+        if (configuration.logLevel >= LogLevel::DEBUG) {
+            cout << "Element Matrix "<<matrix->bestId()<< " has been split into the smaller matrices ";
+            for (auto es : esToAddByStackNumber){
+                cout << es.second->bestId()<<" ";
+            }
+            cout <<endl;
+        }
+
+    }
+
+    // We remove the elementSets corresponding to big matrices
+    for (auto es : esToErase){
+        this->elementSets.erase(*es);
+    }
+
+    // We add the elementSets corresponding to small matrices
+    for (auto es : esToAdd){
+        this->add(*es);
+    }
+}
+
+
+
 void Model::makeCellsFromDirectMatrices(){
 
     int idM=0;
@@ -1425,6 +1547,8 @@ void Model::makeCellsFromDirectMatrices(){
 
         // Create a Cell and add it to the Cell Group
         CellType cellType = CellType::POINT1;
+        // VERY TEDIOUS, because cells can't be of a variable size, for now :/
+        //TODO: Add a version with "variable sized" cells.
         switch (matrix->nodePositions().size()){
         case 1:{
             cellType = CellType::POINT1;
@@ -1438,7 +1562,76 @@ void Model::makeCellsFromDirectMatrices(){
             cellType = CellType::TRI3;
             break;
         }
+        case 4:{
+            cellType = CellType::POLY4;
+            break;
+        }
+        case 5:{
+            cellType = CellType::POLY5;
+            break;
+        }
+        case 6:{
+            cellType = CellType::POLY6;
+            break;
+        }
+        case 7:{
+            cellType = CellType::POLY7;
+            break;
+        }
+        case 8:{
+            cellType = CellType::POLY8;
+            break;
+        }
+        case 9:{
+            cellType = CellType::POLY9;
+            break;
+        }
+        case 10:{
+            cellType = CellType::POLY10;
+            break;
+        }
+        case 11:{
+            cellType = CellType::POLY11;
+            break;
+        }
+        case 12:{
+            cellType = CellType::POLY12;
+            break;
+        }
+        case 13:{
+            cellType = CellType::POLY13;
+            break;
+        }
+        case 14:{
+            cellType = CellType::POLY14;
+            break;
+        }
+        case 15:{
+            cellType = CellType::POLY15;
+            break;
+        }
+        case 16:{
+            cellType = CellType::POLY16;
+            break;
+        }
+        case 17:{
+            cellType = CellType::POLY17;
+            break;
+        }
+        case 18:{
+            cellType = CellType::POLY18;
+            break;
+        }
+        case 19:{
+            cellType = CellType::POLY19;
+            break;
+        }
+        case 20:{
+            cellType = CellType::POLY20;
+            break;
+        }
         default:{
+            //TODO: Don't work, because elements can't be of a variable size, for now :/
             cellType = CellType::POLYHED;
         }
         }
@@ -1520,6 +1713,10 @@ void Model::finish() {
 
     if (this->configuration.virtualDiscrets) {
         generateDiscrets();
+    }
+
+    if (this->configuration.splitDirectMatrices){
+        splitDirectMatrices(this->configuration.sizeDirectMatrices);
     }
 
     if (this->configuration.makeCellsFromDirectMatrices){

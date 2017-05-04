@@ -54,11 +54,12 @@ CellType::CellType(CellType::Code code, int numNodes, SpaceDimension dimension,
 		const string& description) :
 		code(code), numNodes(numNodes), dimension(dimension), description(description) {
 	typeByCode.insert(make_pair(code, this));
+	specificSize= (numNodes>0);
 }
 
 CellType::CellType(const CellType& other) :
 		code(other.code), numNodes(other.numNodes), dimension(other.dimension), description(
-				other.description) {
+				other.description), specificSize(other.specificSize) {
 }
 
 bool CellType::operator==(const CellType &other) const {
@@ -117,6 +118,26 @@ const CellType CellType::HEXA27 = CellType(HEXA27_CODE, 27, SpaceDimension::DIME
 		"DIMENSION_3D");
 const CellType CellType::POLYHED = CellType(POLYHED_CODE, -1, SpaceDimension::DIMENSION_3D,
 		"POLYHED");
+
+//TODO: Ugly fix because POLYHED and co are not working yet. We need an element with undefined number of nodes. :/
+const CellType CellType::POLY4  = CellType(POLY4_CODE, 4, SpaceDimension::DIMENSION_3D, "POLY4");
+const CellType CellType::POLY5  = CellType(POLY5_CODE, 5, SpaceDimension::DIMENSION_3D, "POLY5");
+const CellType CellType::POLY6  = CellType(POLY6_CODE, 6, SpaceDimension::DIMENSION_3D, "POLY6");
+const CellType CellType::POLY7  = CellType(POLY7_CODE, 7, SpaceDimension::DIMENSION_3D, "POLY7");
+const CellType CellType::POLY8  = CellType(POLY8_CODE, 8, SpaceDimension::DIMENSION_3D, "POLY8");
+const CellType CellType::POLY9  = CellType(POLY9_CODE, 9, SpaceDimension::DIMENSION_3D, "POLY9");
+const CellType CellType::POLY10 = CellType(POLY10_CODE, 10, SpaceDimension::DIMENSION_3D, "POLY10");
+const CellType CellType::POLY11 = CellType(POLY11_CODE, 11, SpaceDimension::DIMENSION_3D, "POLY11");
+const CellType CellType::POLY12 = CellType(POLY12_CODE, 12, SpaceDimension::DIMENSION_3D, "POLY12");
+const CellType CellType::POLY13 = CellType(POLY13_CODE, 13, SpaceDimension::DIMENSION_3D, "POLY13");
+const CellType CellType::POLY14 = CellType(POLY14_CODE, 14, SpaceDimension::DIMENSION_3D, "POLY14");
+const CellType CellType::POLY15 = CellType(POLY15_CODE, 15, SpaceDimension::DIMENSION_3D, "POLY15");
+const CellType CellType::POLY16 = CellType(POLY16_CODE, 16, SpaceDimension::DIMENSION_3D, "POLY16");
+const CellType CellType::POLY17 = CellType(POLY17_CODE, 17, SpaceDimension::DIMENSION_3D, "POLY17");
+const CellType CellType::POLY18 = CellType(POLY18_CODE, 18, SpaceDimension::DIMENSION_3D, "POLY18");
+const CellType CellType::POLY19 = CellType(POLY19_CODE, 19, SpaceDimension::DIMENSION_3D, "POLY19");
+const CellType CellType::POLY20 = CellType(POLY20_CODE, 20, SpaceDimension::DIMENSION_3D, "POLY20");
+
 
 const CellType* CellType::findByCode(CellType::Code code) {
 	return CellType::typeByCode[code];

@@ -380,6 +380,10 @@ private:
 public:
 	MatrixElement(Model&, Type type, bool symmetric = false, int original_id = NO_ORIGINAL_ID);
 	void addComponent(const int nodeid1, const DOF dof1, const int nodeid2, const DOF dof2, const double value);
+	/**
+	 * Clear all nodes and submatrices of the Matrix.
+	 */
+	void clear();
 	const shared_ptr<DOFMatrix> findSubmatrix(const int nodePosition1, const int nodePosition2) const;
 	const std::set<int> nodePositions() const override;
 	const std::set<std::pair<int, int>> nodePairs() const;

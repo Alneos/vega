@@ -63,6 +63,13 @@ private:
     void replaceDirectMatrices();
     void removeRedundantSpcs();
     /**
+     * Split all direct matrices whose sizes is greater than sizeMax into smaller matrices.
+     * All data is kept, just divided into various elements.
+     * Used, for example, by Systus, where cells can't have more than 20 nodes.
+     * Must be called before makeCellsFromDirectMatrices().
+     */
+    void splitDirectMatrices(const unsigned int sizeMax);
+    /**
      * Build the corresponding cells of ElementSets of Direct Matrices (DISCRETE_0D, DISCRETE_1D,
      * STIFFNESS_MATRIX, MASS_MATRIX, DAMPING_MATRIX). They generally don't have associated cells/cellgroup.
      * This may causes problems in a generic cell writer, such as in SYSTUS.

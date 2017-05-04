@@ -74,7 +74,7 @@ public:
             bool replaceCombinedLoadSets = true, bool removeIneffectives = true,
             bool partitionModel = false, bool replaceDirectMatrices = true,
             bool removeRedundantSpcs = true,
-            bool splitDirectMatrices = false,
+            bool splitDirectMatrices = false, int sizeDirectMatrices = 999,
             bool makeCellsFromDirectMatrices = false
             );
     virtual ~ModelConfiguration() {
@@ -104,6 +104,7 @@ public:
      *  into smaller ones.
      */
     const bool splitDirectMatrices;
+    const int sizeDirectMatrices;
     /**
      *  ElementSets of Direct Matrices (DISCRETE_0D, DISCRETE_1D, STIFFNESS_MATRIX, MASS_MATRIX, DAMPING_MATRIX)
      *  generally don't have associated cells/cellgroup. This may causes problems in generic element writer,
