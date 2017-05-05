@@ -145,15 +145,15 @@ public:
     static const CellType SEG3;
     static const CellType SEG4;
     static const CellType SEG5;
-    static const CellType POLYL;
+    //static const CellType POLYL;
     static const CellType TRI3;
     static const CellType QUAD4;
-    static const CellType POLYGON;
+    //static const CellType POLYGON;
     static const CellType TRI6;
     static const CellType TRI7;
     static const CellType QUAD8;
     static const CellType QUAD9;
-    static const CellType QPOLYG;
+    //static const CellType QPOLYG;
     static const CellType TETRA4;
     static const CellType PYRA5;
     static const CellType PENTA6;
@@ -164,7 +164,7 @@ public:
     static const CellType PENTA15;
     static const CellType HEXA20;
     static const CellType HEXA27;
-    static const CellType POLYHED;
+    //static const CellType POLYHED;
     static const CellType POLY4; 
     static const CellType POLY5;
     static const CellType POLY6; 

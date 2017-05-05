@@ -609,10 +609,10 @@ Group* Mesh::findGroup(int originalId) const {
 
 int Mesh::countCells(const CellType& type) const {
 
-	if (type.code == CellType::POLYL.code) {
-		//FIXME polylines not handled
-		return 0;
-	}
+	//if (type.code == CellType::POLYL.code) {
+	//	//FIXME polylines not handled
+	//	return 0;
+	//}
 	const vector<int>& positions = cellPositionsByType.find(type)->second;
 	return (int) positions.size();
 }

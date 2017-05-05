@@ -91,11 +91,11 @@ const CellType CellType::SEG2 = CellType(SEG2_CODE, 2, SpaceDimension::DIMENSION
 const CellType CellType::SEG3 = CellType(SEG3_CODE, 3, SpaceDimension::DIMENSION_1D, "SEG3");
 const CellType CellType::SEG4 = CellType(SEG4_CODE, 4, SpaceDimension::DIMENSION_1D, "SEG4");
 const CellType CellType::SEG5 = CellType(SEG5_CODE, 5, SpaceDimension::DIMENSION_1D, "SEG5");
-const CellType CellType::POLYL = CellType(POLYL_CODE, -1, SpaceDimension::DIMENSION_1D, "POLYL");
+//const CellType CellType::POLYL = CellType(POLYL_CODE, -1, SpaceDimension::DIMENSION_1D, "POLYL");
 const CellType CellType::TRI3 = CellType(TRI3_CODE, 3, SpaceDimension::DIMENSION_2D, "TRI3");
 const CellType CellType::QUAD4 = CellType(QUAD4_CODE, 4, SpaceDimension::DIMENSION_2D, "QUAD4");
-const CellType CellType::POLYGON = CellType(POLYGON_CODE, -1, SpaceDimension::DIMENSION_2D,
-		"POLYGON");
+//const CellType CellType::POLYGON = CellType(POLYGON_CODE, -1, SpaceDimension::DIMENSION_2D,
+//		"POLYGON");
 const CellType CellType::TRI6 = CellType(TRI6_CODE, 6, SpaceDimension::DIMENSION_2D, "TRI6");
 const CellType CellType::TRI7 = CellType(TRI7_CODE, 7, SpaceDimension::DIMENSION_2D, "TRI7");
 const CellType CellType::QUAD8 = CellType(QUAD8_CODE, 8, SpaceDimension::DIMENSION_2D, "QUAD8");
@@ -116,8 +116,8 @@ const CellType CellType::PENTA15 = CellType(PENTA15_CODE, 15, SpaceDimension::DI
 const CellType CellType::HEXA20 = CellType(HEXA20_CODE, 20, SpaceDimension::DIMENSION_3D, "HEXA20");
 const CellType CellType::HEXA27 = CellType(HEXA27_CODE, 27, SpaceDimension::DIMENSION_3D,
 		"DIMENSION_3D");
-const CellType CellType::POLYHED = CellType(POLYHED_CODE, -1, SpaceDimension::DIMENSION_3D,
-		"POLYHED");
+//const CellType CellType::POLYHED = CellType(POLYHED_CODE, -1, SpaceDimension::DIMENSION_3D,
+//		"POLYHED");
 
 //TODO: Ugly fix because POLYHED and co are not working yet. We need an element with undefined number of nodes. :/
 const CellType CellType::POLY4  = CellType(POLY4_CODE, 4, SpaceDimension::DIMENSION_3D, "POLY4");

@@ -1631,8 +1631,9 @@ void Model::makeCellsFromDirectMatrices(){
             break;
         }
         default:{
-            //TODO: Don't work, because elements can't be of a variable size, for now :/
-            cellType = CellType::POLYHED;
+            //TODO: Don't work for now, because elements can't be of a variable size, for now :/
+            //cellType = CellType::POLYHED;
+            throw logic_error("Element size exceed the maximum size : 20.");
         }
         }
         vector<int> vNodeIds;
