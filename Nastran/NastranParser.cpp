@@ -54,10 +54,11 @@ const set<string> NastranParserImpl::IGNORED_KEYWORDS = {
         "DSHUFFLE", //Parameters for the generation of composite shuffling design variables.
         "DSIZE", "DTPG", //Topography design variable definition.
         "DTPL", //Topology design variable definition.
-        "TOPVAR", //  Topological Design Variable
         "DVGRID", "DEQATN",
         "DREPORT", "DREPADD", // Optistruct Cards
-        "ENDDATA"
+        "ENDDATA",
+        "PLOTEL",  // Fictitious element for plotting
+        "TOPVAR", //  Topological Design Variable
 };
 
 const unordered_map<string, NastranParserImpl::parseElementFPtr> NastranParserImpl::PARSE_FUNCTION_BY_KEYWORD =
