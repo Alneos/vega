@@ -35,6 +35,7 @@ using namespace std;
 namespace alg = boost::algorithm;
 using boost::assign::list_of;
 using boost::lexical_cast;
+using boost::to_upper;
 using namespace boost::assign;
 
 namespace vega {
@@ -587,20 +588,24 @@ void NastranParserImpl::parseSPOINT(NastranTokenizer& tok, shared_ptr<Model> mod
                 cout << fixed << "SPOINT " << id2 << endl;
             }
         }
-    } else if (tok.nextString() == "THRU") {
-        //format2
-        const int id2 = tok.nextInt();
-        for (int id=id1+1; id<=id2; id++){
-            nodePosition = model->mesh->addNode(id, x1, x2, x3, cpos);
-            model->mesh->allowDOFS(nodePosition, DOFS::DOFS::ONE);
-            spcNodeGroup->addNode(id);
-            spc.addNodeId(id);
-            if (this->logLevel >= LogLevel::TRACE) {
-                cout << fixed << "SPOINT " << id << endl;
-            }
-        }
     } else {
-        handleParsingError("Invalid format.", tok, model);
+        string str2 = tok.nextString();
+        to_upper(str2);
+        if (str2 == "THRU") {
+            //format2
+            const int id2 = tok.nextInt();
+            for (int id=id1+1; id<=id2; id++){
+                nodePosition = model->mesh->addNode(id, x1, x2, x3, cpos);
+                model->mesh->allowDOFS(nodePosition, DOFS::DOFS::ONE);
+                spcNodeGroup->addNode(id);
+                spc.addNodeId(id);
+                if (this->logLevel >= LogLevel::TRACE) {
+                    cout << fixed << "SPOINT " << id << endl;
+                }
+            }
+        } else {
+            handleParsingError("Invalid format.", tok, model);
+        }
     }
 
     // Adding the constraint to the model

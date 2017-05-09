@@ -42,6 +42,7 @@ namespace alg = boost::algorithm;
 using boost::lexical_cast;
 using boost::trim;
 using boost::trim_copy;
+using boost::to_upper;
 
 // see also http://www.altairhyperworks.com/hwhelp/Altair/hw12.0/help/hm/hmbat.htm?design_variables.htm
 const set<string> NastranParserImpl::IGNORED_KEYWORDS = {
@@ -1609,12 +1610,16 @@ void NastranParserImpl::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> mod
         //format 1
         g1 = tok.nextInt(true);
         g3_or_4 = tok.nextInt(true);
-    } else if (tok.nextString() == "THRU") {
-        //format2
-        eid2 = tok.nextInt();
     } else {
-        //format not recognized
-        handleParsingError(string("Format not recognized."), tok, model);
+        string strt = tok.nextString();
+        to_upper(strt);
+        if (strt == "THRU") {
+            //format2
+            eid2 = tok.nextInt();
+        } else {
+            //format not recognized
+            handleParsingError(string("Format not recognized."), tok, model);
+        }
     }
     int cid = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     if (cid != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
@@ -1998,6 +2003,7 @@ void NastranParserImpl::parseSPC1(NastranTokenizer& tok, shared_ptr<Model> model
 
     // Parsing Nodes
     string pos2 = trim_copy(tok.nextString(true));
+    to_upper(pos2);
     if (pos2 == "THRU") {
         //parse "through" format
         const int g2 = tok.nextInt();
