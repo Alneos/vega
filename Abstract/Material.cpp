@@ -17,18 +17,21 @@ using namespace std;
 
 namespace vega {
 
+
+const string Material::name = "Material";
+const map<Material::Type, string> Material::stringByType = {
+        { MATERIAL, "MATERIAL" }
+};
+
+
 ostream &operator<<(ostream &out, const Material& material) {
-	out << "Material [id:" << material.getId();
-	if (material.isOriginal()) {
-		cout << " orig_id:" << material.getOriginalId();
-	}
+	out << to_str(material);
 	if (material.nature_by_type.size() > 0) {
-		cout << " natures: ";
+		cout << " with:";
 		for (auto nature : material.nature_by_type) {
-			out << "typ:" << nature.first << " ";
+		    out<< " "<< *nature.second;
 		}
 	}
-	out << "]";
 	return out;
 }
 
@@ -78,6 +81,33 @@ Nature::Nature(const Model& model, Nature::NatureType type) :
 }
 
 const double Nature::UNAVAILABLE_DOUBLE = -DBL_MAX;
+
+const string Nature::name = "NATURE";
+const map<Nature::NatureType, string> Nature::stringByType = {
+         {NATURE_ELASTIC , "NATURE ELASTIC"}
+        ,{NATURE_VISCOELASTIC , "NATURE VISCOELASTIC"}
+        ,{NATURE_BILINEAR_ELASTIC, "NATURE BILINEAR ELASTIC"}
+        ,{NATURE_NONLINEAR_ELASTIC, "NATURE NONLINEAR ELASTIC"}
+};
+
+ostream &operator<<(ostream &out, const Nature& nature) {
+    out << to_str(nature);
+    return out;
+}
+
+std::string to_str(const Nature& nature){
+    std::ostringstream oss;
+    std::string type;
+    auto it = Nature::stringByType.find(nature.type);
+    if (it != Nature::stringByType.end())
+        type = "type=" + it->second;
+    else
+        type = "unknown type";
+
+    oss << Nature::name << "{" << type << "}";
+    return oss.str();
+}
+
 
 Nature::~Nature() {
 

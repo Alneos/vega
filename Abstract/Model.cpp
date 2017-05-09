@@ -174,6 +174,13 @@ void Model::add(const LoadSet& loadSet) {
     loadSets.add(loadSet);
 }
 
+void Model::add(const Material & material) {
+    if (configuration.logLevel >= LogLevel::DEBUG) {
+        cout << "Adding " << material << endl;
+    }
+    materials.add(material);
+}
+
 void Model::add(const Constraint& constraint) {
     if (configuration.logLevel >= LogLevel::DEBUG) {
         cout << "Adding " << constraint << endl;
@@ -736,8 +743,11 @@ void Model::generateDiscrets() {
 shared_ptr<Material> Model::getOrCreateMaterial(int material_id, bool createIfNotExists) {
     shared_ptr<Material> result = materials.find(material_id);
     if (!result && createIfNotExists) {
-        result = shared_ptr<Material>(new Material(this, material_id));
-        this->materials.add(result);
+        Material mat = Material(this, material_id);
+        this->add(mat);
+        //TODO: Seems to me we should not need to do a second find.
+        //But I could not find a way to do it without
+        result = materials.find(material_id);
     }
     return result;
 }

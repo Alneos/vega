@@ -48,6 +48,10 @@ public:
         NATURE_BILINEAR_ELASTIC,
         NATURE_NONLINEAR_ELASTIC,
     };
+    static const std::map<NatureType, std::string> stringByType;
+    static const std::string name;
+    friend std::string to_str(const Nature& nature);
+    friend std::ostream &operator<<(std::ostream&, const Nature&);
     static const double UNAVAILABLE_DOUBLE;
 
     const NatureType type;
@@ -132,6 +136,8 @@ public:
         MATERIAL
     };
     const Type type = MATERIAL;
+    static const std::string name;
+    static const std::map<Type, std::string> stringByType;
     Material(Model* model, int material_id = NO_ORIGINAL_ID);
     void addNature(const Nature &nature);
     const std::shared_ptr<Nature> findNature(Nature::NatureType) const;
