@@ -337,7 +337,6 @@ void NastranParserImpl::parseCELAS4(NastranTokenizer& tok, shared_ptr<Model> mod
     StiffnessMatrix matrix(*model, eid);
     // LD : TODO scalar point dofs treated as DX in abstract?
     matrix.addStiffness(s1, DOF::DX, s2, DOF::DX, k);
-    model->add(matrix);
 
     // Create a Cell and a cellgroup
     CellGroup* matrixGroup = model->mesh->createCellGroup("CELAS4_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS4");
