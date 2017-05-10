@@ -693,7 +693,7 @@ void NastranParserImpl::parseCORD2C(NastranTokenizer& tok, shared_ptr<Model> mod
     VectorialValue vect[3];
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++)
-            coor[j] = tok.nextDouble();
+            coor[j] = tok.nextDouble(true,0.0);
         vect[i] = VectorialValue(coor[0], coor[1], coor[2]);
     }
 
@@ -716,7 +716,7 @@ void NastranParserImpl::parseCORD2R(NastranTokenizer& tok, shared_ptr<Model> mod
     VectorialValue vect[3];
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++)
-            coor[j] = tok.nextDouble();
+            coor[j] = tok.nextDouble(true, 0.0);
         vect[i] = VectorialValue(coor[0], coor[1], coor[2]);
     }
 
