@@ -188,7 +188,7 @@ private:
         void add(const Value&);
         void add(const CoordinateSystem&);
         void add(const ElementSet&);
-        void add(const Material&);
+        void add(const std::shared_ptr<Material>);
 
         // Get functions : get object by their VEGA Id.
         // Mainly here in order to instanciate all template type for the Container template functions

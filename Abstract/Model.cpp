@@ -174,9 +174,12 @@ void Model::add(const LoadSet& loadSet) {
     loadSets.add(loadSet);
 }
 
-void Model::add(const Material & material) {
+// This "add" function used shared_ptr because adding an object
+// clone it, which does not keep the original id.
+//TODO: same type of "add" than the other ?
+void Model::add(const shared_ptr<Material> material) {
     if (configuration.logLevel >= LogLevel::DEBUG) {
-        cout << "Adding " << material << endl;
+        cout << "Adding " << *material << endl;
     }
     materials.add(material);
 }
@@ -743,11 +746,8 @@ void Model::generateDiscrets() {
 shared_ptr<Material> Model::getOrCreateMaterial(int material_id, bool createIfNotExists) {
     shared_ptr<Material> result = materials.find(material_id);
     if (!result && createIfNotExists) {
-        Material mat = Material(this, material_id);
-        this->add(mat);
-        //TODO: Seems to me we should not need to do a second find.
-        //But I could not find a way to do it without
-        result = materials.find(material_id);
+        result = shared_ptr<Material>(new Material(this, material_id));
+        this->add(result);
     }
     return result;
 }
