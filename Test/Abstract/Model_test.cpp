@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE( test_cells_iterator ) {
 	BOOST_CHECK_EQUAL(3, i);
 	BOOST_CHECK_EQUAL(3, model.mesh->countCells(CellType::SEG2));
 	BOOST_CHECK_EQUAL(1, model.mesh->countCells(CellType::POINT1));
-	BOOST_CHECK_EQUAL(0, model.mesh->countCells(CellType::POLYL));
+	//BOOST_CHECK_EQUAL(0, model.mesh->countCells(CellType::POLYL));
 
 }
 
