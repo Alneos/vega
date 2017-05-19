@@ -46,7 +46,7 @@ private:
     static const int SFSIZE = 8; /**< Short field size **/
     static const int LFSIZE = 16;/**< Long field size **/
 
-    unsigned int currentField;
+    unsigned int currentField;   /**< Current position of the Tokenizer, i.e, the next field to be interpreted **/
     vector<string> currentLineVector;
     string currentLine;
 
@@ -59,6 +59,13 @@ private:
     void splitFreeFormat(string line, bool firstLine);
     void parseBulkSectionLine(string line);
     void parseParameters();
+
+    /**
+     * Return the next symbol to be interpreted, as a string (trimmed + uppercase), and advances to next field
+     * Return a void string if it's the end of the line.
+     */
+    //string nextBulkString();
+    string nextSymbolString();
 
 public:
     enum SymbolType {
@@ -94,12 +101,6 @@ public:
      */
     void executiveControlSection();
 
-    /**
-     * Return next symbol in the Nastran file as a string (trimmed + uppercase)
-     * and advances to next symbol.
-     * @return
-     */
-    string nextSymbolString();
     /**
      * Try to interpret the next symbol in the Nastran file as an integer
      *  and advances to next symbol.
@@ -138,8 +139,9 @@ public:
      */
     void skip(int fieldNum);
 
+    //TODO: Delete this command: useless for BULK, dangerous for EXECUTIVE ?
     /**
-     * Skip to next not empty field. It stops if end of line is reached.
+     * Skip to the next not empty field.
      */
     void skipToNotEmpty();
 

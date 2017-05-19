@@ -79,32 +79,23 @@ void NastranTokenizer::replaceTabs(string& line, bool longFormat) {
 
 
 string NastranTokenizer::nextSymbolString() {
-	if (this->nextSymbolType == SYMBOL_EOF) {
-		ostringstream oss;
-		oss << "Attempt to read past the end of file. Line: " << this->lineNumber << endl;
-		throw runtime_error(oss.str());
-	}
-//first line
-	while (currentLineVector.size() == 0) {
-		nextLine();
-		if (this->nextSymbolType == SYMBOL_EOF) {
-			ostringstream oss;
-			oss << "Attempt to read past the end of file. Line: " << this->lineNumber << endl;
-			throw runtime_error(oss.str());
-		}
-	}
 
-	string result = currentLineVector[currentField];
-	if (this->nextSymbolType == SYMBOL_KEYWORD) {
-		boost::to_upper(result);
-	}
-	this->currentField++;
-	if (this->currentField >= this->currentLineVector.size()) {
-		nextLine();
-	} else {
-		this->nextSymbolType = SYMBOL_FIELD;
-	}
-	return boost::trim_right_copy(result);
+    if (this->currentField >= this->currentLineVector.size()){
+        this->nextSymbolType = SYMBOL_KEYWORD;
+        return "";
+    }
+
+    string result = boost::trim_right_copy(currentLineVector[currentField]);
+    if (this->nextSymbolType == SYMBOL_KEYWORD) {
+        boost::to_upper(result);
+    }
+    this->nextSymbolType = SYMBOL_FIELD;
+    this->currentField++;
+    if (this->currentField >= this->currentLineVector.size()){
+        this->nextSymbolType = SYMBOL_KEYWORD;
+    }
+
+    return result;
 }
 
 bool NastranTokenizer::readLineSkipComment(string& line) {
@@ -185,6 +176,7 @@ void NastranTokenizer::bulkSection() {
 		//enough in 99% of lines
 		currentLineVector.reserve(64);
 		currentField = 0;
+		this->nextSymbolType = SYMBOL_KEYWORD;
 		parseBulkSectionLine(this->currentLine);
 	}
 }
@@ -323,16 +315,16 @@ void NastranTokenizer::splitFixedFormat(string& line, const bool longFormat, con
 }
 
 string NastranTokenizer::nextString(bool returnDefaultIfNotFoundOrBlank, string defaultValue) {
-	string result;
-	if (returnDefaultIfNotFoundOrBlank && (this->nextSymbolType != SYMBOL_FIELD)) {
-		return defaultValue;
-	}
-
-	string value = nextSymbolString();
-	if (returnDefaultIfNotFoundOrBlank && !defaultValue.empty() && trim_copy(value).empty()) {
-		value = defaultValue;
-	}
-	return value;
+    string value = nextSymbolString();
+    if (value.empty()) {
+        if (returnDefaultIfNotFoundOrBlank){
+            return defaultValue;
+        }else{
+            string message = "Missing String value for Field Number " + lexical_cast<string>(currentField - 1);
+            handleParsingError(message);
+        }
+    }
+    return value;
 }
 
 void NastranTokenizer::skip(int fields) {
@@ -344,7 +336,7 @@ void NastranTokenizer::skip(int fields) {
 			this->currentField + fields);
 
 	if (this->currentField == this->currentLineVector.size()) {
-		nextLine();
+		this->nextSymbolType = SYMBOL_KEYWORD;
 	} else {
 		this->nextSymbolType = SYMBOL_FIELD;
 	}
@@ -356,24 +348,21 @@ void NastranTokenizer::skipToNotEmpty() {
 }
 
 void NastranTokenizer::skipToNextKeyword() {
-	if (this->nextSymbolType == SYMBOL_EOF) {
-		throw "Attempt to read past the end of file. Line:" + this->lineNumber;
-	}
-
-	if (this->nextSymbolType != SYMBOL_KEYWORD){
-	    nextLine();
-	}
+    this->currentField= static_cast<int>(this->currentLineVector.size());
+    this->nextSymbolType = SYMBOL_KEYWORD;
 }
 
 
 int NastranTokenizer::nextInt(bool returnDefaultIfNotFoundOrBlank, int defaultValue) {
 	int result;
-	if (returnDefaultIfNotFoundOrBlank && this->nextSymbolType != SYMBOL_FIELD) {
-		return defaultValue;
-	}
 	string value = trim_copy(nextSymbolString());
-	if (returnDefaultIfNotFoundOrBlank && value.empty()) {
-		return defaultValue;
+	if (value.empty()) {
+	    if (returnDefaultIfNotFoundOrBlank){
+	        return defaultValue;
+	    }else{
+	        string message = "Missing Integer value for Field Number " + lexical_cast<string>(currentField - 1);
+	        handleParsingError(message);
+	    }
 	}
 	try {
 		result = lexical_cast<int>(value);
@@ -389,14 +378,16 @@ int NastranTokenizer::nextInt(bool returnDefaultIfNotFoundOrBlank, int defaultVa
 
 double NastranTokenizer::nextDouble(bool returnDefaultIfNotFoundOrBlank, double defaultValue) {
 	double result;
-	if (returnDefaultIfNotFoundOrBlank && this->nextSymbolType != SYMBOL_FIELD) {
-		return defaultValue;
-
-	}
 	string value = trim_copy(nextSymbolString());
-	if (returnDefaultIfNotFoundOrBlank && value.empty()) {
-		return defaultValue;
+	if (value.empty()) {
+	    if (returnDefaultIfNotFoundOrBlank){
+	        return defaultValue;
+	    }else{
+	        string message = "Missing Double value for Field Number " + lexical_cast<string>(currentField - 1);
+	        handleParsingError(message);
+	    }
 	}
+
 	boost::replace_all(value, "d", "e");
 	boost::replace_all(value, "D", "E");
 	boost::algorithm::erase_all(value, " ");

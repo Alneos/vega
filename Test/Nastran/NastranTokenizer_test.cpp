@@ -41,17 +41,21 @@ BOOST_AUTO_TEST_CASE(nastran_short_with_comments) {
     NastranTokenizer tokenizer(istr);
     tokenizer.bulkSection();
     //comments are skipped
+    tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_KEYWORD);
-    BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), string("KEYWORD"));
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), string("KEYWORD"));
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_FIELD);
-    BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), string("12345"));
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), string("12345"));
     //newline
+    tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_KEYWORD);
-    BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), "2NDLINE");
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), "2NDLINE");
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_FIELD);
-    BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), "1234567");
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), "1234567");
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_FIELD);
-    BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), "1234567");
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), "1234567");
+    //end
+    tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_EOF);
 
 }
@@ -63,14 +67,16 @@ BOOST_AUTO_TEST_CASE(nastran_short_with_tabs) {
     NastranTokenizer tokenizer(istr);
     tokenizer.bulkSection();
     //comments are skipped
+    tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_KEYWORD);
-    BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), string("KEYWORD"));
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), string("KEYWORD"));
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_FIELD);
-    BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), string("12345"));
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), string("12345"));
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_FIELD);
-    BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), string("123"));
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), string("123"));
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_FIELD);
-    BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), string("1234567"));
+    BOOST_CHECK_EQUAL(tokenizer.nextString(true,""), string(""));
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), string("1234567"));
 }
 /*
 BOOST_AUTO_TEST_CASE(comments_and_empty_lines) {
@@ -82,39 +88,42 @@ BOOST_AUTO_TEST_CASE(comments_and_empty_lines) {
     tokenizer.bulkSection();
     try{
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_KEYWORD);
-    BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), string("KEYWORD"));
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), string("KEYWORD"));
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_FIELD);
 
-        BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), string("12345"));
+        BOOST_CHECK_EQUAL(tokenizer.nextString(), string("12345"));
     }
     catch (exception &e){
         string message = string("Reading field threw exception: ") + e.what();
         BOOST_FAIL(message);
     }
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_EOF);
-    //BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), string("123"));
+    //BOOST_CHECK_EQUAL(tokenizer.nextString(), string("123"));
     //BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_FIELD);
-    //BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), string("1234567"));
+    //BOOST_CHECK_EQUAL(tokenizer.nextString(), string("1234567"));
 }
       */
 
 BOOST_AUTO_TEST_CASE(nastran_short_2_line_incomplete_line) {
-    string nastranLine = "$comnent comment \nKEYWORD 12345\n        01234567";
+    string nastranLine = "$comment comment \nKEYWORD 12345\n        01234567";
     istringstream istr(nastranLine);
     NastranTokenizer tokenizer(istr);
     tokenizer.bulkSection();
     //comments are skipped
+    tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_KEYWORD);
-    BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), string("KEYWORD"));
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), string("KEYWORD"));
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_FIELD);
-    BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), string("12345"));
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), string("12345"));
     for (int i = 0; i < 7; i++) {
         BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_FIELD);
-        BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), "");
+        BOOST_CHECK_EQUAL(tokenizer.nextString(true,""), "");
     }
     //newline
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_FIELD);
-    BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), "01234567");
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), "01234567");
+    //end
+    tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_EOF);
 
 }
@@ -126,33 +135,39 @@ BOOST_AUTO_TEST_CASE(nastran_short_with_blank_at_end) {
     NastranTokenizer tokenizer(istr);
     tokenizer.bulkSection();
     //comments are skipped
+    tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_KEYWORD);
-    BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), string("KEYWORD1"));
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), string("KEYWORD1"));
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_FIELD);
     for (int i = 0; i < 7; i++) {
         BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_FIELD);
-        BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), to_string(i));
+        BOOST_CHECK_EQUAL(tokenizer.nextString(), to_string(i));
     }
     //next keyword
     tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_KEYWORD);
-    BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), string("KEYWORD2"));
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), string("KEYWORD2"));
+    //end
+    tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_EOF);
 }
 
-//supported only if continuation line is contigous
+//supported only if continuation line is contiguous
 BOOST_AUTO_TEST_CASE(nastran_long_format_explicit_cont) {
     string nastranLine =
             "*KEYWORD0123456789      0123456789      0123456789      0123456789       +\n+       0123456789";
     istringstream istr(nastranLine);
     NastranTokenizer tokenizer(istr);
     tokenizer.bulkSection();
+    tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_KEYWORD);
-    BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), string("KEYWORD"));
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), string("KEYWORD"));
     for (int i = 0; i < 5; i++) {
         BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_FIELD);
         BOOST_CHECK_EQUAL(tokenizer.nextInt(), 123456789);
     }
+    //end
+    tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_EOF);
 }
 
@@ -162,8 +177,9 @@ BOOST_AUTO_TEST_CASE(nastran_long_format_auto_cont) {
     istringstream istr(nastranLine);
     NastranTokenizer tokenizer(istr);
     tokenizer.bulkSection();
+    tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_KEYWORD);
-    string curr_keyword = tokenizer.nextSymbolString();
+    string curr_keyword = tokenizer.nextString();
     BOOST_CHECK_EQUAL(curr_keyword, string("KEYWORD"));
     for (int i = 0; i < 4; i++) {
         BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_FIELD);
@@ -172,6 +188,8 @@ BOOST_AUTO_TEST_CASE(nastran_long_format_auto_cont) {
     //second line is short format
     BOOST_CHECK_EQUAL(tokenizer.nextInt(), 12345678);
     BOOST_CHECK_EQUAL(tokenizer.nextInt(), 9);
+    //end
+    tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_EOF);
 }
 
@@ -180,12 +198,15 @@ BOOST_AUTO_TEST_CASE(nastran_free_format_continuation_long) {
     istringstream istr(nastranLine);
     NastranTokenizer tokenizer(istr);
     tokenizer.bulkSection();
+    tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_KEYWORD);
-    BOOST_CHECK_EQUAL(tokenizer.nextSymbolString(), string("KEYWORD"));
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), string("KEYWORD"));
     for (int i = 0; i < 9; i++) {
         BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_FIELD);
         BOOST_CHECK_EQUAL(tokenizer.nextInt(), 89);
     }
+    //end
+    tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_EOF);
 }
 
@@ -194,12 +215,15 @@ BOOST_AUTO_TEST_CASE(nastran_free_format_continuation_short) {
     istringstream istr(nastranLine);
     NastranTokenizer tokenizer(istr);
     tokenizer.bulkSection();
+    tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_KEYWORD);
-    tokenizer.nextSymbolString();
+    tokenizer.nextString();
     for (int i = 0; i < 9; i++) {
         BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_FIELD);
         BOOST_CHECK_EQUAL(tokenizer.nextInt(), i);
     }
+    //end
+    tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_EOF);
 }
 
@@ -211,6 +235,7 @@ BOOST_AUTO_TEST_CASE(is_next_double) {
     istringstream istr(nastranLine);
     NastranTokenizer tokenizer(istr);
     tokenizer.bulkSection();
+    tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextString(), "KEYWORD");
     BOOST_CHECK_EQUAL(tokenizer.nextDouble(), 7.0);
     BOOST_CHECK_EQUAL(tokenizer.nextDouble(), 7.0);
@@ -225,6 +250,7 @@ BOOST_AUTO_TEST_CASE(double_precision) {
     istringstream istr(nastranLine);
     NastranTokenizer tokenizer(istr);
     tokenizer.bulkSection();
+    tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextString(), "KEYWORD");
     BOOST_CHECK(tokenizer.isNextDouble());
     BOOST_CHECK(tokenizer.nextDouble());
@@ -235,12 +261,15 @@ BOOST_AUTO_TEST_CASE(nastran_free_format_continuation_symbol) {
     istringstream istr(nastranLine);
     NastranTokenizer tokenizer(istr);
     tokenizer.bulkSection();
+    tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_KEYWORD);
-    BOOST_CHECK_EQUAL("CHEXA", tokenizer.nextSymbolString());
+    BOOST_CHECK_EQUAL("CHEXA", tokenizer.nextString());
     for (int i = 0; i < 10; i++) {
         BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_FIELD);
         BOOST_CHECK_EQUAL(tokenizer.nextInt(), i);
     }
+    //end
+    tokenizer.nextLine();
     BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_EOF);
 }
 
@@ -252,8 +281,9 @@ BOOST_AUTO_TEST_CASE(nastran_auto_contiuation_short_incomplete_line) {
     istringstream istr(nastranLine);
     NastranTokenizer tok(istr);
     tok.bulkSection();
+    tok.nextLine();
     BOOST_CHECK_EQUAL(tok.nextSymbolType, NastranTokenizer::SYMBOL_KEYWORD);
-    BOOST_CHECK_EQUAL("PBARL", tok.nextSymbolString());
+    BOOST_CHECK_EQUAL("PBARL", tok.nextString());
     int elemId = tok.nextInt();
     BOOST_CHECK_EQUAL(1, elemId);
     int material_id = tok.nextInt();
@@ -268,37 +298,40 @@ BOOST_AUTO_TEST_CASE(nastran_auto_contiuation_short_incomplete_line) {
     double height = tok.nextDouble();
     BOOST_CHECK_EQUAL(4., height);
     BOOST_CHECK_EQUAL(tok.nextSymbolType, NastranTokenizer::SYMBOL_KEYWORD);
-    BOOST_CHECK_EQUAL("TEST", tok.nextSymbolString());
+    tok.nextLine();
+    BOOST_CHECK_EQUAL("TEST", tok.nextString());
 }
 
 void countGridElems(NastranTokenizer& tok) {
     int symcount = 0;
     while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-        string symbol = tok.nextSymbolString();
+        string symbol = tok.nextString();
         symcount += symbol.empty() ? 0 : 1;
     }
     BOOST_CHECK_EQUAL(4, symcount);
 }
 
-BOOST_AUTO_TEST_CASE(nastran_bar1r_grid) {
-    fs::path sourceFname(
-            string(PROJECT_BASE_DIR) + "/testdata/nastran/linstat/plate1r/plate1r.dat");
-    ifstream source(sourceFname.string());
-    NastranTokenizer tok(source);
-    while (tok.nextSymbolString().find("BEGIN") == string::npos) {
-        tok.nextLine();
-    }
-    tok.bulkSection();
-    tok.nextLine();
-    BOOST_CHECK_EQUAL("PARAM", tok.nextSymbolString());
-    tok.nextLine();
-    BOOST_CHECK_EQUAL(NastranTokenizer::SYMBOL_KEYWORD, tok.nextSymbolType);
-    BOOST_CHECK_EQUAL("GRID", tok.nextSymbolString());
-    countGridElems(tok);
-    BOOST_CHECK_EQUAL(NastranTokenizer::SYMBOL_KEYWORD, tok.nextSymbolType);
-    BOOST_CHECK_EQUAL("GRID", tok.nextSymbolString());
-    countGridElems(tok);
-
-    source.close();
-}
+//TODO: Test does not work because it misses plate1r.dat
+//BOOST_AUTO_TEST_CASE(nastran_bar1r_grid) {
+//    fs::path sourceFname(
+//            string(PROJECT_BASE_DIR) + "/testdata/nastran/linstat/plate1r/plate1r.dat");
+//    ifstream source(sourceFname.string());
+//    NastranTokenizer tok(source);
+//    while (tok.nextString().find("BEGIN") == string::npos) {
+//        tok.nextLine();
+//    }
+//    tok.bulkSection();
+//    tok.nextLine();
+//    BOOST_CHECK_EQUAL("PARAM", tok.nextString());
+//    tok.nextLine();
+//    BOOST_CHECK_EQUAL(NastranTokenizer::SYMBOL_KEYWORD, tok.nextSymbolType);
+//    BOOST_CHECK_EQUAL("GRID", tok.nextString());
+//    countGridElems(tok);
+//    tok.nextLine();
+//    BOOST_CHECK_EQUAL(NastranTokenizer::SYMBOL_KEYWORD, tok.nextSymbolType);
+//    BOOST_CHECK_EQUAL("GRID", tok.nextString());
+//    countGridElems(tok);
+//
+//    source.close();
+//}
 

@@ -151,18 +151,34 @@ void NastranParserImpl::addCellIds(ElementLoading& loading, int eid1, int eid2) 
 string NastranParserImpl::parseSubcase(NastranTokenizer& tok, shared_ptr<Model> model,
         map<string, string> context) {
     int subCaseId = tok.nextInt(true, 0);
-    while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-        tok.nextSymbolString();
-    }
-    string nextKeyword = tok.nextString();
-    while (nextKeyword != "BEGIN" && nextKeyword != "SUBCASE") {
-        context[nextKeyword] = tok.nextString(true);
-        while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-            tok.nextSymbolString();
+    string nextKeyword;
+    bool bParseSubcase =true;
+    
+    while (bParseSubcase){
+        tok.nextLine();
+        if (tok.nextSymbolType == NastranTokenizer::SYMBOL_EOF){
+            bParseSubcase=false;
+            continue;
         }
-        nextKeyword = tok.nextString();
+        nextKeyword = tok.nextString(true,"");
+        if ((!nextKeyword.empty()) && (nextKeyword != "BEGIN") && (nextKeyword != "SUBCASE")) {
+            string line ="";
+            string sep="";
+            while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
+                line+=sep+tok.nextString(true,"");
+                sep="_";
+            }
+            context[nextKeyword] = line;
+        }else{
+            bParseSubcase=false;
+        }
     }
-    addAnalysis(tok, model, context, subCaseId);
+    
+    try{
+        addAnalysis(tok, model, context, subCaseId);
+    }catch (std::string){
+        return nextKeyword;
+    }
     return nextKeyword;
 }
 
@@ -175,28 +191,25 @@ void NastranParserImpl::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<
     bool readNewKeyword = true;
     bool subCaseFound = false;
     string keyword = "";
-    do {
+
+    tok.nextLine();
+    keyword = tok.nextString(true, "");
+    trim(keyword);
+
+    while (canContinue){
+
         try{
-            if (readNewKeyword) {
-                keyword = tok.nextSymbolString();
-                trim(keyword);
-            } else {
-                //new keyword was read by a parsing method
-                readNewKeyword = true;
-            }
+            tok.setCurrentKeyword(keyword);
             if (keyword.find("BEGIN") != string::npos) {
-                if (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-                    tok.nextLine();
-                }
+                canContinue = false;
                 if (!subCaseFound) {
                     addAnalysis(tok, model, context);
                 }
-                canContinue = false;
             } else if (keyword == "B2GG") {
                 // Selects direct input damping matrix or matrices.
                 string line;
                 while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-                    line += tok.nextSymbolString();
+                    line += tok.nextString(true,"");
                 }
                 trim(line);
                 /*
@@ -222,14 +235,13 @@ void NastranParserImpl::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<
                 directMatrixByName[line] = matrix.getReference().clone();
                 model->add(matrix);
             } else if (keyword == "CEND") {
-                while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-                    tok.nextSymbolString();
-                }
+                //Nothing to do
+                tok.skipToNextKeyword();
             } else if (keyword == "K2GG") {
                 // Selects direct input stiffness matrix or matrices.
                 string line;
                 while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-                    line += tok.nextSymbolString();
+                    line += tok.nextString();
                 }
                 trim(line);
                 /*
@@ -258,7 +270,7 @@ void NastranParserImpl::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<
                 // Selects direct input mass matrix or matrices.
                 string line;
                 while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-                    line += tok.nextSymbolString();
+                    line += tok.nextString();
                 }
                 trim(line);
                 /*
@@ -290,38 +302,52 @@ void NastranParserImpl::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<
             } else if (keyword == "SUBTITLE") {
                 string line;
                 while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD)
-                    line += tok.nextSymbolString();
+                    line += tok.nextString(true,"");
                 model->description = line;
             } else if (keyword == "TITLE") {
                 string line;
                 while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD)
-                    line += tok.nextSymbolString();
+                    line += tok.nextString(true,"");
                 model->title = line;
             } else {
                 if (tok.nextSymbolType != NastranTokenizer::SYMBOL_FIELD) {
                     context[keyword] = string("");
                 } else {
                     string line;
-                    while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD)
-                        line += tok.nextSymbolString();
+                    while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD){
+                         line += tok.nextString();
+                    }
                     context[keyword] = line;
                 }
             }
-            canContinue = canContinue && (tok.nextSymbolType != NastranTokenizer::SYMBOL_EOF);
+
         } catch (std::string) {
             // Parsing errors are catched by VegaCommandLine.
             // If we are not in strict mode, we dismiss this command and continue, hoping for the best.
             tok.skipToNextKeyword();
+            canContinue = canContinue && (tok.nextSymbolType != NastranTokenizer::SYMBOL_EOF);
         }
-    } while (canContinue);
 
+        if (readNewKeyword) {
+            tok.nextLine();
+            if (tok.nextSymbolType != NastranTokenizer::SYMBOL_EOF){
+                keyword = tok.nextString(true, "");
+                trim(keyword);
+            }
+        }else{
+            //new keyword was read by a parsing method
+            readNewKeyword = true;
+        }
+
+        canContinue = canContinue && (tok.nextSymbolType != NastranTokenizer::SYMBOL_EOF);
+
+    }
 }
 
 void NastranParserImpl::parseBULKSection(NastranTokenizer &tok, shared_ptr<Model> model) {
 
     while (tok.nextSymbolType == NastranTokenizer::SYMBOL_KEYWORD) {
-        string keyword = tok.nextSymbolString();
-        trim(keyword);
+        string keyword = tok.nextString(true,"");
         tok.setCurrentKeyword(keyword);
         unordered_map<string, NastranParserImpl::parseElementFPtr>::const_iterator parseFunctionFptrKeywordPair;
         try{
@@ -334,28 +360,25 @@ void NastranParserImpl::parseBULKSection(NastranTokenizer &tok, shared_ptr<Model
                 if (model->configuration.logLevel >= LogLevel::TRACE) {
                     cout << "Keyword " << keyword << " ignored." << endl;
                 }
-                tok.nextLine();
-            } else if (keyword.empty()) {
-                continue;
-            } else {
+                tok.skipToNextKeyword();
+
+            } else if (!keyword.empty()) {
                 handleParsingError(string("Unknown keyword."), tok, model);
                 tok.skipToNextKeyword();
-                continue;
             }
 
-            //there are unparsed fields. Skip the empty ones
-            if (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD && !tok.isNextEmpty()) {
+            //Warning if there are unparsed fields. Skip the empty ones
+            if (!tok.isEmptyUntilNextKeyword()) {
                 string message(string("Parsing of line not complete."));
                 handleParsingError(message, tok, model);
             }
-            while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-                tok.nextSymbolString();
-            }
+
         } catch (std::string) {
             // Parsing errors are catched by VegaCommandLine.
             // If we are not in strict mode, we dismiss this command and continue, hoping for the best.
             tok.skipToNextKeyword();
         }
+        tok.nextLine();
     }
 
 }
@@ -383,12 +406,22 @@ shared_ptr<Model> NastranParserImpl::parse(const ConfigurationParameters& config
     ifstream istream(inputFilePathStr);
     NastranTokenizer tok = NastranTokenizer(istream, logLevel, inputFilePath.string(), this->translationMode);
 
+    if (model->configuration.logLevel >= LogLevel::DEBUG) {
+        cout << "Parsing Executive section." << endl;
+    }
     parseExecutiveSection(tok, model, executive_section_context);
 
+    if (model->configuration.logLevel >= LogLevel::DEBUG) {
+        cout << "Parsing BULK section." << endl;
+    }
     tok.bulkSection();
     parseBULKSection(tok, model);
     istream.close();
-
+    
+    if (model->configuration.logLevel >= LogLevel::DEBUG) {
+        cout << "Parsing finished." << endl;
+    }
+    
     return model;
 }
 
@@ -767,9 +800,7 @@ void NastranParserImpl::parseDLOAD(NastranTokenizer& tok, shared_ptr<Model> mode
         double scale = tok.nextDouble(true, 1);
         if (!is_equal(scale, 1))
             handleParsingError(string("scale != 1 in DLOAD not supported. "), tok, model);
-        tok.skipToNotEmpty();
         int rload2_id = tok.nextInt();
-        tok.skipToNotEmpty();
         model->addLoadingIntoLoadSet(Reference<Loading>(Loading::DYNAMIC_EXCITATION, rload2_id),
                 loadSetReference);
     }
@@ -822,7 +853,11 @@ void NastranParserImpl::parseDMIG(NastranTokenizer& tok, shared_ptr<Model> model
         if (polar != 0) {
             handleParsingError("POLAR in DMIG not yet implemented", tok, model);
         }
-        return; // Actually ignoring header DMIG
+
+        tok.skip(1);
+        int ncol = tok.nextInt(true,0); // NCOL is not used for now
+        UNUSEDV(ncol);
+        return;
     }else{
         // Matrix doesn't exists, we skip it (quietly, because the warning message was already displayed once).
         if (it == directMatrixByName.end()) {
@@ -1046,12 +1081,13 @@ void NastranParserImpl::parseInclude(NastranTokenizer& tok, shared_ptr<Model> mo
         ifstream istream(includePathStr);
         NastranTokenizer tok2 = NastranTokenizer(istream, this->logLevel, includePathStr, this->translationMode);
         tok2.bulkSection();
+        tok2.nextLine();
         parseBULKSection(tok2, model);
         istream.close();
     } else {
         handleParsingError("Missing include file "+includePathStr, tok, model);
     }
-    tok.nextLine();
+    tok.skipToNextKeyword();
 }
 
 void NastranParserImpl::parseLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -1060,9 +1096,7 @@ void NastranParserImpl::parseLOAD(NastranTokenizer& tok, shared_ptr<Model> model
     double S = tok.nextDouble(true, 1);
     while (tok.isNextDouble()) {
         double scale = tok.nextDouble(true, 1);
-        tok.skipToNotEmpty();
         int loadSet_id = tok.nextInt();
-        tok.skipToNotEmpty();
         Reference<LoadSet> loadSetReference(LoadSet::LOAD, loadSet_id);
         loadSet.embedded_loadsets.push_back(
                 pair<Reference<LoadSet>, double>(loadSetReference, S * scale));
@@ -2165,7 +2199,7 @@ void NastranParserImpl::parseTABDMP1(NastranTokenizer& tok, shared_ptr<Model> mo
         tok.skipToNotEmpty();
         functionTable.setXY(x, y);
     }
-    assert(tok.nextSymbolString() == "ENDT");
+    assert(tok.nextString() == "ENDT");
     functionTable.setParaX(Value::FREQ);
     functionTable.setParaY(Value::AMOR);
     vega::ModalDamping modalDamping(*model, functionTable, original_id);
@@ -2194,7 +2228,7 @@ void NastranParserImpl::parseTABLED1(NastranTokenizer& tok, shared_ptr<Model> mo
         tok.skipToNotEmpty();
         functionTable.setXY(x, y);
     }
-    assert(tok.nextSymbolString() == "ENDT");
+    assert(tok.nextString() == "ENDT");
     model->add(functionTable);
 
 }

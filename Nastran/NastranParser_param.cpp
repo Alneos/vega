@@ -53,7 +53,7 @@ void NastranParserImpl::parsePARAM(NastranTokenizer& tok, shared_ptr<Model> mode
         if (model->configuration.logLevel >= LogLevel::TRACE) {
             cout << "Option PARAM, " << param << " ignored." << endl;
         }
-        tok.nextLine();
+        tok.skipToNextKeyword();
     } else if (param == "AUTOSPC") {
         /*
          AUTOSPC specifies the action to take when singularities exist in the stiffness
