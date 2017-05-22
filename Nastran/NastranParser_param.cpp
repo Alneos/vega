@@ -37,9 +37,9 @@ namespace nastran {
 
 // See chapter 5 of the Nastran Quick Reference guide
 const set<string> NastranParserImpl::IGNORED_PARAMS = {
-		"BAILOUT", // Behaviour when matrixes are almost singular. Useless for translation.
+		"BAILOUT", // Behavior when matrixes are almost singular. Useless for translation.
 		"OUGCORD", // Choice of referentiel for printout
-		"POST",    // Post-treatment paramaters. Useless for translation.
+		"POST",    // Post-treatment parameter. Useless for translation.
 		"PRGPST",  // Printout command
 		"TINY"     // Printout command
 };

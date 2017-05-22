@@ -479,68 +479,89 @@ void NastranParserImpl::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> 
 
     vector<int> coords;
     vector<double> ti;
-    int i = 0;
-    double thetaOrMCID;
-    double zoffs;
-    int tflag;
+    double thetaOrMCID=0.0;
+    double zoffs=0.0;
+    int tflag=0;
+    bool isThereT=false;
 
     CellType::Code code = cellType.code;
     switch (code) {
     case CellType::TRI3_CODE:
-        for (; i < 3; i++)
+        for (int i=0; i < 3; i++)
             coords.push_back(tok.nextInt());
-        thetaOrMCID = tok.nextDouble(true);
-        zoffs = tok.nextDouble(true);
+        thetaOrMCID = tok.nextDouble(true,0.0);
+        zoffs = tok.nextDouble(true,0.0);
         tok.skip(2);
-        tflag = tok.nextInt(true);
-        if (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-            for (; i < 3; i++)
-                ti.push_back(tok.nextDouble());
+        
+        tflag = tok.nextInt(true, 0);
+        for (int i=0; i < 3; i++){
+            double t = tok.nextDouble(true);
+            ti.push_back(t);
+            isThereT = isThereT or (!is_equal(t, NastranTokenizer::UNAVAILABLE_DOUBLE));
         }
         break;
+
     case CellType::QUAD4_CODE:
-        for (; i < 4; i++)
+        for (int i=0; i < 4; i++)
             coords.push_back(tok.nextInt());
-        thetaOrMCID = tok.nextDouble(true);
-        zoffs = tok.nextDouble(true);
-        tflag = tok.nextInt(true);
-        if (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-            for (; i < 4; i++)
-                ti.push_back(tok.nextDouble());
+        thetaOrMCID = tok.nextDouble(true,0.0);
+        zoffs = tok.nextDouble(true,0.0);
+
+        tok.skip(1);
+        tflag = tok.nextInt(true,0);
+        for (int i=0; i < 4; i++){
+            double t = tok.nextDouble(true);
+            ti.push_back(t);
+            isThereT = isThereT or (!is_equal(t, NastranTokenizer::UNAVAILABLE_DOUBLE));
         }
         break;
+
     case CellType::TRI6_CODE:
-        for (; i < 6; i++)
+        for (int i=0; i < 6; i++)
             coords.push_back(tok.nextInt());
-        thetaOrMCID = tok.nextDouble(true);
-        zoffs = tok.nextDouble(true);
-        if (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-            for (; i < 6; i++)
-                ti.push_back(tok.nextDouble());
+        thetaOrMCID = tok.nextDouble(true,0.0);
+        zoffs = tok.nextDouble(true,0.0);
+        for (int i=0; i < 3; i++){
+            double t = tok.nextDouble(true);
+            ti.push_back(t);
+            isThereT = isThereT or (!is_equal(t, NastranTokenizer::UNAVAILABLE_DOUBLE));
         }
-        tflag = tok.nextInt(true);
+        tflag = tok.nextInt(true,0);
         break;
 
     case CellType::QUAD8_CODE:
-        for (; i < 8; i++)
+        for (int i=0; i < 8; i++)
             coords.push_back(tok.nextInt());
-        thetaOrMCID = tok.nextDouble(true);
-        zoffs = tok.nextDouble(true);
-        if (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-            for (; i < 8; i++)
-                ti.push_back(tok.nextDouble());
+        for (int i=0; i < 4; i++){
+            double t = tok.nextDouble(true);
+            ti.push_back(t);
+            isThereT = isThereT or (!is_equal(t, NastranTokenizer::UNAVAILABLE_DOUBLE));
         }
-        tflag = tok.nextInt(true);
+        thetaOrMCID = tok.nextDouble(true,0.0);
+        zoffs = tok.nextDouble(true,0.0);
+        tflag = tok.nextInt(true,0);
         break;
 
     default:
-        //nothing
-        cerr << "not impl" << endl;
+        const string msg = "Unrecognized shell element: "+to_string(code);
+        handleParsingError(msg, tok, model);
     }
-    if (!is_equal(thetaOrMCID, NastranTokenizer::UNAVAILABLE_DOUBLE)
-            || !is_equal(zoffs, NastranTokenizer::UNAVAILABLE_DOUBLE)
-            || tflag != NastranTokenizer::UNAVAILABLE_INT) {
-        const string msg = "Some keywords are not supported and dismissed.";
+
+    // A lot of things are ignored in this shell
+    if (!is_zero(thetaOrMCID)){
+        const string msg = "THETA or MCID parameter ignored.";
+        handleParsingWarning(msg, tok, model);
+    }
+    if (!is_zero(zoffs)){
+        const string msg = "non-null ZOFFS parameter ignored.";
+        handleParsingWarning(msg, tok, model);
+    }
+    if (tflag!=0){
+        const string msg = "non-null TFLAG ("+ to_string(tflag)+") parameter ignored.";
+        handleParsingWarning(msg, tok, model);
+    }
+    if (isThereT){
+        const string msg = "membrane thickness is ignored.";
         handleParsingWarning(msg, tok, model);
     }
 
