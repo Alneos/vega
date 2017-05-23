@@ -970,10 +970,10 @@ void NastranParserImpl::parseFORCE(NastranTokenizer& tok, shared_ptr<Model> mode
     int loadset_id = tok.nextInt();
     int node_id = tok.nextInt();
     int coordinate_system_id = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-    double force = tok.nextDouble(true);
-    double fx = tok.nextDouble(true) * force;
-    double fy = tok.nextDouble(true) * force;
-    double fz = tok.nextDouble(true) * force;
+    double force = tok.nextDouble(true,0.0);
+    double fx = tok.nextDouble(true,0.0) * force;
+    double fy = tok.nextDouble(true,0.0) * force;
+    double fz = tok.nextDouble(true,0.0) * force;
 
     NodalForce force1(*model, node_id, fx, fy, fz, 0., 0., 0., Loading::NO_ORIGINAL_ID,
             coordinate_system_id);
