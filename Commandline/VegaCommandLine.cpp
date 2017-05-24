@@ -25,6 +25,7 @@
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
+using boost::to_upper;
 using namespace std;
 
 #ifdef __linux__
@@ -151,9 +152,19 @@ fs::path VegaCommandLine::normalize_path(string strpath) {
 
 ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::variables_map& vm) {
     LogLevel logLevel = LogLevel::INFO;
+    if (vm.count("verbosity")){
+        string verbosity= vm["verbosity"].as<string>();
+        boost::to_upper(verbosity);
+        if (verbosity=="ERROR") logLevel = LogLevel::ERROR;
+        if (verbosity=="WARN") logLevel = LogLevel::WARN;
+        if (verbosity=="INFO") logLevel = LogLevel::INFO;
+        if (verbosity=="DEBUG") logLevel = LogLevel::DEBUG;
+        if (verbosity=="TRACE") logLevel = LogLevel::TRACE;
+    }
+
     if (vm.count("debug") > 0) {
         cout << "Debug output enabled. " << endl;
-        logLevel = LogLevel::DEBUG;
+        logLevel = max(logLevel,LogLevel::DEBUG);
     }
     const string inputFileStr = (vm["input-file"].as<string>());
     fs::path inputFile = normalize_path(inputFileStr);
@@ -345,6 +356,7 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     if (vm.count("listOptions")){
     	cout << "VEGA options for this translation are: "<< endl;
     	cout << "\t Output directory: "<< outputDir << endl;
+        cout << "\t Verbosity : "<< logLevel << endl;
     	cout << "\t Systus RBE2 Translation Mode: "<< systusRBE2TranslationMode << endl;
     	cout << "\t Systus RBE2 Rigidity (for penalty mode only): " << systusRBE2Rigidity << endl;
     	cout << "\t Systus OPTION analysis: " << systusOptionAnalysis << endl;
@@ -449,7 +461,8 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
 		("mesh-at-least,m", "If the source study is fully understood it is translated, "
 		        " otherwise it is translated only the mesh.") //
 		("strict,s", "Stops translation at the first "
-                "unrecognized keyword or parameter.");
+                "unrecognized keyword or parameter.")//
+        ("verbosity", po::value<string>(), "Verbosity of VEGA. From low to high: ERROR, WARN, INFO, DEBUG, TRACE"); //
 
         // Systus specific options
         // TODO: Some of these options are not so specific: rename and move them.
