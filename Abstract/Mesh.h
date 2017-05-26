@@ -37,7 +37,8 @@ public:
 	double x;
 	double y;
 	double z;
-	int csPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID; /**< Vega Position Number for the CS **/;
+	int cpPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID; /**< Vega Position Number of the CS used for location (x,y,z) **/;
+	int cdPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID; /**< Vega Position Number of the CS used for displacements, forces, constraints **/;
 };
 
 class NodeStorage final {
@@ -147,14 +148,20 @@ public:
 	 */
 	Group* findGroup(int originalId) const;
 
-	int addNode(int id, double x, double y, double z = 0, int cpos =
-				CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+	int addNode(int id, double x, double y, double z = 0,
+	        int cpPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
+	        int cdPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
 	int countNodes() const;
 	void allowDOFS(int nodePosition, const DOFS allowed);
 	/**
+	 * Find a node from its Vega position.
+	 * If buildGlobalXYZ is true, we compute the position (x,y,z) of the Node in
+	 * the Global Coordinate System, from (lx,ly,lz), its position in the local
+	 * Coordinate System.
+	 * YOU MUST SET buildGlobalXYZ TO TRUE TO ACCESS GLOBAL COORDINATES !  
 	 * throws invalid_argument if node not found
 	 */
-	const Node findNode(int nodePosition) const;
+	const Node findNode(const int nodePosition, const bool buildGlobalXYZ=false, const Model *model=nullptr) const;
 	/**
 	 * given an Id from the model returns an internal node position
 	 * use together with findNode.

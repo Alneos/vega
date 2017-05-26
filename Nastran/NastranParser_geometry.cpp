@@ -79,8 +79,12 @@ void NastranParserImpl::parseGRDSET(NastranTokenizer& tok, shared_ptr<Model> mod
 void NastranParserImpl::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model) {
     int id = tok.nextInt();
     int cp = tok.nextInt(true, grdSet.cp);
-    if (cp != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID)
-        handleParsingWarning("CP coordinate system not supported, and taken as blank.", tok, model);
+    int cpos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
+    string scp;
+    if (cp != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
+        cpos = model->findOrReserveCoordinateSystem(cp);
+        scp=" in CS"+to_string(cp);
+    }
 
     double x1 = tok.nextDouble(true, 0.0);
     double x2 = tok.nextDouble(true, 0.0);
@@ -88,11 +92,13 @@ void NastranParserImpl::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model
 
     /* Coordinate System for Displacement */
     int cd = tok.nextInt(true, grdSet.cd);
-    int cpos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
+    int cdos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
+    string scd="";
     if (cd != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
-        cpos = model->findOrReserveCoordinateSystem(cd);
+        cdos = model->findOrReserveCoordinateSystem(cd);
+        scd=", DISP in CS"+to_string(cd);
     }
-    model->mesh->addNode(id, x1, x2, x3, cpos);
+    model->mesh->addNode(id, x1, x2, x3, cpos, cdos);
 
     int ps = tok.nextInt(true, grdSet.ps);
     if (ps) {
@@ -104,7 +110,7 @@ void NastranParserImpl::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model
     }
 
     if (this->logLevel >= LogLevel::TRACE) {
-        cout << fixed << "GRID " << id << ":" << x1 << ";" << x2 << ";" << x3 << endl;
+        cout << fixed << "GRID " << id << ": (" << x1 << ";" << x2 << ";" << x3 <<")"<< scp<<scd<< endl;
     }
 }
 
@@ -588,7 +594,7 @@ void NastranParserImpl::parseSPOINT(NastranTokenizer& tok, shared_ptr<Model> mod
     string name = string("SPC_SPOINT");
     NodeGroup *spcNodeGroup = model->mesh->findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPOINT");
 
-    int nodePosition = model->mesh->addNode(id1, x1, x2, x3, cpos);
+    int nodePosition = model->mesh->addNode(id1, x1, x2, x3, cpos, cpos);
     model->mesh->allowDOFS(nodePosition, DOFS::DOFS::ONE);
     spcNodeGroup->addNode(id1);
     spc.addNodeId(id1);
@@ -600,7 +606,7 @@ void NastranParserImpl::parseSPOINT(NastranTokenizer& tok, shared_ptr<Model> mod
     if (format1) {
         while (tok.isNextInt()){
             const int id2 = tok.nextInt();
-            nodePosition = model->mesh->addNode(id2, x1, x2, x3, cpos);
+            nodePosition = model->mesh->addNode(id2, x1, x2, x3, cpos, cpos);
             model->mesh->allowDOFS(nodePosition, DOFS::DOFS::ONE);
             spcNodeGroup->addNode(id2);
             spc.addNodeId(id2);
@@ -615,7 +621,7 @@ void NastranParserImpl::parseSPOINT(NastranTokenizer& tok, shared_ptr<Model> mod
             //format2
             const int id2 = tok.nextInt();
             for (int id=id1+1; id<=id2; id++){
-                nodePosition = model->mesh->addNode(id, x1, x2, x3, cpos);
+                nodePosition = model->mesh->addNode(id, x1, x2, x3, cpos, cpos);
                 model->mesh->allowDOFS(nodePosition, DOFS::DOFS::ONE);
                 spcNodeGroup->addNode(id);
                 spc.addNodeId(id);

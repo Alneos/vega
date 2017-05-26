@@ -87,9 +87,13 @@ BOOST_AUTO_TEST_CASE( test_node_iterator ) {
 	int i = 0;
 	NodeIterator nodeIterator = mesh.nodes.begin();
 	cout << "NODE" << *nodeIterator << endl;
-	BOOST_CHECK_CLOSE(1.0, (*nodeIterator).x, DOUBLE_COMPARE_TOLERANCE);
+	//(*nodeIterator).buildGlobalXYZ();
+	Node node = *nodeIterator;
+	node.buildGlobalXYZ();
+	BOOST_CHECK_CLOSE(1.0, node.x, DOUBLE_COMPARE_TOLERANCE);
 	for (i = 0; nodeIterator.hasNext(); i++) {
-		const Node node = nodeIterator.next();
+		Node node = nodeIterator.next();
+		node.buildGlobalXYZ();
 		cout << node << endl;
 	}
 	BOOST_CHECK_EQUAL(mesh.countNodes(), i);

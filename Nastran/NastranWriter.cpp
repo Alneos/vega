@@ -226,7 +226,11 @@ void NastranWriterImpl::writeCells(const shared_ptr<vega::Model>& model, ofstrea
 void NastranWriterImpl::writeNodes(const shared_ptr<vega::Model>& model, ofstream& out)
 		{
 	for (Node node : model->mesh->nodes) {
-		out << Line("GRID").add(node.id).add().add(node.x).add(node.y).add(node.z);
+	    if (node.positionCS!= CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID)
+	        cerr << "Warning in GRID "<<node.id<<" CP not supported and dismissed."<<endl;
+        if (node.displacementCS!= CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID)
+            cerr << "Warning in GRID "<<node.id<<" CD not supported and dismissed."<<endl;
+		out << Line("GRID").add(node.id).add().add(node.lx).add(node.ly).add(node.lz);
 	}
 }
 

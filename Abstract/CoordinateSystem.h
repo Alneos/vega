@@ -79,6 +79,11 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
     virtual void build(){
     }
     /**
+     *  Translate a position (x,y,z) expressed in this local Coordinate system,
+     *   to its global counterpart.
+     **/
+    virtual const VectorialValue positionToGlobal(const VectorialValue&) const = 0;
+    /**
      *  Translate a vector, expressed in this local Coordinate system,
      *   to its global counterpart. Warning, it does not take the origin into
      *   account, so do NOT use this to convert coordinates.
@@ -112,6 +117,7 @@ public:
      *    - nodesId[2] is in the x-z plane.
      **/
     void build() override;
+    const VectorialValue positionToGlobal(const VectorialValue&) const override;
     const VectorialValue vectorToGlobal(const VectorialValue&) const override;
     const VectorialValue vectorToLocal(const VectorialValue&) const override;
     std::shared_ptr<CoordinateSystem> clone() const override;
@@ -145,6 +151,7 @@ public:
     inline int getNodeV() const {return nodesId[2];}; /**< Return node Id of V point (alternate method to supply v: v= OV) **/
     bool operator==(const OrientationCoordinateSystem&) const;  /**< Equal operator **/
 
+    const VectorialValue positionToGlobal(const VectorialValue&) const override;
     const VectorialValue vectorToGlobal(const VectorialValue&) const override;
     const VectorialValue vectorToLocal(const VectorialValue&) const override;
     std::shared_ptr<CoordinateSystem> clone() const override;
@@ -164,6 +171,11 @@ class CylindricalCoordinateSystem: public CoordinateSystem {
      **/
     void updateLocalBase(const VectorialValue & point);
     /**
+     *  Translate a position expressed in this coordinate system (r, theta, z),
+     *   to its global counterpart (x,y,z). theta is expressed in degrees.
+     **/
+    const VectorialValue positionToGlobal(const VectorialValue&) const override;
+    /**
      *  Translate a vector, expressed in this coordinate system (ur, utheta, uz),
      *   to its global counterpart. Warning, it does not take the origin into
      *   account, so do NOT use this to convert coordinates.
@@ -173,27 +185,31 @@ class CylindricalCoordinateSystem: public CoordinateSystem {
     std::shared_ptr<CoordinateSystem> clone() const override;
 };
 
-class SphericalCoordinateSystem: public CoordinateSystem {
-    VectorialValue ur;
-    VectorialValue utheta;
-    VectorialValue uphi;
-    public:
-    SphericalCoordinateSystem(const Model&, const VectorialValue origin, const VectorialValue ex,
-            const VectorialValue ey, int original_id = NO_ORIGINAL_ID);
-    /**
-     *  Compute the local spheric base (ur, utheta, uphi) corresponding to point.
-     *   Point must be expressed in the reference cartesian coordinate system.
-     **/
-    void updateLocalBase(const VectorialValue& point);
-    /**
-     *  Translate a vector, expressed in this coordinate system (ur, utheta, uphi),
-     *   to its global counterpart. Warning, it does not take the origin into
-     *   account, so do NOT use this to convert coordinates.
-     **/
-    const VectorialValue vectorToGlobal(const VectorialValue&) const override;
-    const VectorialValue vectorToLocal(const VectorialValue&) const override;
-    std::shared_ptr<CoordinateSystem> clone() const override;
-};
+//class SphericalCoordinateSystem: public CoordinateSystem {
+//    VectorialValue ur;
+//    VectorialValue utheta;
+//    VectorialValue uphi;
+//    public:
+//    SphericalCoordinateSystem(const Model&, const VectorialValue origin, const VectorialValue ex,
+//            const VectorialValue ey, int original_id = NO_ORIGINAL_ID);
+//    /**
+//     *  Compute the local spheric base (ur, utheta, uphi) corresponding to point.
+//     *   Point must be expressed in the reference cartesian coordinate system.
+//     **/
+//    void updateLocalBase(const VectorialValue& point);
+//    /**
+//     *  Not done
+//     **/
+//    const VectorialValue positionToGlobal(const VectorialValue&) const override;
+//    /**
+//     *  Translate a vector, expressed in this coordinate system (ur, utheta, uphi),
+//     *   to its global counterpart. Warning, it does not take the origin into
+//     *   account, so do NOT use this to convert coordinates.
+//     **/
+//    const VectorialValue vectorToGlobal(const VectorialValue&) const override;
+//    const VectorialValue vectorToLocal(const VectorialValue&) const override;
+//    std::shared_ptr<CoordinateSystem> clone() const override;
+//};
 
 
 /** This class allows the model to store Coordinate System BEFORE they are created.

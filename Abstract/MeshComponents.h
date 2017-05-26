@@ -265,11 +265,18 @@ private:
     friend ostream &operator<<(ostream &out, const Node& node);    //output
     friend Mesh;
     static int auto_node_id;
-    Node(int id, double x, double y, double z, int position, DOFS dofs,
+    Node(int id, double lx, double ly, double lz, int position, DOFS dofs,
+            int positionCS = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
             int displacementCS = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
 public:
     static const int AUTO_ID = INT_MIN;
     static const int UNAVAILABLE_NODE = INT_MIN;
+    
+    /**
+     * Compute (x,y,z) the position of the Node in the Global Coordinate System
+     * from (lx,ly,lz) the position of the Node in the Local Coordinate System.
+     */
+    void buildGlobalXYZ(const Model* model = nullptr);
 
     /** Usually, the original id of the node, from the input mesh.
      *  Can also be an automatic generated id.
@@ -280,12 +287,17 @@ public:
      *  Unique by mesh.
      **/
     const int position;
-    const double x;
-    const double y;
-    const double z;
+    const double lx; /**< X coordinate of the Node in the Local Coordinate System positionCS **/
+    const double ly; /**< Y coordinate of the Node in the Local Coordinate System positionCS **/
+    const double lz; /**< Z coordinate of the Node in the Local Coordinate System positionCS **/
+    double x; /**< X coordinate of the Node in the Global Coordinate System **/
+    double y; /**< Y coordinate of the Node in the Global Coordinate System **/
+    double z; /**< Z coordinate of the Node in the Global Coordinate System **/
+
     //bool, but Valgrind isn't happy maybe gcc 2.7.2 bug?
     const DOFS dofs;
-    const int displacementCS;
+    const int positionCS;     /**< Vega Position of the CS used to compute the position of node. **/
+    const int displacementCS; /**< Vega Position of the CS used to compute displacement, loadings, etc. **/
     const std::string getMedName() const;
     ~Node() {
     }

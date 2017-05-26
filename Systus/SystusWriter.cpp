@@ -173,8 +173,8 @@ CartesianCoordinateSystem SystusWriter::buildElementDefaultReferentiel(const Sys
         // Other 1D elements are computed from the orientation of the "bar"
         }else{
             shared_ptr<Mesh> mesh = systusModel.model->mesh;
-            Node nO = mesh->findNode(mesh->findNodePosition(nodes[0]));
-            Node nX = mesh->findNode(mesh->findNodePosition(nodes[1]));
+            Node nO = mesh->findNode(mesh->findNodePosition(nodes[0]), true, systusModel.model);
+            Node nX = mesh->findNode(mesh->findNodePosition(nodes[1]), true, systusModel.model);
             O = VectorialValue(nO.x, nO.y, nO.z);
             x = VectorialValue(nX.x-nO.x, nX.y-nO.y, nX.z-nO.z);
             // If the beam is parallel to Oz, we have a special treatment.
@@ -199,7 +199,7 @@ CartesianCoordinateSystem SystusWriter::buildElementDefaultReferentiel(const Sys
         O = VectorialValue(0,0,0);
         int nbnodes=0;
         for (auto n : nodes){
-            Node node = mesh->findNode(mesh->findNodePosition(n));
+            Node node = mesh->findNode(mesh->findNodePosition(n), true, systusModel.model);
             O = O + VectorialValue(node.x, node.y, node.z);
             nbnodes++;
         }
@@ -217,9 +217,9 @@ CartesianCoordinateSystem SystusWriter::buildElementDefaultReferentiel(const Sys
 
             //  See Systus Reference Manual, Section 16.2.2, subsection "Shell element with three nodes" page 1114
             if (nbnodes==3){
-                Node nA0 = mesh->findNode(mesh->findNodePosition(nodes[0]));
-                Node nA1 = mesh->findNode(mesh->findNodePosition(nodes[1]));
-                Node nA2 = mesh->findNode(mesh->findNodePosition(nodes[2]));
+                Node nA0 = mesh->findNode(mesh->findNodePosition(nodes[0]), true, systusModel.model);
+                Node nA1 = mesh->findNode(mesh->findNodePosition(nodes[1]), true, systusModel.model);
+                Node nA2 = mesh->findNode(mesh->findNodePosition(nodes[2]), true, systusModel.model);
 
                 VectorialValue a0a1 = VectorialValue(nA1.x-nA0.x, nA1.y-nA0.y, nA1.z-nA0.z);
                 VectorialValue a0a2 = VectorialValue(nA2.x-nA0.x, nA2.y-nA0.y, nA2.z-nA0.z);
@@ -510,7 +510,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
             Node master = mesh->findNode(rbe2->getMaster());
             int master_rot_id = 0;
             if (systusOption == 4){
-                int master_rot_position = mesh->addNode(Node::AUTO_ID, master.x, master.y, master.z, master.displacementCS);
+                int master_rot_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
                 master_rot_id = mesh->findNode(master_rot_position).id;
                 rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
             }
@@ -523,7 +523,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 
                 // With a Lagrangian formulation, we add a Lagrange node.
                 if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-                    int slave_lagr_position = mesh->addNode(Node::AUTO_ID, slave.x, slave.y, slave.z, slave.displacementCS);
+                    int slave_lagr_position = mesh->addNode(Node::AUTO_ID, slave.lx, slave.ly, slave.lz, slave.positionCS, slave.displacementCS);
                     int slave_lagr_id = mesh->findNode(slave_lagr_position).id;
                     nodes.push_back(slave_lagr_id);
                 }
@@ -574,7 +574,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 
             // Master Rotation Node (if needed)
             if (systusOption == 4){
-                int master_rot_position = mesh->addNode(Node::AUTO_ID, masterNode.x, masterNode.y, masterNode.z, masterNode.displacementCS);
+                int master_rot_position = mesh->addNode(Node::AUTO_ID, masterNode.lx, masterNode.ly, masterNode.lz, masterNode.positionCS, masterNode.displacementCS);
                 int master_rot_id = mesh->findNode(master_rot_position).id;
                 nodes.push_back(master_rot_id);
                 rotationNodeIdByTranslationNodeId[masterNode.id]=master_rot_id;
@@ -582,7 +582,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 
             // With a Lagrangian formulation, we add a Lagrange node.
             if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-                int slave_lagr_position = mesh->addNode(Node::AUTO_ID, slaveNode.x, slaveNode.y, slaveNode.z, slaveNode.displacementCS);
+                int slave_lagr_position = mesh->addNode(Node::AUTO_ID, slaveNode.lx, slaveNode.ly, slaveNode.lz, slaveNode.positionCS, slaveNode.displacementCS);
                 int slave_lagr_id = mesh->findNode(slave_lagr_position).id;
                 nodes.push_back(slave_lagr_id);
             }
@@ -622,7 +622,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
             const DOFS mDOFS = rbe3->getDOFS();
 
             // Creating a Lagrange node
-            int master_lagr_position = mesh->addNode(Node::AUTO_ID, master.x, master.y, master.z, master.displacementCS);
+            int master_lagr_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
             int master_lagr_id = mesh->findNode(master_lagr_position).id;
 
 
@@ -630,10 +630,10 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
             int master_rot_id=0;
             int master_lagr_rot_id=0;
             if (systusOption == 4){
-                int master_rot_position = mesh->addNode(Node::AUTO_ID, master.x, master.y, master.z, master.displacementCS);
+                int master_rot_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
                 master_rot_id = mesh->findNode(master_rot_position).id;
                 rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
-                int master_lagr_rot_position = mesh->addNode(Node::AUTO_ID, master.x, master.y, master.z, master.displacementCS);
+                int master_lagr_rot_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
                 master_lagr_rot_id = mesh->findNode(master_lagr_rot_position).id;
             }
 
@@ -1047,7 +1047,7 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
                             if (!is_zero(normvec)){
                                 bool firstTime=true;
                                 for (int nodePosition : constraint->nodePositions()){
-                                    int nid = systusModel.model->mesh->findNode(nodePosition).id;
+                                    int nid = systusModel.model->mesh->findNode(nodePosition,false).id;
                                     const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
                                     if (it!=rotationNodeIdByTranslationNodeId.end()){
                                         int rotNodePosition= systusModel.model->mesh->findNodePosition(it->second);
@@ -1115,7 +1115,7 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
             // Element orientation : it depends of the kind of elements.
             case CoordinateSystem::ORIENTATION:{
                 cerr << "WARNING: local coordinate system are forbidden for nodes."<<endl;
-                cerr << "WARNING: we will fill a null vector for the nodes"<< mesh->findNode(node.position).id<<endl;
+                cerr << "WARNING: we will fill a null vector for the node "<< mesh->findNode(node.position).id<<endl;
                 vec.push_back(0);
                 vec.push_back(0);
                 vec.push_back(0);
@@ -1129,7 +1129,7 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
             }
             default: {
                 cerr << "Warning: coordinate system of Type " << cs->type << " is not supported. Referentiel dismissed." << endl;
-                cerr << "WARNING: we will fill a null vector for the nodes"<< mesh->findNode(node.position).id<<endl;
+                cerr << "WARNING: we will fill a null vector for the node "<< mesh->findNode(node.position).id<<endl;
                 vec.push_back(0);
                 vec.push_back(0);
                 vec.push_back(0);
@@ -1727,7 +1727,8 @@ void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
     out << " 3" << endl; // number of coordinates
 
     for (const auto& node : mesh->nodes) {
-        int nid = mesh->findNode(node.position).id;
+        Node nNode = mesh->findNode(node.position, true, systusModel.model);
+        int nid = nNode.id;
         int iconst = 0;
         auto it = constraintByNodePosition.find(node.position);
         if (it != constraintByNodePosition.end())
@@ -1747,11 +1748,11 @@ void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
             idisp = it2->second;
         out << nid << " " << iconst << " " << imeca << " " << iangl << " " << isol << " " << idisp
                 << " ";
-        out << node.x << " " << node.y << " " << node.z << endl;
+        out << nNode.x << " " << nNode.y << " " << nNode.z << endl;
 
         // Small warning against "infinite" node.
-        if (node.x < -1.0e+300){
-            cerr << "Infinite node with Id: " << nid<<endl;
+        if (nNode.x < -1.0e+300){
+            handleWritingWarning("Infinite node with Id: " + std::to_string(nid),"Nodes");
         }
     }
 

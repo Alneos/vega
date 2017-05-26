@@ -82,9 +82,9 @@ int F06Parser::readDisplacementSection(const Model& model,
 				VectorialValue rotation(stod(tokens[5]), stod(tokens[6]), stod(tokens[7]));
 
 				int nodePosition = model.mesh->findNodePosition(nodeId);
-				Node node = model.mesh->findNode(nodePosition);
+				Node node = model.mesh->findNode(nodePosition, true, &model);
 				if (node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-					Node node = model.mesh->findNode(nodePosition);
+					Node node = model.mesh->findNode(nodePosition, true, &model);
 					shared_ptr<CoordinateSystem> coordSystem = model.find(
 							Reference<CoordinateSystem>(CoordinateSystem::UNKNOWN,
 									node.displacementCS));

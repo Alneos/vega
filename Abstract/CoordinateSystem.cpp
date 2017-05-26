@@ -24,6 +24,7 @@
 #include "CoordinateSystem.h"
 #include "Model.h"
 #include <boost/numeric/ublas/matrix.hpp>
+#include <math.h>
 
 namespace vega {
 
@@ -92,6 +93,10 @@ CartesianCoordinateSystem::CartesianCoordinateSystem(const Model& model,
     isVirtual=true;
 }
 
+const VectorialValue CartesianCoordinateSystem::positionToGlobal(const VectorialValue& local) const{
+    return (this->getOrigin()+vectorToGlobal(local));
+}
+
 const VectorialValue CartesianCoordinateSystem::vectorToGlobal(const VectorialValue& local) const {
     double x = local.x() * ex.x() + local.y() * ey.x() + local.z() * ez.x();
     double y = local.x() * ex.y() + local.y() * ey.y() + local.z() * ez.y();
@@ -117,13 +122,13 @@ void CartesianCoordinateSystem::build(){
         int nZ  = this->nodesId[1];
         int nXZ = this->nodesId[2];
 
-        Node nodeO = model.mesh->findNode(model.mesh->findNodePosition(nO));
+        Node nodeO = model.mesh->findNode(model.mesh->findNodePosition(nO), true, &model);
         this->origin = VectorialValue(nodeO.x, nodeO.y, nodeO.z);
 
-        Node nodeZ = model.mesh->findNode(model.mesh->findNodePosition(nZ));
+        Node nodeZ = model.mesh->findNode(model.mesh->findNodePosition(nZ), true, &model);
         this->ez = VectorialValue(nodeZ.x - nodeO.x, nodeZ.y - nodeO.y, nodeZ.z - nodeO.z).normalized();
 
-        Node nodeXZ = model.mesh->findNode(model.mesh->findNodePosition(nXZ));
+        Node nodeXZ = model.mesh->findNode(model.mesh->findNodePosition(nXZ), true, &model);
         VectorialValue v = VectorialValue(nodeXZ.x - nodeO.x, nodeXZ.y - nodeO.y, nodeXZ.z - nodeO.z).normalized();
 
         this->ex = v.orthonormalized(this->ez);
@@ -152,6 +157,15 @@ void CylindricalCoordinateSystem::updateLocalBase(const VectorialValue& point) {
     ur = utheta.cross(ez);
 }
 
+const VectorialValue CylindricalCoordinateSystem::positionToGlobal(const VectorialValue& local) const{
+    double rcosth = local.x()*cos(M_PI*local.y()/180.0);
+    double rsinth = local.x()*sin(M_PI*local.y()/180.0);
+    double x = rcosth*ex.x() + rsinth*ey.x() + local.z()*ez.x();
+    double y = rcosth*ex.y() + rsinth*ey.y() + local.z()*ez.y();
+    double z = rcosth*ex.z() + rsinth*ey.z() + local.z()*ez.z();
+    return (this->getOrigin()+VectorialValue(x,y,z));
+}
+
 const VectorialValue CylindricalCoordinateSystem::vectorToGlobal(
         const VectorialValue& local) const {
     double x = local.x() * ur.x() + local.y() * utheta.x() + local.z() * ez.x();
@@ -161,6 +175,7 @@ const VectorialValue CylindricalCoordinateSystem::vectorToGlobal(
 }
 
 const VectorialValue CylindricalCoordinateSystem::vectorToLocal(const VectorialValue& global) const {
+    UNUSEDV(global);
     throw logic_error("Global To Local vector conversion not done for Cylindrical Coordinate System");
     return VectorialValue(0,0,0);
 }
@@ -197,14 +212,14 @@ OrientationCoordinateSystem::OrientationCoordinateSystem(const Model& model, con
 void OrientationCoordinateSystem::build(){
 
     if (isVirtual){
-        Node nodeO = model.mesh->findNode(model.mesh->findNodePosition(this->getNodeO()));
+        Node nodeO = model.mesh->findNode(model.mesh->findNodePosition(this->getNodeO()), true, &model);
         this->origin = VectorialValue(nodeO.x, nodeO.y, nodeO.z);
 
-        Node nodeX = model.mesh->findNode(model.mesh->findNodePosition(this->getNodeX()));
+        Node nodeX = model.mesh->findNode(model.mesh->findNodePosition(this->getNodeX()), true, &model);
         this->ex = VectorialValue(nodeX.x - nodeO.x, nodeX.y - nodeO.y, nodeX.z - nodeO.z).normalized();
 
         if(this->getNodeV() != Node::UNAVAILABLE_NODE){
-            Node nodeV = model.mesh->findNode(model.mesh->findNodePosition(this->getNodeV()));
+            Node nodeV = model.mesh->findNode(model.mesh->findNodePosition(this->getNodeV()), true, &model);
             this->v = VectorialValue(nodeV.x - nodeO.x, nodeV.y - nodeO.y, nodeV.z - nodeO.z).normalized();
         }
         this->ey = this->v.orthonormalized(this->ex);
@@ -254,6 +269,14 @@ bool OrientationCoordinateSystem::operator ==(const OrientationCoordinateSystem&
     }else{
         return (this->getNodeV() == ocs.getNodeV());
     }
+}
+
+const VectorialValue OrientationCoordinateSystem::positionToGlobal(const VectorialValue& local) const{
+    if (isVirtual){
+        throw logic_error("Coordinate System is still virtual.");
+    }
+    cerr << "OrientationCoordinateSystem::positionToGlobal not implemented, returns local position"<<endl;
+    return local;
 }
 
 const VectorialValue OrientationCoordinateSystem::vectorToGlobal(const VectorialValue& local) const {

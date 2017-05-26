@@ -212,7 +212,7 @@ const VectorialValue RotationNode::getAxis() const {
 }
 
 const VectorialValue RotationNode::getCenter() const {
-	Node node = model.mesh->findNode(node_position);
+	Node node = model.mesh->findNode(node_position, true, &model);
 	return VectorialValue(node.x, node.y, node.z);
 }
 
@@ -255,6 +255,7 @@ const VectorialValue NodalForce::localToGlobal(const VectorialValue& vectorialVa
 		throw logic_error(oss.str());
 	}
 	Node node = getNode();
+	node.buildGlobalXYZ(&model);
 	coordSystem->updateLocalBase(VectorialValue(node.x, node.y, node.z));
 	return coordSystem->vectorToGlobal(vectorialValue);
 }
@@ -315,8 +316,8 @@ NodalForceTwoNodes::NodalForceTwoNodes(const Model& model, const int node_id, co
 }
 
 const VectorialValue NodalForceTwoNodes::getForce() const {
-	Node node1 = model.mesh->findNode(node_position1);
-	Node node2 = model.mesh->findNode(node_position2);
+	Node node1 = model.mesh->findNode(node_position1, true, &model);
+	Node node2 = model.mesh->findNode(node_position2, true, &model);
 	VectorialValue direction = (VectorialValue(node2.x, node2.y, node2.z)
 			- VectorialValue(node1.x, node1.y, node1.z)).normalized();
 	return magnitude * direction;
@@ -344,10 +345,10 @@ NodalForceFourNodes::NodalForceFourNodes(const Model& model, const int node_id, 
 }
 
 const VectorialValue NodalForceFourNodes::getForce() const {
-    Node node1 = model.mesh->findNode(node_position1);
-    Node node2 = model.mesh->findNode(node_position2);
-    Node node3 = model.mesh->findNode(node_position3);
-    Node node4 = model.mesh->findNode(node_position4);
+    Node node1 = model.mesh->findNode(node_position1, true, &model);
+    Node node2 = model.mesh->findNode(node_position2, true, &model);
+    Node node3 = model.mesh->findNode(node_position3, true, &model);
+    Node node4 = model.mesh->findNode(node_position4, true, &model);
     VectorialValue v1 = VectorialValue(node2.x, node2.y, node2.z) - VectorialValue(node1.x, node1.y, node1.z);
     VectorialValue v2 = VectorialValue(node4.x, node4.y, node4.z) - VectorialValue(node3.x, node3.y, node3.z);
     VectorialValue direction = v1.cross(v2).normalized();

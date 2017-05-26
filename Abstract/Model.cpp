@@ -866,7 +866,7 @@ void Model::emulateLocalDisplacementConstraint() {
             shared_ptr<SinglePointConstraint> spc = static_pointer_cast<SinglePointConstraint>(
                     constraint);
             for (int nodePosition : spc->nodePositions()) {
-                Node node = mesh->findNode(nodePosition);
+                Node node = mesh->findNode(nodePosition, true, this);
                 if (node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
                     shared_ptr<CoordinateSystem> coordSystem = getCoordinateSystemByPosition(node.displacementCS);
                     coordSystem->updateLocalBase(VectorialValue(node.x, node.y, node.z));

@@ -259,12 +259,49 @@ CellGroup::~CellGroup() {
 ///////////////////////////////////////////////////////////////////////////////
 int Node::auto_node_id = 9999999;
 
-Node::Node(int id, double x, double y, double z, int position1, DOFS inElement1, int _displacementCS) :
-		id(id), position(position1), x(x), y(y), z(z), dofs(inElement1), displacementCS(_displacementCS) {
+Node::Node(int id, double lx, double ly, double lz, int position1, DOFS inElement1, int _positionCS, int _displacementCS) :
+		id(id), position(position1), lx(lx), ly(ly), lz(lz), dofs(inElement1),
+		positionCS(_positionCS), displacementCS(_displacementCS) {
+    x=-2.0e+300;
+    y=-2.0e+300;
+    z=-2.0e+300;
 }
 
 const string Node::getMedName() const {
 	return string("N") + lexical_cast<string>(position + 1);
+}
+
+void Node::buildGlobalXYZ(const Model *model){
+    if (positionCS == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
+        this->x=this->lx;
+        this->y=this->ly;
+        this->z=this->lz;
+    }else{
+        if (model == nullptr){
+            ostringstream oss;
+            oss << "ERROR: Model needed to access Local Coordinate System."<<endl;
+            throw logic_error(oss.str());
+        }
+        shared_ptr<CoordinateSystem> coordSystem = model->getCoordinateSystem(positionCS);
+        if (!coordSystem) {
+            ostringstream oss;
+            oss << "ERROR: Coordinate System of position " << positionCS << " for Node "<<this->id<<" not found.";
+            // We should throw an error... but only in "strict mode".
+            // For other, it's too harsh for a regular translation.
+            //throw logic_error(oss.str());
+            oss <<  " Global Coordinate System used instead."<< endl;
+            cerr<< oss;
+            this->x=this->lx;
+            this->y=this->ly;
+            this->z=this->lz;
+            return;
+        }
+
+        VectorialValue gCoord = coordSystem->positionToGlobal(VectorialValue(this->lx,this->ly,this->lz));
+        this->x= gCoord.x();
+        this->y= gCoord.y();
+        this->z= gCoord.z();
+    }
 }
 
 ostream &operator<<(ostream &out, const Node& node) {

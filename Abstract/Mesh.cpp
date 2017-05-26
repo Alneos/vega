@@ -72,7 +72,7 @@ CellData::CellData(int id, CellType type, bool isvirtual, int elementId, int cel
 				elementId), cellTypePosition(cellTypePosition) {
 }
 
-int Mesh::addNode(int id, double x, double y, double z, int cpos) {
+int Mesh::addNode(int id, double x, double y, double z, int cpPos, int cdPos) {
 	int nodePosition;
 
 	// In auto mode, we assign the first free node, starting from the biggest possible number
@@ -92,7 +92,8 @@ int Mesh::addNode(int id, double x, double y, double z, int cpos) {
 		nodeData.y = y;
 		nodeData.z = z;
 		nodeData.dofs = DOFS::NO_DOFS;
-		nodeData.csPos = cpos;
+		nodeData.cpPos = cpPos;
+		nodeData.cdPos = cdPos;
 		nodes.nodeDatas.push_back(nodeData);
 		nodes.nodepositionById[id] = nodePosition;
 	} else {
@@ -101,7 +102,8 @@ int Mesh::addNode(int id, double x, double y, double z, int cpos) {
 		nodeData.x = x;
 		nodeData.y = y;
 		nodeData.z = z;
-		nodeData.csPos = cpos;
+        nodeData.cpPos = cpPos;
+        nodeData.cdPos = cdPos;
 	}
 
 	return nodePosition;
@@ -111,14 +113,19 @@ int Mesh::countNodes() const {
 	return static_cast<int>(nodes.nodeDatas.size());
 }
 
-const Node Mesh::findNode(int nodePosition) const {
+const Node Mesh::findNode(const int nodePosition, const bool buildGlobalXYZ, const Model* model) const {
 	if (nodePosition == Node::UNAVAILABLE_NODE) {
 		throw invalid_argument(
 				string("Node position ") + lexical_cast<string>(nodePosition) + " not found.");
 	}
 	const NodeData &nodeData = nodes.nodeDatas[nodePosition];
 	Node node1 = Node(nodeData.id, nodeData.x, nodeData.y, nodeData.z, nodePosition, nodeData.dofs,
-			nodeData.csPos);
+			nodeData.cpPos, nodeData.cdPos);
+
+	// If asked, we compute the position of the Node in the Global Referentiel System
+	if (buildGlobalXYZ){
+	    node1.buildGlobalXYZ(model);
+	}
 	/*
 	 * #if defined VDEBUG && defined __GNUC__
 	 *	cerr << "node:" << node1 << endl;
