@@ -2292,7 +2292,9 @@ void SystusWriter::writeMasses(const SystusModel &systusModel, ostream& out) {
                 if (!is_zero(nodalMass->ixy) || !is_zero(nodalMass->iyz) || !is_zero(nodalMass->ixz)){
                     handleWritingError(
                             string("Asymetric masses are not (yet) implemented."));
-
+                }
+                if (!is_zero(nodalMass->ex) || !is_zero(nodalMass->ey) || !is_zero(nodalMass->ez)){
+                    handleWritingWarning("Offset not implemented and dismissed.");
                 }
                 if (!is_zero(nodalMass->ixx) || !is_zero(nodalMass->iyy) || !is_zero(nodalMass->izz)){
                     out << "VALUES 6 " << nodalMass->getMass() << " " << nodalMass->getMass() << " "

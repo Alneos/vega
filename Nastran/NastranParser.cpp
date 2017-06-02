@@ -672,8 +672,8 @@ void NastranParserImpl::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> mode
     int elemId = tok.nextInt();
     int g = tok.nextInt(); // Grid point identification number
     int ci = tok.nextInt(true, 0);
-    if (ci != 0) {
-        string message = "coordinate system CID not supported and dismissed.";
+    if (ci == -1) {
+        string message = "coordinate system CID=-1 not supported and dismissed.";
         handleParsingWarning(message, tok, model);
         ci = 0;
     }
@@ -681,8 +681,15 @@ void NastranParserImpl::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> mode
     const double x1 = tok.nextDouble(true, 0.0);
     const double x2 = tok.nextDouble(true, 0.0);
     const double x3 = tok.nextDouble(true, 0.0);
-    if (!tok.isEmptyUntilNextKeyword())
-        tok.skip(1);
+
+    // User defined CID is only important if the offset is not null
+    if ((ci != 0) && (!is_zero(x1) || !is_zero(x2) || !is_zero(x3))) {
+        string message = "coordinate system CID not supported and dismissed.";
+        handleParsingWarning(message, tok, model);
+        ci = 0;
+    }
+    tok.skip(1);
+
     const double i11 = tok.nextDouble(true, 0.0);
     const double i21 = tok.nextDouble(true, 0.0);
     const double i22 = tok.nextDouble(true, 0.0);
