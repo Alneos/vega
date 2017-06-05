@@ -315,10 +315,15 @@ void NastranParserImpl::parseCELAS2(NastranTokenizer& tok, shared_ptr<Model> mod
         string message = "Damping coefficient (GE) not supported and dismissed.";
         handleParsingWarning(message, tok, model);
     }
+
+    // S is only used for post-treatment, and so discarded.
     double s = tok.nextDouble(true);
     if (!is_equal(s, NastranTokenizer::UNAVAILABLE_DOUBLE)){
-        string message = "Stress coefficient (S) not supported and dismissed.";
-        handleParsingWarning(message, tok, model);
+    	//TODO: Do a proper writing log
+    	if (this->logLevel >= LogLevel::DEBUG) {
+    		string message = "CELAS2: Stress coefficient (S) is only used for post-treatment and dismissed.";
+    		cout << message << endl;
+    	}
     }
     StiffnessMatrix matrix(*model, eid);
     matrix.addStiffness(g1, DOF::findByPosition(c1), g2, DOF::findByPosition(c2), k);
