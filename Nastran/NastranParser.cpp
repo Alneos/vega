@@ -122,6 +122,7 @@ const unordered_map<string, NastranParserImpl::parseElementFPtr> NastranParserIm
                 { "RBE3", &NastranParserImpl::parseRBE3 },
                 { "RFORCE", &NastranParserImpl::parseRFORCE },
                 { "RLOAD2", &NastranParserImpl::parseRLOAD2 },
+                { "SLOAD", &NastranParserImpl::parseSLOAD },
                 { "SPC", &NastranParserImpl::parseSPC },
                 { "SPC1", &NastranParserImpl::parseSPC1 },
                 { "SPCD", &NastranParserImpl::parseSPCD },
@@ -2007,6 +2008,26 @@ void NastranParserImpl::parseRLOAD2(NastranTokenizer& tok, shared_ptr<Model> mod
     model->add(dynamicExcitation.getFunctionTableBPlaceHolder());
 }
 
+//FIXME: SLOAD uses the CID of the Grid point to determine X... Not sure it's done here.
+// The "scalar" DOF is supposed to be DOF::DX
+void NastranParserImpl::parseSLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int loadset_id = tok.nextInt();
+    Reference<vega::LoadSet> loadset_ref(LoadSet::LOAD, loadset_id);
+
+    while (tok.isNextInt()) {
+        int grid_id = tok.nextInt();
+        double magnitude = tok.nextDouble();
+        NodalForce force1(*model, grid_id, magnitude, 0.0, 0.0, 0., 0., 0., Loading::NO_ORIGINAL_ID);
+        model->add(force1);
+        model->addLoadingIntoLoadSet(force1, loadset_ref);
+    }
+
+    if (!model->find(loadset_ref)) {
+        LoadSet loadSet(*model, LoadSet::LOAD, loadset_id);
+        model->add(loadSet);
+    }
+
+}
 void NastranParserImpl::parseSPC(NastranTokenizer& tok, shared_ptr<Model> model) {
     int spcSet_id = tok.nextInt();
     string name = string("SPC") + "_" + to_string(spcSet_id);

@@ -468,6 +468,12 @@ private:
     void parseRLOAD2(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
+     * Parse the SLOAD keyword (page 2464 of MDN Nastran 2006 Quick Reference Guide.)
+     * Fully supported.
+     */
+    void parseSLOAD(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
      * Parse shell cells in standard form: CTRIA3, CTRIAR, CQUAD4
      */
     void parseShellElem(NastranTokenizer& tok, std::shared_ptr<Model> model, CellType cellType); //in NastranParser_geometry.cpp
