@@ -315,7 +315,8 @@ void NastranTokenizer::splitFixedFormat(string& line, const bool longFormat, con
 }
 
 string NastranTokenizer::nextString(bool returnDefaultIfNotFoundOrBlank, string defaultValue) {
-    string value = nextSymbolString();
+    string value =  trim_copy(nextSymbolString());
+    boost::to_upper(value);
     if (value.empty()) {
         if (returnDefaultIfNotFoundOrBlank){
             return defaultValue;
