@@ -38,6 +38,8 @@ namespace nastran {
 // See chapter 5 of the Nastran Quick Reference guide
 const set<string> NastranParserImpl::IGNORED_PARAMS = {
 		"BAILOUT", // Behavior when matrixes are almost singular. Useless for translation.
+		"DESPCH", "DESPCH1", // Amount of output data to write during an optimization process. Useless for translation.
+		"NASPRT",  // Data recovery during optimization process. Useless for translation.
 		"OUGCORD", // Choice of referentiel for printout
 		"POST",    // Post-treatment parameter. Useless for translation.
 		"PRGPST",  // Printout command
@@ -49,6 +51,7 @@ const set<string> NastranParserImpl::IGNORED_PARAMS = {
 void NastranParserImpl::parsePARAM(NastranTokenizer& tok, shared_ptr<Model> model) {
     string param = tok.nextString();
     boost::to_upper(param);
+    //boost::trim(param);
     if (IGNORED_PARAMS.find(param) != IGNORED_PARAMS.end()) {
         if (model->configuration.logLevel >= LogLevel::TRACE) {
             cout << "Option PARAM, " << param << " ignored." << endl;
