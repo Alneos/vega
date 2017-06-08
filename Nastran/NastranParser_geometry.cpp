@@ -309,9 +309,9 @@ void NastranParserImpl::parseCELAS2(NastranTokenizer& tok, shared_ptr<Model> mod
     int g2 = tok.nextInt();
     int c2 = parseDOF(tok,model);
 
-    // Ignored fields
-    double ge = tok.nextDouble(true);
-    if (!is_equal(ge, NastranTokenizer::UNAVAILABLE_DOUBLE)){
+    // Unsupported field
+    double ge = tok.nextDouble(true, 0.0);
+    if (!is_zero(ge)){
         string message = "Damping coefficient (GE) not supported and dismissed.";
         handleParsingWarning(message, tok, model);
     }

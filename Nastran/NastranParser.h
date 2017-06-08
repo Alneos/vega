@@ -181,7 +181,8 @@ private:
 
     /**
      * Parse the CELAS2 keyword (page 1202 of MDN Nastran 2006 Quick Reference Guide.)
-     * The damping (GE) and stress (S) coefficients are ignored.
+     * The damping coefficient (GE) is not supported.
+     * The stress coefficient (S) is ignored, as it's only used for post-treatment.
      */
     void parseCELAS2(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
 
