@@ -185,6 +185,10 @@ shared_ptr<CoordinateSystem> CylindricalCoordinateSystem::clone() const {
     return shared_ptr<CoordinateSystem>(new CylindricalCoordinateSystem(*this));
 }
 
+const VectorialValue CylindricalCoordinateSystem::getLocalEulerAnglesIntrinsicZYX(const CoordinateSystem *rcs) const {
+    CartesianCoordinateSystem localCS(this->model, VectorialValue(0,0,0), this->ur, this->utheta);
+    return localCS.getEulerAnglesIntrinsicZYX(rcs);
+}
 
 
 

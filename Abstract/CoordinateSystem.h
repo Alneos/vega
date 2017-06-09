@@ -182,6 +182,15 @@ class CylindricalCoordinateSystem: public CoordinateSystem {
      **/
     const VectorialValue vectorToGlobal(const VectorialValue&) const override;
     const VectorialValue vectorToLocal(const VectorialValue&) const override;
+
+    /**
+     *  Compute the Euler Angles (PSI,THETA,PHI) of the local base,
+     *  around the axes (OZ, OY, OX) of the coordinate system RCS.
+     *  If no rcs is provided, the global coordinate system is used.
+     **/
+    const VectorialValue getLocalEulerAnglesIntrinsicZYX(const CoordinateSystem *rcs = nullptr) const;
+
+
     std::shared_ptr<CoordinateSystem> clone() const override;
 };
 

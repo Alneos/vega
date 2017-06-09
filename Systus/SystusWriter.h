@@ -106,7 +106,7 @@ class SystusWriter: public Writer {
 	map<int, long unsigned int> loadingVectorIdByLocalLoading;
 	map<int, map<int, vector<long unsigned int>>> loadingVectorsIdByLocalLoadingByNodePosition;
 	map<int, map<int, vector<long unsigned int>>> constraintVectorsIdByLocalLoadingByNodePosition;
-	map<int, long unsigned int> localVectorIdByCoordinateSystemPos;
+	map<int, long unsigned int> localVectorIdByNodePosition;  /**< nodePosition, vectorId> for all Coordinate Systems Vectors. **/
 	map<int, int> loadingListIdByNodePosition;
 	map<int, string> localLoadingListName;
 	map<int, int> constraintListIdByNodePosition;

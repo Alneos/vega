@@ -1089,14 +1089,22 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
 
     // First available vector
     long unsigned int vectorId = vectors.size()+1;
-
+    map<int, long unsigned int> localVectorIdByCoordinateSystemPos;
+    
     // Add vectors for Node Coordinate System
     // Remark: Element Coordinate System are not translated as vectors
     const shared_ptr<Mesh> mesh = systusModel.model->mesh;
     for (const auto& node : mesh->nodes) {
-        if ((node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID)
-                && ( localVectorIdByCoordinateSystemPos.find(node.displacementCS)==localVectorIdByCoordinateSystemPos.end())){
-            const auto cs = systusModel.model->getCoordinateSystemByPosition(node.displacementCS);
+        if (node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
+
+            // Trick for not doing the Cartesian coordinate systems all over again;
+            auto it = localVectorIdByCoordinateSystemPos.find(node.displacementCS);
+            if (it != localVectorIdByCoordinateSystemPos.end()){
+                localVectorIdByNodePosition[node.position] = it->second;
+                continue;
+            }
+
+            auto cs = systusModel.model->getCoordinateSystemByPosition(node.displacementCS);
             vector<double> vec;
             switch (cs->type){
             case CoordinateSystem::CARTESIAN:{
@@ -1110,12 +1118,13 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
                 vec.push_back(angles.x());
                 vec.push_back(angles.y());
                 vec.push_back(angles.z());
+                localVectorIdByCoordinateSystemPos[node.displacementCS]=vectorId;
                 break;
             }
             // Element orientation : it depends of the kind of elements.
             case CoordinateSystem::ORIENTATION:{
-                cerr << "WARNING: local coordinate system are forbidden for nodes."<<endl;
-                cerr << "WARNING: we will fill a null vector for the node "<< mesh->findNode(node.position).id<<endl;
+                handleWritingWarning("Local coordinate system are forbidden for nodes.");
+                handleWritingWarning("We will fill a null vector for the node "+ to_string(mesh->findNode(node.position).id));
                 vec.push_back(0);
                 vec.push_back(0);
                 vec.push_back(0);
@@ -1127,9 +1136,30 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
                 vec.push_back(0.0);
                 break;
             }
+
+            // Cylyndrical orientation : we create a vector by point
+            case CoordinateSystem::CYLINDRICAL:{
+                Node nNode = mesh->findNode(node.position, true, systusModel.model);
+                shared_ptr<CylindricalCoordinateSystem> ccs = static_pointer_cast<CylindricalCoordinateSystem>(cs);
+                ccs->updateLocalBase(VectorialValue(nNode.x, nNode.y, nNode.z));
+                VectorialValue angles = ccs->getLocalEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
+                vec.push_back(0);
+                vec.push_back(0);
+                vec.push_back(0);
+                vec.push_back(0);
+                vec.push_back(0);
+                vec.push_back(0);
+                vec.push_back(angles.x());
+                vec.push_back(angles.y());
+                vec.push_back(angles.z());
+                break;
+            }
+
             default: {
-                cerr << "Warning: coordinate system of Type " << cs->type << " is not supported. Referentiel dismissed." << endl;
-                cerr << "WARNING: we will fill a null vector for the node "<< mesh->findNode(node.position).id<<endl;
+                ostringstream oerr;
+                oerr << *cs << " is not supported. Referentiel dismissed.";
+                handleWritingWarning(oerr.str());
+                handleWritingWarning("We will fill a null vector for the node "+ to_string(mesh->findNode(node.position).id));
                 vec.push_back(0);
                 vec.push_back(0);
                 vec.push_back(0);
@@ -1142,7 +1172,7 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
             }
             }
             vectors[vectorId]=vec;
-            localVectorIdByCoordinateSystemPos[node.displacementCS]=vectorId;
+            localVectorIdByNodePosition[node.position]=vectorId;
             vectorId++;
         }
     }
@@ -1573,7 +1603,7 @@ void SystusWriter::clear(){
 
     // Clear vectors
     vectors.clear();
-    localVectorIdByCoordinateSystemPos.clear();
+    localVectorIdByNodePosition.clear();
     loadingVectorIdByLocalLoading.clear();
     loadingVectorsIdByLocalLoadingByNodePosition.clear();
     constraintVectorsIdByLocalLoadingByNodePosition.clear();
@@ -1736,7 +1766,7 @@ void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
         int imeca = 0;
         long unsigned int iangl = 0;
         if (node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
-            iangl = localVectorIdByCoordinateSystemPos[node.displacementCS];
+            iangl = localVectorIdByNodePosition[node.position];
         }
         int isol = 0;
         auto it2 = loadingListIdByNodePosition.find(node.position);
