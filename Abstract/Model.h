@@ -199,7 +199,7 @@ private:
         std::shared_ptr<ConstraintSet> getConstraintSet(int id) const; /**< Return a ConstraintSet by its Vega Id **/
         std::shared_ptr<Objective> getObjective(int id) const; /**< Return an Objective by its Vega Id **/
         std::shared_ptr<Value> getValue(int id) const; /**< Return a Value by its Vega Id **/
-        std::shared_ptr<CoordinateSystem> getCoordinateSystem(int id) const; /**< Return a CoordinateSystem by its Vega Id **/
+        std::shared_ptr<CoordinateSystem> getCoordinateSystem(int id) const; /**< Return a CoordinateSystem by its USER Id (problem somewhere?)**/
         std::shared_ptr<ElementSet> getElementSet(int id) const; /**< Return an ElementSet by its Vega Id **/
         std::shared_ptr<Material> getMaterial(int id) const; /**< Return a Material by its Vega Id **/
 

@@ -83,7 +83,7 @@ void NastranParserImpl::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model
     string scp;
     if (cp != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
         cpos = model->findOrReserveCoordinateSystem(cp);
-        scp=" in CS"+to_string(cp);
+        scp=" in CS"+to_string(cp)+"_"+to_string(cpos);
     }
 
     double x1 = tok.nextDouble(true, 0.0);
@@ -96,7 +96,7 @@ void NastranParserImpl::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model
     string scd="";
     if (cd != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
         cdos = model->findOrReserveCoordinateSystem(cd);
-        scd=", DISP in CS"+to_string(cd);
+        scd=", DISP in CS"+to_string(cd)+"_"+to_string(cdos);
     }
     model->mesh->addNode(id, x1, x2, x3, cpos, cdos);
 

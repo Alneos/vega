@@ -282,7 +282,7 @@ void Node::buildGlobalXYZ(const Model *model){
             oss << "ERROR: Model needed to access Local Coordinate System."<<endl;
             throw logic_error(oss.str());
         }
-        shared_ptr<CoordinateSystem> coordSystem = model->getCoordinateSystem(positionCS);
+        shared_ptr<CoordinateSystem> coordSystem = model->getCoordinateSystemByPosition(positionCS);
         if (!coordSystem) {
             ostringstream oss;
             oss << "ERROR: Coordinate System of position " << positionCS << " for Node "<<this->id<<" not found.";
