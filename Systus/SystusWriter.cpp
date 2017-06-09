@@ -2435,9 +2435,15 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             cout << "WARNING: Modal analysis with lower bound frequency not supported. Will search for "<<smodes<<" Eigenmodes instead."<<endl;
         }
 
+        // For free-free modal analysis, we need to had a specific keyword.
+        string shift=" SHIFT";
+        if (analysis->hasSPC()){
+            shift="";
+        }
+
         out << "# WE COMPUTE "<< smodes << " MODES." << endl;
         out << "# IT'S AN ITERATIVE MEHOD, WITH A MAXIMUM OF "<< siters <<" ITERATIONS" << endl;
-        out << "MODE SUBSPACE BLOCK 6" << endl;
+        out << "MODE SUBSPACE BLOCK 6" << shift<<endl;
         out << "METHOD OPTIMIZED" << endl;
         out << "VECTOR "<< smodes <<" ITER "<< siters <<" PRECISION 1*-5 NORM MASS"<< endl;
         out << "RETURN" << endl;

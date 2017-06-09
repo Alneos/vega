@@ -174,6 +174,40 @@ const vector<shared_ptr<Assertion>> Analysis::getAssertions() const {
     return assertions;
 }
 
+bool Analysis::hasSPC() const{
+
+    vector<std::shared_ptr<ConstraintSet>> allcs = this->getConstraintSets();
+    for (const auto & cs : allcs){
+
+        switch(cs->type){
+
+        // All those types are SPC of one form or another
+        case (ConstraintSet::SPC):
+        case (ConstraintSet::SPCD):
+        case (ConstraintSet::MPC):{
+            return true;
+            break;
+        }
+        // For other type, we check each constraint
+        default:{
+            for (const auto & co : cs->getConstraints()){
+                switch(co->type){
+                case (Constraint::SPC):
+                case (Constraint::LMPC):{
+                    return true;
+                    break;
+                }
+                default:{
+                    continue;
+                }
+                }
+            }
+        }
+        }
+    }
+    return false;
+}
+
 bool Analysis::validate() const {
     vector<shared_ptr<ConstraintSet>> constraintSets = getConstraintSets();
     if (find(constraintSets.begin(), constraintSets.end(), shared_ptr<ConstraintSet>())
