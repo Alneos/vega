@@ -19,7 +19,7 @@ endif()
 
 # Definition of the VEGA version
 set(VEGA_MAJOR_VERSION 2)
-set(VEGA_MINOR_VERSION 2)
+set(VEGA_MINOR_VERSION 3)
 set(VEGA_PATCH_VERSION 0)
 IF(NOT DEFINED VEGA_EXTRA_VERSION)
     set(VEGA_EXTRA_VERSION "" CACHE STRING "Vega extra version string")
