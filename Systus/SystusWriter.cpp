@@ -522,8 +522,9 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
                     nodes.push_back(master_rot_id);
 
                 // With a Lagrangian formulation, we add a Lagrange node.
+                // Lagrange node must NOT have an orientation, as they inherite it from the slave node.
                 if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-                    int slave_lagr_position = mesh->addNode(Node::AUTO_ID, slave.lx, slave.ly, slave.lz, slave.positionCS, slave.displacementCS);
+                    int slave_lagr_position = mesh->addNode(Node::AUTO_ID, slave.lx, slave.ly, slave.lz, slave.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
                     int slave_lagr_id = mesh->findNode(slave_lagr_position).id;
                     nodes.push_back(slave_lagr_id);
                 }
@@ -553,8 +554,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
             std::shared_ptr<QuasiRigidConstraint> rbar = std::static_pointer_cast<QuasiRigidConstraint>(constraint);
 
             if (!(rbar->isCompletelyRigid())){
-                cerr << "QUASI_RIDID constraint not available yet. Constraint "
-                        << constraint->getOriginalId()<< "translated as rigid constraint."<<endl;
+                handleWritingWarning("QUASI_RIDID constraint not available yet. Constraint "+std::to_string(constraint->bestId())+ " translated as rigid constraint. ", "Generate RBE2");
             }
 
             CellGroup* group = mesh->createCellGroup("RBAR_"+std::to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBAR");
@@ -581,8 +581,9 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
             }
 
             // With a Lagrangian formulation, we add a Lagrange node.
+            // Lagrange node must NOT have an orientation, as they inherite it from the slave node.
             if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-                int slave_lagr_position = mesh->addNode(Node::AUTO_ID, slaveNode.lx, slaveNode.ly, slaveNode.lz, slaveNode.positionCS, slaveNode.displacementCS);
+                int slave_lagr_position = mesh->addNode(Node::AUTO_ID, slaveNode.lx, slaveNode.ly, slaveNode.lz, slaveNode.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
                 int slave_lagr_id = mesh->findNode(slave_lagr_position).id;
                 nodes.push_back(slave_lagr_id);
             }
@@ -622,7 +623,8 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
             const DOFS mDOFS = rbe3->getDOFS();
 
             // Creating a Lagrange node
-            int master_lagr_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
+            // Lagrange node must NOT have an orientation, as they inherite it from the slave node.
+            int master_lagr_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
             int master_lagr_id = mesh->findNode(master_lagr_position).id;
 
 
@@ -633,7 +635,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
                 int master_rot_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
                 master_rot_id = mesh->findNode(master_rot_position).id;
                 rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
-                int master_lagr_rot_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
+                int master_lagr_rot_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
                 master_lagr_rot_id = mesh->findNode(master_lagr_rot_position).id;
             }
 
