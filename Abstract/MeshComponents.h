@@ -40,10 +40,11 @@
 #include <med.h>
 
 // Add specific elements not already defined by MED
-typedef enum {MED_SEG5=105, MED_POLY4=304
-    , MED_POLY5=305, MED_POLY6=306, MED_POLY7=307, MED_POLY8=308, MED_POLY9=309, MED_POLY10=310
-    , MED_POLY11=311, MED_POLY12=312, MED_POLY13=313, MED_POLY14=314, MED_POLY15=315, MED_POLY16=316
-    , MED_POLY17=317, MED_POLY18=318, MED_POLY19=319, MED_POLY20=320} vega_med_geometrie_element;
+// EVERY NUMBER MUST BE UNIQUE !
+typedef enum {MED_SEG5=105, MED_POLY3=1303, MED_POLY4=1304
+    , MED_POLY5=1305, MED_POLY6=1306, MED_POLY7=1307, MED_POLY8=1308, MED_POLY9=1309, MED_POLY10=1310
+    , MED_POLY11=1311, MED_POLY12=1312, MED_POLY13=1313, MED_POLY14=1314, MED_POLY15=1315, MED_POLY16=1316
+    , MED_POLY17=1317, MED_POLY18=1318, MED_POLY19=1319, MED_POLY20=1320} vega_med_geometrie_element;
 
 namespace vega {
 
@@ -115,7 +116,8 @@ public:
         HEXA20_CODE = MED_HEXA20,
         HEXA27_CODE = MED_HEXA27,
         POLYHED_CODE = MED_POLYHEDRON,
-	
+
+        POLY3_CODE = MED_POLY3,
         POLY4_CODE = MED_POLY4,
         POLY5_CODE = MED_POLY5,
         POLY6_CODE = MED_POLY6,
@@ -165,6 +167,7 @@ public:
     static const CellType HEXA20;
     static const CellType HEXA27;
     //static const CellType POLYHED;
+    static const CellType POLY3;
     static const CellType POLY4; 
     static const CellType POLY5;
     static const CellType POLY6; 

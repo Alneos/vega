@@ -1569,7 +1569,7 @@ void Model::makeCellsFromDirectMatrices(){
             break;
         }
         case 3:{
-            cellType = CellType::TRI3;
+            cellType = CellType::POLY3;
             break;
         }
         case 4:{

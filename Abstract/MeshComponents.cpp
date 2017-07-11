@@ -120,6 +120,7 @@ const CellType CellType::HEXA27 = CellType(HEXA27_CODE, 27, SpaceDimension::DIME
 //		"POLYHED");
 
 //TODO: Ugly fix because POLYHED and co are not working yet. We need an element with undefined number of nodes. :/
+const CellType CellType::POLY3  = CellType(POLY3_CODE, 3, SpaceDimension::DIMENSION_3D, "POLY3");
 const CellType CellType::POLY4  = CellType(POLY4_CODE, 4, SpaceDimension::DIMENSION_3D, "POLY4");
 const CellType CellType::POLY5  = CellType(POLY5_CODE, 5, SpaceDimension::DIMENSION_3D, "POLY5");
 const CellType CellType::POLY6  = CellType(POLY6_CODE, 6, SpaceDimension::DIMENSION_3D, "POLY6");
