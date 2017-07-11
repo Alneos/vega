@@ -952,10 +952,10 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                     }
                     break;
                 }
-                case Loading::DYNAMIC_EXCITATION:{
-                    // Nothing to be done here
-                    break;
-                }
+                //case Loading::DYNAMIC_EXCITATION:{
+                //    // Nothing to be done here
+                //    break;
+                //}
                 default: {
                     //TODO : throw WriterException("Loading type not supported");
                     cout << "WARNING: " << *loading << " not supported" << endl;
