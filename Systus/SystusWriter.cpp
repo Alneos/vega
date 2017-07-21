@@ -2447,8 +2447,8 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         out << "# WE COMPUTE "<< smodes << " MODES." << endl;
         out << "# IT'S AN ITERATIVE MEHOD, WITH A MAXIMUM OF "<< siters <<" ITERATIONS" << endl;
         out << "MODE SUBSPACE BLOCK 6" << shift<<endl;
-        out << "METHOD OPTIMIZED" << endl;
         out << "VECTOR "<< smodes <<" ITER "<< siters <<" PRECISION 1*-5 NORM MASS"<< endl;
+        out << "METHOD OPTIMIZED" << endl;
         out << "RETURN" << endl;
 
         out << endl;
