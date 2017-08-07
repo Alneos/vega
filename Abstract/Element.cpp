@@ -133,7 +133,7 @@ double CircularSectionBeam::getShearAreaFactorY() const {
 }
 
 double CircularSectionBeam::getShearAreaFactorZ() const {
-	throw 10.0/9.0;
+	return 10.0/9.0;
 }
 
 RectangularSectionBeam::RectangularSectionBeam(Model& model, double _width, double _height,

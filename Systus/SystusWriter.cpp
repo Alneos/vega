@@ -2059,6 +2059,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 
     for (const auto& elementSet : systusModel.model->elementSets) {
         const auto& material = elementSet->material;
+        //cout << "Writing materials for "<<*elementSet<<endl;
         if (elementSet->cellGroup != nullptr){
 
             ostringstream omat;
