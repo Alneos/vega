@@ -177,12 +177,6 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
         outputDir = ".";
     }
 
-    string solverVersion;
-    if (vm.count("solver-version")) {
-        solverVersion = vm["solver-version"].as<string>();
-    } else {
-        solverVersion = "";
-    }
     string testFileName;
     if (vm.count("test-file")) {
         testFileName = normalize_path(vm["test-file"].as<string>()).string();
@@ -231,6 +225,9 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
         }
         translationMode = ConfigurationParameters::MODE_STRICT;
     }
+
+
+    // Choice of output solver, and options related to it
     Solver solver(CODE_ASTER);
     if (vm.count("output-format")) {
         string outputSolver = vm["output-format"].as<string>();
@@ -250,6 +247,17 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     if (vm.count("solver-server")) {
         solverServer = vm["solver-server"].as<string>();
         boost::algorithm::trim(solverServer);
+    }
+
+    string solverVersion;
+    if (vm.count("solver-version")) {
+        solverVersion = vm["solver-version"].as<string>();
+    } else {
+        if (solver.getSolverName()== SolverName::SYSTUS){
+            solverVersion = "2017";
+        }else{
+            solverVersion = "";
+        }
     }
 
     // Option for Systus Conversion
@@ -363,6 +371,7 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     	cout << "\t Systus Output product: " << systusOutputProduct << endl;
     	cout << "\t Systus Output Matrix: " << systusOutputMatrix << endl;
     	cout << "\t Systus Size Matrix: " << systusSizeMatrix << endl;
+    	cout << "\t Systus Version: " << solverVersion << endl;
         for (size_t i = 0; i < systusSubcases.size(); ++i) {
            cout <<"\t Systus Subcase "<<(i+1)<<": ";
            for (size_t j = 0; j < systusSubcases[i].size(); ++j)

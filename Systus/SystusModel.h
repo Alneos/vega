@@ -39,7 +39,11 @@ public:
     /*const string memjeveux;*/
     const string getName() const;
     const string getOutputFileName(string extension) const;
-    /*const string getSystusVersion() const;*/
+    double getSystusVersion() const;
+    const string getSystusVersionString() const;
+
+private:
+    double systusVersion;
 };
 
 }

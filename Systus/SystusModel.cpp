@@ -31,6 +31,12 @@ SystusModel::SystusModel(const vega::Model* model,
         const vega::ConfigurationParameters &configuration) :
         model(model), configuration(configuration) {
     /*this->phenomene = "MECANIQUE";*/
+
+    systusVersion= atof(configuration.solverVersion.c_str());
+    if (systusVersion<2016){
+        cerr << "Warning: chosen SYSTUS version ("<<systusVersion<<") is older than 2016. Upgraded to 2016.0"<<endl;
+        systusVersion=2016.0;
+    }
 }
 
 SystusModel::~SystusModel() {
@@ -62,5 +68,17 @@ const string SystusModel::getName() const {
     }
     return name;
 }
+
+double SystusModel::getSystusVersion() const {
+    return this->systusVersion;
+}
+
+const string SystusModel::getSystusVersionString() const {
+    ostringstream os;
+    os.precision(1);
+    os << fixed << this->systusVersion;
+    return os.str();
+}
+
 
 }

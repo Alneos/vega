@@ -362,7 +362,7 @@ string SystusWriter::writeModel(const shared_ptr<Model> model,
         const vega::ConfigurationParameters &configuration) {
     SystusModel systusModel = SystusModel(&(*model), configuration);
     this->translationMode= configuration.translationMode;
-    cout << "Systus writer" << endl;
+    cout << "Writing to SYSTUS (version " << systusModel.getSystusVersionString()<<")"<< endl;
 
     string path = systusModel.configuration.outputPath;
     if (!fs::exists(path)) {
