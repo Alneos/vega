@@ -919,17 +919,21 @@ void NastranParserImpl::parseEIGR(NastranTokenizer& tok, shared_ptr<Model> model
     }
     double lower = tok.nextDouble(true);
     double upper = tok.nextDouble(true);
-    int num_max = tok.nextInt(true);
+    int ne = tok.nextInt(true); // Estimate of number of roots in range: not use by the LANCZOS method
+    UNUSEDV(ne);
+    int nd = tok.nextInt(true); // Desired number of roots in range
 
-    // Unsupported fields
-    int nd = tok.nextInt(true);
-    if (nd!=Globals::UNAVAILABLE_INT){
-        handleParsingWarning("Desired number of roots (ND) unsupported and dismissed.", tok, model);
+    // See Nastran Quick reference guide for the treatment of nd in the Lancszos method
+    if ((nd==Globals::UNAVAILABLE_INT) && (is_equal(upper, Globals::UNAVAILABLE_DOUBLE))){
+        nd=1;
     }
-    tok.skip(3);
+
+    tok.skip(2);
+
     string norm = tok.nextString(true, "MASS");
-    if (norm !="MASS"){
-        handleParsingWarning("Only MASS normalizing method (NORM) supported.", tok, model);
+    if ((norm !="MASS") && (norm != "MAX")){
+        handleParsingWarning("Only MASS and MAX normalizing method (NORM) supported. Default (MASS) assumed.", tok, model);
+        norm = "MASS";
     }
     int g = tok.nextInt(true);
     if (g!=Globals::UNAVAILABLE_INT){
@@ -940,7 +944,7 @@ void NastranParserImpl::parseEIGR(NastranTokenizer& tok, shared_ptr<Model> model
         handleParsingWarning("Component number (C) not supported.", tok, model);
     }
 
-    FrequencyBand frequencyBand(*model, lower, upper, num_max, original_id);
+    FrequencyBand frequencyBand(*model, lower, upper, nd, norm, original_id);
     model->add(frequencyBand);
 }
 
@@ -948,14 +952,18 @@ void NastranParserImpl::parseEIGRL(NastranTokenizer& tok, shared_ptr<Model> mode
     int original_id = tok.nextInt();
     double lower = tok.nextDouble(true);
     double upper = tok.nextDouble(true);
-    int num_max = tok.nextInt(true);
-    tok.skip(4); // ignoring MSGLVL, MAXSET, SHFSCL and NORM
+    int nd = tok.nextInt(true);
+
+    // See Nastran Quick reference guide for the treatment of nd
+    if ((nd==Globals::UNAVAILABLE_INT) && (is_equal(upper, Globals::UNAVAILABLE_DOUBLE))){
+        nd=1;
+    }
+
+    // Diagnostic level: not supported, but useless.
+    int msglvl = tok.nextInt(true);
+    UNUSEDV(msglvl);
 
     // Unsupported fields
-    int msglvl = tok.nextInt(true, 0);
-    if (msglvl!=0){
-        handleParsingWarning("Diagnostic level (MSGLVL) not supported. Default (0) assumed.", tok, model);
-    }
     int maxset = tok.nextInt(true);
     if (maxset!=Globals::UNAVAILABLE_INT){
         handleParsingWarning("Numbers of vectors in set (MAXSET) not supported and dismissed.", tok, model);
@@ -964,12 +972,15 @@ void NastranParserImpl::parseEIGRL(NastranTokenizer& tok, shared_ptr<Model> mode
     if (!is_equal(shfscl, Globals::UNAVAILABLE_DOUBLE)){
         handleParsingWarning("Estimate of the first flexible mode natural frequency (SHFSCL) not supported and dismissed.", tok, model);
     }
+
+    // Normalization method
     string norm = tok.nextString(true, "MASS");
-    if (norm !="MASS"){
-        handleParsingWarning("Only MASS normalizing method (NORM) supported.", tok, model);
+    if ((norm !="MASS") && (norm != "MAX")){
+        handleParsingWarning("Only MASS and MAX normalizing method (NORM) supported. Default (MASS) assumed.", tok, model);
+        norm="MASS";
     }
 
-    FrequencyBand frequencyBand(*model, lower, upper, num_max, original_id);
+    FrequencyBand frequencyBand(*model, lower, upper, nd, norm, original_id);
     model->add(frequencyBand);
 }
 

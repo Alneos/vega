@@ -82,6 +82,8 @@ static const std::map<SMF, string> SMFtoString = {
 
 std::string SMFToString(SMF key);
 
+static const int defaultNbDesiredRoots=100; /**< Default number of desired roots for a static analysis (chosen from experiment)**/
+
 
 class SystusWriter: public Writer {
     int systusOption = 0;

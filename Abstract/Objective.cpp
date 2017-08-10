@@ -140,9 +140,9 @@ shared_ptr<Objective> FrequencyValues::clone() const {
 }
 
 FrequencyBand::FrequencyBand(const Model& model, double lower, double upper, int num_max,
-        int original_id) :
+        string norm, int original_id) :
         AnalysisParameter(model, FREQUENCY_BAND, original_id), lower(lower), upper(upper), num_max(
-                num_max) {
+                num_max), norm(norm) {
 }
 
 shared_ptr<Objective> FrequencyBand::clone() const {

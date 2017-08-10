@@ -166,10 +166,11 @@ public:
 
 class FrequencyBand: public AnalysisParameter {
 public:
-    const double lower;
-    const double upper;
-    const int num_max;
-    FrequencyBand(const Model& model, double lower, double upper, int num_max, int original_id =
+    const double lower; /**< Lower bound of the frequency band. **/
+    const double upper; /**< Upper bound of the frequency band. **/
+    const int num_max;  /**< Number of roots we want to find in the frequency band.**/
+    const string norm;  /**< Method for normalizing eigenvectors: MASS or MAX **/
+    FrequencyBand(const Model& model, double lower, double upper, int num_max, string norm = "MASS", int original_id =
             NO_ORIGINAL_ID);
     std::shared_ptr<Objective> clone() const;
     ~FrequencyBand() {

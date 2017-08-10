@@ -2389,7 +2389,6 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             out <<  "!filematrix ASC2BIN "<< it.second <<".ASC "<< it.second <<".TIT"<<endl;
             out << "ASSIGN "<< it.first << " "<< it.second <<".TIT BINARY"<<endl;
         }
-
     }
 
 
@@ -2404,10 +2403,10 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
     case Analysis::LINEAR_MECA_STAT: {
 
         out << "SOLVE METHOD OPTIMISED" << endl;
-        //out << "EXTRACT STIFFNESS ELEMENTS " <<endl;
         break;
     }
     case Analysis::LINEAR_MODAL:{
+    
         out << "# SOLVE FILE TO USE THE DYNAMIC SOLVER" << endl;
         out << "# USE FOR EIGEN FREQUENCY CRITERION" << endl;
         out << endl;
@@ -2420,39 +2419,71 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         out << "DYNAMIC" << endl;
         out << endl;
 
+        // Parameters of the analysis
         const LinearModal& linearModal = static_cast<const LinearModal&>(*analysis);
         FrequencyBand& frequencyBand = *(linearModal.getFrequencyBand());
-        string smodes= (frequencyBand.num_max == vega::Globals::UNAVAILABLE_INT ? "12":to_string(frequencyBand.num_max));
-        string siters= (frequencyBand.num_max == vega::Globals::UNAVAILABLE_INT ? "24":to_string(2*frequencyBand.num_max));
-        if (!is_equal(frequencyBand.upper, vega::Globals::UNAVAILABLE_DOUBLE)){
-            cout << "WARNING: Modal analysis with upper bound frequency not supported. Will search for "<<smodes<<" Eigenmodes instead."<<endl;
-            // Mechanical commands for Systus 2017
-            out << "###SYSTUS2017#### THE NEXT COMMANDS ARE NOT AVAILABLE YET IN SYSTUS." << endl;
-            out << "###SYSTUS2017#### WE KEEP THEM FOR THE SAKE OF COMPLETION." << endl;
-            out << "###SYSTUS2017#### WE COMPUTE ALL MODES (max "<< smodes << ") under "<<frequencyBand.upper<<" Hz." << endl;
-            out << "###SYSTUS2017###MODE SUBSPACE BAND" << endl;
-            out << "###SYSTUS2017###METHOD OPTIMIZED" << endl;
-            out << "###SYSTUS2017###VECTOR "<< smodes << "PRECISION 1*-5 STURM FREQ " << frequencyBand.upper;
-            out << "###SYSTUS2017###RETURN" << endl;
+        double upperF = frequencyBand.upper;
+        double lowerF = frequencyBand.lower;
+        int nmodes = (frequencyBand.num_max == vega::Globals::UNAVAILABLE_INT ? defaultNbDesiredRoots : frequencyBand.num_max);
+
+        // We can't treat the case where only lowerF is defined
+        if (is_equal(upperF, vega::Globals::UNAVAILABLE_DOUBLE)){
+            lowerF = vega::Globals::UNAVAILABLE_DOUBLE;
+            nmodes = defaultNbDesiredRoots;
+            handleWritingWarning("Modal analysis with lower bound frequency not supported. Will search for "+to_string(nmodes)+" Eigenmodes instead.", "DAT file");
+        }else{
+            // If upperF is defined, an unavailable lower bound is treated as 0;
+            if (is_equal(lowerF,vega::Globals::UNAVAILABLE_DOUBLE)){
+                lowerF = 0;
+            }
         }
-        if (!is_equal(frequencyBand.lower, vega::Globals::UNAVAILABLE_DOUBLE) && !is_equal(frequencyBand.lower, 0)){
-            cout << "WARNING: Modal analysis with lower bound frequency not supported. Will search for "<<smodes<<" Eigenmodes instead."<<endl;
+        // Number of iteration
+        int niter = 2*nmodes + 2;
+
+        // Corresponding Systus commands
+        string sShift="";
+        string sSturm="";
+        string sBand="";
+        if (!is_equal(upperF, vega::Globals::UNAVAILABLE_DOUBLE)){
+            // This method is only available since the 2017 version of Systus
+            if (systusModel.getSystusVersion()<2017){
+                handleWritingWarning("Modal analysis with upper bound frequency not supported for version under 2017. Will search for "+to_string(nmodes)+" Eigenmodes instead.", "DAT file");
+                lowerF=vega::Globals::UNAVAILABLE_DOUBLE;
+                upperF=vega::Globals::UNAVAILABLE_DOUBLE;
+            }else{
+                sShift = " FREQUENCY "+ to_string(0.5*(lowerF+upperF));
+                sSturm = " STURM FREQUENCY "+ to_string(0.5*(upperF-lowerF));
+                sBand  = " BETWEEN "+to_string(lowerF)+" AND "+to_string(upperF);
+            }
+        }
+        if ((is_equal(lowerF, vega::Globals::UNAVAILABLE_DOUBLE)) && (is_equal(upperF, vega::Globals::UNAVAILABLE_DOUBLE))){
+            sShift =" SHIFT";
+            sSturm="";
+            sBand="";
         }
 
-        // For free-free modal analysis, we need to had a specific keyword.
-        string shift=" SHIFT";
-        if (analysis->hasSPC()){
-            shift="";
+        // Choice of norm
+        string sNorm;
+        if (frequencyBand.norm=="MAX"){
+            sNorm="";
+        }else if (frequencyBand.norm=="MASS"){
+            sNorm=" NORM MASS";
+        }else{
+            handleWritingWarning("Unknown normalization method. Mass method chosen.", "DAT file");
+            sNorm=" NORM MASS";
         }
 
-        out << "# WE COMPUTE "<< smodes << " MODES." << endl;
-        out << "# IT'S AN ITERATIVE MEHOD, WITH A MAXIMUM OF "<< siters <<" ITERATIONS" << endl;
-        out << "MODE SUBSPACE BLOCK 6" << shift<<endl;
-        out << "VECTOR "<< smodes <<" ITER "<< siters <<" PRECISION 1*-5 NORM MASS"<< endl;
+
+        // Writing the DAT file
+        out << "# WE COMPUTE "<< nmodes << " MODES" << sBand <<"." << endl;
+        out << "# IT'S AN ITERATIVE MEHOD, WITH A MAXIMUM OF "<< niter <<" ITERATIONS" << endl;
+        out << "MODE SUBSPACE BLOCK 6" << sShift<<endl;
+        out << "VECTOR "<< nmodes << sSturm <<" ITER "<< niter <<" PRECISION 1*-5 FORCE"<< sNorm<<endl;
         out << "METHOD OPTIMIZED" << endl;
         out << "RETURN" << endl;
-
         out << endl;
+
+        // Addentum to compute frequency criterion : maybe useless now
         out << "# COMPUTE THE STRESS TENSORS." << endl;
         out << "# MANDATORY TO COMPUTE THE GRADIENTS OF THE FREQUENCY CRITERIONS." << endl;
         out << "SOLVE FORCE" << endl;
