@@ -75,7 +75,8 @@ public:
             bool partitionModel = false, bool replaceDirectMatrices = true,
             bool removeRedundantSpcs = true,
             bool splitDirectMatrices = false, int sizeDirectMatrices = 999,
-            bool makeCellsFromDirectMatrices = false
+            bool makeCellsFromDirectMatrices = false,
+            bool makeCellsFromRBE = false
             );
     virtual ~ModelConfiguration() {
     }
@@ -113,6 +114,12 @@ public:
      *  needed cells.
      */
     const bool makeCellsFromDirectMatrices;
+    /**
+     *  Build the corresponding cells of RigidSets (RBAR, RBE3) with a group, and a Rigid material.
+     *  This bool commands the use of Model::makeCellsFromRBE() in Model::finish(), which creates the
+     *  needed cells.
+     */
+    const bool makeCellsFromRBE;
 };
 // TODO: THe Configuration Parameters should be much more generalized. With this,
 // it's a pain in the keyboard to add options!!
@@ -130,6 +137,7 @@ public:
             double testTolerance = 0.02, bool runSolver = false, std::string solverServer = "",
             std::string solverCommand = "",
             std::string systusRBE2TranslationMode = "lagrangian", double systusRBE2Rigidity= 0.0,
+            double systusRBELagrangian= 1.0,
             std::string systusOptionAnalysis="auto", std::string systusOutputProduct="systus",
             std::vector< std::vector<int> > systusSubcases = {},
             std::string systusOutputMatrix="table", int systusSizeMatrix=9);
@@ -150,6 +158,7 @@ public:
     const std::string solverCommand;
     const std::string systusRBE2TranslationMode;
     const double systusRBE2Rigidity;
+    const double systusRBELagrangian;
     const std::string systusOptionAnalysis;
     const std::string systusOutputProduct;
     const std::vector< std::vector<int> > systusSubcases;

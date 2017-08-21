@@ -60,6 +60,9 @@ public:
 		STIFFNESS_MATRIX,
 		MASS_MATRIX,
 		DAMPING_MATRIX,
+        RIGIDSET,
+        RBAR,
+        RBE3,
 		UNKNOWN,
 	};
 	protected:
@@ -424,6 +427,37 @@ public:
 		return std::shared_ptr<ElementSet>(new DampingMatrix(*this));
 	}
 };
+
+
+/**
+ * RigidSet is a the parent virtual class for Rigid ElementSet,
+ * like RBAR and RBE3.
+ */
+class RigidSet: public ElementSet {
+public:
+    RigidSet(Model&, Type type, int master_id, int original_id = NO_ORIGINAL_ID);
+    const DOFS getDOFSForNode(int nodePosition) const override final;
+    virtual ~RigidSet() {}
+    int masterId;
+};
+
+class Rbar: public RigidSet {
+public:
+    Rbar(Model&, int master_id, int original_id = NO_ORIGINAL_ID);
+    std::shared_ptr<ElementSet> clone() const override;
+    virtual ~Rbar() {}
+
+};
+
+class Rbe3: public RigidSet {
+public:
+    Rbe3(Model&, int master_id, DOFS mdofs, DOFS sdofs, int original_id = NO_ORIGINAL_ID);
+    const DOFS mdofs;
+    const DOFS sdofs;
+    std::shared_ptr<ElementSet> clone() const override;
+    virtual ~Rbe3() {}
+};
+
 
 } /* namespace vega */
 #endif /* ELEMENT_H_ */

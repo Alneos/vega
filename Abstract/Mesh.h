@@ -178,9 +178,18 @@ public:
 	 *  The vector nodesIds regroups the nodes use to build the cell. Nodes Ids are expressed as "input node number"
 	 *  and will be added to the model if not already defined.
 	 **/
-	int addCell(int id, const CellType &type, const std::vector<int> &nodesIds,
-			bool virtualCell = false, const int cpos=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int elementId = Cell::UNAVAILABLE_CELL);
-	int findCellPosition(int cellId) const;
+    int addCell(int id, const CellType &type, const std::vector<int> &nodesIds,
+            bool virtualCell = false, const int cpos=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int elementId = Cell::UNAVAILABLE_CELL);
+    /** 
+     *  Update a cell to the mesh.
+	 *  The vector nodesIds regroups the nodes use to build the cell. Nodes Ids are expressed as "input node number"
+	 *  and will be added to the model if not already defined.
+	 *  TODO: The previous CellData is NOT erased, has it complexify a LOT the update. Instead
+	 *  an other CellData is created, and "branched over".
+	 **/
+    int updateCell(int id, const CellType &type, const std::vector<int> &nodesIds,
+            bool virtualCell = false, const int cpos=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int elementId = Cell::UNAVAILABLE_CELL);
+    int findCellPosition(int cellId) const;
 	const Cell findCell(int cellPosition) const;
 	bool hasCell(int cellId) const;
 

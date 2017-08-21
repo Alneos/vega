@@ -136,7 +136,7 @@ public:
         POLY19_CODE = MED_POLY19,
         POLY20_CODE = MED_POLY20,
 	
-        //type for reserved (but not yet defined) scells
+        //type for reserved (but not yet defined) cells
         RESERVED = -1
     };
 

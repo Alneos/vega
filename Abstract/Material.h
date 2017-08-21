@@ -47,6 +47,7 @@ public:
         NATURE_VISCOELASTIC = 2,
         NATURE_BILINEAR_ELASTIC,
         NATURE_NONLINEAR_ELASTIC,
+        NATURE_RIGID
     };
     static const std::map<NatureType, std::string> stringByType;
     static const std::string name;
@@ -121,6 +122,28 @@ public:
     virtual ~NonLinearElasticNature();
 
 };
+
+
+/**
+ *   Rigid nature is used by Rigid Element Set, like RBE2, RBAR, RBE3
+ */
+class RigidNature: public Nature {
+private:
+    double rigidity;
+    double lagrangian;
+public:
+    RigidNature(const Model&, const double rigidity = UNAVAILABLE_DOUBLE,
+            const double lagrangian = UNAVAILABLE_DOUBLE);
+    double getRigidity() const;
+    void setRigidity(double rigidity);
+    double getLagrangian() const;
+    void setLagrangian(double lagrangian);
+
+    virtual std::shared_ptr<Nature> clone() const;
+    virtual ~RigidNature();
+
+};
+
 
 /**
  * Base class for materials

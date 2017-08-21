@@ -84,6 +84,7 @@ std::string SMFToString(SMF key);
 
 static const int defaultNbDesiredRoots=100; /**< Default number of desired roots for a static analysis (chosen from experiment)**/
 
+static double maxYoungModulus = Globals::UNAVAILABLE_DOUBLE;
 
 class SystusWriter: public Writer {
     int systusOption = 0;
@@ -98,11 +99,6 @@ class SystusWriter: public Writer {
 
     map<int, vector<long unsigned int> > lists;
     map<long unsigned int, vector<double>> vectors;
-    map<int, vector<int>> RbarPositions;     /**< <material, <cells>> for all RBar (1902) elements. **/
-    map<int, vector<int>> RBE2rbarPositions; /**< <material, <cells>> for all RBE2 (1902/1903/1904) elements. **/
-    map<int, vector<int>> RBE3rbarPositions; /**< <material, <cells>> for all RBE3 elements. **/
-    map<int, vector<DOFS>> RBE3Dofs;         /**< <material, <master DOFS, slaves DOFS>> for all RBE3 elements. **/
-    map<int, double> RBE3Coefs;              /**< <material, coeff>  for all RBE3 elements. **/
     map<int, int> rotationNodeIdByTranslationNodeId; /**< nodeId, nodeId > :  map between the reference node and the reference rotation for 190X elements in 3D mode.**/
     map<int, map<int, int>> localLoadingIdByLoadsetIdByAnalysisId;
     map<int, long unsigned int> loadingVectorIdByLocalLoading;
@@ -318,6 +314,21 @@ class SystusWriter: public Writer {
     void fillVectors(const SystusModel&, const int idSubcase);
     void fillLists(const SystusModel&, const int idSubcase);
 
+    /**
+     *  Generate a rigidity for a a Rbar Element Set. The formulation we use is
+     *      K = max_i(E_i)*max_j(L_j)
+     *    where
+     *       E_i is the Young modulus of the part i,
+     *       L_j the length of the j-th segment of the current Rbar.
+     *
+     */
+    double generateRbarRigidity(const SystusModel&, const shared_ptr<Rbar>);
+
+    /**
+     *  Generate RBE from Rbars and Rbe3 ElementSet:
+     *    - adding the lagrangian/rotation node
+     *    - computing the Rigidity.
+     */
     void generateRBEs(const SystusModel&, const ConfigurationParameters&);
     /** Following a user-defined list, we regroup analyzes in order to build
      *  multi-loadcases Subcases.

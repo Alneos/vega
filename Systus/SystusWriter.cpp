@@ -476,158 +476,190 @@ void SystusWriter::getSystusInformations(const SystusModel& systusModel, const C
 
 }
 
+double SystusWriter::generateRbarRigidity(const SystusModel& systusModel, const shared_ptr<Rbar> rbar){
+
+    const shared_ptr<Mesh> mesh = systusModel.model->mesh;
+
+    // We access the maximum of the Young Modulus of the model. No need to do it twice
+    if (is_equal(maxYoungModulus,Globals::UNAVAILABLE_DOUBLE)){
+        maxYoungModulus=0.0;
+        for (const auto& elementSet : systusModel.model->elementSets) {
+            const auto& material = elementSet->material;
+            if ((elementSet->cellGroup != nullptr)&&(material != nullptr)){
+                const shared_ptr<Nature> nature = material->findNature(Nature::NATURE_ELASTIC);
+                if (nature) {
+                    const ElasticNature& elasticNature = dynamic_cast<ElasticNature&>(*nature);
+                    maxYoungModulus= max(maxYoungModulus, elasticNature.getE());
+                }
+            }
+        }
+    }
+
+    // Master node is the same for all cells
+    const int masterId = rbar->masterId;
+    const int masterPosition = mesh->findNodePosition(masterId);
+    Node mN = mesh->findNode(masterPosition, true, systusModel.model);
+
+    double maxLength=0.0;
+    for (const Cell& cell : rbar->cellGroup->getCells()) {
+       vector<int> nodes = cell.nodeIds;
+       Node sN = mesh->findNode(cell.nodePositions[1],true, systusModel.model);
+       double lengthRbar = sqrt( pow(mN.x-sN.x,2) +pow(mN.y-sN.y,2) + pow(mN.z-sN.z,2));
+       maxLength=max(maxLength, lengthRbar);
+    }
+
+    double rigidity = maxYoungModulus*maxLength;
+    if (is_zero(rigidity)){
+        handleWritingWarning("Computed rigidity for "+to_str(*rbar)+" was null and raised to 1","Rbar Rigidity");
+        rigidity=1.0;
+    }
+
+    return rigidity;
+}
+
+
+
 void SystusWriter::generateRBEs(const SystusModel& systusModel,
         const vega::ConfigurationParameters &configuration) {
 
     shared_ptr<Mesh> mesh = systusModel.model->mesh;
-    vector<shared_ptr<ConstraintSet>> commonConstraintSets = systusModel.model->getCommonConstraintSets();
-    RbarPositions.clear();
-    RBE2rbarPositions.clear();
-    RBE3rbarPositions.clear();
-    RBE3Dofs.clear();
-    RBE3Coefs.clear();
     rotationNodeIdByTranslationNodeId.clear();
 
-    // Material Id are usually computed from the corresponding ElementSet Id
-    // TODO: It should be the material...
-    vector<int> v= systusModel.model->getElementSetsId();
-    int idMaterial=0;
-    if (v.size()!=0){
-        idMaterial=*std::max_element(v.begin(), v.end());
-    }
+    for (const auto& elementSet : systusModel.model->elementSets) {
 
-    for (const auto& constraintSet : commonConstraintSets) {
+        switch (elementSet->type) {
+        // None of these element Set are RBE
+        case ElementSet::CIRCULAR_SECTION_BEAM:
+        case ElementSet::GENERIC_SECTION_BEAM:
+        case ElementSet::I_SECTION_BEAM:
+        case ElementSet::RECTANGULAR_SECTION_BEAM:
+        case ElementSet::STRUCTURAL_SEGMENT:
+        case ElementSet::SHELL:
+        case ElementSet::CONTINUUM:
+        case ElementSet::NODAL_MASS:
+        case ElementSet::DISCRETE_0D:
+        case ElementSet::DISCRETE_1D:
+        case ElementSet::STIFFNESS_MATRIX:
+        case ElementSet::MASS_MATRIX:
+        case ElementSet::DAMPING_MATRIX:{
+            continue;
+        }
 
         // Translation of RBAR and RBE2 (RBE2 are viewed as an assembly of RBAR)
-        // See Systus Reference Analysis Manual: RIGID BoDY Element (page 498)
-        set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::RIGID);
-        for (const auto& constraint : constraints) {
-            std::shared_ptr<RigidConstraint> rbe2 = std::static_pointer_cast<RigidConstraint>(constraint);
+        // See Systus Reference Analysis Manual: RIGID BODY Element (page 498)
+        // Here we add the needed lagrangian and/or 3D nodes, and compute the material properties
+        case ElementSet::RBAR: {
+            shared_ptr<Rbar> rbars = static_pointer_cast<Rbar>(elementSet);
+
+            auto& material = elementSet->material;
+            if (material == nullptr){
+                throw logic_error("Error: ElementSet::RBAR have no material.");
+            }
+            shared_ptr<Nature> nature = material->findNature(Nature::NATURE_RIGID);
+            if (!nature) {
+                throw logic_error("Error: ElementSet::RBAR have no RIGID nature.");
+            }
+
+            // We update the material with the needed value
+            RigidNature& rigidNature = dynamic_cast<RigidNature&>(*nature);
+            if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
+                if (is_equal(configuration.systusRBELagrangian, Globals::UNAVAILABLE_DOUBLE)){
+                    throw logic_error("Error: ElementSet::RBAR were not provided with a lagrangian.");
+                }
+                rigidNature.setLagrangian(configuration.systusRBELagrangian);
+            }else{
+               if (is_equal(configuration.systusRBE2Rigidity, Globals::UNAVAILABLE_DOUBLE)){
+                   rigidNature.setRigidity(generateRbarRigidity(systusModel, rbars));
+               }else{
+                   rigidNature.setRigidity(configuration.systusRBE2Rigidity);
+               }
+            }
 
 
-            CellGroup* group = mesh->createCellGroup("RBE2_"+std::to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBE2");
-            idMaterial++;
+            const int masterId = rbars->masterId;
+            const int masterPosition = mesh->findNodePosition(masterId);
 
-            Node master = mesh->findNode(rbe2->getMaster());
+            Node master = mesh->findNode(masterPosition);
             int master_rot_id = 0;
+
             if (systusOption == 4){
                 int master_rot_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
                 master_rot_id = mesh->findNode(master_rot_position).id;
                 rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
             }
 
-            for (int position : rbe2->getSlaves()){
-                Node slave = mesh->findNode(position);
-                vector<int> nodes = {master.id, slave.id};
+            CellGroup* cellGroup = elementSet->cellGroup;
+            for (const Cell& cell : cellGroup->getCells()) {
+
+                vector<int> nodes = cell.nodeIds;
+
+                if (nodes.size()!=2){
+                    throw logic_error("Error: ElementSet::RBAR cells must have exactly two nodes.");
+                }
+                if (nodes[0]!=masterId){
+                    throw logic_error("Error: the first node of ElementSet::RBAR cells must be the master node.");
+                }
+
                 if (systusOption == 4)
                     nodes.push_back(master_rot_id);
 
                 // With a Lagrangian formulation, we add a Lagrange node.
-                // Lagrange node must NOT have an orientation, as they inherite it from the slave node.
+                // Lagrange node must NOT have an orientation, as they inherit it from the slave node.
                 if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
+                    Node slave = mesh->findNode(cell.nodePositions[1]);
                     int slave_lagr_position = mesh->addNode(Node::AUTO_ID, slave.lx, slave.ly, slave.lz, slave.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
                     int slave_lagr_id = mesh->findNode(slave_lagr_position).id;
                     nodes.push_back(slave_lagr_id);
                 }
 
-                int cellPosition;
+                // If needed, we update the Cell
                 switch (nodes.size()){
                 case (2):{
-                    cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
                     break;
                 }
                 case (3):{
-                    cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG3, nodes, true);
+                    mesh->updateCell(cell.id, CellType::POLY3, nodes, true);
                     break;
                 }
                 case(4):{
-                    cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG4, nodes, true);
+                    mesh->updateCell(cell.id, CellType::POLY4, nodes, true);
                     break;
                 }
                 }
-                RBE2rbarPositions[idMaterial].push_back(cellPosition);
-                group->addCell(mesh->findCell(cellPosition).id);
             }
+            break;
         }
 
-        constraints = constraintSet->getConstraintsByType(Constraint::QUASI_RIGID);
-        for (const auto& constraint : constraints) {
-            std::shared_ptr<QuasiRigidConstraint> rbar = std::static_pointer_cast<QuasiRigidConstraint>(constraint);
-
-            if (!(rbar->isCompletelyRigid())){
-                handleWritingWarning("QUASI_RIDID constraint not available yet. Constraint "+std::to_string(constraint->bestId())+ " translated as rigid constraint. ", "Generate RBE2");
-            }
-
-            CellGroup* group = mesh->createCellGroup("RBAR_"+std::to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBAR");
-            idMaterial++;
-
-            if (rbar->getSlaves().size()!=2){
-                handleWritingError(string("QUASI_RIDID constraint must have exactly two slaves."));
-            }
-
-            // Master Node : first one
-            Node masterNode = mesh->findNode(*rbar->getSlaves().begin());
-            vector<int> nodes = {masterNode.id};
-
-            // Slave Node : second and last one
-            Node slaveNode = mesh->findNode(*rbar->getSlaves().rbegin());
-            nodes.push_back(slaveNode.id);
-
-            // Master Rotation Node (if needed)
-            if (systusOption == 4){
-                int master_rot_position = mesh->addNode(Node::AUTO_ID, masterNode.lx, masterNode.ly, masterNode.lz, masterNode.positionCS, masterNode.displacementCS);
-                int master_rot_id = mesh->findNode(master_rot_position).id;
-                nodes.push_back(master_rot_id);
-                rotationNodeIdByTranslationNodeId[masterNode.id]=master_rot_id;
-            }
-
-            // With a Lagrangian formulation, we add a Lagrange node.
-            // Lagrange node must NOT have an orientation, as they inherite it from the slave node.
-            if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-                int slave_lagr_position = mesh->addNode(Node::AUTO_ID, slaveNode.lx, slaveNode.ly, slaveNode.lz, slaveNode.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-                int slave_lagr_id = mesh->findNode(slave_lagr_position).id;
-                nodes.push_back(slave_lagr_id);
-            }
-
-            int cellPosition;
-            switch (nodes.size()){
-            case (2):{
-                cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
-                break;
-            }
-            case (3):{
-                cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG3, nodes, true);
-                break;
-            }
-            case(4):{
-                cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG4, nodes, true);
-                break;
-            }
-            }
-            RbarPositions[idMaterial].push_back(cellPosition);
-            group->addCell(mesh->findCell(cellPosition).id);
-        }
-
-
-
-        /* See Systus Reference Analysis Manual, Section 8.8 "Special Elements",
+        /*
+         * Translation of RBE3
+         * See Systus Reference Analysis Manual, Section 8.8 "Special Elements",
          * Subsection "Use of Averaging Type Solid Elements", p500.
-         */
-        constraints = constraintSet->getConstraintsByType(Constraint::RBE3);
-        for (const auto& constraint : constraints) {
+        */
+        case ElementSet::RBE3: {
+            shared_ptr<Rbe3> rbe3 = static_pointer_cast<Rbe3>(elementSet);
 
-            std::map<DOFS, std::map<double, int>> materialByCoefByDOFS;
+            auto& material = elementSet->material;
+            if (material == nullptr){
+                throw logic_error("Error: ElementSet::RBE3 have no material.");
+            }
+            shared_ptr<Nature> nature = material->findNature(Nature::NATURE_RIGID);
+            if (!nature) {
+                throw logic_error("Error: ElementSet::RBE3 have no RIGID nature.");
+            }
 
-            std::shared_ptr<RBE3> rbe3 = std::static_pointer_cast<RBE3>(constraint);
-            CellGroup* group = mesh->createCellGroup("RBE3_"+std::to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBE3");
-            Node master = mesh->findNode(rbe3->getMaster());
-            const DOFS mDOFS = rbe3->getDOFS();
+            // We dont change the nature, it has already been correctly filed.
+            //RigidNature& rigidNature = dynamic_cast<RigidNature&>(*nature);
+            //rigidNature.setLagrangian(lagrangianValue);
+
+            const int masterId = rbe3->masterId;
+            const int masterPosition = mesh->findNodePosition(masterId);
+
+            Node master = mesh->findNode(masterPosition);
 
             // Creating a Lagrange node
-            // Lagrange node must NOT have an orientation, as they inherite it from the slave node.
+            // Lagrange node must NOT have an orientation, as they inherit it from the slave node.
             int master_lagr_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
             int master_lagr_id = mesh->findNode(master_lagr_position).id;
-
 
             // Creating rotation nodes if needed
             int master_rot_id=0;
@@ -640,45 +672,45 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
                 master_lagr_rot_id = mesh->findNode(master_lagr_rot_position).id;
             }
 
-            for (int position : rbe3->getSlaves()){
-                Node slave = mesh->findNode(position);
-                vector<int> nodes = {master.id, slave.id};
-                if (systusOption == 4){
-                    nodes.push_back(master_rot_id);
+            // Updating the cells
+            CellGroup* cellGroup = elementSet->cellGroup;
+            for (const Cell& cell : cellGroup->getCells()) {
+
+                vector<int> nodes = cell.nodeIds;
+                if (nodes.size()!=2){
+                    throw logic_error("Error: ElementSet::RBE3 cells must have exactly two nodes.");
                 }
+                if (nodes[0]!=masterId){
+                    throw logic_error("Error: the first node of ElementSet::RBE3 cells must be the master node.");
+                }
+
+                if (systusOption == 4)
+                    nodes.push_back(master_rot_id);
                 nodes.push_back(master_lagr_id);
                 if (systusOption == 4){
                     nodes.push_back(master_lagr_rot_id);
                 }
-                int cellPosition;
+
                 switch (nodes.size()){
                 case (3):{
-                    cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG3, nodes, true);
+                    mesh->updateCell(cell.id, CellType::POLY3, nodes, true);
                     break;
                 }
-                case (5):{
-                    cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG5, nodes, true);
+                case(5):{
+                    mesh->updateCell(cell.id, CellType::POLY5, nodes, true);
                     break;
                 }
                 }
-
-                /* We build a material for each value of "Slave DOFS" and "Slave Coeff" */
-                const DOFS dDOFS = rbe3->getDOFSForNode(position);
-                const double dCoef = rbe3->getCoefForNode(position);
-                if (materialByCoefByDOFS[dDOFS][dCoef]==0){
-                    idMaterial++;
-                    materialByCoefByDOFS[dDOFS][dCoef] =idMaterial;
-                    RBE3Dofs[idMaterial]= {mDOFS, dDOFS};
-                    RBE3Coefs[idMaterial]= dCoef;
-                }
-                int idCMaterial = materialByCoefByDOFS[dDOFS][dCoef];
-                RBE3rbarPositions[idCMaterial].push_back(cellPosition);
-
-                group->addCell(mesh->findCell(cellPosition).id);
             }
+            break;
+        }
+
+        default: {
+            //TODO : throw WriterException("ElementSet type not supported");
+            cout << "Warning in RBE: " << *elementSet << " not supported" << endl;
+        }
         }
     }
-
 }
 
 
@@ -1333,7 +1365,9 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             case ElementSet::STRUCTURAL_SEGMENT:
             case ElementSet::SHELL:
             case ElementSet::CONTINUUM:
-            case ElementSet::NODAL_MASS: {
+            case ElementSet::NODAL_MASS:
+            case ElementSet::RBAR:
+            case ElementSet::RBE3:{
                 continue;
             }
 
@@ -1918,6 +1952,12 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
             typecell = 9;
             break;
         }
+        case ElementSet::RBAR:
+        case ElementSet::RBE3:{
+            dim = 1;
+            typecell = 9;
+            break;
+        }
         default: {
             //TODO : throw WriterException("ElementSet type not supported");
             cout << "Warning in Elements: " << *elementSet << " not supported" << endl;
@@ -1969,37 +2009,6 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
         }
     }
 
-    // Adding rbars elements corresponding to rbe2 and rbe3
-    for (const auto& rbe2 : RBE2rbarPositions){
-        for (int position : rbe2.second){
-            Cell cell = mesh->findCell(position);
-            out << cell.id << " 190" << cell.nodeIds.size() << " " << rbe2.first << " 0 0";
-            for (int nodeId : cell.nodeIds)
-                out << " " << nodeId;
-            out << endl;
-        }
-    }
-
-    for (const auto& rbar : RbarPositions){
-        for (int position : rbar.second){
-            Cell cell = mesh->findCell(position);
-            out << cell.id << " 190" << cell.nodeIds.size() << " " << rbar.first << " 0 0";
-            for (int nodeId : cell.nodeIds)
-                out << " " << nodeId;
-            out << endl;
-        }
-    }
-
-    for (const auto& rbe3 : RBE3rbarPositions){
-        for (int position : rbe3.second){
-            Cell cell = mesh->findCell(position);
-            out << cell.id << " 190" << cell.nodeIds.size() << " " << rbe3.first << " 0 0";
-            for (int nodeId : cell.nodeIds)
-                out << " " << nodeId;
-            out << endl;
-        }
-    }
-
     out << "END_ELEMENTS" << endl;
 }
 
@@ -2030,7 +2039,7 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
             osgr << endl;
         }
     }
-    //cout << pids << endl;
+
     // Write NodeGroups
     for (const auto& nodeGroup : nodeGroups) {
         nbGroups++;
@@ -2141,8 +2150,49 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                         cout << "Warning in Elastic Materials: " << *elementSet << " not supported." << endl;
                     }
                 }else{
-                    isValid=false;
-                    cout << "Warning in Materials: " << *elementSet << " has not an Elastic nature." << endl;
+
+                    const shared_ptr<Nature> nature2 = material->findNature(Nature::NATURE_RIGID);
+                    if (nature2) {
+                        const RigidNature& rigidNature = dynamic_cast<RigidNature&>(*nature2);
+                        writeMaterialField(SMF::ID, elementSet->getId(), nbElementsMaterial, omat);
+                        writeMaterialField(SMF::MID, elementSet->getId(), nbElementsMaterial, omat);
+
+                        switch (elementSet->type) {
+                        // RBAR are Systus Rigid Body Element
+                        case (ElementSet::RBAR):{
+                            writeMaterialField(SMF::LEVEL, 1, nbElementsMaterial, omat);
+                            writeMaterialField(SMF::TYPE, 9, nbElementsMaterial, omat);
+                            if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
+                                writeMaterialField(SMF::SHAPE, 19, nbElementsMaterial, omat);
+                                writeMaterialField(SMF::E, rigidNature.getLagrangian(), nbElementsMaterial, omat);
+                            }else{
+                                writeMaterialField(SMF::SHAPE, 9, nbElementsMaterial, omat);
+                                writeMaterialField(SMF::E, rigidNature.getRigidity(), nbElementsMaterial, omat);
+                            }
+                            break;
+                        }
+
+                        // RBE3 are Special Elements (Averaging Type Solid Elements)
+                        case (ElementSet::RBE3):{
+                            const std::shared_ptr<Rbe3> rbe3 = static_pointer_cast<Rbe3>(elementSet);
+                            writeMaterialField(SMF::SHAPE, 19, nbElementsMaterial, omat);
+                            writeMaterialField(SMF::LEVEL, 3, nbElementsMaterial, omat);
+                            int nbFieldDOFS = DOFSToMaterial(rbe3->mdofs, omat); // KX KY KZ IX IY IZ
+                            nbElementsMaterial += nbFieldDOFS;
+                            writeMaterialField(SMF::COEF, rigidNature.getLagrangian(), nbElementsMaterial, omat);
+                            writeMaterialField(SMF::DEPEND, DOFSToInt(rbe3->sdofs), nbElementsMaterial, omat);
+                            break;
+                        }
+
+                        // Default: unrecognized material are written with only an ID
+                        default:{
+                            cout << "Warning in Rigid Materials: " << *elementSet << " not supported." << endl;
+                        }
+                        }
+                    }else{
+                        isValid=false;
+                        cout << "Warning in Materials: Nature of" << *elementSet << " is not recognized." << endl;
+                    }
                 }
             }else{
                 // Element without VEGA Material
@@ -2207,57 +2257,6 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
         }
     }
 
-
-    // Adding rbars materials for rbe2s and rbe3s
-    for (const auto& rbe2 : RBE2rbarPositions){
-        nbmaterials++;
-        int nbElementsMaterial=0;
-        writeMaterialField(SMF::ID, rbe2.first, nbElementsMaterial, ogmat);
-        writeMaterialField(SMF::MID, rbe2.first, nbElementsMaterial, ogmat);
-        writeMaterialField(SMF::LEVEL, 1, nbElementsMaterial, ogmat);
-        writeMaterialField(SMF::TYPE, 9, nbElementsMaterial, ogmat);
-        if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-            writeMaterialField(SMF::SHAPE, 19, nbElementsMaterial, ogmat);
-            writeMaterialField(SMF::E, 1.0, nbElementsMaterial, ogmat);
-        }else{
-            writeMaterialField(SMF::SHAPE, 9, nbElementsMaterial, ogmat);
-            writeMaterialField(SMF::E, configuration.systusRBE2Rigidity, nbElementsMaterial, ogmat);
-        }
-        ogmat << endl;
-        nbelements=nbelements+nbElementsMaterial;
-    }
-    for (const auto& rbar : RbarPositions){
-        nbmaterials++;
-        int nbElementsMaterial=0;
-        writeMaterialField(SMF::ID, rbar.first, nbElementsMaterial, ogmat);
-        writeMaterialField(SMF::MID, rbar.first, nbElementsMaterial, ogmat);
-        writeMaterialField(SMF::LEVEL, 1, nbElementsMaterial, ogmat);
-        writeMaterialField(SMF::TYPE, 9, nbElementsMaterial, ogmat);
-        if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-            writeMaterialField(SMF::SHAPE, 19, nbElementsMaterial, ogmat);
-            writeMaterialField(SMF::E, 1.0, nbElementsMaterial, ogmat);
-        }else{
-            writeMaterialField(SMF::SHAPE, 9, nbElementsMaterial, ogmat);
-            writeMaterialField(SMF::E, configuration.systusRBE2Rigidity, nbElementsMaterial, ogmat);
-        }
-        ogmat << endl;
-        nbelements=nbelements+nbElementsMaterial;
-    }
-
-
-    for (const auto& rbe3 : RBE3rbarPositions){
-        nbmaterials++;
-        int nbElementsMaterial=0;
-        writeMaterialField(SMF::ID, rbe3.first, nbElementsMaterial, ogmat);
-        writeMaterialField(SMF::MID, rbe3.first, nbElementsMaterial, ogmat);
-        writeMaterialField(SMF::SHAPE, 19, nbElementsMaterial, ogmat);
-        writeMaterialField(SMF::LEVEL, 3, nbElementsMaterial, ogmat);
-        int nbFieldDOFS = DOFSToMaterial(RBE3Dofs[rbe3.first].front(), ogmat); // KX KY KZ IX IY IZ
-        writeMaterialField(SMF::COEF, RBE3Coefs[rbe3.first], nbElementsMaterial, ogmat);
-        writeMaterialField(SMF::DEPEND, DOFSToInt(RBE3Dofs[rbe3.first].back()), nbElementsMaterial, ogmat);
-        nbelements=nbelements+nbElementsMaterial+nbFieldDOFS;
-        ogmat << endl;
-    }
 
     // Stream to output
     out << "BEGIN_MATERIALS " << nbmaterials << " " << nbelements << endl;
@@ -2384,10 +2383,17 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
 
     // If some elementary matrix are saved in files, we need to convert and load them
     if (configuration.systusOutputMatrix=="file"){
-        out << "# ACCESS TO ELEMENTARY MATRIX FILES" << endl;
+        bool isFirst=true;
         for (const auto& it : filebyAccessId){
+            if (isFirst){
+                out << "# ACCESS TO ELEMENTARY MATRIX FILES" << endl;
+                isFirst=false;
+            }
             out <<  "!filematrix ASC2BIN "<< it.second <<".ASC "<< it.second <<".TIT"<<endl;
             out << "ASSIGN "<< it.first << " "<< it.second <<".TIT BINARY"<<endl;
+        }
+        if (!isFirst){
+            out << endl;
         }
     }
 
@@ -2692,15 +2698,14 @@ void SystusWriter::writeMatrixFiles(const SystusModel& systusModel, const int id
         }
         ofsMatrixFile << dampingMatrices<<endl;
         ofsMatrixFile.close();
-        filebyAccessId[SystusWriter::DampingAccessId]= matrixFile;
+        filebyAccessId[SystusWriter::DampingAccessId]= systusModel.getName()+"_SC" + to_string(idSubcase+1) + "_DAMGEN";
     }
 
     /* Writing Mass Matrices */
     if (massMatrices.size()>0){
         ofstream ofsMatrixFile;
         ofsMatrixFile.precision(DBL_DIG);
-        string baseFile = systusModel.getOutputFileName("_SC" + to_string(idSubcase+1) + "_MASGEN");
-        string matrixFile = baseFile+".ASC";
+        string matrixFile = systusModel.getOutputFileName("_SC" + to_string(idSubcase+1) + "_MASGEN.ASC");
         ofsMatrixFile.open(matrixFile.c_str(), ios::trunc);
 
         if (!ofsMatrixFile.is_open()) {
@@ -2709,15 +2714,14 @@ void SystusWriter::writeMatrixFiles(const SystusModel& systusModel, const int id
         }
         ofsMatrixFile << massMatrices << endl;
         ofsMatrixFile.close();
-        filebyAccessId[SystusWriter::MassAccessId]= baseFile;
+        filebyAccessId[SystusWriter::MassAccessId]= systusModel.getName()+"_SC" + to_string(idSubcase+1) + "_MASGEN";
     }
 
     /* Writing Stiffness Matrices */
     if (stiffnessMatrices.size()>0){
         ofstream ofsMatrixFile;
         ofsMatrixFile.precision(DBL_DIG);
-        string baseFile = systusModel.getOutputFileName("_SC" + to_string(idSubcase+1) + "_STIGEN");
-        string matrixFile = baseFile+".ASC";
+        string matrixFile = systusModel.getOutputFileName("_SC" + to_string(idSubcase+1) + "_STIGEN.ASC");
         ofsMatrixFile.open(matrixFile.c_str(), ios::trunc);
 
         if (!ofsMatrixFile.is_open()) {
@@ -2726,7 +2730,7 @@ void SystusWriter::writeMatrixFiles(const SystusModel& systusModel, const int id
         }
         ofsMatrixFile << stiffnessMatrices <<endl;
         ofsMatrixFile.close();
-        filebyAccessId[SystusWriter::StiffnessAccessId]= baseFile;
+        filebyAccessId[SystusWriter::StiffnessAccessId]=systusModel.getName()+"_SC" + to_string(idSubcase+1) + "_STIGEN";
     }
 }
 

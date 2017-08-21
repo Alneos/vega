@@ -49,6 +49,8 @@ const map<ElementSet::Type, string> ElementSet::stringByType = {
 		{ STIFFNESS_MATRIX, "STIFFNESS_MATRIX" },
 		{ MASS_MATRIX, "MASS_MATRIX" },
 		{ DAMPING_MATRIX, "DAMPING_MATRIX" },
+		{ RBAR, "RBAR"},
+		{ RBE3, "RBE3"},
 		{ UNKNOWN, "UNKNOWN" },
 };
 
@@ -717,6 +719,34 @@ void DampingMatrix::addDamping(const int nodeid1, const DOF dof1, const int node
 	addComponent(nodeid1, dof1, nodeid1, dof1, damping_value);
 	addComponent(nodeid2, dof2, nodeid2, dof2, damping_value);
 	addComponent(nodeid1, dof1, nodeid2, dof2, -damping_value);
+}
+
+
+RigidSet::RigidSet(Model& model, Type type, int master_id, int original_id) :
+                ElementSet(model, type, nullptr, original_id), masterId(master_id){
+}
+
+
+const DOFS RigidSet::getDOFSForNode(int nodePosition) const {
+    UNUSEDV(nodePosition);
+    return DOFS::ALL_DOFS;
+}
+
+Rbar::Rbar(Model& model, int master_id, int original_id) :
+                RigidSet(model, RBAR, master_id, original_id){
+}
+
+shared_ptr<ElementSet> Rbar::clone() const {
+    return shared_ptr<ElementSet>(new Rbar(*this));
+}
+
+Rbe3::Rbe3(Model& model, int master_id, DOFS mdofs, DOFS sdofs, int original_id) :
+                RigidSet(model, RBE3, master_id, original_id),
+                mdofs(mdofs), sdofs(sdofs){
+}
+
+shared_ptr<ElementSet> Rbe3::clone() const {
+    return shared_ptr<ElementSet>(new Rbe3(*this));
 }
 
 } /* namespace vega */

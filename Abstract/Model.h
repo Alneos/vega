@@ -75,6 +75,10 @@ private:
      * This may causes problems in a generic cell writer, such as in SYSTUS.
      */
     void makeCellsFromDirectMatrices();
+    /**
+     * Build the corresponding cells of RigidSets (RBAR, RBE3) with a group, and a Rigid material.
+     */
+    void makeCellsFromRBE();
 
 public:
     bool finished;

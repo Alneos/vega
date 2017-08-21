@@ -263,6 +263,68 @@ int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &node
 	return cellPosition;
 }
 
+int Mesh::updateCell(int id, const CellType &cellType, const std::vector<int> &nodeIds,
+        bool virtualCell, const int cpos, int elementId) {
+
+    if (id == Cell::AUTO_ID) {
+        throw invalid_argument("Can't update a cell with AUTO_ID.");
+    }
+    if (findCellPosition(id)== Cell::UNAVAILABLE_CELL){
+        throw invalid_argument("Can't update a cell which does not exist yet.");
+    }
+    if (cellType.numNodes == 0) {
+        cerr << "Unsupported cell type" << cellType << endl;
+    }
+
+    // Copy/paste from addCell : don't know why it's needed ?
+    if (this->logLevel >= LogLevel::TRACE) {
+        //check connectivity, it causes strange errors in med
+        set<int> coord_set(nodeIds.begin(), nodeIds.end());
+        if (coord_set.size() != nodeIds.size()) {
+            cerr << "Cell ID:" << id << " has duplicate nodes in connectivity. ";
+            copy(nodeIds.begin(), nodeIds.end(), ostream_iterator<int>(cerr, " "));
+            cerr << endl;
+            throw logic_error(
+                    string("Duplicate node in connectivity cellId:")
+                            + lexical_cast<string>(id));
+        }
+    }
+
+    if ((cellType.specificSize) && (cellType.numNodes != nodeIds.size())) {
+        cerr << "Cell " << id << " not updated because connectivity array differs from expected "
+                "length";
+        throw logic_error("Invalid cell");
+    }
+
+    // We don't update the old data, which is too complicated
+    // We build another CellData, with an other cellPosition, and hope
+    // for the best
+    const int cellPosition = static_cast<int>(cells.cellDatas.size());
+    cells.cellpositionById[id] = cellPosition;
+
+    const int cellTypePosition = static_cast<int>(cellPositionsByType.find(cellType)->second.size());
+    cellPositionsByType.find(cellType)->second.push_back(cellPosition);
+    CellData cellData(id, cellType, virtualCell, elementId, cellTypePosition);
+
+    if (cells.nodepositionsByCelltype.find(cellType) == cells.nodepositionsByCelltype.end()) {
+        cells.nodepositionsByCelltype[cellType] = make_shared<deque<int>>(deque<int>());
+    }
+    shared_ptr<deque<int>> nodePositionsPtr = cells.nodepositionsByCelltype[cellType];
+    for (unsigned int i = 0; i < nodeIds.size(); i++) {
+        int nodePosition = findOrReserveNode(nodeIds[i]);
+        nodePositionsPtr->push_back(nodePosition);
+    }
+    if (cpos != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+        CellGroup* coordinateSystemCellGroup = this->getOrCreateCellGroupForOrientation(cpos);
+        coordinateSystemCellGroup->addCell(id);
+        cellData.csPos = cpos;
+        }
+    cells.cellDatas.push_back(cellData);
+
+    return cellPosition;
+}
+
+
 const Cell Mesh::findCell(int cellPosition) const {
 	if (cellPosition == Cell::UNAVAILABLE_CELL) {
 		throw logic_error("Unavailable cell requested.");

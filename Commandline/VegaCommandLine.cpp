@@ -270,17 +270,14 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     		throw invalid_argument("Systus RBE2 Translation Mode must be either lagrangian (default) or penalty.");
     	}
     }
-    double systusRBE2Rigidity=0.0;
+    double systusRBE2Rigidity=vm["systus.RBE2Rigidity"].as<double>();
     if (systusRBE2TranslationMode=="penalty"){
-    	if (!vm.count("systus.RBE2Rigidity")){
-    		throw invalid_argument("You must specify a REB2 rigidity when translating RBE2 with the penalty method.");
-    	}else{
-    		systusRBE2Rigidity = vm["systus.RBE2Rigidity"].as<double>();
-    		if (systusRBE2Rigidity<= 0.0){
-    			throw invalid_argument("Systus RBE2 Rigidity must be positive.");
-    		}
-    	}
+        if ((!is_equal(systusRBE2Rigidity,Globals::UNAVAILABLE_DOUBLE)) && (systusRBE2Rigidity<=0.0)){
+            throw invalid_argument("Systus RBE2 Rigidity must be positive.");
+        }
     }
+    double systusRBELagrangian=vm["systus.RBELagrangian"].as<double>();
+
 
     string systusOptionAnalysis="auto";
     if (vm.count("systus.OptionAnalysis")){
@@ -362,16 +359,17 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
 
 
     if (vm.count("listOptions")){
-    	cout << "VEGA options for this translation are: "<< endl;
-    	cout << "\t Output directory: "<< outputDir << endl;
-        cout << "\t Verbosity : "<< logLevel << endl;
-    	cout << "\t Systus RBE2 Translation Mode: "<< systusRBE2TranslationMode << endl;
-    	cout << "\t Systus RBE2 Rigidity (for penalty mode only): " << systusRBE2Rigidity << endl;
-    	cout << "\t Systus OPTION analysis: " << systusOptionAnalysis << endl;
-    	cout << "\t Systus Output product: " << systusOutputProduct << endl;
-    	cout << "\t Systus Output Matrix: " << systusOutputMatrix << endl;
-    	cout << "\t Systus Size Matrix: " << systusSizeMatrix << endl;
-    	cout << "\t Systus Version: " << solverVersion << endl;
+        cout << "VEGA options for this translation are: "<< endl;
+        cout << "\t Output directory: "<< outputDir << endl;
+        cout << "\t Verbosity: "<< logLevel << endl;
+        cout << "\t Systus RBE2 Translation Mode: "<< systusRBE2TranslationMode << endl;
+        cout << "\t Systus RBE2 Rigidity (for penalty mode only): " << (is_equal(systusRBE2Rigidity, Globals::UNAVAILABLE_DOUBLE) ? "auto" : to_string(systusRBE2Rigidity)) << endl;
+        cout << "\t Systus RBE Lagrangian (for RBE2 lagrangian mode and RBE3): " << systusRBELagrangian << endl;
+        cout << "\t Systus OPTION analysis: " << systusOptionAnalysis << endl;
+        cout << "\t Systus Output product: " << systusOutputProduct << endl;
+        cout << "\t Systus Output Matrix: " << systusOutputMatrix << endl;
+        cout << "\t Systus Size Matrix: " << systusSizeMatrix << endl;
+        cout << "\t Systus Version: " << solverVersion << endl;
         for (size_t i = 0; i < systusSubcases.size(); ++i) {
            cout <<"\t Systus Subcase "<<(i+1)<<": ";
            for (size_t j = 0; j < systusSubcases[i].size(); ++j)
@@ -383,8 +381,8 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     ConfigurationParameters configuration = ConfigurationParameters(inputFile.string(), solver,
             solverVersion, modelName, outputDir, logLevel, translationMode, testFnamePath,
             tolerance, runSolver, solverServer, solverCommand,
-			systusRBE2TranslationMode,systusRBE2Rigidity, systusOptionAnalysis, systusOutputProduct,
-			systusSubcases, systusOutputMatrix, systusSizeMatrix);
+            systusRBE2TranslationMode, systusRBE2Rigidity, systusRBELagrangian, systusOptionAnalysis, systusOutputProduct,
+            systusSubcases, systusOutputMatrix, systusSizeMatrix);
     return configuration;
 }
 
@@ -477,10 +475,12 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
         // TODO: Some of these options are not so specific: rename and move them.
         po::options_description systusOptions("Systus specific options");
         systusOptions.add_options() //
-		("systus.RBE2TranslationMode",po::value<string>()->default_value("lagrangian"), 
-				"Translation mode of RBE2 from Nastran To Systus: lagrangian or penalty.") //
-		("systus.RBE2Rigidity", po::value<double>(),
-		        "Rigidity of RBE2 (for penalty translation only).") //
+        ("systus.RBE2TranslationMode",po::value<string>()->default_value("lagrangian"),
+                "Translation mode of RBE2 from Nastran To Systus: lagrangian or penalty.") //
+        ("systus.RBE2Rigidity", po::value<double>()->default_value(Globals::UNAVAILABLE_DOUBLE),
+                "Rigidity of RBE2 (for penalty translation only).") //
+        ("systus.RBELagrangian", po::value<double>()->default_value(1.0),
+                "Lagrange coefficients for RBE2 (Lagrange Translation) and RBE3.") //
 		("systus.Subcase", po::value<std::vector<std::string>>(),
 				"'auto' (default), 'single' or lists 'n1,n2,...,nN' of analysis numbers belonging to the same subcase.") //
 		("systus.OptionAnalysis",po::value<string>()->default_value("auto"),

@@ -88,6 +88,7 @@ const map<Nature::NatureType, string> Nature::stringByType = {
         ,{NATURE_VISCOELASTIC , "NATURE VISCOELASTIC"}
         ,{NATURE_BILINEAR_ELASTIC, "NATURE BILINEAR ELASTIC"}
         ,{NATURE_NONLINEAR_ELASTIC, "NATURE NONLINEAR ELASTIC"}
+        ,{NATURE_RIGID, "NATURE RIGID"}
 };
 
 ostream &operator<<(ostream &out, const Nature& nature) {
@@ -219,6 +220,36 @@ NonLinearElasticNature::NonLinearElasticNature(const Model& model,
 
 shared_ptr<FunctionTable> NonLinearElasticNature::getStressStrainFunction() const {
 	return dynamic_pointer_cast<FunctionTable>(model.find(stress_strain_function_ref));
+}
+
+
+shared_ptr<Nature> RigidNature::clone() const {
+    return shared_ptr<Nature>(new RigidNature(*this));
+}
+
+RigidNature::~RigidNature() {
+}
+
+RigidNature::RigidNature(const Model&, const double rigidity, const double lagrangian) :
+        Nature(model, NATURE_RIGID), rigidity(rigidity), lagrangian(lagrangian) {
+    if (is_equal(rigidity, UNAVAILABLE_DOUBLE) && is_equal(lagrangian, UNAVAILABLE_DOUBLE))
+        throw invalid_argument("Rigidity and Lagrangian may not both be blank.");
+}
+
+double RigidNature::getRigidity() const {
+    return this->rigidity;
+}
+
+void RigidNature::setRigidity(double rigidity) {
+    this->rigidity= rigidity;
+}
+
+double RigidNature::getLagrangian() const {
+    return this->lagrangian;
+}
+
+void RigidNature::setLagrangian(double lagrangian) {
+    this->lagrangian= lagrangian;
 }
 
 CellContainer Material::getAssignment() const {

@@ -1663,6 +1663,146 @@ void Model::makeCellsFromDirectMatrices(){
 }
 
 
+void Model::makeCellsFromRBE(){
+
+    shared_ptr<Mesh> mesh = this->mesh;
+        vector<shared_ptr<ConstraintSet>> commonConstraintSets = this->getCommonConstraintSets();
+
+    for (const auto& constraintSet : commonConstraintSets) {
+
+        // Translation of RBAR and RBE2 (RBE2 are viewed as an assembly of RBAR)
+        // See Systus Reference Analysis Manual: RIGID BODY Element (page 498)
+        set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::RIGID);
+        for (const auto& constraint : constraints) {
+            const std::shared_ptr<RigidConstraint> rbe2 = std::static_pointer_cast<RigidConstraint>(constraint);
+
+            // Creating an elementset, a CellGroup and a dummy rigid material
+            shared_ptr<Material> materialRBE2(new Material(this));
+            materialRBE2->addNature(RigidNature(*this, 1));
+            this->add(materialRBE2);
+
+            CellGroup* group = mesh->createCellGroup("RBE2_"+std::to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBE2");
+            Rbar elementsetRbe2(*this, mesh->findNode(rbe2->getMaster()).id);
+            elementsetRbe2.assignCellGroup(group);
+            elementsetRbe2.assignMaterial(materialRBE2);
+            this->add(elementsetRbe2);
+
+            // Creating cells and adding them to the CellGroup
+            Node master = mesh->findNode(rbe2->getMaster());
+            for (int position : rbe2->getSlaves()){
+                Node slave = mesh->findNode(position);
+                vector<int> nodes = {master.id, slave.id};
+                int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
+                group->addCell(mesh->findCell(cellPosition).id);
+            }
+
+            // Removing the constraint from the model.
+            remove(constraint->getReference());
+            if (configuration.logLevel >= LogLevel::DEBUG){
+                cout << "Building cells in cellgroup "<<group->getName()<<" from "<< *rbe2<<"."<<endl;
+            }
+        }
+
+
+        constraints = constraintSet->getConstraintsByType(Constraint::QUASI_RIGID);
+        for (const auto& constraint : constraints) {
+            std::shared_ptr<QuasiRigidConstraint> rbar = std::static_pointer_cast<QuasiRigidConstraint>(constraint);
+
+            if (!(rbar->isCompletelyRigid())){
+                cerr << "QUASI_RIDID constraint not available yet. Constraint "+std::to_string(constraint->bestId())+ " translated as rigid constraint."<<endl;
+            }
+            if (rbar->getSlaves().size()!=2){
+               throw logic_error("QUASI_RIDID constraint must have exactly two slaves.");
+            }
+
+            // Creating an elementset, a CellGroup and a dummy rigid material
+            shared_ptr<Material> materialRBAR(new Material(this));
+            materialRBAR->addNature(RigidNature(*this, 1));
+            this->add(materialRBAR);
+
+            // Master Node : first one. Slave Node : second and last one
+            Node masterNode = mesh->findNode(*rbar->getSlaves().begin());
+            Node slaveNode = mesh->findNode(*rbar->getSlaves().rbegin());
+            CellGroup* group = mesh->createCellGroup("RBAR_"+std::to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBAR");
+
+            Rbar elementsetRBAR(*this, masterNode.id);
+            elementsetRBAR.assignCellGroup(group);
+            elementsetRBAR.assignMaterial(materialRBAR);
+            this->add(elementsetRBAR);
+
+            // Creating a cell and adding it to the CellGroup
+            vector<int> nodes = {masterNode.id, slaveNode.id};
+            int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
+            group->addCell(mesh->findCell(cellPosition).id);
+
+            // Removing the constraint from the model.
+            remove(constraint->getReference());
+            if (configuration.logLevel >= LogLevel::DEBUG){
+                cout << "Building cells in cellgroup "<<group->getName()<<" from "<< *rbar<<"."<<endl;
+            }
+        }
+
+
+        /* Translation of RBE3
+         * See Systus Reference Analysis Manual, Section 8.8 "Special Elements",
+         * Subsection "Use of Averaging Type Solid Elements", p500.
+         */
+        constraints = constraintSet->getConstraintsByType(Constraint::RBE3);
+        for (const auto& constraint : constraints) {
+
+            const std::shared_ptr<RBE3> rbe3 = std::static_pointer_cast<RBE3>(constraint);
+            Node master = mesh->findNode(rbe3->getMaster());
+            const DOFS mDOFS = rbe3->getDOFS();
+
+            int nbParts=0;
+            map<DOFS, map<double, CellGroup*>> groupByCoefByDOFS;
+
+            for (int position : rbe3->getSlaves()){
+
+                Node slave = mesh->findNode(position);
+                vector<int> nodes = {master.id, slave.id};
+                int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
+
+                /* We build a material for each value of "Slave DOFS" and "Slave Coeff" */
+                const DOFS sDOFS = rbe3->getDOFSForNode(position);
+                const double sCoef = rbe3->getCoefForNode(position);
+
+                CellGroup* groupRBE3 = nullptr;
+                auto it = groupByCoefByDOFS.find(sDOFS);
+                if (it !=groupByCoefByDOFS.end()){
+                    auto it2 = it->second.find(sCoef);
+                    if (it2 != it->second.end())
+                        groupRBE3 = it2->second;
+                }
+
+                if (groupRBE3==nullptr){
+
+                    // Creating an elementset, a CellGroup and a dummy rigid material
+                    nbParts++;
+                    shared_ptr<Material> materialRBE3(new Material(this));
+                    materialRBE3->addNature(RigidNature(*this, Nature::UNAVAILABLE_DOUBLE, sCoef));
+                    this->add(materialRBE3);
+
+                    CellGroup* group = mesh->createCellGroup("RBE3_"+to_string(nbParts)+"_"+to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBE3");
+                    Rbe3 elementsetRbe3(*this, master.id, mDOFS, sDOFS);
+                    elementsetRbe3.assignCellGroup(group);
+                    elementsetRbe3.assignMaterial(materialRBE3);
+                    this->add(elementsetRbe3);
+
+                    if (configuration.logLevel >= LogLevel::DEBUG){
+                        cout << "Building cells in CellGroup "<<group->getName()<<" from "<< *rbe3<<"."<<endl;
+                    }
+                    groupByCoefByDOFS[sDOFS][sCoef]= group;
+                }
+                groupRBE3=groupByCoefByDOFS[sDOFS][sCoef];
+                groupRBE3->addCell(mesh->findCell(cellPosition).id);
+            }
+
+            // Removing the constraint from the model.
+            remove(constraint->getReference());
+        }
+    }
+}
 
 
 void Model::finish() {
@@ -1732,6 +1872,10 @@ void Model::finish() {
 
     if (this->configuration.makeCellsFromDirectMatrices){
         makeCellsFromDirectMatrices();
+    }
+
+    if (this->configuration.makeCellsFromRBE){
+        makeCellsFromRBE();
     }
 
     assignElementsToCells();
