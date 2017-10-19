@@ -1505,7 +1505,9 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
             case ElementSet::STRUCTURAL_SEGMENT:
             case ElementSet::SHELL:
             case ElementSet::CONTINUUM:
-            case ElementSet::NODAL_MASS: {
+            case ElementSet::NODAL_MASS:
+            case ElementSet::RBAR:
+            case ElementSet::RBE3:{
                 continue;
             }
 
@@ -1619,7 +1621,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
 
             default: {
                 //TODO : throw WriterException("ElementSet type not supported");
-                cout << "Warning in FillTables: " << *elementSet << " not supported" << endl;
+                cout << "Warning in FillMatrices: " << *elementSet << " not supported" << endl;
             }
             }
         }
