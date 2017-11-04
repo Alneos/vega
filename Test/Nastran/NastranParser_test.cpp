@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE( nastran_med_write ) {
 
 BOOST_AUTO_TEST_CASE( test_model_read ) {
 	string testLocation = fs::path(
-	PROJECT_BASE_DIR "/testdata/nastran/linstat/bar1n/bar1n.dat").make_preferred().string();
+	PROJECT_BASE_DIR "/testdata/nastran/alneos/test4a/test4a.dat").make_preferred().string();
 	nastran::NastranParser parser;
 	try {
 		const shared_ptr<Model> model = parser.parse(

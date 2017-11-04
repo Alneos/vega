@@ -102,7 +102,8 @@ bool NastranTokenizer::readLineSkipComment(string& line) {
 	bool eof = true;
 	while (getline(this->instrream, line)) {
 		lineNumber += 1;
-		if (!line.empty() and !boost::all(line,isblank) and line[0] != '$') {
+		if (!line.empty() and !all_of(line.begin(), line.end(), [](int c) {return isblank(c);})
+				and line[0] != '$') {
 			boost::iterator_range<string::iterator> middle_dollar = boost::find_first(line, "$");
 			if (middle_dollar) {
 				boost::erase_tail(line,
@@ -110,7 +111,7 @@ bool NastranTokenizer::readLineSkipComment(string& line) {
 								- static_cast<int>(distance(line.begin(), middle_dollar.begin())));
 			}
 			//if the line is not blank exit the loop
-			if (!boost::all(line, isblank)){
+			if (!boost::all(line, [](int c) { return isblank(c); })){
 				eof = false;
 				break;
 			}

@@ -177,7 +177,7 @@ string NastranParserImpl::parseSubcase(NastranTokenizer& tok, shared_ptr<Model> 
     
     try{
         addAnalysis(tok, model, context, subCaseId);
-    }catch (std::string){
+    }catch (std::string&){
         return nextKeyword;
     }
     return nextKeyword;
@@ -322,7 +322,7 @@ void NastranParserImpl::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<
                 }
             }
 
-        } catch (std::string) {
+        } catch (std::string&) {
             // Parsing errors are catched by VegaCommandLine.
             // If we are not in strict mode, we dismiss this command and continue, hoping for the best.
             tok.skipToNextKeyword();
@@ -374,7 +374,7 @@ void NastranParserImpl::parseBULKSection(NastranTokenizer &tok, shared_ptr<Model
                 handleParsingError(message, tok, model);
             }
 
-        } catch (std::string) {
+        } catch (std::string&) {
             // Parsing errors are catched by VegaCommandLine.
             // If we are not in strict mode, we dismiss this command and continue, hoping for the best.
             tok.skipToNextKeyword();

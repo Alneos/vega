@@ -32,32 +32,30 @@
 #include "../Abstract/ConfigurationParameters.h"
 #include "../Abstract/SolverInterfaces.h"
 
-using namespace std;
-
 //TODO implements iterator
 class NastranTokenizer : public vega::Tokenizer {
-
-private:
+public:
     enum LineType {
         FREE_FORMAT,
         SHORT_FORMAT,
         LONG_FORMAT
     };
+private:
     static const int SFSIZE = 8; /**< Short field size **/
     static const int LFSIZE = 16;/**< Long field size **/
 
     unsigned int currentField;   /**< Current position of the Tokenizer, i.e, the next field to be interpreted **/
-    vector<string> currentLineVector;
-    string currentLine;
+    std::vector<std::string> currentLineVector;
+    std::string currentLine;
 
-    LineType getLineType(const string& line); /**< Determine the LineType of the line.**/
-    void replaceTabs(string &line, bool longFormat); /**< Replace all tabulation by the needed number of space. **/
+    NastranTokenizer::LineType getLineType(const std::string& line); /**< Determine the LineType of the line.**/
+    void replaceTabs(std::string &line, bool longFormat); /**< Replace all tabulation by the needed number of space. **/
 
-    void splitFixedFormat(string& line, bool longFormat, bool firstLine);
+    void splitFixedFormat(std::string& line, bool longFormat, bool firstLine);
 
-    bool readLineSkipComment(string& line);
-    void splitFreeFormat(string line, bool firstLine);
-    void parseBulkSectionLine(string line);
+    bool readLineSkipComment(std::string& line);
+    void splitFreeFormat(std::string line, bool firstLine);
+    void parseBulkSectionLine(std::string line);
     void parseParameters();
 
     /**
@@ -65,7 +63,7 @@ private:
      * Return a void string if it's the end of the line.
      */
     //string nextBulkString();
-    string nextSymbolString();
+    std::string nextSymbolString();
 
 public:
     enum SymbolType {
@@ -85,8 +83,8 @@ public:
     SectionType currentSection;
     SymbolType nextSymbolType;
 
-    NastranTokenizer(istream& stream, vega::LogLevel logLevel = vega::LogLevel::INFO,
-            const string fileName = "UNKNOWN",
+    NastranTokenizer(std::istream& stream, vega::LogLevel logLevel = vega::LogLevel::INFO,
+            const std::string fileName = "UNKNOWN",
             const vega::ConfigurationParameters::TranslationMode translationMode = vega::ConfigurationParameters::BEST_EFFORT);
     virtual ~NastranTokenizer();
 
@@ -124,7 +122,7 @@ public:
      *      if false throws exception
      * @return
      */
-    string nextString(bool returnDefaultIfNotFoundOrBlank = false, string defaultValue = "");
+    std::string nextString(bool returnDefaultIfNotFoundOrBlank = false, std::string defaultValue = "");
     /**
      * Try to interpret the next symbol in the Nastran file as a double
      *  and advances to next symbol.
@@ -153,9 +151,9 @@ public:
     /**
      * Return a vector containing the full data line with unparsed arguments.
      */
-    vector<string> currentDataLine() const;
+    std::vector<std::string> currentDataLine() const;
 
-    const string currentRawDataLine() const;
+    const std::string currentRawDataLine() const;
     /**
      * Advances to next data line, discarding the current content.
      */

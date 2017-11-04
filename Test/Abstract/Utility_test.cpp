@@ -15,12 +15,14 @@ BOOST_AUTO_TEST_CASE( test_vectorial_value ) {
 	VectorialValue v = VectorialValue(1., 2., 3.);
 	VectorialValue v2 = VectorialValue(2., 4., 0.);
 	BOOST_CHECK_EQUAL(v.norm(), sqrt(14.));
+	BOOST_CHECK_EQUAL(v2.norm(), sqrt(20.));
 	BOOST_CHECK_EQUAL(v.dot(v2), 10);
 	BOOST_CHECK_EQUAL(v.normalized().x(), 1. / sqrt(14.));
 	BOOST_CHECK_EQUAL(v.scaled(42.0).y(), 84.0);
 	// test with a precision
-	BOOST_CHECK_CLOSE(v.orthonormalized(v2).x(), (1. - sqrt(20.)) / sqrt(114. - 10 * sqrt(20.)),
-			10e-12);
+	VectorialValue v3 = v.orthonormalized(v2);
+	BOOST_CHECK_EQUAL(v2.dot(v3), 0);
+	//BOOST_CHECK_CLOSE(v.orthonormalized(v2).x(), (1.-sqrt(20.))/sqrt(114.-10*sqrt(20.)), 10e-12);
 
 	BOOST_CHECK_EQUAL(v.cross(v2).x(), -12.);
 

@@ -26,7 +26,7 @@ using vega::result::F06Parser;
 BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 
 	string testLocation(
-	PROJECT_BASE_DIR "/testdata/nastran/linstat/diag/diag.f06");
+	PROJECT_BASE_DIR "/testdata/nastran/alneos/rbar1mod/rbar1mod.f06");
 	ConfigurationParameters confParams("inputFile", vega::CODE_ASTER, "..", "vega", ".",
 			LogLevel::DEBUG, ConfigurationParameters::BEST_EFFORT, testLocation, 0.0003);
 	F06Parser f06parser;
@@ -57,12 +57,12 @@ BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 			model->find(Reference<Analysis>(Analysis::LINEAR_MECA_STAT, 1)));
 	BOOST_ASSERT(linearMecaStat1!=nullptr);
 	vector<shared_ptr<Assertion>> assertions = linearMecaStat1->getAssertions();
-	BOOST_CHECK_EQUAL(assertions.size(), (size_t ) 42);
+	BOOST_CHECK_EQUAL(assertions.size(), (size_t ) 24);
 
 	model->finish();
 	//ineffective assertions are removed by model.finish()
 	vector<shared_ptr<Assertion>> assertions2 = linearMecaStat1->getAssertions();
-	BOOST_CHECK_EQUAL(assertions2.size(), (size_t ) 36);
+	BOOST_CHECK_EQUAL(assertions2.size(), (size_t ) 24);
 	bool found = false;
 	for (auto assertion : assertions) {
 
@@ -70,9 +70,9 @@ BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 		NodalDisplacementAssertion & nodalDispAssertion =
 				dynamic_cast<NodalDisplacementAssertion&>(*assertion);
 		int nodeId = model->mesh->findNode(nodalDispAssertion.nodePosition).id;
-		if (nodeId == 5 && nodalDispAssertion.dof == DOF::DZ) {
+		if (nodeId == 3 && nodalDispAssertion.dof == DOF::DX) {
 			found = true;
-			BOOST_CHECK_EQUAL(nodalDispAssertion.value, 7.932903E-02);
+			BOOST_CHECK_EQUAL(nodalDispAssertion.value, 4.901961E-01);
 		}
 	}
 	BOOST_CHECK_EQUAL(found, true);

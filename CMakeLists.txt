@@ -24,35 +24,47 @@ set(VEGA_PATCH_VERSION 1)
 IF(NOT DEFINED VEGA_EXTRA_VERSION)
     set(VEGA_EXTRA_VERSION "" CACHE STRING "Vega extra version string")
 ENDIF(NOT DEFINED VEGA_EXTRA_VERSION)
-    
+
 # add this options before PROJECT keyword
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/build/cmake_files)
+set(CMAKE_CXX_STANDARD 11)
 
-SET(CMAKE_BUILD_TYPE DDebug CACHE STRING  
+SET(CMAKE_BUILD_TYPE DDebug CACHE STRING
     "Choose the type of build, options are: None DDebug SDebug DRelease SRelease.")
 #make outputs build commands and options
 OPTION(CMAKE_VERBOSE_MAKEFILE "make outputs build commands" ON)
 project ( vegapp CXX C)
-    
-IF(CMAKE_BUILD_TYPE MATCHES "[Dd][Dd][Ee][Bb][Uu][Gg]") 
-    message(STATUS "Dynamic Debug mode selected") 
+
+# Debug and Release are reserved words for cmake see https://cmake.org/cmake/help/v3.0/variable/CMAKE_BUILD_TYPE.html
+IF(CMAKE_BUILD_TYPE MATCHES "[Dd][Ee][Bb][Uu][Gg]")
+    message(STATUS "Debug mode selected")
+    option(STATIC_LINKING "Static Linking" OFF)
+ENDIF(CMAKE_BUILD_TYPE MATCHES "[Dd][Ee][Bb][Uu][Gg]")
+IF(CMAKE_BUILD_TYPE MATCHES "[Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
+    message(STATUS "Dynamic Release mode selected")
+    option(STATIC_LINKING "Static Linking" OFF)
+ENDIF(CMAKE_BUILD_TYPE MATCHES "[Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
+
+# Other legacy configurations (used by ESI)
+IF(CMAKE_BUILD_TYPE MATCHES "[Dd][Dd][Ee][Bb][Uu][Gg]")
+    message(STATUS "Dynamic Debug mode selected")
     option(STATIC_LINKING "Static Linking" OFF)
     add_definitions(-DVDEBUG)
 ENDIF(CMAKE_BUILD_TYPE MATCHES "[Dd][Dd][Ee][Bb][Uu][Gg]")
 IF(CMAKE_BUILD_TYPE MATCHES "[Ss][Dd][Ee][Bb][Uu][Gg]")
-    message(STATUS "Static Debug mode selected") 
+    message(STATUS "Static Debug mode selected")
     option(STATIC_LINKING "Static Linking" ON)
     add_definitions(-DVDEBUG)
-ENDIF(CMAKE_BUILD_TYPE MATCHES "[Ss][Dd][Ee][Bb][Uu][Gg]") 
+ENDIF(CMAKE_BUILD_TYPE MATCHES "[Ss][Dd][Ee][Bb][Uu][Gg]")
 IF(CMAKE_BUILD_TYPE MATCHES "[Dd][Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
-    message(STATUS "Dynamic Release mode selected") 
-    option(STATIC_LINKING "Static Linking" OFF)    
-ENDIF(CMAKE_BUILD_TYPE MATCHES "[Dd][Rr][Ee][Ll][Ee][Aa][Ss][Ee]") 
+    message(STATUS "Dynamic Release mode selected")
+    option(STATIC_LINKING "Static Linking" OFF)
+ENDIF(CMAKE_BUILD_TYPE MATCHES "[Dd][Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
 IF(CMAKE_BUILD_TYPE MATCHES "[Ss][Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
-    message(STATUS "Static Release mode selected") 
-    option(STATIC_LINKING "Static Linking" ON)    
+    message(STATUS "Static Release mode selected")
+    option(STATIC_LINKING "Static Linking" ON)
 ENDIF(CMAKE_BUILD_TYPE MATCHES "[Ss][Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
 
 
@@ -71,8 +83,9 @@ if(WIN32)
         #add_compile_options(-fPIC)
         #set(CMAKE_EXE_LINKER_FLAGS "-pthread -shared-libgcc -rdynamic -pipe" CACHE INTERNAL "Linker flags")
     endif(STATIC_LINKING)
+    set(RUN_SYSTUS 0)
 else(WIN32)
-    
+
     # Options generic to all "gnu" compilations
     SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fstack-protector-all")
     #SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2")
@@ -91,7 +104,7 @@ else(WIN32)
         add_compile_options(-fPIC)
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -shared-libgcc -pipe" CACHE INTERNAL "Linker flags")
     endif(STATIC_LINKING)
-        
+
     IF(CYGWIN)
         # Specific options for Cygwin
         add_compile_options(-D_XOPEN_SOURCE=500)
@@ -104,13 +117,17 @@ else(WIN32)
             set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -rdynamic " CACHE INTERNAL "Linker flags")
         endif(STATIC_LINKING)
     ENDIF(CYGWIN)
-    
+
     # Optional use of ccache
     find_program(CCACHE_FOUND ccache)
     if(CCACHE_FOUND)
        SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
        SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
     endif(CCACHE_FOUND)
+    
+    # Systus run cannot be enabled by default, since there is no systus runner in continous integration (tests would fail)
+    # It can be enabled on a given machine by changing the build_properties.h file 
+    set(RUN_SYSTUS 0)
 endif(WIN32)
 
 
@@ -130,11 +147,11 @@ set(VEGA_VERSION "${VEGA_MAJOR_VERSION}.${VEGA_MINOR_VERSION}")
 set(VEGA_VERSION "${VEGA_VERSION}.${VEGA_PATCH_VERSION}${VEGA_EXTRA_VERSION}")
 set(VEGA_SHORT_LICENSE "GPL")
 
-execute_process(COMMAND date "+%Y%m%d" OUTPUT_VARIABLE DATE 
+execute_process(COMMAND date "+%Y%m%d" OUTPUT_VARIABLE DATE
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND hostname OUTPUT_VARIABLE HOSTNAME 
+execute_process(COMMAND hostname OUTPUT_VARIABLE HOSTNAME
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
-execute_process(COMMAND whoami OUTPUT_VARIABLE PACKAGER 
+execute_process(COMMAND whoami OUTPUT_VARIABLE PACKAGER
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
 
 if(NOT DATE)
@@ -170,8 +187,8 @@ set (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 SET (CTEST_BINARY_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 #10 hours for tests
-set (CTEST_TEST_TIMEOUT 36000 CACHE STRING 
-    "Maximum time allowed before CTest will kill the test.") 
+set (CTEST_TEST_TIMEOUT 36000 CACHE STRING
+    "Maximum time allowed before CTest will kill the test.")
 
 include(CheckTypeSize)
 include(CheckFunctionExists)
@@ -194,12 +211,12 @@ ENDIF(NOT DEFINED MEDFile_DIR)
 if(IS_DIRECTORY ${MEDFile_DIR})
     mark_as_advanced(MEDFile_DIR)
 endif(IS_DIRECTORY ${MEDFile_DIR})
-    
+
 
 set(Boost_USE_STATIC_LIBS ${STATIC_LINKING})
 #set(Boost_USE_MULTITHREADED ON)
 IF(NOT WIN32)
-    #under windows don't use static runtime because medC hasn't been compiled with 
+    #under windows don't use static runtime because medC hasn't been compiled with
     #(see commented compile option /MT)
     set(Boost_USE_STATIC_RUNTIME ${STATIC_LINKING})
 ENDIF(NOT WIN32)
@@ -312,7 +329,7 @@ message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
 message(STATUS "Install prefix: " ${CMAKE_INSTALL_PREFIX})
 if(DOXYGEN_FOUND)
   message(STATUS "Doxygen: " ${DOXYGEN_EXECUTABLE})
-  message(STATUS "Doxyfile: " ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)  
+  message(STATUS "Doxyfile: " ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
 else(DOXYGEN_FOUND)
   message(STATUS "Doxygen: not found.")
 endif(DOXYGEN_FOUND)

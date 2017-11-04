@@ -37,7 +37,6 @@ using namespace std;
 BOOST_AUTO_TEST_CASE(nastran_short_with_comments) {
     string nastranLine = "$comment comment \nKEYWORD 12345\n2NDLINE 1234567 1234567 ";
     istringstream istr(nastranLine);
-
     NastranTokenizer tokenizer(istr);
     tokenizer.bulkSection();
     //comments are skipped

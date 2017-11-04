@@ -15,12 +15,6 @@
 #include <string>
 #include "build_properties.h"
 #include "CommandLineUtils.h"
-//don't run systus on windows for now
-#ifdef WIN32
-#define RUN_SYSTUS false
-#else
-#define RUN_SYSTUS true
-#endif
 //____________________________________________________________________________//
 
 namespace vega {
@@ -28,20 +22,16 @@ namespace tests {
 
 using namespace std;
 
-BOOST_AUTO_TEST_CASE( maxim ) {
-	CommandLineUtils::nastranStudy2Systus("/linstat/maxim/maxim.dat", RUN_SYSTUS, true, 0.000001);
+BOOST_AUTO_TEST_CASE( test4a ) {
+	CommandLineUtils::nastranStudy2Systus("/alneos/test4a/test4a.dat", RUN_SYSTUS, true, 0.00001);
 }
 
-BOOST_AUTO_TEST_CASE( rod1 ) {
-	CommandLineUtils::nastranStudy2Systus("/linstat/rod1/rod1.dat", RUN_SYSTUS, true, 0.000001);
+BOOST_AUTO_TEST_CASE( rbar1mod ) {
+	CommandLineUtils::nastranStudy2Systus("/alneos/rbar1mod/rbar1mod.dat", RUN_SYSTUS, true, 0.00001);
 }
 
-BOOST_AUTO_TEST_CASE( rod2 ) {
-	CommandLineUtils::nastranStudy2Systus("/linstat/rod2/rod2.dat", RUN_SYSTUS, true, 0.000001);
-}
-
-BOOST_AUTO_TEST_CASE( bd03bar1 ) {
-	CommandLineUtils::nastranStudy2Systus("/lindyna/bd03bar1/bd03bar1.dat", true, true, 0.03);
+BOOST_AUTO_TEST_CASE( rod1freeforce ) {
+	CommandLineUtils::nastranStudy2Systus("/alneos/rod1freeforce/rod1freeforce.dat", RUN_SYSTUS, true, 0.00001);
 }
 
 } /* namespace test */

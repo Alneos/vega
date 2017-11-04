@@ -144,7 +144,9 @@ shared_ptr<T> Model::Container<T>::get(int id) const {
 template<class T>
 bool Model::Container<T>::validate() const {
     bool isValid = true;
-    for (shared_ptr<T> t : *this) {
+    //for (shared_ptr<T> t : *this) {
+    for (iterator it = this->begin(); it != this->end(); ++it) {
+    	shared_ptr<T> t = *it;
         if (!t->validate()) {
             isValid = false;
             cerr << *t << " not valid" << endl;
@@ -1310,7 +1312,7 @@ void Model::replaceDirectMatrices()
         int nodePosition = kv.first;
         Node node = this->mesh->findNode(nodePosition);
         DOFS added = kv.second;
-        DOFS required = nullptr;
+        DOFS required;
         auto it = requiredDofsByNode.find(nodePosition);
         if (it == requiredDofsByNode.end()) {
             required = DOFS::NO_DOFS;
@@ -1318,7 +1320,7 @@ void Model::replaceDirectMatrices()
             required = it->second;
         }
 
-        DOFS owned = nullptr;
+        DOFS owned;
         auto it2 = ownedDofsByNode.find(nodePosition);
         if (it2 == ownedDofsByNode.end()) {
             owned = DOFS::NO_DOFS;

@@ -630,6 +630,28 @@ CellGroup* Mesh::createCellGroup(const string& name, int group_id, const string 
 	return group;
 }
 
+void Mesh::renameGroup(const string& oldname, const string& newname, const string& comment) {
+	if (oldname.empty()) {
+		throw invalid_argument("Can't rename a group with empty oldname.");
+	}
+	if (newname.empty()) {
+		throw invalid_argument("Can't rename a group with empty newname.");
+	}
+	if (this->groupByName.find(oldname) != this->groupByName.end()) {
+		//throw invalid_argument("No group exists with this name: " + oldname);
+		return; // TODO LD cannot understand this case, keeping for a later time
+	}
+	this->groupByName.erase(oldname);
+	Group* group = this->groupByName[oldname];
+	group->name = newname;
+	group->comment = comment;
+
+
+	if (this->logLevel >= LogLevel::DEBUG) {
+		cout << "Renamed Cell Group: " << name << endl;
+	}
+}
+
 vector<NodeGroup*> Mesh::getNodeGroups() const {
 	vector<NodeGroup*> groups;
 	for (const auto& it : groupByName) {

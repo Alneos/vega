@@ -432,6 +432,9 @@ string NastranWriterImpl::writeModel(const shared_ptr<vega::Model> model,
 				// TODO LD complete
 				out << Line("CORD2C").add(coordinateSystem->bestId()).add(coordinateSystem->getOrigin());
 				break;
+			case CoordinateSystem::ORIENTATION:
+				// Nothing to do here: it will be handled by CBEAM, CBAR etc.
+				break;
 			default:
 				throw logic_error("Unimplemented coordinate system type");
 		}

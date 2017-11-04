@@ -140,6 +140,7 @@ public:
 	NodeGroup* findOrCreateNodeGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
 	std::vector<NodeGroup*> getNodeGroups() const;
 	CellGroup* createCellGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
+	void renameGroup(const string& oldname, const string& newname, const string& comment);
 	std::vector<CellGroup*> getCellGroups() const;
 	Group* findGroup(string) const;
 	/**

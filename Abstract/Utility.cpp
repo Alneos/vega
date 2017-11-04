@@ -50,12 +50,11 @@ bool VectorialValue::iszero() const {
 	return is_zero(value[0]) && is_zero(value[1]) && is_zero(value[2]);
 }
 
-VectorialValue VectorialValue::orthonormalized(const VectorialValue& other) const {
-	ublas::vector<double> v0rth = this->value
-			- (other.value * dot(other)) / (pow(ublas::norm_2(other.value),2));
-	//v - numpy.dot(v,v2)*v2/numpy.linalg.norm(v2)
-	v0rth = v0rth / ublas::norm_2(v0rth);
-	return VectorialValue(v0rth);
+VectorialValue VectorialValue::orthonormalized(const VectorialValue& u) const {
+	VectorialValue v = *this;
+	// https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
+	VectorialValue v2 = v - (u.dot(v) / u.dot(u)) * u;
+	return v2.normalized();
 }
 
 VectorialValue VectorialValue::normalized() const {
@@ -204,7 +203,7 @@ bool InvertMatrix(const ublas::matrix<double>& input, ublas::matrix<double>& inv
    pmatrix pm(A.size1());
 
    // perform LU-factorization
-   int res = lu_factorize(A, pm);
+   int res = boost::numeric_cast<int>(lu_factorize(A, pm));
    if (res != 0)
        return false;
 

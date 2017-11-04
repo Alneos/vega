@@ -125,11 +125,11 @@ CellGroup* NastranParserImpl::getOrCreateCellGroup(int property_id, shared_ptr<M
     string cellGroupName= command + string("_") + lexical_cast<string>(property_id);
     if (cellGroup == nullptr){
         cellGroup = model->mesh->createCellGroup(cellGroupName, property_id, command);
-    }else{
-        /* If the Group already exists, and if it was not already done, we enforce the name and comment of the Group */
+    }
+    else{
+        // If the Group already exists, and if it was not already done, we enforce the name and comment of the Group
         if (cellGroup->getName().substr(0,6)=="CGVEGA"){
-            cellGroup->setName(cellGroupName);
-            cellGroup->setComment(command);
+        	model->mesh->renameGroup(cellGroup->getName(), cellGroupName, command);
         }
     }
     return cellGroup;

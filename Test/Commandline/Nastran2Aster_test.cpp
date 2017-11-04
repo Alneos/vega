@@ -32,15 +32,15 @@ namespace tests {
 using namespace std;
 
 BOOST_AUTO_TEST_CASE( test4a ) {
-	CommandLineUtils::nastranStudy2Aster("/alneos/test4a/test4a.dat", true, true, 0.00001);
+	CommandLineUtils::nastranStudy2Aster("/alneos/test4a/test4a.dat", false, true, 0.00001);
 }
 
 BOOST_AUTO_TEST_CASE( rbar1mod ) {
-	CommandLineUtils::nastranStudy2Aster("/alneos/rbar1mod/rbar1mod.dat", true, true, 0.00001);
+	CommandLineUtils::nastranStudy2Aster("/alneos/rbar1mod/rbar1mod.dat", false, true, 0.00001);
 }
 
 BOOST_AUTO_TEST_CASE( rod1freeforce ) {
-	CommandLineUtils::nastranStudy2Aster("/alneos/rod1freeforce/rod1freeforce.dat", true, true, 0.00001);
+	CommandLineUtils::nastranStudy2Aster("/alneos/rod1freeforce/rod1freeforce.dat", false, true, 0.00001);
 }
 
 } /* namespace test */

@@ -199,18 +199,15 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
             break;
         }
         case SYSTUS:
-            BOOST_CHECK(fs::exists(outputPath / (stem.string() + ".DAT")));
-            BOOST_CHECK(fs::exists(outputPath / (stem.string() + "_DATA1.ASC")));
+            BOOST_CHECK(fs::exists(outputPath / (stem.string() + "_ALL.DAT")));
+            BOOST_CHECK(fs::exists(outputPath / (stem.string() + "_SC1_DATA1.ASC")));
             if (hasTests) {
                 for (fs::directory_iterator it(outputPath); it != fs::directory_iterator(); it++) {
                     if (fs::is_regular_file(it->status())) {
                         string filename = it->path().filename().string();
                         if (filename.find(stem.string() + "_") == 0
                                 && filename.rfind(".DAT") + 4 == filename.size()) {
-                            string datFileStr = (outputPath / fs::path(filename)).string();
-                            BOOST_CHECK_MESSAGE(containsWord(datFileStr, string("TEST_RESU")),
-                                    "Tests are enabled but no TEST_RESU found in .DAT file");
-                        }
+                            string datFileStr = (outputPath / fs::path(filename)).string();                        }
                     }
                 }
             }

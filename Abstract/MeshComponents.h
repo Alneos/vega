@@ -218,17 +218,16 @@ public:
         CELLGROUP = 3
     };
 protected:
-    Group(Mesh* mesh, std::string name, Type, int id = NO_ORIGINAL_ID, std::string comment=" ");
+    friend Mesh;
+    Group(Mesh* mesh, const std::string& name, Type, int id = NO_ORIGINAL_ID, std::string comment=" ");
     Mesh* const mesh;
     std::string name;
 public:
     //const SpaceDimension dimension;
     const Type type;
     std::string comment; ///< A comment string, usually use to retain the command which created the group.
-    const std::string getName() const;   ///< Getter for the "name" field.
-    void setName(std::string name);      ///< Setter for the "name" field.
-    const std::string getComment() const;///< Getter for the "comment" field.
-    void setComment(std::string comment);///< Setter for the "comment" field.
+    const std::string getName() const;
+    const std::string getComment() const;
     virtual const std::set<int> nodePositions() const = 0;
     virtual ~Group();
 };

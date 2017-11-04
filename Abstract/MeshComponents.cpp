@@ -144,7 +144,7 @@ const CellType* CellType::findByCode(CellType::Code code) {
 	return CellType::typeByCode[code];
 }
 
-Group::Group(Mesh* mesh, string name, Type type, int _id, string comment) :
+Group::Group(Mesh* mesh, const string& name, Type type, int _id, string comment) :
 		Identifiable(_id), mesh(mesh), name(name), type(type), comment(comment) {
 }
 
@@ -152,16 +152,8 @@ const string Group::getName() const {
 	return this->name;
 }
 
-void Group::setName(string name) {
-	this->name=name;
-}
-
 const string Group::getComment() const {
 	return this->comment;
-}
-
-void Group::setComment(string comment) {
-	this->comment=comment;
 }
 
 Group::~Group() {
@@ -291,7 +283,7 @@ void Node::buildGlobalXYZ(const Model *model){
             // For other, it's too harsh for a regular translation.
             //throw logic_error(oss.str());
             oss <<  " Global Coordinate System used instead."<< endl;
-            cerr<< oss;
+            cerr<< oss.str();
             this->x=this->lx;
             this->y=this->ly;
             this->z=this->lz;
@@ -643,6 +635,9 @@ vector<CellGroup *> CellContainer::getCellGroups() const {
 	cellGroups.reserve(groupNames.size());
 	for (string groupName : groupNames) {
 		CellGroup* group = static_cast<CellGroup *>(mesh->findGroup(groupName));
+		if (group == nullptr) {
+			throw invalid_argument("Cannot find group with name:" + groupName);
+		}
 		cellGroups.push_back(group);
 	}
 	return cellGroups;

@@ -109,13 +109,13 @@ ParsingException::ParsingException(string arg, string fname, int lineNum, string
     //defined in top level cmake file
 #ifdef VDEBUG
     void *array[10];
-    size_t size;
+    int size;
     char **strings;
 
-    size = backtrace(array, 10);
+    size = boost::numeric_cast<int>(backtrace(array, 10));
     strings = backtrace_symbols(array, size);
     msg.append("\n");
-    for (size_t i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++) {
         msg.append(strings[i]);
         msg.append("\n");
     }
@@ -143,13 +143,13 @@ WritingException::WritingException(string arg, string key, string fname) {
     //flag defined by cmake in Release build
 #ifdef VDEBUG
     void *array[10];
-    size_t size;
+    int size;
     char **strings;
 
-    size = backtrace(array, 10);
+    size = boost::numeric_cast<int>(backtrace(array, 10));
     strings = backtrace_symbols(array, size);
     msg.append("\n");
-    for (size_t i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++) {
         msg.append(strings[i]);
         msg.append("\n");
     }
