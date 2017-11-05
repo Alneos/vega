@@ -34,7 +34,7 @@ Value::Value(const Model& model, Value::Type type, int original_id, ParaName par
 
 const string Value::name = "Value";
 
-const map<Value::Type, string> Value::stringByType = { { STEP_RANGE, "STEP_RANGE" }, {
+const map<Value::Type, string> Value::stringByType = { { STEP_RANGE, "STEP_RANGE" }, { SPREAD_RANGE, "SPREAD_RANGE" }, {
         FUNCTION_TABLE, "FUNCTION_TABLE" }, { DYNA_PHASE, "DYNA_PHASE" }, };
 
 ostream &operator<<(ostream &out, const Value& value) {
@@ -77,6 +77,15 @@ StepRange::StepRange(const Model& model, double start, double step, int count, i
 
 shared_ptr<Value> StepRange::clone() const {
     return shared_ptr<Value>(new StepRange(*this));
+}
+
+SpreadRange::SpreadRange(const Model& model, double start, int count, double end, double spread, int original_id) :
+		ValueRange(model, SPREAD_RANGE, original_id), start(start), count(count), end(end), spread(spread) {
+    assert(end > start);
+}
+
+shared_ptr<Value> SpreadRange::clone() const {
+    return shared_ptr<Value>(new SpreadRange(*this));
 }
 
 Function::Function(const Model& model, Type type, int original_id) :

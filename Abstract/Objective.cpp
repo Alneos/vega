@@ -117,22 +117,22 @@ shared_ptr<Objective> AnalysisParameter::clone() const {
     return shared_ptr<Objective>(new AnalysisParameter(*this));
 }
 
-FrequencyValues::FrequencyValues(const Model& model, const StepRange& step_range, int original_id) :
-        AnalysisParameter(model, FREQUENCY_TARGET, original_id), step_range(Value::STEP_RANGE,
-                Reference<Value>::NO_ID, step_range.getId()) {
+FrequencyValues::FrequencyValues(const Model& model, const ValueRange& valueRange, int original_id) :
+        AnalysisParameter(model, FREQUENCY_TARGET, original_id), valueRange(Value::STEP_RANGE,
+                Reference<Value>::NO_ID, valueRange.getId()) {
 }
 
-FrequencyValues::FrequencyValues(const Model& model, int step_range_id, int original_id) :
-        AnalysisParameter(model, FREQUENCY_TARGET, original_id), step_range(Value::STEP_RANGE,
-                step_range_id) {
+FrequencyValues::FrequencyValues(const Model& model, int range_id, int original_id) :
+        AnalysisParameter(model, FREQUENCY_TARGET, original_id), valueRange(Value::STEP_RANGE,
+                range_id) {
 }
 
-const shared_ptr<StepRange> FrequencyValues::getStepRange() const {
-    return dynamic_pointer_cast<StepRange>(model.find(step_range));
+const shared_ptr<ValueRange> FrequencyValues::getValueRange() const {
+    return dynamic_pointer_cast<ValueRange>(model.find(valueRange));
 }
 
-const ValuePlaceHolder FrequencyValues::getStepRangePlaceHolder() const {
-    return ValuePlaceHolder(model, step_range.type, step_range.original_id, Value::FREQ);
+const ValuePlaceHolder FrequencyValues::getValueRangePlaceHolder() const {
+    return ValuePlaceHolder(model, valueRange.type, valueRange.original_id, Value::FREQ);
 }
 
 shared_ptr<Objective> FrequencyValues::clone() const {

@@ -96,9 +96,11 @@ const unordered_map<string, NastranParserImpl::parseElementFPtr> NastranParserIm
                 { "FORCE1", &NastranParserImpl::parseFORCE1 },
                 { "FORCE2", &NastranParserImpl::parseFORCE2 },
                 { "FREQ1", &NastranParserImpl::parseFREQ1 },
+                { "FREQ4", &NastranParserImpl::parseFREQ4 },
                 { "GRAV", &NastranParserImpl::parseGRAV },
                 { "GRID", &NastranParserImpl::parseGRID },
                 { "INCLUDE", &NastranParserImpl::parseInclude },
+                { "LSEQ", &NastranParserImpl::parseLSEQ },
                 { "LOAD", &NastranParserImpl::parseLOAD },
                 { "MAT1", &NastranParserImpl::parseMAT1 },
                 { "MATS1", &NastranParserImpl::parseMATS1 },
@@ -112,6 +114,7 @@ const unordered_map<string, NastranParserImpl::parseElementFPtr> NastranParserIm
                 { "PBEAML", &NastranParserImpl::parsePBEAML },
                 { "PBUSH", &NastranParserImpl::parsePBUSH },
                 { "PGAP", &NastranParserImpl::parsePGAP },
+                { "PLOAD2", &NastranParserImpl::parsePLOAD2 },
                 { "PLOAD4", &NastranParserImpl::parsePLOAD4 },
                 { "PROD", &NastranParserImpl::parsePROD },
                 { "PSHELL", &NastranParserImpl::parsePSHELL },
@@ -154,7 +157,7 @@ string NastranParserImpl::parseSubcase(NastranTokenizer& tok, shared_ptr<Model> 
     int subCaseId = tok.nextInt(true, 0);
     string nextKeyword;
     bool bParseSubcase =true;
-    
+
     while (bParseSubcase){
         tok.nextLine();
         if (tok.nextSymbolType == NastranTokenizer::SYMBOL_EOF){
@@ -174,7 +177,7 @@ string NastranParserImpl::parseSubcase(NastranTokenizer& tok, shared_ptr<Model> 
             bParseSubcase=false;
         }
     }
-    
+
     try{
         addAnalysis(tok, model, context, subCaseId);
     }catch (std::string&){
@@ -418,11 +421,11 @@ shared_ptr<Model> NastranParserImpl::parse(const ConfigurationParameters& config
     tok.bulkSection();
     parseBULKSection(tok, model);
     istream.close();
-    
+
     if (model->configuration.logLevel >= LogLevel::DEBUG) {
         cout << "Parsing finished." << endl;
     }
-    
+
     return model;
 }
 
@@ -797,25 +800,19 @@ void NastranParserImpl::parseDAREA(NastranTokenizer& tok, shared_ptr<Model> mode
 
 void NastranParserImpl::parseDLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
     int loadset_id = tok.nextInt();
-    Reference<LoadSet> loadSetReference(LoadSet::DLOAD, loadset_id);
+    LoadSet loadSet(*model, LoadSet::DLOAD, loadset_id);
 
     double S = tok.nextDouble(true, 1);
-    if (!is_equal(S, 1))
-        handleParsingError("S != 1 in DLOAD not supported. ", tok, model);
 
     //vega::FunctionTable functionTable(*model, FunctionTable::LINEAR);
     while (tok.isNextDouble()) {
         double scale = tok.nextDouble(true, 1);
-        if (!is_equal(scale, 1))
-            handleParsingError(string("scale != 1 in DLOAD not supported. "), tok, model);
         int rload2_id = tok.nextInt();
-        model->addLoadingIntoLoadSet(Reference<Loading>(Loading::DYNAMIC_EXCITATION, rload2_id),
-                loadSetReference);
+        Reference<LoadSet> loadSetReference(LoadSet::LOAD, rload2_id);
+        loadSet.embedded_loadsets.push_back(
+                            pair<Reference<LoadSet>, double>(loadSetReference, S * scale));
     }
-    if (!model->find(loadSetReference)) {
-        LoadSet loadSet(*model, LoadSet::DLOAD, loadset_id);
-        model->add(loadSet);
-    }
+    model->add(loadSet);
 }
 
 void NastranParserImpl::parseDMIG(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -1045,7 +1042,6 @@ void NastranParserImpl::parseFORCE2(NastranTokenizer& tok, shared_ptr<Model> mod
     }
 }
 
-
 void NastranParserImpl::parseFREQ1(NastranTokenizer& tok, shared_ptr<Model> model) {
     int original_id = tok.nextInt();
     double start = tok.nextDouble();
@@ -1057,6 +1053,21 @@ void NastranParserImpl::parseFREQ1(NastranTokenizer& tok, shared_ptr<Model> mode
     FrequencyValues frequencyValues(*model, stepRange, original_id);
 
     model->add(stepRange);
+    model->add(frequencyValues);
+}
+
+void NastranParserImpl::parseFREQ4(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int original_id = tok.nextInt();
+    double f1 = tok.nextDouble();
+    double f2 = tok.nextDouble();
+    double spread = tok.nextDouble();
+    int count = tok.nextInt(true, 1);
+
+    vega::SpreadRange spreadRange(*model, f1, count, f2, spread);
+    spreadRange.setParaX(Value::FREQ);
+    FrequencyValues frequencyValues(*model, spreadRange, original_id);
+
+    model->add(spreadRange);
     model->add(frequencyValues);
 }
 
@@ -1109,6 +1120,22 @@ void NastranParserImpl::parseInclude(NastranTokenizer& tok, shared_ptr<Model> mo
     tok.skipToNextKeyword();
 }
 
+void NastranParserImpl::parseLSEQ(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int set_id = tok.nextInt();
+    LoadSet loadSet(*model, LoadSet::Type::LOAD, set_id);
+    int darea_id = tok.nextInt();
+    // LD : not sure about this interpretation
+    Reference<LoadSet> dareaReference(LoadSet::LOAD, darea_id);
+    loadSet.embedded_loadsets.push_back(
+                    pair<Reference<LoadSet>, double>(dareaReference, 1.0));
+    int loadSet_id = tok.nextInt();
+    Reference<LoadSet> loadSetReference(LoadSet::LOAD, loadSet_id);
+    loadSet.embedded_loadsets.push_back(
+            pair<Reference<LoadSet>, double>(loadSetReference, 1.0));
+    model->add(loadSet);
+
+}
+
 void NastranParserImpl::parseLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
     int set_id = tok.nextInt();
     LoadSet loadSet(*model, LoadSet::Type::LOAD, set_id);
@@ -1132,7 +1159,7 @@ void NastranParserImpl::parseMAT1(NastranTokenizer& tok, shared_ptr<Model> model
     double a = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
     double tref = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
     double ge = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
-    
+
     // Default behavior from page 1664 of MDN Nastran 2006 Quick Reference Guide
     if ((is_equal(e,NastranTokenizer::UNAVAILABLE_DOUBLE))&&(is_equal(g,NastranTokenizer::UNAVAILABLE_DOUBLE))){
         string message = "Material " + to_string(material_id)+": E and G may not both be blank.";
@@ -1290,6 +1317,7 @@ void NastranParserImpl::parseNLPARM(NastranTokenizer& tok, shared_ptr<Model> mod
     int number_of_increments = tok.nextInt(true, 10);
 
     if (!tok.isEmptyUntilNextKeyword()){
+    	tok.skipToNextKeyword();
         handleParsingWarning("All parameters are ignored except NINC.", tok, model);
     }
 
@@ -1513,6 +1541,12 @@ void NastranParserImpl::parsePBEAML(NastranTokenizer& tok, shared_ptr<Model> mod
         handleParsingError(message, tok, model);
     }
 
+	if (!tok.isEmptyUntilNextKeyword()) {
+		tok.skipToNextKeyword();
+		handleParsingWarning("Ignoring rest of line.", tok,
+				model);
+	}
+
 }
 
 
@@ -1643,6 +1677,24 @@ void NastranParserImpl::parsePGAP(NastranTokenizer& tok, shared_ptr<Model> model
         shared_ptr<GapTwoNodes> gap = static_pointer_cast<GapTwoNodes>(gapPtr);
         gap->initial_gap_opening = u0;
     }
+}
+
+void NastranParserImpl::parsePLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) {
+	int loadset_id = tok.nextInt();
+	double p = tok.nextDouble();
+	int eid1 = tok.nextInt();
+	string strt = tok.nextString();
+	int eid2;
+	if (strt == "THRU") {
+		//format2
+	    eid2 = tok.nextInt();
+	} else {
+		//format not recognized
+		handleParsingError(string("Format yet implemented."), tok, model);
+	}
+	Reference<LoadSet> loadSetReference(LoadSet::LOAD, loadset_id);
+	NormalPressionFace normalPressionFace(*model, p);
+	addCellIds(normalPressionFace, eid1, eid2);
 }
 
 void NastranParserImpl::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -1816,7 +1868,7 @@ void NastranParserImpl::parsePSOLID(NastranTokenizer& tok, shared_ptr<Model> mod
     }
     Continuum continuum(*model, modelType, elemId);
     continuum.assignMaterial(material_id);
-    continuum.assignCellGroup(getOrCreateCellGroup(elemId, model, "PSOLID"));
+    continuum.assignCellGroup(getOrCreateCellGroup(elemId, model, "PSOL"));
     model->add(continuum);
 }
 

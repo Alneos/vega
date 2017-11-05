@@ -637,18 +637,18 @@ void Mesh::renameGroup(const string& oldname, const string& newname, const strin
 	if (newname.empty()) {
 		throw invalid_argument("Can't rename a group with empty newname.");
 	}
-	if (this->groupByName.find(oldname) != this->groupByName.end()) {
-		//throw invalid_argument("No group exists with this name: " + oldname);
-		return; // TODO LD cannot understand this case, keeping for a later time
+	if (this->groupByName.find(oldname) == this->groupByName.end()) {
+		throw invalid_argument("No group exists with this name: " + oldname);
 	}
-	this->groupByName.erase(oldname);
 	Group* group = this->groupByName[oldname];
 	group->name = newname;
 	group->comment = comment;
+	this->groupByName.erase(oldname);
+	this->groupByName[newname] = group;
 
 
 	if (this->logLevel >= LogLevel::DEBUG) {
-		cout << "Renamed Cell Group: " << name << endl;
+		cout << "Renamed Cell Group: " << newname << endl;
 	}
 }
 

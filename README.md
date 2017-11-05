@@ -1,8 +1,6 @@
 # vega
 
-<!--
 [![Build Status](https://travis-ci.org/Alneos/vega.svg?branch=master)](https://travis-ci.org/Alneos/vega)
--->
 
 Finite element format converter
 

@@ -312,6 +312,11 @@ private:
     void parseFREQ1(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
+     * Parse the keyword FREQ4
+     */
+    void parseFREQ4(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
      * Parse the GRAV keyword (page 1651 of MDN Nastran 2006 Quick Reference Guide.)
      * CID and MB are not supported.
      */
@@ -329,6 +334,12 @@ private:
      */
     void parseGRID(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
     void parseInclude(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * Parse the LSEQ keyword
+     * Fully supported.
+     */
+    void parseLSEQ(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * Parse the LOAD keyword (page 1646 of MDN Nastran 2006 Quick Reference Guide.)
@@ -407,6 +418,11 @@ private:
      * Only U0 is supported.
      */
     void parsePGAP(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * Parse the PLOAD2 keyword
+     */
+    void parsePLOAD2(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * Parse the PLOAD4 keyword (page 2227 of MDN Nastran 2006 Quick Reference Guide.)

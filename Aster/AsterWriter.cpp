@@ -339,6 +339,29 @@ string AsterWriterImpl::writeValue(Value& value, ostream& out) {
 		out << "                        );" << endl << endl;
 		break;
 	}
+	case Value::SPREAD_RANGE: {
+//		LSF00001 = DEFI_LIST_FREQ(DEBUT=20.0,
+//		                         INTERVALLE=_F(JUSQU_A=1000.0,
+//		                                       NOMBRE=49),
+//		                         RAFFINEMENT=_F(LIST_RAFFINE=pfreq1,
+//		                                        CRITERE='RELATIF',
+//		                                        DISPERSION=0.03),);
+			SpreadRange& spreadRange = dynamic_cast<SpreadRange&>(value);
+			ostringstream list_concept_ss;
+			list_concept_ss << "LST" << setfill('0') << setw(5) << spreadRange.getId();
+			concept_name = list_concept_ss.str();
+			out << concept_name << "=DEFI_LIST_FREQ(" << endl;
+			out << "                        DEBUT = " << spreadRange.start << "," << endl;
+			out << "                        INTERVALLE = _F(JUSQU_A = " << spreadRange.end << "," << endl;
+			out << "                                        NOMBRE = " << spreadRange.count << endl;
+			out << "                                        )," << endl;
+			out << "                        RAFFINEMENT = _F(LIST_RAFFINE = XXXX" << "," << endl;
+			out << "                                        CRITERE = 'RELATIF'," << endl;
+			out << "                                        DISPERSION = " << spreadRange.spread << endl;
+			out << "                                        )," << endl;
+			out << "                        );" << endl << endl;
+			break;
+		}
 	case Value::FUNCTION_TABLE: {
 		FunctionTable& functionTable = dynamic_cast<FunctionTable&>(value);
 		ostringstream concept_ss;
@@ -1268,13 +1291,13 @@ double AsterWriterImpl::writeAnalysis(const AsterModel& asterModel, Analysis& an
 			out << "                    CONTACT=CN" << constraintSet->getId() << "," << endl;
 		}
 		double largeDisp = 0;
-		auto it = asterModel.model.parameters.find(Model::LARGE_DISPLACEMENTS);
-		if (it != asterModel.model.parameters.end()) {
-			largeDisp = it->second;
-			out << "                    COMP_ELAS=(" << endl;
-		} else {
+//		auto it = asterModel.model.parameters.find(Model::LARGE_DISPLACEMENTS);
+//		if (it != asterModel.model.parameters.end()) {
+//			largeDisp = it->second;
+//			out << "                    COMP_ELAS=(" << endl;
+//		} else {
 			out << "                    COMP_INCR=(" << endl;
-		}
+//		}
 		for (auto elementSet : asterModel.model.elementSets) {
 			if (elementSet->material && elementSet->cellGroup != nullptr) {
 				out << "                          _F(GROUP_MA='" << elementSet->cellGroup->getName()
@@ -1522,7 +1545,7 @@ double AsterWriterImpl::writeAnalysis(const AsterModel& asterModel, Analysis& an
 				<< linearDynaModalFreq.getId() << ",)," << endl;
 
 		out << "                   LIST_FREQ  = LST" << setfill('0') << setw(5)
-				<< linearDynaModalFreq.getFrequencyValues()->getStepRange()->getId() << "," << endl;
+				<< linearDynaModalFreq.getFrequencyValues()->getValueRange()->getId() << "," << endl;
 		out << "                   EXCIT      = (" << endl;
 		for (shared_ptr<LoadSet> loadSet : linearDynaModalFreq.getLoadSets()) {
 			for (shared_ptr<Loading> loading : loadSet->getLoadings()) {

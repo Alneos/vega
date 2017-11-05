@@ -43,7 +43,8 @@ const set<string> NastranParserImpl::IGNORED_PARAMS = {
 		"OUGCORD", // Choice of referentiel for printout
 		"POST",    // Post-treatment parameter. Useless for translation.
 		"PRGPST",  // Printout command
-		"TINY"     // Printout command
+		"TINY",     // Printout command
+		"COUPMASS" // Generation of coupled rather than diagonal mass matrices for elements with coupled mass capability
 };
 
 
@@ -71,30 +72,6 @@ void NastranParserImpl::parsePARAM(NastranTokenizer& tok, shared_ptr<Model> mode
 
         string value = tok.nextString(true, "NO");
         if (value == "YES") {
-            handleParsingError(
-                    string("unsupported parameter ") + param + string(" value in parsePARAM. "),
-                    tok, model);
-        }
-    } else if (param == "COUPMASS") {
-        /*
-         COUPMASS>0 requests the generation of coupled rather than
-         lumped mass matrices for elements with coupled mass capability, as
-         listed in Table 3-1 in the MSC.Nastran Reference Guide. This option
-         applies to both structural and nonstructural mass for the following
-         elements: CBAR, CBEAM, CONROD, CQUAD4, CHEXA,
-         CPENTA, CQUAD8, CROD, CTETRA, CTRIA3, CTRlA6, CTRIAX6,
-         CTUBE. A negative value (the default) causes the generation of
-         lumped mass matrices (which may include torsion inertia for beam
-         elements, and some coupling if there are beam offsets) for all of the
-         above elements.
-         If SYSTEM(414) is greater than zero, then a negative value causes the
-         generation of lumped mass matrices (translational components only)
-         for all of the above elements.
-         P-elements are always generated with coupled mass and are not
-         affected by COUPMASS.
-         */
-        int value = tok.nextInt(true, -1);
-        if (value != -1) {
             handleParsingError(
                     string("unsupported parameter ") + param + string(" value in parsePARAM. "),
                     tok, model);

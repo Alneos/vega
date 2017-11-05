@@ -152,12 +152,12 @@ public:
 
 class FrequencyValues: public AnalysisParameter {
 protected:
-    Reference<Value> step_range;
+    Reference<Value> valueRange;
 public:
-    FrequencyValues(const Model&, const StepRange&, int original_id = NO_ORIGINAL_ID);
+    FrequencyValues(const Model&, const ValueRange&, int original_id = NO_ORIGINAL_ID);
     FrequencyValues(const Model&, int step_range_id, int original_id = NO_ORIGINAL_ID);
-    const std::shared_ptr<StepRange> getStepRange() const;
-    const ValuePlaceHolder getStepRangePlaceHolder() const;
+    const std::shared_ptr<ValueRange> getValueRange() const;
+    const ValuePlaceHolder getValueRangePlaceHolder() const;
     std::shared_ptr<Objective> clone() const;
     ~FrequencyValues() {
     }

@@ -46,6 +46,7 @@ private:
 public:
     enum Type {
         STEP_RANGE,
+        SPREAD_RANGE,
         FUNCTION_TABLE,
         DYNA_PHASE
     };
@@ -131,6 +132,18 @@ public:
     StepRange(const Model& model, double start, int count, double end, int original_id =
             NO_ORIGINAL_ID);
     StepRange(const Model& model, double start, double step, int count, int original_id =
+            NO_ORIGINAL_ID);
+    std::shared_ptr<Value> clone() const;
+};
+
+class SpreadRange: public ValueRange {
+public:
+    const double start;
+    int count;
+    double end;
+    double spread;
+    public:
+    SpreadRange(const Model& model, double start, int count, double end, double spread, int original_id =
             NO_ORIGINAL_ID);
     std::shared_ptr<Value> clone() const;
 };

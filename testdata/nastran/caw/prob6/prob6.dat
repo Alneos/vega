@@ -1,0 +1,114 @@
+$ NASTRAN input file created by the MSC MSC/NASTRAN input file
+$ translator ( MSC/PATRAN Version 7.5 ) on January   15, 1998 at
+$ 20:10:47.
+$ASSIGN OUTPUT2 = ‘prob6.op2’, UNIT = 12
+$ Direct Text Input for File Management Section
+$ Nonlinear Static Analysis, Database
+SOL 106
+TIME 600
+$ Direct Text Input for Executive Control
+CEND
+SEALL = ALL
+SUPER = ALL
+TITLE = MSC/NASTRAN job created on 15-Jan-98 at 20:05:03
+ECHO = NONE
+MAXLINES = 999999999
+$ Direct Text Input for Global Case Control Data
+SUBCASE 1
+$ Subcase name : case_1
+   SUBTITLE=case_1
+   NLPARM = 1
+   SPC = 2
+   LOAD = 2
+   DISPLACEMENT(SORT1,REAL)=ALL
+   STRESS(SORT1,REAL,VONMISES,BILIN)=ALL
+$ Direct Text Input for this Subcase
+SUBCASE 2
+$ Subcase name : case_2
+   SUBTITLE=case_2
+   NLPARM = 2
+   SPC = 2
+   LOAD = 5
+   DISPLACEMENT(SORT1,REAL)=ALL
+   STRESS(SORT1,REAL,VONMISES,BILIN)=ALL
+$ Direct Text Input for this Subcase
+SUBCASE 3
+$ Subcase name : case_3
+   SUBTITLE=case_3
+   NLPARM = 3
+   SPC = 2
+   LOAD = 8
+   DISPLACEMENT(SORT1,REAL)=ALL
+   STRESS(SORT1,REAL,VONMISES,BILIN)=ALL
+$ Direct Text Input for this Subcase
+SUBCASE 4
+$ Subcase name : case_4
+   SUBTITLE=case_4
+   NLPARM = 4
+   SPC = 2
+   LOAD = 11
+   DISPLACEMENT(SORT1,REAL)=ALL
+   STRESS(SORT1,REAL,VONMISES,BILIN)=ALL
+$ Direct Text Input for this Subcase
+BEGIN BULK
+PARAM    POST    -1
+PARAM    PATVER  3.
+$PARAM    AUTOSPC YES
+PARAM   COUPMASS -1
+PARAM    K6ROT   100.
+PARAM    WTMASS  1.
+PARAM    LGDISP  1
+PARAM,NOCOMPS,-1
+PARAM   PRTMAXIM YES
+NLPARM   1       1               AUTO    5       25      P       NO     +      A
++      A         .001
+NLPARM   2       8               AUTO    5       25      P       NO     +      B
++      B         .001
+NLPARM   3       5               AUTO    5       25      P       NO     +      C
++      C         .001
+NLPARM   4       2               AUTO    5       25      P       NO     +      D
++      D         .001
+$ Direct Text Input for Bulk Data
+$ Elements and Element Properties for region : plate
+PSHELL   1       1       .1      1               1
+CQUAD4   1       1       1       2       5       4
+CQUAD4   2       1       2       3       6       5
+CQUAD4   3       1       4       5       8       7
+CQUAD4   4       1       5       6       9       8
+$ Referenced Material Records
+$ Material Record : mat_1
+$ Description of Material : Date: 15-Jan-98           Time: 20:03:34
+MATS1    1               PLASTIC 30303.  1       1       850.
+MAT1     1       3.+6            .25
+$ Nodes of the Entire Model
+GRID     1               0.      0.      0.
+GRID     2               12.5    0.      0.
+GRID     3               25.     0.      0.
+GRID     4               0.      2.5     0.
+GRID     5               12.5    2.5     0.
+GRID     6               25.     2.5     0.
+GRID     7               0.      5.      0.
+GRID     8               12.5    5.      0.
+GRID     9               25.     5.      0.
+$ Loads for Load Case : case_1
+SPCADD   2       13      15      16
+LOAD     2       1.      1.      10      1.      12
+$ Loads for Load Case : case_2
+LOAD     5       1.      1.25    10      1.25    12
+$ Loads for Load Case : case_3
+LOAD     8       1.      1.1875  10      1.1875  12
+$ Loads for Load Case : case_4
+LOAD     11      1.      0.      10      0.      12
+$ Displacement Constraints of Load Set : constraint_1
+SPC1     13      1       1       4       7
+$ Displacement Constraints of Load Set : constraint_2
+SPC1     15      2       1       2       3
+$ Displacement Constraints of Load Set : constraint_3
+SPC1     16      3456    1       THRU    9
+$ Nodal Forces of Load Set : force_1a
+FORCE    10      3       0       100.    1.      0.      0.
+FORCE    10      9       0       100.    1.      0.      0.
+$ Nodal Forces of Load Set : force_1b
+FORCE    12      6       0       200.    1.      0.      0.
+$ Referenced Coordinate Frames
+ENDDATA f588c106
