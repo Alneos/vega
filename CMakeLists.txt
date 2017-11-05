@@ -91,10 +91,10 @@ else(WIN32)
     #SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2")
     #set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} -Wl,--strip-all")
     IF(CMAKE_C_COMPILER_ID MATCHES "Intel")
-        add_compile_options(-std=c++11 -Wall -Wextra -Winit-self -Wconversion -pedantic -pedantic-errors)
+        add_compile_options(-std=c++11 -Werror -Wall -Wextra -Winit-self -Wconversion -pedantic -pedantic-errors)
         add_compile_options(-Wfloat-equal -diag-disable 1170 -fmessage-length=0) # -Wshadow
     ELSE()
-        add_compile_options(-std=c++11 -Wall -Wextra -Winit-self -Wsuggest-attribute=const -Wconversion -pedantic -pedantic-errors)
+        add_compile_options(-std=c++11 -Werror -Wall -Wextra -Winit-self -Wsuggest-attribute=const -Wconversion -pedantic -pedantic-errors)
         add_compile_options(-Wfloat-equal -Woverlength-strings -fmessage-length=0) # -Wshadow
     ENDIF()
     if(STATIC_LINKING)

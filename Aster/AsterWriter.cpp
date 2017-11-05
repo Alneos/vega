@@ -384,7 +384,6 @@ string AsterWriterImpl::writeValue(Value& value, ostream& out) {
 
 void AsterWriterImpl::writeMaterials(const AsterModel& asterModel, ostream& out) {
 
-	typedef map<int, Material*>::iterator material_it;
 	for (auto material : asterModel.model.materials) {
 		if (material->isOriginal()) {
 			out << "#Material original id " << material->getOriginalId() << endl;
@@ -584,7 +583,7 @@ void AsterWriterImpl::writeAffeCaraElem(const AsterModel& asterModel, ostream& o
 		
 		out << "                                 _F(CARA ='VECT_Y',VALE=(";
 		out << ocs->getV().x() << "," << ocs->getV().y() << "," << ocs->getV().z() << ")";
-        cout<<",GROUP_MA='"<< it.second << "')," << endl;
+		out<<",GROUP_MA='"<< it.second << "')," << endl;
 	}
 	if (orientationsPrinted) {
 		out << "                                 )," << endl;

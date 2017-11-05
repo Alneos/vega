@@ -24,7 +24,7 @@ in the text box entitled Command to get compiler specs append -std=c++11
 
 Generate eclipse project files
 
-cmake -G"Eclipse CDT4 - Unix Makefiles" -D CMAKE_BUILD_TYPE=DDebug ..
+cmake -G"Eclipse CDT4 - Unix Makefiles" -D CMAKE_BUILD_TYPE=Debug ..
 
 Then import generated directory to eclipse as standard eclipse project. Right click project and open
 
