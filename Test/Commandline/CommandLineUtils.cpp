@@ -82,8 +82,13 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
     string test_file;
     if (inputSolver == NASTRAN) {
         fs::path nastranTests = sourceFname.parent_path() / (stem.string() + ".f06");
-        hasTests = fs::exists(nastranTests);
-        test_file = string("\"") + nastranTests.string() + string("\"");
+        fs::path csvTests = sourceFname.parent_path() / (stem.string() + ".csv");
+        hasTests = fs::exists(nastranTests) || fs::exists(csvTests);
+        if (fs::exists(nastranTests)) {
+			test_file = string("\"") + nastranTests.string() + string("\"");
+        } else {
+        	test_file = string("\"") + csvTests.string() + string("\"");
+        }
     } else {
         hasTests = false;
     }

@@ -1588,9 +1588,9 @@ void AsterWriterImpl::writeNodalDisplacementAssertion(const AsterModel& asterMod
 		Assertion& assertion, ostream& out) {
 	NodalDisplacementAssertion& nda = dynamic_cast<NodalDisplacementAssertion&>(assertion);
 	Node node = asterModel.model.mesh->findNode(nda.nodePosition);
-
+	bool relativeComparison = abs(nda.value) >= SMALLEST_RELATIVE_COMPARISON;
 	out << "                     CRITERE = "
-			<< (abs(nda.value) >= 1e-9 ? "'RELATIF'," : "'ABSOLU',") << endl;
+			<< (relativeComparison ? "'RELATIF'," : "'ABSOLU',") << endl;
 	out << "                     NOEUD='" << node.getMedName() << "'," << endl;
 	out << "                     NOM_CMP    = '" << AsterModel::DofByPosition.at(nda.dof.position) << "'," << endl;
 	out << "                     NOM_CHAM   = 'DEPL'," << endl;
@@ -1601,7 +1601,7 @@ void AsterWriterImpl::writeNodalDisplacementAssertion(const AsterModel& asterMod
 	}
 
 	out << "                     VALE_CALC = " << nda.value << "," << endl;
-	out << "                     TOLE_MACHINE = (" << nda.tolerance << "," << 1e-5 << ")," << endl;
+	out << "                     TOLE_MACHINE = (" << (relativeComparison ? nda.tolerance : 1e-5) << "," << 1e-5 << ")," << endl;
 
 }
 
@@ -1610,9 +1610,9 @@ void AsterWriterImpl::writeNodalComplexDisplacementAssertion(const AsterModel& a
 	NodalComplexDisplacementAssertion& nda =
 			dynamic_cast<NodalComplexDisplacementAssertion&>(assertion);
 	Node node = asterModel.model.mesh->findNode(nda.nodePosition);
-
+	bool relativeComparison = abs(nda.value) >= SMALLEST_RELATIVE_COMPARISON;
 	out << "                     CRITERE = "
-			<< (abs(nda.value) >= 1e-9 ? "'RELATIF'," : "'ABSOLU',") << endl;
+			<< (relativeComparison ? "'RELATIF'," : "'ABSOLU',") << endl;
 	out << "                     NOEUD='" << node.getMedName() << "'," << endl;
 	out << "                     NOM_CMP = '" << AsterModel::DofByPosition.at(nda.dof.position)
 			<< "'," << endl;
@@ -1621,7 +1621,7 @@ void AsterWriterImpl::writeNodalComplexDisplacementAssertion(const AsterModel& a
 	out << "                     VALE_CALC_C = " << nda.value.real() << "+" << nda.value.imag()
 			<< "j,";
 	out << endl;
-	out << "                     TOLE_MACHINE = (" << nda.tolerance << "," << 1e-5 << ")," << endl;
+	out << "                     TOLE_MACHINE = (" << (relativeComparison ? nda.tolerance : 1e-5) << "," << 1e-5 << ")," << endl;
 }
 
 void AsterWriterImpl::writeFrequencyAssertion(Assertion& assertion, ostream& out) {

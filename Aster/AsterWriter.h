@@ -28,6 +28,7 @@ namespace aster {
 class AsterWriterImpl : public Writer{
 	string mail_name, sigm_noeu, sigm_elno, sief_elga;
 	bool calc_sigm = false;
+	static constexpr const double SMALLEST_RELATIVE_COMPARISON = 1e-7;
 
 	void writeExport(AsterModel& model, std::ostream&);
 	void writeComm(const AsterModel& model, std::ostream&);
