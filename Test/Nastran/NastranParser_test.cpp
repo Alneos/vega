@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(test_comments_in_the_end) {
 	}
 	catch (exception& e) {
 		cerr << e.what() << endl;
-		BOOST_MESSAGE(string("Application exception") + e.what());
+		BOOST_TEST_MESSAGE(string("Application exception") + e.what());
 
 		BOOST_FAIL(string("Parse threw exception ") + e.what());
 	}

@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE( test_node_iterator ) {
 	cout << "bef finish" << endl;
 //FINISH----------
 	mesh.finish();
-	BOOST_CHECKPOINT("after finish");
+	BOOST_TEST_CHECKPOINT("after finish");
 
 	BOOST_CHECK(!mesh.nodes.end().hasNext());
 

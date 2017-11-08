@@ -101,7 +101,7 @@ const string AsterModel::getAsterVersion() const {
 
 double AsterModel::getMemjeveux() const {
     double mem = 2048.0* model.mesh->countNodes() / 300000.0;
-    mem = max<double>(64., mem);
+    mem = max<double>(128., mem);
     mem = min<double>(12000.0, mem);
     return mem;
 }

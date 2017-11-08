@@ -70,7 +70,7 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
     fs::path sourceFname(string(PROJECT_BASE_DIR) + "/testdata/" + folderPrefix + inputFname);
     fs::path stem = sourceFname.stem();
     string message = string("Processing : ") + sourceFname.string();
-    BOOST_MESSAGE(message);
+    BOOST_TEST_MESSAGE(message);
 
     //outputPath
     const fs::path inputRelativePath = fs::path(inputFname).parent_path();
@@ -161,14 +161,14 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
 
     // run command
     VegaCommandLine::ExitCode result;
-    BOOST_CHECKPOINT(message + " about to launch vega++");
+    BOOST_TEST_CHECKPOINT(message + " about to launch vega++");
     try {
         VegaCommandLine vcl;
         result = vcl.process(static_cast<int>(argv1.size() - 1), &argv1[0]);
     } catch (exception &e) {
         BOOST_FAIL(string("Exception threw ") + e.what() + " " + sourceFname.string());
     }
-    BOOST_CHECKPOINT(
+    BOOST_TEST_CHECKPOINT(
             message + " Vega++ terminated with code: " + VegaCommandLine::exitCodeToString(result));
     BOOST_CHECK_MESSAGE(result == VegaCommandLine::OK, VegaCommandLine::exitCodeToString(result));
 

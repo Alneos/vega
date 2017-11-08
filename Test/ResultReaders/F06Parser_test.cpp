@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 	model->add(LinearMecaStat(*model, "", 1));
 	model->add(LinearMecaStat(*model, "", 2));
 
-	BOOST_CHECKPOINT("Before Parse");
+	BOOST_TEST_CHECKPOINT("Before Parse");
 	f06parser.add_assertions(confParams, model);
 	shared_ptr<LinearMecaStat> linearMecaStat1 = dynamic_pointer_cast<LinearMecaStat>(
 			model->find(Reference<Analysis>(Analysis::LINEAR_MECA_STAT, 1)));
@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 BOOST_AUTO_TEST_CASE(node_not_in_elements) {
 
 	string testLocation(
-	PROJECT_BASE_DIR "/testdata/nastran/linstat/diag/diag.f06");
+	PROJECT_BASE_DIR "/testdata/nastran/caw/prob6/prob6.f06");
 	ConfigurationParameters confParams("inputFile", vega::CODE_ASTER, "..", "vega", ".",
 			LogLevel::INFO, ConfigurationParameters::BEST_EFFORT, testLocation, 0.0003);
 	F06Parser f06parser;
@@ -98,9 +98,9 @@ BOOST_AUTO_TEST_CASE(node_not_in_elements) {
 	model->add(LinearMecaStat(*model, "", 1));
 	model->add(LinearMecaStat(*model, "", 2));
 
-	BOOST_CHECKPOINT("Before Parse");
+	BOOST_TEST_CHECKPOINT("Before Parse");
 	f06parser.add_assertions(confParams, model);
-	BOOST_CHECKPOINT("Before Finish");
+	BOOST_TEST_CHECKPOINT("Before Finish");
 	model->finish();
 
 	shared_ptr<LinearMecaStat> linearMecaStat1 = dynamic_pointer_cast<LinearMecaStat>(
@@ -144,7 +144,7 @@ BOOST_AUTO_TEST_CASE(test_4a) {
 	model->add(discrete);
 	model->add(LinearMecaStat(*model, "", 1));
 
-	BOOST_CHECKPOINT("Before Parse");
+	BOOST_TEST_CHECKPOINT("Before Parse");
 	F06Parser f06parser;
 	f06parser.add_assertions(confParams, model);
 

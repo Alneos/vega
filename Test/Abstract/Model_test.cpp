@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE( test_model_spc ) {
 
 BOOST_AUTO_TEST_CASE( test_cells_iterator ) {
 	Model model("inputfile", "10.3", SolverName::NASTRAN);
-	BOOST_CHECKPOINT("Mesh start");
+	BOOST_TEST_CHECKPOINT("Mesh start");
 	model.mesh->addCell(27, CellType::SEG2, {0, 1});
 	model.mesh->addCell(28, CellType::SEG2, {1, 2});
 	model.mesh->addCell(29, CellType::SEG2, {2, 3});
@@ -85,11 +85,11 @@ BOOST_AUTO_TEST_CASE( test_cells_iterator ) {
 	for (i = 0; i < 18; i += 3) {
 		model.mesh->addNode(i / 3, coords[i], coords[i + 1], coords[i + 2]);
 	}
-	BOOST_CHECKPOINT("Mesh finish");
+	BOOST_TEST_CHECKPOINT("Mesh finish");
 	model.mesh->finish();
 
 	CellIterator cellIterator = model.mesh->cells.cells_begin(CellType::TRI3);
-	BOOST_CHECKPOINT("Iteration begin1");
+	BOOST_TEST_CHECKPOINT("Iteration begin1");
 //C++ style
 	for (i = 0; cellIterator != model.mesh->cells.cells_end(CellType::TRI3); cellIterator++) {
 		i++;
@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE( test_cells_iterator ) {
 		cout << cell << endl;
 	}
 	BOOST_CHECK_EQUAL(1, i);
-	BOOST_CHECKPOINT("Iteration new begin2");
+	BOOST_TEST_CHECKPOINT("Iteration new begin2");
 	CellIterator cellIterator2 = model.mesh->cells.cells_begin(CellType::SEG2);
 	for (i = 0; cellIterator2.hasNext(); i++) {
 		Cell cell = cellIterator2.next();
@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE( test_Elements ) {
 	vega::CellGroup* cn1 = model.mesh->createCellGroup("GM1");
 	cn1->addCell(1);
 	cn1->addCell(2);
-	BOOST_CHECKPOINT("after addcells");
+	BOOST_TEST_CHECKPOINT("after addcells");
 	RectangularSectionBeam rectangularSectionBeam(model, 100.0, 110.0, Beam::EULER, 1);
 	rectangularSectionBeam.assignCellGroup(cn1);
 	rectangularSectionBeam.assignMaterial(1);
@@ -178,7 +178,7 @@ shared_ptr<Model> createModelWith1HEXA8() {
 			expectedFace1NodeIds.begin(), expectedFace1NodeIds.end());
 	vega::CellGroup* cn1 = model->mesh->createCellGroup("GM1");
 	cn1->addCell(1);
-	BOOST_CHECKPOINT("after addcells");
+	BOOST_TEST_CHECKPOINT("after addcells");
 	Continuum continuum(*model, &ModelType::TRIDIMENSIONAL_SI, 1);
 	continuum.assignCellGroup(cn1);
 	continuum.assignMaterial(1);
@@ -279,9 +279,9 @@ BOOST_AUTO_TEST_CASE(test_Analysis) {
 
 	NodalForce force3(model, 2, 0.0, 1.0);
 	model.add(force3);
-	BOOST_CHECKPOINT("before finish");
+	BOOST_TEST_CHECKPOINT("before finish");
 	model.finish();
-	BOOST_CHECKPOINT("after finish");
+	BOOST_TEST_CHECKPOINT("after finish");
 // LoadSet2 is missing in the model
 	BOOST_CHECK_EQUAL(1, model.loadSets.size());
 	BOOST_CHECK_EQUAL((size_t ) 2, analysis.getLoadSets().size());
@@ -314,9 +314,9 @@ BOOST_AUTO_TEST_CASE( test_find_methods ) {
 		model.mesh->addNode(i / 3, coords[i], coords[i + 1], coords[i + 2]);
 	}
 	vega::NodeGroup* gn1 = model.mesh->findOrCreateNodeGroup("GN1");
-	BOOST_CHECKPOINT("find_methods: before add Node 0");
+	BOOST_TEST_CHECKPOINT("find_methods: before add Node 0");
 	gn1->addNode(0);
-	BOOST_CHECKPOINT("find_methods: before add Node 5");
+	BOOST_TEST_CHECKPOINT("find_methods: before add Node 5");
 	gn1->addNode(5);
 	vega::CellGroup* gm1 = model.mesh->createCellGroup("GM1");
 	gm1->addCell(31);
@@ -327,7 +327,7 @@ BOOST_AUTO_TEST_CASE( test_find_methods ) {
 	gm3->addCell(28);
 	gm3->addCell(30);
 	model.finish();
-	BOOST_CHECKPOINT("find_methods: model completed");
+	BOOST_TEST_CHECKPOINT("find_methods: model completed");
 	BOOST_CHECK_EQUAL(gn1, model.mesh->findGroup("GN1"));
 	BOOST_CHECK(model.mesh->findGroup("DONT-EXIST") == nullptr);
 	model.mesh->writeMED(outFile.c_str());
@@ -467,7 +467,7 @@ BOOST_AUTO_TEST_CASE(test_spc_dof_remove) {
 	BOOST_CHECK_EQUAL(spc.getDOFSForNode(nodePosition), DOFS::ALL_DOFS);
 	BOOST_CHECK_EQUAL(model->getConstraintSetsByConstraint(spc).size(), 1);
 	BOOST_CHECK_EQUAL(model->constraintSets.size(), 1);
-	BOOST_CHECKPOINT("model filled");
+	BOOST_TEST_CHECKPOINT("model filled");
 	analysis1.removeSPCNodeDofs(spc, nodePosition, DOF::DZ);
 	BOOST_CHECK_EQUAL(spc.getDOFSForNode(nodePosition), DOFS::ALL_DOFS);
 	BOOST_CHECK_EQUAL(model->commonConstraintSet.getConstraints().size(), 2);

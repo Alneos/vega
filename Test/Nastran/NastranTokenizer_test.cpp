@@ -310,27 +310,3 @@ void countGridElems(NastranTokenizer& tok) {
     BOOST_CHECK_EQUAL(4, symcount);
 }
 
-//TODO: Test does not work because it misses plate1r.dat
-//BOOST_AUTO_TEST_CASE(nastran_bar1r_grid) {
-//    fs::path sourceFname(
-//            string(PROJECT_BASE_DIR) + "/testdata/nastran/linstat/plate1r/plate1r.dat");
-//    ifstream source(sourceFname.string());
-//    NastranTokenizer tok(source);
-//    while (tok.nextString().find("BEGIN") == string::npos) {
-//        tok.nextLine();
-//    }
-//    tok.bulkSection();
-//    tok.nextLine();
-//    BOOST_CHECK_EQUAL("PARAM", tok.nextString());
-//    tok.nextLine();
-//    BOOST_CHECK_EQUAL(NastranTokenizer::SYMBOL_KEYWORD, tok.nextSymbolType);
-//    BOOST_CHECK_EQUAL("GRID", tok.nextString());
-//    countGridElems(tok);
-//    tok.nextLine();
-//    BOOST_CHECK_EQUAL(NastranTokenizer::SYMBOL_KEYWORD, tok.nextSymbolType);
-//    BOOST_CHECK_EQUAL("GRID", tok.nextString());
-//    countGridElems(tok);
-//
-//    source.close();
-//}
-

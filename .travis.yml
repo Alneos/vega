@@ -2,21 +2,14 @@ language: cpp
 
 sudo: required
 dist: trusty
+cache: ccache
 
-install:
-    - sudo apt-get -qq update
-    - sudo apt-get -y -qq install gcc-4.8 g++-4.8 valgrind cmake wget
-    - sudo apt-get -y -qq install libmedc1 libmedc-dev libboost-all-dev
-    - sudo apt-get -y -qq install ccache
-    - wget http://download.alneos.com/files/codeaster-2013.1-1_amd64.deb
-    - sudo dpkg -i --ignore-depends=xterm codeaster-2013.1-1_amd64.deb
-    - sudo ln -s /opt/codeaster-2013.1/STA11.3 /opt/codeaster-2013.1/STABLE
+services:
+  - docker
 
-before_script:
-    - mkdir build
-    - cd build
-    - cmake -DCMAKE_BUILD_TYPE=Debug ..
+before_install:
+  - docker build -t ldallolio/vegaci .
+  - docker run ldallolio/vegaci /bin/sh -c "cd /usr/local/src/vegapp/build; ctest ."
 
-script: 
-    - make -j
+script:
     - ctest .
