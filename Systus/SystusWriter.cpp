@@ -984,10 +984,105 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                     }
                     break;
                 }
-                //case Loading::DYNAMIC_EXCITATION:{
-                //    // Nothing to be done here
-                //    break;
-                //}
+
+                case Loading::DYNAMIC_EXCITATION:{
+                    shared_ptr<DynamicExcitation> dE = static_pointer_cast<DynamicExcitation>(loading);
+                    shared_ptr<LoadSet> dEL = dE->getLoadSet();
+                    if (dEL->type != LoadSet::EXCITEID){
+                        handleWritingWarning("Dynamic loading must refer an EXCITED Loadset. Dismissing load "+ to_string(dE->bestId()));
+                        break;
+                    }
+
+                    // Systus does not support any addition to the phase of the excitation
+                    if (!is_zero(dE->getDynaDelay()->get())){
+                        handleWritingWarning("Delay are not available in Systus and dismissed.", "Loadings");
+                    }
+                    if (!is_zero(dE->getDynaPhase()->get())){
+                        handleWritingWarning("Phase are not available in Systus and dismissed.", "Loadings");
+                    }
+                    if (dE->getFunctionTableP()){
+                        handleWritingWarning("Table Phase are not available in Systus and dismissed.", "Loadings");
+                    }
+
+                    // Frequency amplitude
+                    double amplitude=1.0;
+                    if (systusModel.configuration.systusDynamicMethod=="direct"){
+                        shared_ptr<FunctionTable> aTable = dE->getFunctionTableB();
+
+                        //TODO: Test the units of the table ?
+                        amplitude = aTable->getBeginValuesXY()->second;
+                        // In direct mode, SYSTUS 2017 allows only amplitude that doesn't depend of the frequency
+                        for (auto it = aTable->getBeginValuesXY(); it != aTable->getEndValuesXY(); it++){
+                            if (!is_equal(amplitude, it->second)){
+                                handleWritingWarning("In direct mode, amplitude of dynamic excitation can't depend of the frequency. Constant amplitude is assumed.", "Loadings");
+                            }
+                        }
+                    }
+
+                    for (const auto& dLoading : dEL->getLoadings()) {
+
+                        if (dLoading->type!=Loading::NODAL_FORCE){
+                            handleWritingWarning("Dynamic loading must refer Nodal excitation. Dismissing load "+to_string(dLoading->bestId())+", part of load "+ to_string(dE->bestId()));
+                            continue;
+                        }
+                        vec.clear();
+                        normvec=0.0;
+                        // After that, it's a copy/paste of the Nodal Force switch (see a few lines up)
+                        //TODO: Replace this copy/paste by a function.
+                        shared_ptr<NodalForce> nodalForce = static_pointer_cast<NodalForce>(dLoading);
+                        VectorialValue force = nodalForce->getForce();
+                        VectorialValue moment = nodalForce->getMoment();
+
+                        vec.push_back(0);
+                        vec.push_back(0);
+                        vec.push_back(0);
+                        vec.push_back(0);
+                        vec.push_back(0);
+                        vec.push_back(0);
+                        vec.push_back(amplitude*force.x()); normvec=max(normvec, abs(amplitude*force.x()));
+                        vec.push_back(amplitude*force.y()); normvec=max(normvec, abs(amplitude*force.y()));
+                        vec.push_back(amplitude*force.z()); normvec=max(normvec, abs(amplitude*force.z()));
+                        if (systusOption == 3){
+                            vec.push_back(amplitude*moment.x()); normvec=max(normvec, abs(amplitude*moment.x()));
+                            vec.push_back(amplitude*moment.y()); normvec=max(normvec, abs(amplitude*moment.y()));
+                            vec.push_back(amplitude*moment.z()); normvec=max(normvec, abs(amplitude*moment.z()));
+                        }
+                        int node = nodalForce->getNode().position;
+                        if (!is_zero(normvec)){
+                            vectors[vectorId]=vec;
+                            loadingVectorsIdByLocalLoadingByNodePosition[node][idLoadCase].push_back(vectorId);
+                            vectorId++;
+                        }
+                        // Rigid Body Element in option 3D.
+                        // We report the force from the master node to the master rotational node.
+                        if (systusOption == 4){
+                            int nid = systusModel.model->mesh->findNode(node).id;
+                            const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
+                            if (it != rotationNodeIdByTranslationNodeId.end()){
+                                int rotNodePosition= systusModel.model->mesh->findNodePosition(it->second);
+                                normvec = 0.0;
+                                vec.clear();
+                                vec.push_back(0);
+                                vec.push_back(0);
+                                vec.push_back(0);
+                                vec.push_back(0);
+                                vec.push_back(0);
+                                vec.push_back(0);
+                                vec.push_back(amplitude*moment.x()); normvec=max(normvec, abs(amplitude*moment.x()));
+                                vec.push_back(amplitude*moment.y()); normvec=max(normvec, abs(amplitude*moment.y()));
+                                vec.push_back(amplitude*moment.z()); normvec=max(normvec, abs(amplitude*moment.z()));
+                                if (!is_zero(normvec)){
+                                    vectors[vectorId]=vec;
+                                    loadingVectorsIdByLocalLoadingByNodePosition[rotNodePosition][idLoadCase].push_back(vectorId);
+                                    vectorId++;
+                                }
+                            }
+                        }
+                    }
+
+                    break;
+                }
+
                 default: {
                     //TODO : throw WriterException("Loading type not supported");
                     cout << "WARNING: " << *loading << " not supported" << endl;
@@ -2407,14 +2502,17 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         handleWritingError(string("Analysis " + to_string(idAnalysis) + " not found."));
     }
 
+    string sSolver;
+
     switch (analysis->type) {
     case Analysis::LINEAR_MECA_STAT: {
 
         out << "SOLVE METHOD OPTIMISED" << endl;
+        sSolver = "RESU";
         break;
     }
     case Analysis::LINEAR_MODAL:{
-    
+
         out << "# SOLVE FILE TO USE THE DYNAMIC SOLVER" << endl;
         out << "# USE FOR EIGEN FREQUENCY CRITERION" << endl;
         out << endl;
@@ -2495,57 +2593,114 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         out << "# COMPUTE THE STRESS TENSORS." << endl;
         out << "# MANDATORY TO COMPUTE THE GRADIENTS OF THE FREQUENCY CRITERIONS." << endl;
         out << "SOLVE FORCE" << endl;
+
+        sSolver = "RESU";
         break;
     }
-    // Not Done Yet
+
+    // Modal Dynamique Analysis
     case Analysis::LINEAR_DYNA_MODAL_FREQ: {
-        cout << "WARNING: Dynamic modal analysis is not supported."<<endl;
+        sSolver = "TRAN";
+        if (systusModel.configuration.systusDynamicMethod=="direct"){
+            const LinearDynaModalFreq& linearDynaModalFreq = static_cast<const LinearDynaModalFreq&>(*analysis);
 
-        out << "# DYNAMIC MODAL ANALYSIS IS NOT SUPPORTED." << endl;
-        out << "# NO SYSTUS COMMANDS GENERATED." << endl;
-        out << endl;
+            // Damping
+            shared_ptr<FunctionTable> modalDampingTable = linearDynaModalFreq.getModalDamping()->getFunctionTable();
+            ostringstream oDamping;
+            if ((modalDampingTable->getParaX()!=Value::FREQ)||(modalDampingTable->getParaY()!=Value::AMOR)){
+                handleWritingWarning("Dismissing damping table with wrong units ("+to_string(modalDampingTable->getParaY())+"/"+to_string(modalDampingTable->getParaX())+")", "Analysis file");
+            }else{
+                double firstDamping = modalDampingTable->getBeginValuesXY()->second;
+                oDamping << "GAMMA "<< firstDamping;
+                // Systus 2017 allows to define damping for each modes, and not for frequency range. So we can only translate
+                // constant dampings !
+                for (auto it = modalDampingTable->getBeginValuesXY(); it != modalDampingTable->getEndValuesXY(); it++){
+                    if (!is_equal(firstDamping, it->second)){
+                        handleWritingWarning("SYTUS modal damping must be defined by mode number and not by frequency. Constant damping is assumed.", "Analysis file");
+                    }
+                }
+            }
 
-        //TODO: Disable for now. Is it useful?
-        //      if (analysis.type == Analysis::LINEAR_DYNA_MODAL_FREQ){
-        //
-        //          const LinearDynaModalFreq& linearDynaModalFreq = static_cast<const LinearDynaModalFreq&>(analysis);
-        //
-        //          out << "DYNAMIC" << endl;
-        //          out << "PARTICIPATION DOUBLE FORCE DISPL" << endl;
-        //          out << "RETURN" << endl;
-        //          out << "SOLVE FORCE MODAL" << endl << endl;
-        //
-        //          out << "DYNAMIC" << endl;
-        //          out << "HARMONIC RESPONSE MODAL FORCE DISPL" << endl;
-        //
-        //          shared_ptr<StepRange> freqValueSteps = linearDynaModalFreq.getFrequencyValues()->getStepRange();
-        //          out << "FREQUENCY INITIAL " << freqValueSteps->start - freqValueSteps->step << endl;
-        //          out << " " << freqValueSteps->end << " STEP " << freqValueSteps->step << endl;
-        //
-        //          shared_ptr<FunctionTable> modalDampingTable = linearDynaModalFreq.getModalDamping()->getFunctionTable();
-        //          out << "DAMPING MODAL" << endl;
-        //          for (auto it = modalDampingTable->getBeginValuesXY(); it != modalDampingTable->getEndValuesXY(); it++){
-        //              out << " " << it->first << " / (GAMMA) " << it->second << endl;
-        //              cout << "modal damping must be defined by {mode num}/value and not frequence/value " << endl;
-        //          }
-        //          out << endl;
-        //
-        //          for (auto it : DynamicExcitationByLoadId){
-        //              cout << "phase and amplitude not taken into account for load " << it.first << endl;
-        //              it.second->getDynaPhase();
-        //              it.second->getFunctionTableB();
-        //          }
-        //
-        //          out << "TRANSFER STATIONARY" << endl;
-        //          out << "DISPLACEMENT" << endl;
-        //          out << "RETURN" << endl << endl;
-        //
-        //          string("Analysis " + Analysis::stringByType.at(analysis.type) + " not (finish) implemented");
-        //      }
-        //      out << "SAVE DATA RESU " << analysis.getId() << endl;
-        //      out << "CONVERT RESU" << endl;
-        //      out << "POST " << analysis.getId() << endl;
-        //      out << "RETURN" << endl << endl;
+
+            // Frequency
+            ostringstream oFrequency;
+            shared_ptr<ValueRange> freqValueRange = linearDynaModalFreq.getFrequencyValues()->getValueRange();
+            switch (freqValueRange->type) {
+                case Value::STEP_RANGE: {
+                    const StepRange& freqValueSteps = dynamic_cast<StepRange&>(*freqValueRange);
+                    oFrequency << "INITIAL "  << (freqValueSteps.start - freqValueSteps.step) << endl;
+                    oFrequency << " " << (freqValueSteps.end - freqValueSteps.step) << " STEP " << freqValueSteps.step;
+                    break;
+                }
+                default:{
+                    handleWritingWarning("Frequency range of type "+ to_string(freqValueRange->type)+" not available yet.", "Analysis file");
+                }
+                }
+
+
+            out << "# COMPUTING MASS MATRIX" << endl;
+            out << "# AS THE COMMAND DYNAMIC COMPUTE THEM, IT SHOULD BE USELESS." << endl;
+            out << "# BUT THERE SEEM TO BE BUGS ON THE COMMAND, SO WE USE EXPLICITLY THE COMMAND" << endl;
+            out << "CLOSE STIFFNESS MASS" << endl;
+            out << endl;
+            out << "# SOLVER FILE FOR HARMONIC ANALYSIS WITH DIRECT METHOD" << endl;
+            out << "DYNAMIC" << endl;
+            out << "HARMONIC RESPONSE VELOCITY ACCELERATION REACTION"<<endl;
+            out << "DAMPING "<< oDamping.str() << endl;
+            out << "# CURRENTLY, THERE IS A BUG ON THE OPTIMIZED METHOD" <<endl;
+            out << "#METHOD OPTIMIZED COMPLEX"<<endl;
+            out << "METHOD SPARSE COMPLEX"<<endl;
+            out << "FREQUENCY "<< oFrequency.str() <<endl;
+            out << "RETURN"<<endl;
+
+        }else if (systusModel.configuration.systusDynamicMethod=="modal"){
+
+            handleWritingWarning("Modal Dynamic Analysis is not available yet.", "Analysis file");
+
+            //TODO: Disable for now. Is it useful?
+            //      if (analysis.type == Analysis::LINEAR_DYNA_MODAL_FREQ){
+            //
+            //          const LinearDynaModalFreq& linearDynaModalFreq = static_cast<const LinearDynaModalFreq&>(analysis);
+            //
+            //          out << "DYNAMIC" << endl;
+            //          out << "PARTICIPATION DOUBLE FORCE DISPL" << endl;
+            //          out << "RETURN" << endl;
+            //          out << "SOLVE FORCE MODAL" << endl << endl;
+            //
+            //          out << "DYNAMIC" << endl;
+            //          out << "HARMONIC RESPONSE MODAL FORCE DISPL" << endl;
+            //
+            //          shared_ptr<StepRange> freqValueSteps = linearDynaModalFreq.getFrequencyValues()->getValueRange();
+            //          out << "FREQUENCY INITIAL " << freqValueSteps->start - freqValueSteps->step << endl;
+            //          out << " " << freqValueSteps->end << " STEP " << freqValueSteps->step << endl;
+            //
+            //          shared_ptr<FunctionTable> modalDampingTable = linearDynaModalFreq.getModalDamping()->getFunctionTable();
+            //          out << "DAMPING MODAL" << endl;
+            //          for (auto it = modalDampingTable->getBeginValuesXY(); it != modalDampingTable->getEndValuesXY(); it++){
+            //              out << " " << it->first << " / (GAMMA) " << it->second << endl;
+            //              cout << "modal damping must be defined by {mode num}/value and not frequence/value " << endl;
+            //          }
+            //          out << endl;
+            //
+            //          for (auto it : DynamicExcitationByLoadId){
+            //              cout << "phase and amplitude not taken into account for load " << it.first << endl;
+            //              it.second->getDynaPhase();
+            //              it.second->getFunctionTableB();
+            //          }
+            //
+            //          out << "TRANSFER STATIONARY" << endl;
+            //          out << "DISPLACEMENT" << endl;
+            //          out << "RETURN" << endl << endl;
+            //
+            //          string("Analysis " + Analysis::stringByType.at(analysis.type) + " not (finish) implemented");
+            //      }
+            //      out << "SAVE DATA RESU " << analysis.getId() << endl;
+            //      out << "CONVERT RESU" << endl;
+            //      out << "POST " << analysis.getId() << endl;
+            //      out << "RETURN" << endl << endl;
+        }else{
+            handleWritingError("Unknown type of Dynamic Analysis "+systusModel.configuration.systusDynamicMethod, "Analysis file");
+        }
         break;
     }
     default:
@@ -2556,13 +2711,13 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
     // We Save Results
     out << endl;
     out << "# SAVING RESULT" << endl;
-    out << comment<<"SAVE DATA RESU 1" << endl;
+    out << comment<<"SAVE DATA 1" << endl;
     out << endl;
 
     // We Post-Treat Results
     out << endl;
     out << "# CONVERSION OF RESULTS FOR POST-PROCESSING" << endl;
-    out << comment<<"CONVERT RESU" << endl;
+    out << comment<<"CONVERT "<< sSolver << endl;
     out << comment<<"POST 1" << endl;
     out << comment<<"RETURN" << endl;
     out << endl;

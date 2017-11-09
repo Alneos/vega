@@ -298,6 +298,17 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     	}
     }
 
+    string systusDynamicMethod="direct";
+    if (vm.count("systus.DynamicMethod")){
+        systusDynamicMethod = vm["systus.DynamicMethod"].as<string>();
+        set<string> availableTranlation { "direct", "modal" };
+        set<string>::iterator it = availableTranlation.find(systusDynamicMethod);
+        if (it == availableTranlation.end()) {
+            throw invalid_argument("Systus dynamic method must be either direct (default) or modal");
+        }
+    }
+
+
     string systusOutputMatrix="table";
     int systusSizeMatrix=9;
     if (vm.count("systus.OutputMatrix")){
@@ -310,7 +321,6 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
         if (systusOutputMatrix=="file"){
             systusSizeMatrix=20;
         }
-
     }
     if (vm.count("systus.SizeMatrix")){
         systusSizeMatrix = vm["systus.SizeMatrix"].as<int>();
@@ -366,6 +376,7 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
         cout << "\t Systus RBE2 Rigidity (for penalty mode only): " << (is_equal(systusRBE2Rigidity, Globals::UNAVAILABLE_DOUBLE) ? "auto" : to_string(systusRBE2Rigidity)) << endl;
         cout << "\t Systus RBE Lagrangian (for RBE2 lagrangian mode and RBE3): " << systusRBELagrangian << endl;
         cout << "\t Systus OPTION analysis: " << systusOptionAnalysis << endl;
+        cout << "\t Systus Dynamic method: " << systusDynamicMethod << endl;
         cout << "\t Systus Output product: " << systusOutputProduct << endl;
         cout << "\t Systus Output Matrix: " << systusOutputMatrix << endl;
         cout << "\t Systus Size Matrix: " << systusSizeMatrix << endl;
@@ -382,7 +393,7 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
             solverVersion, modelName, outputDir, logLevel, translationMode, testFnamePath,
             tolerance, runSolver, solverServer, solverCommand,
             systusRBE2TranslationMode, systusRBE2Rigidity, systusRBELagrangian, systusOptionAnalysis, systusOutputProduct,
-            systusSubcases, systusOutputMatrix, systusSizeMatrix);
+            systusSubcases, systusOutputMatrix, systusSizeMatrix, systusDynamicMethod);
     return configuration;
 }
 
@@ -475,6 +486,8 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
         // TODO: Some of these options are not so specific: rename and move them.
         po::options_description systusOptions("Systus specific options");
         systusOptions.add_options() //
+        ("systus.DynamicMethod",po::value<string>()->default_value("direct"),
+                 "Dynamic method for harmonic analysis: direct (default) or modal.") //
         ("systus.RBE2TranslationMode",po::value<string>()->default_value("lagrangian"),
                 "Translation mode of RBE2 from Nastran To Systus: lagrangian or penalty.") //
         ("systus.RBE2Rigidity", po::value<double>()->default_value(Globals::UNAVAILABLE_DOUBLE),

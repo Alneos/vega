@@ -572,48 +572,62 @@ bool NormalPressionFace::validate() const {
 	return true;
 }
 
-DynamicExcitation::DynamicExcitation(const Model& model, const Reference<Value> dynaPhase,
-		const Reference<Value> functionTableB, const Reference<LoadSet> loadSet,
-		const int original_id) :
-		Loading(model, DYNAMIC_EXCITATION, NONE, original_id), dynaPhase(dynaPhase), functionTableB(
-				functionTableB), loadSet(loadSet) {
+DynamicExcitation::DynamicExcitation(const Model& model, const Reference<Value> dynaDelay, const Reference<Value> dynaPhase,
+        const Reference<Value> functionTableB, const Reference<Value> functionTableP, const Reference<LoadSet> loadSet,
+        const int original_id) :
+                Loading(model, DYNAMIC_EXCITATION, NONE, original_id), dynaDelay(dynaDelay), dynaPhase(dynaPhase),
+                functionTableB(functionTableB), functionTableP(functionTableP), loadSet(loadSet) {
+}
+
+shared_ptr<DynaPhase> DynamicExcitation::getDynaDelay() const {
+    return dynamic_pointer_cast<DynaPhase>(model.find(dynaDelay));
 }
 
 shared_ptr<DynaPhase> DynamicExcitation::getDynaPhase() const {
-	return dynamic_pointer_cast<DynaPhase>(model.find(dynaPhase));
+    return dynamic_pointer_cast<DynaPhase>(model.find(dynaPhase));
 }
 
 shared_ptr<FunctionTable> DynamicExcitation::getFunctionTableB() const {
-	return dynamic_pointer_cast<FunctionTable>(model.find(functionTableB));
+    return dynamic_pointer_cast<FunctionTable>(model.find(functionTableB));
 }
 
+shared_ptr<FunctionTable> DynamicExcitation::getFunctionTableP() const {
+    return dynamic_pointer_cast<FunctionTable>(model.find(functionTableP));
+}
+
+
 shared_ptr<LoadSet> DynamicExcitation::getLoadSet() const {
-	return model.find(loadSet);
+    return model.find(loadSet);
 }
 
 const ValuePlaceHolder DynamicExcitation::getFunctionTableBPlaceHolder() const {
-	return ValuePlaceHolder(model, functionTableB.type, functionTableB.original_id, Value::FREQ);
+    return ValuePlaceHolder(model, functionTableB.type, functionTableB.original_id, Value::FREQ);
+}
+
+const ValuePlaceHolder DynamicExcitation::getFunctionTablePPlaceHolder() const {
+    return ValuePlaceHolder(model, functionTableP.type, functionTableP.original_id, Value::FREQ);
 }
 
 set<int> DynamicExcitation::nodePositions() const {
-	return set<int>();
+    return set<int>();
 }
 
 const DOFS DynamicExcitation::getDOFSForNode(int nodePosition) const {
-	UNUSEDV(nodePosition);
-	return DOFS::NO_DOFS;
+    UNUSEDV(nodePosition);
+    return DOFS::NO_DOFS;
 }
 
 shared_ptr<Loading> DynamicExcitation::clone() const {
-	return shared_ptr<Loading>(new DynamicExcitation(*this));
+    return shared_ptr<Loading>(new DynamicExcitation(*this));
 }
 
+//TODO: Validate should be a bit more complex
 bool DynamicExcitation::validate() const {
-	return getLoadSet() && getFunctionTableB() && getDynaPhase();
+    return getLoadSet() && getFunctionTableB() && getDynaPhase() && getDynaDelay();
 }
 
 bool DynamicExcitation::ineffective() const {
-	return false;
+    return false;
 }
 
 } /* namespace vega */

@@ -19,8 +19,8 @@ endif()
 
 # Definition of the VEGA version
 set(VEGA_MAJOR_VERSION 2)
-set(VEGA_MINOR_VERSION 3)
-set(VEGA_PATCH_VERSION 1)
+set(VEGA_MINOR_VERSION 4)
+set(VEGA_PATCH_VERSION 0)
 IF(NOT DEFINED VEGA_EXTRA_VERSION)
     set(VEGA_EXTRA_VERSION "" CACHE STRING "Vega extra version string")
 ENDIF(NOT DEFINED VEGA_EXTRA_VERSION)
@@ -38,14 +38,14 @@ OPTION(CMAKE_VERBOSE_MAKEFILE "make outputs build commands" ON)
 project ( vegapp CXX C)
 
 # Debug and Release are reserved words for cmake see https://cmake.org/cmake/help/v3.0/variable/CMAKE_BUILD_TYPE.html
-IF(CMAKE_BUILD_TYPE MATCHES "[Dd][Ee][Bb][Uu][Gg]")
+IF(CMAKE_BUILD_TYPE MATCHES "^[Dd][Ee][Bb][Uu][Gg]")
     message(STATUS "Debug mode selected")
     option(STATIC_LINKING "Static Linking" OFF)
-ENDIF(CMAKE_BUILD_TYPE MATCHES "[Dd][Ee][Bb][Uu][Gg]")
-IF(CMAKE_BUILD_TYPE MATCHES "[Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
+ENDIF(CMAKE_BUILD_TYPE MATCHES "^[Dd][Ee][Bb][Uu][Gg]")
+IF(CMAKE_BUILD_TYPE MATCHES "^[Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
     message(STATUS "Dynamic Release mode selected")
     option(STATIC_LINKING "Static Linking" OFF)
-ENDIF(CMAKE_BUILD_TYPE MATCHES "[Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
+ENDIF(CMAKE_BUILD_TYPE MATCHES "^[Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
 
 # Other legacy configurations (used by ESI)
 IF(CMAKE_BUILD_TYPE MATCHES "[Dd][Dd][Ee][Bb][Uu][Gg]")
@@ -144,7 +144,7 @@ option(ENABLE_WRAP_PYTHON "Build Python wrappers" OFF)
 
 
 set(VEGA_VERSION "${VEGA_MAJOR_VERSION}.${VEGA_MINOR_VERSION}")
-set(VEGA_VERSION "${VEGA_VERSION}.${VEGA_PATCH_VERSION}${VEGA_EXTRA_VERSION}")
+set(VEGA_VERSION "${VEGA_VERSION}.${VEGA_PATCH_VERSION} ${VEGA_EXTRA_VERSION}")
 set(VEGA_SHORT_LICENSE "GPL")
 
 execute_process(COMMAND date "+%Y%m%d" OUTPUT_VARIABLE DATE

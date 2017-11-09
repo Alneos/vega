@@ -140,7 +140,8 @@ public:
             double systusRBELagrangian= 1.0,
             std::string systusOptionAnalysis="auto", std::string systusOutputProduct="systus",
             std::vector< std::vector<int> > systusSubcases = {},
-            std::string systusOutputMatrix="table", int systusSizeMatrix=9);
+            std::string systusOutputMatrix="table", int systusSizeMatrix=9,
+            std::string systusDynamicMethod="direct");
     const ModelConfiguration getModelConfiguration() const;
     virtual ~ConfigurationParameters();
 
@@ -172,6 +173,10 @@ public:
      * Oversized matrix are splitted.
      */
     const int systusSizeMatrix;
+    /**
+     * Choice of Dynamic method : either a direct or a modal one
+     */
+    const std::string systusDynamicMethod;
 };
 
 }

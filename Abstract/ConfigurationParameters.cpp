@@ -25,7 +25,7 @@ ConfigurationParameters::ConfigurationParameters(string inputFile, Solver output
         string solverServer, string solverCommand,
         string systusRBE2TranslationMode, double systusRBE2Rigidity, double systusRBELagrangian,
         string systusOptionAnalysis, string systusOutputProduct, vector<vector<int> > systusSubcases,
-        string systusOutputMatrix, int systusSizeMatrix) :
+        string systusOutputMatrix, int systusSizeMatrix, string systusDynamicMethod) :
                 inputFile(inputFile), outputSolver(outputSolver), solverVersion(solverVersion), outputFile(
                 outputFile), outputPath(outputPath), logLevel(logLevel), translationMode(
                 translationMode), resultFile(resultFile), testTolerance(tolerance), runSolver(
@@ -33,7 +33,7 @@ ConfigurationParameters::ConfigurationParameters(string inputFile, Solver output
                 systusRBE2TranslationMode(systusRBE2TranslationMode), systusRBE2Rigidity(systusRBE2Rigidity),
                 systusRBELagrangian(systusRBELagrangian), systusOptionAnalysis(systusOptionAnalysis),
                 systusOutputProduct(systusOutputProduct), systusSubcases(systusSubcases),
-                systusOutputMatrix(systusOutputMatrix), systusSizeMatrix(systusSizeMatrix)
+                systusOutputMatrix(systusOutputMatrix), systusSizeMatrix(systusSizeMatrix), systusDynamicMethod(systusDynamicMethod)
 {
 
 }
