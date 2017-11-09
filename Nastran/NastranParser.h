@@ -252,6 +252,13 @@ private:
     void parseDAREA(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
+     * Parse the keyword DELAY (page 1386 of MDN Nastran 2006 Quick Reference Guide.)
+     * Point identification (P), Component number (C) and a second phase are
+     * ignored.
+     */
+    void parseDELAY(NastranTokenizer& tok, shared_ptr<Model> model);
+
+    /**
      * Parse the keyword DLOAD (page 1398 of MDN Nastran 2006 Quick Reference Guide.)
      * Scale factors (S and Si) must be equal to 1.
      */
@@ -480,7 +487,7 @@ private:
 
     /**
      * Parse the keyword RLOAD2 (page 2387 of MDN Nastran 2006 Quick Reference Guide.)
-     * Unknown reliability.
+     * Full support, albeit with constant DELAY and DPHASE (see theses commands)
      */
     void parseRLOAD2(NastranTokenizer& tok, std::shared_ptr<Model> model);
 

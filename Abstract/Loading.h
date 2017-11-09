@@ -342,23 +342,28 @@ public:
  */
 class DynamicExcitation: public Loading {
 private:
-	Reference<Value> dynaPhase;
-	Reference<Value> functionTableB;
-	Reference<LoadSet> loadSet;
-	public:
-	DynamicExcitation(const Model&, const Reference<Value> dynaPhase,
-			const Reference<Value> functionTableB, const Reference<LoadSet>, const int original_id =
-					NO_ORIGINAL_ID);
+    Reference<Value> dynaDelay;
+    Reference<Value> dynaPhase;
+    Reference<Value> functionTableB;
+    Reference<Value> functionTableP;
+    Reference<LoadSet> loadSet;   /**< Excitation Loadset **/
+public:
+    DynamicExcitation(const Model&, const Reference<Value> dynaDelay, const Reference<Value> dynaPhase,
+            const Reference<Value> functionTableB, const Reference<Value> functionTableP, const Reference<LoadSet>, const int original_id =
+                    NO_ORIGINAL_ID);
 
-	std::shared_ptr<DynaPhase> getDynaPhase() const;
-	std::shared_ptr<FunctionTable> getFunctionTableB() const;
-	std::shared_ptr<LoadSet> getLoadSet() const;
-	const ValuePlaceHolder getFunctionTableBPlaceHolder() const;
-	std::set<int> nodePositions() const override;
-	const DOFS getDOFSForNode(int nodePosition) const override;
-	std::shared_ptr<Loading> clone() const override;
-	bool validate() const override;
-	bool ineffective() const override;
+    std::shared_ptr<DynaPhase> getDynaDelay() const;
+    std::shared_ptr<DynaPhase> getDynaPhase() const;
+    std::shared_ptr<FunctionTable> getFunctionTableB() const;
+    std::shared_ptr<FunctionTable> getFunctionTableP() const;
+    std::shared_ptr<LoadSet> getLoadSet() const;
+    const ValuePlaceHolder getFunctionTableBPlaceHolder() const;
+    const ValuePlaceHolder getFunctionTablePPlaceHolder() const;
+    std::set<int> nodePositions() const override;
+    const DOFS getDOFSForNode(int nodePosition) const override;
+    std::shared_ptr<Loading> clone() const override;
+    bool validate() const override;
+    bool ineffective() const override;
 };
 
 } /* namespace vega */

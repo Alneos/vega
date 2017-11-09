@@ -88,8 +88,10 @@ const unordered_map<string, NastranParserImpl::parseElementFPtr> NastranParserIm
                 { "CTRIA6", &NastranParserImpl::parseCTRIA6 },
                 { "CTRIAR", &NastranParserImpl::parseCTRIAR },
                 { "DAREA", &NastranParserImpl::parseDAREA },
+                { "DELAY", &NastranParserImpl::parseDELAY },
                 { "DLOAD", &NastranParserImpl::parseDLOAD },
                 { "DMIG", &NastranParserImpl::parseDMIG },
+                { "DPHASE", &NastranParserImpl::parseDPHASE },
                 { "EIGR", &NastranParserImpl::parseEIGR },
                 { "EIGRL", &NastranParserImpl::parseEIGRL },
                 { "FORCE", &NastranParserImpl::parseFORCE },
@@ -132,7 +134,6 @@ const unordered_map<string, NastranParserImpl::parseElementFPtr> NastranParserIm
                 { "SPCADD", &NastranParserImpl::parseSPCADD },
                 { "SPOINT", &NastranParserImpl::parseSPOINT },
                 { "TABDMP1", &NastranParserImpl::parseTABDMP1 },
-                { "DPHASE", &NastranParserImpl::parseDPHASE },
                 { "TABLED1", &NastranParserImpl::parseTABLED1 },
                 { "GRDSET", &NastranParserImpl::parseGRDSET }
         };
@@ -798,6 +799,29 @@ void NastranParserImpl::parseDAREA(NastranTokenizer& tok, shared_ptr<Model> mode
     }
 }
 
+//TODO: Delay should not be a DynaPhase object
+//TODO: But I guess this will be enough for now
+void NastranParserImpl::parseDELAY(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int original_id = tok.nextInt();
+    int p = tok.nextInt(true);
+    if (p!=Globals::UNAVAILABLE_INT){
+        handleParsingWarning("Point identification (P) ignored and dismissed.", tok, model);
+    }
+    int c = tok.nextInt(true);
+    if (c!=Globals::UNAVAILABLE_INT){
+        handleParsingWarning("Component number (C) ignored and dismissed.", tok, model);
+    }
+    double delay = tok.nextDouble();
+
+    if (!tok.isEmptyUntilNextKeyword()){
+        handleParsingWarning("Second dynamic load phase dismissed.", tok, model);
+    }
+    DynaPhase dynaphase(*model, -2*M_PI*delay, original_id);
+    model->add(dynaphase);
+}
+
+
+
 void NastranParserImpl::parseDLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
     int loadset_id = tok.nextInt();
     LoadSet loadSet(*model, LoadSet::DLOAD, loadset_id);
@@ -1317,7 +1341,7 @@ void NastranParserImpl::parseNLPARM(NastranTokenizer& tok, shared_ptr<Model> mod
     int number_of_increments = tok.nextInt(true, 10);
 
     if (!tok.isEmptyUntilNextKeyword()){
-    	tok.skipToNextKeyword();
+        tok.skipToNextKeyword();
         handleParsingWarning("All parameters are ignored except NINC.", tok, model);
     }
 
@@ -1541,11 +1565,11 @@ void NastranParserImpl::parsePBEAML(NastranTokenizer& tok, shared_ptr<Model> mod
         handleParsingError(message, tok, model);
     }
 
-	if (!tok.isEmptyUntilNextKeyword()) {
-		tok.skipToNextKeyword();
-		handleParsingWarning("Ignoring rest of line.", tok,
-				model);
-	}
+    if (!tok.isEmptyUntilNextKeyword()) {
+        tok.skipToNextKeyword();
+        handleParsingWarning("Ignoring rest of line.", tok,
+             model);
+    }
 
 }
 
@@ -1680,21 +1704,21 @@ void NastranParserImpl::parsePGAP(NastranTokenizer& tok, shared_ptr<Model> model
 }
 
 void NastranParserImpl::parsePLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) {
-	int loadset_id = tok.nextInt();
-	double p = tok.nextDouble();
-	int eid1 = tok.nextInt();
-	string strt = tok.nextString();
-	int eid2;
-	if (strt == "THRU") {
-		//format2
-	    eid2 = tok.nextInt();
-	} else {
-		//format not recognized
-		handleParsingError(string("Format yet implemented."), tok, model);
-	}
-	Reference<LoadSet> loadSetReference(LoadSet::LOAD, loadset_id);
-	NormalPressionFace normalPressionFace(*model, p);
-	addCellIds(normalPressionFace, eid1, eid2);
+    int loadset_id = tok.nextInt();
+    double p = tok.nextDouble();
+    int eid1 = tok.nextInt();
+    string strt = tok.nextString();
+    int eid2;
+    if (strt == "THRU") {
+        //format2
+        eid2 = tok.nextInt();
+    } else {
+        //format not recognized
+        handleParsingError(string("Format yet implemented."), tok, model);
+    }
+    Reference<LoadSet> loadSetReference(LoadSet::LOAD, loadset_id);
+    NormalPressionFace normalPressionFace(*model, p);
+    addCellIds(normalPressionFace, eid1, eid2);
 }
 
 void NastranParserImpl::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -1868,7 +1892,7 @@ void NastranParserImpl::parsePSOLID(NastranTokenizer& tok, shared_ptr<Model> mod
     }
     Continuum continuum(*model, modelType, elemId);
     continuum.assignMaterial(material_id);
-    continuum.assignCellGroup(getOrCreateCellGroup(elemId, model, "PSOL"));
+    continuum.assignCellGroup(getOrCreateCellGroup(elemId, model, "PSOLID"));
     model->add(continuum);
 }
 
@@ -2019,23 +2043,37 @@ void NastranParserImpl::parseRFORCE(NastranTokenizer& tok, shared_ptr<Model> mod
 void NastranParserImpl::parseRLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) {
     int loadset_id = tok.nextInt();
     int darea_set_id = tok.nextInt();
-    double delay = tok.nextDouble(true, 0);
-    if (!is_equal(delay, 0))
-        handleParsingError("DELAY in RLOAD2 not supported. ", tok, model);
+
+    // Delay
+    int delay_id = 0;
+    double delay = 0.0;
+    if (tok.isNextInt())
+        delay_id = tok.nextInt(true, 0);
+    else
+        delay = tok.nextDouble(true, 0.0);
+
+    // DPhase
     int dphase_id = 0;
     double dphase = 0.0;
     if (tok.isNextInt())
         dphase_id = tok.nextInt(true, 0);
     else
         dphase = tok.nextDouble(true, 0.0);
-    int functionTableB_original_id = tok.nextInt(true, 0);
-    int functionTableP_original_id = tok.nextInt(true, 0);
-    if (functionTableP_original_id != 0)
-        handleParsingError("TP in RLOAD2 not supported. ", tok, model);
+
+    int functionTableB_original_id = tok.nextInt(); //TB
+    int functionTableP_original_id = tok.nextInt(true, 0); //TP
+
+    // Type
     string type = tok.nextString(true, "LOAD").substr(0, 1);
     if (type != "L" && type != "0")
         handleParsingError("TYPE in RLOAD2 not supported. ", tok, model);
 
+    Reference<Value> dynaDelay_ref = Reference<Value>(Value::DYNA_PHASE, delay_id);
+    if (delay_id == 0) {
+        DynaPhase dynadelay(*model, -2*M_PI*delay);
+        model->add(dynadelay);
+        dynaDelay_ref = Reference<Value>(dynadelay);
+    }
     Reference<Value> dynaPhase_ref = Reference<Value>(Value::DYNA_PHASE, dphase_id);
     if (dphase_id == 0) {
         DynaPhase dynaphase(*model, dphase);
@@ -2043,11 +2081,18 @@ void NastranParserImpl::parseRLOAD2(NastranTokenizer& tok, shared_ptr<Model> mod
         dynaPhase_ref = Reference<Value>(dynaphase);
     }
     Reference<Value> functionTableB_ref(Value::FUNCTION_TABLE, functionTableB_original_id);
+    //TODO: should not create a ref when the P value is 0
+    Reference<Value> functionTableP_ref(Value::FUNCTION_TABLE, functionTableP_original_id);
 
-    // new LoadSet EXCITEID for the DynamicExcitation
+
+
+    // If needed, creates a LoadSet EXCITEID for the DynamicExcitation
     LoadSet darea(*model, LoadSet::EXCITEID, darea_set_id);
-    model->add(darea);
     Reference<LoadSet> darea_ref(darea);
+    if (!model->find(darea_ref)){
+       model->add(darea);
+    }
+
     // if loadSet DLOAD does not exist (was not declared in the bulk), loadset_id become the original id of DynamicExcitation
     // else DynamicExcitation is created without original_id and is mapped to this loadSet
     int original_id;
@@ -2057,7 +2102,7 @@ void NastranParserImpl::parseRLOAD2(NastranTokenizer& tok, shared_ptr<Model> mod
     else
         original_id = loadset_id;
 
-    DynamicExcitation dynamicExcitation(*model, dynaPhase_ref, functionTableB_ref, darea_ref,
+    DynamicExcitation dynamicExcitation(*model, dynaDelay_ref, dynaPhase_ref, functionTableB_ref, functionTableP_ref, darea_ref,
             original_id);
     model->add(dynamicExcitation);
 
@@ -2069,6 +2114,9 @@ void NastranParserImpl::parseRLOAD2(NastranTokenizer& tok, shared_ptr<Model> mod
 
     // PlaceHolder to complete the Value attribute paraX of FunctionTable
     model->add(dynamicExcitation.getFunctionTableBPlaceHolder());
+    if (functionTableP_original_id>0){
+        model->add(dynamicExcitation.getFunctionTablePPlaceHolder());
+    }
 }
 
 //FIXME: SLOAD uses the CID of the Grid point to determine X... Not sure it's done here.

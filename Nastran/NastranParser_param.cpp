@@ -36,15 +36,16 @@ namespace nastran {
 
 
 // See chapter 5 of the Nastran Quick Reference guide
+// Please keep alphabetical order for a better readibility
 const set<string> NastranParserImpl::IGNORED_PARAMS = {
-		"BAILOUT", // Behavior when matrixes are almost singular. Useless for translation.
-		"DESPCH", "DESPCH1", // Amount of output data to write during an optimization process. Useless for translation.
-		"NASPRT",  // Data recovery during optimization process. Useless for translation.
-		"OUGCORD", // Choice of referentiel for printout
-		"POST",    // Post-treatment parameter. Useless for translation.
-		"PRGPST",  // Printout command
-		"TINY",     // Printout command
-		"COUPMASS" // Generation of coupled rather than diagonal mass matrices for elements with coupled mass capability
+        "BAILOUT", // Behavior when matrixes are almost singular. Useless for translation.
+        "COUPMASS", // Generation of coupled rather than diagonal mass matrices for elements with coupled mass capability
+        "DESPCH", "DESPCH1", // Amount of output data to write during an optimization process. Useless for translation.
+        "NASPRT",  // Data recovery during optimization process. Useless for translation.
+        "OUGCORD", // Choice of referentiel for printout
+        "POST",    // Post-treatment parameter. Useless for translation.
+        "PRGPST",  // Printout command
+        "TINY"     // Printout command
 };
 
 
