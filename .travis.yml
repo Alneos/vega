@@ -9,7 +9,6 @@ services:
 
 before_install:
   - docker build -t ldallolio/vegaci .
-  - docker run ldallolio/vegaci /bin/sh -c "cd /usr/local/src/vegapp/build; ctest ."
 
 script:
-    - ctest .
+  - docker run ldallolio/vegaci /bin/sh -c "cd /usr/local/src/vegapp/build; cmake -DCMAKE_BUILD_TYPE=Debug ..; make -j; ctest ."
