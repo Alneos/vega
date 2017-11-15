@@ -29,6 +29,7 @@ using boost::to_upper;
 using namespace std;
 
 #ifdef __linux__
+#ifdef __GLIBC__
 #include <execinfo.h>
 #include <signal.h>
 
@@ -44,7 +45,7 @@ void handler(int sig) {
     backtrace_symbols_fd(array, static_cast<int>(size), STDERR_FILENO);
     exit(1);
 }
-
+#endif
 #endif
 
 // A helper function to simplify the main part.
@@ -442,7 +443,9 @@ string VegaCommandLine::expand_user(string path) {
 VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
     ExitCode result = VegaCommandLine::OK;
 #ifdef __linux__
+#ifdef __GLIBC__
     signal(SIGSEGV, handler);
+#endif
 #endif
     try {
         string config_file;

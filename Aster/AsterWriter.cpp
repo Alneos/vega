@@ -641,7 +641,7 @@ void AsterWriterImpl::writeAffeCaraElemPoutre(const ElementSet& elementSet, ostr
 		const Beam& beam =
 				static_cast<const Beam&>(elementSet);
 		out << max(std::numeric_limits<double>::epsilon(), beam.getAreaCrossSection()) << ","
-				<< beam.getMomentOfInertiaY() << "," << beam.getMomentOfInertiaZ()
+				<< max(std::numeric_limits<double>::epsilon(), beam.getMomentOfInertiaY()) << "," << max(std::numeric_limits<double>::epsilon(), beam.getMomentOfInertiaZ())
 				<< "," << beam.getTorsionalConstant() << ","
 				<< beam.getShearAreaFactorY() << ","
 				<< beam.getShearAreaFactorZ();
@@ -1240,7 +1240,7 @@ double AsterWriterImpl::writeAnalysis(const AsterModel& asterModel, Analysis& an
 		debut = fin;
 		string list_name = writeValue(stepRange, out);
 		out << "LAUTO" << nonLinAnalysis.getId()
-				<< "=DEFI_LIST_INST(DEFI_LIST=_F(METHODE='AUTO', LIST_INST=" << list_name << ",),);"
+				<< "=DEFI_LIST_INST(METHODE='AUTO', DEFI_LIST=_F(LIST_INST=" << list_name << ",),);"
 				<< endl;
 		out << "RAMP" << nonLinAnalysis.getId()
 				<< "=DEFI_FONCTION(NOM_PARA='INST', PROL_DROITE='LINEAIRE', VALE=("
@@ -1291,13 +1291,7 @@ double AsterWriterImpl::writeAnalysis(const AsterModel& asterModel, Analysis& an
 			out << "                    CONTACT=CN" << constraintSet->getId() << "," << endl;
 		}
 		double largeDisp = 0;
-//		auto it = asterModel.model.parameters.find(Model::LARGE_DISPLACEMENTS);
-//		if (it != asterModel.model.parameters.end()) {
-//			largeDisp = it->second;
-//			out << "                    COMP_ELAS=(" << endl;
-//		} else {
-			out << "                    COMP_INCR=(" << endl;
-//		}
+		out << "                    COMPORTEMENT=(" << endl;
 		for (auto elementSet : asterModel.model.elementSets) {
 			if (elementSet->material && elementSet->cellGroup != nullptr) {
 				out << "                          _F(GROUP_MA='" << elementSet->cellGroup->getName()
@@ -1360,22 +1354,26 @@ double AsterWriterImpl::writeAnalysis(const AsterModel& asterModel, Analysis& an
 			out << "RESU";
 		else
 			out << "MODES";
-		out << linearModal.getId() << "=MODE_ITER_SIMULT(MATR_RIGI=RIGI" << linearModal.getId()
+		out << linearModal.getId() << "=CALC_MODES(MATR_RIGI=RIGI" << linearModal.getId()
 				<< "," << endl;
 		out << "                       MATR_MASS=MASS" << linearModal.getId() << "," << endl;
-		out << "                       METHODE='TRI_DIAG'," << endl;
+		out << "                       SOLVEUR_MODAL=_F(METHODE='TRI_DIAG')," << endl;
+		FrequencyBand& frequencyBand = *(linearModal.getFrequencyBand());
+		if (!is_equal(frequencyBand.upper, vega::Globals::UNAVAILABLE_DOUBLE)) {
+			out << "                                    OPTION='BANDE'," << endl;
+		} else {
+			out << "                                    OPTION='PLUS_PETITE'," << endl;
+		}
+
 		out << "                       CALC_FREQ=_F(" << endl;
 
-		FrequencyBand& frequencyBand = *(linearModal.getFrequencyBand());
 		if (!is_equal(frequencyBand.upper, vega::Globals::UNAVAILABLE_DOUBLE)) {
 			double lower =
 					(!is_equal(frequencyBand.lower , vega::Globals::UNAVAILABLE_DOUBLE)) ?
 							frequencyBand.lower : 0.0;
-			out << "                                    OPTION='BANDE'," << endl;
 			out << "                                    FREQ=(" << lower << ","
 					<< frequencyBand.upper << ")," << endl;
 		} else {
-			out << "                                    OPTION='PLUS_PETITE'," << endl;
 			if (frequencyBand.num_max != vega::Globals::UNAVAILABLE_INT)
 				out << "                                    NMAX_FREQ=" << frequencyBand.num_max
 						<< "," << endl;
