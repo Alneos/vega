@@ -41,17 +41,17 @@ cd /"wherever vegapp was downloaded"/vega
 mkdir -p ./build/x86_64
 cd ./build/x86_64
 
-Build release (static linking):
+Build debug (default, dynamic linking):
 
-cmake -DCMAKE_BUILD_TYPE=SRelease ../..
+cmake -DCMAKE_BUILD_TYPE=Debug  ../..
 
 make -j 4
 
 ctest .
 
-Build debug (default, dynamic linking):
+Build release (static linking):
 
-cmake -DCMAKE_BUILD_TYPE=DDebug  ../..
+cmake -DCMAKE_BUILD_TYPE=SRelease ../..
 
 make -j 4
 
