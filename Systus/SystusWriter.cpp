@@ -1783,7 +1783,7 @@ void SystusWriter::writeAsc(const SystusModel &systusModel, const vega::Configur
 
     writeHeader(systusModel, out);
 
-    writeInformations(configuration, idSubcase, out);
+    writeInformations(systusModel, idSubcase, out);
 
     writeNodes(systusModel, out);
 
@@ -1838,16 +1838,17 @@ void SystusWriter::writeHeader(const SystusModel& systusModel, ostream& out) {
     out << "1VSD 0 121126 133214 121126 133214 " << endl;
     out << systusModel.getName().substr(0, 20) << endl; //should be less than 24
     out << " 100000 " << systusOption << " " << systusModel.model->mesh->countNodes() << " ";
-    out << systusModel.model->mesh->countCells() << " " << systusModel.model->loadSets.size()
-                                    << " ";
+    out << systusModel.model->mesh->countCells() << " ";
+    out << localLoadingListName.size() << " "; // KPPR: Number of loads
 
-    // TODO : wrong if a model possess bar and volume elements only, maybe check the model
     int numberOfDof = numberOfDofBySystusOption[systusOption];
-    out << numberOfDof << " " << numberOfDof * maxNumNodes << " 0 0" << endl;
+    out << numberOfDof << " " ;                               // KP: Number of degrees of freedom per node
+    out << 2*numberOfDof*localLoadingListName.size() << " " ; // KPC = 2*KP*KPPR (for most cases)
+    out << "0 0" << endl;                                     // Two useless integers
 
 }
 
-void SystusWriter::writeInformations(const ConfigurationParameters &configuration, int idSubcase , ostream& out) {
+void SystusWriter::writeInformations(const SystusModel &systusModel, int idSubcase , ostream& out) {
     out << "BEGIN_INFORMATIONS" << endl;
 
     //Subcase
@@ -1870,16 +1871,42 @@ void SystusWriter::writeInformations(const ConfigurationParameters &configuratio
 
     // We have 80 characters
     long unsigned sizeleft =  80 - ssubcase.length() - sdate.length() - slogiciel.length();
-    out << slogiciel << configuration.inputFile.substr(0, sizeleft) << ssubcase << sdate<< endl;
+    out << slogiciel << systusModel.configuration.inputFile.substr(0, sizeleft) << ssubcase << sdate<< endl;
 
+    // NCODES
+    int ncode[20]={0};
+    ncode[0]= systusOption; //IOPT: SYSTUS OPTION
+    ncode[3]= 2;  // NORM: Eigenvelue norm used (1: Maximum (def), 2: Mass (Nastran  default), 4: Elastic)
+    ncode[11]= 1; // KMAT : New material structure. Always set to 1.
+    ncode[15]= systusSubOption; // NC16 : Systus SubOptions
+    for (int i = 0; i<20 ; i++){
+      out <<" "<< ncode[i];
+    }
+    out <<endl;
 
-    out << " " << systusOption << " 0 0 1 0 0 0 0 0 0 0 1 0 "<< systusSubOption<<" 0 0 0 0 0 0" << endl;
-    out << " 0 0 0 0 0 0 0 0 0 0 ";
-
+    // LCODES : Most of these are not really needed, as Systus recomputes them after.
+    // Nonetheless, it's cleaner this way.
+    int lcode[40]={0};
     int numberOfDof = numberOfDofBySystusOption[systusOption];
-    out << numberOfDof << " " << numberOfDof << " " << numberOfDof * numberOfDof << " 0 0 0 0 "
-            << numberOfDof * numberOfDof;
-    out << " 0 0 0 0 12 0 0 0 0 0 3 0 0 0 0 0 0 0 2 2 0 0" << endl;
+    lcode[0] = static_cast<int>(localLoadingListName.size()); // KPPR: Number of loads
+    lcode[1] = systusModel.model->mesh->countNodes();     // NMAX: Number of nodes
+    lcode[3] = systusModel.model->mesh->countCells();     // MMAXI: Number of elements
+    lcode[5] = 0;                                         // JMAT: Number of material couples, will be computed in "nbmaterials" in the writeMaterials method
+    lcode[6] = static_cast<int>(lists.size());            // JREP: Number of lists
+    lcode[7] = static_cast<int>(vectors.size());          // JVEC: Number of vectors.
+    lcode[10]= numberOfDof;                               // KP: Number of dof per node
+    lcode[11]= numberOfDof;                               // KPMAX: Maximum Number of dof per node
+    lcode[12]= numberOfDof*numberOfDof;                   // KPM2 = KPMAX*KPMAX;
+    lcode[13]= 3;                                         // NCOOR: Number of coordinates of a node (2 or 3)
+    lcode[17]= numberOfDof*numberOfDof;                   // KP2 = KP*KP;
+    lcode[22]= 2*numberOfDof*lcode[0];                    // KPC = 2*KP*KPPR (for most cases)
+    lcode[36]= 2;                                         // LCRP Data Type: 1:OLD, 2: NEW
+    lcode[37]= 0;                                         // ICAL Computation Status 0: Not Done
+    for (int i = 0; i<40 ; i++){
+      out <<" "<< lcode[i];
+    }
+    out <<endl;
+
     out << "END_INFORMATIONS" << endl;
 }
 
