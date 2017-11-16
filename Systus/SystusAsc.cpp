@@ -46,9 +46,11 @@ std::ostream& operator<<(std::ostream& os, const SystusTable & st)
   os << st.id <<" "<<SystusTableLabelToString(st.label);
   switch (st.label){
   case TL_STANDARD:{
-      // First line is what the standard says, but is seems to be wrong
-      //os <<" "<<st.type;
-      os << "  ";
+      // Type 0 is "no type" just a bunch of values without an interpolation rule.
+      // Other Type are needed as an "INTERPOLATION KEY"
+      if (st.type>0){
+          os <<" "<<st.type;
+      }
       for (const auto v : st.values){
           os <<" "<<v;
       }

@@ -1440,10 +1440,6 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const int idSubcase
 
 void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcase) {
 
-    // Suppressing warnings. Technically, we don't need these variables. We
-    // keep them to remember that only one kind of tables are translated yet,
-    // and we don't know what the others will need.
-    UNUSEDV(idSubcase);
 
     if (systusModel.configuration.systusOutputMatrix=="table"){
 
@@ -1480,7 +1476,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             case ElementSet::STIFFNESS_MATRIX:{
                 shared_ptr<StiffnessMatrix> sm = static_pointer_cast<StiffnessMatrix>(elementSet);
                 long unsigned int tId= tables.size()+1;
-                SystusTable aTable = SystusTable(tId);
+                SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
 
                 //Numbering the node internally to the element
                 map<int, int> positionToSytusNumber;
@@ -1507,7 +1503,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             case ElementSet::MASS_MATRIX:{
                 shared_ptr<MassMatrix> mm = static_pointer_cast<MassMatrix>(elementSet);
                 long unsigned int tId= tables.size()+1;
-                SystusTable aTable = SystusTable(tId);
+                SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
 
                 //Numbering the node internally to the element
                 map<int, int> positionToSytusNumber;
@@ -1534,7 +1530,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             case ElementSet::DAMPING_MATRIX:{
                 shared_ptr<DampingMatrix> dm = static_pointer_cast<DampingMatrix>(elementSet);
                 long unsigned int tId= tables.size()+1;
-                SystusTable aTable = SystusTable(tId);
+                SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
 
                 //Numbering the node internally to the element
                 map<int, int> positionToSytusNumber;
@@ -1563,6 +1559,63 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
                 //TODO : throw WriterException("ElementSet type not supported");
                 cout << "Warning in FillTables: " << *elementSet << " not supported" << endl;
             }
+            }
+        }
+    }
+
+
+    // Build tables for frequency-dependent amplitude on Modal Dynamic Analysis
+    if (systusModel.configuration.systusDynamicMethod=="modal"){
+        const vector<int> analysisId = systusSubcases[idSubcase];
+
+        for (unsigned i = 0 ; i < analysisId.size(); i++) {
+            const shared_ptr<Analysis> analysis = systusModel.model->getAnalysis(analysisId[i]);
+
+            if (analysis==nullptr){
+                handleWritingWarning("Wrong analysis number: analysis dismissed", "Table");
+                break;
+            }
+
+            for (const auto& loadset : analysis->getLoadSets()){
+                const int idLoadCase = localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()][loadset->getId()];
+                for (const auto& loading : loadset->getLoadings()) {
+
+                    switch (loading->type){
+
+                    // Nothing to do
+                    case Loading::NODAL_FORCE:
+                    case Loading::GRAVITY:{
+                        break;
+                    }
+
+                    // Here we stock the amplitude
+                    case Loading::DYNAMIC_EXCITATION:{
+                        shared_ptr<DynamicExcitation> dE = static_pointer_cast<DynamicExcitation>(loading);
+                        shared_ptr<LoadSet> dEL = dE->getLoadSet();
+                        if (dEL->type != LoadSet::EXCITEID){
+                            handleWritingWarning("Dynamic loading must refer an EXCITED Loadset. Dismissing load "+ to_string(dE->bestId()), "Table");
+                            break;
+                        }
+
+                        shared_ptr<FunctionTable> aTable = dE->getFunctionTableB();
+                        int tId= static_cast<int>(tables.size())+1;
+                        SystusTable aSystusTable = SystusTable(tId);
+                        //TODO: Test the units of the table ?
+                        for (auto it = aTable->getBeginValuesXY(); it != aTable->getEndValuesXY(); it++){
+                            aSystusTable.add(it->first);
+                            aSystusTable.add(it->second);
+                        }
+                        tables.push_back(aSystusTable);
+                        tableByLoadcase[idLoadCase]= tId;
+
+                        break;
+                    }
+
+                    default: {
+                        handleWritingWarning("Unknown type of LOADING "+ to_str(*loading), "Table");
+                    }
+                    }
+                }
             }
         }
     }
@@ -1750,6 +1803,7 @@ void SystusWriter::clear(){
     // Clear tables
     tables.clear();
     tableByElementSet.clear();
+    tableByLoadcase.clear();
 
     // Clear matrices
     seIdByElementSet.clear();
@@ -2529,7 +2583,9 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         handleWritingError(string("Analysis " + to_string(idAnalysis) + " not found."));
     }
 
-    string sSolver;
+    string sSolver="";
+    string sReload="";
+    string sClean= "";
 
     switch (analysis->type) {
     case Analysis::LINEAR_MECA_STAT: {
@@ -2625,45 +2681,45 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         break;
     }
 
-    // Modal Dynamique Analysis
+    // Modal Dynamic Analysis
     case Analysis::LINEAR_DYNA_MODAL_FREQ: {
         sSolver = "TRAN";
-        if (systusModel.configuration.systusDynamicMethod=="direct"){
-            const LinearDynaModalFreq& linearDynaModalFreq = static_cast<const LinearDynaModalFreq&>(*analysis);
+        const LinearDynaModalFreq& linearDynaModalFreq = static_cast<const LinearDynaModalFreq&>(*analysis);
 
-            // Damping
-            shared_ptr<FunctionTable> modalDampingTable = linearDynaModalFreq.getModalDamping()->getFunctionTable();
-            ostringstream oDamping;
-            if ((modalDampingTable->getParaX()!=Value::FREQ)||(modalDampingTable->getParaY()!=Value::AMOR)){
-                handleWritingWarning("Dismissing damping table with wrong units ("+to_string(modalDampingTable->getParaY())+"/"+to_string(modalDampingTable->getParaX())+")", "Analysis file");
-            }else{
-                double firstDamping = modalDampingTable->getBeginValuesXY()->second;
-                oDamping << "GAMMA "<< firstDamping;
-                // Systus 2017 allows to define damping for each modes, and not for frequency range. So we can only translate
-                // constant dampings !
-                for (auto it = modalDampingTable->getBeginValuesXY(); it != modalDampingTable->getEndValuesXY(); it++){
-                    if (!is_equal(firstDamping, it->second)){
-                        handleWritingWarning("SYTUS modal damping must be defined by mode number and not by frequency. Constant damping is assumed.", "Analysis file");
-                    }
-                }
+        // Frequency
+        ostringstream oFrequency;
+        shared_ptr<ValueRange> freqValueRange = linearDynaModalFreq.getFrequencyValues()->getValueRange();
+        switch (freqValueRange->type) {
+            case Value::STEP_RANGE: {
+                const StepRange& freqValueSteps = dynamic_cast<StepRange&>(*freqValueRange);
+                oFrequency << "INITIAL "  << (freqValueSteps.start - freqValueSteps.step) << endl;
+                oFrequency << " " << (freqValueSteps.end - freqValueSteps.step) << " STEP " << freqValueSteps.step;
+                break;
+            }
+            default:{
+                handleWritingWarning("Frequency range of type "+ to_string(freqValueRange->type)+" not available yet.", "Analysis file");
+            }
             }
 
+        // Damping
+        shared_ptr<FunctionTable> modalDampingTable = linearDynaModalFreq.getModalDamping()->getFunctionTable();
+        ostringstream oDamping;
+        if ((modalDampingTable->getParaX()!=Value::FREQ)||(modalDampingTable->getParaY()!=Value::AMOR)){
+            handleWritingWarning("Dismissing damping table with wrong units ("+to_string(modalDampingTable->getParaY())+"/"+to_string(modalDampingTable->getParaX())+")", "Analysis file");
+        }else{
+            double firstDamping = modalDampingTable->getBeginValuesXY()->second;
+            oDamping << "GAMMA "<< firstDamping;
+            // Systus 2017 allows to define damping for each modes, and not for frequency range. So we can only translate
+            // constant dampings !
+            for (auto it = modalDampingTable->getBeginValuesXY(); it != modalDampingTable->getEndValuesXY(); it++){
+                if (!is_equal(firstDamping, it->second)){
+                    handleWritingWarning("SYTUS modal damping must be defined by mode number and not by frequency. Constant damping is assumed.", "Analysis file");
+                }
+            }
+        }
 
-            // Frequency
-            ostringstream oFrequency;
-            shared_ptr<ValueRange> freqValueRange = linearDynaModalFreq.getFrequencyValues()->getValueRange();
-            switch (freqValueRange->type) {
-                case Value::STEP_RANGE: {
-                    const StepRange& freqValueSteps = dynamic_cast<StepRange&>(*freqValueRange);
-                    oFrequency << "INITIAL "  << (freqValueSteps.start - freqValueSteps.step) << endl;
-                    oFrequency << " " << (freqValueSteps.end - freqValueSteps.step) << " STEP " << freqValueSteps.step;
-                    break;
-                }
-                default:{
-                    handleWritingWarning("Frequency range of type "+ to_string(freqValueRange->type)+" not available yet.", "Analysis file");
-                }
-                }
 
+        if (systusModel.configuration.systusDynamicMethod=="direct"){
 
             out << "# COMPUTING MASS MATRIX" << endl;
             out << "# AS THE COMMAND DYNAMIC COMPUTE THEM, IT SHOULD BE USELESS." << endl;
@@ -2681,53 +2737,110 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             out << "RETURN"<<endl;
 
         }else if (systusModel.configuration.systusDynamicMethod=="modal"){
+            // See SYSTUS Reference Manual 11.4 "Dynamic Response - Modal method"
 
-            handleWritingWarning("Modal Dynamic Analysis is not available yet.", "Analysis file");
+            // First, we need to do a static analysis
+            const int iStaticData=42;
+            out << "# RUN A STATIC ANALYSIS AND SAVE THE RESULTS."<< endl;
+            out << "SOLVE METHOD OPTI" << endl;
+            out << "SAVE DATA RESU " << iStaticData<< endl;
+            out << "CLOSE MASS" << endl;
+            out << endl;
 
-            //TODO: Disable for now. Is it useful?
-            //      if (analysis.type == Analysis::LINEAR_DYNA_MODAL_FREQ){
-            //
-            //          const LinearDynaModalFreq& linearDynaModalFreq = static_cast<const LinearDynaModalFreq&>(analysis);
-            //
-            //          out << "DYNAMIC" << endl;
-            //          out << "PARTICIPATION DOUBLE FORCE DISPL" << endl;
-            //          out << "RETURN" << endl;
-            //          out << "SOLVE FORCE MODAL" << endl << endl;
-            //
-            //          out << "DYNAMIC" << endl;
-            //          out << "HARMONIC RESPONSE MODAL FORCE DISPL" << endl;
-            //
-            //          shared_ptr<StepRange> freqValueSteps = linearDynaModalFreq.getFrequencyValues()->getValueRange();
-            //          out << "FREQUENCY INITIAL " << freqValueSteps->start - freqValueSteps->step << endl;
-            //          out << " " << freqValueSteps->end << " STEP " << freqValueSteps->step << endl;
-            //
-            //          shared_ptr<FunctionTable> modalDampingTable = linearDynaModalFreq.getModalDamping()->getFunctionTable();
-            //          out << "DAMPING MODAL" << endl;
-            //          for (auto it = modalDampingTable->getBeginValuesXY(); it != modalDampingTable->getEndValuesXY(); it++){
-            //              out << " " << it->first << " / (GAMMA) " << it->second << endl;
-            //              cout << "modal damping must be defined by {mode num}/value and not frequence/value " << endl;
-            //          }
-            //          out << endl;
-            //
-            //          for (auto it : DynamicExcitationByLoadId){
-            //              cout << "phase and amplitude not taken into account for load " << it.first << endl;
-            //              it.second->getDynaPhase();
-            //              it.second->getFunctionTableB();
-            //          }
-            //
-            //          out << "TRANSFER STATIONARY" << endl;
-            //          out << "DISPLACEMENT" << endl;
-            //          out << "RETURN" << endl << endl;
-            //
-            //          string("Analysis " + Analysis::stringByType.at(analysis.type) + " not (finish) implemented");
-            //      }
-            //      out << "SAVE DATA RESU " << analysis.getId() << endl;
-            //      out << "CONVERT RESU" << endl;
-            //      out << "POST " << analysis.getId() << endl;
-            //      out << "RETURN" << endl << endl;
+            // Then, we need to run a Modal analysis, to get the eigenvalues
+            // It's a limited version of what is done in Analysis::LINEAR_MODAL, because we need to know
+            // exactly the numbers of modes for the next part (so no STURM)
+            // However, we keep the same syntax, for future development.
+            FrequencyBand& frequencyBand = *(linearDynaModalFreq.getFrequencyBand());
+            double upperF = frequencyBand.upper;
+            double lowerF = frequencyBand.lower;
+            int nModes = (frequencyBand.num_max == vega::Globals::UNAVAILABLE_INT ? defaultNbDesiredRoots : frequencyBand.num_max);
+            if ((!is_equal(upperF, vega::Globals::UNAVAILABLE_DOUBLE))||(!is_equal(upperF, vega::Globals::UNAVAILABLE_DOUBLE))){
+                handleWritingWarning("Modal analysis with bound frequency not supported yet. Will search for "+to_string(nModes)+" Eigenmodes instead.", "Analysis file");
+                lowerF=vega::Globals::UNAVAILABLE_DOUBLE;
+                upperF=vega::Globals::UNAVAILABLE_DOUBLE;
+                nModes = defaultNbDesiredRoots;
+            }
+            // Choice of norm
+            string sNorm;
+            if (frequencyBand.norm=="MAX"){
+                sNorm="";
+            }else if (frequencyBand.norm=="MASS"){
+                sNorm=" NORM MASS";
+            }else{
+                handleWritingWarning("Unknown normalization method. Mass method chosen.", "DAT file");
+                sNorm=" NORM MASS";
+            }
+            // Number of iteration
+            int niter = 2*nModes + 2;
+
+            // Corresponding Systus commands
+            string sShift="";
+            string sSturm="";
+            string sBand="";
+            if ((is_equal(lowerF, vega::Globals::UNAVAILABLE_DOUBLE)) && (is_equal(upperF, vega::Globals::UNAVAILABLE_DOUBLE))){
+                sShift =" SHIFT";
+                sSturm="";
+                sBand="";
+            }
+            out << "# COMPUTE EIGENMODES " << endl;
+            out << "# WE COMPUTE "<< nModes << " MODES" << sBand <<"." << endl;
+            out << "# IT'S AN ITERATIVE MEHOD, WITH A MAXIMUM OF "<< niter <<" ITERATIONS" << endl;
+            out << "DYNAMIC"<<endl;
+            out << "MODE SUBSPACE BLOCK 6" << sShift<<endl;
+            out << "VECTOR "<< nModes << sSturm <<" ITER "<< niter <<" PRECISION 1*-5 FORCE"<< sNorm<<endl;
+            out << "METHOD OPTIMIZED" << endl;
+            out << "RETURN" << endl;
+            out << endl;
+
+
+            // Participation part
+            int nbLoadcases=static_cast<int>(localLoadingListName.size());
+            if (nbLoadcases!=1){
+                handleWritingWarning("Dynamic modal analysis only work with one loadcase.", "Analysis file");
+                nbLoadcases=1;
+            }
+            out << "# PARTICIPATION" << endl;
+            out << "SEARCH DATA RESU " << iStaticData << endl;
+            out << "DYNAMIC" << endl;
+            out << "# IF THERE IS NNN RIGID BODY MODES, ADD 'RIGID NNN' TO THE NEXT LINE."<<endl;
+            out << "PARTICIPATION "<< nModes<< " DOUBLE FORCE "<< nbLoadcases <<endl;
+            out << "RETURN" << endl;
+            out << endl;
+
+            // Harmonic part
+            const int nbNodes = systusModel.model->mesh->countNodes();
+            const int nbElements = systusModel.model->mesh->countCells();
+            out << "# MODAL DYNAMIC ANALYSIS"<<endl;
+            out << "DYNAMIC" << endl;
+            out << "# IF THERE IS NNN RIGID BODY MODES, ADD 'RIGID NNN' TO THE NEXT LINE."<<endl;
+            out << "HARMONIC RESPONSE MODAL "<< nModes<< " FORCE "<< nbLoadcases <<endl;
+            out << "DAMPING "<< oDamping.str() << endl;
+            if (tableByLoadcase.size()>0){
+                out <<"FUNCTION "<< tableByLoadcase[1] <<endl;
+                cout <<"FUNCTION "<< tableByLoadcase[0] <<endl;
+            }
+            out << "FREQUENCY " << oFrequency.str() << endl;
+            out << "TRANSFER STATIONARY" << endl;
+            out << "DISPLACEMENT 1 TO " << nbNodes << " INTERNAL" << endl;
+            out << "VELOCITY 1 TO " << nbNodes << " INTERNAL" << endl;
+            out << "ACCELERATION 1 TO " << nbNodes << " INTERNAL" << endl;
+            out << "REACTION 1 TO " << nbNodes << " INTERNAL" << endl;
+            out << "FORCE 1 TO " << nbElements << " INTERNAL" << endl;
+            out << "RETURN" << endl;
+            out << endl;
+
+            // For a LEVELSHAPE DAT file, we need to reload results
+            if (configuration.systusOutputProduct=="levelshape"){
+                sReload = "SEARCH DATA "+ std::to_string(iStaticData);
+            }
+
+            // Cleaning the temporary file
+            sClean = "DELETE DATA RESU "+ std::to_string(iStaticData);
         }else{
             handleWritingError("Unknown type of Dynamic Analysis "+systusModel.configuration.systusDynamicMethod, "Analysis file");
         }
+
         break;
     }
     default:
@@ -2748,6 +2861,20 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
     out << comment<<"POST 1" << endl;
     out << comment<<"RETURN" << endl;
     out << endl;
+
+    // In some case, we need to reload previous data
+    if (sReload!=""){
+        out << "# RELOAD DATA"<<endl;
+        out << sReload <<endl;
+        out << endl;
+    }
+
+    // If needed, we ask SYSUS to clean temporary files.
+    if (sClean!=""){
+        out << "# CLEANING FILES"<<endl;
+        out << sClean <<endl;
+        out << endl;
+    }
 
 
     vector<shared_ptr<Assertion>> assertions = analysis->getAssertions();

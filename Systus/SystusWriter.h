@@ -115,6 +115,7 @@ class SystusWriter: public Writer {
     SystusMatrices massMatrices ;           /**< All needed mass matrices (element X9XX type 0). **/
     SystusMatrices stiffnessMatrices;       /**< All needed rigidity matrices (element X9XX type 0). **/
     map<int, long unsigned int> tableByElementSet;
+    map<int, long unsigned int> tableByLoadcase;
     map<int, long unsigned int> seIdByElementSet; /**< Number of the matrix associated to SE (element X9XX type 0). **/
     map<int, std::string > filebyAccessId;        /**< Names of matrix files **/
     /**
