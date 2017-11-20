@@ -141,7 +141,7 @@ void SystusMatrices::clear(){
 }
 
 long unsigned int SystusMatrices::size(){
-    return this->matrices.size();
+    return static_cast<long unsigned int>(this->matrices.size());
 }
 
 // A lot of fields are filled with 0, because we don't know what to put here

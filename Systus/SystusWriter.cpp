@@ -730,7 +730,7 @@ void SystusWriter::generateSubcases(const SystusModel& systusModel,
             cAna.push_back(analysis.type); //Analysis type
 
             const vector<shared_ptr<ConstraintSet>> constraintSets = analysis.getConstraintSets();
-            cAna.push_back(constraintSets.size());
+            cAna.push_back(static_cast<int>(constraintSets.size()));
             for (auto constraintSet : constraintSets){
                 cAna.push_back(constraintSet->getId());
             }
@@ -743,7 +743,7 @@ void SystusWriter::generateSubcases(const SystusModel& systusModel,
 
 
             // For mechanical static problem, we search the already defined subcases for the same characteristic
-            long unsigned int idSubcase = systusSubcases.size();
+            long unsigned int idSubcase = static_cast<long unsigned int>(systusSubcases.size());
             if (analysis.type == Analysis::Type::LINEAR_MECA_STAT){
                 for (long unsigned int i=0; i<characteristicAnalysis.size(); i++){
                     if (cAna== characteristicAnalysis[i]){
@@ -880,7 +880,7 @@ void SystusWriter::fillLoads(const SystusModel& systusModel, const int idSubcase
 void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int idSubcase){
 
     // First available vector
-    long unsigned int vectorId= vectors.size()+1;
+    long unsigned int vectorId= static_cast<long unsigned int>(vectors.size())+1;
 
     // All analysis to do
     const vector<int> analysisId = systusSubcases[idSubcase];
@@ -1097,7 +1097,7 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
 void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const int idSubcase){
 
     // First available vector
-    long unsigned int vectorId = vectors.size()+1;
+    long unsigned int vectorId = static_cast<long unsigned int>(vectors.size())+1;
 
     // All analysis to do
     const vector<int> analysisId = systusSubcases[idSubcase];
@@ -1218,7 +1218,7 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
     UNUSEDV(idSubcase);
 
     // First available vector
-    long unsigned int vectorId = vectors.size()+1;
+    long unsigned int vectorId = static_cast<long unsigned int>(vectors.size())+1;
     map<int, long unsigned int> localVectorIdByCoordinateSystemPos;
     
     // Add vectors for Node Coordinate System
@@ -1475,7 +1475,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             //   - Damping  : XX0000
             case ElementSet::STIFFNESS_MATRIX:{
                 shared_ptr<StiffnessMatrix> sm = static_pointer_cast<StiffnessMatrix>(elementSet);
-                long unsigned int tId= tables.size()+1;
+                long unsigned int tId= static_cast<long unsigned int>(tables.size())+1;
                 SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
 
                 //Numbering the node internally to the element
@@ -1502,7 +1502,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             }
             case ElementSet::MASS_MATRIX:{
                 shared_ptr<MassMatrix> mm = static_pointer_cast<MassMatrix>(elementSet);
-                long unsigned int tId= tables.size()+1;
+                long unsigned int tId= static_cast<long unsigned int>(tables.size())+1;
                 SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
 
                 //Numbering the node internally to the element
@@ -1529,7 +1529,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             }
             case ElementSet::DAMPING_MATRIX:{
                 shared_ptr<DampingMatrix> dm = static_pointer_cast<DampingMatrix>(elementSet);
-                long unsigned int tId= tables.size()+1;
+                long unsigned int tId= static_cast<long unsigned int>(tables.size())+1;
                 SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
 
                 //Numbering the node internally to the element
@@ -1924,7 +1924,7 @@ void SystusWriter::writeInformations(const SystusModel &systusModel, int idSubca
     string sdate(buffer);
 
     // We have 80 characters
-    long unsigned sizeleft =  80 - ssubcase.length() - sdate.length() - slogiciel.length();
+    long unsigned sizeleft =  static_cast<long unsigned>(80 - ssubcase.length() - sdate.length() - slogiciel.length());
     out << slogiciel << systusModel.configuration.inputFile.substr(0, sizeleft) << ssubcase << sdate<< endl;
 
     // NCODES
@@ -2467,7 +2467,7 @@ void SystusWriter::writeLists(ostream& out) {
         for (const long unsigned int d : list.second)
             olist << " " << d;
         olist << endl;
-        nbElements = nbElements + (list.second.size()/2);
+        nbElements = nbElements + static_cast<long unsigned int>(list.second.size()/2);
     }
 
     out << "BEGIN_LISTS ";
