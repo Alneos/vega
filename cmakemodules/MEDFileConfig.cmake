@@ -69,7 +69,10 @@ SET(MEDFILE_LIBRARIES ${MEDFILE_C_LIBRARIES})
 # If HDF5 was found in CONFIG mode, we need to include its targets so that
 # dependent projects can compile
 FIND_PACKAGE(HDF5)
-FIND_PACKAGE(MPI)
+
+IF(NOT WIN32)
+  FIND_PACKAGE(MPI)
+ENDIF(NOT WIN32)
 
 # Package root dir:
 SET_AND_CHECK(MEDFILE_ROOT_DIR_EXP "${PACKAGE_PREFIX_DIR}") 

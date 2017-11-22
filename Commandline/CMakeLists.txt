@@ -33,10 +33,10 @@ target_link_libraries(
     commandline
 )
 #install visual studio libraries
-if(WIN32)
+if(MSVC)
     include(InstallRequiredSystemLibraries)
     add_dependencies(vegapp ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS})
-endif(WIN32)
+endif(MSVC)
         
 install(TARGETS vegapp 
         EXPORT vegappTargets

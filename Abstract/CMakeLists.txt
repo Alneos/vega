@@ -12,6 +12,6 @@ ADD_LIBRARY( abstract STATIC
        
 target_link_libraries(abstract ${EXTERNAL_LIBRARIES})
 
-IF(WIN32)
+IF(MSVC)
 	TARGET_COMPILE_OPTIONS(abstract PRIVATE /bigobj)
-ENDIF(WIN32)
+ENDIF(MSVC)

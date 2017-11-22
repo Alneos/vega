@@ -67,9 +67,7 @@ IF(CMAKE_BUILD_TYPE MATCHES "[Ss][Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
     option(STATIC_LINKING "Static Linking" ON)
 ENDIF(CMAKE_BUILD_TYPE MATCHES "[Ss][Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
 
-
-# WARNING: WIN32 IS DEPRECATED AND SHOULD NOT BE USED
-if(WIN32)
+if(MSVC)
     # Patch for MSVC10 generator, 64 bit
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHa /MP")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /INCREMENTAL:NO")
@@ -84,7 +82,7 @@ if(WIN32)
         #set(CMAKE_EXE_LINKER_FLAGS "-pthread -shared-libgcc -rdynamic -pipe" CACHE INTERNAL "Linker flags")
     endif(STATIC_LINKING)
     set(RUN_SYSTUS 0)
-else(WIN32)
+else(MSVC)
 
     # Options generic to all "gnu" compilations
     SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fstack-protector-all")
@@ -101,8 +99,10 @@ else(WIN32)
         add_compile_options(-fPIE)
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -static-libgcc -static-libstdc++ -static" CACHE INTERNAL "Linker flags")
     else(STATIC_LINKING)
-        add_compile_options(-fPIC)
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -shared-libgcc -pipe" CACHE INTERNAL "Linker flags")
+        if(NOT MINGW)
+	        add_compile_options(-fPIC)
+    	    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -shared-libgcc -pipe" CACHE INTERNAL "Linker flags")
+    	endif(NOT MINGW)
     endif(STATIC_LINKING)
 
     IF(CYGWIN)
@@ -114,7 +114,9 @@ else(WIN32)
         if(STATIC_LINKING)
             # Nothing to do
         else(STATIC_LINKING)
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -rdynamic " CACHE INTERNAL "Linker flags")
+            if(NOT MINGW)
+	            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -rdynamic " CACHE INTERNAL "Linker flags")
+	        endif(NOT MINGW)
         endif(STATIC_LINKING)
     ENDIF(CYGWIN)
 
@@ -128,7 +130,7 @@ else(WIN32)
     # Systus run cannot be enabled by default, since there is no systus runner in continous integration (tests would fail)
     # It can be enabled on a given machine by changing the build_properties.h file 
     set(RUN_SYSTUS 0)
-endif(WIN32)
+endif(MSVC)
 
 
 #set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>:_DEBUG>)
