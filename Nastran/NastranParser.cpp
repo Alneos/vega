@@ -2329,16 +2329,46 @@ void NastranParserImpl::parseTABDMP1(NastranTokenizer& tok, shared_ptr<Model> mo
     }
     vega::FunctionTable functionTable(*model, FunctionTable::LINEAR, FunctionTable::LINEAR,
             FunctionTable::NONE, FunctionTable::CONSTANT);
-    tok.skipToNotEmpty();
 
-    while (tok.isNextDouble()) {
-        double x = tok.nextDouble();
-        tok.skipToNotEmpty();
-        double y = tok.nextDouble(); //Code_Aster convention : Nastran is coherent with factor 2 for sdamping : not so sure
-        tok.skipToNotEmpty();
+    // The next 6 fields are empty.
+    // We do a special treatment for the second one, which can be filled in the OPTISTRUCT syntax
+    tok.skip(1);
+    int flat = tok.nextInt(true, 0);
+    if (flat != 0){
+        handleParsingWarning("FLAT field is dismissed (OPTISTRUCT syntax)", tok, model);
+    }
+    tok.skip(4);
+
+    double x,y;
+    string sField="";
+    while (sField != "ENDT") {
+        if (tok.isNextDouble()){
+            x = tok.nextDouble();
+        }else{
+            sField=tok.nextString();
+            if (sField=="ENDT"){
+                continue;
+            }
+            if (sField=="SKIP"){ // SKIP means the pair (x,y) is skipped
+                tok.skip(1);
+                continue;
+            }else{
+                handleParsingWarning("Invalid key ("+sField+") should be ENDT, SKIP or a real.", tok, model);
+            }
+        }
+        if (tok.isNextDouble()){
+            y = tok.nextDouble();
+        }else{
+            string sField=tok.nextString(); //Code_Aster convention : Nastran is coherent with factor 2 for sdamping : not so sure
+            if (sField=="SKIP"){
+                continue;
+            }else{
+                handleParsingWarning("Invalid key ("+sField+") should be SKIP or a real.", tok, model);
+            }
+        }
         functionTable.setXY(x, y);
     }
-    assert(tok.nextString() == "ENDT");
+
     functionTable.setParaX(Value::FREQ);
     functionTable.setParaY(Value::AMOR);
     vega::ModalDamping modalDamping(*model, functionTable, original_id);
@@ -2358,16 +2388,45 @@ void NastranParserImpl::parseTABLED1(NastranTokenizer& tok, shared_ptr<Model> mo
 
     vega::FunctionTable functionTable(*model, parameter, value, FunctionTable::NONE,
             FunctionTable::NONE, original_id);
-    tok.skipToNotEmpty();
 
-    while (tok.isNextDouble()) {
-        double x = tok.nextDouble();
-        tok.skipToNotEmpty();
-        double y = tok.nextDouble();
-        tok.skipToNotEmpty();
+    // The next 5 fields are empty.
+    // We do a special treatment for the first one, which can be filled in the OPTISTRUCT syntax
+    int flat = tok.nextInt(true, 0);
+    if (flat != 0){
+        handleParsingWarning("FLAT field is dismissed (OPTISTRUCT syntax)", tok, model);
+    }
+    tok.skip(4);
+
+    double x,y;
+    string sField="";
+    while (sField != "ENDT") {
+        if (tok.isNextDouble()){
+            x = tok.nextDouble();
+        }else{
+            sField=tok.nextString();
+            if (sField=="ENDT"){
+                continue;
+            }
+            if (sField=="SKIP"){ // SKIP means the pair (x,y) is skipped
+                tok.skip(1);
+                continue;
+            }else{
+                handleParsingWarning("Invalid key ("+sField+") should be ENDT, SKIP or a real.", tok, model);
+            }
+        }
+        if (tok.isNextDouble()){
+            y = tok.nextDouble();
+        }else{
+            string sField=tok.nextString(); //Code_Aster convention : Nastran is coherent with factor 2 for sdamping : not so sure
+            if (sField=="SKIP"){
+                continue;
+            }else{
+                handleParsingWarning("Invalid key ("+sField+") should be SKIP or a real.", tok, model);
+            }
+        }
         functionTable.setXY(x, y);
     }
-    assert(tok.nextString() == "ENDT");
+    
     model->add(functionTable);
 
 }
