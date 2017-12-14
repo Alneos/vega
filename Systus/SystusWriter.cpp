@@ -2731,9 +2731,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             out << "DYNAMIC" << endl;
             out << "HARMONIC RESPONSE VELOCITY ACCELERATION REACTION"<<endl;
             out << "DAMPING "<< oDamping.str() << endl;
-            out << "# CURRENTLY, THERE IS A BUG ON THE OPTIMIZED METHOD" <<endl;
-            out << "#METHOD OPTIMIZED COMPLEX"<<endl;
-            out << "METHOD SPARSE COMPLEX"<<endl;
+            out << "METHOD OPTIMIZED COMPLEX"<<endl;
             out << "FREQUENCY "<< oFrequency.str() <<endl;
             out << "RETURN"<<endl;
 

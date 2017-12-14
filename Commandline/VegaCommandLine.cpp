@@ -255,7 +255,7 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
         solverVersion = vm["solver-version"].as<string>();
     } else {
         if (solver.getSolverName()== SolverName::SYSTUS){
-            solverVersion = "2017";
+            solverVersion = "2016";
         }else{
             solverVersion = "";
         }
