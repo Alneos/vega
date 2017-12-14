@@ -141,19 +141,7 @@ shared_ptr<T> Model::Container<T>::get(int id) const {
     return t;
 }
 
-template<class T>
-bool Model::Container<T>::validate() const {
-    bool isValid = true;
-    //for (shared_ptr<T> t : *this) {
-    for (iterator it = this->begin(); it != this->end(); ++it) {
-    	shared_ptr<T> t = *it;
-        if (!t->validate()) {
-            isValid = false;
-            cerr << *t << " not valid" << endl;
-        }
-    }
-    return isValid;
-}
+
 
 void Model::add(const Analysis& analysis) {
     if (configuration.logLevel >= LogLevel::DEBUG) {
@@ -1891,32 +1879,34 @@ void Model::finish() {
 bool Model::validate() {
     bool meshValid = mesh->validate();
 
-    bool validMaterials = materials.validate();
-    bool validElements = elementSets.validate();
-    bool validLoadings = loadings.validate();
-    bool validLoadsets = loadSets.validate();
-    bool validConstraints = constraints.validate();
-    bool validConstraintSets = constraintSets.validate();
-    bool validAnalyses = analyses.validate();
+    // Sizes are stocked now, because validation remove invalid objects.
+    int sizeMat = materials.size();     string sMat = ( (sizeMat > 1) ? "s are " : " is ");
+    int sizeEle = elementSets.size();   string sEle = ( (sizeEle > 1) ? "s are " : " is ");
+    int sizeLoa = loadings.size();      string sLoa = ( (sizeLoa > 1) ? "s are " : " is ");
+    int sizeLos = loadSets.size();      string sLos = ( (sizeLos > 1) ? "s are " : " is ");
+    int sizeCon = constraints.size();   string sCon = ( (sizeCon > 1) ? "s are " : " is ");
+    int sizeCos = constraintSets.size();string sCos = ( (sizeCos > 1) ? "s are " : " is ");
+    int sizeAna = analyses.size();      string sAna = ( (sizeAna > 1) ? "s are " : " is "); 
+
+    bool validMat = materials.validate();
+    bool validEle = elementSets.validate();
+    bool validLoa = loadings.validate();
+    bool validLos = loadSets.validate();
+    bool validCon = constraints.validate();
+    bool validCos = constraintSets.validate();
+    bool validAna = analyses.validate();
 
     if (configuration.logLevel >= LogLevel::DEBUG) {
-        cout << "The " << materials.size() << " materials are " << (validMaterials ? "" : "NOT ")
-                << " valid" << endl;
-        cout << "The " << elementSets.size() << " elementSets are " << (validElements ? "" : "NOT ")
-                << "valid" << endl;
-        cout << "The " << loadings.size() << " loadings are " << (validLoadings ? "" : "NOT ")
-                << "valid" << endl;
-        cout << "The " << loadSets.size() << " loadSets are " << (validLoadsets ? "" : "NOT ")
-                << "valid" << endl;
-        cout << "The " << constraints.size() << " constraints are "
-                << (validConstraints ? "" : "NOT ") << "valid" << endl;
-        cout << "The " << constraintSets.size() << " constraintSets are "
-                << (validConstraintSets ? "" : "NOT ") << "valid" << endl;
-        cout << "The " << analyses.size() << " analyses are " << (validAnalyses ? "" : "NOT ")
-                << "valid" << endl;
+       cout << "The " << sizeMat << " material"     << sMat << (validMat ? "" : "NOT ") << "valid." << endl;
+       cout << "The " << sizeEle << " elementSet"   << sEle << (validEle ? "" : "NOT ") << "valid." << endl;
+       cout << "The " << sizeLoa << " loading"      << sLoa << (validLoa ? "" : "NOT ") << "valid." << endl;
+       cout << "The " << sizeLos << " loadSet"      << sLos << (validLos ? "" : "NOT ") << "valid." << endl;
+       cout << "The " << sizeCon << " constraint"   << sCon << (validCon ? "" : "NOT ") << "valid." << endl;
+       cout << "The " << sizeCos << " constraintSet"<< sCos << (validCos ? "" : "NOT ") << "valid." << endl;
+       cout << "The " << sizeAna << " analyze"      << sAna << (validAna ? "" : "NOT ") << "valid." << endl;
     }
-    bool allValid = validElements && meshValid && validLoadings && validLoadsets && validConstraints
-            && validConstraintSets && validAnalyses;
+    bool allValid = meshValid && validMat && validEle && validLoa && validLos && validCon
+            && validCos && validAna;
     this->afterValidation = true;
     return allValid;
 }

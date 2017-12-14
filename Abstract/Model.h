@@ -153,7 +153,18 @@ private:
                     std::shared_ptr<T> find(const Reference<T>&) const;
                     std::shared_ptr<T> find(int) const; /**< Find an object by its Original Id **/
                     std::shared_ptr<T> get(int) const; /**< Return an object by its Vega Id **/
-                    bool validate() const;
+                    bool validate(){
+                        bool isValid = true;
+                        for (iterator it = this->begin(); it != this->end(); ++it) {
+                            shared_ptr<T> t = *it;
+                            if (!t->validate()) {
+                                isValid = false;
+                                cerr << *t << " not valid" << endl;
+                                this->erase(Reference<T>(*t));
+                            }
+                        }
+                        return isValid;
+                    };
                 };
         std::unordered_map<int,CellContainer> material_assignment_by_material_id;
     public:
