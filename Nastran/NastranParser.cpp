@@ -1455,61 +1455,105 @@ void NastranParserImpl::parsePBARL(NastranTokenizer& tok, shared_ptr<Model> mode
 void NastranParserImpl::parsePBEAM(NastranTokenizer& tok, shared_ptr<Model> model) {
     int elemId = tok.nextInt();
     int material_id = tok.nextInt();
-    int numBeamParts = 0;
-    while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
-        if (numBeamParts > 0) {
-            handleParsingError("PBEAM sections not supported", tok, model);
-            tok.skip(2);
+
+    double area_cross_section = tok.nextDouble(true, 0.0);
+    double moment_of_inertia_Z = tok.nextDouble(true, 0.0);
+    double moment_of_inertia_Y = tok.nextDouble(true, 0.0);
+    double areaProductOfInertia = tok.nextDouble(true, 0.0);
+    if (!is_equal(areaProductOfInertia, 0.0)) {
+        handleParsingWarning("Area product of inertia not implemented.", tok, model);
+    }
+    double torsionalConstant = tok.nextDouble(true, 0.0);
+    double nsm = tok.nextDouble(true, 0.0);
+    if (!is_equal(nsm, 0.0)) {
+        handleParsingWarning("NSM not implemented.", tok, model);
+    }
+    double c1 = tok.nextDouble(true, 0.0);
+    double c2 = tok.nextDouble(true, 0.0);
+    double d1 = tok.nextDouble(true, 0.0);
+    double d2 = tok.nextDouble(true, 0.0);
+    double e1 = tok.nextDouble(true, 0.0);
+    double e2 = tok.nextDouble(true, 0.0);
+    double f1 = tok.nextDouble(true, 0.0);
+    double f2 = tok.nextDouble(true, 0.0);
+    if (!is_equal(c1, 0) || !is_equal(c2, 0) || !is_equal(d1, 0) || !is_equal(d2, 0)
+            || !is_equal(e1, 0) || !is_equal(e2, 0) || !is_equal(f1, 0) || !is_equal(f2, 0)) {
+        /*
+         * Ci(A), Di(A) Ei(A), Fi(A)
+         * The y and z locations (i = 1 corresponds to y
+         * and i = 2 corresponds to z) in element
+         * coordinates relative to the shear center (see the
+         * diagram following the remarks) at end A for
+         * stress data recovery. (Real)
+         * y = z = 0.0
+         * Ci, Di, Ei, Fi
+         * The y and z locations (i = 1 corresponds to y
+         * and i = 2 corresponds to z) in element
+         * coordinates relative to the shear center (see
+         * Figure 8-134 in Remark 10.) for the cross section
+         * located at X/XB. The values are fiber locations
+         * for stress data recovery. Ignored for beam p-
+         * elements. (Real)
+         */
+        handleParsingWarning("Shear center for stress analysis not implemented.", tok,
+                model);
+    }
+    GenericSectionBeam genericSectionBeam(*model, area_cross_section, moment_of_inertia_Y,
+            moment_of_inertia_Z, torsionalConstant, 0.0, 0.0, GenericSectionBeam::EULER, nsm,
+            elemId);
+    genericSectionBeam.assignMaterial(material_id);
+    genericSectionBeam.assignCellGroup(getOrCreateCellGroup(elemId, model, "PBEAM"));
+    model->add(genericSectionBeam);
+
+    // Intermediate stations are not supported
+    int nbStations=0;
+    while (! (tok.isEmptyUntilNextKeyword() || tok.isNextDouble() || tok.isNextEmpty())){
+        nbStations++;
+        tok.skip(16);
+        if (nbStations == 1) {
+            handleParsingWarning("PBEAM intermediate stations are not supported", tok, model);
         }
-        double area_cross_section = tok.nextDouble(true, 0.0);
-        double moment_of_inertia_Z = tok.nextDouble(true, 0.0);
-        double moment_of_inertia_Y = tok.nextDouble(true, 0.0);
-        double areaProductOfInertia = tok.nextDouble(true, 0.0);
-        if (!is_equal(areaProductOfInertia, 0.0)) {
-            handleParsingWarning("Area product of inertia not implemented.", tok, model);
-        }
-        double torsionalConstant = tok.nextDouble(true, 0.0);
-        double nsm = tok.nextDouble(true, 0.0);
-        if (!is_equal(nsm, 0.0)) {
-            handleParsingWarning("NSM not implemented.", tok, model);
-        }
-        double c1 = tok.nextDouble(true, 0.0);
-        double c2 = tok.nextDouble(true, 0.0);
-        double d1 = tok.nextDouble(true, 0.0);
-        double d2 = tok.nextDouble(true, 0.0);
-        double e1 = tok.nextDouble(true, 0.0);
-        double e2 = tok.nextDouble(true, 0.0);
-        double f1 = tok.nextDouble(true, 0.0);
-        double f2 = tok.nextDouble(true, 0.0);
-        if (!is_equal(c1, 0) || !is_equal(c2, 0) || !is_equal(d1, 0) || !is_equal(d2, 0)
-                || !is_equal(e1, 0) || !is_equal(e2, 0) || !is_equal(f1, 0) || !is_equal(f2, 0)) {
-            /*
-             * Ci(A), Di(A) Ei(A), Fi(A)
-             * The y and z locations (i = 1 corresponds to y
-             * and i = 2 corresponds to z) in element
-             * coordinates relative to the shear center (see the
-             * diagram following the remarks) at end A for
-             * stress data recovery. (Real)
-             * y = z = 0.0
-             * Ci, Di, Ei, Fi
-             * The y and z locations (i = 1 corresponds to y
-             * and i = 2 corresponds to z) in element
-             * coordinates relative to the shear center (see
-             * Figure 8-134 in Remark 10.) for the cross section
-             * located at X/XB. The values are fiber locations
-             * for stress data recovery. Ignored for beam p-
-             * elements. (Real)
-             */
-            handleParsingWarning("Shear center for stress analysis not implemented.", tok,
-                    model);
-        }
-        GenericSectionBeam genericSectionBeam(*model, area_cross_section, moment_of_inertia_Y,
-                moment_of_inertia_Z, torsionalConstant, 0.0, 0.0, GenericSectionBeam::EULER, nsm,
-                elemId);
-        genericSectionBeam.assignMaterial(material_id);
-        genericSectionBeam.assignCellGroup(getOrCreateCellGroup(elemId, model, "PBEAM"));
-        model->add(genericSectionBeam);
-        numBeamParts++;
+    }
+
+    // A bunch of parameters we don't support
+    double K1 = tok.nextDouble(true, 1.0); // Shear stiffness factor for Plane 1
+    double K2 = tok.nextDouble(true, 1.0); // Shear stiffness factor for Plane 2
+    if ((!is_equal(K1, 1.0)) || (!is_equal(K2,1.0))){
+        handleParsingWarning("Shear stiffness factors (K1, K2) are not supported.", tok, model);
+    }
+
+    double S1 = tok.nextDouble(true, 0.0); // Shear relief coefficient for Plane 1
+    double S2 = tok.nextDouble(true, 0.0); // Shear relief coefficient for Plane 2
+    if ((!is_zero(S1)) || (!is_zero(S2))){
+        handleParsingWarning("Shear relief coefficients (S1, S2) are not supported.", tok, model);
+    }
+
+    double NSIA = tok.nextDouble(true, 0.0); // Nonstructural mass moment of inertia per unit length about nonstructural mass center of gravity at end A and end B.
+    double NSIB = tok.nextDouble(true, 0.0);
+    if ((!is_zero(NSIA)) || (!is_zero(NSIB))){
+        handleParsingWarning("Nonstructural mass centers of gravity (NSIA, NSIB) are not supported.", tok, model);
+    }
+
+    double CWA = tok.nextDouble(true, 0.0); // Warping coefficient for end A and end B.
+    double CWB = tok.nextDouble(true, 0.0);
+    if ((!is_zero(CWA)) || (!is_zero(CWB))){
+        handleParsingWarning("Warping coefficients (CWA, CWB) are not supported.", tok, model);
+    }
+
+    double M1A = tok.nextDouble(true, 0.0); // (y,z) coordinates of center of gravity of nonstructural mass for end A and end B.
+    double M2A = tok.nextDouble(true, 0.0);
+    double M1B = tok.nextDouble(true, 0.0);
+    double M2B = tok.nextDouble(true, 0.0);
+    if ( (!is_zero(M1A)) || (!is_zero(M2A)) || (!is_zero(M1B)) || (!is_zero(M2B))){
+        handleParsingWarning("Center of gravity of nonstructural mass (M1A, M2A, M1B, M2B) are not supported.", tok, model);
+    }
+
+    double N1A = tok.nextDouble(true, 0.0); // (y,z) coordinates of neutral axis for end A and end B.
+    double N2A = tok.nextDouble(true, 0.0);
+    double N1B = tok.nextDouble(true, 0.0);
+    double N2B = tok.nextDouble(true, 0.0);
+    if ( (!is_zero(N1A)) || (!is_zero(N2A)) || (!is_zero(N1B)) || (!is_zero(N2B))){
+        handleParsingWarning("Neutral axis (N1A, N2A, N1B, N2B) are not supported.", tok, model);
     }
 
 }
