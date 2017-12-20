@@ -1933,7 +1933,7 @@ void SystusWriter::writeInformations(const SystusModel &systusModel, int idSubca
     ncode[0]= systusOption; //IOPT: SYSTUS OPTION
     ncode[3]= 2;  // NORM: Eigenvelue norm used (1: Maximum (def), 2: Mass (Nastran  default), 4: Elastic)
     ncode[11]= 1; // KMAT : New material structure. Always set to 1.
-    ncode[15]= systusSubOption; // NC16 : Systus SubOptions
+    ncode[13]= systusSubOption; // MELANG : Mixed Options
     for (int i = 0; i<20 ; i++){
       out <<" "<< ncode[i];
     }
