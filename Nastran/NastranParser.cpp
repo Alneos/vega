@@ -1760,13 +1760,9 @@ void NastranParserImpl::parsePLOAD2(NastranTokenizer& tok, shared_ptr<Model> mod
         //format not recognized
         handleParsingError(string("Format yet implemented."), tok, model);
     }
-    cout << eid1 << " "<< eid2 <<endl;
     Reference<LoadSet> loadSetReference(LoadSet::LOAD, loadset_id);
     NormalPressionFace normalPressionFace(*model, p);
     addCellIds(normalPressionFace, eid1, eid2);
-    model->add(normalPressionFace);
-    model->addLoadingIntoLoadSet(normalPressionFace, loadSetReference);
-    cout << eid1 << " "<< eid2 <<endl;
 }
 
 void NastranParserImpl::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) {
