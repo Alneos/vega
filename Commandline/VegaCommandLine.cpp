@@ -262,17 +262,18 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     }
 
     // Option for Systus Conversion
-    string systusRBE2TranslationMode="lagrangian";
+    string systusRBE2TranslationMode="penalty";
     if (vm.count("systus.RBE2TranslationMode")){
-    	systusRBE2TranslationMode = vm["systus.RBE2TranslationMode"].as<string>();
-    	set<string> availableTranlation { "lagrangian", "penalty" };
-    	set<string>::iterator it = availableTranlation.find(systusRBE2TranslationMode);
-    	if (it == availableTranlation.end()) {
-    		throw invalid_argument("Systus RBE2 Translation Mode must be either lagrangian (default) or penalty.");
-    	}
+        systusRBE2TranslationMode = vm["systus.RBE2TranslationMode"].as<string>();
+        set<string> availableTranlation { "lagrangian", "penalty" };
+        set<string>::iterator it = availableTranlation.find(systusRBE2TranslationMode);
+        if (it == availableTranlation.end()) {
+            throw invalid_argument("Systus RBE2 Translation Mode must be either lagrangian (default) or penalty.");
+        }
     }
-    double systusRBE2Rigidity=vm["systus.RBE2Rigidity"].as<double>();
-    if (systusRBE2TranslationMode=="penalty"){
+    double systusRBE2Rigidity=Globals::UNAVAILABLE_DOUBLE;
+    if ((vm.count("systus.RBE2Rigidity")) && (systusRBE2TranslationMode=="penalty")){
+        systusRBE2Rigidity = vm["systus.RBE2Rigidity"].as<double>();
         if ((!is_equal(systusRBE2Rigidity,Globals::UNAVAILABLE_DOUBLE)) && (systusRBE2Rigidity<=0.0)){
             throw invalid_argument("Systus RBE2 Rigidity must be positive.");
         }
@@ -491,10 +492,10 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
         systusOptions.add_options() //
         ("systus.DynamicMethod",po::value<string>()->default_value("direct"),
                  "Dynamic method for harmonic analysis: direct (default) or modal.") //
-        ("systus.RBE2TranslationMode",po::value<string>()->default_value("lagrangian"),
+        ("systus.RBE2TranslationMode",po::value<string>()->default_value("penalty"),
                 "Translation mode of RBE2 from Nastran To Systus: lagrangian or penalty.") //
-        ("systus.RBE2Rigidity", po::value<double>()->default_value(Globals::UNAVAILABLE_DOUBLE),
-                "Rigidity of RBE2 (for penalty translation only).") //
+        ("systus.RBE2Rigidity", po::value<double>(),
+                "Rigidity of RBE2 (if you don't want the automatic penalty translation only).") //
         ("systus.RBELagrangian", po::value<double>()->default_value(1.0),
                 "Lagrange coefficients for RBE2 (Lagrange Translation) and RBE3.") //
 		("systus.Subcase", po::value<std::vector<std::string>>(),
