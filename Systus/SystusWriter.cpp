@@ -2542,10 +2542,10 @@ void SystusWriter::writeTables(std::ostream& out){
 void SystusWriter::writeDat(const SystusModel& systusModel, const vega::ConfigurationParameters &configuration,
         const int idSubcase, ostream& out) {
 
-    // For LEVELSHAPE, we comment a few lines.
+    // For TOPAZE, we comment a few lines.
     string comment="";
-    if (configuration.systusOutputProduct=="levelshape"){
-        comment="###LEVELSHAPE###";
+    if (configuration.systusOutputProduct=="topaze"){
+        comment="###TOPAZE###";
     }
 
     // Same start for everyone
@@ -2618,9 +2618,10 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
 
         // We can't treat the case where only lowerF is defined
         if (is_equal(upperF, vega::Globals::UNAVAILABLE_DOUBLE)){
-            lowerF = vega::Globals::UNAVAILABLE_DOUBLE;
-            nmodes = defaultNbDesiredRoots;
-            handleWritingWarning("Modal analysis with lower bound frequency not supported. Will search for "+to_string(nmodes)+" Eigenmodes instead.", "DAT file");
+            if (!is_equal(lowerF,vega::Globals::UNAVAILABLE_DOUBLE)){
+                lowerF = vega::Globals::UNAVAILABLE_DOUBLE;
+                handleWritingWarning("Modal analysis with lower bound frequency not supported. Will search for "+to_string(nmodes)+" Eigenmodes instead.", "DAT file");
+            }
         }else{
             // If upperF is defined, an unavailable lower bound is treated as 0;
             if (is_equal(lowerF,vega::Globals::UNAVAILABLE_DOUBLE)){
@@ -2829,8 +2830,8 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             out << "RETURN" << endl;
             out << endl;
 
-            // For a LEVELSHAPE DAT file, we need to reload results
-            if (configuration.systusOutputProduct=="levelshape"){
+            // For a TOPAZE DAT file, we need to reload results
+            if (configuration.systusOutputProduct=="topaze"){
                 sReload = "SEARCH DATA "+ std::to_string(iStaticData);
             }
 

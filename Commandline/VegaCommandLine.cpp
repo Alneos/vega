@@ -268,7 +268,7 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
         set<string> availableTranlation { "lagrangian", "penalty" };
         set<string>::iterator it = availableTranlation.find(systusRBE2TranslationMode);
         if (it == availableTranlation.end()) {
-            throw invalid_argument("Systus RBE2 Translation Mode must be either lagrangian (default) or penalty.");
+            throw invalid_argument("Systus RBE2 Translation Mode must be either lagrangian or penalty (default).");
         }
     }
     double systusRBE2Rigidity=Globals::UNAVAILABLE_DOUBLE;
@@ -292,12 +292,12 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     }
     string systusOutputProduct="systus";
     if (vm.count("systus.OutputProduct")){
-    	systusOutputProduct = vm["systus.OutputProduct"].as<string>();
-    	set<string> availableTranlation { "systus", "levelshape" };
-    	set<string>::iterator it = availableTranlation.find(systusOutputProduct);
-    	if (it == availableTranlation.end()) {
-    		throw invalid_argument("Systus output product must be either systus (default) or levelshape");
-    	}
+        systusOutputProduct = vm["systus.OutputProduct"].as<string>();
+        set<string> availableTranlation { "systus", "topaze" };
+        set<string>::iterator it = availableTranlation.find(systusOutputProduct);
+        if (it == availableTranlation.end()) {
+            throw invalid_argument("Systus output product must be either systus (default) or topaze");
+        }
     }
 
     string systusDynamicMethod="direct";
@@ -498,12 +498,12 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
                 "Rigidity of RBE2 (if you don't want the automatic penalty translation only).") //
         ("systus.RBELagrangian", po::value<double>()->default_value(1.0),
                 "Lagrange coefficients for RBE2 (Lagrange Translation) and RBE3.") //
-		("systus.Subcase", po::value<std::vector<std::string>>(),
-				"'auto' (default), 'single' or lists 'n1,n2,...,nN' of analysis numbers belonging to the same subcase.") //
-		("systus.OptionAnalysis",po::value<string>()->default_value("auto"),
-				"Type of analysis used by the Systus writer (Systus OPTION command): auto (default), 3D, shell or shell-multi.") //
-		("systus.OutputProduct",po::value<string>()->default_value("systus"),
-				"Output format for the Systus writer: systus (default) or levelshape.") //
+        ("systus.Subcase", po::value<std::vector<std::string>>(),
+                "'auto' (default), 'single' or lists 'n1,n2,...,nN' of analysis numbers belonging to the same subcase.") //
+        ("systus.OptionAnalysis",po::value<string>()->default_value("auto"),
+                "Type of analysis used by the Systus writer (Systus OPTION command): auto (default), 3D, shell or shell-multi.") //
+         ("systus.OutputProduct",po::value<string>()->default_value("systus"),
+                "Output format for the Systus writer: systus (default) or topaze.") //
         ("systus.OutputMatrix",po::value<string>()->default_value("table"),
                 "Output of Matrix Elements (e.g Super Elements) to 'table' (default) or 'file'") //
         ("systus.SizeMatrix", po::value<int>(),
