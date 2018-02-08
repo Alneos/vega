@@ -2668,8 +2668,8 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         // Writing the DAT file
         out << "# WE COMPUTE "<< nmodes << " MODES" << sBand <<"." << endl;
         out << "# IT'S AN ITERATIVE MEHOD, WITH A MAXIMUM OF "<< niter <<" ITERATIONS" << endl;
-        out << "MODE SUBSPACE BLOCK 6" << sShift<<endl;
-        out << "VECTOR "<< nmodes << sSturm <<" ITER "<< niter <<" PRECISION 1*-5 FORCE"<< sNorm<<endl;
+        out << "MODE SUBSPACE BLOCK 3" << sShift<<endl;
+        out << "VECTOR "<< nmodes << sSturm <<" ITER "<< niter <<" PRECISION 1*-6 FORCE"<< sNorm<<endl;
         out << "METHOD OPTIMIZED" << endl;
         out << "RETURN" << endl;
         out << endl;
@@ -2787,8 +2787,8 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             out << "# WE COMPUTE "<< nModes << " MODES" << sBand <<"." << endl;
             out << "# IT'S AN ITERATIVE MEHOD, WITH A MAXIMUM OF "<< niter <<" ITERATIONS" << endl;
             out << "DYNAMIC"<<endl;
-            out << "MODE SUBSPACE BLOCK 6" << sShift<<endl;
-            out << "VECTOR "<< nModes << sSturm <<" ITER "<< niter <<" PRECISION 1*-5 FORCE"<< sNorm<<endl;
+            out << "MODE SUBSPACE BLOCK 3" << sShift<<endl;
+            out << "VECTOR "<< nModes << sSturm <<" ITER "<< niter <<" PRECISION 1*-6 FORCE"<< sNorm<<endl;
             out << "METHOD OPTIMIZED" << endl;
             out << "RETURN" << endl;
             out << endl;
