@@ -1927,7 +1927,8 @@ void NastranParserImpl::parsePSOLID(NastranTokenizer& tok, shared_ptr<Model> mod
     } else if ((psolid_in == "TWO" || psolid_in == "2") && (isop == "FULL" || isop == "1")) {
         modelType = &ModelType::TRIDIMENSIONAL;
     } else {
-        handleParsingError("PSOLID IN " + psolid_in + " ISOP " + isop + " Not implemented",
+        modelType = &ModelType::TRIDIMENSIONAL_SI;
+        handleParsingWarning("Integration IN " + psolid_in + " ISOP " + isop + " not implemented : default assumed",
                 tok, model);
     }
     string fctn = tok.nextString(true, "SMECH");
