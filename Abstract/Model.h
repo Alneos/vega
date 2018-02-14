@@ -245,10 +245,15 @@ private:
         const vector<int> getElementSetsId() const;
         /**
          * Remove any kind of object from the model, by giving a reference.
+         * Very time consuming when the list is big : restrict use to the minimum
          */
         template<typename T>
         void remove(const Reference<T>);
 
+        /** 
+         * Remove a constraint from a known reference set when we already know some informations
+         */
+        void remove(const Reference<Constraint> , const int, const int, const ConstraintSet::Type);
         /**
          * Retrieve any kind of object from the model, by giving a reference.
          * Return 0 if the object is not found in the model.

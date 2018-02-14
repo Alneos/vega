@@ -338,6 +338,25 @@ void Model::remove(const Reference<Constraint> constraintReference) {
     constraints.erase(constraintReference);
 }
 
+void Model::remove(const Reference<Constraint> refC, const int idCS, const int originalIdCS, const ConstraintSet::Type csT) {
+
+    const auto & cR = constraintReferences_by_constraintSet_ids[idCS];
+    for (auto it2 : cR) {
+        if (*it2 == refC){
+            constraintReferences_by_constraintSet_ids[idCS].erase(it2);
+        }
+    }
+    if (originalIdCS!= Identifiable<ConstraintSet>::NO_ORIGINAL_ID){
+        const auto & cR2 = constraintReferences_by_constraintSet_original_ids_by_constraintSet_type[csT][originalIdCS];
+        for (auto it3 : cR2) {
+            if (*it3 == refC){
+                constraintReferences_by_constraintSet_original_ids_by_constraintSet_type[csT][originalIdCS].erase(it3);
+            }
+        }
+    }
+    constraints.erase(refC);
+}
+
 template<>
 void Model::remove(const Reference<Loading> loadingReference) {
     for (auto it : loadingReferences_by_loadSet_ids) {
@@ -1660,6 +1679,11 @@ void Model::makeCellsFromRBE(){
 
     for (const auto& constraintSet : commonConstraintSets) {
 
+        const int idConstraintSet = constraintSet->getId();
+        const int originalIdConstraintSet = constraintSet->getOriginalId();
+        const ConstraintSet::Type natConstraintSet = constraintSet->type;
+
+
         // Translation of RBAR and RBE2 (RBE2 are viewed as an assembly of RBAR)
         // See Systus Reference Analysis Manual: RIGID BODY Element (page 498)
         set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::RIGID);
@@ -1687,7 +1711,7 @@ void Model::makeCellsFromRBE(){
             }
 
             // Removing the constraint from the model.
-            remove(constraint->getReference());
+            remove(constraint->getReference(), idConstraintSet, originalIdConstraintSet, natConstraintSet);
             if (configuration.logLevel >= LogLevel::DEBUG){
                 cout << "Building cells in cellgroup "<<group->getName()<<" from "<< *rbe2<<"."<<endl;
             }
@@ -1726,7 +1750,7 @@ void Model::makeCellsFromRBE(){
             group->addCell(mesh->findCell(cellPosition).id);
 
             // Removing the constraint from the model.
-            remove(constraint->getReference());
+            remove(constraint->getReference(), idConstraintSet, originalIdConstraintSet, natConstraintSet);
             if (configuration.logLevel >= LogLevel::DEBUG){
                 cout << "Building cells in cellgroup "<<group->getName()<<" from "<< *rbar<<"."<<endl;
             }
@@ -1789,7 +1813,7 @@ void Model::makeCellsFromRBE(){
             }
 
             // Removing the constraint from the model.
-            remove(constraint->getReference());
+            remove(constraint->getReference(), idConstraintSet, originalIdConstraintSet, natConstraintSet);
         }
     }
 }
