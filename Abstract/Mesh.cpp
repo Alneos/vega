@@ -652,6 +652,22 @@ void Mesh::renameGroup(const string& oldname, const string& newname, const strin
 	}
 }
 
+void Mesh::removeGroup(const string& name) {
+
+    auto it = this->groupByName.find(name);
+    if (it != this->groupByName.end()) {
+        Group* group = it->second;
+        this->groupByName.erase(name);
+        const int gId= group->getId();
+        if (gId!= Group::NO_ORIGINAL_ID){
+            this->groupById.erase(gId);
+        }
+        if (this->logLevel >= LogLevel::DEBUG) {
+            cout << "Remove group: " << name << endl;
+        }
+    }
+}
+
 vector<NodeGroup*> Mesh::getNodeGroups() const {
 	vector<NodeGroup*> groups;
 	for (const auto& it : groupByName) {

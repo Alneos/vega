@@ -44,67 +44,68 @@ private:
 };
 
 class ElementSet: public Identifiable<ElementSet> {
-	friend ostream &operator<<(ostream&, const ElementSet&);    //output
+    friend ostream &operator<<(ostream&, const ElementSet&);    //output
 public:
-	enum Type {
-		DISCRETE_0D,
-		DISCRETE_1D,
-		NODAL_MASS,
-		CIRCULAR_SECTION_BEAM,
-		RECTANGULAR_SECTION_BEAM,
-		I_SECTION_BEAM,
-		GENERIC_SECTION_BEAM,
-		STRUCTURAL_SEGMENT,
-		SHELL,
-		CONTINUUM,
-		STIFFNESS_MATRIX,
-		MASS_MATRIX,
-		DAMPING_MATRIX,
+    enum Type {
+        DISCRETE_0D,
+        DISCRETE_1D,
+        NODAL_MASS,
+        CIRCULAR_SECTION_BEAM,
+        RECTANGULAR_SECTION_BEAM,
+        I_SECTION_BEAM,
+        GENERIC_SECTION_BEAM,
+        STRUCTURAL_SEGMENT,
+        SHELL,
+        CONTINUUM,
+        STIFFNESS_MATRIX,
+        MASS_MATRIX,
+        DAMPING_MATRIX,
         RIGIDSET,
         RBAR,
         RBE3,
-		UNKNOWN,
-	};
-	protected:
-	Model& model;
-	ElementSet(Model&, Type, const ModelType* modelType = nullptr,
-			int original_id = NO_ORIGINAL_ID);
-	public:
-	static const string name;
-	static const map<Type, string> stringByType;
-	const Type type;
-	const ModelType* modelType;
-	CellGroup* cellGroup;
-	std::shared_ptr<Material> material;
-	virtual ~ElementSet() {
-	}
-	void assignMaterial(int materialId);
-	void assignMaterial(std::shared_ptr<Material> material) {
-		this->material = material;
-	}
-	void assignCellGroup(CellGroup *cellGroup);
-	const ModelType getModelType() const;
-	virtual bool validate() const override;
-	virtual std::shared_ptr<ElementSet> clone() const = 0;
-	virtual const std::set<int> nodePositions() const {
-		return cellGroup->nodePositions();
-	}
-	virtual const DOFS getDOFSForNode(int nodePosition) const = 0;
-	virtual double getAdditionalRho() const {
-		return 0;
-	}
-	virtual bool isBeam() const {
-		return false;
-	}
-	virtual bool isShell() const {
-		return false;
-	}
-	virtual bool isDiscrete() const {
-		return false;
-	}
-	virtual bool isMatrixElement() const {
-		return false;
-	}
+        SCALAR_SPRING,
+        UNKNOWN,
+    };
+protected:
+    Model& model;
+    ElementSet(Model&, Type, const ModelType* modelType = nullptr,
+            int original_id = NO_ORIGINAL_ID);
+public:
+    static const string name;
+    static const map<Type, string> stringByType;
+    const Type type;
+    const ModelType* modelType;
+    CellGroup* cellGroup;
+    std::shared_ptr<Material> material;
+    virtual ~ElementSet() {
+    }
+    void assignMaterial(int materialId);
+    void assignMaterial(std::shared_ptr<Material> material) {
+        this->material = material;
+    }
+    void assignCellGroup(CellGroup *cellGroup);
+    const ModelType getModelType() const;
+    virtual bool validate() const override;
+    virtual std::shared_ptr<ElementSet> clone() const = 0;
+    virtual const std::set<int> nodePositions() const {
+        return cellGroup->nodePositions();
+    }
+    virtual const DOFS getDOFSForNode(int nodePosition) const = 0;
+    virtual double getAdditionalRho() const {
+        return 0;
+    }
+    virtual bool isBeam() const {
+        return false;
+    }
+    virtual bool isShell() const {
+        return false;
+    }
+    virtual bool isDiscrete() const {
+        return false;
+    }
+    virtual bool isMatrixElement() const {
+        return false;
+    }
 };
 
 class Beam: public ElementSet {
@@ -458,6 +459,43 @@ public:
     virtual ~Rbe3() {}
 };
 
+
+/**
+ * ScalarSpring elemenset represent springs between two DOF of two nodes.
+ * All springs in this elementSet have the same stiffness and damping, but various 
+ * "directions" of spring can be collected.
+ **/
+//TODO: Factorize ScalarSpring, DiscreteElement, StructuralSegment ?
+class ScalarSpring : public ElementSet {
+private:
+    std::map<std::pair<DOF, DOF>, vector<int>> cellpositionByDOFS;
+    double stiffness;
+    double damping;
+public:
+    ScalarSpring(Model&, int original_id = NO_ORIGINAL_ID, double stiffness = Nature::UNAVAILABLE_DOUBLE, double damping= Nature::UNAVAILABLE_DOUBLE);
+    double getStiffness() const;
+    double getDamping() const;
+    const std::map<std::pair<DOF, DOF>, vector<int>> getCellPositionByDOFS() const;
+    void setStiffness(const double stiffness);
+    void setDamping (const double damping);
+    bool hasStiffness() const;
+    bool hasDamping() const;
+    std::vector<std::pair<DOF, DOF>> getDOFSSpring() const;
+    long unsigned int getNbDOFSSpring() const;
+
+    /**
+     *  Add a spring cell to the elementSet, precising its position (vega id),
+     *  and the two impacted DOF.
+     */
+    void addSpring(int cellPosition, DOF dofNodeA, DOF dofNodeB);
+
+    const DOFS getDOFSForNode(int nodePosition) const override final;
+    virtual bool validate() const {
+        return true;
+    }
+    std::shared_ptr<ElementSet> clone() const override;
+    virtual ~ScalarSpring() {}
+};
 
 } /* namespace vega */
 #endif /* ELEMENT_H_ */

@@ -36,22 +36,23 @@ ElementSet::ElementSet(Model& model, Type type, const ModelType* modelType, int 
 const string ElementSet::name = "ElementSet";
 
 const map<ElementSet::Type, string> ElementSet::stringByType = {
-		{ DISCRETE_0D, "DISCRETE_0D" },
-		{ DISCRETE_1D, "DISCRETE_1D" },
-		{ NODAL_MASS, "NODAL_MASS" },
-		{ CIRCULAR_SECTION_BEAM, "CIRCULAR_SECTION_BEAM" },
-		{ RECTANGULAR_SECTION_BEAM, "RECTANGULAR_SECTION_BEAM" },
-		{ I_SECTION_BEAM, "I_SECTION_BEAM" },
-		{ GENERIC_SECTION_BEAM, "GENERIC_SECTION_BEAM" },
-		{ STRUCTURAL_SEGMENT, "STRUCTURAL_SEGMENT" },
-		{ SHELL, "SHELL" },
-		{ CONTINUUM, "CONTINUUM" },
-		{ STIFFNESS_MATRIX, "STIFFNESS_MATRIX" },
-		{ MASS_MATRIX, "MASS_MATRIX" },
-		{ DAMPING_MATRIX, "DAMPING_MATRIX" },
-		{ RBAR, "RBAR"},
-		{ RBE3, "RBE3"},
-		{ UNKNOWN, "UNKNOWN" },
+        { DISCRETE_0D, "DISCRETE_0D" },
+        { DISCRETE_1D, "DISCRETE_1D" },
+        { NODAL_MASS, "NODAL_MASS" },
+        { CIRCULAR_SECTION_BEAM, "CIRCULAR_SECTION_BEAM" },
+        { RECTANGULAR_SECTION_BEAM, "RECTANGULAR_SECTION_BEAM" },
+        { I_SECTION_BEAM, "I_SECTION_BEAM" },
+        { GENERIC_SECTION_BEAM, "GENERIC_SECTION_BEAM" },
+        { STRUCTURAL_SEGMENT, "STRUCTURAL_SEGMENT" },
+        { SHELL, "SHELL" },
+        { CONTINUUM, "CONTINUUM" },
+        { STIFFNESS_MATRIX, "STIFFNESS_MATRIX" },
+        { MASS_MATRIX, "MASS_MATRIX" },
+        { DAMPING_MATRIX, "DAMPING_MATRIX" },
+        { RBAR, "RBAR"},
+        { RBE3, "RBE3"},
+        { SCALAR_SPRING, "SCALAR_SPRING"},
+        { UNKNOWN, "UNKNOWN" },
 };
 
 ostream &operator<<(ostream &out, const ElementSet& elementSet) {
@@ -747,6 +748,59 @@ Rbe3::Rbe3(Model& model, int master_id, DOFS mdofs, DOFS sdofs, int original_id)
 
 shared_ptr<ElementSet> Rbe3::clone() const {
     return shared_ptr<ElementSet>(new Rbe3(*this));
+}
+
+
+// ScalarSpring Methods
+ScalarSpring::ScalarSpring(Model& model, int original_id, double stiffness, double damping) :
+                ElementSet(model, SCALAR_SPRING, nullptr, original_id), stiffness(stiffness),
+                damping(damping){
+}
+
+double ScalarSpring::getStiffness() const {
+    return this->stiffness;
+}
+double ScalarSpring::getDamping() const {
+    return this->damping;
+}
+const std::map<std::pair<DOF, DOF>, vector<int>> ScalarSpring::getCellPositionByDOFS() const{
+    return this->cellpositionByDOFS;
+}
+
+void ScalarSpring::setStiffness(const double stiffness){
+    this->stiffness=stiffness;
+}
+void ScalarSpring::setDamping (const double damping){
+    this->damping=damping;
+}
+bool ScalarSpring::hasStiffness() const {
+    return !(is_zero(this->stiffness) || is_equal(this->stiffness, Nature::UNAVAILABLE_DOUBLE));
+}
+bool ScalarSpring::hasDamping() const {
+    return !(is_zero(this->damping) || is_equal(this->damping, Nature::UNAVAILABLE_DOUBLE));
+}
+const DOFS ScalarSpring::getDOFSForNode(int nodePosition) const {
+    UNUSEDV(nodePosition);
+    return DOFS::ALL_DOFS;
+}
+shared_ptr<ElementSet> ScalarSpring::clone() const {
+    return shared_ptr<ElementSet>(new ScalarSpring(*this));
+}
+
+void ScalarSpring::addSpring(int cellPosition, DOF dofNodeA, DOF dofNodeB){
+    this->cellpositionByDOFS[std::pair<DOF, DOF>(dofNodeA, dofNodeB)].push_back(cellPosition);
+}
+
+std::vector<std::pair<DOF, DOF>> ScalarSpring::getDOFSSpring() const {
+    std::vector<std::pair<DOF, DOF>> vDOF;
+    for (auto it : this->cellpositionByDOFS){
+        vDOF.push_back(it.first);
+    }
+    return vDOF;
+}
+
+long unsigned int ScalarSpring::getNbDOFSSpring() const{
+    return this->cellpositionByDOFS.size();
 }
 
 } /* namespace vega */

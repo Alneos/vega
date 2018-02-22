@@ -76,7 +76,7 @@ public:
             bool removeRedundantSpcs = true,
             bool splitDirectMatrices = false, int sizeDirectMatrices = 999,
             bool makeCellsFromDirectMatrices = false,
-            bool makeCellsFromRBE = false
+            bool makeCellsFromRBE = false, bool splitElementsByDOFS=false
             );
     virtual ~ModelConfiguration() {
     }
@@ -120,6 +120,13 @@ public:
      *  needed cells.
      */
     const bool makeCellsFromRBE;
+    /**
+     *  Some elementSet can hold very general elements, acting on various DOFs of the corresponding cells.
+     *  For example, Nastran PELAS1 can regroup CELAS1 cells which "spring" in various DOFS 'DXtoDX, DYtoDZ, etc)
+     *  whereas Systus can only have one spring direction by 1902 Part (the translation).
+     *  This bool commands the use of Model::splitElementsByDOFS in Model::finish() which split the ElementSet
+     */
+    const bool splitElementsByDOFS;
 };
 // TODO: THe Configuration Parameters should be much more generalized. With this,
 // it's a pain in the keyboard to add options!!

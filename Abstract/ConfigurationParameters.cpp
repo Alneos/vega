@@ -42,7 +42,7 @@ const ModelConfiguration ConfigurationParameters::getModelConfiguration() const 
     if (this->outputSolver.getSolverName() == CODE_ASTER) {
         return ModelConfiguration(true, this->logLevel, true);
     } else if (this->outputSolver.getSolverName() == SYSTUS) {
-        return ModelConfiguration(false, this->logLevel, true, false, false, true, true, true, false, false, true, true, this->systusSizeMatrix, true, true);
+        return ModelConfiguration(false, this->logLevel, true, false, false, true, true, true, false, false, true, true, this->systusSizeMatrix, true, true, true);
     } else if (this->outputSolver.getSolverName() == NASTRAN) {
         return ModelConfiguration(false, this->logLevel, false, false, false, false, false, false,
                 false, false, false);
@@ -90,7 +90,7 @@ ModelConfiguration::ModelConfiguration(bool virtualDiscrets, LogLevel logLevel, 
         bool emulateLocalDisplacement, bool displayHomogeneousConstraint,
         bool emulateAdditionalMass, bool replaceCombinedLoadSets, bool removeIneffectives,
         bool partitionModel, bool replaceDirectMatrices, bool removeRedundantSpcs, bool splitDirectMatrices, int sizeDirectMatrices,
-        bool makeCellsFromDirectMatrices, bool makeCellsFromRBE) :
+        bool makeCellsFromDirectMatrices, bool makeCellsFromRBE, bool splitElementsByDOFS) :
         virtualDiscrets(virtualDiscrets), logLevel(logLevel), createSkin(createSkin), emulateLocalDisplacement(
                 emulateLocalDisplacement), displayHomogeneousConstraint(
                 displayHomogeneousConstraint), emulateAdditionalMass(emulateAdditionalMass), replaceCombinedLoadSets(
@@ -98,7 +98,7 @@ ModelConfiguration::ModelConfiguration(bool virtualDiscrets, LogLevel logLevel, 
                 partitionModel), replaceDirectMatrices(replaceDirectMatrices), removeRedundantSpcs(
                 removeRedundantSpcs), splitDirectMatrices(splitDirectMatrices), sizeDirectMatrices(sizeDirectMatrices),
                 makeCellsFromDirectMatrices(makeCellsFromDirectMatrices),
-                makeCellsFromRBE(makeCellsFromRBE){
+                makeCellsFromRBE(makeCellsFromRBE), splitElementsByDOFS(splitElementsByDOFS){
 }
 
 }

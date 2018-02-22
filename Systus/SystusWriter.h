@@ -82,6 +82,8 @@ static const std::map<SMF, string> SMFtoString = {
 
 std::string SMFToString(SMF key);
 
+SMF DOFtoSMF(DOF dof);
+
 static const int defaultNbDesiredRoots=100; /**< Default number of desired roots for a static analysis (chosen from experiment)**/
 
 static double maxYoungModulus = Globals::UNAVAILABLE_DOUBLE;

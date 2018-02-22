@@ -141,6 +141,10 @@ public:
 	std::vector<NodeGroup*> getNodeGroups() const;
 	CellGroup* createCellGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
 	void renameGroup(const string& oldname, const string& newname, const string& comment);
+    /**
+     * Remove the Group named "name". Do nothing if the group does not exist.
+     */
+    void removeGroup(const string& name);
 	std::vector<CellGroup*> getCellGroups() const;
 	Group* findGroup(string) const;
 	/**

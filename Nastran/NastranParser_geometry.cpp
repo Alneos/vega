@@ -300,6 +300,40 @@ void NastranParserImpl::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> mode
     addProperty(pid, eid, model);
 }
 
+void NastranParserImpl::parseCELAS1(NastranTokenizer& tok, shared_ptr<Model> model) {
+    // Defines a scalar spring element .
+    int eid = tok.nextInt();
+    int pid = tok.nextInt();
+    int g1 = tok.nextInt();
+    int c1 = parseDOF(tok,model);
+    int g2 = tok.nextInt();
+    int c2 = parseDOF(tok,model);
+
+    // Creates cell
+    vector<int> connectivity;
+    connectivity += g1, g2;
+    int cellPosition= model->mesh->addCell(eid, CellType::SEG2, connectivity);
+    CellGroup* cellGroup = getOrCreateCellGroup(pid, model);
+    cellGroup->addCell(model->mesh->findCell(cellPosition).id);
+
+    // Creates or update the ElementSet defined by the PELAS key.
+    std::shared_ptr<ElementSet> elementSet = model->elementSets.find(pid);
+    if (elementSet == nullptr){
+        ScalarSpring scalarSpring(*model, pid);
+        scalarSpring.assignCellGroup(cellGroup);
+        scalarSpring.addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
+        model->add(scalarSpring);
+    }else{
+        if (elementSet->type == ElementSet::SCALAR_SPRING){
+            std::shared_ptr<ScalarSpring> springElementSet = static_pointer_cast<ScalarSpring>(elementSet);
+            springElementSet->addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
+        }else{
+            string message = "The part of PID "+std::to_string(pid)+" already exists with the wrong NATURE.";
+            handleParsingError(message, tok, model);
+        }
+    }
+}
+
 void NastranParserImpl::parseCELAS2(NastranTokenizer& tok, shared_ptr<Model> model) {
     // Defines a scalar spring element without reference to a property entry.
     int eid = tok.nextInt();
@@ -308,34 +342,28 @@ void NastranParserImpl::parseCELAS2(NastranTokenizer& tok, shared_ptr<Model> mod
     int c1 = parseDOF(tok,model);
     int g2 = tok.nextInt();
     int c2 = parseDOF(tok,model);
-
-    // Unsupported field
     double ge = tok.nextDouble(true, 0.0);
-    if (!is_zero(ge)){
-        string message = "Damping coefficient (GE) not supported and dismissed.";
-        handleParsingWarning(message, tok, model);
-    }
 
     // S is only used for post-treatment, and so discarded.
     double s = tok.nextDouble(true);
     if (!is_equal(s, NastranTokenizer::UNAVAILABLE_DOUBLE)){
-    	//TODO: Do a proper writing log
-    	if (this->logLevel >= LogLevel::DEBUG) {
-    		string message = "CELAS2: Stress coefficient (S) is only used for post-treatment and dismissed.";
-    		cout << message << endl;
-    	}
+        if (this->logLevel >= LogLevel::DEBUG) {
+            handleParsingWarning("Stress coefficient (S) is only used for post-treatment and dismissed.", tok, model);
+        }
     }
-    StiffnessMatrix matrix(*model, eid);
-    matrix.addStiffness(g1, DOF::findByPosition(c1), g2, DOF::findByPosition(c2), k);
 
     // Create a Cell and a cellgroup
-    CellGroup* matrixGroup = model->mesh->createCellGroup("CELAS2_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS2");
-    matrix.assignCellGroup(matrixGroup);
+    CellGroup* springGroup = model->mesh->createCellGroup("CELAS2_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS2");
     vector<int> connectivity;
     connectivity += g1, g2;
     int cellPosition= model->mesh->addCell(eid, CellType::SEG2, connectivity);
-    matrixGroup->addCell(model->mesh->findCell(cellPosition).id);
-    model->add(matrix);
+    springGroup->addCell(model->mesh->findCell(cellPosition).id);
+
+    // Create ElementSet
+    ScalarSpring scalarSpring(*model, eid, k ,ge);
+    scalarSpring.assignCellGroup(springGroup);
+    scalarSpring.addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
+    model->add(scalarSpring);
 }
 
 void NastranParserImpl::parseCELAS4(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -345,19 +373,19 @@ void NastranParserImpl::parseCELAS4(NastranTokenizer& tok, shared_ptr<Model> mod
     double k = tok.nextDouble();
     int s1 = tok.nextInt();
     int s2 = tok.nextInt();
-    StiffnessMatrix matrix(*model, eid);
-    // LD : TODO scalar point dofs treated as DX in abstract?
-    matrix.addStiffness(s1, DOF::DX, s2, DOF::DX, k);
 
     // Create a Cell and a cellgroup
-    CellGroup* matrixGroup = model->mesh->createCellGroup("CELAS4_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS4");
-    matrix.assignCellGroup(matrixGroup);
+    CellGroup* springGroup = model->mesh->createCellGroup("CELAS4_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS4");
     vector<int> connectivity;
     connectivity += s1, s2;
     int cellPosition= model->mesh->addCell(eid, CellType::SEG2, connectivity);
-    matrixGroup->addCell(model->mesh->findCell(cellPosition).id);
-    model->add(matrix);
+    springGroup->addCell(model->mesh->findCell(cellPosition).id);
 
+    // Create ElementSet
+    ScalarSpring scalarSpring(*model, eid, k);
+    scalarSpring.assignCellGroup(springGroup);
+    scalarSpring.addSpring(cellPosition, DOF::DX, DOF::DX);
+    model->add(scalarSpring);
 }
 
 void NastranParserImpl::parseElem(NastranTokenizer& tok, shared_ptr<Model> model,

@@ -45,6 +45,15 @@ string SMFToString(SMF key){
     return SMFtoString.find(key)->second;
 }
 
+SMF DOFtoSMF(DOF dof){
+    if (dof==DOF::RX){return SMF::IX;}
+    if (dof==DOF::RY){return SMF::IY;}
+    if (dof==DOF::RZ){return SMF::IZ;}
+    if (dof==DOF::DX){return SMF::KX;}
+    if (dof==DOF::DY){return SMF::KY;}
+    return SMF::KZ;
+}
+
 
 SystusWriter::SystusWriter() {
 }
@@ -541,7 +550,8 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
         case ElementSet::DISCRETE_1D:
         case ElementSet::STIFFNESS_MATRIX:
         case ElementSet::MASS_MATRIX:
-        case ElementSet::DAMPING_MATRIX:{
+        case ElementSet::DAMPING_MATRIX:
+        case ElementSet::SCALAR_SPRING:{
             continue;
         }
 
@@ -1468,6 +1478,63 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
                 continue;
             }
 
+            case ElementSet::SCALAR_SPRING:{
+                shared_ptr<ScalarSpring> ss = static_pointer_cast<ScalarSpring>(elementSet);
+                const std::vector<std::pair<DOF, DOF>> dofsSpring = ss->getDOFSSpring();
+                if (dofsSpring.size()!=1){
+                    handleWritingWarning(to_str(*elementSet) + " spring directions after the first one will be dismissed.", "FillTable");
+                }
+                const std::pair<DOF,DOF> pairDOF = dofsSpring[0];
+                // If we have the same DOF, we can use a Spring element 1602.
+                // Else, we need to use a tabulated element 1902 Type 0
+                if (pairDOF.first != pairDOF.second){
+                    long unsigned int tId2=0;
+                    if (ss->hasStiffness()){
+                        long unsigned int tId= static_cast<long unsigned int>(tables.size())+1;
+                        SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
+                        const double stiffness = ss->getStiffness();
+
+                        int pairCode = 1100;
+                        int dofCode = 11*DOFToInt(pairDOF.first);
+                        aTable.add(pairCode+dofCode);
+                        aTable.add(stiffness);
+                        pairCode = 2200;
+                        dofCode = 11*DOFToInt(pairDOF.second);
+                        aTable.add(pairCode+dofCode);
+                        aTable.add(stiffness);
+                        pairCode = 1200;
+                        dofCode = 10*DOFToInt(pairDOF.first) + DOFToInt(pairDOF.second);
+                        aTable.add(pairCode+dofCode);
+                        aTable.add(-stiffness);
+                        tables.push_back(aTable);
+                        tId2+=tId;
+                    }
+                    if (ss->hasDamping()){
+                        long unsigned int tId= static_cast<long unsigned int>(tables.size())+1;
+                        SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
+                        const double damping = ss->getDamping();
+
+                        int pairCode = 1100;
+                        int dofCode = 11*DOFToInt(pairDOF.first);
+                        aTable.add(pairCode+dofCode);
+                        aTable.add(damping);
+                        pairCode = 2200;
+                        dofCode = 11*DOFToInt(pairDOF.second);
+                        aTable.add(pairCode+dofCode);
+                        aTable.add(damping);
+                        pairCode = 1200;
+                        dofCode = 10*DOFToInt(pairDOF.first) + DOFToInt(pairDOF.second);
+                        aTable.add(pairCode+dofCode);
+                        aTable.add(-damping);
+                        tables.push_back(aTable);
+                        tId2+=tId*10000;
+                    }
+                    tableByElementSet[elementSet->getId()]=tId2;
+                }
+                break;
+            }
+
+
             // Stiffness, Mass and Damping matrices are the same kind.
             // Only the tableByElementSet value differs:
             //   - Stiffness: 0000XX
@@ -1664,6 +1731,54 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
             case ElementSet::DISCRETE_1D:{
                 continue;
             }
+
+            case ElementSet::SCALAR_SPRING:{
+                shared_ptr<ScalarSpring> ss = static_pointer_cast<ScalarSpring>(elementSet);
+                const std::vector<std::pair<DOF, DOF>> dofsSpring = ss->getDOFSSpring();
+                if (dofsSpring.size()!=1){
+                    handleWritingWarning(to_str(*elementSet) + " spring directions after the first one will be dismissed.", "FillMatrices");
+                }
+                const std::pair<DOF,DOF> pairDOF = dofsSpring[0];
+                // If we have the same DOF, we can use a Spring element 1602.
+                // Else, we need to use a tabulated element 1902 Type 0
+                if (pairDOF.first != pairDOF.second){
+                    long unsigned int tId2=0;
+                    if (ss->hasStiffness()){
+                        long unsigned int seId= stiffnessMatrices.size()+1;
+                        // Building the Systus Matrix
+                        SystusMatrix aMatrix = SystusMatrix(seId, nbDOFS, 2);
+                        //for (const auto np : dam->nodePairs()){
+                        int dofI = DOFToInt(pairDOF.first);
+                        int dofJ = DOFToInt(pairDOF.second);
+                        aMatrix.setValue(1, 1, dofI, dofI, ss->getStiffness());
+                        aMatrix.setValue(2, 2, dofJ, dofJ, ss->getStiffness());
+                        aMatrix.setValue(1, 2, dofI, dofJ, -ss->getStiffness());
+                        tId2+=SystusWriter::StiffnessAccessId;
+                        seIdByElementSet[elementSet->getId()]= seId;
+                        stiffnessMatrices.add(aMatrix);
+
+                    }
+                    if (ss->hasDamping()){
+                        long unsigned int seId= dampingMatrices.size()+1;
+                        // Building the Systus Matrix
+                        SystusMatrix aMatrix = SystusMatrix(seId, nbDOFS, 2);
+                        //for (const auto np : dam->nodePairs()){
+                        int dofI = DOFToInt(pairDOF.first);
+                        int dofJ = DOFToInt(pairDOF.second);
+                        aMatrix.setValue(1, 1, dofI, dofI, ss->getDamping());
+                        aMatrix.setValue(2, 2, dofJ, dofJ, ss->getDamping());
+                        aMatrix.setValue(1, 2, dofI, dofJ, -ss->getDamping());
+
+
+                        tId2+=SystusWriter::DampingAccessId*10000;
+                        seIdByElementSet[elementSet->getId()]= seId;
+                        dampingMatrices.add(aMatrix);
+                    }
+                    tableByElementSet[elementSet->getId()]=-tId2;
+                }
+                break;
+            }
+
 
             // Stiffness, Mass and Damping matrices are the same kind.
             // Only the tableByElementSet value differs:
@@ -2104,7 +2219,25 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
             // We treat only Stiffness matrixes for now, with 1602 and 0601 Elements
             shared_ptr<StructuralSegment> se = static_pointer_cast<StructuralSegment>(elementSet);
             if ((se->hasMass()) or (se->hasDamping())){
-                cerr << "WARNING in Structural Elements: mass and damping are not supported and will be dismissed."<<endl;
+                handleWritingWarning(to_str(*elementSet) + " mass and damping are not supported and will be dismissed.", "Elements");
+            }
+            break;
+        }
+
+        case ElementSet::SCALAR_SPRING:{
+            dim = 1;
+            shared_ptr<ScalarSpring> ss = static_pointer_cast<ScalarSpring>(elementSet);
+            const std::vector<std::pair<DOF, DOF>> dofsSpring = ss->getDOFSSpring();
+            if (dofsSpring.size()!=1){
+                handleWritingWarning(to_str(*elementSet) + " spring directions after the first one will be dismissed.", "Elements");
+            }
+            const std::pair<DOF,DOF> pairDOF = dofsSpring[0];
+            // If we have the same DOF, we can use a Spring element 1602.
+            // Else, we need to use a tabulated element 1902 Type 0
+            if (pairDOF.first == pairDOF.second){
+                typecell=6;
+            }else{
+                typecell=9;
             }
             break;
         }
@@ -2398,6 +2531,39 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                         cout << "Warning in Materials: damping in " << *elementSet << " is not supported and will be dismissed." << endl;
                     }
 
+                    break;
+                }
+
+                case ElementSet::SCALAR_SPRING:{
+                    shared_ptr<ScalarSpring> ss = static_pointer_cast<ScalarSpring>(elementSet);
+                    const std::vector<std::pair<DOF, DOF>> dofsSpring = ss->getDOFSSpring();
+                    if (dofsSpring.size()!=1){
+                        handleWritingWarning(to_str(*elementSet) + " spring directions after the first one will be dismissed.", "Material");
+                    }
+                    const std::pair<DOF,DOF> pairDOF = dofsSpring[0];
+                    // If we have the same DOF, we can use a Spring element 1602.
+                    // Else, we need to use a tabulated element 1902 Type 0
+                    if (pairDOF.first == pairDOF.second){
+                        writeMaterialField(DOFtoSMF(pairDOF.first), ss->getStiffness(), nbElementsMaterial, omat);
+                        if (ss->hasDamping()){
+                            handleWritingWarning(to_str(*elementSet)+" damping is not supported.","Material");
+                        }
+                    }else{
+                        auto it = tableByElementSet.find(elementSet->getId());
+                        if (it == tableByElementSet.end()){
+                            handleWritingWarning(to_str(*elementSet) + " has no table.", "Material");
+                            break;
+                        }
+                        writeMaterialField(SMF::TABLE, int(it->second), nbElementsMaterial, omat);
+                        if (systusModel.configuration.systusOutputMatrix=="file"){
+                            auto it2 = seIdByElementSet.find(elementSet->getId());
+                            if (it2 == seIdByElementSet.end()){
+                                handleWritingWarning(to_str(*elementSet) + " has no reduction number.", "Material");
+                                break;
+                            }
+                            writeMaterialField(SMF::E, double(it2->second), nbElementsMaterial, omat);
+                        }
+                    }
                     break;
                 }
 

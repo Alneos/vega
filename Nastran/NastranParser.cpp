@@ -68,6 +68,7 @@ const unordered_map<string, NastranParserImpl::parseElementFPtr> NastranParserIm
                 { "CBEAM", &NastranParserImpl::parseCBEAM },
                 { "CBUSH", &NastranParserImpl::parseCBUSH },
                 { "CGAP", &NastranParserImpl::parseCGAP },
+                { "CELAS1", &NastranParserImpl::parseCELAS1 },
                 { "CELAS2", &NastranParserImpl::parseCELAS2 },
                 { "CELAS4", &NastranParserImpl::parseCELAS4 },
                 { "CHEXA", &NastranParserImpl::parseCHEXA },
@@ -115,6 +116,7 @@ const unordered_map<string, NastranParserImpl::parseElementFPtr> NastranParserIm
                 { "PBEAM", &NastranParserImpl::parsePBEAM },
                 { "PBEAML", &NastranParserImpl::parsePBEAML },
                 { "PBUSH", &NastranParserImpl::parsePBUSH },
+                { "PELAS", &NastranParserImpl::parsePELAS },
                 { "PGAP", &NastranParserImpl::parsePGAP },
                 { "PLOAD2", &NastranParserImpl::parsePLOAD2 },
                 { "PLOAD4", &NastranParserImpl::parsePLOAD4 },
@@ -1710,6 +1712,44 @@ void NastranParserImpl::parsePBUSH(NastranTokenizer& tok, shared_ptr<Model> mode
 
 }
 
+void NastranParserImpl::parsePELAS(NastranTokenizer& tok, shared_ptr<Model> model) {
+
+    int nbProperties=0;
+    // One or two elastic spring properties can be defined on a single entry.
+    while ((tok.isNextInt())&&(nbProperties<2)){
+
+        const int pid = tok.nextInt();
+        const double k = tok.nextDouble(true, 0.0);
+        const double ge= tok.nextDouble(true, 0.0);
+        const double s = tok.nextDouble(true);
+
+        // S is only used for post-treatment, and so discarded.
+        if (!is_equal(s, NastranTokenizer::UNAVAILABLE_DOUBLE)){
+            if (this->logLevel >= LogLevel::DEBUG) {
+                handleParsingWarning("Stress coefficient (S) is only used for post-treatment and dismissed.", tok, model);
+            }
+        }
+
+        CellGroup* cellGroup = getOrCreateCellGroup(pid, model, "PELAS");
+        std::shared_ptr<ElementSet> elementSet = model->elementSets.find(pid);
+        if (elementSet == nullptr){
+            ScalarSpring scalarSpring(*model, pid, k, ge);
+            scalarSpring.assignCellGroup(cellGroup);
+            model->add(scalarSpring);
+        }else{
+            if (elementSet->type == ElementSet::SCALAR_SPRING){
+                std::shared_ptr<ScalarSpring> springElementSet = static_pointer_cast<ScalarSpring>(elementSet);
+                springElementSet->setStiffness(k);
+                springElementSet->setDamping(ge);
+                springElementSet->assignCellGroup(cellGroup);
+            }else{
+                string message = "The part of PID "+std::to_string(pid)+" already exists with the wrong NATURE.";
+                handleParsingError(message, tok, model);
+            }
+        }
+        nbProperties++;
+    }
+}
 
 void NastranParserImpl::parsePGAP(NastranTokenizer& tok, shared_ptr<Model> model) {
     int pid = tok.nextInt();

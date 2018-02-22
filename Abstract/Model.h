@@ -79,6 +79,13 @@ private:
      * Build the corresponding cells of RigidSets (RBAR, RBE3) with a group, and a Rigid material.
      */
     void makeCellsFromRBE();
+    /**
+     * Some elementSet can hold very general elements, acting on various DOFs of the corresponding cells.
+     * For example, Nastran PELAS1 can regroup CELAS1 cells which "spring" in various DOFS (DXtoDX, DYtoDZ, etc)
+     * whereas Systus can only have one spring direction by 1902 Part.
+     * This method splits the ElementSets to have only one direction in each.
+     */
+    void splitElementsByDOFS();
 
 public:
     bool finished;

@@ -1818,6 +1818,73 @@ void Model::makeCellsFromRBE(){
     }
 }
 
+void Model::splitElementsByDOFS(){
+
+    std::vector<ScalarSpring> elementSetsToAdd;
+    std::vector<shared_ptr<ElementSet>> elementSetsToRemove;
+
+    for (auto & elementSet : elementSets) {
+
+        switch (elementSet->type){
+        case ElementSet::DISCRETE_0D:
+        case ElementSet::DISCRETE_1D:
+        case ElementSet::NODAL_MASS:
+        case ElementSet::CIRCULAR_SECTION_BEAM:
+        case ElementSet::RECTANGULAR_SECTION_BEAM:
+        case ElementSet::I_SECTION_BEAM:
+        case ElementSet::GENERIC_SECTION_BEAM:
+        case ElementSet::STRUCTURAL_SEGMENT:
+        case ElementSet::SHELL:
+        case ElementSet::CONTINUUM:
+        case ElementSet::STIFFNESS_MATRIX:
+        case ElementSet::MASS_MATRIX:
+        case ElementSet::DAMPING_MATRIX:
+        case ElementSet::RIGIDSET:
+        case ElementSet::RBAR:
+        case ElementSet::RBE3:{
+            continue;
+        }
+        
+        case ElementSet::SCALAR_SPRING:{
+            shared_ptr<ScalarSpring> ss = static_pointer_cast<ScalarSpring>(elementSet);
+            if (ss->getNbDOFSSpring()>1){
+                int i =1;
+                const double stiffness = ss->getStiffness();
+                const double damping = ss->getDamping();
+                const string name = ss->cellGroup->getName();
+                const string comment = ss->cellGroup->getComment();
+                if (configuration.logLevel >= LogLevel::DEBUG)
+                    cout<< *elementSet << " spring must be split."<<endl;
+                for (const auto & it : ss->getCellPositionByDOFS()){
+                    ScalarSpring scalarSpring(*this, Identifiable<ElementSet>::NO_ORIGINAL_ID, stiffness, damping);
+                    CellGroup* cellGroup = this->mesh->createCellGroup(name+"_"+std::to_string(i), Group::NO_ORIGINAL_ID, comment);
+                    scalarSpring.assignCellGroup(cellGroup);
+                    for (const int cellPosition : it.second){
+                        scalarSpring.addSpring(cellPosition, it.first.first, it.first.second);
+                        cellGroup->addCell(this->mesh->findCell(cellPosition).id);
+                    }
+                    elementSetsToAdd.push_back(scalarSpring);
+                    i++;
+                }
+                elementSetsToRemove.push_back(elementSet);
+                this->mesh->removeGroup(name);
+            }
+            break;
+        }
+        default: {
+            //TODO : throw ModelException("ElementSet type not supported");
+            cerr << "Warning in splitElementsByDOFS: " << *elementSet << " not supported" << endl;
+        }
+        }
+    }
+
+    for (auto elementSet : elementSetsToRemove){
+        this->elementSets.erase(Reference<ElementSet>(*elementSet));
+    }
+    for (auto & elementSet : elementSetsToAdd){
+         this->add(elementSet);
+        }
+}
 
 void Model::finish() {
     if (finished) {
@@ -1891,6 +1958,10 @@ void Model::finish() {
     if (this->configuration.makeCellsFromRBE){
         makeCellsFromRBE();
     }
+
+    if (this->configuration.splitElementsByDOFS){
+        splitElementsByDOFS();
+        }
 
     assignElementsToCells();
     generateMaterialAssignments();
