@@ -799,8 +799,8 @@ std::vector<std::pair<DOF, DOF>> ScalarSpring::getDOFSSpring() const {
     return vDOF;
 }
 
-long unsigned int ScalarSpring::getNbDOFSSpring() const{
-    return this->cellpositionByDOFS.size();
+int ScalarSpring::getNbDOFSSpring() const{
+    return static_cast<int>(this->cellpositionByDOFS.size());
 }
 
 } /* namespace vega */

@@ -481,7 +481,7 @@ public:
     bool hasStiffness() const;
     bool hasDamping() const;
     std::vector<std::pair<DOF, DOF>> getDOFSSpring() const;
-    long unsigned int getNbDOFSSpring() const;
+    int getNbDOFSSpring() const;
 
     /**
      *  Add a spring cell to the elementSet, precising its position (vega id),
