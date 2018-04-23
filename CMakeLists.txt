@@ -34,7 +34,7 @@ set(CMAKE_CXX_STANDARD 11)
 SET(CMAKE_BUILD_TYPE DDebug CACHE STRING
     "Choose the type of build, options are: None DDebug SDebug DRelease SRelease.")
 #make outputs build commands and options
-OPTION(CMAKE_VERBOSE_MAKEFILE "make outputs build commands" ON)
+OPTION(CMAKE_VERBOSE_MAKEFILE "make outputs build commands" OFF)
 project ( vegapp CXX C)
 
 # Debug and Release are reserved words for cmake see https://cmake.org/cmake/help/v3.0/variable/CMAKE_BUILD_TYPE.html
