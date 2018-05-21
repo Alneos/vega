@@ -326,6 +326,7 @@ class SystusWriter: public Writer {
      *
      */
     double generateRbarRigidity(const SystusModel&, const shared_ptr<Rbar>);
+    double generateLmpcRigidity(const SystusModel&, const shared_ptr<Lmpc>);
 
     /**
      *  Generate RBE from Rbars and Rbe3 ElementSet:
@@ -364,7 +365,7 @@ class SystusWriter: public Writer {
      *  Depending of the type of element, some angles may be dismissed.
      **/
     void writeElementLocalReferentiel(const SystusModel& systusModel, const int dim, const int celltype, const vector<int> nodes, const int cpos, ostream& out);
-    void writeElements(const SystusModel&, std::ostream&);
+    void writeElements(const SystusModel&, const int idSubcase, std::ostream&);
     /**
      * Write the Cells and Nodes groups in ASC format.
      *
@@ -396,7 +397,7 @@ class SystusWriter: public Writer {
      * Value here is an integer.
      */
     void writeMaterialField(const SMF key, const int value, int& nbfields, ostream& out) const ;
-    void writeMaterials(const SystusModel&, const ConfigurationParameters&, std::ostream&);
+    void writeMaterials(const SystusModel&, const ConfigurationParameters&, const int, std::ostream&);
     void writeLoads(std::ostream&);
     void writeLists(std::ostream&);
     /**

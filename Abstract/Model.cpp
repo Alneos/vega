@@ -1565,96 +1565,7 @@ void Model::makeCellsFromDirectMatrices(){
         matrix->assignCellGroup(matrixGroup);
 
         // Create a Cell and add it to the Cell Group
-        CellType cellType = CellType::POINT1;
-        // VERY TEDIOUS, because cells can't be of a variable size, for now :/
-        //TODO: Add a version with "variable sized" cells.
-        switch (matrix->nodePositions().size()){
-        case 1:{
-            cellType = CellType::POINT1;
-            break;
-        }
-        case 2:{
-            cellType = CellType::SEG2;
-            break;
-        }
-        case 3:{
-            cellType = CellType::POLY3;
-            break;
-        }
-        case 4:{
-            cellType = CellType::POLY4;
-            break;
-        }
-        case 5:{
-            cellType = CellType::POLY5;
-            break;
-        }
-        case 6:{
-            cellType = CellType::POLY6;
-            break;
-        }
-        case 7:{
-            cellType = CellType::POLY7;
-            break;
-        }
-        case 8:{
-            cellType = CellType::POLY8;
-            break;
-        }
-        case 9:{
-            cellType = CellType::POLY9;
-            break;
-        }
-        case 10:{
-            cellType = CellType::POLY10;
-            break;
-        }
-        case 11:{
-            cellType = CellType::POLY11;
-            break;
-        }
-        case 12:{
-            cellType = CellType::POLY12;
-            break;
-        }
-        case 13:{
-            cellType = CellType::POLY13;
-            break;
-        }
-        case 14:{
-            cellType = CellType::POLY14;
-            break;
-        }
-        case 15:{
-            cellType = CellType::POLY15;
-            break;
-        }
-        case 16:{
-            cellType = CellType::POLY16;
-            break;
-        }
-        case 17:{
-            cellType = CellType::POLY17;
-            break;
-        }
-        case 18:{
-            cellType = CellType::POLY18;
-            break;
-        }
-        case 19:{
-            cellType = CellType::POLY19;
-            break;
-        }
-        case 20:{
-            cellType = CellType::POLY20;
-            break;
-        }
-        default:{
-            //TODO: Don't work for now, because elements can't be of a variable size, for now :/
-            //cellType = CellType::POLYHED;
-            throw logic_error("Element size exceed the maximum size : 20.");
-        }
-        }
+        CellType cellType = CellType::polyType(static_cast<unsigned int>(matrix->nodePositions().size()));
         vector<int> vNodeIds;
         for (int nodePosition : matrix->nodePositions()){
             Node node = mesh->findNode(nodePosition);
@@ -1672,10 +1583,71 @@ void Model::makeCellsFromDirectMatrices(){
 }
 
 
+void Model::makeCellsFromLMPC(){
+
+    shared_ptr<Mesh> mesh = this->mesh;
+    map< vector<DOFCoefs>, CellGroup*> groupBySetOfCoefs;
+
+    for (auto analysis : this->analyses) {
+        for (const auto& constraintSet : analysis->getConstraintSets()) {
+
+            const int idConstraintSet = constraintSet->getId();
+            const int originalIdConstraintSet = constraintSet->getOriginalId();
+            const ConstraintSet::Type natConstraintSet = constraintSet->type;
+
+            set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::LMPC);
+            for (const auto& constraint : constraints) {
+                const std::shared_ptr<LinearMultiplePointConstraint> lmpc = std::static_pointer_cast<LinearMultiplePointConstraint>(constraint);
+
+                // We sorted the Coeffs in order to fuse various lmpc into the same Elementset/Cellgroup
+                vector<int> sortedNodesPosition= lmpc->sortNodePositionByCoefs();
+                vector<DOFCoefs> sortedCoefs;
+                for (int n : sortedNodesPosition){
+                    sortedCoefs.push_back(lmpc->getDoFCoefsForNode(n));
+                }
+
+                CellGroup* group =nullptr;
+                // Lookinf for the cellgroup corresponding to the current DOFCoefs.
+                const auto it = groupBySetOfCoefs.find(sortedCoefs);
+                if(it != groupBySetOfCoefs.end()){
+                    group = it->second;
+                }else{
+                    // If not found, creating an elementset, a CellGroup and a dummy rigid material
+                    shared_ptr<Material> materialLMPC(new Material(this));
+                    materialLMPC->addNature(RigidNature(*this, 1));
+                    this->add(materialLMPC);
+                    group = mesh->createCellGroup("MPC_"+std::to_string(constraint->bestId()), CellGroup::NO_ORIGINAL_ID, "MPC");
+                    Lmpc elementsetLMPC(*this, analysis->getId());
+                    elementsetLMPC.assignCellGroup(group);
+                    elementsetLMPC.assignMaterial(materialLMPC);
+                    elementsetLMPC.assignDofCoefs(sortedCoefs);
+                    this->add(elementsetLMPC);
+                    groupBySetOfCoefs[sortedCoefs]= group;
+                }
+                
+                // Creating a cell and adding it to the CellGroup
+                vector<int> nodes;
+                for (int position : sortedNodesPosition){
+                    Node node = mesh->findNode(position);
+                    nodes.push_back(node.id);
+                }
+                int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::polyType(static_cast<unsigned int>(nodes.size())), nodes, true);
+                group->addCell(mesh->findCell(cellPosition).id);
+
+                // Removing the constraint from the model.
+                remove(constraint->getReference(), idConstraintSet, originalIdConstraintSet, natConstraintSet);
+                if (configuration.logLevel >= LogLevel::DEBUG){
+                    cout << "Building cells in group "<<group->getName()<<" from "<< *lmpc<<"."<<endl;
+                }
+            }
+        }
+    }
+}
+
 void Model::makeCellsFromRBE(){
 
     shared_ptr<Mesh> mesh = this->mesh;
-        vector<shared_ptr<ConstraintSet>> commonConstraintSets = this->getCommonConstraintSets();
+    vector<shared_ptr<ConstraintSet>> commonConstraintSets = this->getCommonConstraintSets();
 
     for (const auto& constraintSet : commonConstraintSets) {
 
@@ -1841,7 +1813,8 @@ void Model::splitElementsByDOFS(){
         case ElementSet::DAMPING_MATRIX:
         case ElementSet::RIGIDSET:
         case ElementSet::RBAR:
-        case ElementSet::RBE3:{
+        case ElementSet::RBE3:
+        case ElementSet::LMPC:{
             continue;
         }
         
@@ -1953,6 +1926,10 @@ void Model::finish() {
 
     if (this->configuration.makeCellsFromDirectMatrices){
         makeCellsFromDirectMatrices();
+    }
+
+    if (this->configuration.makeCellsFromLMPC){
+        makeCellsFromLMPC();
     }
 
     if (this->configuration.makeCellsFromRBE){

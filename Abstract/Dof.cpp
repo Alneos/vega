@@ -340,4 +340,22 @@ bool DOFMatrix::isEmpty() const {
 	return componentByDofs.empty();
 }
 
+bool DOFCoefs::operator< (const DOFCoefs& other) const{
+    for (int i=0; i<6; i++){
+        if (is_equal(this->coefs[i],other.coefs[i])) continue;
+        if (this->coefs[i]<other.coefs[i]) return true;
+        return false;
+    }
+    return false;
+}
+
+bool DOFCoefs::operator== (const DOFCoefs & other) const{
+    for (int i=0; i<6; i++){
+        if (is_equal(this->coefs[i],other.coefs[i])) continue;
+        return false;
+    }
+    return true;
+}
+
+
 }

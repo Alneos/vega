@@ -394,9 +394,9 @@ void LinearMultiplePointConstraint::addParticipation(int nodeId, double dx, doub
     int nodePosition = model.mesh->findOrReserveNode(nodeId);
     auto it = dofCoefsByNodePosition.find(nodePosition);
     if (it == dofCoefsByNodePosition.end())
-        dofCoefsByNodePosition[nodePosition] = DofCoefs(dx, dy, dz, rx, ry, rz);
+        dofCoefsByNodePosition[nodePosition] = DOFCoefs(dx, dy, dz, rx, ry, rz);
     else
-        dofCoefsByNodePosition[nodePosition] += DofCoefs(dx, dy, dz, rx, ry, rz);
+        dofCoefsByNodePosition[nodePosition] += DOFCoefs(dx, dy, dz, rx, ry, rz);
 }
 
 set<int> LinearMultiplePointConstraint::nodePositions() const {
@@ -411,7 +411,7 @@ const DOFS LinearMultiplePointConstraint::getDOFSForNode(int nodePosition) const
     DOFS dofs(DOFS::NO_DOFS);
     auto it = dofCoefsByNodePosition.find(nodePosition);
     if (it != dofCoefsByNodePosition.end()) {
-        DofCoefs dofCoefs = it->second;
+        DOFCoefs dofCoefs = it->second;
         if (!is_zero(dofCoefs[0]))
             dofs = dofs + DOF::DX;
         if (!is_zero(dofCoefs[1]))
@@ -436,13 +436,29 @@ bool LinearMultiplePointConstraint::ineffective() const  {
     return dofCoefsByNodePosition.size() == 0;
 }
 
-LinearMultiplePointConstraint::DofCoefs LinearMultiplePointConstraint::getDoFCoefsForNode(
+DOFCoefs LinearMultiplePointConstraint::getDoFCoefsForNode(
         int nodePosition) const {
-    DofCoefs dofCoefs(0, 0, 0, 0, 0, 0);
+    DOFCoefs dofCoefs(0, 0, 0, 0, 0, 0);
     auto it = dofCoefsByNodePosition.find(nodePosition);
     if (it != dofCoefsByNodePosition.end())
         dofCoefs = it->second;
     return dofCoefs;
+}
+
+std::vector<int> LinearMultiplePointConstraint::sortNodePositionByCoefs() const{
+
+    std::set<int> np=this->nodePositions();
+    std::vector<int> indices(np.size());
+    int i = 0;
+    for (const auto n : np ){
+        indices[i]=n;
+        i++;
+    }
+    std::sort(
+            begin(indices), end(indices),
+            [&](int a, int b) { return this->dofCoefsByNodePosition.at(a) < this->dofCoefsByNodePosition.at(b); }
+    );
+    return indices;
 }
 
 Gap::Gap(Model& model, int original_id) :

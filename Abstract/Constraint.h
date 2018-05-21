@@ -173,46 +173,26 @@ public:
 	std::shared_ptr<Constraint> clone() const override;
 };
 
+
 class LinearMultiplePointConstraint: public Constraint {
-public:
-	class DofCoefs {
-	private:
-		double coefs[6];
-	public:
-		DofCoefs(double dx = 0, double dy = 0, double dz = 0, double rx = 0, double ry = 0,
-				double rz = 0) {
-			coefs[0] = dx;
-			coefs[1] = dy;
-			coefs[2] = dz;
-			coefs[3] = rx, coefs[4] = ry;
-			coefs[5] = rz;
-		}
-		DofCoefs& operator+=(const DofCoefs& rv) {
-			for (int i = 0; i < 6; i++) {
-				coefs[i] += rv.coefs[i];
-			}
-			return *this;
-		}
-		double operator[](const int i) {
-			if (i < 0 || i > 5)
-				return 0;
-			return coefs[i];
-		}
-	};
 private:
-	std::map<int, DofCoefs> dofCoefsByNodePosition;
+    std::map<int, DOFCoefs> dofCoefsByNodePosition;
 public:
-	const double coef_impo;
-	LinearMultiplePointConstraint(Model& model, double coef_impo = 0, int original_id =
-			NO_ORIGINAL_ID);
-	std::shared_ptr<Constraint> clone() const override;
-	void addParticipation(int nodeId, double dx = 0, double dy = 0, double dz = 0, double rx = 0,
-			double ry = 0, double rz = 0);
-	DofCoefs getDoFCoefsForNode(int nodePosition) const;
-	std::set<int> nodePositions() const override;
-	const DOFS getDOFSForNode(int nodePosition) const override;
-	void removeNode(int nodePosition) override;
-	bool ineffective() const override;
+    const double coef_impo;
+    LinearMultiplePointConstraint(Model& model, double coef_impo = 0, int original_id =
+            NO_ORIGINAL_ID);
+    std::shared_ptr<Constraint> clone() const override;
+    void addParticipation(int nodeId, double dx = 0, double dy = 0, double dz = 0, double rx = 0,
+            double ry = 0, double rz = 0);
+    DOFCoefs getDoFCoefsForNode(int nodePosition) const;
+    /** 
+     * Sort all nodes positions by increasing coefs. Usefull to fuse various LMPC into ones.
+     */
+    std::vector<int> sortNodePositionByCoefs() const;
+    std::set<int> nodePositions() const override;
+    const DOFS getDOFSForNode(int nodePosition) const override;
+    void removeNode(int nodePosition) override;
+    bool ineffective() const override;
 };
 
 class Gap: public Constraint {

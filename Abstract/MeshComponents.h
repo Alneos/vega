@@ -201,6 +201,7 @@ public:
     bool operator<(const CellType& other) const;
     //const CellType& operator=(const CellType& other);
     static const CellType* findByCode(Code code);
+    static const CellType polyType(unsigned int); /**< Return the POLY type corresponding to a cell of n nodes.*/
     std::string to_str() const;
     bool specificSize; /**< True for all Type except the POLY ones, where the number of Nodes varies */
 };

@@ -526,6 +526,47 @@ double SystusWriter::generateRbarRigidity(const SystusModel& systusModel, const 
     return rigidity;
 }
 
+//TODO: create a single function to compute penalty
+double SystusWriter::generateLmpcRigidity(const SystusModel& systusModel, const shared_ptr<Lmpc> lmpc){
+
+    const shared_ptr<Mesh> mesh = systusModel.model->mesh;
+
+    // We access the maximum of the Young Modulus of the model. No need to do it twice
+    if (is_equal(maxYoungModulus,Globals::UNAVAILABLE_DOUBLE)){
+        maxYoungModulus=0.0;
+        for (const auto& elementSet : systusModel.model->elementSets) {
+            const auto& material = elementSet->material;
+            if ((elementSet->cellGroup != nullptr)&&(material != nullptr)){
+                const shared_ptr<Nature> nature = material->findNature(Nature::NATURE_ELASTIC);
+                if (nature) {
+                    const ElasticNature& elasticNature = dynamic_cast<ElasticNature&>(*nature);
+                    maxYoungModulus= max(maxYoungModulus, elasticNature.getE());
+                }
+            }
+        }
+    }
+
+    // Master node is the same for all cells
+    double maxLength=0.0;
+    for (const Cell& cell : lmpc->cellGroup->getCells()) {
+        // The reference one is the first one. Why ? Why not ?
+        // TODO: a much much better formulation
+        const Node mN = mesh->findNode(cell.nodePositions[0],true, systusModel.model);
+        for (unsigned int i=1;i<cell.nodePositions.size();i++){
+            const Node sN = mesh->findNode(cell.nodePositions[i],true, systusModel.model);
+            double lengthLmpc = sqrt( pow(mN.x-sN.x,2) +pow(mN.y-sN.y,2) + pow(mN.z-sN.z,2));
+           maxLength=max(maxLength, lengthLmpc);
+        }
+    }
+
+    double rigidity = maxYoungModulus*maxLength;
+    if (is_zero(rigidity)){
+        handleWritingWarning("Computed rigidity for "+to_str(*lmpc)+" was null and raised to 1","LMPC Rigidity");
+        rigidity=1.0;
+    }
+
+    return rigidity;
+}
 
 
 void SystusWriter::generateRBEs(const SystusModel& systusModel,
@@ -715,9 +756,54 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
             break;
         }
 
+        // Translation of LMPC elements has X9XX Level 0 elements
+        // See Systus Reference Analysis Manual: RIGID BODY Element (page 498)
+        // Here we compute the material properties and, if needed, add a lagrangian node
+        case ElementSet::LMPC: {
+            shared_ptr<Lmpc> lmpc = static_pointer_cast<Lmpc>(elementSet);
+
+            auto& material = elementSet->material;
+            if (material == nullptr){
+                throw logic_error("Error: ElementSet::Lmpc have no material.");
+            }
+            shared_ptr<Nature> nature = material->findNature(Nature::NATURE_RIGID);
+            if (!nature) {
+                throw logic_error("Error: ElementSet::Lmpc have no RIGID nature.");
+            }
+
+            // We update the material with the needed value
+            RigidNature& rigidNature = dynamic_cast<RigidNature&>(*nature);
+            if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
+                if (is_equal(configuration.systusRBELagrangian, Globals::UNAVAILABLE_DOUBLE)){
+                    throw logic_error("Error: ElementSet::Lmpc were not provided with a lagrangian.");
+                }
+                rigidNature.setLagrangian(configuration.systusRBELagrangian);
+            }else{
+               if (is_equal(configuration.systusRBE2Rigidity, Globals::UNAVAILABLE_DOUBLE)){
+                   rigidNature.setRigidity(generateLmpcRigidity(systusModel, lmpc));
+               }else{
+                   rigidNature.setRigidity(configuration.systusRBE2Rigidity);
+               }
+            }
+
+            // With a Lagrangian formulation, we add a Lagrange node.
+            // Lagrange node must NOT have an orientation, as they inherit it from the original node.
+            if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
+                CellGroup* cellGroup = elementSet->cellGroup;
+                for (const Cell& cell : cellGroup->getCells()) {
+                    vector<int> nodes = cell.nodeIds;
+                    Node first = mesh->findNode(cell.nodePositions[0]);
+                    int first_lagr_position = mesh->addNode(Node::AUTO_ID, first.lx, first.ly, first.lz, first.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+                    int first_lagr_id = mesh->findNode(first_lagr_position).id;
+                    nodes.push_back(first_lagr_id);
+                    mesh->updateCell(cell.id, CellType::polyType(static_cast<unsigned int>(nodes.size())), nodes, true);
+                }
+            }
+            break;
+        }
+
         default: {
-            //TODO : throw WriterException("ElementSet type not supported");
-            cout << "Warning in RBE: " << *elementSet << " not supported" << endl;
+            handleWritingWarning(to_str(*elementSet) +" not supported", "Rigid Element");
         }
         }
     }
@@ -1117,7 +1203,7 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
         const shared_ptr<Analysis> analysis = systusModel.model->getAnalysis(analysisId[i]);
 
         if (analysis==nullptr){
-            cerr << "Warning in Building Vectors : wrong analysis number. Analysis dismissed"<<endl;
+            handleWritingWarning("Wrong analysis number. Analysis dismissed", "Constraint vectors");
             break;
         }
 
@@ -1132,7 +1218,7 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
                     std::shared_ptr<SinglePointConstraint> spc = std::static_pointer_cast<SinglePointConstraint>(constraint);
                     //TODO: Null vectors should be overlooked
                     if (spc->hasReferences()) {
-                        cout << "Warning : " << *constraint << " SPC with references to functions not supported" << endl;
+                        handleWritingWarning(to_str(*constraint) + " with reference to functions not supported", "Constraint vectors");
                     } else {
                         vec.push_back(4);
                         vec.push_back(0);
@@ -1154,7 +1240,7 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
                                 vec.push_back(value);
                             }
                         }else
-                            handleWritingError("systusOption not supported");
+                            handleWritingError("systusOption not supported","Constraint vectors");
 
                         if (!is_zero(normvec)){
                             vectors[vectorId]=vec;
@@ -1208,13 +1294,13 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
                 }
                 case Constraint::RIGID:
                 case Constraint::RBE3:
-                case Constraint::QUASI_RIGID:{
+                case Constraint::QUASI_RIGID:
+                case Constraint::LMPC:{
                     // Nothing to be done here
                     break;
                 }
                 default: {
-                    //TODO : throw WriterException("Constraint type not supported");
-                    cout << "WARNING: " << *constraint << " not supported" << endl;
+                    handleWritingWarning(to_str(*constraint)+" not supported","Constraint vectors");
                 }
                 }
             }
@@ -1456,9 +1542,8 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
         // Fill tables for Stiffness, Mass and Damping elements
         for (const auto& elementSet : systusModel.model->elementSets) {
 
-
             switch (elementSet->type) {
-            // None of these elements needs a table
+            // None of these elements needs this kind of tables
             case ElementSet::CIRCULAR_SECTION_BEAM:
             case ElementSet::GENERIC_SECTION_BEAM:
             case ElementSet::I_SECTION_BEAM:
@@ -1468,7 +1553,8 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             case ElementSet::CONTINUUM:
             case ElementSet::NODAL_MASS:
             case ElementSet::RBAR:
-            case ElementSet::RBE3:{
+            case ElementSet::RBE3:
+            case ElementSet::LMPC:{
                 continue;
             }
 
@@ -1623,10 +1709,61 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             }
 
             default: {
-                //TODO : throw WriterException("ElementSet type not supported");
-                cout << "Warning in FillTables: " << *elementSet << " not supported" << endl;
+                handleWritingWarning(to_str(*elementSet) +" not supported", "Table");
             }
             }
+        }
+    }
+
+    // Build tables for linear multipoint constraints
+    for (const auto& elementSet : systusModel.model->elementSets) {
+
+        switch (elementSet->type) {
+        // None of these elements are LMPC
+        //HELP: We keep the list to raise warnings for unknown ElementSet
+        case ElementSet::CIRCULAR_SECTION_BEAM:
+        case ElementSet::GENERIC_SECTION_BEAM:
+        case ElementSet::I_SECTION_BEAM:
+        case ElementSet::RECTANGULAR_SECTION_BEAM:
+        case ElementSet::STRUCTURAL_SEGMENT:
+        case ElementSet::SHELL:
+        case ElementSet::CONTINUUM:
+        case ElementSet::NODAL_MASS:
+        case ElementSet::RBAR:
+        case ElementSet::RBE3:
+        case ElementSet::DISCRETE_0D:
+        case ElementSet::DISCRETE_1D:
+        case ElementSet::SCALAR_SPRING:
+        case ElementSet::STIFFNESS_MATRIX:
+        case ElementSet::MASS_MATRIX:
+        case ElementSet::DAMPING_MATRIX:{
+            continue;
+        }
+
+        case ElementSet::LMPC:{
+
+            // If the LMPC is not relevant to the current subcase, we skip it
+            shared_ptr<Lmpc> lmpc = static_pointer_cast<Lmpc>(elementSet);
+            vector<int> analysisOfSubcase =  systusSubcases[idSubcase];
+            if (std::find(analysisOfSubcase.begin(), analysisOfSubcase.end(), lmpc->analysisId) == analysisOfSubcase.end()){
+                continue;
+            }
+            // The Table for Lmpc is simply the list of coef by dof by nodes
+            long unsigned int tId= static_cast<long unsigned int>(tables.size())+1;
+            SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
+            for (DOFCoefs dofCoefs : lmpc->dofCoefs){
+                for (int i =0; i< numberOfDofBySystusOption[systusOption]; i++){
+                    aTable.add(dofCoefs[i]);
+                }
+            }
+            tables.push_back(aTable);
+            tableByElementSet[elementSet->getId()]=tId;
+            break;
+        }
+
+        default: {
+            handleWritingWarning(to_str(*elementSet) +" not supported", "Table");
+        }
         }
     }
 
@@ -1697,12 +1834,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
     // and we don't know what the others will need.
     UNUSEDV(idSubcase);
 
-    int nbDOFS;
-    if (systusOption==3){
-        nbDOFS=6;
-    }else{
-        nbDOFS=3;
-    }
+    int nbDOFS=numberOfDofBySystusOption[systusOption];
     dampingMatrices.nbDOFS=nbDOFS;
     massMatrices.nbDOFS=nbDOFS;
     stiffnessMatrices.nbDOFS=nbDOFS;
@@ -1956,11 +2088,11 @@ void SystusWriter::writeAsc(const SystusModel &systusModel, const vega::Configur
 
     writeNodes(systusModel, out);
 
-    writeElements(systusModel, out);
+    writeElements(systusModel, idSubcase, out);
 
     writeGroups(systusModel, out);
 
-    writeMaterials(systusModel, configuration, out);
+    writeMaterials(systusModel, configuration, idSubcase, out);
 
     out << "BEGIN_MEDIA 0" << endl;
     out << "END_MEDIA" << endl;
@@ -2196,7 +2328,7 @@ void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel,
 
 
 
-void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
+void SystusWriter::writeElements(const SystusModel& systusModel, const int idSubcase, ostream& out) {
     shared_ptr<Mesh> mesh = systusModel.model->mesh;
     out << "BEGIN_ELEMENTS " << mesh->countCells() << endl;
     for (const auto& elementSet : systusModel.model->elementSets) {
@@ -2270,6 +2402,20 @@ void SystusWriter::writeElements(const SystusModel& systusModel, ostream& out) {
             typecell = 9;
             break;
         }
+
+        case ElementSet::LMPC:{
+            // If the LMPC is not relevant to the current subcase, we skip it
+            shared_ptr<Lmpc> lmpc = static_pointer_cast<Lmpc>(elementSet);
+            vector<int> analysisOfSubcase =  systusSubcases[idSubcase];
+            if (std::find(analysisOfSubcase.begin(), analysisOfSubcase.end(), lmpc->analysisId) == analysisOfSubcase.end()){
+                continue;
+            }
+            // Else, it'a a 19XX element
+            dim = 1;
+            typecell = 9;
+            break;
+        }
+
         default: {
             //TODO : throw WriterException("ElementSet type not supported");
             cout << "Warning in Elements: " << *elementSet << " not supported" << endl;
@@ -2371,7 +2517,8 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
 
 
 void SystusWriter::writeMaterials(const SystusModel& systusModel,
-        const vega::ConfigurationParameters &configuration, ostream& out) {
+        const vega::ConfigurationParameters &configuration,
+        const int idSubcase, ostream& out) {
 
     ostringstream ogmat;
     ogmat.precision(DBL_DIG);
@@ -2380,7 +2527,6 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 
     for (const auto& elementSet : systusModel.model->elementSets) {
         const auto& material = elementSet->material;
-        //cout << "Writing materials for "<<*elementSet<<endl;
         if (elementSet->cellGroup != nullptr){
 
             ostringstream omat;
@@ -2459,7 +2605,8 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                     }
                     // Default : we only print the default fields: E, NU, etc.
                     default:
-                        cout << "Warning in Elastic Materials: " << *elementSet << " not supported." << endl;
+                        handleWritingWarning(to_str(*elementSet) +" not supported", "Elastic Material");
+
                     }
                 }else{
 
@@ -2496,14 +2643,38 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                             break;
                         }
 
+                        case ElementSet::LMPC:{
+                            // If the LMPC is not relevant to the current subcase, we skip it
+                            const shared_ptr<Lmpc> lmpc = static_pointer_cast<Lmpc>(elementSet);
+                            vector<int> analysisOfSubcase =  systusSubcases[idSubcase];
+                            if (std::find(analysisOfSubcase.begin(), analysisOfSubcase.end(), lmpc->analysisId) == analysisOfSubcase.end()){
+                                continue;
+                            }
+                            auto it = tableByElementSet.find(elementSet->getId());
+                            if (it == tableByElementSet.end()){
+                                handleWritingWarning(to_str(*elementSet) + " has no table.", "Rigid Material");
+                                break;
+                            }
+                            writeMaterialField(SMF::TABLE, int(it->second), nbElementsMaterial, omat);
+                            if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
+                                writeMaterialField(SMF::SHAPE, 19, nbElementsMaterial, omat);
+                                writeMaterialField(SMF::E, rigidNature.getLagrangian(), nbElementsMaterial, omat);
+                            }else{
+                                writeMaterialField(SMF::SHAPE, 9, nbElementsMaterial, omat);
+                                writeMaterialField(SMF::E, rigidNature.getRigidity(), nbElementsMaterial, omat);
+                            }
+                            writeMaterialField(SMF::LEVEL, 0, nbElementsMaterial, omat);
+                            break;
+                        }
+
                         // Default: unrecognized material are written with only an ID
                         default:{
-                            cout << "Warning in Rigid Materials: " << *elementSet << " not supported." << endl;
+                            handleWritingWarning(to_str(*elementSet) +" not supported", "Rigid Material");
                         }
                         }
                     }else{
                         isValid=false;
-                        cout << "Warning in Materials: Nature of" << *elementSet << " is not recognized." << endl;
+                        handleWritingWarning("Unrecognized nature of "+to_str(*elementSet), "Material");
                     }
                 }
             }else{
@@ -2523,12 +2694,12 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                     writeMaterialField(SMF::KY, sS->findStiffness(DOF::DY, DOF::DY), nbElementsMaterial, omat);
                     writeMaterialField(SMF::KZ, sS->findStiffness(DOF::DZ, DOF::DZ), nbElementsMaterial, omat);
 
-                    // A few warning
+                    // A few warnings
                     if (sS->hasMass()){
-                        cout << "Warning in Materials: mass in " << *elementSet << " is not supported and will be dismissed." << endl;
+                        handleWritingWarning("Mass in "+to_str(*elementSet)+" is not supported and will be dismissed.", "Material");
                     }
                     if (sS->hasDamping()){
-                        cout << "Warning in Materials: damping in " << *elementSet << " is not supported and will be dismissed." << endl;
+                        handleWritingWarning("Damping in "+to_str(*elementSet)+" is not supported and will be dismissed.", "Material");
                     }
 
                     break;

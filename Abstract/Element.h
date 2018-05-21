@@ -63,6 +63,7 @@ public:
         RIGIDSET,
         RBAR,
         RBE3,
+        LMPC,
         SCALAR_SPRING,
         UNKNOWN,
     };
@@ -457,6 +458,19 @@ public:
     const DOFS sdofs;
     std::shared_ptr<ElementSet> clone() const override;
     virtual ~Rbe3() {}
+};
+
+/**
+ * A Lmpc elemenset regroup various cells subject to the same LMPC rigid constraints
+ **/
+class Lmpc: public RigidSet {
+public:
+    Lmpc(Model&, int analysisId, int original_id = NO_ORIGINAL_ID);
+    const int analysisId;
+    std::shared_ptr<ElementSet> clone() const override;
+    std::vector<DOFCoefs> dofCoefs;
+    void assignDofCoefs(const std::vector<DOFCoefs>);
+    virtual ~Lmpc() {}
 };
 
 

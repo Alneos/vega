@@ -76,6 +76,7 @@ public:
             bool removeRedundantSpcs = true,
             bool splitDirectMatrices = false, int sizeDirectMatrices = 999,
             bool makeCellsFromDirectMatrices = false,
+            bool makeCellsFromLMPC = false,
             bool makeCellsFromRBE = false, bool splitElementsByDOFS=false
             );
     virtual ~ModelConfiguration() {
@@ -114,6 +115,12 @@ public:
      *  needed cells.
      */
     const bool makeCellsFromDirectMatrices;
+    /**
+     *  Build the corresponding cells to the LMPC constraints with a group, and a Rigid material.
+     *  This bool commands the use of Model::makeCellsFromLMPC() in Model::finish(), which creates the
+     *  needed cells.
+     */
+    const bool makeCellsFromLMPC;
     /**
      *  Build the corresponding cells of RigidSets (RBAR, RBE3) with a group, and a Rigid material.
      *  This bool commands the use of Model::makeCellsFromRBE() in Model::finish(), which creates the

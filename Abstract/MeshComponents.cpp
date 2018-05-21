@@ -144,6 +144,98 @@ const CellType* CellType::findByCode(CellType::Code code) {
 	return CellType::typeByCode[code];
 }
 
+const CellType CellType::polyType(unsigned int nbNodes) {
+    //TODO: Add a version with "variable sized" cells.
+    switch (nbNodes){
+    case 1:{
+        return CellType::POINT1;
+        break;
+    }
+    case 2:{
+        return CellType::SEG2;
+        break;
+    }
+    case 3:{
+        return CellType::POLY3;
+        break;
+    }
+    case 4:{
+        return CellType::POLY4;
+        break;
+    }
+    case 5:{
+        return CellType::POLY5;
+        break;
+    }
+    case 6:{
+        return CellType::POLY6;
+        break;
+    }
+    case 7:{
+        return CellType::POLY7;
+        break;
+    }
+    case 8:{
+        return CellType::POLY8;
+        break;
+    }
+    case 9:{
+        return CellType::POLY9;
+        break;
+    }
+    case 10:{
+        return CellType::POLY10;
+        break;
+    }
+    case 11:{
+        return CellType::POLY11;
+        break;
+    }
+    case 12:{
+        return CellType::POLY12;
+        break;
+    }
+    case 13:{
+        return CellType::POLY13;
+        break;
+    }
+    case 14:{
+        return CellType::POLY14;
+        break;
+    }
+    case 15:{
+        return CellType::POLY15;
+        break;
+    }
+    case 16:{
+        return CellType::POLY16;
+        break;
+    }
+    case 17:{
+        return CellType::POLY17;
+        break;
+    }
+    case 18:{
+        return CellType::POLY18;
+        break;
+    }
+    case 19:{
+        return CellType::POLY19;
+        break;
+    }
+    case 20:{
+        return CellType::POLY20;
+        break;
+    }
+    default:{
+        //TODO: Don't work for now, because elements can't be of a variable size, for now :/
+        //cellType = CellType::POLYHED;
+        throw logic_error("Element size exceed the maximum size : 20.");
+    }
+    }
+    return CellType::POLY20;
+}
+
 Group::Group(Mesh* mesh, const string& name, Type type, int _id, string comment) :
 		Identifiable(_id), mesh(mesh), name(name), type(type), comment(comment) {
 }

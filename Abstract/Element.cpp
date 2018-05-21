@@ -51,6 +51,7 @@ const map<ElementSet::Type, string> ElementSet::stringByType = {
         { DAMPING_MATRIX, "DAMPING_MATRIX" },
         { RBAR, "RBAR"},
         { RBE3, "RBE3"},
+        { LMPC, "LMPC"},
         { SCALAR_SPRING, "SCALAR_SPRING"},
         { UNKNOWN, "UNKNOWN" },
 };
@@ -750,6 +751,18 @@ shared_ptr<ElementSet> Rbe3::clone() const {
     return shared_ptr<ElementSet>(new Rbe3(*this));
 }
 
+Lmpc::Lmpc(Model& model, int analysisId, int original_id) :
+                RigidSet(model, LMPC, Globals::UNAVAILABLE_INT, original_id),
+analysisId(analysisId){
+}
+
+shared_ptr<ElementSet> Lmpc::clone() const {
+    return shared_ptr<ElementSet>(new Lmpc(*this));
+}
+
+void Lmpc::assignDofCoefs(std::vector<DOFCoefs> dofCoefs) {
+    this->dofCoefs= dofCoefs;
+}
 
 // ScalarSpring Methods
 ScalarSpring::ScalarSpring(Model& model, int original_id, double stiffness, double damping) :

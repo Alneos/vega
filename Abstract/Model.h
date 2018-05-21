@@ -76,6 +76,11 @@ private:
      */
     void makeCellsFromDirectMatrices();
     /**
+     * Build the corresponding ElmentSets, Cellgroup and cells corresponding to LMPC constraints.
+     * In some solver (ex SYSTUS), these constraints are enforced via rigid elements.
+     */
+    void makeCellsFromLMPC();
+    /**
      * Build the corresponding cells of RigidSets (RBAR, RBE3) with a group, and a Rigid material.
      */
     void makeCellsFromRBE();
