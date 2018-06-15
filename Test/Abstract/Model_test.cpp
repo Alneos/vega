@@ -286,8 +286,8 @@ BOOST_AUTO_TEST_CASE(test_Analysis) {
 	BOOST_CHECK_EQUAL(1, model.loadSets.size());
 	BOOST_CHECK_EQUAL((size_t ) 2, analysis.getLoadSets().size());
 	for (shared_ptr<LoadSet> ls : analysis.getLoadSets()) {
-		if (ls)
-			cout << "!!!!!!!!" << *ls << endl;
+		if (ls != nullptr)
+			cout << "Found loadset:" << *ls << endl;
 	}
 	BOOST_CHECK(!analysis.validate());
 	BOOST_CHECK(!model.validate());

@@ -1574,11 +1574,11 @@ void Model::makeCellsFromDirectMatrices(){
 
         int cellPosition = mesh->addCell(Cell::AUTO_ID, cellType, vNodeIds, true);
         matrixGroup->addCell(mesh->findCell(cellPosition).id);
-        
+
         if (configuration.logLevel >= LogLevel::DEBUG){
            cout << "Built cells, in cellgroup "<<matrixGroup->getName()<<", for Matrix Elements in "<< elementSetM->name<<"."<<endl;
         }
-        
+
     }
 }
 
@@ -1624,7 +1624,7 @@ void Model::makeCellsFromLMPC(){
                     this->add(elementsetLMPC);
                     groupBySetOfCoefs[sortedCoefs]= group;
                 }
-                
+
                 // Creating a cell and adding it to the CellGroup
                 vector<int> nodes;
                 for (int position : sortedNodesPosition){
@@ -1659,6 +1659,7 @@ void Model::makeCellsFromRBE(){
         // Translation of RBAR and RBE2 (RBE2 are viewed as an assembly of RBAR)
         // See Systus Reference Analysis Manual: RIGID BODY Element (page 498)
         set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::RIGID);
+        vector<shared_ptr<Constraint>> toBeRemoved;
         for (const auto& constraint : constraints) {
             const std::shared_ptr<RigidConstraint> rbe2 = std::static_pointer_cast<RigidConstraint>(constraint);
 
@@ -1683,12 +1684,11 @@ void Model::makeCellsFromRBE(){
             }
 
             // Removing the constraint from the model.
-            remove(constraint->getReference(), idConstraintSet, originalIdConstraintSet, natConstraintSet);
+            toBeRemoved.push_back(constraint);
             if (configuration.logLevel >= LogLevel::DEBUG){
                 cout << "Building cells in cellgroup "<<group->getName()<<" from "<< *rbe2<<"."<<endl;
             }
         }
-
 
         constraints = constraintSet->getConstraintsByType(Constraint::QUASI_RIGID);
         for (const auto& constraint : constraints) {
@@ -1722,7 +1722,7 @@ void Model::makeCellsFromRBE(){
             group->addCell(mesh->findCell(cellPosition).id);
 
             // Removing the constraint from the model.
-            remove(constraint->getReference(), idConstraintSet, originalIdConstraintSet, natConstraintSet);
+            toBeRemoved.push_back(constraint);
             if (configuration.logLevel >= LogLevel::DEBUG){
                 cout << "Building cells in cellgroup "<<group->getName()<<" from "<< *rbar<<"."<<endl;
             }
@@ -1785,6 +1785,10 @@ void Model::makeCellsFromRBE(){
             }
 
             // Removing the constraint from the model.
+            toBeRemoved.push_back(constraint);
+        }
+
+        for(auto& constraint: toBeRemoved) {
             remove(constraint->getReference(), idConstraintSet, originalIdConstraintSet, natConstraintSet);
         }
     }
@@ -1817,7 +1821,7 @@ void Model::splitElementsByDOFS(){
         case ElementSet::LMPC:{
             continue;
         }
-        
+
         case ElementSet::SCALAR_SPRING:{
             shared_ptr<ScalarSpring> ss = static_pointer_cast<ScalarSpring>(elementSet);
             if (ss->getNbDOFSSpring()>1){
@@ -1958,7 +1962,7 @@ bool Model::validate() {
     int sizeLos = loadSets.size();      string sLos = ( (sizeLos > 1) ? "s are " : " is ");
     int sizeCon = constraints.size();   string sCon = ( (sizeCon > 1) ? "s are " : " is ");
     int sizeCos = constraintSets.size();string sCos = ( (sizeCos > 1) ? "s are " : " is ");
-    int sizeAna = analyses.size();      string sAna = ( (sizeAna > 1) ? "s are " : " is "); 
+    int sizeAna = analyses.size();      string sAna = ( (sizeAna > 1) ? "es are " : "is is ");
 
     bool validMat = materials.validate();
     bool validEle = elementSets.validate();
@@ -1975,7 +1979,7 @@ bool Model::validate() {
        cout << "The " << sizeLos << " loadSet"      << sLos << (validLos ? "" : "NOT ") << "valid." << endl;
        cout << "The " << sizeCon << " constraint"   << sCon << (validCon ? "" : "NOT ") << "valid." << endl;
        cout << "The " << sizeCos << " constraintSet"<< sCos << (validCos ? "" : "NOT ") << "valid." << endl;
-       cout << "The " << sizeAna << " analyze"      << sAna << (validAna ? "" : "NOT ") << "valid." << endl;
+       cout << "The " << sizeAna << " analys"      << sAna << (validAna ? "" : "NOT ") << "valid." << endl;
     }
     bool allValid = meshValid && validMat && validEle && validLoa && validLos && validCon
             && validCos && validAna;

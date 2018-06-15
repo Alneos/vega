@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -209,13 +209,16 @@ bool Analysis::hasSPC() const{
 }
 
 bool Analysis::validate() const {
-    vector<shared_ptr<ConstraintSet>> constraintSets = getConstraintSets();
-    if (find(constraintSets.begin(), constraintSets.end(), shared_ptr<ConstraintSet>())
-            != constraintSets.end())
-        return false;
-    vector<shared_ptr<LoadSet>> loadSets = getLoadSets();
-    if (find(loadSets.begin(), loadSets.end(), shared_ptr<LoadSet>()) != loadSets.end())
-        return false;
+    for (auto &constraintSetReference : this->constraintSet_references) {
+        if (model.find(*constraintSetReference) == nullptr) {
+            return false;
+        }
+    }
+    for (auto &loadSetReference : this->loadSet_references) {
+        if (model.find(*loadSetReference) == nullptr) {
+            return false;
+        }
+    }
     return true;
 }
 

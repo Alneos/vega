@@ -172,7 +172,8 @@ private:
                             if (!t->validate()) {
                                 isValid = false;
                                 cerr << *t << " not valid" << endl;
-                                this->erase(Reference<T>(*t));
+                                // LD: 15/06/2018 commenting NEXT 1 line : valgrind complains, also validate should be idempotent, I think
+                                //this->erase(Reference<T>(*t));
                             }
                         }
                         return isValid;
@@ -262,7 +263,7 @@ private:
         template<typename T>
         void remove(const Reference<T>);
 
-        /** 
+        /**
          * Remove a constraint from a known reference set when we already know some informations
          */
         void remove(const Reference<Constraint> , const int, const int, const ConstraintSet::Type);
