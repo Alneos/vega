@@ -322,16 +322,21 @@ template<>
 void Model::remove(const Reference<Constraint> constraintReference) {
     for (auto it : constraintReferences_by_constraintSet_ids) {
         for (auto it2 : it.second) {
-            if (*it2 == constraintReference)
+            if (*it2 == constraintReference) {
                 constraintReferences_by_constraintSet_ids[it.first].erase(it2);
+                break; // iterator is invalid now
+            }
         }
     }
     for (auto it : constraintReferences_by_constraintSet_original_ids_by_constraintSet_type) {
         for (auto it2 : it.second) {
             for (auto it3 : it2.second) {
-                if (*it3 == constraintReference)
+                if (*it3 == constraintReference) {
                     constraintReferences_by_constraintSet_original_ids_by_constraintSet_type[it.first][it2.first].erase(
                             it3);
+                    break; // iterator is invalid now
+                }
+
             }
         }
     }
@@ -344,6 +349,7 @@ void Model::remove(const Reference<Constraint> refC, const int idCS, const int o
     for (auto it2 : cR) {
         if (*it2 == refC){
             constraintReferences_by_constraintSet_ids[idCS].erase(it2);
+            break; // iterator is invalid now
         }
     }
     if (originalIdCS!= Identifiable<ConstraintSet>::NO_ORIGINAL_ID){
@@ -351,6 +357,7 @@ void Model::remove(const Reference<Constraint> refC, const int idCS, const int o
         for (auto it3 : cR2) {
             if (*it3 == refC){
                 constraintReferences_by_constraintSet_original_ids_by_constraintSet_type[csT][originalIdCS].erase(it3);
+                break; // iterator is invalid now
             }
         }
     }
@@ -361,16 +368,20 @@ template<>
 void Model::remove(const Reference<Loading> loadingReference) {
     for (auto it : loadingReferences_by_loadSet_ids) {
         for (auto it2 : it.second) {
-            if (*it2 == loadingReference)
+            if (*it2 == loadingReference) {
                 loadingReferences_by_loadSet_ids[it.first].erase(it2);
+                break; // iterator is invalid now
+            }
         }
     }
     for (auto it : loadingReferences_by_loadSet_original_ids_by_loadSet_type) {
         for (auto it2 : it.second) {
             for (auto it3 : it2.second) {
-                if (*it3 == loadingReference)
+                if (*it3 == loadingReference) {
                     loadingReferences_by_loadSet_original_ids_by_loadSet_type[it.first][it2.first].erase(
                             it3);
+                            break; // iterator is invalid now
+                }
             }
         }
     }
