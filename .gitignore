@@ -37,3 +37,9 @@ Release
 # Cmake generated files
 build
 Testing
+
+# Valgrind generated files
+ValgrindOut.xml
+
+# Code::Blocks generated files
+vegapp.layout

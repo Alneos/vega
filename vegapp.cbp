@@ -1,0 +1,1841 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="vegapp" />
+		<Option makefile_is_custom="1" />
+		<Option execution_dir="build/" />
+		<Option compiler="gcc" />
+		<Option virtualFolders="CMake Files/;CMake Files/cmakemodules/;CMake Files/Aster/;CMake Files/Nastran/;CMake Files/Systus/;CMake Files/Abstract/;CMake Files/ResultReaders/;CMake Files/Commandline/;CMake Files/Test/;CMake Files/Test/Abstract/;CMake Files/Test/Aster/;CMake Files/Test/Commandline/;CMake Files/Test/Nastran/;CMake Files/Test/ResultReaders/;CMake Files/Test/Systus/;CMake Files/Test/NightlyTests/;" />
+		<Build>
+			<Target title="all">
+				<Option type="4" />
+				<Option compiler="gcc" />
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 all' />
+					<CompileFile command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="list_install_components">
+				<Option type="4" />
+				<Option compiler="gcc" />
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 list_install_components' />
+					<CompileFile command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="install">
+				<Option type="4" />
+				<Option compiler="gcc" />
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 install' />
+					<CompileFile command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option type="4" />
+				<Option compiler="gcc" />
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 rebuild_cache' />
+					<CompileFile command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option type="4" />
+				<Option compiler="gcc" />
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 edit_cache' />
+					<CompileFile command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="install/strip">
+				<Option type="4" />
+				<Option compiler="gcc" />
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 install/strip' />
+					<CompileFile command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="doc">
+				<Option type="4" />
+				<Option compiler="gcc" />
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 doc' />
+					<CompileFile command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Nightly">
+				<Option type="4" />
+				<Option compiler="gcc" />
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 Nightly' />
+					<CompileFile command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="install/local">
+				<Option type="4" />
+				<Option compiler="gcc" />
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 install/local' />
+					<CompileFile command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Continuous">
+				<Option type="4" />
+				<Option compiler="gcc" />
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 Continuous' />
+					<CompileFile command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="test">
+				<Option type="4" />
+				<Option compiler="gcc" />
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 test' />
+					<CompileFile command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Experimental">
+				<Option type="4" />
+				<Option compiler="gcc" />
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 Experimental' />
+					<CompileFile command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="aster">
+				<Option output="lib/libaster.a" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="" />
+				<Option object_output="./" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Aster/Makefile&quot;  VERBOSE=1 aster' />
+					<CompileFile command='/usr/bin/make -f &quot;Aster/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Aster/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Aster/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="aster/fast">
+				<Option output="lib/libaster.a" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="" />
+				<Option object_output="./" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Aster/Makefile&quot;  VERBOSE=1 aster/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;Aster/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Aster/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Aster/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="nastran">
+				<Option output="lib/libnastran.a" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="" />
+				<Option object_output="./" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Nastran/Makefile&quot;  VERBOSE=1 nastran' />
+					<CompileFile command='/usr/bin/make -f &quot;Nastran/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Nastran/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Nastran/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="nastran/fast">
+				<Option output="lib/libnastran.a" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="" />
+				<Option object_output="./" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Nastran/Makefile&quot;  VERBOSE=1 nastran/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;Nastran/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Nastran/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Nastran/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="systus">
+				<Option output="lib/libsystus.a" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="" />
+				<Option object_output="./" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Systus/Makefile&quot;  VERBOSE=1 systus' />
+					<CompileFile command='/usr/bin/make -f &quot;Systus/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Systus/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Systus/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="systus/fast">
+				<Option output="lib/libsystus.a" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="" />
+				<Option object_output="./" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Systus/Makefile&quot;  VERBOSE=1 systus/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;Systus/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Systus/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Systus/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="abstract">
+				<Option output="lib/libabstract.a" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="" />
+				<Option object_output="./" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Abstract/Makefile&quot;  VERBOSE=1 abstract' />
+					<CompileFile command='/usr/bin/make -f &quot;Abstract/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="abstract/fast">
+				<Option output="lib/libabstract.a" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="" />
+				<Option object_output="./" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Abstract/Makefile&quot;  VERBOSE=1 abstract/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;Abstract/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="resultReaders">
+				<Option output="lib/libresultReaders.a" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="" />
+				<Option object_output="./" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;ResultReaders/Makefile&quot;  VERBOSE=1 resultReaders' />
+					<CompileFile command='/usr/bin/make -f &quot;ResultReaders/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;ResultReaders/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;ResultReaders/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="resultReaders/fast">
+				<Option output="lib/libresultReaders.a" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="" />
+				<Option object_output="./" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;ResultReaders/Makefile&quot;  VERBOSE=1 resultReaders/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;ResultReaders/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;ResultReaders/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;ResultReaders/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="commandline">
+				<Option output="lib/libcommandline.a" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="" />
+				<Option object_output="./" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Commandline/Makefile&quot;  VERBOSE=1 commandline' />
+					<CompileFile command='/usr/bin/make -f &quot;Commandline/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="commandline/fast">
+				<Option output="lib/libcommandline.a" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="" />
+				<Option object_output="./" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Commandline/Makefile&quot;  VERBOSE=1 commandline/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;Commandline/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="vegapp">
+				<Option output="build/bin/vegapp" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Commandline/Makefile&quot;  VERBOSE=1 vegapp' />
+					<CompileFile command='/usr/bin/make -f &quot;Commandline/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="vegapp/fast">
+				<Option output="build/bin/vegapp" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Commandline/Makefile&quot;  VERBOSE=1 vegapp/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;Commandline/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Mesh_test">
+				<Option output="build/bin/Mesh_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 Mesh_test' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Mesh_test/fast">
+				<Option output="build/bin/Mesh_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 Mesh_test/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Dof_test">
+				<Option output="build/bin/Dof_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 Dof_test' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Dof_test/fast">
+				<Option output="build/bin/Dof_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 Dof_test/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="CoordinateSystem_test">
+				<Option output="build/bin/CoordinateSystem_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 CoordinateSystem_test' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="CoordinateSystem_test/fast">
+				<Option output="build/bin/CoordinateSystem_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 CoordinateSystem_test/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Utility_test">
+				<Option output="build/bin/Utility_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 Utility_test' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Utility_test/fast">
+				<Option output="build/bin/Utility_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 Utility_test/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Model_test">
+				<Option output="build/bin/Model_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 Model_test' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Model_test/fast">
+				<Option output="build/bin/Model_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 Model_test/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Element_test">
+				<Option output="build/bin/Element_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 Element_test' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Element_test/fast">
+				<Option output="build/bin/Element_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 Element_test/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Abstract/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Nastran2Systus_test">
+				<Option output="build/bin/Nastran2Systus_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 Nastran2Systus_test' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Nastran2Systus_test/fast">
+				<Option output="build/bin/Nastran2Systus_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 Nastran2Systus_test/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Nastran2Aster_test">
+				<Option output="build/bin/Nastran2Aster_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 Nastran2Aster_test' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Nastran2Aster_test/fast">
+				<Option output="build/bin/Nastran2Aster_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 Nastran2Aster_test/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="command_line_test_utils">
+				<Option output="lib/libcommand_line_test_utils.a" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="" />
+				<Option object_output="./" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 command_line_test_utils' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="command_line_test_utils/fast">
+				<Option output="lib/libcommand_line_test_utils.a" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="" />
+				<Option object_output="./" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 command_line_test_utils/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Nastran2Nastran_test">
+				<Option output="build/bin/Nastran2Nastran_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 Nastran2Nastran_test' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Nastran2Nastran_test/fast">
+				<Option output="build/bin/Nastran2Nastran_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 Nastran2Nastran_test/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="nastran_tests">
+				<Option output="build/bin/nastran_tests" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 nastran_tests' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="nastran_tests/fast">
+				<Option output="build/bin/nastran_tests" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 nastran_tests/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="nastran_tokenizer_tests">
+				<Option output="build/bin/nastran_tokenizer_tests" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 nastran_tokenizer_tests' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="nastran_tokenizer_tests/fast">
+				<Option output="build/bin/nastran_tokenizer_tests" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 nastran_tokenizer_tests/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="CSVResultReaderTest">
+				<Option output="build/bin/CSVResultReaderTest" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 CSVResultReaderTest' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="CSVResultReaderTest/fast">
+				<Option output="build/bin/CSVResultReaderTest" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 CSVResultReaderTest/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="nastran_f06_tests">
+				<Option output="build/bin/nastran_f06_tests" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 nastran_f06_tests' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="nastran_f06_tests/fast">
+				<Option output="build/bin/nastran_f06_tests" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="/local/dev/vegairt/build" />
+					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 nastran_f06_tests/fast' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="Abstract/Analysis.cpp">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Analysis.h">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/BoundaryCondition.cpp">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/BoundaryCondition.h">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/CMakeLists.txt">
+			<Option virtualFolder="CMake Files/Abstract/" />
+		</Unit>
+		<Unit filename="Abstract/ConfigurationParameters.cpp">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/ConfigurationParameters.h">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Constraint.cpp">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Constraint.h">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/CoordinateSystem.cpp">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/CoordinateSystem.h">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Dof.cpp">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Dof.h">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Element.cpp">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Element.h">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Loading.cpp">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Loading.h">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Material.cpp">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Material.h">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Mesh.cpp">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Mesh.h">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/MeshComponents.cpp">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/MeshComponents.h">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Model.cpp">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Model.h">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Objective.cpp">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Objective.h">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/SolverInterfaces.cpp">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/SolverInterfaces.h">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Utility.cpp">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Utility.h">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Value.cpp">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/Value.h">
+			<Option target="abstract" />
+		</Unit>
+		<Unit filename="Abstract/build_properties.h.in">
+			<Option virtualFolder="CMake Files/Abstract/" />
+		</Unit>
+		<Unit filename="Aster/AsterFacade.cpp">
+			<Option target="aster" />
+		</Unit>
+		<Unit filename="Aster/AsterFacade.h">
+			<Option target="aster" />
+		</Unit>
+		<Unit filename="Aster/AsterModel.cpp">
+			<Option target="aster" />
+		</Unit>
+		<Unit filename="Aster/AsterModel.h">
+			<Option target="aster" />
+		</Unit>
+		<Unit filename="Aster/AsterRunner.cpp">
+			<Option target="aster" />
+		</Unit>
+		<Unit filename="Aster/AsterRunner.h">
+			<Option target="aster" />
+		</Unit>
+		<Unit filename="Aster/AsterWriter.cpp">
+			<Option target="aster" />
+		</Unit>
+		<Unit filename="Aster/AsterWriter.h">
+			<Option target="aster" />
+		</Unit>
+		<Unit filename="Aster/CMakeLists.txt">
+			<Option virtualFolder="CMake Files/Aster/" />
+		</Unit>
+		<Unit filename="CMakeLists.txt">
+			<Option virtualFolder="CMake Files/" />
+		</Unit>
+		<Unit filename="Commandline/CMakeLists.txt">
+			<Option virtualFolder="CMake Files/Commandline/" />
+		</Unit>
+		<Unit filename="Commandline/VegaCommandLine.cpp">
+			<Option target="commandline" />
+		</Unit>
+		<Unit filename="Commandline/VegaCommandLine.h">
+			<Option target="commandline" />
+		</Unit>
+		<Unit filename="Commandline/vegamain.cpp">
+			<Option target="vegapp" />
+		</Unit>
+		<Unit filename="Doxyfile.in">
+			<Option virtualFolder="CMake Files/" />
+		</Unit>
+		<Unit filename="Nastran/CMakeLists.txt">
+			<Option virtualFolder="CMake Files/Nastran/" />
+		</Unit>
+		<Unit filename="Nastran/NastranFacade.cpp">
+			<Option target="nastran" />
+		</Unit>
+		<Unit filename="Nastran/NastranFacade.h">
+			<Option target="nastran" />
+		</Unit>
+		<Unit filename="Nastran/NastranParser.cpp">
+			<Option target="nastran" />
+		</Unit>
+		<Unit filename="Nastran/NastranParser.h">
+			<Option target="nastran" />
+		</Unit>
+		<Unit filename="Nastran/NastranParser_geometry.cpp">
+			<Option target="nastran" />
+		</Unit>
+		<Unit filename="Nastran/NastranParser_param.cpp">
+			<Option target="nastran" />
+		</Unit>
+		<Unit filename="Nastran/NastranRunner.cpp">
+			<Option target="nastran" />
+		</Unit>
+		<Unit filename="Nastran/NastranRunner.h">
+			<Option target="nastran" />
+		</Unit>
+		<Unit filename="Nastran/NastranTokenizer.cpp">
+			<Option target="nastran" />
+		</Unit>
+		<Unit filename="Nastran/NastranTokenizer.h">
+			<Option target="nastran" />
+		</Unit>
+		<Unit filename="Nastran/NastranWriter.cpp">
+			<Option target="nastran" />
+		</Unit>
+		<Unit filename="Nastran/NastranWriter.h">
+			<Option target="nastran" />
+		</Unit>
+		<Unit filename="ResultReaders/CMakeLists.txt">
+			<Option virtualFolder="CMake Files/ResultReaders/" />
+		</Unit>
+		<Unit filename="ResultReaders/CSVResultReader.cpp">
+			<Option target="resultReaders" />
+		</Unit>
+		<Unit filename="ResultReaders/CSVResultReader.h">
+			<Option target="resultReaders" />
+		</Unit>
+		<Unit filename="ResultReaders/F06Parser.cpp">
+			<Option target="resultReaders" />
+		</Unit>
+		<Unit filename="ResultReaders/F06Parser.h">
+			<Option target="resultReaders" />
+		</Unit>
+		<Unit filename="ResultReaders/ResultReadersFacade.cpp">
+			<Option target="resultReaders" />
+		</Unit>
+		<Unit filename="ResultReaders/ResultReadersFacade.h">
+			<Option target="resultReaders" />
+		</Unit>
+		<Unit filename="Systus/CMakeLists.txt">
+			<Option virtualFolder="CMake Files/Systus/" />
+		</Unit>
+		<Unit filename="Systus/SystusAsc.cpp">
+			<Option target="systus" />
+		</Unit>
+		<Unit filename="Systus/SystusAsc.h">
+			<Option target="systus" />
+		</Unit>
+		<Unit filename="Systus/SystusModel.cpp">
+			<Option target="systus" />
+		</Unit>
+		<Unit filename="Systus/SystusModel.h">
+			<Option target="systus" />
+		</Unit>
+		<Unit filename="Systus/SystusRunner.cpp">
+			<Option target="systus" />
+		</Unit>
+		<Unit filename="Systus/SystusRunner.h">
+			<Option target="systus" />
+		</Unit>
+		<Unit filename="Systus/SystusWriter.cpp">
+			<Option target="systus" />
+		</Unit>
+		<Unit filename="Systus/SystusWriter.h">
+			<Option target="systus" />
+		</Unit>
+		<Unit filename="Test/Abstract/CMakeLists.txt">
+			<Option virtualFolder="CMake Files/Test/Abstract/" />
+		</Unit>
+		<Unit filename="Test/Abstract/CoordinateSystem_test.cpp">
+			<Option target="CoordinateSystem_test" />
+		</Unit>
+		<Unit filename="Test/Abstract/Dof_test.cpp">
+			<Option target="Dof_test" />
+		</Unit>
+		<Unit filename="Test/Abstract/Element_test.cpp">
+			<Option target="Element_test" />
+		</Unit>
+		<Unit filename="Test/Abstract/Mesh_test.cpp">
+			<Option target="Mesh_test" />
+		</Unit>
+		<Unit filename="Test/Abstract/Model_test.cpp">
+			<Option target="Model_test" />
+		</Unit>
+		<Unit filename="Test/Abstract/Utility_test.cpp">
+			<Option target="Utility_test" />
+		</Unit>
+		<Unit filename="Test/Aster/CMakeLists.txt">
+			<Option virtualFolder="CMake Files/Test/Aster/" />
+		</Unit>
+		<Unit filename="Test/CMakeLists.txt">
+			<Option virtualFolder="CMake Files/Test/" />
+		</Unit>
+		<Unit filename="Test/Commandline/CMakeLists.txt">
+			<Option virtualFolder="CMake Files/Test/Commandline/" />
+		</Unit>
+		<Unit filename="Test/Commandline/CommandLineUtils.cpp">
+			<Option target="command_line_test_utils" />
+		</Unit>
+		<Unit filename="Test/Commandline/CommandLineUtils.h">
+			<Option target="command_line_test_utils" />
+		</Unit>
+		<Unit filename="Test/Commandline/Nastran2Aster_test.cpp">
+			<Option target="Nastran2Aster_test" />
+		</Unit>
+		<Unit filename="Test/Commandline/Nastran2Nastran_test.cpp">
+			<Option target="Nastran2Nastran_test" />
+		</Unit>
+		<Unit filename="Test/Commandline/Nastran2Systus_test.cpp">
+			<Option target="Nastran2Systus_test" />
+		</Unit>
+		<Unit filename="Test/Nastran/CMakeLists.txt">
+			<Option virtualFolder="CMake Files/Test/Nastran/" />
+		</Unit>
+		<Unit filename="Test/Nastran/NastranParser_test.cpp">
+			<Option target="nastran_tests" />
+		</Unit>
+		<Unit filename="Test/Nastran/NastranTokenizer_test.cpp">
+			<Option target="nastran_tokenizer_tests" />
+		</Unit>
+		<Unit filename="Test/NightlyTests/CMakeLists.txt">
+			<Option virtualFolder="CMake Files/Test/NightlyTests/" />
+		</Unit>
+		<Unit filename="Test/ResultReaders/CMakeLists.txt">
+			<Option virtualFolder="CMake Files/Test/ResultReaders/" />
+		</Unit>
+		<Unit filename="Test/ResultReaders/CSVResultReaderTest.cpp">
+			<Option target="CSVResultReaderTest" />
+		</Unit>
+		<Unit filename="Test/ResultReaders/F06Parser_test.cpp">
+			<Option target="nastran_f06_tests" />
+		</Unit>
+		<Unit filename="Test/Systus/CMakeLists.txt">
+			<Option virtualFolder="CMake Files/Test/Systus/" />
+		</Unit>
+		<Unit filename="cmakemodules/MEDFileConfig.cmake">
+			<Option virtualFolder="CMake Files/cmakemodules/" />
+		</Unit>
+		<Extensions>
+			<envvars />
+			<code_completion />
+			<lib_finder disable_auto="1" />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
