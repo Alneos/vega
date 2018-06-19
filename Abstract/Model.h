@@ -103,6 +103,7 @@ public:
     string description;
 
     ModelConfiguration configuration;
+    vega::ConfigurationParameters::TranslationMode translationMode;
     std::shared_ptr<Mesh> mesh; /**< Handles geometrical information */
 
     enum Parameter {
@@ -129,7 +130,10 @@ private:
         std::map<int, std::shared_ptr<T>> by_id;
         std::unordered_map< typename T::Type, std::map<int, std::shared_ptr<T>>,
         std::hash<int>> by_original_ids_by_type;
+    private:
+        Model& model;
     public:
+        Container(Model& model): model(model) {}
         class iterator;
         friend class iterator;
         class iterator : public std::iterator< std::input_iterator_tag,T,ptrdiff_t> {
@@ -167,37 +171,52 @@ private:
                     std::shared_ptr<T> get(int) const; /**< Return an object by its Vega Id **/
                     bool validate(){
                         bool isValid = true;
+                        vector<shared_ptr<T>> toBeRemoved;
                         for (iterator it = this->begin(); it != this->end(); ++it) {
                             shared_ptr<T> t = *it;
                             if (!t->validate()) {
                                 isValid = false;
                                 cerr << *t << " not valid" << endl;
-                                // LD: 15/06/2018 commenting NEXT 1 line : valgrind complains, also validate should be idempotent, I think
-                                //this->erase(Reference<T>(*t));
+
+                                switch (model.translationMode) {
+                                case vega::ConfigurationParameters::MODE_STRICT:
+                                    // Shouldn't do any cleanup in STRICT mode
+                                    break;
+                                case vega::ConfigurationParameters::MESH_AT_LEAST:
+                                case vega::ConfigurationParameters::BEST_EFFORT:
+                                    toBeRemoved.push_back(t);
+                                    break;
+                                default:
+                                    throw std::logic_error("Unknown enum in Translation mode");
+                                }
                             }
+                        }
+                        for(auto& t: toBeRemoved) {
+                            this->erase(*t);
                         }
                         return isValid;
                     };
                 };
         std::unordered_map<int,CellContainer> material_assignment_by_material_id;
     public:
-        Container<Analysis> analyses;
-        Container<Objective> objectives;
-        Container<Value> values;
-        Container<Loading> loadings;
-        Container<LoadSet> loadSets;
-        Container<Constraint> constraints;
-        Container<ConstraintSet> constraintSets;
-        Container<CoordinateSystem> coordinateSystems;
-        Container<ElementSet> elementSets;
-        Container<Material> materials;
+        Container<Analysis> analyses = Container<Analysis>(*this);
+        Container<Objective> objectives = Container<Objective>(*this);
+        Container<Value> values = Container<Value>(*this);
+        Container<Loading> loadings = Container<Loading>(*this);
+        Container<LoadSet> loadSets = Container<LoadSet>(*this);
+        Container<Constraint> constraints = Container<Constraint>(*this);
+        Container<ConstraintSet> constraintSets = Container<ConstraintSet>(*this);
+        Container<CoordinateSystem> coordinateSystems = Container<CoordinateSystem>(*this);
+        Container<ElementSet> elementSets = Container<ElementSet>(*this);
+        Container<Material> materials = Container<Material>(*this);
         std::map<Parameter, double> parameters;
         std::shared_ptr<CoordinateSystemStorage> coordinateSystemStorage; /**< Container for Coordinate System numerotations. **/
         bool onlyMesh;
 
         Model(string name, string inputSolverVersion = string("UNKNOWN"),
                 SolverName inputSolver = NASTRAN,
-                const ModelConfiguration configuration = ModelConfiguration());
+                const ModelConfiguration configuration = ModelConfiguration(),
+                const vega::ConfigurationParameters::TranslationMode translationMode = vega::ConfigurationParameters::BEST_EFFORT);
         //GC: bad bad things happens if you ever try to use this (back references to model are not up to date).
         Model(const Model& that) = delete;
         virtual ~Model();

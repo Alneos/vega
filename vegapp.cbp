@@ -159,8 +159,8 @@
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -191,8 +191,8 @@
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -223,8 +223,8 @@
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -255,8 +255,8 @@
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -287,8 +287,8 @@
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -319,8 +319,8 @@
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -351,8 +351,8 @@
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -383,8 +383,8 @@
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -415,8 +415,8 @@
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -447,8 +447,8 @@
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -479,8 +479,8 @@
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -511,8 +511,8 @@
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -543,8 +543,8 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -575,8 +575,8 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -608,8 +608,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -641,8 +641,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -674,8 +674,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -707,8 +707,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -740,8 +740,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -773,8 +773,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -806,8 +806,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -839,8 +839,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -872,8 +872,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -905,8 +905,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -938,8 +938,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -971,8 +971,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -1004,8 +1004,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -1037,8 +1037,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -1070,8 +1070,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -1103,8 +1103,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -1136,8 +1136,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -1169,8 +1169,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -1202,8 +1202,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -1235,8 +1235,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -1268,8 +1268,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -1301,8 +1301,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -1334,8 +1334,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -1367,8 +1367,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -1400,8 +1400,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -1433,8 +1433,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -1466,8 +1466,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />
@@ -1499,8 +1499,8 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="/local/dev/vegairt/build" />
-					<Add directory="/local/dev/vegairt/include" />
+					<Add directory="build" />
+					<Add directory="include" />
 					<Add directory="/usr/include" />
 					<Add directory="/usr/include/c++/5" />
 					<Add directory="/usr/include/c++/5/backward" />

@@ -23,11 +23,12 @@ using namespace std;
 namespace vega {
 
 Model::Model(string name, string inputSolverVersion, SolverName inputSolver,
-        const ModelConfiguration configuration) :
+        const ModelConfiguration configuration, const vega::ConfigurationParameters::TranslationMode translationMode) :
         name(name), inputSolverVersion(inputSolverVersion), //
         inputSolver(inputSolver), //
         modelType(ModelType::TRIDIMENSIONAL_SI), //
-        configuration(configuration), commonLoadSet(*this, LoadSet::ALL, LoadSet::COMMON_SET_ID),
+        configuration(configuration), translationMode(translationMode), //
+        commonLoadSet(*this, LoadSet::ALL, LoadSet::COMMON_SET_ID), //
 		commonConstraintSet(*this, ConstraintSet::ALL, ConstraintSet::COMMON_SET_ID) {
     this->mesh = shared_ptr<Mesh>(new Mesh(configuration.logLevel, name));
     this->finished = false;
@@ -1706,10 +1707,10 @@ void Model::makeCellsFromRBE(){
             std::shared_ptr<QuasiRigidConstraint> rbar = std::static_pointer_cast<QuasiRigidConstraint>(constraint);
 
             if (!(rbar->isCompletelyRigid())){
-                cerr << "QUASI_RIDID constraint not available yet. Constraint "+std::to_string(constraint->bestId())+ " translated as rigid constraint."<<endl;
+                cerr << "QUASI_RIGID constraint not available yet. Constraint "+std::to_string(constraint->bestId())+ " translated as rigid constraint."<<endl;
             }
             if (rbar->getSlaves().size()!=2){
-               throw logic_error("QUASI_RIDID constraint must have exactly two slaves.");
+               throw logic_error("QUASI_RIGID constraint must have exactly two slaves.");
             }
 
             // Creating an elementset, a CellGroup and a dummy rigid material
