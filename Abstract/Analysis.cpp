@@ -211,11 +211,17 @@ bool Analysis::hasSPC() const{
 bool Analysis::validate() const {
     for (auto &constraintSetReference : this->constraintSet_references) {
         if (model.find(*constraintSetReference) == nullptr) {
+            if (model.configuration.logLevel >= LogLevel::INFO) {
+                cout << "Missing constraintset reference:" << constraintSetReference << endl;
+            }
             return false;
         }
     }
     for (auto &loadSetReference : this->loadSet_references) {
         if (model.find(*loadSetReference) == nullptr) {
+            if (model.configuration.logLevel >= LogLevel::INFO) {
+                cout << "Missing loadset reference:" << loadSetReference << endl;
+            }
             return false;
         }
     }
@@ -339,7 +345,14 @@ shared_ptr<Analysis> LinearModal::clone() const {
 }
 
 bool LinearModal::validate() const {
-    return Analysis::validate() && getFrequencyBand();
+    bool isValid = Analysis::validate();
+    if (!getFrequencyBand()) {
+        if (model.configuration.logLevel >= LogLevel::INFO) {
+            cout << "Modal analysis is not valid: cannot find frenquency band definition:" << frequency_band_reference << endl;
+        }
+        isValid = false;
+    }
+    return isValid;
 }
 
 LinearDynaModalFreq::LinearDynaModalFreq(Model& model, const int frequency_band_original_id,
@@ -364,7 +377,20 @@ shared_ptr<Analysis> LinearDynaModalFreq::clone() const {
 }
 
 bool LinearDynaModalFreq::validate() const {
-    return LinearModal::validate() && getModalDamping() && getFrequencyValues();
+    bool isValid = Analysis::validate();
+    if (getFrequencyValues() == nullptr) {
+        if (model.configuration.logLevel >= LogLevel::INFO) {
+            cout << "Modal analysis is not valid: cannot find frenquency values definition:" << frequency_values_reference << endl;
+        }
+        isValid = false;
+    }
+    if (getModalDamping() == nullptr) {
+        if (model.configuration.logLevel >= LogLevel::INFO) {
+            cout << "Modal analysis is not valid: cannot find modal damping definition:" << modal_damping_reference << endl;
+        }
+        isValid = false;
+    }
+    return isValid;
 }
 
 } /* namespace vega */

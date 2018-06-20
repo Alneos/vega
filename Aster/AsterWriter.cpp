@@ -48,7 +48,7 @@ string AsterWriterImpl::writeModel(const shared_ptr<vega::Model> model_ptr,
 	string med_path = asterModel.getOutputFileName(".med");
 	string comm_path = asterModel.getOutputFileName(".comm");
 
-	model_ptr->mesh->writeMED(med_path.c_str());
+	model_ptr->mesh->writeMED(*model_ptr, med_path.c_str());
 
 	ofstream comm_file_ofs;
 	//comm_file_ofs.setf(ios::scientific);
@@ -597,13 +597,13 @@ void AsterWriterImpl::writeAffeCaraElem(const AsterModel& asterModel, ostream& o
 		if (!orientationsPrinted) {
 			out << "                    ORIENTATION=(" << endl;
 			orientationsPrinted = true;
-		}	
+		}
 		std::shared_ptr<vega::CoordinateSystem> cs= asterModel.model.getCoordinateSystemByPosition(it.first);
 		if (cs->type!=CoordinateSystem::Type::ORIENTATION){
 		   handleWritingError(string("Coordinate System of Group "+ it.second+" is not an ORIENTATION."));
 		}
 		std::shared_ptr<OrientationCoordinateSystem> ocs = std::static_pointer_cast<OrientationCoordinateSystem>(cs);
-		
+
 		out << "                                 _F(CARA ='VECT_Y',VALE=(";
 		out << ocs->getV().x() << "," << ocs->getV().y() << "," << ocs->getV().z() << ")";
 		out<<",GROUP_MA='"<< it.second << "')," << endl;

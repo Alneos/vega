@@ -353,6 +353,7 @@ Node::Node(int id, double lx, double ly, double lz, int position1, DOFS inElemen
 }
 
 const string Node::getMedName() const {
+    // MED will renumber nodes without taking ids into account
 	return string("N") + lexical_cast<string>(position + 1);
 }
 
@@ -487,6 +488,7 @@ Cell::Cell(int id, const CellType &type, const std::vector<int> &nodeIds,
 }
 
 string Cell::getMedName() const {
+    // TODO LD check this one: MED will probably renumber cells ignoring id!!
 	return string("M") + lexical_cast<string>(id);
 }
 

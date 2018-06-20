@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE( test_model_spc ) {
 	BOOST_CHECK(spc_dofs == DOFS::TRANSLATIONS);
 	BOOST_CHECK(spc1_ptr->nodePositions().size() == 2);
 	string outfname = PROJECT_BINARY_DIR "/Testing/file1.med";
-	model.mesh->writeMED(outfname.c_str());
+	model.mesh->writeMED(model, outfname.c_str());
 	BOOST_CHECK(fs::exists(outfname.c_str()));
 }
 
@@ -330,7 +330,7 @@ BOOST_AUTO_TEST_CASE( test_find_methods ) {
 	BOOST_TEST_CHECKPOINT("find_methods: model completed");
 	BOOST_CHECK_EQUAL(gn1, model.mesh->findGroup("GN1"));
 	BOOST_CHECK(model.mesh->findGroup("DONT-EXIST") == nullptr);
-	model.mesh->writeMED(outFile.c_str());
+	model.mesh->writeMED(model, outFile.c_str());
 	BOOST_CHECK(boost::filesystem::exists(outFile));
 }
 

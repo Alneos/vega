@@ -55,5 +55,9 @@ BOOST_AUTO_TEST_CASE( rod1freeforce ) {
 	CommandLineUtils::nastranStudy2Aster("/alneos/rod1freeforce/rod1freeforce.dat", true, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( fixedcircularplate ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/fixed_circular_plate/fixed_circular_plate.dat", true, true, 0.1);
+}
+
 } /* namespace test */
 } /* namespace vega */

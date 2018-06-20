@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -152,9 +152,13 @@ CylindricalCoordinateSystem::CylindricalCoordinateSystem(const Model& model,
                 this->ey) {
 }
 
+// TODO : LD What's this ? Should this method be renamed moveOrigin ?
 void CylindricalCoordinateSystem::updateLocalBase(const VectorialValue& point) {
-    utheta = ez.cross(point - origin).normalized();
-    ur = utheta.cross(ez);
+    VectorialValue localOrigin = point - origin;
+    if (!localOrigin.iszero()) {
+        utheta = ez.cross(point - origin).normalized();
+        ur = utheta.cross(ez);
+    }
 }
 
 const VectorialValue CylindricalCoordinateSystem::positionToGlobal(const VectorialValue& local) const{

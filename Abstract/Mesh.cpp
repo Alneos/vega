@@ -16,6 +16,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/lexical_cast.hpp>
+#include "Model.h"
 #include <med.h>
 #include <stdio.h>
 #include <string.h>
@@ -123,6 +124,7 @@ const Node Mesh::findNode(const int nodePosition, const bool buildGlobalXYZ, con
 			nodeData.cpPos, nodeData.cdPos);
 
 	// If asked, we compute the position of the Node in the Global Referentiel System
+	// TODO LD: change this with something more explicit (like globalx etc.)
 	if (buildGlobalXYZ){
 	    node1.buildGlobalXYZ(model);
 	}
@@ -365,7 +367,7 @@ void Mesh::createFamilies(med_idt fid, const char meshname[MED_NAME_SIZE + 1],
 	}
 }
 
-void Mesh::writeMED(const char* medFileName) {
+void Mesh::writeMED(const Model& model, const char* medFileName) {
 	if (!finished) {
 		this->finish();
 	}
@@ -397,9 +399,17 @@ void Mesh::writeMED(const char* medFileName) {
 	vector<med_float> coordinates;
 	coordinates.reserve(nnodes);
 	for (NodeData& nodeData : nodes.nodeDatas) {
-		coordinates.push_back(nodeData.x);
-		coordinates.push_back(nodeData.y);
-		coordinates.push_back(nodeData.z);
+	    if (nodeData.cpPos == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
+            coordinates.push_back(nodeData.x);
+            coordinates.push_back(nodeData.y);
+            coordinates.push_back(nodeData.z);
+	    } else {
+	        shared_ptr<CoordinateSystem> coordSystem = model.getCoordinateSystemByPosition(nodeData.cpPos);
+            VectorialValue gCoord = coordSystem->positionToGlobal(VectorialValue(nodeData.x,nodeData.y,nodeData.z));
+            coordinates.push_back(gCoord.x());
+            coordinates.push_back(gCoord.y());
+            coordinates.push_back(gCoord.z());
+	    }
 	}
 	if (MEDmeshNodeCoordinateWr(fid, meshname, MED_NO_DT, MED_NO_IT, 0.0, MED_FULL_INTERLACE,
 			nnodes, coordinates.data()) < 0) {

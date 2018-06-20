@@ -163,7 +163,7 @@ public:
 	 * If buildGlobalXYZ is true, we compute the position (x,y,z) of the Node in
 	 * the Global Coordinate System, from (lx,ly,lz), its position in the local
 	 * Coordinate System.
-	 * YOU MUST SET buildGlobalXYZ TO TRUE TO ACCESS GLOBAL COORDINATES !  
+	 * YOU MUST SET buildGlobalXYZ TO TRUE TO ACCESS GLOBAL COORDINATES !
 	 * throws invalid_argument if node not found
 	 */
 	const Node findNode(const int nodePosition, const bool buildGlobalXYZ=false, const Model *model=nullptr) const;
@@ -185,7 +185,7 @@ public:
 	 **/
     int addCell(int id, const CellType &type, const std::vector<int> &nodesIds,
             bool virtualCell = false, const int cpos=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int elementId = Cell::UNAVAILABLE_CELL);
-    /** 
+    /**
      *  Update a cell to the mesh.
 	 *  The vector nodesIds regroups the nodes use to build the cell. Nodes Ids are expressed as "input node number"
 	 *  and will be added to the model if not already defined.
@@ -204,7 +204,7 @@ public:
 	 */
 	void assignElementId(const CellContainer&, int elementId);
 
-	void writeMED(const char* medFileName);
+	void writeMED(const Model& model, const char* medFileName);
 	void finish();
 	bool validate() const;
 };

@@ -163,6 +163,7 @@ private:
                     iterator begin() const {return iterator(by_id, by_id.begin());}
                     iterator end() const {return iterator(by_id, by_id.end());}
                     int size() const {return (int)by_id.size();}
+                    bool empty() const {return by_id.size() == 0;}
                     void add(const T&);
                     void add(std::shared_ptr<T> T_ptr);
                     void erase(const Reference<T>);
@@ -176,7 +177,7 @@ private:
                             shared_ptr<T> t = *it;
                             if (!t->validate()) {
                                 isValid = false;
-                                cerr << *t << " not valid" << endl;
+                                cerr << *t << " is not valid" << endl;
 
                                 switch (model.translationMode) {
                                 case vega::ConfigurationParameters::MODE_STRICT:

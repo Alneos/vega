@@ -60,7 +60,7 @@ VectorialValue VectorialValue::orthonormalized(const VectorialValue& u) const {
 VectorialValue VectorialValue::normalized() const {
 	//double norm = sqrt(pow(x(), 2) + pow(y(), 2) + pow(z(), 2));
 	double norm = ublas::norm_2(value);
-	return VectorialValue(x() / norm, y() / norm, z() / norm);
+    return VectorialValue(x() / norm, y() / norm, z() / norm);
 }
 
 VectorialValue VectorialValue::scaled(double factor) const {

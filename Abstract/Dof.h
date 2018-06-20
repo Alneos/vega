@@ -167,7 +167,7 @@ public:
 
 
 /**
- * This class regroups one coefficient by DOF. 
+ * This class regroups one coefficient by DOF.
  * It's basicallay a double[6] with a few extra security test.
  */
 class DOFCoefs {
@@ -191,7 +191,7 @@ public:
     }
     double operator[](const int i) {
         if (i < 0 || i > 5)
-            return 0;
+            return 0; // TODO LD: why this case ???
         return coefs[i];
     }
     bool operator<(const DOFCoefs& other) const;

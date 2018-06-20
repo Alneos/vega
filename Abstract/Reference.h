@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -27,6 +27,8 @@
 #include <memory>
 #include <climits>
 #include <boost/functional/hash.hpp>
+#include <fstream>
+#include <ostream>
 
 namespace vega {
 
@@ -37,6 +39,8 @@ class Model;
 template<class T>
 class Reference final {
 public:
+    template<class T2> friend std::string to_str(const Reference<T2>&);
+    template<class T2> friend std::ostream& operator<<(std::ostream&, const Reference<T2>&);
     static const int NO_ID = INT_MIN;
     // TODO : make type, original_id and id private
     typename T::Type type;
@@ -89,6 +93,34 @@ bool operator <(const Reference<T>& left, const Reference<T>& right) {
         return left.id < right.id; // last ordering : compare autoids
     }
 }
+
+template<class T>
+std::string to_str(const Reference<T>& reference) {
+    std::ostringstream oss;
+    std::string id, type;
+
+    if (reference.has_original_id())
+        id = "original_id=" + std::to_string(reference.original_id);
+    else
+        id = "vega_id=" + std::to_string(reference.id);
+
+    auto it = T::stringByType.find(reference.type);
+    if (it != T::stringByType.end())
+        type = "type=" + it->second;
+    else
+        type = "unknown type";
+
+    oss << "Reference[" << type << "; " << id << "]";
+
+    return oss.str();
+}
+
+template<class T>
+std::ostream &operator<<(std::ostream &out, const Reference<T>& reference) {
+	out << to_str(reference);
+	return out;
+}
+
 
 template<class T>
 std::shared_ptr<Reference<T>> Reference<T>::clone() const {

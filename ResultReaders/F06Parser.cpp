@@ -284,6 +284,9 @@ void F06Parser::addFrequencyAssertionsToModel(int currentSubCase, Model& model,
 		if (analysis == nullptr and model.configuration.logLevel >= LogLevel::INFO) {
 			cout << "Could not find subcase : " << currentSubCase << " in model." << endl;
 		}
+    } else if (model.analyses.empty()) {
+        cout << "There is no analysis in model." << endl;
+        return;
 	} else {
 		// LD If no subcase indicated, the first one is used.
 		// FIXME: what if the model don't have an analysis and the default one is

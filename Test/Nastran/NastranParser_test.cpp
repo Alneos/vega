@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE( nastran_med_write ) {
 
 	const shared_ptr<Model> model = parser.parse(
 			ConfigurationParameters(testLocation, CODE_ASTER, string("1")));
-	model->mesh->writeMED(outFile.c_str());
+	model->mesh->writeMED(*model, outFile.c_str());
 
 	BOOST_CHECK(boost::filesystem::exists(outFile));
 }
@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE( test_include ) {
 	}
 	//expected 1 material elastic
 }
-	
+
 BOOST_AUTO_TEST_CASE(test_comments_in_the_end) {
 	//a short version of Optistruct test, that fails in windows
 	string testLocation = fs::path(
@@ -93,4 +93,5 @@ BOOST_AUTO_TEST_CASE(test_comments_in_the_end) {
 	}
 	//expected 1 material elastic
 }
+
 //____________________________________________________________________________//

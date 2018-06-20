@@ -890,8 +890,11 @@ void Model::emulateLocalDisplacementConstraint() {
                 Node node = mesh->findNode(nodePosition, true, this);
                 if (node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
                     shared_ptr<CoordinateSystem> coordSystem = getCoordinateSystemByPosition(node.displacementCS);
+                    // TODO LD: this should be done differently: is used to compute different nodes but every this it changes the coordinate system instance!
                     coordSystem->updateLocalBase(VectorialValue(node.x, node.y, node.z));
                     DOFS dofs = constraint->getDOFSForNode(nodePosition);
+                    if (configuration.logLevel >= LogLevel::DEBUG)
+                        cout << "Replacing local spc" << *spc << "node:" << node << ",dofs " << constraint->getDOFSForNode(nodePosition) << endl;
                     for (int i = 0; i < 6; i++) {
                         vega::DOF currentDOF = *DOF::dofByPosition[i];
                         if (dofs.contains(currentDOF)) {
@@ -900,12 +903,15 @@ void Model::emulateLocalDisplacementConstraint() {
                             LinearMultiplePointConstraint* lmpc =
                                     new LinearMultiplePointConstraint(*this,
                                             spc->getDoubleForDOF(currentDOF));
-                            if (i < 3)
+                            if (i < 3) {
                                 lmpc->addParticipation(node.id, participation.x(),
                                         participation.y(), participation.z());
-                            else
+                            } else {
                                 lmpc->addParticipation(node.id, 0, 0, 0, participation.x(),
                                         participation.y(), participation.z());
+                            }
+                            if (configuration.logLevel >= LogLevel::DEBUG)
+                                cout << "Node:" << node << ", current dof:" << currentDOF << ", participation:" << participation << ", coef:" << lmpc->coef_impo << endl;
                             linearMultiplePointConstraintsByConstraint[constraint].insert(lmpc);
                         }
                     }
