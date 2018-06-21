@@ -29,9 +29,9 @@
 namespace vega {
 
 CoordinateSystem::CoordinateSystem(const Model& model, Type type, const VectorialValue origin,
-        const VectorialValue ex, const VectorialValue ey, int original_id) :
+        const VectorialValue ex, const VectorialValue ey, const int rcs, int original_id) :
         Identifiable(original_id), model(model), type(type), origin(origin), ex(ex.normalized()), ey(
-                ey.orthonormalized(this->ex)), ez(this->ex.cross(this->ey)),
+                ey.orthonormalized(this->ex)), rcs(rcs),  ez(this->ex.cross(this->ey)),
                 inverseMatrix(3, 3){
 
 }
@@ -80,13 +80,13 @@ const VectorialValue CoordinateSystem::getEulerAnglesIntrinsicZYX(const Coordina
 
 
 CartesianCoordinateSystem::CartesianCoordinateSystem(const Model& model,
-        const VectorialValue& origin, const VectorialValue& ex, const VectorialValue& ey,
+        const VectorialValue& origin, const VectorialValue& ex, const VectorialValue& ey, const int rcs,
         int _original_id) :
-        CoordinateSystem(model, CARTESIAN, origin, ex, ey, _original_id) {
+        CoordinateSystem(model, CARTESIAN, origin, ex, ey, rcs, _original_id) {
 }
 CartesianCoordinateSystem::CartesianCoordinateSystem(const Model& model,
-        int nO, int nZ, int nXZ, int _original_id) :
-        CoordinateSystem(model, CARTESIAN, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), _original_id){
+        int nO, int nZ, int nXZ, const int rcs, int _original_id) :
+        CoordinateSystem(model, CARTESIAN, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcs, _original_id){
     nodesId.push_back(nO);
     nodesId.push_back(nZ);
     nodesId.push_back(nXZ);
@@ -94,20 +94,42 @@ CartesianCoordinateSystem::CartesianCoordinateSystem(const Model& model,
 }
 
 const VectorialValue CartesianCoordinateSystem::positionToGlobal(const VectorialValue& local) const{
-    return (this->getOrigin()+vectorToGlobal(local));
+    VectorialValue position = this->getOrigin()+vectorToGlobal(local);
+    if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+        return position;
+    } else {
+        shared_ptr<CoordinateSystem> coordSystem = model.getCoordinateSystem(rcs);
+        return coordSystem->positionToGlobal(position);
+    }
 }
 
 const VectorialValue CartesianCoordinateSystem::vectorToGlobal(const VectorialValue& local) const {
     double x = local.x() * ex.x() + local.y() * ey.x() + local.z() * ez.x();
     double y = local.x() * ex.y() + local.y() * ey.y() + local.z() * ez.y();
     double z = local.x() * ex.z() + local.y() * ey.z() + local.z() * ez.z();
-    return VectorialValue(x, y, z);
+
+    VectorialValue vect = VectorialValue(x, y, z);
+    if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+        return vect;
+    } else {
+        shared_ptr<CoordinateSystem> coordSystem = model.getCoordinateSystem(rcs);
+        return coordSystem->vectorToGlobal(vect);
+    }
 }
 
 const VectorialValue CartesianCoordinateSystem::vectorToLocal(const VectorialValue& global) const {
-    double x = global.x() * this->inverseMatrix(0,0) + global.y() * this->inverseMatrix(0,1) + global.z() * this->inverseMatrix(0,2);
-    double y = global.x() * this->inverseMatrix(1,0) + global.y() * this->inverseMatrix(1,1) + global.z() * this->inverseMatrix(1,2);
-    double z = global.x() * this->inverseMatrix(2,0) + global.y() * this->inverseMatrix(2,1) + global.z() * this->inverseMatrix(2,2);
+
+    VectorialValue vect;
+    if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+        vect = global;
+    } else {
+        shared_ptr<CoordinateSystem> coordSystem = model.getCoordinateSystem(rcs);
+        vect = coordSystem->vectorToLocal(global);
+    }
+
+    double x = vect.x() * this->inverseMatrix(0,0) + vect.y() * this->inverseMatrix(0,1) + vect.z() * this->inverseMatrix(0,2);
+    double y = vect.x() * this->inverseMatrix(1,0) + vect.y() * this->inverseMatrix(1,1) + vect.z() * this->inverseMatrix(1,2);
+    double z = vect.x() * this->inverseMatrix(2,0) + vect.y() * this->inverseMatrix(2,1) + vect.z() * this->inverseMatrix(2,2);
     return VectorialValue(x, y, z);
 }
 
@@ -146,9 +168,9 @@ void CartesianCoordinateSystem::build(){
 
 
 CylindricalCoordinateSystem::CylindricalCoordinateSystem(const Model& model,
-        const VectorialValue origin, const VectorialValue ex, const VectorialValue ey,
+        const VectorialValue origin, const VectorialValue ex, const VectorialValue ey, const int rcs,
         int original_id) :
-        CoordinateSystem(model, CYLINDRICAL, origin, ex, ey, original_id), ur(this->ex), utheta(
+        CoordinateSystem(model, CYLINDRICAL, origin, ex, ey, rcs, original_id), ur(this->ex), utheta(
                 this->ey) {
 }
 
@@ -167,7 +189,13 @@ const VectorialValue CylindricalCoordinateSystem::positionToGlobal(const Vectori
     double x = rcosth*ex.x() + rsinth*ey.x() + local.z()*ez.x();
     double y = rcosth*ex.y() + rsinth*ey.y() + local.z()*ez.y();
     double z = rcosth*ex.z() + rsinth*ey.z() + local.z()*ez.z();
-    return (this->getOrigin()+VectorialValue(x,y,z));
+    VectorialValue position = this->getOrigin()+VectorialValue(x,y,z);
+    if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+        return position;
+    } else {
+        shared_ptr<CoordinateSystem> coordSystem = model.getCoordinateSystem(rcs);
+        return coordSystem->positionToGlobal(position);
+    }
 }
 
 const VectorialValue CylindricalCoordinateSystem::vectorToGlobal(
@@ -175,7 +203,13 @@ const VectorialValue CylindricalCoordinateSystem::vectorToGlobal(
     double x = local.x() * ur.x() + local.y() * utheta.x() + local.z() * ez.x();
     double y = local.x() * ur.y() + local.y() * utheta.y() + local.z() * ez.y();
     double z = local.x() * ur.z() + local.y() * utheta.z() + local.z() * ez.z();
-    return VectorialValue(x, y, z);
+    VectorialValue vect = VectorialValue(x, y, z);
+    if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+        return vect;
+    } else {
+        shared_ptr<CoordinateSystem> coordSystem = model.getCoordinateSystem(rcs);
+        return coordSystem->vectorToGlobal(vect);
+    }
 }
 
 const VectorialValue CylindricalCoordinateSystem::vectorToLocal(const VectorialValue& global) const {
@@ -198,8 +232,8 @@ const VectorialValue CylindricalCoordinateSystem::getLocalEulerAnglesIntrinsicZY
 
 
 OrientationCoordinateSystem::OrientationCoordinateSystem(const Model& model, const int nO, const int nX,
-        const int nV, int original_id) :
-        CoordinateSystem(model, ORIENTATION, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), original_id){
+        const int nV, const int rcs, int original_id) :
+        CoordinateSystem(model, ORIENTATION, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcs, original_id){
     nodesId.push_back(nO);
     nodesId.push_back(nX);
     nodesId.push_back(nV);
@@ -207,8 +241,8 @@ OrientationCoordinateSystem::OrientationCoordinateSystem(const Model& model, con
 }
 
 OrientationCoordinateSystem::OrientationCoordinateSystem(const Model& model, const int nO, const int nX,
-        const  VectorialValue v, int original_id) :
-        CoordinateSystem(model, ORIENTATION, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), original_id),
+        const  VectorialValue v, const int rcs, int original_id) :
+        CoordinateSystem(model, ORIENTATION, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcs, original_id),
         v(v.normalized()){
     nodesId.push_back(nO);
     nodesId.push_back(nX);
@@ -294,13 +328,27 @@ const VectorialValue OrientationCoordinateSystem::vectorToGlobal(const Vectorial
     double x = local.x() * ex.x() + local.y() * ey.x() + local.z() * ez.x();
     double y = local.x() * ex.y() + local.y() * ey.y() + local.z() * ez.y();
     double z = local.x() * ex.z() + local.y() * ey.z() + local.z() * ez.z();
-    return VectorialValue(x, y, z);
+    VectorialValue vect = VectorialValue(x, y, z);
+    if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+        return vect;
+    } else {
+        shared_ptr<CoordinateSystem> coordSystem = model.getCoordinateSystem(rcs);
+        return coordSystem->vectorToGlobal(vect);
+    }
 }
 
 const VectorialValue OrientationCoordinateSystem::vectorToLocal(const VectorialValue& global) const {
-    double x = global.x() * this->inverseMatrix(0,0) + global.y() * this->inverseMatrix(0,1) + global.z() * this->inverseMatrix(0,2);
-    double y = global.x() * this->inverseMatrix(1,0) + global.y() * this->inverseMatrix(1,1) + global.z() * this->inverseMatrix(1,2);
-    double z = global.x() * this->inverseMatrix(2,0) + global.y() * this->inverseMatrix(2,1) + global.z() * this->inverseMatrix(2,2);
+
+    VectorialValue vect;
+    if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+        vect = global;
+    } else {
+        shared_ptr<CoordinateSystem> coordSystem = model.getCoordinateSystem(rcs);
+        vect = coordSystem->vectorToLocal(global);
+    }
+    double x = vect.x() * this->inverseMatrix(0,0) + vect.y() * this->inverseMatrix(0,1) + vect.z() * this->inverseMatrix(0,2);
+    double y = vect.x() * this->inverseMatrix(1,0) + vect.y() * this->inverseMatrix(1,1) + vect.z() * this->inverseMatrix(1,2);
+    double z = vect.x() * this->inverseMatrix(2,0) + vect.y() * this->inverseMatrix(2,1) + vect.z() * this->inverseMatrix(2,2);
     return VectorialValue(x, y, z);
 }
 
