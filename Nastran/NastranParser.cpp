@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -723,7 +723,7 @@ void NastranParserImpl::parseCORD1R(NastranTokenizer& tok, shared_ptr<Model> mod
         int nA  = tok.nextInt();
         int nB  = tok.nextInt();
         int nC  = tok.nextInt();
-        CartesianCoordinateSystem coordinateSystem(*model, nA, nB, nC, cid);
+        CartesianCoordinateSystem coordinateSystem(*model, nA, nB, nC, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, cid);
         model->add(coordinateSystem);
         }
 }
@@ -732,9 +732,6 @@ void NastranParserImpl::parseCORD2C(NastranTokenizer& tok, shared_ptr<Model> mod
     int cid = tok.nextInt();
     //reference coordinate system 0 for global.
     int rid = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-    if (rid != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-        handleParsingWarning("Reference coordinate system != 0 not implemented", tok, model);
-    }
 
     double coor[3];
     VectorialValue vect[3];
@@ -748,17 +745,13 @@ void NastranParserImpl::parseCORD2C(NastranTokenizer& tok, shared_ptr<Model> mod
     VectorialValue ex = (vect[2] - vect[0]).orthonormalized(ez);
     VectorialValue ey = ez.cross(ex);
 
-    CylindricalCoordinateSystem coordinateSystem(*model, vect[0], ex, ey, cid);
+    CylindricalCoordinateSystem coordinateSystem(*model, vect[0], ex, ey, rid, cid);
     model->add(coordinateSystem);
 }
 
 void NastranParserImpl::parseCORD2R(NastranTokenizer& tok, shared_ptr<Model> model) {
     int cid = tok.nextInt();
     int rid = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-    if (rid != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-        handleParsingWarning("Reference coordinate system != 0 not implemented and dismissed.", tok, model);
-        rid=0;
-    }
     double coor[3];
     VectorialValue vect[3];
     for (int i = 0; i < 3; i++) {
@@ -771,7 +764,7 @@ void NastranParserImpl::parseCORD2R(NastranTokenizer& tok, shared_ptr<Model> mod
     VectorialValue ex = (vect[2] - vect[0]).orthonormalized(ez);
     VectorialValue ey = ez.cross(ex);
 
-    CartesianCoordinateSystem coordinateSystem(*model, vect[0], ex, ey, cid);
+    CartesianCoordinateSystem coordinateSystem(*model, vect[0], ex, ey, rid, cid);
     model->add(coordinateSystem);
 }
 
@@ -2511,7 +2504,7 @@ void NastranParserImpl::parseTABLED1(NastranTokenizer& tok, shared_ptr<Model> mo
         }
         functionTable.setXY(x, y);
     }
-    
+
     model->add(functionTable);
 
 }
