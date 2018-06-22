@@ -1,0 +1,23 @@
+image:
+    name: ldallolio/vegaci
+
+stages:
+  - build
+  - test
+
+before_script:  
+  - source /home/vega/.bashrc
+  
+buildjob:
+  stage: build
+  script:
+    - pwd
+    - git clone --depth=50 --branch=sum2018 https://gitlab-ci-token:${CI_JOB_TOKEN}@git.irt-systemx.fr/TOP/tache-1/prestation/vega.git /home/vega/vegapp
+    - cmake -DCMAKE_BUILD_TYPE=Debug -H/home/vega/vegapp -Bbuild
+    - make -C /home/vega/vegapp/build -j
+
+testjob:
+  stage: test
+  script:
+    - pwd
+    - ctest .
