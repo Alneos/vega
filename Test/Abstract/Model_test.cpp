@@ -258,6 +258,7 @@ BOOST_AUTO_TEST_CASE(test_Analysis) {
 	LoadSet loadSet1(model, LoadSet::LOAD, 1);
 	model.add(loadSet1);
 	Reference<LoadSet> loadSetRef = Reference<LoadSet>(loadSet1);
+	cout << loadSetRef << endl;
 	analysis.add(loadSetRef);
 	BOOST_CHECK(analysis.contains(loadSetRef));
 	//CHECK getReference constructor and == operator

@@ -144,9 +144,6 @@ option(ENABLE_NASTRAN "Enable Nastran" ${DEFAULT})
 option(ENABLE_SYSTUS "Enable Systus" ${DEFAULT})
 option(ENABLE_WRAP_PYTHON "Build Python wrappers" OFF)
 
-ENABLE_TESTING()
-INCLUDE(CTest)
-
 set(VEGA_VERSION "${VEGA_MAJOR_VERSION}.${VEGA_MINOR_VERSION}")
 set(VEGA_VERSION "${VEGA_VERSION}.${VEGA_PATCH_VERSION} ${VEGA_EXTRA_VERSION}")
 set(VEGA_SHORT_LICENSE "GPL")
@@ -283,6 +280,7 @@ add_subdirectory(Commandline)
 IF(BUILD_TESTING)
     ENABLE_TESTING()
     add_subdirectory(Test)
+    INCLUDE(CTest)
 ENDIF()
 
 list(SORT CONFIG_OPTIONS)

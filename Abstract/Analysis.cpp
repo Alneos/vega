@@ -212,7 +212,7 @@ bool Analysis::validate() const {
     for (auto &constraintSetReference : this->constraintSet_references) {
         if (model.find(*constraintSetReference) == nullptr) {
             if (model.configuration.logLevel >= LogLevel::INFO) {
-                cout << "Missing constraintset reference:" << constraintSetReference << endl;
+                cout << "Missing constraintset reference:" << *constraintSetReference << endl;
             }
             return false;
         }
@@ -220,7 +220,7 @@ bool Analysis::validate() const {
     for (auto &loadSetReference : this->loadSet_references) {
         if (model.find(*loadSetReference) == nullptr) {
             if (model.configuration.logLevel >= LogLevel::INFO) {
-                cout << "Missing loadset reference:" << loadSetReference << endl;
+                cout << "Missing loadset reference:" << *loadSetReference << endl;
             }
             return false;
         }
