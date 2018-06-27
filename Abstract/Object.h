@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -87,6 +87,18 @@ public:
                 (isOriginal() ? original_id : no_id), id);
     }
 
+    virtual std::map<std::string, std::string> to_map() const {
+        // default, to be overriden to add details in to_str by subclasses
+        std::map<std::string, std::string> infos;
+
+        if (isOriginal())
+            infos["original_id"] = std::to_string(original_id);
+        else
+            infos["vega_id"] = std::to_string(id);
+
+        return infos;
+    }
+
     virtual ~Identifiable() {
     }
 
@@ -97,20 +109,24 @@ template<class T> int Identifiable<T>::auto_id = 0;
 template<class T>
 std::string to_str(const T& t) {
     std::ostringstream oss;
-    std::string id, type;
-
-    if (t.isOriginal())
-        id = "original_id=" + std::to_string(t.getOriginalId());
-    else
-        id = "vega_id=" + std::to_string(t.getId());
+    std::string type;
 
     auto it = T::stringByType.find(t.type);
     if (it != T::stringByType.end())
-        type = "type=" + it->second;
+        type = it->second;
     else
         type = "unknown type";
 
-    oss << T::name << "{" << type << "; " << id << "}";
+    oss << T::name << "<" << type << ">" << "{";
+    bool first = true;
+    for (auto& kv : t.to_map()) {
+        if (!first)
+            oss << ";";
+        else
+            first = false;
+        oss << kv.first << "=" << kv.second;
+    }
+    oss << "}";
 
     return oss.str();
 }

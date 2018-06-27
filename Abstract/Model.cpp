@@ -69,9 +69,9 @@ void Model::Container<T>::erase(const Reference<T> ref) {
  * Redefining method add for Value to take into account placeHolder
  */
 template<>
-void Model::Container<Value>::add(const Value& t) {
-    shared_ptr<Value> ptr = t.clone();
-    if (shared_ptr<Value> ptr_old = find(t)) {
+void Model::Container<NamedValue>::add(const NamedValue& t) {
+    shared_ptr<NamedValue> ptr = t.clone();
+    if (shared_ptr<NamedValue> ptr_old = find(t)) {
         if (ptr->isPlaceHolder()) { // TODO : make a merge function for placeHolder
             if (ptr->hasParaX())
                 ptr_old->setParaX(ptr->getParaX());
@@ -196,7 +196,7 @@ void Model::add(const Objective& objective) {
     objectives.add(objective);
 }
 
-void Model::add(const Value& value) {
+void Model::add(const NamedValue& value) {
     if (configuration.logLevel >= LogLevel::DEBUG) {
         cout << "Adding " << value << endl;
     }
@@ -252,7 +252,7 @@ std::shared_ptr<Objective> Model::getObjective(int id) const {
     return objectives.get(id);
 }
 
-std::shared_ptr<Value> Model::getValue(int id) const {
+std::shared_ptr<NamedValue> Model::getValue(int id) const {
     return values.get(id);
 }
 
@@ -438,7 +438,7 @@ const shared_ptr<Objective> Model::find(const Reference<Objective> reference) co
 }
 
 template<>
-const shared_ptr<Value> Model::find(const Reference<Value> reference) const {
+const shared_ptr<NamedValue> Model::find(const Reference<NamedValue> reference) const {
     return values.find(reference);
 }
 

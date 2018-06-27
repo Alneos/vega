@@ -48,8 +48,8 @@ BOOST_AUTO_TEST_CASE( valueOrReference_val ) {
 }
 
 BOOST_AUTO_TEST_CASE( valueOrReference_ref ) {
-	ValueOrReference ref1(Reference<Value>(Value::FUNCTION_TABLE, 1, 5));
-	ValueOrReference ref2(Reference<Value>(Value::FUNCTION_TABLE, 2, 6));
+	ValueOrReference ref1(Reference<NamedValue>(Value::FUNCTION_TABLE, 1, 5));
+	ValueOrReference ref2(Reference<NamedValue>(Value::FUNCTION_TABLE, 2, 6));
 	ValueOrReference val2(2);
 	BOOST_CHECK_LT(ref1, ref2);
 	BOOST_CHECK(ref1 != val2);

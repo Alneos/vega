@@ -572,8 +572,8 @@ bool NormalPressionFace::validate() const {
 	return true;
 }
 
-DynamicExcitation::DynamicExcitation(const Model& model, const Reference<Value> dynaDelay, const Reference<Value> dynaPhase,
-        const Reference<Value> functionTableB, const Reference<Value> functionTableP, const Reference<LoadSet> loadSet,
+DynamicExcitation::DynamicExcitation(const Model& model, const Reference<NamedValue> dynaDelay, const Reference<NamedValue> dynaPhase,
+        const Reference<NamedValue> functionTableB, const Reference<NamedValue> functionTableP, const Reference<LoadSet> loadSet,
         const int original_id) :
                 Loading(model, DYNAMIC_EXCITATION, NONE, original_id), dynaDelay(dynaDelay), dynaPhase(dynaPhase),
                 functionTableB(functionTableB), functionTableP(functionTableP), loadSet(loadSet) {
@@ -601,11 +601,11 @@ shared_ptr<LoadSet> DynamicExcitation::getLoadSet() const {
 }
 
 const ValuePlaceHolder DynamicExcitation::getFunctionTableBPlaceHolder() const {
-    return ValuePlaceHolder(model, functionTableB.type, functionTableB.original_id, Value::FREQ);
+    return ValuePlaceHolder(model, functionTableB.type, functionTableB.original_id, NamedValue::FREQ);
 }
 
 const ValuePlaceHolder DynamicExcitation::getFunctionTablePPlaceHolder() const {
-    return ValuePlaceHolder(model, functionTableP.type, functionTableP.original_id, Value::FREQ);
+    return ValuePlaceHolder(model, functionTableP.type, functionTableP.original_id, NamedValue::FREQ);
 }
 
 set<int> DynamicExcitation::nodePositions() const {

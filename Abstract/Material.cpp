@@ -209,7 +209,7 @@ NonLinearElasticNature::~NonLinearElasticNature() {
 
 NonLinearElasticNature::NonLinearElasticNature(const Model& model,
 		const int stress_strain_function_id) :
-		Nature(model, NATURE_NONLINEAR_ELASTIC), stress_strain_function_ref(Value::FUNCTION_TABLE,
+		Nature(model, NATURE_NONLINEAR_ELASTIC), stress_strain_function_ref(NamedValue::FUNCTION_TABLE,
 				stress_strain_function_id) {
 }
 

@@ -57,7 +57,7 @@ class AsterWriterImpl : public Writer{
 	void writeNodalComplexDisplacementAssertion(const AsterModel&, Assertion&, std::ostream&);
 	void writeFrequencyAssertion(Assertion&, std::ostream&);
 	void writeLoadset(LoadSet& loadSet, std::ostream& out);
-	string writeValue(Value& value, std::ostream& out);
+	string writeValue(NamedValue& value, std::ostream& out);
 	void writeImprResultats(const AsterModel& asterModel, std::ostream& out);
 	void list_concept_name(StepRange& stepRange);
 	std::shared_ptr<NonLinearStrategy> getNonLinearStrategy(NonLinearMecaStat& nonLinAnalysis);

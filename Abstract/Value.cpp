@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -28,35 +28,39 @@ using namespace std;
 
 namespace vega {
 
-Value::Value(const Model& model, Value::Type type, int original_id, ParaName paraX, ParaName paraY) :
-        Identifiable(original_id), model(model), type(type), paraX(paraX), paraY(paraY) {
+Value::Value(Value::Type type) : type(type) {
 }
 
-const string Value::name = "Value";
+
+const string NamedValue::name = "NamedValue";
 
 const map<Value::Type, string> Value::stringByType = { { STEP_RANGE, "STEP_RANGE" }, { SPREAD_RANGE, "SPREAD_RANGE" }, {
         FUNCTION_TABLE, "FUNCTION_TABLE" }, { DYNA_PHASE, "DYNA_PHASE" }, };
 
-ostream &operator<<(ostream &out, const Value& value) {
+ostream &operator<<(ostream &out, const NamedValue& value) {
     out << to_str(value);
     return out;
 }
 
-ValuePlaceHolder::ValuePlaceHolder(const Model& model, Type type, int original_id, ParaName paraX,
-        ParaName paraY) :
-        Value(model, type, original_id, paraX, paraY) {
+NamedValue::NamedValue(const Model& model, Type type, int original_id, ParaName paraX, ParaName paraY) :
+        Value(type), Identifiable(original_id), model(model), paraX(paraX), paraY(paraY) {
 }
 
-shared_ptr<Value> ValuePlaceHolder::clone() const {
-    return shared_ptr<Value>(new ValuePlaceHolder(*this));
+ValuePlaceHolder::ValuePlaceHolder(const Model& model, Type type, int original_id, ParaName paraX,
+        ParaName paraY) :
+        NamedValue(model, type, original_id, paraX, paraY) {
+}
+
+shared_ptr<NamedValue> ValuePlaceHolder::clone() const {
+    return shared_ptr<NamedValue>(new ValuePlaceHolder(*this));
 }
 
 ValueRange::ValueRange(const Model& model, Type type, int original_id) :
-        Value(model, type, original_id) {
+        NamedValue(model, type, original_id) {
 }
 
-shared_ptr<Value> ValueRange::clone() const {
-    return shared_ptr<Value>(new ValueRange(*this));
+shared_ptr<NamedValue> ValueRange::clone() const {
+    return shared_ptr<NamedValue>(new ValueRange(*this));
 }
 
 StepRange::StepRange(const Model& model, double start, double step, double end, int original_id) :
@@ -75,8 +79,8 @@ StepRange::StepRange(const Model& model, double start, double step, int count, i
     end = start + step * count;
 }
 
-shared_ptr<Value> StepRange::clone() const {
-    return shared_ptr<Value>(new StepRange(*this));
+shared_ptr<NamedValue> StepRange::clone() const {
+    return shared_ptr<NamedValue>(new StepRange(*this));
 }
 
 SpreadRange::SpreadRange(const Model& model, double start, int count, double end, double spread, int original_id) :
@@ -84,16 +88,16 @@ SpreadRange::SpreadRange(const Model& model, double start, int count, double end
     assert(end > start);
 }
 
-shared_ptr<Value> SpreadRange::clone() const {
-    return shared_ptr<Value>(new SpreadRange(*this));
+shared_ptr<NamedValue> SpreadRange::clone() const {
+    return shared_ptr<NamedValue>(new SpreadRange(*this));
 }
 
 Function::Function(const Model& model, Type type, int original_id) :
-        Value(model, type, original_id) {
+        NamedValue(model, type, original_id) {
 }
 
-shared_ptr<Value> Function::clone() const {
-    return shared_ptr<Value>(new Function(*this));
+shared_ptr<NamedValue> Function::clone() const {
+    return shared_ptr<NamedValue>(new Function(*this));
 }
 
 FunctionTable::FunctionTable(const Model& model, Interpolation parameter, Interpolation value,
@@ -114,16 +118,193 @@ const vector<pair<double, double>>::const_iterator FunctionTable::getEndValuesXY
     return valuesXY.end();
 }
 
-shared_ptr<Value> FunctionTable::clone() const {
-    return shared_ptr<Value>(new FunctionTable(*this));
+shared_ptr<NamedValue> FunctionTable::clone() const {
+    return shared_ptr<NamedValue>(new FunctionTable(*this));
 }
 
 ConstantValue::ConstantValue(const Model&, Type type, double value, int original_id) :
-        Value(model, type, original_id), value(value) {
+        NamedValue(model, type, original_id), value(value) {
 }
 
 DynaPhase::DynaPhase(const Model&, double value, int original_id) :
         ConstantValue(model, DYNA_PHASE, value, original_id) {
+}
+
+VectorialValue::VectorialValue(double x, double y, double z) :
+		Value(Value::VECTOR), value(ublas::vector<double>(3)) {
+	value[0] = x;
+	value[1] = y;
+	value[2] = z;
+}
+
+VectorialValue::VectorialValue(ublas::vector<double>& value) :
+		Value(Value::VECTOR), value(value) {
+}
+
+VectorialValue::VectorialValue(std::initializer_list<double> init_list):
+				Value(Value::VECTOR), value(ublas::vector<double>(3)) {
+	std::copy_n(init_list.begin(),std::min((int)init_list.size(),3), value.begin());
+}
+
+VectorialValue::VectorialValue() :
+		Value(Value::VECTOR), value(ublas::vector<double>(3)) {
+}
+
+double VectorialValue::norm() const {
+	return ublas::norm_2(value);
+}
+
+bool VectorialValue::iszero() const {
+	return is_zero(value[0]) && is_zero(value[1]) && is_zero(value[2]);
+}
+
+VectorialValue VectorialValue::orthonormalized(const VectorialValue& u) const {
+	VectorialValue v = *this;
+	// https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
+	VectorialValue v2 = v - (u.dot(v) / u.dot(u)) * u;
+	return v2.normalized();
+}
+
+VectorialValue VectorialValue::normalized() const {
+	//double norm = sqrt(pow(x(), 2) + pow(y(), 2) + pow(z(), 2));
+	double norm = ublas::norm_2(value);
+    return VectorialValue(x() / norm, y() / norm, z() / norm);
+}
+
+VectorialValue VectorialValue::scaled(double factor) const {
+	return VectorialValue(x() * factor, y() * factor, z() * factor);
+}
+
+void vega::VectorialValue::scale(double factor) {
+	value[0] *= factor;
+	value[1] *= factor;
+	value[2] *= factor;
+}
+
+// Dot product with another VectorialValue
+double VectorialValue::dot(const VectorialValue &v) const {
+	return x() * v.x() + y() * v.y() + z() * v.z();
+}
+
+VectorialValue VectorialValue::cross(const VectorialValue &v) const {
+	return VectorialValue(y() * v.z() - z() * v.y(), z() * v.x() - x() * v.z(),
+			x() * v.y() - y() * v.x());
+}
+
+ostream& operator<<(ostream& os, const VectorialValue& obj) {
+	os << "[x:" << obj.x() << ",y:" << obj.y() << ",z:" << obj.z() << "]";
+	return os;
+}
+
+VectorialValue& VectorialValue::operator=(const VectorialValue& vv) {
+    value=vv.value;
+	return *this;
+}
+const VectorialValue operator+(const VectorialValue& left, const VectorialValue& right) {
+	return VectorialValue(left.x() + right.x(), left.y() + right.y(), left.z() + right.z());
+}
+const VectorialValue operator-(const VectorialValue& left, const VectorialValue& right) {
+	return VectorialValue(left.x() - right.x(), left.y() - right.y(), left.z() - right.z());
+}
+const VectorialValue operator*(const double& left, const VectorialValue& right) {
+	return VectorialValue(left * right.x(), left * right.y(), left * right.z());
+}
+
+const VectorialValue operator/(const VectorialValue& left, const double& right) {
+	return VectorialValue(left.x() / right, left.y() / right, left.z() / right);
+}
+
+
+bool operator==(const VectorialValue& left, const VectorialValue& right) {
+	double norm = max(left.norm(), right.norm());
+	if (is_zero(norm))
+		return true;
+	return (left - right).norm() / norm < 1e-8;
+}
+
+bool operator!=(const VectorialValue& left, const VectorialValue& right) {
+	return !(left==right);
+}
+
+
+const VectorialValue VectorialValue::X(1, 0, 0);
+const VectorialValue VectorialValue::Y(0, 1, 0);
+const VectorialValue VectorialValue::Z(0, 0, 1);
+const VectorialValue VectorialValue::XYZ[3] = { VectorialValue::X, VectorialValue::Y,
+		VectorialValue::Z };
+
+/**
+ * ValueOrReference
+ */
+ostream& operator<<(ostream &out, const ValueOrReference& valueOrReference) {
+	out << "ValueOrReference: ";
+	if (valueOrReference.isReference()) {
+		out << "Ref:" << valueOrReference.getReference().id;
+	} else if (valueOrReference.isEmpty()) {
+		out << "empty";
+	} else {
+		out << "value:" << valueOrReference.getValue();
+	}
+	return out;
+}
+
+const ValueOrReference ValueOrReference::EMPTY_VALUE(
+		Reference<NamedValue>(NamedValue::STEP_RANGE, Reference<NamedValue>::NO_ID, Reference<NamedValue>::NO_ID));
+
+ValueOrReference::ValueOrReference(const boost::variant<double, Reference<NamedValue>>& _value) :
+		storage(_value) {
+}
+
+ValueOrReference::ValueOrReference() :
+		storage(EMPTY_VALUE.storage) {
+}
+
+ValueOrReference::ValueOrReference(double _value) :
+		storage(_value) {
+}
+
+double ValueOrReference::getValue() const {
+	return boost::get<double>(storage);
+}
+
+Reference<NamedValue> ValueOrReference::getReference() const {
+	return boost::get<Reference<NamedValue>>(storage);
+}
+
+bool ValueOrReference::isReference() const {
+	return storage.which() == 1;
+}
+
+bool ValueOrReference::isEmpty() const {
+	return (*this) == EMPTY_VALUE;
+}
+
+bool ValueOrReference::operator==(const ValueOrReference& rhs) const {
+	bool result;
+	if (storage.which() != rhs.storage.which()) {
+		result = false;
+	} else if (storage.which() == 0) {
+		result = is_equal(getValue() , rhs.getValue());
+	} else {
+		result = (getReference() == rhs.getReference());
+	}
+	return result;
+}
+
+bool ValueOrReference::operator<(const ValueOrReference& rhs) const {
+	bool result;
+	if (storage.which() != rhs.storage.which()) {
+		result = storage.which() < rhs.storage.which();
+	} else if (storage.which() == 0) {
+		result = getValue() < rhs.getValue();
+	} else {
+		result = (getReference() < rhs.getReference());
+	}
+	return result;
+}
+
+VectorialFunction::VectorialFunction(const Function& fx, const Function& fy, const Function& fz) :
+        Value(Value::VECTORFUNCTION), _fx(fx), _fy(fy), _fz(fz) {
 }
 
 } /* namespace vega */

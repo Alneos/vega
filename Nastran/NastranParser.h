@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -435,6 +435,11 @@ private:
      * Only U0 is supported.
      */
     void parsePGAP(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * Parse the PLOAD1 keyword
+     */
+    void parsePLOAD1(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * Parse the PLOAD2 keyword

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -118,12 +118,12 @@ shared_ptr<Objective> AnalysisParameter::clone() const {
 }
 
 FrequencyValues::FrequencyValues(const Model& model, const ValueRange& valueRange, int original_id) :
-        AnalysisParameter(model, FREQUENCY_TARGET, original_id), valueRange(Value::STEP_RANGE,
-                Reference<Value>::NO_ID, valueRange.getId()) {
+        AnalysisParameter(model, FREQUENCY_TARGET, original_id), valueRange(NamedValue::STEP_RANGE,
+                Reference<NamedValue>::NO_ID, valueRange.getId()) {
 }
 
 FrequencyValues::FrequencyValues(const Model& model, int range_id, int original_id) :
-        AnalysisParameter(model, FREQUENCY_TARGET, original_id), valueRange(Value::STEP_RANGE,
+        AnalysisParameter(model, FREQUENCY_TARGET, original_id), valueRange(NamedValue::STEP_RANGE,
                 range_id) {
 }
 
@@ -132,7 +132,7 @@ const shared_ptr<ValueRange> FrequencyValues::getValueRange() const {
 }
 
 const ValuePlaceHolder FrequencyValues::getValueRangePlaceHolder() const {
-    return ValuePlaceHolder(model, valueRange.type, valueRange.original_id, Value::FREQ);
+    return ValuePlaceHolder(model, valueRange.type, valueRange.original_id, NamedValue::FREQ);
 }
 
 shared_ptr<Objective> FrequencyValues::clone() const {
@@ -150,12 +150,12 @@ shared_ptr<Objective> FrequencyBand::clone() const {
 }
 
 ModalDamping::ModalDamping(const Model& model, const FunctionTable& function_table, int original_id) :
-        AnalysisParameter(model, MODAL_DAMPING, original_id), function_table(Value::FUNCTION_TABLE,
-                Reference<Value>::NO_ID, function_table.getId()) {
+        AnalysisParameter(model, MODAL_DAMPING, original_id), function_table(NamedValue::FUNCTION_TABLE,
+                Reference<NamedValue>::NO_ID, function_table.getId()) {
 }
 
 ModalDamping::ModalDamping(const Model& model, int function_table_original_id, int original_id) :
-        AnalysisParameter(model, MODAL_DAMPING, original_id), function_table(Value::FUNCTION_TABLE,
+        AnalysisParameter(model, MODAL_DAMPING, original_id), function_table(NamedValue::FUNCTION_TABLE,
                 function_table_original_id) {
 }
 
@@ -164,7 +164,7 @@ const shared_ptr<FunctionTable> ModalDamping::getFunctionTable() const {
 }
 
 const ValuePlaceHolder ModalDamping::getFunctionTablePlaceHolder() const {
-    return ValuePlaceHolder(model, function_table.type, function_table.original_id, Value::FREQ);
+    return ValuePlaceHolder(model, function_table.type, function_table.original_id, NamedValue::FREQ);
 }
 
 shared_ptr<Objective> ModalDamping::clone() const {

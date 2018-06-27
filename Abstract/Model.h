@@ -202,7 +202,7 @@ private:
     public:
         Container<Analysis> analyses = Container<Analysis>(*this);
         Container<Objective> objectives = Container<Objective>(*this);
-        Container<Value> values = Container<Value>(*this);
+        Container<NamedValue> values = Container<NamedValue>(*this);
         Container<Loading> loadings = Container<Loading>(*this);
         Container<LoadSet> loadSets = Container<LoadSet>(*this);
         Container<Constraint> constraints = Container<Constraint>(*this);
@@ -233,7 +233,7 @@ private:
         void add(const Constraint&);
         void add(const ConstraintSet&);
         void add(const Objective&);
-        void add(const Value&);
+        void add(const NamedValue&);
         void add(const CoordinateSystem&);
         void add(const ElementSet&);
         void add(const std::shared_ptr<Material>);
@@ -246,7 +246,7 @@ private:
         std::shared_ptr<Constraint> getConstraint(int id) const; /**< Return a Constraint by its Vega Id **/
         std::shared_ptr<ConstraintSet> getConstraintSet(int id) const; /**< Return a ConstraintSet by its Vega Id **/
         std::shared_ptr<Objective> getObjective(int id) const; /**< Return an Objective by its Vega Id **/
-        std::shared_ptr<Value> getValue(int id) const; /**< Return a Value by its Vega Id **/
+        std::shared_ptr<NamedValue> getValue(int id) const; /**< Return a Value by its Vega Id **/
         std::shared_ptr<CoordinateSystem> getCoordinateSystem(int id) const; /**< Return a CoordinateSystem by its USER Id (problem somewhere?)**/
         std::shared_ptr<ElementSet> getElementSet(int id) const; /**< Return an ElementSet by its Vega Id **/
         std::shared_ptr<Material> getMaterial(int id) const; /**< Return a Material by its Vega Id **/

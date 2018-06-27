@@ -45,6 +45,13 @@ const map<Analysis::Type, string> Analysis::stringByType = {
         { UNKNOWN, "UNKNOWN" }
 };
 
+map<string,string> Analysis::to_map() const {
+    map<string, string> infos = Identifiable<Analysis>::to_map();
+    if (!label.empty())
+        infos["label"] = label;
+    return infos;
+}
+
 ostream &operator<<(ostream &out, const Analysis& analysis) {
     out << to_str(analysis);
     return out;

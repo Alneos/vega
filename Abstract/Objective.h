@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -152,7 +152,7 @@ public:
 
 class FrequencyValues: public AnalysisParameter {
 protected:
-    Reference<Value> valueRange;
+    Reference<NamedValue> valueRange;
 public:
     FrequencyValues(const Model&, const ValueRange&, int original_id = NO_ORIGINAL_ID);
     FrequencyValues(const Model&, int step_range_id, int original_id = NO_ORIGINAL_ID);
@@ -180,7 +180,7 @@ public:
 
 class ModalDamping: public AnalysisParameter {
 protected:
-    Reference<Value> function_table;
+    Reference<NamedValue> function_table;
 public:
     std::shared_ptr<Value> function;
     ModalDamping(const Model& model, const FunctionTable& function_table, int original_id =

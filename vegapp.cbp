@@ -1600,12 +1600,14 @@
 		<Unit filename="Abstract/Model.h">
 			<Option target="abstract" />
 		</Unit>
+		<Unit filename="Abstract/Object.h" />
 		<Unit filename="Abstract/Objective.cpp">
 			<Option target="abstract" />
 		</Unit>
 		<Unit filename="Abstract/Objective.h">
 			<Option target="abstract" />
 		</Unit>
+		<Unit filename="Abstract/Reference.h" />
 		<Unit filename="Abstract/SolverInterfaces.cpp">
 			<Option target="abstract" />
 		</Unit>

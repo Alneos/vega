@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -32,7 +32,7 @@
 #include <map>
 #include <vector>
 
-#include <fstream>  
+#include <fstream>
 
 namespace vega {
 
@@ -113,7 +113,7 @@ public:
 };
 
 class NonLinearElasticNature: public Nature {
-    Reference<Value> stress_strain_function_ref;
+    Reference<NamedValue> stress_strain_function_ref;
 public:
     NonLinearElasticNature(const Model&, const FunctionTable& stress_strain_function);
     NonLinearElasticNature(const Model&, const int stress_strain_function_id);

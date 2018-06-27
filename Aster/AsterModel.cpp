@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -32,10 +32,10 @@ namespace aster {
 
 namespace fs = boost::filesystem;
 
-const map<Value::ParaName, string> AsterModel::NomParaByParaName = {
-        { Value::NO_PARA_NAME, "'NO_PARA_NAME'" },
-        { Value::FREQ, "'FREQ'" },
-        { Value::AMOR, "'AMOR'" }
+const map<NamedValue::ParaName, string> AsterModel::NomParaByParaName = {
+        { NamedValue::NO_PARA_NAME, "'NO_PARA_NAME'" },
+        { NamedValue::FREQ, "'FREQ'" },
+        { NamedValue::AMOR, "'AMOR'" }
 };
 
 const map<FunctionTable::Interpolation, string> AsterModel::InterpolationByInterpolation = {

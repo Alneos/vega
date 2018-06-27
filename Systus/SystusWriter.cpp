@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -1316,7 +1316,7 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
     // First available vector
     long unsigned int vectorId = static_cast<long unsigned int>(vectors.size())+1;
     map<int, long unsigned int> localVectorIdByCoordinateSystemPos;
-    
+
     // Add vectors for Node Coordinate System
     // Remark: Element Coordinate System are not translated as vectors
     const shared_ptr<Mesh> mesh = systusModel.model->mesh;
@@ -2141,7 +2141,7 @@ void SystusWriter::writeHeader(const SystusModel& systusModel, ostream& out) {
     out << " 100000 " << systusOption << " " << systusModel.model->mesh->countNodes() << " ";
     out << systusModel.model->mesh->countCells() << " ";
     int kppr = static_cast<int>(localLoadingListName.size()) ; // KPPR: Number of loads
-    out << kppr << " "; 
+    out << kppr << " ";
 
     int numberOfDof = numberOfDofBySystusOption[systusOption];
     out << numberOfDof << " " ;                               // KP: Number of degrees of freedom per node
@@ -2268,10 +2268,10 @@ void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel,
         handleWritingWarning("Coordinate System "+ to_string(cs->type) + " is not supported. Referentiel dismissed.", "Angle Elements");
         return;
     }
-    
+
     CartesianCoordinateSystem rcs = buildElementDefaultReferentiel(systusModel, nodes, dim, celltype);
     VectorialValue angles = cs->getEulerAnglesIntrinsicZYX(&rcs); // (PSI, THETA, PHI)
-    
+
     switch (dim) {
 
     // Orientation are not allowed for 0d elements.
@@ -2388,7 +2388,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
         case ElementSet::DISCRETE_0D:
         case ElementSet::DISCRETE_1D:{
             continue;
-        }    
+        }
         case ElementSet::STIFFNESS_MATRIX:
         case ElementSet::MASS_MATRIX:
         case ElementSet::DAMPING_MATRIX:{
@@ -2457,7 +2457,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
                 writeElementLocalReferentiel(systusModel, dim, typecell, systusConnect, cell.cid, out);
             }else{
                 out << " 0";
-            } 
+            }
 
             // Writing Nodes
             for (int node : systusConnect) {
@@ -3029,7 +3029,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         ostringstream oFrequency;
         shared_ptr<ValueRange> freqValueRange = linearDynaModalFreq.getFrequencyValues()->getValueRange();
         switch (freqValueRange->type) {
-            case Value::STEP_RANGE: {
+            case NamedValue::STEP_RANGE: {
                 const StepRange& freqValueSteps = dynamic_cast<StepRange&>(*freqValueRange);
                 oFrequency << "INITIAL "  << (freqValueSteps.start - freqValueSteps.step) << endl;
                 oFrequency << " " << (freqValueSteps.end - freqValueSteps.step) << " STEP " << freqValueSteps.step;
@@ -3043,7 +3043,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         // Damping
         shared_ptr<FunctionTable> modalDampingTable = linearDynaModalFreq.getModalDamping()->getFunctionTable();
         ostringstream oDamping;
-        if ((modalDampingTable->getParaX()!=Value::FREQ)||(modalDampingTable->getParaY()!=Value::AMOR)){
+        if ((modalDampingTable->getParaX()!=NamedValue::FREQ)||(modalDampingTable->getParaY()!=NamedValue::AMOR)){
             handleWritingWarning("Dismissing damping table with wrong units ("+to_string(modalDampingTable->getParaY())+"/"+to_string(modalDampingTable->getParaX())+")", "Analysis file");
         }else{
             double firstDamping = modalDampingTable->getBeginValuesXY()->second;

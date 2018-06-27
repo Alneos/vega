@@ -32,7 +32,7 @@ public:
 	double getMemjeveux() const;
 	double getTpmax() const;
 	const std::string getModelisations(const std::shared_ptr<ElementSet>) const;
-	static const std::map<Value::ParaName, std::string> NomParaByParaName;
+	static const std::map<NamedValue::ParaName, std::string> NomParaByParaName;
 	static const std::map<FunctionTable::Interpolation, std::string> InterpolationByInterpolation;
 	static const std::map<FunctionTable::Interpolation, std::string> ProlongementByInterpolation;
 	static const std::vector<std::string> DofByPosition;

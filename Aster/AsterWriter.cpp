@@ -322,11 +322,11 @@ void AsterWriterImpl::writeAffeModele(const AsterModel& asterModel, ostream& out
 	out << "                    );" << endl << endl;
 }
 
-string AsterWriterImpl::writeValue(Value& value, ostream& out) {
+string AsterWriterImpl::writeValue(NamedValue& value, ostream& out) {
 	string concept_name;
 
 	switch (value.type) {
-	case Value::STEP_RANGE: {
+	case NamedValue::STEP_RANGE: {
 		StepRange& stepRange = dynamic_cast<StepRange&>(value);
 		ostringstream list_concept_ss;
 		list_concept_ss << "LST" << setfill('0') << setw(5) << stepRange.getId();
@@ -339,7 +339,7 @@ string AsterWriterImpl::writeValue(Value& value, ostream& out) {
 		out << "                        );" << endl << endl;
 		break;
 	}
-	case Value::SPREAD_RANGE: {
+	case NamedValue::SPREAD_RANGE: {
 //		LSF00001 = DEFI_LIST_FREQ(DEBUT=20.0,
 //		                         INTERVALLE=_F(JUSQU_A=1000.0,
 //		                                       NOMBRE=49),
@@ -362,7 +362,7 @@ string AsterWriterImpl::writeValue(Value& value, ostream& out) {
 			out << "                        );" << endl << endl;
 			break;
 		}
-	case Value::FUNCTION_TABLE: {
+	case NamedValue::FUNCTION_TABLE: {
 		FunctionTable& functionTable = dynamic_cast<FunctionTable&>(value);
 		ostringstream concept_ss;
 		concept_ss << "FCT" << setfill('0') << setw(5) << functionTable.getId();
@@ -397,7 +397,7 @@ string AsterWriterImpl::writeValue(Value& value, ostream& out) {
 		out << "                       );" << endl << endl;
 		break;
 	}
-	case Value::DYNA_PHASE:
+	case NamedValue::DYNA_PHASE:
 		break;
 	default:
 		handleWritingError(string("Not implemented"));

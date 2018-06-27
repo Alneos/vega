@@ -12,7 +12,7 @@
 #define DOF_H_
 
 #include <cfloat>
-#include "Utility.h"
+#include "Value.h"
 #include <boost/bimap.hpp>
 #include <unordered_map>
 #include <set>

@@ -46,7 +46,7 @@ public:
 		ELEMENT,
 		NONE
 	};
-	protected:
+protected:
 	const Model& model;
 	Loading(const Model&, Loading::Type, Loading::ApplicationType, const int original_id =
 			NO_ORIGINAL_ID, int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
@@ -342,14 +342,14 @@ public:
  */
 class DynamicExcitation: public Loading {
 private:
-    Reference<Value> dynaDelay;
-    Reference<Value> dynaPhase;
-    Reference<Value> functionTableB;
-    Reference<Value> functionTableP;
+    Reference<NamedValue> dynaDelay;
+    Reference<NamedValue> dynaPhase;
+    Reference<NamedValue> functionTableB;
+    Reference<NamedValue> functionTableP;
     Reference<LoadSet> loadSet;   /**< Excitation Loadset **/
 public:
-    DynamicExcitation(const Model&, const Reference<Value> dynaDelay, const Reference<Value> dynaPhase,
-            const Reference<Value> functionTableB, const Reference<Value> functionTableP, const Reference<LoadSet>, const int original_id =
+    DynamicExcitation(const Model&, const Reference<NamedValue> dynaDelay, const Reference<NamedValue> dynaPhase,
+            const Reference<NamedValue> functionTableB, const Reference<NamedValue> functionTableP, const Reference<LoadSet>, const int original_id =
                     NO_ORIGINAL_ID);
 
     std::shared_ptr<DynaPhase> getDynaDelay() const;

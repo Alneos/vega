@@ -118,6 +118,7 @@ const unordered_map<string, NastranParserImpl::parseElementFPtr> NastranParserIm
                 { "PBUSH", &NastranParserImpl::parsePBUSH },
                 { "PELAS", &NastranParserImpl::parsePELAS },
                 { "PGAP", &NastranParserImpl::parsePGAP },
+                { "PLOAD1", &NastranParserImpl::parsePLOAD1 },
                 { "PLOAD2", &NastranParserImpl::parsePLOAD2 },
                 { "PLOAD4", &NastranParserImpl::parsePLOAD4 },
                 { "PROD", &NastranParserImpl::parsePROD },
@@ -1068,7 +1069,7 @@ void NastranParserImpl::parseFREQ1(NastranTokenizer& tok, shared_ptr<Model> mode
     int count = tok.nextInt(true, 1);
 
     vega::StepRange stepRange(*model, start, step, count);
-    stepRange.setParaX(Value::FREQ);
+    stepRange.setParaX(NamedValue::FREQ);
     FrequencyValues frequencyValues(*model, stepRange, original_id);
 
     model->add(stepRange);
@@ -1083,7 +1084,7 @@ void NastranParserImpl::parseFREQ4(NastranTokenizer& tok, shared_ptr<Model> mode
     int count = tok.nextInt(true, 1);
 
     vega::SpreadRange spreadRange(*model, f1, count, f2, spread);
-    spreadRange.setParaX(Value::FREQ);
+    spreadRange.setParaX(NamedValue::FREQ);
     FrequencyValues frequencyValues(*model, spreadRange, original_id);
 
     model->add(spreadRange);
@@ -1440,9 +1441,30 @@ void NastranParserImpl::parsePBARL(NastranTokenizer& tok, shared_ptr<Model> mode
         circularSectionBeam.assignMaterial(material_id);
         circularSectionBeam.assignCellGroup(getOrCreateCellGroup(propertyId, model, "PBARL"));
         model->add(circularSectionBeam);
+    } else if (type == "I") {
+        tok.skip(4);
+        double beam_height = tok.nextDouble();
+        double lower_flange_width = tok.nextDouble();
+        double upper_flange_width = tok.nextDouble();
+        double web_thickness = tok.nextDouble();
+        double lower_flange_thickness = tok.nextDouble();
+        double upper_flange_thickness = tok.nextDouble();
+        nsm = tok.nextDouble(true, 0.0);
+        ISectionBeam iSectionBeam(*model, upper_flange_width, lower_flange_width,
+                upper_flange_thickness, lower_flange_thickness, beam_height, web_thickness,
+                Beam::EULER, nsm, propertyId);
+        iSectionBeam.assignMaterial(material_id);
+        iSectionBeam.assignCellGroup(getOrCreateCellGroup(propertyId, model, "PBARL"));
+        model->add(iSectionBeam);
     } else {
         string message = "PBARL type " + type + " not implemented.";
         handleParsingError(message, tok, model);
+    }
+
+    if (!tok.isEmptyUntilNextKeyword()) {
+        tok.skipToNextKeyword();
+        handleParsingWarning("Ignoring rest of line.", tok,
+             model);
     }
 
 }
@@ -1780,6 +1802,48 @@ void NastranParserImpl::parsePGAP(NastranTokenizer& tok, shared_ptr<Model> model
     }
 }
 
+void NastranParserImpl::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> model) {
+    UNUSEDV(tok);
+    UNUSEDV(model);
+    /*int loadset_id = tok.nextInt();
+    int eid = tok.nextInt();
+    string type = tok.nextString();
+    string scale = tok.nextString();
+    FunctionTable force = FunctionTable(*model);
+    FunctionTable moment = FunctionTable(*model);
+    double x1 = tok.nextDouble(true, 0.0);
+    double p1 = tok.nextDouble(true, 0.0);
+    double x2 = tok.nextDouble(true, -1.0);
+    double p2 = tok.nextDouble(true, 0.0);
+    if (x1 < 0) {
+        handleParsingError(string("PLOAD1 X1 is negative, this should never happen."), tok, model);
+    } else if (x1 < 0) {
+        force.setXY(0.0, 0.0);
+    }
+
+    if (x2 < 0 || is_equal(x2, x1)) {
+
+    }
+    if (type == "FY") {
+        //format2
+    } else {
+        handleParsingError(string("PLOAD1 TYPE not yet implemented."), tok, model);
+    }
+    if (scale == "FRPR") {
+        //format2
+    } else {
+        handleParsingError(string("PLOAD1 SCALE not yet implemented."), tok, model);
+    }
+    Reference<LoadSet> loadSetReference(LoadSet::LOAD, loadset_id);
+    ForceLine forceLine(*model, force, moment);
+    forceLine.addCell(eid);
+    model->addLoadingIntoLoadSet(forceLine, loadSetReference);
+    if (!model->find(loadSetReference)) {
+        LoadSet loadSet(*model, LoadSet::LOAD, loadset_id);
+        model->add(loadSet);
+    }*/
+}
+
 void NastranParserImpl::parsePLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) {
     int loadset_id = tok.nextInt();
     double p = tok.nextDouble();
@@ -1791,11 +1855,16 @@ void NastranParserImpl::parsePLOAD2(NastranTokenizer& tok, shared_ptr<Model> mod
         eid2 = tok.nextInt();
     } else {
         //format not recognized
-        handleParsingError(string("Format yet implemented."), tok, model);
+        handleParsingError(string("Format not yet implemented."), tok, model);
     }
     Reference<LoadSet> loadSetReference(LoadSet::LOAD, loadset_id);
     NormalPressionFace normalPressionFace(*model, p);
     addCellIds(normalPressionFace, eid1, eid2);
+    model->addLoadingIntoLoadSet(normalPressionFace, loadSetReference);
+    if (!model->find(loadSetReference)) {
+        LoadSet loadSet(*model, LoadSet::LOAD, loadset_id);
+        model->add(loadSet);
+    }
 }
 
 void NastranParserImpl::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -2146,21 +2215,21 @@ void NastranParserImpl::parseRLOAD2(NastranTokenizer& tok, shared_ptr<Model> mod
     if (type != "L" && type != "0")
         handleParsingError("TYPE in RLOAD2 not supported. ", tok, model);
 
-    Reference<Value> dynaDelay_ref = Reference<Value>(Value::DYNA_PHASE, delay_id);
+    Reference<NamedValue> dynaDelay_ref = Reference<NamedValue>(NamedValue::DYNA_PHASE, delay_id);
     if (delay_id == 0) {
         DynaPhase dynadelay(*model, -2*M_PI*delay);
         model->add(dynadelay);
-        dynaDelay_ref = Reference<Value>(dynadelay);
+        dynaDelay_ref = Reference<NamedValue>(dynadelay);
     }
-    Reference<Value> dynaPhase_ref = Reference<Value>(Value::DYNA_PHASE, dphase_id);
+    Reference<NamedValue> dynaPhase_ref = Reference<NamedValue>(NamedValue::DYNA_PHASE, dphase_id);
     if (dphase_id == 0) {
         DynaPhase dynaphase(*model, dphase);
         model->add(dynaphase);
-        dynaPhase_ref = Reference<Value>(dynaphase);
+        dynaPhase_ref = Reference<NamedValue>(dynaphase);
     }
-    Reference<Value> functionTableB_ref(Value::FUNCTION_TABLE, functionTableB_original_id);
+    Reference<NamedValue> functionTableB_ref(NamedValue::FUNCTION_TABLE, functionTableB_original_id);
     //TODO: should not create a ref when the P value is 0
-    Reference<Value> functionTableP_ref(Value::FUNCTION_TABLE, functionTableP_original_id);
+    Reference<NamedValue> functionTableP_ref(NamedValue::FUNCTION_TABLE, functionTableP_original_id);
 
 
 
@@ -2447,8 +2516,8 @@ void NastranParserImpl::parseTABDMP1(NastranTokenizer& tok, shared_ptr<Model> mo
         functionTable.setXY(x, y);
     }
 
-    functionTable.setParaX(Value::FREQ);
-    functionTable.setParaY(Value::AMOR);
+    functionTable.setParaX(NamedValue::FREQ);
+    functionTable.setParaY(NamedValue::AMOR);
     vega::ModalDamping modalDamping(*model, functionTable, original_id);
 
     model->add(functionTable);

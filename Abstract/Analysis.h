@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -115,6 +115,7 @@ public:
 
     virtual std::shared_ptr<Analysis> clone() const =0;
     bool validate() const override;
+    std::map<std::string, std::string> to_map() const;
 
     virtual ~Analysis();
 
