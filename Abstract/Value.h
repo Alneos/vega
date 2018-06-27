@@ -201,6 +201,7 @@ public:
     const std::vector<std::pair<double, double> >::const_iterator getBeginValuesXY() const;
     const std::vector<std::pair<double, double> >::const_iterator getEndValuesXY() const;
     std::shared_ptr<NamedValue> clone() const;
+
 };
 
 class ConstantValue: public NamedValue {

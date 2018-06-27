@@ -15,8 +15,10 @@ building:
     - whoami
     - pwd
     - which docker
-    - docker info    
+    - docker info
+  tags:     
+    - stc 
+    - docker
+    - new
   script:
-    - docker login $DOCKER_REPO --username $RUNNER_USERNAME --password $RUNNER_PASSWORD
-    - docker pull $PUBLIC_TEST_IMAGE
-    - docker run -t --rm $PUBLIC_TEST_IMAGE /bin/sh -c "source /home/vega/.bashrc && git clone --depth=50 --branch=sum2018 https://gitlab-ci-token:${CI_JOB_TOKEN}@git.irt-systemx.fr/TOP/tache-1/prestation/vega.git /home/vega/vegapp && mkdir /home/vega/vegapp/build && cd /home/vega/vegapp/build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j && ctest ."
+    - ls
