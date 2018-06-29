@@ -341,7 +341,7 @@ BOOST_AUTO_TEST_CASE( combined_loadset1 ) {
 	LoadSet loadSet1(model, LoadSet::LOAD, 1);
 	LoadSet loadSet3(model, LoadSet::LOAD, 3);
 	model.mesh->addNode(1, 0.0, 0.0, 0.0);
-	NodalForce force1 = NodalForce(model, 1, 1.0);
+	NodalForce force1 = NodalForce(model, 1, (double) 1.0);
 	model.add(force1);
 	model.addLoadingIntoLoadSet(force1, loadSet1);
 	NodalForce force3 = NodalForce(model, 1, 3.0);

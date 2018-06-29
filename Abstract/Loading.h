@@ -205,8 +205,8 @@ public:
 			double my = 0, double mz = 0, const int original_id = NO_ORIGINAL_ID,
 			int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
 protected:
-	NodalForce(const Model&, const int original_id = NO_ORIGINAL_ID,
-			int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+	//NodalForce(const Model&, const int original_id = NO_ORIGINAL_ID,
+	//		int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
 	const VectorialValue localToGlobal(int nodePosition, const VectorialValue&) const;
 	VectorialValue force;
 	VectorialValue moment;

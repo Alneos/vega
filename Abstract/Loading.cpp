@@ -97,8 +97,12 @@ const set<shared_ptr<Loading> > LoadSet::getLoadingsByType(Loading::Type loading
 
 bool LoadSet::validate() const {
 	set<shared_ptr<Loading>> loadings = getLoadings();
-	if (loadings.size() == 0 || loadings.find(0) != loadings.end())
+	if (loadings.size() == 0 ) { //or loadings.find(0) != loadings.end()) {
+        if (model.configuration.logLevel >= LogLevel::INFO) {
+            cout << "Loadset " << *this << " is not valid, no loads associated" << endl;
+        }
 		return false;
+	}
 	return true;
 }
 
@@ -233,11 +237,11 @@ void RotationNode::scale(double factor) {
 	speed *= factor;
 }
 
-NodalForce::NodalForce(const Model& model, const int original_id,
+/*NodalForce::NodalForce(const Model& model, const int original_id,
 		int coordinate_system_id) :
 		NodeLoading(model, NODAL_FORCE, original_id, coordinate_system_id), force(VectorialValue(0, 0, 0)), moment(
 				VectorialValue(0, 0, 0)) {
-}
+}*/
 
 NodalForce::NodalForce(const Model& model, const VectorialValue& force,
 		const VectorialValue& moment, const int original_id, int coordinate_system_id) :
@@ -314,7 +318,7 @@ bool NodalForce::ineffective() const {
 
 NodalForceTwoNodes::NodalForceTwoNodes(const Model& model, const int node1_id,
 		const int node2_id, double magnitude, const int original_id) :
-		NodalForce(model, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID), node_position1(
+		NodalForce(model, original_id, 0.0, 0.0, 0.0, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID), node_position1(
 				model.mesh->findOrReserveNode(node1_id)), node_position2(
 				model.mesh->findOrReserveNode(node2_id)), magnitude(magnitude) {
 }
@@ -341,7 +345,7 @@ bool NodalForceTwoNodes::ineffective() const {
 
 NodalForceFourNodes::NodalForceFourNodes(const Model& model, const int node1_id,
         const int node2_id, const int node3_id, const int node4_id, double magnitude, const int original_id) :
-        NodalForce(model, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID),
+        NodalForce(model, original_id, 0.0, 0.0, 0.0, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID),
                 node_position1(model.mesh->findOrReserveNode(node1_id)),
                 node_position2(model.mesh->findOrReserveNode(node2_id)),
                 node_position3(model.mesh->findOrReserveNode(node3_id)),
