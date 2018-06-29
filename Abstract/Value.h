@@ -64,7 +64,21 @@ public:
     virtual bool isPlaceHolder() const {
         return false;
     }
+
+    virtual void scale(double factor) = 0;
+    virtual bool iszero() const = 0;
 };
+
+/*class TriValue : public Value {
+protected:
+    TriValue(Value::Type);
+public:
+    virtual Value& vx() const = 0;
+	virtual Value& vy() const = 0;
+    virtual Value& vz() const = 0;
+    virtual void scale(double factor) = 0;
+    virtual bool iszero() const = 0;
+};*/
 
 /**
  * The generic vega::Value class is useful to store information on simple values such as a table or a function
@@ -122,6 +136,7 @@ public:
 
 /**
  * Hold parameter names of a Value
+ * TODO LD: understand why this is not a Reference ??
  */
 class ValuePlaceHolder: public NamedValue {
 public:
@@ -132,14 +147,18 @@ public:
     }
     ;
     std::shared_ptr<NamedValue> clone() const;
-
+    virtual bool iszero() const {
+        throw logic_error("Should not check placeholders for being zero");
+    }
+    virtual void scale(double factor) {
+        UNUSEDV(factor);
+        throw logic_error("Should not try to scale placeholders");
+    }
 };
 
 class ValueRange: public NamedValue {
 protected:
     ValueRange(const Model&, Type, int original_id = NO_ORIGINAL_ID);
-    public:
-    std::shared_ptr<NamedValue> clone() const;
 };
 
 class StepRange: public ValueRange {
@@ -148,7 +167,7 @@ public:
     double step;
     int count;
     double end;
-    public:
+public:
     StepRange(const Model& model, double start, double step, double end, int original_id =
             NO_ORIGINAL_ID);
     StepRange(const Model& model, double start, int count, double end, int original_id =
@@ -156,25 +175,31 @@ public:
     StepRange(const Model& model, double start, double step, int count, int original_id =
             NO_ORIGINAL_ID);
     std::shared_ptr<NamedValue> clone() const;
+    virtual void scale(double factor);
+    virtual bool iszero() const;
 };
 
+/**
+ * spread, +/- the factional amount specified for each value which occurs in the range.
+ * see Nastran FREQ4
+ */
 class SpreadRange: public ValueRange {
 public:
     const double start;
     int count;
     double end;
     double spread;
-    public:
+public:
     SpreadRange(const Model& model, double start, int count, double end, double spread, int original_id =
             NO_ORIGINAL_ID);
     std::shared_ptr<NamedValue> clone() const;
+    virtual void scale(double factor);
+    virtual bool iszero() const;
 };
 
 class Function: public NamedValue {
 protected:
     Function(const Model&, Type, int original_id = NO_ORIGINAL_ID);
-public:
-    std::shared_ptr<NamedValue> clone() const;
 };
 
 class FunctionTable: public Function {
@@ -198,22 +223,27 @@ public:
             Interpolation left = NONE, Interpolation right = NONE,
             int original_id = NO_ORIGINAL_ID);
     void setXY(const double X, const double Y);
+    void makeZero();
     const std::vector<std::pair<double, double> >::const_iterator getBeginValuesXY() const;
     const std::vector<std::pair<double, double> >::const_iterator getEndValuesXY() const;
     std::shared_ptr<NamedValue> clone() const;
-
+    virtual bool iszero() const;
+    virtual void scale(double factor);
 };
 
 class ConstantValue: public NamedValue {
 protected:
     double value;
     ConstantValue(const Model&, Type, double value, int original_id = NO_ORIGINAL_ID);
-    public:
+public:
     virtual double get() {
         return value;
     }
-    std::shared_ptr<NamedValue> clone() const {
-        return std::shared_ptr<NamedValue>(new ConstantValue(*this));
+    virtual bool iszero() const {
+        return is_zero(value);
+    }
+    virtual void scale(double factor) {
+        value *= factor;
     }
 };
 
@@ -223,13 +253,14 @@ public:
     std::shared_ptr<NamedValue> clone() const {
         return std::shared_ptr<NamedValue>(new DynaPhase(*this));
     }
+
 };
 
 /*
  * Placeholder class, put here all the methods to operate on a vector.
  * @see vega expression.pyx VectorialValue
  */
-class VectorialValue final : public Value {
+class VectorialValue final : public Value {//: public TriValue {
 	private:
 		ublas::vector<double> value;
 		VectorialValue(ublas::vector<double>& value);
@@ -278,52 +309,48 @@ class VectorialValue final : public Value {
 		static const VectorialValue XYZ[3];
 	};
 
-	/**
-	 * Tri-state class: it can represent a double value, a reference or an empty value.
-	 * It can be used in every place where a solver can put
-	 */
-	class ValueOrReference
-		final {
-			boost::variant<double, Reference<NamedValue>> storage;
-        public:
-			static const ValueOrReference EMPTY_VALUE;
-			ValueOrReference();
-			ValueOrReference(double);
-			ValueOrReference(const boost::variant<double, Reference<NamedValue>>& value);
-			double getValue() const;
-			Reference<NamedValue> getReference() const;
-			bool isReference() const;
-			bool isEmpty() const;
-			bool operator==(const ValueOrReference& rhs) const;
-			bool operator!=(const ValueOrReference& rhs) const {
-				return !(*this == rhs);
-			}
-			;
-			bool operator<(const ValueOrReference& rhs) const;
-		};
-
-	ostream& operator<<(ostream &out, const ValueOrReference& valueOrReference);
-
-	class VectorialFunction final : public Value {
-    private:
-		const Function _fx;
-		const Function _fy;
-		const Function _fz;
-    protected:
-        VectorialFunction();
+/**
+ * Tri-state class: it can represent a double value, a reference or an empty value.
+ * It can be used in every place where a solver can put
+ */
+class ValueOrReference
+    final {
+        boost::variant<double, Reference<NamedValue>> storage;
     public:
-        VectorialFunction(const Function&, const Function&, const Function&);
-        inline Function fx() const {
-			return _fx;
+        static const ValueOrReference EMPTY_VALUE;
+        ValueOrReference();
+        ValueOrReference(double);
+        ValueOrReference(const boost::variant<double, Reference<NamedValue>>& value);
+        double getValue() const;
+        Reference<NamedValue> getReference() const;
+        bool isReference() const;
+        bool isEmpty() const;
+        bool operator==(const ValueOrReference& rhs) const;
+        bool operator!=(const ValueOrReference& rhs) const {
+            return !(*this == rhs);
         }
-		inline Function fy() const {
-			return _fy;
-		}
+        ;
+        bool operator<(const ValueOrReference& rhs) const;
+    };
 
-		inline Function fz() const {
-			return _fz;
-		}
-	};
+ostream& operator<<(ostream &out, const ValueOrReference& valueOrReference);
+
+class VectorialFunction final : public NamedValue {//: public TriValue {
+private:
+    Function& _fx;
+    Function& _fy;
+    Function& _fz;
+public:
+    VectorialFunction(const Model&, Function& fx, Function& fy, Function& fz, int original_id = NO_ORIGINAL_ID);
+    inline Function& x() const { return _fx;};
+    inline Function& y() const { return _fy;};
+    inline Function& z() const { return _fz;};
+    void scale(double factor);
+    bool iszero() const;
+    std::shared_ptr<NamedValue> clone() const {
+        return std::shared_ptr<NamedValue>(new VectorialFunction(*this));
+    }
+};
 
 } /* namespace vega */
 

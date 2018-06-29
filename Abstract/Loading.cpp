@@ -494,9 +494,9 @@ vector<int> PressionFaceTwoNodes::getApplicationFace() const {
 	return nodeIds;
 }
 
-ForceLine::ForceLine(const Model& model, const VectorialValue& force, const VectorialValue& moment,
+ForceLine::ForceLine(const Model& model, const VectorialValue& force, const VectorialValue& torque,
 		const int original_id) :
-		ElementLoading(model, FORCE_LINE, original_id), force(force), moment(moment) {
+		ElementLoading(model, FORCE_LINE, original_id), force(force), torque(torque) {
 
 }
 
@@ -510,11 +510,11 @@ const DOFS ForceLine::getDOFSForNode(int nodePosition) const {
 			dofs = dofs + DOF::DY;
 		if (!is_zero(force.z()))
 			dofs = dofs + DOF::DZ;
-		if (!is_zero(moment.x()))
+		if (!is_zero(torque.x()))
 			dofs = dofs + DOF::RX;
-		if (!is_zero(moment.y()))
+		if (!is_zero(torque.y()))
 			dofs = dofs + DOF::RY;
-		if (!is_zero(moment.z()))
+		if (!is_zero(torque.z()))
 			dofs = dofs + DOF::RZ;
 	}
 	return dofs;
@@ -526,14 +526,46 @@ shared_ptr<Loading> ForceLine::clone() const {
 
 void ForceLine::scale(double factor) {
 	force.scale(factor);
-	moment.scale(factor);
+	torque.scale(factor);
 }
 
 bool ForceLine::ineffective() const {
-	return force.iszero() and moment.iszero();
+	return force.iszero() and torque.iszero();
 }
 
 bool ForceLine::validate() const {
+	return true;
+}
+
+ForceLineComponent::ForceLineComponent(const Model& model, const shared_ptr<NamedValue> force, DOF dof,
+			const int original_id) :
+		ElementLoading(model, FORCE_LINE_COMPONENT, original_id), force(force), dof(dof) {
+
+}
+
+const DOFS ForceLineComponent::getDOFSForNode(int nodePosition) const {
+	DOFS dofs(DOFS::NO_DOFS);
+	set<int> nodes = nodePositions();
+	if (nodes.find(nodePosition) != nodes.end()) {
+		if (!force->iszero())
+			dofs = dof;
+	}
+	return dofs;
+}
+
+shared_ptr<Loading> ForceLineComponent::clone() const {
+	return shared_ptr<Loading>(new ForceLineComponent(*this));
+}
+
+void ForceLineComponent::scale(double factor) {
+	force->scale(factor);
+}
+
+bool ForceLineComponent::ineffective() const {
+	return force->iszero();
+}
+
+bool ForceLineComponent::validate() const {
 	return true;
 }
 

@@ -98,6 +98,7 @@ public:
 	bool operator==(const char other) const;
 	DOFS& operator+=(const DOFS& other );
 	DOFS& operator+=(const DOF& other );
+	DOFS& operator=(const DOF& dof);
 	int size();
 	int nastranCode() const;
 

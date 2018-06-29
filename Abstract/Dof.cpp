@@ -134,8 +134,13 @@ bool DOFS::operator ==(const char other) const {
 	return this->dofsCode == other;
 }
 
-DOFS& DOFS::operator+=(const DOF& other) {
-	this->dofsCode |= static_cast<char>(other.code);
+DOFS& DOFS::operator+=(const DOF& dof) {
+	this->dofsCode |= static_cast<char>(dof.code);
+	return *this;
+}
+
+DOFS& DOFS::operator=(const DOF& dof) {
+	this->dofsCode = static_cast<char>(dof.code);
 	return *this;
 }
 

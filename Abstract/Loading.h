@@ -37,6 +37,7 @@ public:
 		GRAVITY,
 		ROTATION,
 		FORCE_LINE,
+		FORCE_LINE_COMPONENT,
 		NODAL_FORCE,
 		NORMAL_PRESSION_FACE,
 		COMBINED_LOADING
@@ -307,8 +308,30 @@ class ForceLine: public ElementLoading {
 public:
 
 	VectorialValue force;
-	VectorialValue moment;
-	ForceLine(const Model&, const VectorialValue& force, const VectorialValue& moment,
+	VectorialValue torque;
+	ForceLine(const Model&, const VectorialValue& force, const VectorialValue& torque,
+			const int original_id = NO_ORIGINAL_ID);
+
+	virtual std::shared_ptr<Loading> clone() const override;
+	const DOFS getDOFSForNode(int nodePosition) const override;
+	void scale(double factor) override;
+	bool ineffective() const override;
+	SpaceDimension getLoadingDimension() const {
+		return SpaceDimension::DIMENSION_1D;
+	}
+	bool validate() const override;
+
+};
+
+/**
+ Responsible of being a force applied to a line (i.e. a Pressure over a Bar)
+ */
+class ForceLineComponent: public ElementLoading {
+public:
+
+	std::shared_ptr<NamedValue> force;
+	DOF dof;
+    ForceLineComponent(const Model&, const std::shared_ptr<NamedValue> force, DOF component,
 			const int original_id = NO_ORIGINAL_ID);
 
 	virtual std::shared_ptr<Loading> clone() const override;

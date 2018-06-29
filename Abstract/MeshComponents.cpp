@@ -492,6 +492,11 @@ string Cell::getMedName() const {
 	return string("M") + lexical_cast<string>(id);
 }
 
+shared_ptr<OrientationCoordinateSystem> Cell::getOrientation(const Model* model) const {
+    shared_ptr<CoordinateSystem> cs = model->getCoordinateSystemByPosition(cid);
+    return static_pointer_cast<OrientationCoordinateSystem>(cs);
+}
+
 Cell::~Cell() {
 }
 

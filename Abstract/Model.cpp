@@ -34,7 +34,6 @@ Model::Model(string name, string inputSolverVersion, SolverName inputSolver,
     this->finished = false;
     this->onlyMesh = false;
     this->coordinateSystemStorage = shared_ptr<CoordinateSystemStorage>(new CoordinateSystemStorage(this, configuration.logLevel));
-
 }
 
 Model::~Model() {
@@ -267,10 +266,6 @@ std::shared_ptr<ElementSet> Model::getElementSet(int id) const {
 std::shared_ptr<Material> Model::getMaterial(int id) const {
     return materials.get(id);
 }
-
-
-
-
 
 int Model::addOrFindOrientation(const OrientationCoordinateSystem & ocs){
 

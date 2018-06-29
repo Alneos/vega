@@ -41,11 +41,11 @@ inline bool is_equal(double x, double y, double tolerance = DOUBLE_COMPARE_TOLER
 
 namespace ublas = boost::numeric::ublas;
 
-	/**
-	 * The following code inverts the matrix input using LU-decomposition with backsubstitution of unit vectors. Reference: Numerical Recipies in C, 2nd ed., by Press, Teukolsky, Vetterling & Flannery.
-	 * From https://gist.github.com/lilac/2464434
-	 */
-	bool InvertMatrix(const ublas::matrix<double>& input, ublas::matrix<double>& inverse);
+/**
+ * The following code inverts the matrix input using LU-decomposition with backsubstitution of unit vectors. Reference: Numerical Recipies in C, 2nd ed., by Press, Teukolsky, Vetterling & Flannery.
+ * From https://gist.github.com/lilac/2464434
+ */
+bool InvertMatrix(const ublas::matrix<double>& input, ublas::matrix<double>& inverse);
 
 		} /* namespace vega */
 #endif /* UTILITY_H_ */

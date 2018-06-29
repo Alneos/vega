@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -135,7 +135,7 @@ public:
         POLY18_CODE = MED_POLY18,
         POLY19_CODE = MED_POLY19,
         POLY20_CODE = MED_POLY20,
-	
+
         //type for reserved (but not yet defined) cells
         RESERVED = -1
     };
@@ -168,9 +168,9 @@ public:
     static const CellType HEXA27;
     //static const CellType POLYHED;
     static const CellType POLY3;
-    static const CellType POLY4; 
+    static const CellType POLY4;
     static const CellType POLY5;
-    static const CellType POLY6; 
+    static const CellType POLY6;
     static const CellType POLY7;
     static const CellType POLY8;
     static const CellType POLY9;
@@ -274,7 +274,7 @@ private:
 public:
     static const int AUTO_ID = INT_MIN;
     static const int UNAVAILABLE_NODE = INT_MIN;
-    
+
     /**
      * Compute (x,y,z) the position of the Node in the Global Coordinate System
      * from (lx,ly,lz) the position of the Node in the Local Coordinate System.
@@ -364,6 +364,8 @@ public:
      * Returns the name used in med file for this cell
      */
     std::string getMedName() const;
+
+    std::shared_ptr<OrientationCoordinateSystem> getOrientation(const Model* model = nullptr) const;
 
     virtual ~Cell();
 };

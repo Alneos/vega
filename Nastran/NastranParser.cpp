@@ -1803,45 +1803,83 @@ void NastranParserImpl::parsePGAP(NastranTokenizer& tok, shared_ptr<Model> model
 }
 
 void NastranParserImpl::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> model) {
-    UNUSEDV(tok);
-    UNUSEDV(model);
-    /*int loadset_id = tok.nextInt();
+    int loadset_id = tok.nextInt();
     int eid = tok.nextInt();
     string type = tok.nextString();
     string scale = tok.nextString();
-    FunctionTable force = FunctionTable(*model);
-    FunctionTable moment = FunctionTable(*model);
+    FunctionTable force = FunctionTable(*model, FunctionTable::LINEAR, FunctionTable::LINEAR, FunctionTable::CONSTANT, FunctionTable::CONSTANT);
+    model->add(force);
+    DOF dof = DOF::DX;
     double x1 = tok.nextDouble(true, 0.0);
     double p1 = tok.nextDouble(true, 0.0);
     double x2 = tok.nextDouble(true, -1.0);
     double p2 = tok.nextDouble(true, 0.0);
-    if (x1 < 0) {
-        handleParsingError(string("PLOAD1 X1 is negative, this should never happen."), tok, model);
-    } else if (x1 < 0) {
-        force.setXY(0.0, 0.0);
-    }
+    int smalldistancefactor = 1000;
 
-    if (x2 < 0 || is_equal(x2, x1)) {
-
-    }
-    if (type == "FY") {
-        //format2
-    } else {
+    if (type == "FX")
+        dof = DOF::DX;
+    else if (type == "FY")
+        dof = DOF::DY;
+    else if (type == "FZ")
+        dof = DOF::DZ;
+    else if (type == "MX")
+        dof = DOF::RX;
+    else if (type == "MY")
+        dof = DOF::RY;
+    else if (type == "MZ")
+        dof = DOF::RZ;
+    else
         handleParsingError(string("PLOAD1 TYPE not yet implemented."), tok, model);
-    }
+
+    double effx1, effx2, effp1, effp2;
+
     if (scale == "FRPR") {
-        //format2
+        /* If SCALE = FRPR (fractional projected), the Xi values are ratios of the actual distance to the length of the bar
+         * and (X1 ≠ X2) the distributed load is input in terms of the projected length of the bar.*/
+        effx1 = x1;
+        effx2 = x2;
+        effp1 = p1;
+        effp2 = p2;
+    } else if (scale == "LE") {
+        /* If SCALE = LE, the total load applied to the bar is P1(X2 - X1) in the yb direction. */
+        // TODO LD: encapsulate all this in mesh/cell/node (but it needs model)
+        int cellPos = model->mesh->findCellPosition(eid);
+        Cell cell = model->mesh->findCell(cellPos);
+        std::shared_ptr<OrientationCoordinateSystem> ocs = cell.getOrientation(model.get());
+        Node firstNode = model->mesh->findNode(cell.nodePositions.front());
+        firstNode.buildGlobalXYZ(model.get());
+        Node lastNode = model->mesh->findNode(cell.nodePositions.back());
+        lastNode.buildGlobalXYZ(model.get());
+        VectorialValue barvect = VectorialValue(lastNode.x - firstNode.x, lastNode.y - firstNode.y, lastNode.z - firstNode.z);
+        double dist = barvect.norm();
+        /* If SCALE = LE (length), the Xi values are actual distances along the bar x-axis,
+         * and (if X1 ≠ X2) Pi are load intensities per unit length of the bar. */
+        effx1 = x1 * dist;
+        effx2 = x2 * dist;
+        effp1 = p1;
+        effp2 = p2;
     } else {
         handleParsingError(string("PLOAD1 SCALE not yet implemented."), tok, model);
     }
+
+    force.setXY(effx1 - effx1 / smalldistancefactor, 0.0);
+    force.setXY(effx1, effp1);
+    if (x2 < 0 || is_equal(x2, x1)) {
+        // If X2 is blank or equal to X1, a concentrated load of value P1 will be applied at position X1.
+        force.setXY(effx1 + effx1 / smalldistancefactor, 0.0);
+    } else {
+        force.setXY(effx2, effp2);
+        force.setXY(effx2 + effx2 / smalldistancefactor, 0.0);
+    }
+
     Reference<LoadSet> loadSetReference(LoadSet::LOAD, loadset_id);
-    ForceLine forceLine(*model, force, moment);
+    ForceLineComponent forceLine(*model, make_shared<FunctionTable>(force), dof);
     forceLine.addCell(eid);
     model->addLoadingIntoLoadSet(forceLine, loadSetReference);
     if (!model->find(loadSetReference)) {
         LoadSet loadSet(*model, LoadSet::LOAD, loadset_id);
         model->add(loadSet);
-    }*/
+    }
 }
 
 void NastranParserImpl::parsePLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) {

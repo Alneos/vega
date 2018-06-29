@@ -1114,14 +1114,14 @@ void AsterWriterImpl::writeForceLine(const LoadSet& loadset, ostream& out) {
 			if (!is_zero(forceLine->force.z())) {
 				out << "FZ=" << forceLine->force.z() << ",";
 			}
-			if (!is_zero(forceLine->moment.x())) {
-				out << "MX=" << forceLine->moment.x() << ",";
+			if (!is_zero(forceLine->torque.x())) {
+				out << "MX=" << forceLine->torque.x() << ",";
 			}
-			if (!is_zero(forceLine->moment.y())) {
-				out << "MY=" << forceLine->moment.y() << ",";
+			if (!is_zero(forceLine->torque.y())) {
+				out << "MY=" << forceLine->torque.y() << ",";
 			}
-			if (!is_zero(forceLine->moment.z())) {
-				out << "MZ=" << forceLine->moment.z() << ",";
+			if (!is_zero(forceLine->torque.z())) {
+				out << "MZ=" << forceLine->torque.z() << ",";
 			}
 			ForceLine & forceLineRef = *forceLine;
 			writeCellContainer(forceLineRef, out);

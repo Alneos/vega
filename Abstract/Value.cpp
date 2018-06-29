@@ -31,6 +31,8 @@ namespace vega {
 Value::Value(Value::Type type) : type(type) {
 }
 
+/*TriValue::TriValue(Value::Type type) : Value(type) {
+}*/
 
 const string NamedValue::name = "NamedValue";
 
@@ -52,15 +54,11 @@ ValuePlaceHolder::ValuePlaceHolder(const Model& model, Type type, int original_i
 }
 
 shared_ptr<NamedValue> ValuePlaceHolder::clone() const {
-    return shared_ptr<NamedValue>(new ValuePlaceHolder(*this));
+    return make_shared<ValuePlaceHolder>(*this);
 }
 
 ValueRange::ValueRange(const Model& model, Type type, int original_id) :
         NamedValue(model, type, original_id) {
-}
-
-shared_ptr<NamedValue> ValueRange::clone() const {
-    return shared_ptr<NamedValue>(new ValueRange(*this));
 }
 
 StepRange::StepRange(const Model& model, double start, double step, double end, int original_id) :
@@ -80,7 +78,16 @@ StepRange::StepRange(const Model& model, double start, double step, int count, i
 }
 
 shared_ptr<NamedValue> StepRange::clone() const {
-    return shared_ptr<NamedValue>(new StepRange(*this));
+    return make_shared<StepRange>(*this);
+}
+
+bool StepRange::iszero() const {
+    return is_equal(start, end) || count == 0 || is_equal(step, 0);
+}
+
+void StepRange::scale(double factor) {
+    UNUSEDV(factor);
+    throw logic_error("Should not try to scale stepranges");
 }
 
 SpreadRange::SpreadRange(const Model& model, double start, int count, double end, double spread, int original_id) :
@@ -89,15 +96,20 @@ SpreadRange::SpreadRange(const Model& model, double start, int count, double end
 }
 
 shared_ptr<NamedValue> SpreadRange::clone() const {
-    return shared_ptr<NamedValue>(new SpreadRange(*this));
+    return make_shared<SpreadRange>(*this);
+}
+
+bool SpreadRange::iszero() const {
+    return is_equal(start, end) || count == 0;
+}
+
+void SpreadRange::scale(double factor) {
+    UNUSEDV(factor);
+    throw logic_error("Should not try to scale spreadranges");
 }
 
 Function::Function(const Model& model, Type type, int original_id) :
         NamedValue(model, type, original_id) {
-}
-
-shared_ptr<NamedValue> Function::clone() const {
-    return shared_ptr<NamedValue>(new Function(*this));
 }
 
 FunctionTable::FunctionTable(const Model& model, Interpolation parameter, Interpolation value,
@@ -110,6 +122,10 @@ void FunctionTable::setXY(const double X, const double Y) {
     valuesXY.push_back(pair<double, double>(X, Y));
 }
 
+void FunctionTable::makeZero() {
+    ;
+}
+
 const vector<pair<double, double>>::const_iterator FunctionTable::getBeginValuesXY() const {
     return valuesXY.begin();
 }
@@ -119,7 +135,17 @@ const vector<pair<double, double>>::const_iterator FunctionTable::getEndValuesXY
 }
 
 shared_ptr<NamedValue> FunctionTable::clone() const {
-    return shared_ptr<NamedValue>(new FunctionTable(*this));
+    return make_shared<FunctionTable>(*this);
+}
+
+bool FunctionTable::iszero() const {
+    return std::all_of(valuesXY.begin(), valuesXY.end(), [](pair<double, double> xy) { return is_zero(xy.second); });
+}
+
+void FunctionTable::scale(double factor) {
+    for(auto& xy: valuesXY) {
+            xy.second *= factor;
+    }
 }
 
 ConstantValue::ConstantValue(const Model&, Type type, double value, int original_id) :
@@ -303,8 +329,18 @@ bool ValueOrReference::operator<(const ValueOrReference& rhs) const {
 	return result;
 }
 
-VectorialFunction::VectorialFunction(const Function& fx, const Function& fy, const Function& fz) :
-        Value(Value::VECTORFUNCTION), _fx(fx), _fy(fy), _fz(fz) {
+VectorialFunction::VectorialFunction(const Model& model, Function& fx, Function& fy, Function& fz, int original_id) :
+        NamedValue(model, Value::VECTORFUNCTION, original_id), _fx(fx), _fy(fy), _fz(fz) {
+}
+
+void VectorialFunction::scale(double factor) {
+    _fx.scale(factor);
+    _fy.scale(factor);
+    _fz.scale(factor);
+}
+
+bool VectorialFunction::iszero() const {
+    return _fx.iszero() && _fy.iszero() && _fz.iszero();
 }
 
 } /* namespace vega */
