@@ -89,7 +89,8 @@ public:
         NO_PARA_NAME,
         FREQ,
         INST,
-        AMOR
+        AMOR,
+        PARAX
     };
 
 private:

@@ -35,7 +35,8 @@ namespace fs = boost::filesystem;
 const map<NamedValue::ParaName, string> AsterModel::NomParaByParaName = {
         { NamedValue::NO_PARA_NAME, "'NO_PARA_NAME'" },
         { NamedValue::FREQ, "'FREQ'" },
-        { NamedValue::AMOR, "'AMOR'" }
+        { NamedValue::AMOR, "'AMOR'" },
+        { NamedValue::PARAX, "'X'" }
 };
 
 const map<FunctionTable::Interpolation, string> AsterModel::InterpolationByInterpolation = {

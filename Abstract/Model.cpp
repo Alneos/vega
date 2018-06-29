@@ -513,7 +513,9 @@ const set<shared_ptr<Loading>> Model::getLoadingsByLoadSet(
     auto itm = loadingReferences_by_loadSet_ids.find(loadSetReference.id);
     if (itm != loadingReferences_by_loadSet_ids.end()) {
         for (auto itm2 : itm->second) {
-            result.insert(find(*itm2));
+            shared_ptr<Loading> loading = find(*itm2);
+            assert(loading != nullptr);
+            result.insert(loading);
         }
     }
     auto itm2 = loadingReferences_by_loadSet_original_ids_by_loadSet_type.find(
@@ -522,7 +524,9 @@ const set<shared_ptr<Loading>> Model::getLoadingsByLoadSet(
         auto itm3 = itm2->second.find(loadSetReference.original_id);
         if (itm3 != itm2->second.end()) {
             for (auto itm4 : itm3->second) {
-                result.insert(find(*itm4));
+                shared_ptr<Loading> loading = find(*itm4);
+                assert(loading != nullptr);
+                result.insert(loading);
             }
         }
     }

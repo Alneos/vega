@@ -1813,8 +1813,8 @@ void NastranParserImpl::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> mod
     int eid = tok.nextInt();
     string type = tok.nextString();
     string scale = tok.nextString();
-    FunctionTable force = FunctionTable(*model, FunctionTable::LINEAR, FunctionTable::LINEAR, FunctionTable::CONSTANT, FunctionTable::CONSTANT);
-    model->add(force);
+    shared_ptr<FunctionTable> force = make_shared<FunctionTable>(*model, FunctionTable::LINEAR, FunctionTable::LINEAR, FunctionTable::CONSTANT, FunctionTable::CONSTANT);
+    force->setParaX(FunctionTable::PARAX);
     DOF dof = DOF::DX;
     double x1 = tok.nextDouble(true, 0.0);
     double p1 = tok.nextDouble(true, 0.0);
@@ -1868,18 +1868,19 @@ void NastranParserImpl::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> mod
         handleParsingError(string("PLOAD1 SCALE not yet implemented."), tok, model);
     }
 
-    force.setXY(effx1 - effx1 / smalldistancefactor, 0.0);
-    force.setXY(effx1, effp1);
+    if (effx1 > 0.0)
+        force->setXY(effx1 - effx1 / smalldistancefactor, 0.0);
+    force->setXY(effx1, effp1);
     if (x2 < 0 || is_equal(x2, x1)) {
         // If X2 is blank or equal to X1, a concentrated load of value P1 will be applied at position X1.
-        force.setXY(effx1 + effx1 / smalldistancefactor, 0.0);
+        force->setXY(effx1 + effx1 / smalldistancefactor, 0.0);
     } else {
-        force.setXY(effx2, effp2);
-        force.setXY(effx2 + effx2 / smalldistancefactor, 0.0);
+        force->setXY(effx2, effp2);
+        force->setXY(effx2 + effx2 / smalldistancefactor, 0.0);
     }
-
+    model->add(*force);
     Reference<LoadSet> loadSetReference(LoadSet::LOAD, loadset_id);
-    ForceLineComponent forceLine(*model, make_shared<FunctionTable>(force), dof);
+    ForceLineComponent forceLine(*model, force, dof);
     forceLine.addCell(eid);
     model->add(forceLine);
     model->addLoadingIntoLoadSet(forceLine, loadSetReference);

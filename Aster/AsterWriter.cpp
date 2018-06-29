@@ -642,9 +642,16 @@ void AsterWriterImpl::writeAffeCaraElemPoutre(const ElementSet& elementSet, ostr
 				static_cast<const Beam&>(elementSet);
 		out << max(std::numeric_limits<double>::epsilon(), beam.getAreaCrossSection()) << ","
 				<< max(std::numeric_limits<double>::epsilon(), beam.getMomentOfInertiaY()) << "," << max(std::numeric_limits<double>::epsilon(), beam.getMomentOfInertiaZ())
-				<< "," << beam.getTorsionalConstant() << ","
-				<< beam.getShearAreaFactorY() << ","
-				<< beam.getShearAreaFactorZ();
+				<< "," << max(std::numeric_limits<double>::epsilon(), beam.getTorsionalConstant()) << ",";
+        if (! is_zero(beam.getShearAreaFactorY()))
+            out << 1.0 / beam.getShearAreaFactorY();
+        else
+            out << 1.0;
+        out << ",";
+        if (! is_zero(beam.getShearAreaFactorZ()))
+            out << 1.0 / beam.getShearAreaFactorZ();
+        else
+            out << 1.0;
 		out << ")," << endl;
 	}
 	out << "                               )," << endl;
