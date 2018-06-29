@@ -40,7 +40,8 @@ public:
 		FORCE_LINE_COMPONENT,
 		NODAL_FORCE,
 		NORMAL_PRESSION_FACE,
-		COMBINED_LOADING
+		COMBINED_LOADING,
+		INITIAL_TEMPERATURE
 	};
 	enum ApplicationType {
 		NODE,
@@ -193,7 +194,7 @@ class RotationNode: public Rotation {
 };
 
 /**
- * Base class for all forces applied on a single node.
+ * Base class for all forces applied on nodes
  */
 class NodalForce: public NodeLoading {
 public:
@@ -399,6 +400,18 @@ public:
     std::shared_ptr<Loading> clone() const override;
     bool validate() const override;
     bool ineffective() const override;
+};
+
+class InitialTemperature: public NodeLoading {
+public:
+	InitialTemperature(const Model&, double temperature, const int original_id = NO_ORIGINAL_ID);
+protected:
+	double temperature;
+public:
+	const DOFS getDOFSForNode(int nodePosition) const override;
+	std::shared_ptr<Loading> clone() const override;
+	void scale(double factor) override;
+	bool ineffective() const override;
 };
 
 } /* namespace vega */

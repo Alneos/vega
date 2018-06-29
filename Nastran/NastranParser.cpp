@@ -138,6 +138,7 @@ const unordered_map<string, NastranParserImpl::parseElementFPtr> NastranParserIm
                 { "SPOINT", &NastranParserImpl::parseSPOINT },
                 { "TABDMP1", &NastranParserImpl::parseTABDMP1 },
                 { "TABLED1", &NastranParserImpl::parseTABLED1 },
+                { "TEMP", &NastranParserImpl::parseTEMP },
                 { "GRDSET", &NastranParserImpl::parseGRDSET }
         };
 
@@ -2614,6 +2615,40 @@ void NastranParserImpl::parseTABLED1(NastranTokenizer& tok, shared_ptr<Model> mo
 
     model->add(functionTable);
 
+}
+
+void NastranParserImpl::parseTEMP(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int sid = tok.nextInt();
+    Reference<vega::LoadSet> loadset_ref(LoadSet::LOAD, sid);
+    int g1 = tok.nextInt();
+    double t1 = tok.nextDouble();
+    InitialTemperature temp1(*model, t1);
+    temp1.addNode(g1);
+    model->add(temp1);
+    model->addLoadingIntoLoadSet(temp1, loadset_ref);
+
+    if (tok.isNextInt()) {
+        int g2 = tok.nextInt();
+        double t2 = tok.nextDouble();
+        InitialTemperature temp2(*model, t2);
+        temp2.addNode(g2);
+        model->add(temp2);
+        model->addLoadingIntoLoadSet(temp2, loadset_ref);
+    }
+
+    if (tok.isNextInt()) {
+        int g3 = tok.nextInt();
+        double t3 = tok.nextDouble();
+        InitialTemperature temp3(*model, t3);
+        temp3.addNode(g3);
+        model->add(temp3);
+        model->addLoadingIntoLoadSet(temp3, loadset_ref);
+    }
+
+    if (!model->find(loadset_ref)) {
+        LoadSet loadSet(*model, LoadSet::LOAD, sid);
+        model->add(loadSet);
+    }
 }
 
 

@@ -559,6 +559,10 @@ private:
      */
     void parseTABLED1(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
+    /**
+     * Parse the keyword TEMP (page 2572 of MDN Nastran 2006 Quick Reference Guide.)
+     */
+    void parseTEMP(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     string parseSubcase(NastranTokenizer& tok, std::shared_ptr<Model> model, map<string, string> context);
 

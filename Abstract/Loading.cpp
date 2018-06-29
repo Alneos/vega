@@ -339,7 +339,7 @@ void NodalForceTwoNodes::scale(double factor) {
 }
 
 bool NodalForceTwoNodes::ineffective() const {
-	return is_zero(magnitude) or getForce().iszero();
+	return is_zero(magnitude) or force.iszero();
 }
 
 NodalForceFourNodes::NodalForceFourNodes(const Model& model, const int node_id, const int node1_id,
@@ -371,7 +371,7 @@ void NodalForceFourNodes::scale(double factor) {
 }
 
 bool NodalForceFourNodes::ineffective() const {
-    return is_zero(magnitude) or getForce().iszero();
+    return is_zero(magnitude) or force.iszero();
 }
 
 ElementLoading::ElementLoading(const Model& model, Loading::Type type, int original_id,
@@ -660,13 +660,34 @@ shared_ptr<Loading> DynamicExcitation::clone() const {
     return shared_ptr<Loading>(new DynamicExcitation(*this));
 }
 
-//TODO: Validate should be a bit more complex
 bool DynamicExcitation::validate() const {
+    //TODO: Validate should be a bit more complex
     return getLoadSet() && getFunctionTableB() && getDynaPhase() && getDynaDelay();
 }
 
 bool DynamicExcitation::ineffective() const {
     return false;
+}
+
+InitialTemperature::InitialTemperature(const Model& model, const double temperature, const int original_id) :
+                NodeLoading(model, INITIAL_TEMPERATURE, original_id), temperature(temperature) {
+}
+
+shared_ptr<Loading> InitialTemperature::clone() const {
+	return make_shared<InitialTemperature>(*this);
+}
+
+const DOFS InitialTemperature::getDOFSForNode(int nodePosition) const {
+    UNUSEDV(nodePosition);
+    return DOFS::NO_DOFS;
+}
+
+void InitialTemperature::scale(double factor) {
+	temperature *= factor;
+}
+
+bool InitialTemperature::ineffective() const {
+	return is_zero(temperature);
 }
 
 } /* namespace vega */
