@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE( test_NodeGroup ) {
 		mesh.addNode(nodeIds[i / 3], coords[i], coords[i + 1], coords[i + 2]);
 	}
 	NodeGroup* nodes = mesh.findOrCreateNodeGroup("test", 5);
-	nodes->addNodes(nodeIds.begin(), nodeIds.end());
+	std::for_each(nodeIds.begin(), nodeIds.end(), [&nodes](int &nodeId){ nodes->addNode(nodeId); });
 	mesh.finish();
 	//find the group by name
 	NodeGroup* testGroup = static_cast<NodeGroup *>(mesh.findGroup("test"));

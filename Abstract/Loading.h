@@ -198,22 +198,21 @@ class RotationNode: public Rotation {
  */
 class NodalForce: public NodeLoading {
 public:
-	NodalForce(const Model&, int node_id, const VectorialValue& force, const VectorialValue& moment,
+	NodalForce(const Model&, const VectorialValue& force, const VectorialValue& moment,
 			const int original_id = NO_ORIGINAL_ID, int coordinateSystemId =
 					CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-	NodalForce(const Model&, int node_id, double fx, double fy = 0, double fz = 0, double mx = 0,
+	NodalForce(const Model&, double fx, double fy = 0, double fz = 0, double mx = 0,
 			double my = 0, double mz = 0, const int original_id = NO_ORIGINAL_ID,
 			int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
 protected:
-	NodalForce(const Model&, int node_id, const int original_id = NO_ORIGINAL_ID,
+	NodalForce(const Model&, const int original_id = NO_ORIGINAL_ID,
 			int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
 	const VectorialValue localToGlobal(int nodePosition, const VectorialValue&) const;
 	VectorialValue force;
 	VectorialValue moment;
 public:
-	/*Node getNode() const;*/
-	virtual const VectorialValue getForceInGlobalCS(int nodePosition) const;
-	virtual const VectorialValue getMomentInGlobalCS(int nodePosition) const;
+	virtual const VectorialValue getForceInGlobalCS(const int nodePosition) const;
+	virtual const VectorialValue getMomentInGlobalCS(const int nodePosition) const;
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	std::shared_ptr<Loading> clone() const override;
 	void scale(double factor) override;
@@ -225,9 +224,9 @@ class NodalForceTwoNodes: public NodalForce {
 	const int node_position2;
 	double magnitude;
 	public:
-	NodalForceTwoNodes(const Model&, const int node_id, const int node1_id, const int node2_id,
+	NodalForceTwoNodes(const Model&, const int node1_id, const int node2_id,
 			double magnitude, const int original_id = NO_ORIGINAL_ID);
-	const VectorialValue getForce() const;
+	const VectorialValue getForceInGlobalCS(const int) const override;
 	std::shared_ptr<Loading> clone() const;
 	void scale(double factor) override;
 	bool ineffective() const override;
@@ -244,9 +243,9 @@ class NodalForceFourNodes: public NodalForce {
     const int node_position4;
     double magnitude;
     public:
-    NodalForceFourNodes(const Model&, const int node_id, const int node1_id, const int node2_id,
+    NodalForceFourNodes(const Model&, const int node1_id, const int node2_id,
             const int node3_id, const int node4_id, double magnitude, const int original_id = NO_ORIGINAL_ID);
-    const VectorialValue getForce() const;
+    const VectorialValue getForceInGlobalCS(const int) const override;
     std::shared_ptr<Loading> clone() const;
     void scale(double factor) override;
     bool ineffective() const override;

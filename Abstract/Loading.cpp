@@ -233,23 +233,20 @@ void RotationNode::scale(double factor) {
 	speed *= factor;
 }
 
-NodalForce::NodalForce(const Model& model, int node_id, const int original_id,
+NodalForce::NodalForce(const Model& model, const int original_id,
 		int coordinate_system_id) :
 		NodeLoading(model, NODAL_FORCE, original_id, coordinate_system_id), force(VectorialValue(0, 0, 0)), moment(
 				VectorialValue(0, 0, 0)) {
-    NodeContainer::addNode(node_id);
 }
 
-NodalForce::NodalForce(const Model& model, int node_id, const VectorialValue& force,
+NodalForce::NodalForce(const Model& model, const VectorialValue& force,
 		const VectorialValue& moment, const int original_id, int coordinate_system_id) :
 		NodeLoading(model, NODAL_FORCE, original_id, coordinate_system_id), force(force), moment(moment) {
-    NodeContainer::addNode(node_id);
 }
 
-NodalForce::NodalForce(const Model& model, int node_id, double fx, double fy, double fz, double mx,
+NodalForce::NodalForce(const Model& model, double fx, double fy, double fz, double mx,
 		double my, double mz, const int original_id, int coordinate_system_id) :
 		NodeLoading(model, NODAL_FORCE, original_id, coordinate_system_id), force(fx, fy, fz), moment(mx, my, mz) {
-    NodeContainer::addNode(node_id);
 }
 
 const VectorialValue NodalForce::localToGlobal(int nodePosition, const VectorialValue& vectorialValue) const {
@@ -270,14 +267,14 @@ const VectorialValue NodalForce::localToGlobal(int nodePosition, const Vectorial
 
 const VectorialValue NodalForce::getForceInGlobalCS(int nodePosition) const {
     set<int> posSet = nodePositions();
-	if (posSet.find(nodePosition) != posSet.end())
+	if (posSet.find(nodePosition) == posSet.end())
         throw logic_error("Requested node has not been assigned to this loading");
 	return localToGlobal(nodePosition, force);
 }
 
 const VectorialValue NodalForce::getMomentInGlobalCS(int nodePosition) const {
     set<int> posSet = nodePositions();
-	if (posSet.find(nodePosition) != posSet.end())
+	if (posSet.find(nodePosition) == posSet.end())
         throw logic_error("Requested node has not been assigned to this loading");
 	return localToGlobal(nodePosition, moment);
 }
@@ -315,23 +312,23 @@ bool NodalForce::ineffective() const {
 	return force.iszero() and moment.iszero();
 }
 
-NodalForceTwoNodes::NodalForceTwoNodes(const Model& model, const int node_id, const int node1_id,
+NodalForceTwoNodes::NodalForceTwoNodes(const Model& model, const int node1_id,
 		const int node2_id, double magnitude, const int original_id) :
-		NodalForce(model, node_id, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID), node_position1(
+		NodalForce(model, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID), node_position1(
 				model.mesh->findOrReserveNode(node1_id)), node_position2(
 				model.mesh->findOrReserveNode(node2_id)), magnitude(magnitude) {
 }
 
-const VectorialValue NodalForceTwoNodes::getForce() const {
+const VectorialValue NodalForceTwoNodes::getForceInGlobalCS(int nodePosition) const {
 	Node node1 = model.mesh->findNode(node_position1, true, &model);
 	Node node2 = model.mesh->findNode(node_position2, true, &model);
 	VectorialValue direction = (VectorialValue(node2.x, node2.y, node2.z)
 			- VectorialValue(node1.x, node1.y, node1.z)).normalized();
-	return magnitude * direction;
+	return localToGlobal(nodePosition, magnitude * direction);
 }
 
 shared_ptr<Loading> NodalForceTwoNodes::clone() const {
-	return shared_ptr<Loading>(new NodalForceTwoNodes(*this));
+	return make_shared<NodalForceTwoNodes>(*this);
 }
 
 void NodalForceTwoNodes::scale(double factor) {
@@ -342,16 +339,16 @@ bool NodalForceTwoNodes::ineffective() const {
 	return is_zero(magnitude) or force.iszero();
 }
 
-NodalForceFourNodes::NodalForceFourNodes(const Model& model, const int node_id, const int node1_id,
+NodalForceFourNodes::NodalForceFourNodes(const Model& model, const int node1_id,
         const int node2_id, const int node3_id, const int node4_id, double magnitude, const int original_id) :
-        NodalForce(model, node_id, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID),
+        NodalForce(model, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID),
                 node_position1(model.mesh->findOrReserveNode(node1_id)),
                 node_position2(model.mesh->findOrReserveNode(node2_id)),
                 node_position3(model.mesh->findOrReserveNode(node3_id)),
                 node_position4(model.mesh->findOrReserveNode(node4_id)), magnitude(magnitude) {
 }
 
-const VectorialValue NodalForceFourNodes::getForce() const {
+const VectorialValue NodalForceFourNodes::getForceInGlobalCS(int nodePosition) const {
     Node node1 = model.mesh->findNode(node_position1, true, &model);
     Node node2 = model.mesh->findNode(node_position2, true, &model);
     Node node3 = model.mesh->findNode(node_position3, true, &model);
@@ -359,11 +356,11 @@ const VectorialValue NodalForceFourNodes::getForce() const {
     VectorialValue v1 = VectorialValue(node2.x, node2.y, node2.z) - VectorialValue(node1.x, node1.y, node1.z);
     VectorialValue v2 = VectorialValue(node4.x, node4.y, node4.z) - VectorialValue(node3.x, node3.y, node3.z);
     VectorialValue direction = v1.cross(v2).normalized();
-    return magnitude * direction;
+    return localToGlobal(nodePosition, magnitude * direction);
 }
 
 shared_ptr<Loading> NodalForceFourNodes::clone() const {
-    return shared_ptr<Loading>(new NodalForceFourNodes(*this));
+    return make_shared<NodalForceFourNodes>(*this);
 }
 
 void NodalForceFourNodes::scale(double factor) {
@@ -387,7 +384,7 @@ bool ElementLoading::cellDimensionGreatherThan(SpaceDimension dimension) {
 	vector<Cell> cells = this->getCells(true);
 	bool result = false;
 	for (Cell& cell : cells) {
-		result = result || cell.type.dimension > dimension;
+		result = result or cell.type.dimension > dimension;
 		if (result)
 			break;
 	}
@@ -467,7 +464,7 @@ const DOFS ForceSurface::getDOFSForNode(int nodePosition) const {
 }
 
 shared_ptr<Loading> ForceSurface::clone() const {
-	return shared_ptr<Loading>(new ForceSurface(*this));
+	return make_shared<ForceSurface>(*this);
 }
 
 void ForceSurface::scale(double factor) {

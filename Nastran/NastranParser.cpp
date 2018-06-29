@@ -786,7 +786,8 @@ void NastranParserImpl::parseDAREA(NastranTokenizer& tok, shared_ptr<Model> mode
         double ry = dofs.contains(DOF::RY) ? ai : 0;
         double rz = dofs.contains(DOF::RZ) ? ai : 0;
 
-        NodalForce force1(*model, node_id, tx, ty, tz, rx, ry, rz, Loading::NO_ORIGINAL_ID);
+        NodalForce force1(*model, tx, ty, tz, rx, ry, rz, Loading::NO_ORIGINAL_ID);
+        force1.addNode(node_id);
         model->add(force1);
         model->addLoadingIntoLoadSet(force1, loadset_ref);
     }
@@ -1012,8 +1013,9 @@ void NastranParserImpl::parseFORCE(NastranTokenizer& tok, shared_ptr<Model> mode
     double fy = tok.nextDouble(true,0.0) * force;
     double fz = tok.nextDouble(true,0.0) * force;
 
-    NodalForce force1(*model, node_id, fx, fy, fz, 0., 0., 0., Loading::NO_ORIGINAL_ID,
+    NodalForce force1(*model, fx, fy, fz, 0., 0., 0., Loading::NO_ORIGINAL_ID,
             coordinate_system_id);
+    force1.addNode(node_id);
 
     model->add(force1);
     Reference<vega::LoadSet> loadset_ref(LoadSet::LOAD, loadset_id);
@@ -1032,7 +1034,8 @@ void NastranParserImpl::parseFORCE1(NastranTokenizer& tok, shared_ptr<Model> mod
     int node1 = tok.nextInt();
     int node2 = tok.nextInt();
 
-    NodalForceTwoNodes force1(*model, node_id, node1, node2, force);
+    NodalForceTwoNodes force1(*model, node1, node2, force);
+    force1.addNode(node_id);
 
     model->add(force1);
     Reference<vega::LoadSet> loadset_ref(LoadSet::LOAD, loadset_id);
@@ -1052,7 +1055,8 @@ void NastranParserImpl::parseFORCE2(NastranTokenizer& tok, shared_ptr<Model> mod
     int node3 = tok.nextInt();
     int node4 = tok.nextInt();
 
-    NodalForceFourNodes force2(*model, node_id, node1, node2, node3, node4, force);
+    NodalForceFourNodes force2(*model, node1, node2, node3, node4, force);
+    force2.addNode(node_id);
 
     model->add(force2);
     Reference<vega::LoadSet> loadset_ref(LoadSet::LOAD, sid);
@@ -1299,8 +1303,9 @@ void NastranParserImpl::parseMOMENT(NastranTokenizer& tok, shared_ptr<Model> mod
     double fry = tok.nextDouble(true) * scale;
     double frz = tok.nextDouble(true) * scale;
 
-    NodalForce force1(*model, node_id, VectorialValue(0, 0, 0), VectorialValue(frx, fry, frz),
+    NodalForce force1(*model, VectorialValue(0, 0, 0), VectorialValue(frx, fry, frz),
             Loading::NO_ORIGINAL_ID);
+    force1.addNode(node_id);
     model->add(force1);
     Reference<vega::LoadSet> loadset_ref(LoadSet::LOAD, loadset_id);
     model->addLoadingIntoLoadSet(force1, loadset_ref);
