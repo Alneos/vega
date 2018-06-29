@@ -293,6 +293,14 @@ const set<int> NodeGroup::getNodeIds() const {
 	return nodeIds;
 }
 
+const vector<Node> NodeGroup::getNodes() const {
+	vector<Node> result;
+	for (int nodePosition : _nodePositions) {
+		result.push_back(mesh->findNode(nodePosition));
+	}
+	return result;
+}
+
 CellGroup::CellGroup(Mesh* mesh, const string& name, int groupId, const string& comment ) :
 		Group(mesh, name, CELLGROUP, groupId, comment) {
 
@@ -627,7 +635,84 @@ bool CellIterator::equal(CellIterator const &other) const {
 }
 
 /*******************
- * Cell container mixin;
+ * Node container;
+ */
+
+NodeContainer::NodeContainer(shared_ptr<Mesh> mesh) :
+		mesh(mesh) {
+}
+
+void NodeContainer::addNode(int nodeId) {
+	nodeIds.insert(nodeId);
+}
+
+void NodeContainer::addNodeGroup(const string& groupName) {
+	Group* group = mesh->findGroup(groupName);
+	if (group == nullptr) {
+		throw logic_error(string("Group name: ") + groupName + "not found.");
+	}
+	this->groupNames.insert(groupName);
+}
+
+void NodeContainer::add(const Node& node) {
+	addNode(node.id);
+}
+
+void NodeContainer::add(const NodeGroup& nodeGroup) {
+	this->groupNames.insert(nodeGroup.getName());
+}
+
+void NodeContainer::add(const NodeContainer& nodeContainer) {
+	if (nodeContainer.nodeIds.size() > 0) {
+		this->nodeIds.insert(nodeContainer.nodeIds.begin(), nodeContainer.nodeIds.end());
+	}
+
+	if (nodeContainer.groupNames.size() > 0) {
+		this->groupNames.insert(nodeContainer.groupNames.begin(), nodeContainer.groupNames.end());
+	}
+}
+
+vector<int> NodeContainer::getNodeIds(bool all) const {
+	vector<int> nodes(nodeIds.begin(), nodeIds.end());
+	if (all) {
+		for (string groupName : groupNames) {
+			NodeGroup* group = static_cast<NodeGroup *>(mesh->findGroup(groupName));
+			if (group != nullptr) {
+				nodes.insert(nodes.end(), group->getNodeIds().begin(), group->getNodeIds().end());
+			}
+		}
+	}
+	return nodes;
+}
+
+set<int> NodeContainer::nodePositions() const {
+	set<int> result;
+	for (int nodeId : nodeIds) {
+		result.insert(mesh->findNodePosition(nodeId));
+	}
+	return result;
+}
+
+bool NodeContainer::empty() const {
+	return groupNames.empty() && nodeIds.empty();
+}
+
+void NodeContainer::clear() {
+	groupNames.clear();
+	nodeIds.clear();
+}
+
+bool NodeContainer::hasNodes() const {
+	return !nodeIds.empty();
+}
+
+bool NodeContainer::hasNodeGroups() const {
+	return groupNames.size() > 0;
+}
+
+
+/*******************
+ * Cell container;
  */
 
 CellContainer::CellContainer(shared_ptr<Mesh> mesh) :

@@ -972,6 +972,60 @@ void SystusWriter::fillLoads(const SystusModel& systusModel, const int idSubcase
     }
 }
 
+void SystusWriter::writeNodalForce(const SystusModel& systusModel, shared_ptr<NodalForce> nodalForce, const int idLoadCase, long unsigned int& vectorId) {
+    vector<double> vec;
+    double normvec = 0.0;
+    for(auto& nodePosition : nodalForce->nodePositions()) {
+        VectorialValue force = nodalForce->getForceInGlobalCS(nodePosition);
+        VectorialValue moment = nodalForce->getMomentInGlobalCS(nodePosition);
+        Node node = systusModel.model->mesh->findNode(nodePosition);
+
+        vec.push_back(0);
+        vec.push_back(0);
+        vec.push_back(0);
+        vec.push_back(0);
+        vec.push_back(0);
+        vec.push_back(0);
+        vec.push_back(force.x()); normvec=max(normvec, abs(force.x()));
+        vec.push_back(force.y()); normvec=max(normvec, abs(force.y()));
+        vec.push_back(force.z()); normvec=max(normvec, abs(force.z()));
+        if (systusOption == 3){
+            vec.push_back(moment.x()); normvec=max(normvec, abs(moment.x()));
+            vec.push_back(moment.y()); normvec=max(normvec, abs(moment.y()));
+            vec.push_back(moment.z()); normvec=max(normvec, abs(moment.z()));
+        }
+        if (!is_zero(normvec)){
+            vectors[vectorId]=vec;
+            loadingVectorsIdByLocalLoadingByNodePosition[nodePosition][idLoadCase].push_back(vectorId);
+            vectorId++;
+        }
+        // Rigid Body Element in option 3D.
+        // We report the force from the master node to the master rotational node.
+        if (systusOption == 4){
+            int nid = node.id;
+            const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
+            if (it != rotationNodeIdByTranslationNodeId.end()){
+                int rotNodePosition= systusModel.model->mesh->findNodePosition(it->second);
+                normvec = 0.0;
+                vec.clear();
+                vec.push_back(0);
+                vec.push_back(0);
+                vec.push_back(0);
+                vec.push_back(0);
+                vec.push_back(0);
+                vec.push_back(0);
+                vec.push_back(moment.x()); normvec=max(normvec, abs(moment.x()));
+                vec.push_back(moment.y()); normvec=max(normvec, abs(moment.y()));
+                vec.push_back(moment.z()); normvec=max(normvec, abs(moment.z()));
+                if (!is_zero(normvec)){
+                    vectors[vectorId]=vec;
+                    loadingVectorsIdByLocalLoadingByNodePosition[rotNodePosition][idLoadCase].push_back(vectorId);
+                    vectorId++;
+                }
+            }
+        }
+    }
+}
 
 void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int idSubcase){
 
@@ -998,66 +1052,19 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
             const int idLoadCase = localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()][loadset->getId()];
             loadingVectorIdByLocalLoading[idLoadCase]=0;
             for (const auto& loading : loadset->getLoadings()) {
-                vector<double> vec;
-                double normvec = 0.0;
 
                 switch (loading->type) {
                 case Loading::NODAL_FORCE: {
                     shared_ptr<NodalForce> nodalForce = static_pointer_cast<NodalForce>(loading);
-                    VectorialValue force = nodalForce->getForce();
-                    VectorialValue moment = nodalForce->getMoment();
-
-                    vec.push_back(0);
-                    vec.push_back(0);
-                    vec.push_back(0);
-                    vec.push_back(0);
-                    vec.push_back(0);
-                    vec.push_back(0);
-                    vec.push_back(force.x()); normvec=max(normvec, abs(force.x()));
-                    vec.push_back(force.y()); normvec=max(normvec, abs(force.y()));
-                    vec.push_back(force.z()); normvec=max(normvec, abs(force.z()));
-                    if (systusOption == 3){
-                        vec.push_back(moment.x()); normvec=max(normvec, abs(moment.x()));
-                        vec.push_back(moment.y()); normvec=max(normvec, abs(moment.y()));
-                        vec.push_back(moment.z()); normvec=max(normvec, abs(moment.z()));
-                    }
-                    int node = nodalForce->getNode().position;
-                    if (!is_zero(normvec)){
-                        vectors[vectorId]=vec;
-                        loadingVectorsIdByLocalLoadingByNodePosition[node][idLoadCase].push_back(vectorId);
-                        vectorId++;
-                    }
-                    // Rigid Body Element in option 3D.
-                    // We report the force from the master node to the master rotational node.
-                    if (systusOption == 4){
-                        int nid = systusModel.model->mesh->findNode(node).id;
-                        const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
-                        if (it != rotationNodeIdByTranslationNodeId.end()){
-                            int rotNodePosition= systusModel.model->mesh->findNodePosition(it->second);
-                            normvec = 0.0;
-                            vec.clear();
-                            vec.push_back(0);
-                            vec.push_back(0);
-                            vec.push_back(0);
-                            vec.push_back(0);
-                            vec.push_back(0);
-                            vec.push_back(0);
-                            vec.push_back(moment.x()); normvec=max(normvec, abs(moment.x()));
-                            vec.push_back(moment.y()); normvec=max(normvec, abs(moment.y()));
-                            vec.push_back(moment.z()); normvec=max(normvec, abs(moment.z()));
-                            if (!is_zero(normvec)){
-                                vectors[vectorId]=vec;
-                                loadingVectorsIdByLocalLoadingByNodePosition[rotNodePosition][idLoadCase].push_back(vectorId);
-                                vectorId++;
-                            }
-                        }
-                    }
+                    writeNodalForce(systusModel, nodalForce, idLoadCase, vectorId);
                     break;
                 }
 
                 case Loading::GRAVITY: {
                     shared_ptr<Gravity> gravity = static_pointer_cast<Gravity>(loading);
                     VectorialValue acceleration = gravity->getAccelerationVector();
+                    vector<double> vec;
+                    double normvec = 0.0;
                     vec.push_back(6);
                     vec.push_back(0);
                     vec.push_back(0);
@@ -1099,6 +1106,7 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                     if (dE->getFunctionTableP()){
                         handleWritingWarning("Table Phase are not available in Systus and dismissed.", "Loadings");
                     }
+                    vector<double> vec;
 
                     // Frequency amplitude
                     double amplitude=1.0;
@@ -1121,59 +1129,9 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                             handleWritingWarning("Dynamic loading must refer Nodal excitation. Dismissing load "+to_string(dLoading->bestId())+", part of load "+ to_string(dE->bestId()));
                             continue;
                         }
-                        vec.clear();
-                        normvec=0.0;
-                        // After that, it's a copy/paste of the Nodal Force switch (see a few lines up)
-                        //TODO: Replace this copy/paste by a function.
-                        shared_ptr<NodalForce> nodalForce = static_pointer_cast<NodalForce>(dLoading);
-                        VectorialValue force = nodalForce->getForce();
-                        VectorialValue moment = nodalForce->getMoment();
 
-                        vec.push_back(0);
-                        vec.push_back(0);
-                        vec.push_back(0);
-                        vec.push_back(0);
-                        vec.push_back(0);
-                        vec.push_back(0);
-                        vec.push_back(amplitude*force.x()); normvec=max(normvec, abs(amplitude*force.x()));
-                        vec.push_back(amplitude*force.y()); normvec=max(normvec, abs(amplitude*force.y()));
-                        vec.push_back(amplitude*force.z()); normvec=max(normvec, abs(amplitude*force.z()));
-                        if (systusOption == 3){
-                            vec.push_back(amplitude*moment.x()); normvec=max(normvec, abs(amplitude*moment.x()));
-                            vec.push_back(amplitude*moment.y()); normvec=max(normvec, abs(amplitude*moment.y()));
-                            vec.push_back(amplitude*moment.z()); normvec=max(normvec, abs(amplitude*moment.z()));
-                        }
-                        int node = nodalForce->getNode().position;
-                        if (!is_zero(normvec)){
-                            vectors[vectorId]=vec;
-                            loadingVectorsIdByLocalLoadingByNodePosition[node][idLoadCase].push_back(vectorId);
-                            vectorId++;
-                        }
-                        // Rigid Body Element in option 3D.
-                        // We report the force from the master node to the master rotational node.
-                        if (systusOption == 4){
-                            int nid = systusModel.model->mesh->findNode(node).id;
-                            const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
-                            if (it != rotationNodeIdByTranslationNodeId.end()){
-                                int rotNodePosition= systusModel.model->mesh->findNodePosition(it->second);
-                                normvec = 0.0;
-                                vec.clear();
-                                vec.push_back(0);
-                                vec.push_back(0);
-                                vec.push_back(0);
-                                vec.push_back(0);
-                                vec.push_back(0);
-                                vec.push_back(0);
-                                vec.push_back(amplitude*moment.x()); normvec=max(normvec, abs(amplitude*moment.x()));
-                                vec.push_back(amplitude*moment.y()); normvec=max(normvec, abs(amplitude*moment.y()));
-                                vec.push_back(amplitude*moment.z()); normvec=max(normvec, abs(amplitude*moment.z()));
-                                if (!is_zero(normvec)){
-                                    vectors[vectorId]=vec;
-                                    loadingVectorsIdByLocalLoadingByNodePosition[rotNodePosition][idLoadCase].push_back(vectorId);
-                                    vectorId++;
-                                }
-                            }
-                        }
+                        shared_ptr<NodalForce> nodalForce = static_pointer_cast<NodalForce>(dLoading);
+                        writeNodalForce(systusModel, nodalForce, idLoadCase, vectorId);
                     }
 
                     break;

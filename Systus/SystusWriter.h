@@ -296,7 +296,7 @@ class SystusWriter: public Writer {
     void writeAsc(const SystusModel&, const ConfigurationParameters&, const int idSubcase, std::ostream&);
     void getSystusInformations(const SystusModel&, const ConfigurationParameters&);
 
-    /** 
+    /**
      * Clear all maps, vectors, lists filled during a previous translation.
      */
     void clear();
@@ -410,6 +410,8 @@ class SystusWriter: public Writer {
     void writeNodalDisplacementAssertion(Assertion& assertion, ostream& out);
     void writeNodalComplexDisplacementAssertion(Assertion& assertion, ostream& out);
     void writeFrequencyAssertion(Assertion& assertion, ostream& out);
+    void writeNodalForce(const SystusModel& systusModel, shared_ptr<NodalForce> nodalForce, const int idLoadCase, long unsigned int& vectorId);
+
     virtual string toString() {
         return string("SystusWriter");
     }

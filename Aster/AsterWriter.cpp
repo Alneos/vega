@@ -686,7 +686,7 @@ void AsterWriterImpl::writeAffeCharMeca(const AsterModel& asterModel, ostream& o
 		out << "CHMEC" << loadSet.getId() << "=AFFE_CHAR_MECA(MODELE=MODMECA," << endl;
 		writePression(loadSet, out);
 		writeForceCoque(loadSet, out);
-		writeNodalForce(loadSet, out);
+		writeNodalForce(asterModel, loadSet, out);
 		writeForceSurface(loadSet, out);
 		writeForceLine(loadSet, out);
 		writeGravity(loadSet, out);
@@ -1027,29 +1027,32 @@ void AsterWriterImpl::writeRotation(const LoadSet& loadSet, ostream& out) {
 	}
 }
 
-void AsterWriterImpl::writeNodalForce(const LoadSet& loadSet, ostream& out) {
+void AsterWriterImpl::writeNodalForce(const AsterModel& asterModel, const LoadSet& loadSet, ostream& out) {
 	const set<shared_ptr<Loading>> nodalForces = loadSet.getLoadingsByType(Loading::NODAL_FORCE);
 	if (nodalForces.size() > 0) {
 		out << "                      FORCE_NODALE=(" << endl;
 		for (shared_ptr<Loading> loading : nodalForces) {
 			shared_ptr<NodalForce> nodal_force = dynamic_pointer_cast<NodalForce>(loading);
-			VectorialValue force = nodal_force->getForce();
-			VectorialValue moment = nodal_force->getMoment();
-			out << "                                    _F(NOEUD='"
-					<< nodal_force->getNode().getMedName() << "',";
-			if (!is_zero(force.x()))
-				out << "FX=" << force.x() << ",";
-			if (!is_zero(force.y()))
-				out << "FY=" << force.y() << ",";
-			if (!is_zero(force.z()))
-				out << "FZ=" << force.z() << ",";
-			if (!is_zero(moment.x()))
-				out << "MX=" << moment.x() << ",";
-			if (!is_zero(moment.y()))
-				out << "MY=" << moment.y() << ",";
-			if (!is_zero(moment.z()))
-				out << "MZ=" << moment.z() << ",";
-			out << ")," << endl;
+			for(auto& nodePosition : nodal_force->nodePositions()) {
+                VectorialValue force = nodal_force->getForceInGlobalCS(nodePosition);
+                VectorialValue moment = nodal_force->getMomentInGlobalCS(nodePosition);
+                out << "                                    _F(NOEUD='"
+                        << asterModel.model.mesh->findNode(nodePosition).getMedName() << "',";
+                if (!is_zero(force.x()))
+                    out << "FX=" << force.x() << ",";
+                if (!is_zero(force.y()))
+                    out << "FY=" << force.y() << ",";
+                if (!is_zero(force.z()))
+                    out << "FZ=" << force.z() << ",";
+                if (!is_zero(moment.x()))
+                    out << "MX=" << moment.x() << ",";
+                if (!is_zero(moment.y()))
+                    out << "MY=" << moment.y() << ",";
+                if (!is_zero(moment.z()))
+                    out << "MZ=" << moment.z() << ",";
+                out << ")," << endl;
+
+			}
 		}
 		out << "                                    )," << endl;
 	}
@@ -1406,24 +1409,26 @@ double AsterWriterImpl::writeAnalysis(const AsterModel& asterModel, Analysis& an
 						for (auto loading2 : nodalForces) {
 							shared_ptr<NodalForce> nodal_force = dynamic_pointer_cast<NodalForce>(
 									loading2);
-							VectorialValue force = nodal_force->getForce();
-							VectorialValue moment = nodal_force->getMoment();
-							out << "                                   _F(NOEUD='"
-									<< nodal_force->getNode().getMedName() << "'," << endl;
-							out << "                                      AVEC_CMP=(";
-							if (!is_equal(force.x(),0))
-								out << "'DX',";
-							if (!is_equal(force.y(),0))
-								out << "'DY',";
-							if (!is_equal(force.z(),0))
-								out << "'DZ',";
-							if (!is_equal(moment.x(),0))
-								out << "'DRX',";
-							if (!is_equal(moment.y(),0))
-								out << "'DRY',";
-							if (!is_equal(moment.z(),0))
-								out << "'DRZ',";
-							out << "))," << endl;
+                            for(auto& nodePosition : nodal_force->nodePositions()) {
+                                VectorialValue force = nodal_force->getForceInGlobalCS(nodePosition);
+                                VectorialValue moment = nodal_force->getMomentInGlobalCS(nodePosition);
+                                out << "                                    _F(NOEUD='"
+                                        << asterModel.model.mesh->findNode(nodePosition).getMedName() << "'," << endl;
+                                out << "                                      AVEC_CMP=(";
+                                if (!is_equal(force.x(),0))
+                                    out << "'DX',";
+                                if (!is_equal(force.y(),0))
+                                    out << "'DY',";
+                                if (!is_equal(force.z(),0))
+                                    out << "'DZ',";
+                                if (!is_equal(moment.x(),0))
+                                    out << "'DRX',";
+                                if (!is_equal(moment.y(),0))
+                                    out << "'DRY',";
+                                if (!is_equal(moment.z(),0))
+                                    out << "'DRZ',";
+                                out << "))," << endl;
+                            }
 						}
 					}
 				}

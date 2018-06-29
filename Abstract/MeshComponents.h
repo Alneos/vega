@@ -207,6 +207,7 @@ public:
 };
 
 class Mesh;
+class Node;
 class NodeStorage;
 class CellStorage;
 
@@ -231,36 +232,6 @@ public:
     const std::string getComment() const;
     virtual const std::set<int> nodePositions() const = 0;
     virtual ~Group();
-};
-
-class NodeGroup final : public Group {
-private:
-    friend Mesh;
-    NodeGroup(Mesh* mesh, const std::string& name, int groupId, const std::string& comment="    ");
-    /**
-     * Positions of the nodes participating to the group
-     */
-    std::set<int> _nodePositions;
-public:
-    /**
-     * Add a node using its numerical id. If the node hasn't been yet defined it reserve a
-     * position in the model.
-     */
-    void addNode(int nodeId);
-    /**
-     * Add nodes using an iterator to a collection of numerical nodeIds.
-     */
-    template<typename iterator>
-    void addNodes(iterator begin, iterator end) {
-        while (begin != end) {
-            addNode(*begin);
-            begin++;
-        }
-    }
-    void addNodeByPosition(int nodePosition);
-    void removeNodeByPosition(int nodePosition);
-    const std::set<int> nodePositions() const override;
-    const std::set<int> getNodeIds() const;
 };
 
 class Node final {
@@ -305,6 +276,23 @@ public:
     ~Node() {
     }
 };
+
+class NodeGroup final : public Group {
+private:
+    friend Mesh;
+    NodeGroup(Mesh* mesh, const std::string& name, int groupId, const std::string& comment="    ");
+    // Positions of the nodes participating to the group
+    std::set<int> _nodePositions;
+public:
+    // Add a node using its numerical id. If the node hasn't been yet defined it reserve position in the model.
+    void addNode(int nodeId);
+    void addNodeByPosition(int nodePosition);
+    void removeNodeByPosition(int nodePosition);
+    const std::set<int> nodePositions() const override;
+    const std::set<int> getNodeIds() const;
+    const std::vector<Node> getNodes() const;
+};
+
 /**
  * Identifies a geometry component
  */
@@ -430,28 +418,38 @@ public:
     const Cell operator*() const;
 };
 
-class NodeContainerMixin final {
+/**
+ * This class represents a container of cells or groups of cells.
+ * It can split the groups into single cells.
+ *
+ */
+class NodeContainer {
 protected:
-    Mesh* mesh;
-    set<int> nodePositions;
-    set<int> groupIds;
-
-    NodeContainerMixin(Mesh *mesh);
+    std::shared_ptr<Mesh> mesh;
+    std::unordered_set<int> nodeIds;
+    std::unordered_set<std::string> groupNames;
 public:
-    class iterator: public std::iterator<std::input_iterator_tag, Node> {
-        iterator(int position);
-        bool hasNext() const;
-        value_type next();
-        iterator& operator++();
-        iterator operator++(int);
-        bool operator==(const iterator& rhs) const;
-        bool operator!=(const iterator& rhs) const;
-        value_type operator*();
-    };
-    bool hasNodeGroups();
-    std::vector<NodeGroup> getNodeGroups();
-    iterator begin();
-    iterator end();
+    NodeContainer(std::shared_ptr<Mesh> mesh);
+    // Adds a nodeId to the current set
+    void addNode(int nodeId);
+    void addNodeGroup(const std::string& groupName);
+    void add(const Node& node);
+    void add(const NodeGroup& nodeGroup);
+    void add(const NodeContainer& nodeContainer);
+    // Returns the nodeIds contained into the Container
+    // @param all: if true include also the nodes inside all the cellGroups
+    std::vector<int> getNodeIds(bool all = false) const;
+
+    std::set<int> nodePositions() const;
+
+    // True if the container contains some nodeGroup
+    bool hasNodeGroups() const;
+    bool empty() const;
+    void clear();
+    // True if the cellContainer contains some spare nodes, not inserted in any group.
+    bool hasNodes() const;
+    virtual ~NodeContainer() {
+    }
 };
 
 /**

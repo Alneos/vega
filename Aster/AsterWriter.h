@@ -46,7 +46,7 @@ class AsterWriterImpl : public Writer{
 	void writeLMPC(const AsterModel&, const ConstraintSet&, std::ostream&);
 	void writeGravity(const LoadSet&, std::ostream&);
 	void writeRotation(const LoadSet&, std::ostream&);
-	void writeNodalForce(const LoadSet&, std::ostream&);
+	void writeNodalForce(const AsterModel&, const LoadSet&, std::ostream&);
 	void writePression(const LoadSet&, std::ostream&);
 	void writeForceCoque(const LoadSet&, std::ostream&);
 	void writeForceLine(const LoadSet&, std::ostream&);

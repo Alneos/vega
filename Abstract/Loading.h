@@ -51,7 +51,7 @@ protected:
 	const Model& model;
 	Loading(const Model&, Loading::Type, Loading::ApplicationType, const int original_id =
 			NO_ORIGINAL_ID, int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-	public:
+public:
 	const Type type;
 	static const std::string name;
 	static const std::map<Type, std::string> stringByType;
@@ -67,6 +67,20 @@ protected:
 		throw logic_error("loading scale() used but not implemented");
 	}
 	bool validate() const override;
+};
+
+/**
+ * Represent loading applied on nodes
+ */
+class NodeLoading: public Loading, public NodeContainer {
+protected:
+	NodeLoading(const Model&, Loading::Type, const int original_id = NO_ORIGINAL_ID,
+			int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+public:
+	std::set<int> nodePositions() const override final;
+	SpaceDimension getLoadingDimension() const {
+		return SpaceDimension::DIMENSION_0D;
+	}
 };
 
 /**
@@ -181,7 +195,7 @@ class RotationNode: public Rotation {
 /**
  * Base class for all forces applied on a single node.
  */
-class NodalForce: public Loading {
+class NodalForce: public NodeLoading {
 public:
 	NodalForce(const Model&, int node_id, const VectorialValue& force, const VectorialValue& moment,
 			const int original_id = NO_ORIGINAL_ID, int coordinateSystemId =
@@ -189,19 +203,17 @@ public:
 	NodalForce(const Model&, int node_id, double fx, double fy = 0, double fz = 0, double mx = 0,
 			double my = 0, double mz = 0, const int original_id = NO_ORIGINAL_ID,
 			int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-	protected:
+protected:
 	NodalForce(const Model&, int node_id, const int original_id = NO_ORIGINAL_ID,
 			int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-	const VectorialValue localToGlobal(const VectorialValue&) const;
-	const int node_position;
+	const VectorialValue localToGlobal(int nodePosition, const VectorialValue&) const;
 	VectorialValue force;
 	VectorialValue moment;
-	public:
-	Node getNode() const;
-	virtual const VectorialValue getForce() const;
-	virtual const VectorialValue getMoment() const;
+public:
+	/*Node getNode() const;*/
+	virtual const VectorialValue getForceInGlobalCS(int nodePosition) const;
+	virtual const VectorialValue getMomentInGlobalCS(int nodePosition) const;
 	const DOFS getDOFSForNode(int nodePosition) const override;
-	std::set<int> nodePositions() const override;
 	std::shared_ptr<Loading> clone() const override;
 	void scale(double factor) override;
 	bool ineffective() const override;

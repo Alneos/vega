@@ -106,6 +106,15 @@ shared_ptr<LoadSet> LoadSet::clone() const {
 	return shared_ptr<LoadSet>(new LoadSet(*this));
 }
 
+NodeLoading::NodeLoading(const Model& model, Loading::Type type, int original_id,
+		int coordinateSystemId) :
+		Loading(model, type, Loading::NODE, original_id, coordinateSystemId), NodeContainer(model.mesh) {
+}
+
+set<int> NodeLoading::nodePositions() const {
+	return NodeContainer::nodePositions();
+}
+
 Gravity::Gravity(const Model& model, double acceleration, const VectorialValue& direction,
 		const int original_id) :
 		Loading(model, GRAVITY, NONE, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID), acceleration(
@@ -226,25 +235,24 @@ void RotationNode::scale(double factor) {
 
 NodalForce::NodalForce(const Model& model, int node_id, const int original_id,
 		int coordinate_system_id) :
-		Loading(model, NODAL_FORCE, NODE, original_id, coordinate_system_id), node_position(
-				model.mesh->findOrReserveNode(node_id)), force(VectorialValue(0, 0, 0)), moment(
+		NodeLoading(model, NODAL_FORCE, original_id, coordinate_system_id), force(VectorialValue(0, 0, 0)), moment(
 				VectorialValue(0, 0, 0)) {
+    NodeContainer::addNode(node_id);
 }
 
 NodalForce::NodalForce(const Model& model, int node_id, const VectorialValue& force,
 		const VectorialValue& moment, const int original_id, int coordinate_system_id) :
-		Loading(model, NODAL_FORCE, NODE, original_id, coordinate_system_id), node_position(
-				model.mesh->findOrReserveNode(node_id)), force(force), moment(moment) {
-
+		NodeLoading(model, NODAL_FORCE, original_id, coordinate_system_id), force(force), moment(moment) {
+    NodeContainer::addNode(node_id);
 }
 
 NodalForce::NodalForce(const Model& model, int node_id, double fx, double fy, double fz, double mx,
 		double my, double mz, const int original_id, int coordinate_system_id) :
-		Loading(model, NODAL_FORCE, NODE, original_id, coordinate_system_id), node_position(
-				model.mesh->findOrReserveNode(node_id)), force(fx, fy, fz), moment(mx, my, mz) {
+		NodeLoading(model, NODAL_FORCE, original_id, coordinate_system_id), force(fx, fy, fz), moment(mx, my, mz) {
+    NodeContainer::addNode(node_id);
 }
 
-const VectorialValue NodalForce::localToGlobal(const VectorialValue& vectorialValue) const {
+const VectorialValue NodalForce::localToGlobal(int nodePosition, const VectorialValue& vectorialValue) const {
 	if (!hasCoordinateSystem())
 		return vectorialValue;
 	shared_ptr<CoordinateSystem> coordSystem = model.find(coordinateSystem_reference);
@@ -254,27 +262,30 @@ const VectorialValue NodalForce::localToGlobal(const VectorialValue& vectorialVa
 				<< " for nodal force not found." << endl;
 		throw logic_error(oss.str());
 	}
-	Node node = getNode();
+	Node node = model.mesh->findNode(nodePosition, true, &model);
 	node.buildGlobalXYZ(&model);
 	coordSystem->updateLocalBase(VectorialValue(node.x, node.y, node.z));
 	return coordSystem->vectorToGlobal(vectorialValue);
 }
 
-Node NodalForce::getNode() const {
-	return this->model.mesh->findNode(node_position);
+const VectorialValue NodalForce::getForceInGlobalCS(int nodePosition) const {
+    set<int> posSet = nodePositions();
+	if (posSet.find(nodePosition) != posSet.end())
+        throw logic_error("Requested node has not been assigned to this loading");
+	return localToGlobal(nodePosition, force);
 }
 
-const VectorialValue NodalForce::getForce() const {
-	return localToGlobal(force);
-}
-
-const VectorialValue NodalForce::getMoment() const {
-	return localToGlobal(moment);
+const VectorialValue NodalForce::getMomentInGlobalCS(int nodePosition) const {
+    set<int> posSet = nodePositions();
+	if (posSet.find(nodePosition) != posSet.end())
+        throw logic_error("Requested node has not been assigned to this loading");
+	return localToGlobal(nodePosition, moment);
 }
 
 const DOFS NodalForce::getDOFSForNode(int nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
-	if (nodePosition == node_position) {
+	set<int> posSet = nodePositions();
+	if (posSet.find(nodePosition) != posSet.end()) {
 		if (!is_zero(force.x()))
 			dofs = dofs + DOF::DX;
 		if (!is_zero(force.y()))
@@ -289,10 +300,6 @@ const DOFS NodalForce::getDOFSForNode(int nodePosition) const {
 			dofs = dofs + DOF::RZ;
 	}
 	return dofs;
-}
-
-set<int> NodalForce::nodePositions() const {
-	return set<int>({node_position});
 }
 
 shared_ptr<Loading> NodalForce::clone() const {
