@@ -36,7 +36,7 @@ public:
 		SPC,
 		LMPC,
 		GAP,
-	};		
+	};
 
 protected:
 	const Model& model;
@@ -72,6 +72,7 @@ public:
 	const std::set<std::shared_ptr<Constraint> > getConstraintsByType(Constraint::Type) const;
 	int size() const;
 	std::shared_ptr<ConstraintSet> clone() const;
+	bool hasFunctions() const;
 	virtual ~ConstraintSet();
 };
 
@@ -143,7 +144,7 @@ class SinglePointConstraint: public Constraint {
 	std::array<ValueOrReference, 6> spcs;
 public:
 	//GC: static initialization order is undefined. A reference is needed here to
-	//prevent undefined behaviour. 
+	//prevent undefined behaviour.
 	static const ValueOrReference& NO_SPC;
 	SinglePointConstraint(const Model& model, const std::array<ValueOrReference, 6>& spcs, Group* group =
 	nullptr, int original_id = NO_ORIGINAL_ID);
@@ -185,7 +186,7 @@ public:
     void addParticipation(int nodeId, double dx = 0, double dy = 0, double dz = 0, double rx = 0,
             double ry = 0, double rz = 0);
     DOFCoefs getDoFCoefsForNode(int nodePosition) const;
-    /** 
+    /**
      * Sort all nodes positions by increasing coefs. Usefull to fuse various LMPC into ones.
      */
     std::vector<int> sortNodePositionByCoefs() const;

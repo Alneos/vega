@@ -25,6 +25,9 @@ public:
 	virtual bool ineffective() const {
 		throw logic_error("boundary condition ineffective() used but not implemented");
 	}
+    virtual bool hasFunctions() const {
+	    return false;
+	}
 	virtual const DOFS getDOFSForNode(int nodePosition) const = 0;
 	virtual std::set<int> nodePositions() const = 0;
 	virtual ~BoundaryCondition();

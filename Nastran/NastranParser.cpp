@@ -1880,7 +1880,7 @@ void NastranParserImpl::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> mod
     }
     model->add(*force);
     Reference<LoadSet> loadSetReference(LoadSet::LOAD, loadset_id);
-    ForceLineComponent forceLine(*model, force, dof);
+    ForceLine forceLine(*model, force, dof);
     forceLine.addCell(eid);
     model->add(forceLine);
     model->addLoadingIntoLoadSet(forceLine, loadSetReference);

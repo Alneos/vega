@@ -134,7 +134,7 @@ const VectorialValue CartesianCoordinateSystem::vectorToLocal(const VectorialVal
 }
 
 shared_ptr<CoordinateSystem> CartesianCoordinateSystem::clone() const {
-    return shared_ptr<CoordinateSystem>(new CartesianCoordinateSystem(*this));
+    return make_shared<CartesianCoordinateSystem>(*this);
 }
 
 void CartesianCoordinateSystem::build(){
@@ -220,7 +220,7 @@ const VectorialValue CylindricalCoordinateSystem::vectorToLocal(const VectorialV
 
 
 shared_ptr<CoordinateSystem> CylindricalCoordinateSystem::clone() const {
-    return shared_ptr<CoordinateSystem>(new CylindricalCoordinateSystem(*this));
+    return make_shared<CylindricalCoordinateSystem>(*this);
 }
 
 const VectorialValue CylindricalCoordinateSystem::getLocalEulerAnglesIntrinsicZYX(const CoordinateSystem *rcs) const {
@@ -353,7 +353,7 @@ const VectorialValue OrientationCoordinateSystem::vectorToLocal(const VectorialV
 }
 
 shared_ptr<CoordinateSystem> OrientationCoordinateSystem::clone() const {
-    return shared_ptr<CoordinateSystem>(new OrientationCoordinateSystem(*this));
+    return make_shared<OrientationCoordinateSystem>(*this);
 }
 
 

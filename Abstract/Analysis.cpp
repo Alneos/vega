@@ -319,7 +319,7 @@ LinearMecaStat::LinearMecaStat(Model& model, const string original_label, const 
 }
 
 shared_ptr<Analysis> LinearMecaStat::clone() const {
-    return shared_ptr<LinearMecaStat>(new LinearMecaStat(*this));
+    return make_shared<LinearMecaStat>(*this);
 }
 
 NonLinearMecaStat::NonLinearMecaStat(Model& model, const int strategy_id,
@@ -330,7 +330,7 @@ NonLinearMecaStat::NonLinearMecaStat(Model& model, const int strategy_id,
 }
 
 shared_ptr<Analysis> NonLinearMecaStat::clone() const {
-    return shared_ptr<NonLinearMecaStat>(new NonLinearMecaStat(*this));
+    return make_shared<NonLinearMecaStat>(*this);
 }
 
 bool NonLinearMecaStat::validate() const {
@@ -348,7 +348,7 @@ shared_ptr<FrequencyBand> LinearModal::getFrequencyBand() const {
 }
 
 shared_ptr<Analysis> LinearModal::clone() const {
-    return shared_ptr<LinearModal>(new LinearModal(*this));
+    return make_shared<LinearModal>(*this);
 }
 
 bool LinearModal::validate() const {
@@ -380,7 +380,7 @@ shared_ptr<FrequencyValues> LinearDynaModalFreq::getFrequencyValues() const {
 }
 
 shared_ptr<Analysis> LinearDynaModalFreq::clone() const {
-    return shared_ptr<LinearDynaModalFreq>(new LinearDynaModalFreq(*this));
+    return make_shared<LinearDynaModalFreq>(*this);
 }
 
 bool LinearDynaModalFreq::validate() const {

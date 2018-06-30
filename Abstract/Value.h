@@ -67,6 +67,9 @@ public:
 
     virtual void scale(double factor) = 0;
     virtual bool iszero() const = 0;
+    virtual bool isfunction() const {
+        return false;
+    }
 };
 
 /*class TriValue : public Value {
@@ -201,6 +204,10 @@ public:
 class Function: public NamedValue {
 protected:
     Function(const Model&, Type, int original_id = NO_ORIGINAL_ID);
+public:
+    bool isfunction() const override {
+        return true;
+    }
 };
 
 class FunctionTable: public Function {

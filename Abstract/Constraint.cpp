@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -91,13 +91,22 @@ const string ConstraintSet::name = "ConstraintSet";
 const map<ConstraintSet::Type, string> ConstraintSet::stringByType = { { SPC, "SPC" },
         { MPC, "MPC" }, { SPCD, "SPCD" }, { ALL, "ALL" } };
 
+bool ConstraintSet::hasFunctions() const {
+    for (shared_ptr<Constraint> constraint : getConstraints()) {
+		if (constraint->hasFunctions()) {
+			return true;
+		}
+	}
+	return false;
+}
+
 ostream &operator<<(ostream &out, const ConstraintSet& constraintSet) {
     out << to_str(constraintSet);
     return out;
 }
 
 shared_ptr<ConstraintSet> ConstraintSet::clone() const {
-    return shared_ptr<ConstraintSet>(new ConstraintSet(*this));
+    return make_shared<ConstraintSet>(*this);
 }
 
 ConstraintSet::~ConstraintSet() {
@@ -183,7 +192,7 @@ QuasiRigidConstraint::QuasiRigidConstraint(Model& model, const DOFS& dofs, int m
 
 }
 shared_ptr<Constraint> QuasiRigidConstraint::clone() const {
-    return shared_ptr<Constraint>(new QuasiRigidConstraint(*this));
+    return make_shared<QuasiRigidConstraint>(*this);
 }
 
 set<int> QuasiRigidConstraint::getSlaves() const {
@@ -198,7 +207,7 @@ RigidConstraint::RigidConstraint(Model& model, int masterId, int constraintGroup
 }
 
 shared_ptr<Constraint> RigidConstraint::clone() const {
-    return shared_ptr<Constraint>(new RigidConstraint(*this));
+    return make_shared<RigidConstraint>(*this);
 }
 
 RBE3::RBE3(Model& model, int masterId, const DOFS dofs, int original_id) :
@@ -238,7 +247,7 @@ const DOFS RBE3::getDOFSForNode(int nodePosition) const {
 }
 
 shared_ptr<Constraint> RBE3::clone() const {
-    return shared_ptr<Constraint>(new RBE3(*this));
+    return make_shared<RBE3>(*this);
 }
 
 const ValueOrReference& SinglePointConstraint::NO_SPC = ValueOrReference::EMPTY_VALUE;
@@ -294,7 +303,7 @@ void SinglePointConstraint::addNodeId(int nodeId) {
 
 shared_ptr<Constraint> SinglePointConstraint::clone()
 const {
-    return shared_ptr<Constraint>(new SinglePointConstraint(*this));
+    return make_shared<SinglePointConstraint>(*this);
 }
 
 set<int> SinglePointConstraint::nodePositions() const {
@@ -386,7 +395,7 @@ LinearMultiplePointConstraint::LinearMultiplePointConstraint(Model& model, doubl
 }
 
 shared_ptr<Constraint> LinearMultiplePointConstraint::clone() const {
-    return shared_ptr<Constraint>(new LinearMultiplePointConstraint(*this));
+    return make_shared<LinearMultiplePointConstraint>(*this);
 }
 
 void LinearMultiplePointConstraint::addParticipation(int nodeId, double dx, double dy, double dz,
@@ -473,7 +482,7 @@ GapTwoNodes::GapTwoNodes(Model& model, int original_id) :
 }
 
 shared_ptr<Constraint> GapTwoNodes::clone() const {
-    return shared_ptr<Constraint>(new GapTwoNodes(*this));
+    return make_shared<GapTwoNodes>(*this);
 }
 
 void GapTwoNodes::addGapNodes(int constrainedNodeId, int directionNodeId) {
@@ -490,8 +499,7 @@ vector<shared_ptr<Gap::GapParticipation>> GapTwoNodes::getGaps() const {
         Node directionNode = model.mesh->findNode(it.second, true, &model);
         VectorialValue direction(directionNode.x - constrainedNode.x,
                 directionNode.y - constrainedNode.y, directionNode.z - constrainedNode.z);
-        shared_ptr<GapParticipation> gp(
-                new GapParticipation(constrainedNode.position, direction.normalized()));
+        shared_ptr<GapParticipation> gp = make_shared<GapParticipation>(constrainedNode.position, direction.normalized());
         result.push_back(gp);
     }
     return result;
@@ -536,7 +544,7 @@ GapNodeDirection::GapNodeDirection(Model& model, int original_id) :
 }
 
 shared_ptr<Constraint> GapNodeDirection::clone() const {
-    return shared_ptr<Constraint>(new GapNodeDirection(*this));
+    return make_shared<GapNodeDirection>(*this);
 }
 
 void GapNodeDirection::addGapNodeDirection(int constrainedNodeId, double directionX,
@@ -551,8 +559,7 @@ vector<shared_ptr<Gap::GapParticipation>> GapNodeDirection::getGaps() const {
     result.reserve(directionBynodePosition.size());
     for (auto it : directionBynodePosition) {
         Node constrainedNode = model.mesh->findNode(it.first);
-        shared_ptr<GapParticipation> gp(
-                new GapParticipation(constrainedNode.position, it.second.normalized()));
+        shared_ptr<GapParticipation> gp = make_shared<GapParticipation>(constrainedNode.position, it.second.normalized());
         result.push_back(gp);
     }
     return result;

@@ -402,6 +402,8 @@ string AsterWriterImpl::writeValue(NamedValue& value, ostream& out) {
 	default:
 		handleWritingError(string("Not implemented"));
 	}
+	asternameByValue[value.getReference()] = concept_name;
+
 	return concept_name;
 }
 
@@ -674,12 +676,24 @@ void AsterWriterImpl::writeAffeCharMeca(const AsterModel& asterModel, ostream& o
 		if (constraintSet.isOriginal()) {
 			out << "# ConstraintSet original id : " << constraintSet.getOriginalId() << endl;
 		}
-		out << "BL" << constraintSet.getId() << "=AFFE_CHAR_MECA(MODELE=MODMECA," << endl;
-		writeSPC(asterModel, constraintSet, out);
-		writeLIAISON_SOLIDE(asterModel, constraintSet, out);
-		writeRBE3(asterModel, constraintSet, out);
-		writeLMPC(asterModel, constraintSet, out);
-		out << "                   );" << endl << endl;
+		for(bool withFunctions : {false, true} ) {
+            string asterName;
+            if (withFunctions and constraintSet.hasFunctions()) {
+                asterName = string("BLF") + to_string(constraintSet.getId());
+                out << asterName << "=AFFE_CHAR_MECA_F(MODELE=MODMECA," << endl;
+            } else if (not withFunctions and not constraintSet.hasFunctions()) {
+                asterName = string("BL") + to_string(constraintSet.getId());
+                out << asterName << "=AFFE_CHAR_MECA(MODELE=MODMECA," << endl;
+            } else
+                continue;
+            asternameByConstraintSet[constraintSet.getReference()] = asterName;
+
+            writeSPC(asterModel, constraintSet, out);
+            writeLIAISON_SOLIDE(asterModel, constraintSet, out);
+            writeRBE3(asterModel, constraintSet, out);
+            writeLMPC(asterModel, constraintSet, out);
+            out << "                   );" << endl << endl;
+		}
 	}
 
 	for (auto it : asterModel.model.loadSets) {
@@ -690,15 +704,32 @@ void AsterWriterImpl::writeAffeCharMeca(const AsterModel& asterModel, ostream& o
 		if (loadSet.isOriginal()) {
 			out << "# LoadSet original id : " << loadSet.getOriginalId() << endl;
 		}
-		out << "CHMEC" << loadSet.getId() << "=AFFE_CHAR_MECA(MODELE=MODMECA," << endl;
-		writePression(loadSet, out);
-		writeForceCoque(loadSet, out);
-		writeNodalForce(asterModel, loadSet, out);
-		writeForceSurface(loadSet, out);
-		writeForceLine(loadSet, out);
-		writeGravity(loadSet, out);
-		writeRotation(loadSet, out);
-		out << "                      );" << endl << endl;
+		if (loadSet.getLoadings().size()
+				== loadSet.getLoadingsByType(Loading::INITIAL_TEMPERATURE).size()) {
+			out << "# Ignoring INITIAL_TEMPERATURES!!!!!!" << endl;
+			continue;
+		}
+		for(bool withFunctions : {false, true} ) {
+            string asterName;
+		    if (withFunctions and loadSet.hasFunctions()) {
+                asterName = string("CHMEF") + to_string(loadSet.getId());
+                out << asterName << "=AFFE_CHAR_MECA_F(MODELE=MODMECA," << endl;
+		    } else if (not withFunctions and not loadSet.hasFunctions()) {
+		        asterName = string("CHMEC") + to_string(loadSet.getId());
+                out << asterName << "=AFFE_CHAR_MECA(MODELE=MODMECA," << endl;
+            } else
+                continue;
+            asternameByLoadSet[loadSet.getReference()] = asterName;
+            writePression(loadSet, out);
+            writeForceCoque(loadSet, out);
+            writeNodalForce(asterModel, loadSet, out);
+            writeForceSurface(loadSet, out);
+            writeForceLine(loadSet, out);
+            writeGravity(loadSet, out);
+            writeRotation(loadSet, out);
+            out << "                      );" << endl << endl;
+		}
+
 	}
 }
 
@@ -739,7 +770,9 @@ void AsterWriterImpl::writeDefiContact(const AsterModel& asterModel, ostream& ou
 				}
 			}
 		}
-		out << "CN" << constraintSet.getId() << "=DEFI_CONTACT(MODELE=MODMECA," << endl;
+		string asterName = string("CN") + to_string(constraintSet.getId());
+		asternameByConstraintSet[constraintSet.getReference()] = asterName;
+		out << asterName << "=DEFI_CONTACT(MODELE=MODMECA," << endl;
 		out << "                   FORMULATION='LIAISON_UNIL'," << endl;
 		out << "                   ZONE=(" << endl;
 		for (shared_ptr<Constraint> constraint : gaps) {
@@ -1114,28 +1147,32 @@ void AsterWriterImpl::writeForceLine(const LoadSet& loadset, ostream& out) {
 	if (forcesOnPoutres.size() > 0) {
 		out << "           FORCE_POUTRE=(" << endl;
 		for (shared_ptr<ForceLine> forceLine : forcesOnPoutres) {
-			out << "                   _F(";
-			if (!is_zero(forceLine->force.x())) {
-				out << "FX=" << forceLine->force.x() << ",";
-			}
-			if (!is_zero(forceLine->force.y())) {
-				out << "FY=" << forceLine->force.y() << ",";
-			}
-			if (!is_zero(forceLine->force.z())) {
-				out << "FZ=" << forceLine->force.z() << ",";
-			}
-			if (!is_zero(forceLine->torque.x())) {
-				out << "MX=" << forceLine->torque.x() << ",";
-			}
-			if (!is_zero(forceLine->torque.y())) {
-				out << "MY=" << forceLine->torque.y() << ",";
-			}
-			if (!is_zero(forceLine->torque.z())) {
-				out << "MZ=" << forceLine->torque.z() << ",";
-			}
-			ForceLine & forceLineRef = *forceLine;
-			writeCellContainer(forceLineRef, out);
-			out << ")," << endl;
+            out << "                   _F(";
+            switch(forceLine->dof.code) {
+            case DOF::DX_CODE:
+                out << "FX";
+                break;
+            case DOF::DY_CODE:
+                out << "FY";
+                break;
+            case DOF::DZ_CODE:
+                out << "FZ";
+                break;
+            case DOF::RX_CODE:
+                out << "MX";
+                break;
+            case DOF::RY_CODE:
+                out << "MY";
+                break;
+            case DOF::RZ_CODE:
+                out << "MZ";
+                break;
+            default:
+                throw logic_error("DOF not yet handled");
+            }
+            out << "=" << asternameByValue[forceLine->force->getReference()] << ",";
+            writeCellContainer(*forceLine, out);
+            out << "          )," << endl;
 		}
 		out << "            )," << endl;
 	}
@@ -1224,12 +1261,12 @@ double AsterWriterImpl::writeAnalysis(const AsterModel& asterModel, Analysis& an
 		out << "                    CARA_ELEM=CAEL," << endl;
 		out << "                    EXCIT=(" << endl;
 		for (shared_ptr<LoadSet> loadSet : linearMecaStat.getLoadSets()) {
-			out << "                           _F(CHARGE=CHMEC" << loadSet->getId() << ")," << endl;
+			out << "                           _F(CHARGE=" << asternameByLoadSet[loadSet->getReference()] << ")," << endl;
 		}
 		for (shared_ptr<ConstraintSet> constraintSet : linearMecaStat.getConstraintSets()) {
 			//GC: dirty fix for #801, a deeper analysis must be done
 			if (constraintSet->getConstraints().size() > 0) {
-				out << "                           _F(CHARGE=BL" << constraintSet->getId() << "),"
+				out << "                           _F(CHARGE=" << asternameByConstraintSet[constraintSet->getReference()] << "),"
 						<< endl;
 			}
 		}
@@ -1265,12 +1302,12 @@ double AsterWriterImpl::writeAnalysis(const AsterModel& asterModel, Analysis& an
 		out << "                    EXCIT=(" << endl;
 		if (nonLinAnalysis.previousAnalysis) {
 			for (shared_ptr<LoadSet> loadSet : nonLinAnalysis.previousAnalysis->getLoadSets()) {
-				out << "                           _F(CHARGE=CHMEC" << loadSet->getId()
+				out << "                           _F(CHARGE=" << asternameByLoadSet[loadSet->getReference()]
 						<< ",FONC_MULT=IRAMP" << nonLinAnalysis.getId() << ")," << endl;
 			}
 		}
 		for (shared_ptr<LoadSet> loadSet : nonLinAnalysis.getLoadSets()) {
-			out << "                           _F(CHARGE=CHMEC" << loadSet->getId()
+			out << "                           _F(CHARGE=" << asternameByLoadSet[loadSet->getReference()]
 					<< ",FONC_MULT=RAMP" << nonLinAnalysis.getId() << ")," << endl;
 		}
 		for (shared_ptr<ConstraintSet> constraintSet : nonLinAnalysis.getConstraintSets()) {
@@ -1281,7 +1318,7 @@ double AsterWriterImpl::writeAnalysis(const AsterModel& asterModel, Analysis& an
 			}
 			//GC: dirty fix for #801, a deeper analysis must be done
 			if (constraintSet->getConstraints().size() > 0) {
-				out << "                           _F(CHARGE=BL" << constraintSet->getId() << "),"
+				out << "                           _F(CHARGE=" << asternameByConstraintSet[constraintSet->getReference()] << "),"
 						<< endl;
 			}
 		}
@@ -1297,7 +1334,7 @@ double AsterWriterImpl::writeAnalysis(const AsterModel& asterModel, Analysis& an
 				// LD primitive way to handle contacts, add isContact() methods instead
 				continue;
 			}
-			out << "                    CONTACT=CN" << constraintSet->getId() << "," << endl;
+			out << "                    CONTACT=" << asternameByConstraintSet[constraintSet->getReference()] << "," << endl;
 		}
 		double largeDisp = 0;
 		out << "                    COMPORTEMENT=(" << endl;

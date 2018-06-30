@@ -893,7 +893,7 @@ CellGroup2Families::CellGroup2Families(
 	unordered_map<int, int> newFamilyByOldfamily;
 	unordered_map<int, Family> familyByFamilyId;
 	for (auto cellCountByTypePair : cellCountByType) {
-		shared_ptr<vector<int>> cells(new vector<int>());
+		shared_ptr<vector<int>> cells = make_shared<vector<int>>();
 		cells->resize(cellCountByTypePair.second, 0);
 		cellFamiliesByType[cellCountByTypePair.first] = cells;
 	}

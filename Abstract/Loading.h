@@ -37,7 +37,6 @@ public:
 		GRAVITY,
 		ROTATION,
 		FORCE_LINE,
-		FORCE_LINE_COMPONENT,
 		NODAL_FORCE,
 		NORMAL_PRESSION_FACE,
 		COMBINED_LOADING,
@@ -71,27 +70,13 @@ public:
 };
 
 /**
- * Represent loading applied on nodes
- */
-class NodeLoading: public Loading, public NodeContainer {
-protected:
-	NodeLoading(const Model&, Loading::Type, const int original_id = NO_ORIGINAL_ID,
-			int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-public:
-	std::set<int> nodePositions() const override final;
-	SpaceDimension getLoadingDimension() const {
-		return SpaceDimension::DIMENSION_0D;
-	}
-};
-
-/**
  * Set of loadings that are often referenced by an analysis.
  */
 class LoadSet: public Identifiable<LoadSet> {
 private:
 	const Model& model;
 	friend ostream &operator<<(ostream&, const LoadSet&);
-	public:
+public:
 	enum Type {
 		LOAD,
 		DLOAD,
@@ -109,14 +94,29 @@ private:
 	const set<std::shared_ptr<Loading> > getLoadingsByType(Loading::Type) const;
 	bool validate() const override;
 	std::shared_ptr<LoadSet> clone() const;
+	bool hasFunctions() const;
 	//bool operator<(const LoadSet &rhs) const;
+};
+
+/**
+ * Represent loading applied on nodes
+ */
+class NodeLoading: public Loading, public NodeContainer {
+protected:
+	NodeLoading(const Model&, Loading::Type, const int original_id = NO_ORIGINAL_ID,
+			int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+public:
+	std::set<int> nodePositions() const override final;
+	SpaceDimension getLoadingDimension() const {
+		return SpaceDimension::DIMENSION_0D;
+	}
 };
 
 class Gravity: public Loading {
 private:
 	double acceleration;
 	const VectorialValue direction;
-	public:
+public:
 	const VectorialValue getDirection() const;
 	/**
 	 * Get gravity acceleration (in m.s^{-2}).
@@ -145,7 +145,7 @@ private:
 class Rotation: public Loading {
 protected:
 	Rotation(const Model& model, const int original_id = NO_ORIGINAL_ID);
-	public:
+public:
 	/**
 	 * Get rotation speed (in rad/s).
 	 */
@@ -168,7 +168,7 @@ class RotationCenter: public Rotation {
 	double speed;
 	const VectorialValue axis;
 	const VectorialValue center;
-	public:
+public:
 	RotationCenter(const Model& model, double speed, double center_x, double center_y,
 			double center_z, double axis_x, double axis_y, double axis_z, const int original_id =
 					NO_ORIGINAL_ID);
@@ -183,7 +183,7 @@ class RotationNode: public Rotation {
 	double speed;
 	const VectorialValue axis;
 	const int node_position;
-	public:
+public:
 	RotationNode(const Model& model, double speed, const int node_id, double axis_x, double axis_y,
 			double axis_z, const int original_id = NO_ORIGINAL_ID);
 	double getSpeed() const;
@@ -223,7 +223,7 @@ class NodalForceTwoNodes: public NodalForce {
 	const int node_position1;
 	const int node_position2;
 	double magnitude;
-	public:
+public:
 	NodalForceTwoNodes(const Model&, const int node1_id, const int node2_id,
 			double magnitude, const int original_id = NO_ORIGINAL_ID);
 	const VectorialValue getForceInGlobalCS(const int) const override;
@@ -242,7 +242,7 @@ class NodalForceFourNodes: public NodalForce {
     const int node_position3;
     const int node_position4;
     double magnitude;
-    public:
+public:
     NodalForceFourNodes(const Model&, const int node1_id, const int node2_id,
             const int node3_id, const int node4_id, double magnitude, const int original_id = NO_ORIGINAL_ID);
     const VectorialValue getForceInGlobalCS(const int) const override;
@@ -255,11 +255,10 @@ class NodalForceFourNodes: public NodalForce {
  * Represent loading applied on cells
  */
 class ElementLoading: public Loading, public CellContainer {
-private:
-	protected:
+protected:
 	ElementLoading(const Model&, Loading::Type, const int original_id = NO_ORIGINAL_ID,
 			int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-	public:
+public:
 	/**
 	 * Return true if all cells are of the dimension passed as parameter.
 	 */
@@ -280,7 +279,7 @@ class ForceSurface: public ElementLoading {
 protected:
 	VectorialValue force;
 	VectorialValue moment;
-	public:
+public:
 	ForceSurface(const Model&, const VectorialValue& force, const VectorialValue& moment,
 			const int original_id = NO_ORIGINAL_ID);
 	const VectorialValue getForce() const;
@@ -319,9 +318,9 @@ public:
 class ForceLine: public ElementLoading {
 public:
 
-	VectorialValue force;
-	VectorialValue torque;
-	ForceLine(const Model&, const VectorialValue& force, const VectorialValue& torque,
+	std::shared_ptr<NamedValue> force;
+	DOF dof;
+    ForceLine(const Model&, const std::shared_ptr<NamedValue> force, DOF component,
 			const int original_id = NO_ORIGINAL_ID);
 
 	virtual std::shared_ptr<Loading> clone() const override;
@@ -331,27 +330,8 @@ public:
 	SpaceDimension getLoadingDimension() const {
 		return SpaceDimension::DIMENSION_1D;
 	}
-	bool validate() const override;
-
-};
-
-/**
- Responsible of being a force applied to a line (i.e. a Pressure over a Bar)
- */
-class ForceLineComponent: public ElementLoading {
-public:
-
-	std::shared_ptr<NamedValue> force;
-	DOF dof;
-    ForceLineComponent(const Model&, const std::shared_ptr<NamedValue> force, DOF component,
-			const int original_id = NO_ORIGINAL_ID);
-
-	virtual std::shared_ptr<Loading> clone() const override;
-	const DOFS getDOFSForNode(int nodePosition) const override;
-	void scale(double factor) override;
-	bool ineffective() const override;
-	SpaceDimension getLoadingDimension() const {
-		return SpaceDimension::DIMENSION_1D;
+	bool hasFunctions() const override {
+	    return force->isfunction();
 	}
 	bool validate() const override;
 
@@ -402,11 +382,10 @@ public:
 };
 
 class InitialTemperature: public NodeLoading {
-public:
-	InitialTemperature(const Model&, double temperature, const int original_id = NO_ORIGINAL_ID);
 protected:
 	double temperature;
 public:
+    InitialTemperature(const Model&, double temperature, const int original_id = NO_ORIGINAL_ID);
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	std::shared_ptr<Loading> clone() const override;
 	void scale(double factor) override;

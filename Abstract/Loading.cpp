@@ -106,8 +106,17 @@ bool LoadSet::validate() const {
 	return true;
 }
 
+bool LoadSet::hasFunctions() const {
+    for (shared_ptr<Loading> loading : getLoadings()) {
+		if (loading->hasFunctions()) {
+			return true;
+		}
+	}
+	return false;
+}
+
 shared_ptr<LoadSet> LoadSet::clone() const {
-	return shared_ptr<LoadSet>(new LoadSet(*this));
+	return make_shared<LoadSet>(*this);
 }
 
 NodeLoading::NodeLoading(const Model& model, Loading::Type type, int original_id,
@@ -156,7 +165,7 @@ double Gravity::getAccelerationScale() const {
 }
 
 shared_ptr<Loading> Gravity::clone() const {
-	return shared_ptr<Loading>(new Gravity(*this));
+	return make_shared<Gravity>(*this);
 }
 
 void Gravity::scale(double factor) {
@@ -203,7 +212,7 @@ const VectorialValue RotationCenter::getCenter() const {
 }
 
 shared_ptr<Loading> RotationCenter::clone() const {
-	return shared_ptr<Loading>(new RotationCenter(*this));
+	return make_shared<RotationCenter>(*this);
 }
 
 void RotationCenter::scale(double factor) {
@@ -230,7 +239,7 @@ const VectorialValue RotationNode::getCenter() const {
 }
 
 shared_ptr<Loading> RotationNode::clone() const {
-	return shared_ptr<Loading>(new RotationNode(*this));
+	return make_shared<RotationNode>(*this);
 }
 
 void RotationNode::scale(double factor) {
@@ -286,25 +295,27 @@ const VectorialValue NodalForce::getMomentInGlobalCS(int nodePosition) const {
 const DOFS NodalForce::getDOFSForNode(int nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
 	set<int> posSet = nodePositions();
+	VectorialValue globalForce = getForceInGlobalCS(nodePosition);
+	VectorialValue globalTorque = getMomentInGlobalCS(nodePosition);
 	if (posSet.find(nodePosition) != posSet.end()) {
-		if (!is_zero(force.x()))
+		if (!is_zero(globalForce.x()))
 			dofs = dofs + DOF::DX;
-		if (!is_zero(force.y()))
+		if (!is_zero(globalForce.y()))
 			dofs = dofs + DOF::DY;
-		if (!is_zero(force.z()))
+		if (!is_zero(globalForce.z()))
 			dofs = dofs + DOF::DZ;
-		if (!is_zero(moment.x()))
+		if (!is_zero(globalTorque.x()))
 			dofs = dofs + DOF::RX;
-		if (!is_zero(moment.y()))
+		if (!is_zero(globalTorque.y()))
 			dofs = dofs + DOF::RY;
-		if (!is_zero(moment.z()))
+		if (!is_zero(globalTorque.z()))
 			dofs = dofs + DOF::RZ;
 	}
 	return dofs;
 }
 
 shared_ptr<Loading> NodalForce::clone() const {
-	return shared_ptr<Loading>(new NodalForce(*this));
+	return make_shared<NodalForce>(*this);
 }
 
 void NodalForce::scale(double factor) {
@@ -502,56 +513,13 @@ vector<int> PressionFaceTwoNodes::getApplicationFace() const {
 	return nodeIds;
 }
 
-ForceLine::ForceLine(const Model& model, const VectorialValue& force, const VectorialValue& torque,
-		const int original_id) :
-		ElementLoading(model, FORCE_LINE, original_id), force(force), torque(torque) {
+ForceLine::ForceLine(const Model& model, const shared_ptr<NamedValue> force, DOF dof,
+			const int original_id) :
+		ElementLoading(model, FORCE_LINE, original_id), force(force), dof(dof) {
 
 }
 
 const DOFS ForceLine::getDOFSForNode(int nodePosition) const {
-	DOFS dofs(DOFS::NO_DOFS);
-	set<int> nodes = nodePositions();
-	if (nodes.find(nodePosition) != nodes.end()) {
-		if (!is_zero(force.x()))
-			dofs = dofs + DOF::DX;
-		if (!is_zero(force.y()))
-			dofs = dofs + DOF::DY;
-		if (!is_zero(force.z()))
-			dofs = dofs + DOF::DZ;
-		if (!is_zero(torque.x()))
-			dofs = dofs + DOF::RX;
-		if (!is_zero(torque.y()))
-			dofs = dofs + DOF::RY;
-		if (!is_zero(torque.z()))
-			dofs = dofs + DOF::RZ;
-	}
-	return dofs;
-}
-
-shared_ptr<Loading> ForceLine::clone() const {
-	return shared_ptr<Loading>(new ForceLine(*this));
-}
-
-void ForceLine::scale(double factor) {
-	force.scale(factor);
-	torque.scale(factor);
-}
-
-bool ForceLine::ineffective() const {
-	return force.iszero() and torque.iszero();
-}
-
-bool ForceLine::validate() const {
-	return true;
-}
-
-ForceLineComponent::ForceLineComponent(const Model& model, const shared_ptr<NamedValue> force, DOF dof,
-			const int original_id) :
-		ElementLoading(model, FORCE_LINE_COMPONENT, original_id), force(force), dof(dof) {
-
-}
-
-const DOFS ForceLineComponent::getDOFSForNode(int nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
 	set<int> nodes = nodePositions();
 	if (nodes.find(nodePosition) != nodes.end()) {
@@ -561,24 +529,24 @@ const DOFS ForceLineComponent::getDOFSForNode(int nodePosition) const {
 	return dofs;
 }
 
-shared_ptr<Loading> ForceLineComponent::clone() const {
-	return shared_ptr<Loading>(new ForceLineComponent(*this));
+shared_ptr<Loading> ForceLine::clone() const {
+	return make_shared<ForceLine>(*this);
 }
 
-void ForceLineComponent::scale(double factor) {
+void ForceLine::scale(double factor) {
 	force->scale(factor);
 }
 
-bool ForceLineComponent::ineffective() const {
+bool ForceLine::ineffective() const {
 	return force->iszero();
 }
 
-bool ForceLineComponent::validate() const {
+bool ForceLine::validate() const {
 	return true;
 }
 
 shared_ptr<Loading> PressionFaceTwoNodes::clone() const {
-	return shared_ptr<Loading>(new PressionFaceTwoNodes(*this));
+	return make_shared<PressionFaceTwoNodes>(*this);
 }
 
 NormalPressionFace::NormalPressionFace(const Model& model, double intensity, const int original_id) :
@@ -596,7 +564,7 @@ const DOFS NormalPressionFace::getDOFSForNode(int nodePosition) const {
 }
 
 shared_ptr<Loading> NormalPressionFace::clone() const {
-	return shared_ptr<Loading>(new NormalPressionFace(*this));
+	return make_shared<NormalPressionFace>(*this);
 }
 
 void NormalPressionFace::scale(double factor) {
@@ -658,7 +626,7 @@ const DOFS DynamicExcitation::getDOFSForNode(int nodePosition) const {
 }
 
 shared_ptr<Loading> DynamicExcitation::clone() const {
-    return shared_ptr<Loading>(new DynamicExcitation(*this));
+    return make_shared<DynamicExcitation>(*this);
 }
 
 bool DynamicExcitation::validate() const {
