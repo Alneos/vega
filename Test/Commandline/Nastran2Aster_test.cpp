@@ -31,7 +31,7 @@ namespace tests {
 
 using namespace std;
 
-BOOST_AUTO_TEST_CASE( prob6 ) {
+/*BOOST_AUTO_TEST_CASE( prob6 ) {
 	CommandLineUtils::nastranStudy2Aster("/caw/prob6/prob6.dat", true, true, 0.02);
 }
 
@@ -57,7 +57,7 @@ BOOST_AUTO_TEST_CASE( rod1freeforce ) {
 
 BOOST_AUTO_TEST_CASE( fixedcircularplate ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/fixed_circular_plate/fixed_circular_plate.dat", true, true, 0.1);
-}
+}*/
 
 BOOST_AUTO_TEST_CASE( prob2 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/prob2/prob2.dat", true, true, 0.15);

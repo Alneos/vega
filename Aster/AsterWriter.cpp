@@ -707,6 +707,7 @@ void AsterWriterImpl::writeAffeCharMeca(const AsterModel& asterModel, ostream& o
 		if (loadSet.getLoadings().size()
 				== loadSet.getLoadingsByType(Loading::INITIAL_TEMPERATURE).size()) {
 			out << "# Ignoring INITIAL_TEMPERATURES!!!!!!" << endl;
+			cout << "!!!!!!Ignoring INITIAL_TEMPERATURES!!!!!!" << endl;
 			continue;
 		}
 		for(bool withFunctions : {false, true} ) {

@@ -1813,7 +1813,7 @@ void NastranParserImpl::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> mod
     int eid = tok.nextInt();
     string type = tok.nextString();
     string scale = tok.nextString();
-    shared_ptr<FunctionTable> force = make_shared<FunctionTable>(*model, FunctionTable::LINEAR, FunctionTable::LINEAR, FunctionTable::CONSTANT, FunctionTable::CONSTANT);
+    shared_ptr<FunctionTable> force = make_shared<FunctionTable>(*model, FunctionTable::LINEAR, FunctionTable::LINEAR, FunctionTable::NONE, FunctionTable::NONE);
     force->setParaX(FunctionTable::PARAX);
     DOF dof = DOF::DX;
     double x1 = tok.nextDouble(true, 0.0);
@@ -1839,15 +1839,15 @@ void NastranParserImpl::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> mod
 
     double effx1, effx2, effp1, effp2;
 
-    if (scale == "FRPR") {
-        /* If SCALE = FRPR (fractional projected), the Xi values are ratios of the actual distance to the length of the bar
-         * and (X1 ≠ X2) the distributed load is input in terms of the projected length of the bar.*/
+    if (scale == "LE") {
+        /* If SCALE = LE, the total load applied to the bar is P1(X2 - X1) in the yb direction. */
         effx1 = x1;
         effx2 = x2;
         effp1 = p1;
         effp2 = p2;
-    } else if (scale == "LE") {
-        /* If SCALE = LE, the total load applied to the bar is P1(X2 - X1) in the yb direction. */
+    } else if (scale == "FRPR") {
+        /* If SCALE = FRPR (fractional projected), the Xi values are ratios of the actual distance to the length of the bar
+         * and (X1 ≠ X2) the distributed load is input in terms of the projected length of the bar.*/
         // TODO LD: encapsulate all this in mesh/cell/node (but it needs model)
         int cellPos = model->mesh->findCellPosition(eid);
         Cell cell = model->mesh->findCell(cellPos);
@@ -1870,11 +1870,15 @@ void NastranParserImpl::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> mod
 
     if (effx1 > 0.0)
         force->setXY(effx1 - effx1 / smalldistancefactor, 0.0);
-    force->setXY(effx1, effp1);
     if (x2 < 0 || is_equal(x2, x1)) {
         // If X2 is blank or equal to X1, a concentrated load of value P1 will be applied at position X1.
-        force->setXY(effx1 + effx1 / smalldistancefactor, 0.0);
+        //effp1 = effp1 * 2 / (2 * effx1 / smalldistancefactor); // compunting equivalent triangle area to get the resultant force
+        //force->setXY(effx1, effp1);
+        //force->setXY(effx1 + effx1 / smalldistancefactor, 0.0);
+        // TODO : this does not seem to work, should split beam and add one node, then apply nodal force
+        handleParsingError(string("Concentrated force not yet handled."), tok, model);
     } else {
+        force->setXY(effx1, effp1);
         force->setXY(effx2, effp2);
         force->setXY(effx2 + effx2 / smalldistancefactor, 0.0);
     }
