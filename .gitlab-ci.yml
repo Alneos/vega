@@ -1,9 +1,13 @@
 stages:
   - build
+  - test
 
 building:
   stage: build
   image: docker:dind
+  tags:
+    - docker
+    - irt
   variables:
     TEST_IMAGE: gitlab/vegairt
   before_script:     
@@ -14,7 +18,16 @@ building:
     - pwd
     - which docker
     - docker info
+    - ls /opt$TEST_IMAGE
   script:
     - docker build -t $TEST_IMAGE -f Dockerfile_gitlab .
-    - docker run --rm $TEST_IMAGE
+    - docker run -v /opt:/opt "$TEST_IMAGE" /bin/sh -c "ctest ."
     - docker rmi "$TEST_IMAGE"
+
+nightly:
+  stage: test
+  tags:
+    - shell
+    - irt
+  only:
+    - schedules

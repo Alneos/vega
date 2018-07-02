@@ -8,4 +8,4 @@ ENV VEGA_BUILD=$VEGA_SOURCE/build
 COPY --chown=vega:vega . $VEGA_SOURCE
 RUN mkdir $VEGA_BUILD
 WORKDIR $VEGA_BUILD
-RUN source /home/vega/.bashrc && cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j && ctest .
+RUN source /home/vega/.bashrc && cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j
