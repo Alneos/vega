@@ -3,11 +3,9 @@ stages:
 
 building:
   stage: build
-  variables:     
-    DOCKER_REPO: stc-2.irt-systemx.local:5000
-    DOCKER_HOST: tcp://192.168.26.2:2375
-    PUBLIC_TEST_IMAGE: ldallolio/vegaci
-  image: sofianinho/dind
+  image: alpine:latest
+  variables:
+	TEST_IMAGE: gitlab/vegairt
   before_script:     
     - env | grep ^DOCKER_     
     - env | grep ^CI_     
@@ -16,9 +14,7 @@ building:
     - pwd
     - which docker
     - docker info
-  tags:     
-    - stc 
-    - docker
-    - new
   script:
-    - ls
+    - docker build $TEST_IMAGE -f Dockerfile_gitlab .
+    - docker run --rm $TEST_IMAGE
+    - docker rmi "$TEST_IMAGE"

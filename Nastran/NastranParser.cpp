@@ -1878,6 +1878,7 @@ void NastranParserImpl::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> mod
         // TODO : this does not seem to work, should split beam and add one node, then apply nodal force
         handleParsingError(string("Concentrated force not yet handled."), tok, model);
     } else {
+        // TODO LD: this won't do, really need an absolute space function (at least in the writer)
         force->setXY(effx1, effp1);
         force->setXY(effx2, effp2);
         force->setXY(effx2 + effx2 / smalldistancefactor, 0.0);
