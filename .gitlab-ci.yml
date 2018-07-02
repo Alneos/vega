@@ -3,7 +3,7 @@ stages:
 
 building:
   stage: build
-  image: gitlab/dind
+  image: docker:dind
   variables:
     TEST_IMAGE: gitlab/vegairt
   before_script:     
