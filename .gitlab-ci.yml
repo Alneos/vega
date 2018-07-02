@@ -18,7 +18,7 @@ building:
     - pwd
     - which docker
     - docker info
-    - ls /opt$TEST_IMAGE
+    - ls /opt
   script:
     - docker build -t $TEST_IMAGE -f Dockerfile_gitlab .
     - docker run -v /opt:/opt "$TEST_IMAGE" /bin/sh -c "ctest ."
@@ -31,3 +31,8 @@ nightly:
     - irt
   only:
     - schedules
+  before_script:
+    - whoami
+    - pwd
+  script:
+    - ls /opt
