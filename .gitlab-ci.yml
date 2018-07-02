@@ -21,15 +21,14 @@ building:
     - docker info
   script:
     - docker build -t $TEST_IMAGE -f Dockerfile_gitlab .
-    - docker run --name "$TEST_CONTAINER" "$TEST_IMAGE" /bin/sh -c "pwd && whoami && source /home/vega/.bashrc && ctest ."
+    - docker run --name "$TEST_CONTAINER" "$TEST_IMAGE" /bin/sh -c "source /home/vega/.bashrc && ctest ."
     - docker cp $TEST_CONTAINER:/home/vega/vegapp/build/bin/vegapp .
     - ls
     - docker rm "$TEST_CONTAINER"
     - docker rmi "$TEST_IMAGE"
   artifacts:
     paths:
-    - mycv.pdf
-    expire_in: 1 week
+    - vegapp
 
 nightly:
   stage: test
