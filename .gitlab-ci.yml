@@ -5,7 +5,7 @@ building:
   stage: build
   image: alpine:latest
   variables:
-	TEST_IMAGE: gitlab/vegairt
+    TEST_IMAGE: gitlab/vegairt
   before_script:     
     - env | grep ^DOCKER_     
     - env | grep ^CI_     
