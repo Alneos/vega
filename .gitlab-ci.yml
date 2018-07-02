@@ -3,7 +3,7 @@ stages:
 
 building:
   stage: build
-  image: alpine:latest
+  image: gitlab/dind
   variables:
     TEST_IMAGE: gitlab/vegairt
   before_script:     
