@@ -15,6 +15,6 @@ building:
     - which docker
     - docker info
   script:
-    - docker build $TEST_IMAGE -f Dockerfile_gitlab .
+    - docker build -t $TEST_IMAGE -f Dockerfile_gitlab .
     - docker run --rm $TEST_IMAGE
     - docker rmi "$TEST_IMAGE"
