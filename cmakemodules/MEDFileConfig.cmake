@@ -90,7 +90,7 @@ MESSAGE(STATUS "MEDFILE_LIBRARIES: " ${MEDFILE_LIBRARIES})
 # If HDF5 was found in CONFIG mode, we need to include its targets so that
 # dependent projects can compile
 IF(HDF5_USE_STATIC_LIBRARIES)
-find_library(HDF5_C_LIBRARY_z NAMES libz.a z)
+  find_library(HDF5_C_LIBRARY_z NAMES libz.a z)
 ENDIF(HDF5_USE_STATIC_LIBRARIES)
 FIND_PACKAGE(HDF5)
 

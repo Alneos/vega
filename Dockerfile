@@ -25,7 +25,7 @@ ENV PATH=$PATH:$MFRONT_INSTALL/bin
 RUN echo "vers : STABLE:/opt/aster/13.4/share/aster" >> $ASTER_INSTALL/etc/codeaster/aster
 
 FROM alpine:latest
-RUN echo "@testing http://nl.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories &&  apk add --update --no-cache g++ git sudo libexecinfo-dev make gettext-libs libgfortran py-pip python2 python2-dev zlib-dev cmake lapack boost-dev bash openmpi@testing openmpi-dev@testing && pip install numpy==1.9 && apk del py-pip python2-dev 
+RUN echo "@testing http://nl.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories &&  apk add --update --no-cache g++ git sudo libexecinfo-dev make gettext-libs libgfortran py-pip python2 python2-dev zlib-dev cmake lapack boost-dev bash openmpi@testing openmpi-dev@testing valgrind-dev && pip install numpy==1.9 && apk del py-pip python2-dev 
 
 WORKDIR /opt/aster
 COPY --from=0 /opt/aster .
