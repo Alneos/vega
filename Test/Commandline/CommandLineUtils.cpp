@@ -17,7 +17,7 @@
 #include "build_properties.h"
 //dirty hack to circumvent a boost test dynamic link bug
 #ifdef __unix__
-#include <boost/test/included/unit_test.hpp>
+#include <boost/test/unit_test.hpp>
 #if defined VDEBUG
 #include <valgrind/memcheck.h>
 #endif

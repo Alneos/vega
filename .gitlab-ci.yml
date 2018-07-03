@@ -29,6 +29,7 @@ building:
   artifacts:
     paths:
     - vegapp
+    expire_in: 1 day
 
 nightly:
   stage: test

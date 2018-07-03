@@ -4,7 +4,7 @@
 # bugs and problems to <info@alneos.fr>.
 # Initial version from cmake config in : http://geuz.org/gmsh
 
-cmake_minimum_required(VERSION 2.8.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.8.1 FATAL_ERROR)
 
 ########################################################################
 # Provide add_compile_options() when not available
@@ -96,7 +96,7 @@ else(MSVC)
     ENDIF()
     if(STATIC_LINKING)
         add_compile_options(-fPIE)
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -static-libgcc -static-libstdc++ -static" CACHE INTERNAL "Linker flags")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -static-libgcc -static-libstdc++" CACHE INTERNAL "Linker flags")
     else(STATIC_LINKING)
         if(NOT MINGW)
 	        #add_compile_options(-fPIC)
@@ -115,8 +115,8 @@ else(MSVC)
         else(STATIC_LINKING)
             if(NOT MINGW)
                 add_compile_options(-fPIC)
-	            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -rdynamic " CACHE INTERNAL "Linker flags")
-	        endif(NOT MINGW)
+	        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -rdynamic " CACHE INTERNAL "Linker flags")
+	    endif(NOT MINGW)
         endif(STATIC_LINKING)
     ENDIF(CYGWIN)
 
@@ -237,7 +237,7 @@ include_directories(SYSTEM ${MPI_CXX_INCLUDE_PATH})
 #link_directories ( ${MEDFILE_LIBRARY_DIR} )
 list(APPEND EXTERNAL_LIBRARIES ${MEDFILE_C_LIBRARIES})
 list(APPEND EXTERNAL_LIBRARIES ${MPI_C_LIBRARIES})
-#list(APPEND EXTERNAL_LIBRARIES ${HDF5_LIBRARIES})
+list(APPEND EXTERNAL_LIBRARIES ${HDF5_LIBRARIES})
 
 # On Cygwin, we need to explicitely look some libraries on /lib
 IF(CYGWIN)
