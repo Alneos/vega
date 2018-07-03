@@ -11,6 +11,7 @@
 #include "build_properties.h"
 #include "../../Abstract/ConfigurationParameters.h"
 #include "../../Abstract/Model.h"
+#include "Model_test.h"
 #include <cstddef>
 #include <new>
 #include <string>

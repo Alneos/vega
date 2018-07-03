@@ -104,8 +104,9 @@ public:
     const double instant = -1;
     NodalDisplacementAssertion(const Model&, double tolerance, int nodeId, DOF dof,
             double value, double instant, int original_id = NO_ORIGINAL_ID);
+    friend std::ostream& operator<<(std::ostream&, const NodalDisplacementAssertion&);
     std::shared_ptr<Objective> clone() const {
-        return std::shared_ptr<Objective>(new NodalDisplacementAssertion(*this));
+        return std::make_shared<NodalDisplacementAssertion>(*this);
     }
     ~NodalDisplacementAssertion() {
     }
@@ -118,8 +119,9 @@ public:
     const double frequency = -1;
     NodalComplexDisplacementAssertion(const Model&, double tolerance, int nodeId, DOF dof,
             complex<double> value, double frequency, int original_id = NO_ORIGINAL_ID);
+    friend std::ostream& operator<<(std::ostream&, const NodalComplexDisplacementAssertion&);
     std::shared_ptr<Objective> clone() const {
-        return std::shared_ptr<Objective>(new NodalComplexDisplacementAssertion(*this));
+        return std::make_shared<NodalComplexDisplacementAssertion>(*this);
     }
     ~NodalComplexDisplacementAssertion() {
     }

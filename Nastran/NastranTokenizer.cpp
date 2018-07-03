@@ -242,6 +242,8 @@ void NastranTokenizer::nextLine() {
 		case SECTION_BULK:
 			parseBulkSectionLine(this->currentLine);
 			break;
+		default:
+            throw logic_error("Section type not (yet) handled");
 		}
 		this->nextSymbolType = SYMBOL_KEYWORD;
 	} else {

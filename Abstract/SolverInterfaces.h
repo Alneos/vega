@@ -31,10 +31,10 @@ public:
 };
 
 
-std::string ParserMessageException(std::string arg, std::string fname, int lineNum, std::string key);
-std::string ParserMessageWarning(std::string arg, std::string fname, int lineNum, std::string key);
-std::string WriterMessageException(std::string arg, std::string fname, std::string key);
-std::string WriterMessageWarning(std::string arg, std::string fname, std::string key);
+std::string ParsingMessageException(std::string arg, std::string fname, int lineNum, std::string key);
+std::string ParsingMessageWarning(std::string arg, std::string fname, int lineNum, std::string key);
+std::string WritingMessageException(std::string arg, std::string fname, std::string key);
+std::string WritingMessageWarning(std::string arg, std::string fname, std::string key);
 
 
 class ParsingException: public std::exception {

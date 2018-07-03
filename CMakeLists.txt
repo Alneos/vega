@@ -97,7 +97,7 @@ else(MSVC)
         add_compile_options(-Wfloat-equal -diag-disable 1170 -fmessage-length=0) # -Wshadow
     ELSE()
         add_compile_options(-std=c++11 -Werror -Wall -Wextra -Winit-self -Wsuggest-attribute=const -Wconversion -pedantic -pedantic-errors)
-        add_compile_options(-Wfloat-equal -Woverlength-strings -fmessage-length=0) # -Wshadow
+        add_compile_options(-Wfloat-equal -Woverlength-strings -fmessage-length=0 -Wmain -Wmissing-declarations -Wundef -Wredundant-decls -Wcast-align -Wswitch-default) # -Wshadow
     ENDIF()
     if(STATIC_LINKING)
         add_compile_options(-fPIE)

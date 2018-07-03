@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -301,12 +301,12 @@ BOOST_AUTO_TEST_CASE(nastran_auto_contiuation_short_incomplete_line) {
     BOOST_CHECK_EQUAL("TEST", tok.nextString());
 }
 
-void countGridElems(NastranTokenizer& tok) {
+/*void countGridElems(NastranTokenizer& tok) {
     int symcount = 0;
     while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
         string symbol = tok.nextString();
         symcount += symbol.empty() ? 0 : 1;
     }
     BOOST_CHECK_EQUAL(4, symcount);
-}
+}*/
 

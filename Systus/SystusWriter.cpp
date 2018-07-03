@@ -676,6 +676,8 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
                     mesh->updateCell(cell.id, CellType::POLY4, nodes, true);
                     break;
                 }
+                default:
+                    throw logic_error("Not (yet) implemented, maybe nothing to do in this case?");
                 }
             }
             break;
@@ -751,6 +753,8 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
                     mesh->updateCell(cell.id, CellType::POLY5, nodes, true);
                     break;
                 }
+                default:
+                    throw logic_error("Not (yet) implemented, maybe nothing to do in this case?");
                 }
             }
             break;

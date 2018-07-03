@@ -28,11 +28,7 @@ namespace po = boost::program_options;
 using boost::to_upper;
 using namespace std;
 
-#ifdef __linux__
-#ifdef __GLIBC__
-#include <execinfo.h>
-#include <signal.h>
-
+#if defined(__linux__) && defined(__GLIBC__)
 void handler(int sig) {
     void *array[10];
     size_t size;
@@ -45,7 +41,6 @@ void handler(int sig) {
     backtrace_symbols_fd(array, static_cast<int>(size), STDERR_FILENO);
     exit(1);
 }
-#endif
 #endif
 
 // A helper function to simplify the main part.
@@ -342,8 +337,8 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     	for (size_t i = 0; i < subcases.size(); ++i){
     		vector<int> vec;
     		string soptions = subcases[i];
-    		// Single: every analysis in a separate file, is caracterized by 
-    		// systusSubcases = < <-1> > 
+    		// Single: every analysis in a separate file, is caracterized by
+    		// systusSubcases = < <-1> >
     		// TODO: Not very elegant. Do better.
     		if (soptions=="single"){
     			systusSubcases.clear();
