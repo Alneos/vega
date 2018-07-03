@@ -408,8 +408,8 @@ shared_ptr<Model> NastranParserImpl::parse(const ConfigurationParameters& config
 
     fs::path inputFilePath = findModelFile(filename);
     const string modelName = inputFilePath.filename().string();
-    shared_ptr<Model> model = shared_ptr<Model>(new Model(modelName, "UNKNOWN", NASTRAN,
-            configuration.getModelConfiguration()));
+    shared_ptr<Model> model = make_shared<Model>(modelName, "UNKNOWN", NASTRAN,
+            configuration.getModelConfiguration());
     map<string, string> executive_section_context;
     const string inputFilePathStr = inputFilePath.string();
     ifstream istream(inputFilePathStr);

@@ -40,7 +40,7 @@ Material::Material(Model* model, int original_id) :
 }
 
 shared_ptr<Material> Material::clone() const {
-	return shared_ptr<Material>(new Material(*this));
+	return make_shared<Material>(*this);
 }
 
 bool Material::validate() const {
@@ -115,7 +115,7 @@ Nature::~Nature() {
 }
 
 shared_ptr<Nature> ElasticNature::clone() const {
-	return shared_ptr<Nature>(new ElasticNature(*this));
+	return make_shared<ElasticNature>(*this);
 }
 
 ElasticNature::~ElasticNature() {
@@ -182,7 +182,7 @@ double ElasticNature::getGE() const {
 }
 
 shared_ptr<Nature> BilinearElasticNature::clone() const {
-	return shared_ptr<Nature>(new BilinearElasticNature(*this));
+	return make_shared<BilinearElasticNature>(*this);
 }
 
 BilinearElasticNature::~BilinearElasticNature() {
@@ -200,7 +200,7 @@ BilinearElasticNature::BilinearElasticNature(const Model& model) :
 }
 
 shared_ptr<Nature> NonLinearElasticNature::clone() const {
-	return shared_ptr<Nature>(new NonLinearElasticNature(*this));
+	return make_shared<NonLinearElasticNature>(*this);
 }
 
 NonLinearElasticNature::~NonLinearElasticNature() {
@@ -224,7 +224,7 @@ shared_ptr<FunctionTable> NonLinearElasticNature::getStressStrainFunction() cons
 
 
 shared_ptr<Nature> RigidNature::clone() const {
-    return shared_ptr<Nature>(new RigidNature(*this));
+    return make_shared<RigidNature>(*this);
 }
 
 RigidNature::~RigidNature() {

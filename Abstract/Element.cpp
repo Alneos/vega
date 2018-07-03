@@ -112,7 +112,7 @@ CircularSectionBeam::CircularSectionBeam(Model& model, double _radius, BeamModel
 }
 
 shared_ptr<ElementSet> CircularSectionBeam::clone() const {
-	return shared_ptr<ElementSet>(new CircularSectionBeam(*this));
+	return make_shared<CircularSectionBeam>(*this);
 }
 
 double CircularSectionBeam::getAreaCrossSection() const {
@@ -166,7 +166,7 @@ double RectangularSectionBeam::getTorsionalConstant() const {
 	//} else {
 	//	return height * pow(width, 3) / 3;
 	//}
-	
+
 	return width*pow(height, 3)*(1.0/3 -0.21*height*(1- pow(height,4)/(12*pow(width,4)))/width);
 }
 
@@ -179,7 +179,7 @@ double RectangularSectionBeam::getShearAreaFactorZ() const {
 }
 
 shared_ptr<ElementSet> RectangularSectionBeam::clone() const {
-	return shared_ptr<ElementSet>(new RectangularSectionBeam(*this));
+	return make_shared<RectangularSectionBeam>(*this);
 }
 
 GenericSectionBeam::GenericSectionBeam(Model& model, double area_cross_section,
@@ -194,7 +194,7 @@ GenericSectionBeam::GenericSectionBeam(Model& model, double area_cross_section,
 }
 
 shared_ptr<ElementSet> GenericSectionBeam::clone() const {
-	return shared_ptr<ElementSet>(new GenericSectionBeam(*this));
+	return make_shared<GenericSectionBeam>(*this);
 }
 double GenericSectionBeam::getAreaCrossSection() const {
 	return area_cross_section;
@@ -290,7 +290,7 @@ DiscretePoint::DiscretePoint(Model& model, double x, double y, double z, double 
 }
 
 shared_ptr<ElementSet> DiscretePoint::clone() const {
-	return shared_ptr<ElementSet>(new DiscretePoint(*this));
+	return make_shared<DiscretePoint>(*this);
 }
 
 void DiscretePoint::addComponent(DOF code, double value) {
@@ -360,7 +360,7 @@ DiscreteSegment::DiscreteSegment(Model& model, bool symmetric, int original_id) 
 }
 
 shared_ptr<ElementSet> DiscreteSegment::clone() const {
-	return shared_ptr<ElementSet>(new DiscreteSegment(*this));
+	return make_shared<DiscreteSegment>(*this);
 }
 
 bool DiscreteSegment::hasTranslations() const {
@@ -499,7 +499,7 @@ double StructuralSegment::findStiffness(DOF rowdof, DOF coldof) const{
 }
 
 std::shared_ptr<ElementSet> StructuralSegment::clone() const{
-	return shared_ptr<ElementSet>(new StructuralSegment(*this));
+	return make_shared<StructuralSegment>(*this);
 }
 
 
@@ -739,7 +739,7 @@ Rbar::Rbar(Model& model, int master_id, int original_id) :
 }
 
 shared_ptr<ElementSet> Rbar::clone() const {
-    return shared_ptr<ElementSet>(new Rbar(*this));
+    return make_shared<Rbar>(*this);
 }
 
 Rbe3::Rbe3(Model& model, int master_id, DOFS mdofs, DOFS sdofs, int original_id) :
@@ -748,7 +748,7 @@ Rbe3::Rbe3(Model& model, int master_id, DOFS mdofs, DOFS sdofs, int original_id)
 }
 
 shared_ptr<ElementSet> Rbe3::clone() const {
-    return shared_ptr<ElementSet>(new Rbe3(*this));
+    return make_shared<Rbe3>(*this);
 }
 
 Lmpc::Lmpc(Model& model, int analysisId, int original_id) :
@@ -757,7 +757,7 @@ analysisId(analysisId){
 }
 
 shared_ptr<ElementSet> Lmpc::clone() const {
-    return shared_ptr<ElementSet>(new Lmpc(*this));
+    return make_shared<Lmpc>(*this);
 }
 
 void Lmpc::assignDofCoefs(std::vector<DOFCoefs> dofCoefs) {
@@ -797,7 +797,7 @@ const DOFS ScalarSpring::getDOFSForNode(int nodePosition) const {
     return DOFS::ALL_DOFS;
 }
 shared_ptr<ElementSet> ScalarSpring::clone() const {
-    return shared_ptr<ElementSet>(new ScalarSpring(*this));
+    return make_shared<ScalarSpring>(*this);
 }
 
 void ScalarSpring::addSpring(int cellPosition, DOF dofNodeA, DOF dofNodeB){

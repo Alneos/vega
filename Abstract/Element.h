@@ -19,7 +19,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/functional/hash.hpp>
 //win
-#define _USE_MATH_DEFINES 
+#define _USE_MATH_DEFINES
 #include <math.h>
 
 namespace vega {
@@ -222,7 +222,7 @@ public:
 			int original_id = NO_ORIGINAL_ID);
 
 	std::shared_ptr<ElementSet> clone() const override {
-		return std::shared_ptr<ElementSet>(new ISectionBeam(*this));
+		return std::make_shared<ISectionBeam>(*this);
 	}
 
 	double getAreaCrossSection() const override;
@@ -244,7 +244,7 @@ public:
 	public:
 	Shell(Model&, double thickness, double additional_mass = 0, int original_id = NO_ORIGINAL_ID);
 	std::shared_ptr<ElementSet> clone() const override {
-		return std::shared_ptr<ElementSet>(new Shell(*this));
+		return std::make_shared<Shell>(*this);
 	}
 	double getAdditionalRho() const {
 		return additional_mass / std::max(thickness, DBL_MIN);
@@ -262,7 +262,7 @@ class Continuum: public ElementSet {
 public:
 	Continuum(Model&, const ModelType* modelType, int original_id = NO_ORIGINAL_ID);
 	std::shared_ptr<ElementSet> clone() const override {
-		return std::shared_ptr<ElementSet>(new Continuum(*this));
+		return std::make_shared<Continuum>(*this);
 	}
 	const DOFS getDOFSForNode(int nodePosition) const override final;
 	virtual ~Continuum() {
@@ -320,7 +320,7 @@ public:
 };
 
 
-/** Generalized Structural Two points elements : used for spring, damper elements. 
+/** Generalized Structural Two points elements : used for spring, damper elements.
  *  It may overlapped some functionnalities of DiscreteSegment.*/
 class StructuralSegment final : public Discrete {
 private:
@@ -373,7 +373,7 @@ class NodalMass: public ElementSet {
 	~NodalMass();
 
 	inline std::shared_ptr<ElementSet> clone() const {
-		return std::shared_ptr<ElementSet>(new NodalMass(*this));
+		return std::make_shared<NodalMass>(*this);
 	}
 };
 
@@ -409,7 +409,7 @@ public:
 	StiffnessMatrix(Model&, int original_id = NO_ORIGINAL_ID);
 	void addStiffness(const int nodeid1, const DOF dof1, const int nodeid2, const DOF dof2, const double stiffness);
 	std::shared_ptr<ElementSet> clone() const override {
-		return std::shared_ptr<ElementSet>(new StiffnessMatrix(*this));
+		return std::make_shared<StiffnessMatrix>(*this);
 	}
 };
 
@@ -417,7 +417,7 @@ class MassMatrix : public MatrixElement {
 public:
 	MassMatrix(Model&, int original_id = NO_ORIGINAL_ID);
 	std::shared_ptr<ElementSet> clone() const override {
-		return std::shared_ptr<ElementSet>(new MassMatrix(*this));
+		return std::make_shared<MassMatrix>(*this);
 	}
 };
 
@@ -426,7 +426,7 @@ public:
 	DampingMatrix(Model&, int original_id = NO_ORIGINAL_ID);
 	void addDamping(const int nodeid1, const DOF dof1, const int nodeid2, const DOF dof2, const double damping);
 	std::shared_ptr<ElementSet> clone() const override {
-		return std::shared_ptr<ElementSet>(new DampingMatrix(*this));
+		return std::make_shared<DampingMatrix>(*this);
 	}
 };
 
@@ -476,7 +476,7 @@ public:
 
 /**
  * ScalarSpring elemenset represent springs between two DOF of two nodes.
- * All springs in this elementSet have the same stiffness and damping, but various 
+ * All springs in this elementSet have the same stiffness and damping, but various
  * "directions" of spring can be collected.
  **/
 //TODO: Factorize ScalarSpring, DiscreteElement, StructuralSegment ?

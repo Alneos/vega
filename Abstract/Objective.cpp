@@ -106,7 +106,7 @@ set<int> FrequencyAssertion::nodePositions() const {
 }
 
 shared_ptr<Objective> FrequencyAssertion::clone() const {
-    return shared_ptr<Objective>(new FrequencyAssertion(*this));
+    return make_shared<FrequencyAssertion>(*this);
 }
 
 AnalysisParameter::AnalysisParameter(const Model& model, Type type, int original_id) :
@@ -114,7 +114,7 @@ AnalysisParameter::AnalysisParameter(const Model& model, Type type, int original
 }
 
 shared_ptr<Objective> AnalysisParameter::clone() const {
-    return shared_ptr<Objective>(new AnalysisParameter(*this));
+    return make_shared<AnalysisParameter>(*this);
 }
 
 FrequencyValues::FrequencyValues(const Model& model, const ValueRange& valueRange, int original_id) :
@@ -136,7 +136,7 @@ const ValuePlaceHolder FrequencyValues::getValueRangePlaceHolder() const {
 }
 
 shared_ptr<Objective> FrequencyValues::clone() const {
-    return shared_ptr<Objective>(new FrequencyValues(*this));
+    return make_shared<FrequencyValues>(*this);
 }
 
 FrequencyBand::FrequencyBand(const Model& model, double lower, double upper, int num_max,
@@ -146,7 +146,7 @@ FrequencyBand::FrequencyBand(const Model& model, double lower, double upper, int
 }
 
 shared_ptr<Objective> FrequencyBand::clone() const {
-    return shared_ptr<Objective>(new FrequencyBand(*this));
+    return make_shared<FrequencyBand>(*this);
 }
 
 ModalDamping::ModalDamping(const Model& model, const FunctionTable& function_table, int original_id) :
@@ -168,7 +168,7 @@ const ValuePlaceHolder ModalDamping::getFunctionTablePlaceHolder() const {
 }
 
 shared_ptr<Objective> ModalDamping::clone() const {
-    return shared_ptr<Objective>(new ModalDamping(*this));
+    return make_shared<ModalDamping>(*this);
 }
 
 NonLinearStrategy::NonLinearStrategy(const Model& model, int number_of_increments, int original_id) :
@@ -177,7 +177,7 @@ NonLinearStrategy::NonLinearStrategy(const Model& model, int number_of_increment
 }
 
 shared_ptr<Objective> NonLinearStrategy::clone() const {
-    return shared_ptr<Objective>(new NonLinearStrategy(*this));
+    return make_shared<NonLinearStrategy>(*this);
 }
 
 } /* namespace vega */

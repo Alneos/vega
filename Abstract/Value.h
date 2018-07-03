@@ -259,7 +259,7 @@ class DynaPhase: public ConstantValue {
 public:
     DynaPhase(const Model&, double value, int original_id = NO_ORIGINAL_ID);
     std::shared_ptr<NamedValue> clone() const {
-        return std::shared_ptr<NamedValue>(new DynaPhase(*this));
+        return std::make_shared<DynaPhase>(*this);
     }
 
 };
@@ -356,7 +356,7 @@ public:
     void scale(double factor);
     bool iszero() const;
     std::shared_ptr<NamedValue> clone() const {
-        return std::shared_ptr<NamedValue>(new VectorialFunction(*this));
+        return std::make_shared<VectorialFunction>(*this);
     }
 };
 

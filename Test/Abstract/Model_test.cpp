@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE( test_cells_iterator ) {
 		cout << cell << endl;
 	}
 	BOOST_CHECK_EQUAL(1, i);
-	BOOST_TEST_CHECKPOINT("Iteration new begin2");
+	BOOST_TEST_CHECKPOINT("Iteration begin2");
 	CellIterator cellIterator2 = model.mesh->cells.cells_begin(CellType::SEG2);
 	for (i = 0; cellIterator2.hasNext(); i++) {
 		Cell cell = cellIterator2.next();
@@ -150,9 +150,8 @@ BOOST_AUTO_TEST_CASE( test_Elements ) {
 }
 
 shared_ptr<Model> createModelWith1HEXA8() {
-	shared_ptr<Model> model(
-			new Model("inputfile", "10.3", SolverName::NASTRAN,
-					ModelConfiguration(true, LogLevel::INFO, true)));
+	shared_ptr<Model> model = make_shared<Model>("inputfile", "10.3", SolverName::NASTRAN,
+					ModelConfiguration(true, LogLevel::INFO, true));
 	double coords[24] = {
 			0., 0., 0.,
 			1., 0., 0.,

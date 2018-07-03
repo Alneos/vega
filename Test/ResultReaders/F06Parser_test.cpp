@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 			LogLevel::DEBUG, ConfigurationParameters::BEST_EFFORT, testLocation, 0.0003);
 	F06Parser f06parser;
 
-	shared_ptr<Model> model(new Model("mname", "unknown", NASTRAN, true));
+	shared_ptr<Model> model = make_shared<Model>("mname", "unknown", NASTRAN, true);
 	model->mesh->addNode(1, 2, 3, 4);
 	model->mesh->addNode(2, 2, 3, 4);
 	model->mesh->addNode(3, 2, 3, 4);
@@ -86,7 +86,7 @@ BOOST_AUTO_TEST_CASE(node_not_in_elements) {
 			LogLevel::INFO, ConfigurationParameters::BEST_EFFORT, testLocation, 0.0003);
 	F06Parser f06parser;
 
-	shared_ptr<Model> model(new Model("mname", "unknown", NASTRAN, true));
+	shared_ptr<Model> model = make_shared<Model>("mname", "unknown", NASTRAN, true);
 	model->mesh->addNode(1, 2, 3, 4);
 	model->mesh->addNode(2, 2.2, 3.2, 4.2);
 	model->mesh->addNode(3, 2.3, 3.3, 4.3);
@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE(test_4a) {
 	ConfigurationParameters confParams("inputFile", vega::CODE_ASTER, "..", "vega", ".",
 			LogLevel::INFO, ConfigurationParameters::BEST_EFFORT, testLocation, 0.0003);
 
-	shared_ptr<Model> model(new Model("mname", "unknown", NASTRAN, true));
+	shared_ptr<Model> model = make_shared<Model>("mname", "unknown", NASTRAN, true);
 	model->mesh->addNode(1, 2, 3, 4);
 	model->mesh->addNode(2, 2.2, 3.2, 4.2);
 	model->mesh->addNode(3, 2.3, 3.3, 4.3);

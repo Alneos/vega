@@ -124,7 +124,7 @@ std::ostream &operator<<(std::ostream &out, const Reference<T>& reference) {
 
 template<class T>
 std::shared_ptr<Reference<T>> Reference<T>::clone() const {
-    return std::shared_ptr<Reference<T>>(new Reference(*this));
+    return std::make_shared<Reference<T>>(*this);
 }
 
 }/* namespace vega */

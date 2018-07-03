@@ -2,9 +2,6 @@ FROM ldallolio/vegaci
 
 MAINTAINER Alter Ego Engineering <contact@aego.ai>
 
-#USER root
-#RUN apk --update --no-cache add zlib-dev && ln -s $MED_INSTALL/lib/libmed.a /usr/lib/libmed.a && ln -s $MED_INSTALL/lib/libmedC.a /usr/lib/libmedC.a && ln -s $MED_INSTALL/lib/libmedimport.a /usr/lib/libmedimport.a && ldconfig /usr/lib
-
 USER vega
 ENV VEGA_SOURCE=/home/vega/vegapp
 ENV VEGA_BUILD=$VEGA_SOURCE/build

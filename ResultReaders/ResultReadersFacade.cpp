@@ -32,9 +32,9 @@ shared_ptr<ResultReader> ResultReadersFacade::getResultReader(
 		if (!ext.empty()) {
 			string ext_str = boost::algorithm::to_lower_copy(ext.string());
 			if (ext_str == ".f06") {
-				result = shared_ptr<ResultReader>(new F06Parser());
+				result = make_shared<F06Parser>();
 			} else if (ext_str == ".csv") {
-				result = shared_ptr<ResultReader>(new CSVResultReader());
+				result = make_shared<CSVResultReader>();
 			} else {
 				cerr << "Can't determine the type of the result file. " << endl;
 				cerr << "allowed types are .f06, .csv" << endl;

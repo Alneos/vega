@@ -23,9 +23,8 @@ BOOST_AUTO_TEST_CASE(read_tut_01_csv) {
 			string("."), vega::LogLevel::INFO,
 			vega::ConfigurationParameters::TranslationMode::BEST_EFFORT, resultPath);
 	vega::result::CSVResultReader reader;
-	shared_ptr<vega::Model> model = shared_ptr<vega::Model>(
-			new vega::Model("tut_01", "", vega::SolverName::CODE_ASTER,
-					params.getModelConfiguration()));
+	shared_ptr<vega::Model> model = make_shared<vega::Model>("tut_01", "", vega::SolverName::CODE_ASTER,
+					params.getModelConfiguration());
 	reader.add_assertions(params, model);
 	BOOST_CHECK_EQUAL(model->objectives.size(), 126);
 }
