@@ -20,6 +20,7 @@ building:
     - which docker
     - docker info
   script:
+    - docker pull ldallolio/vegaci
     - docker build -t $TEST_IMAGE -f Dockerfile_gitlab .
     - docker run --name "$TEST_CONTAINER" "$TEST_IMAGE" /bin/sh -c "source /home/vega/.bashrc && ctest ."
     - docker cp $TEST_CONTAINER:/home/vega/vegapp/build/bin/vegapp .
