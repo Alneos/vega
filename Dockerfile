@@ -34,7 +34,7 @@ ENV ASTER_INSTALL=/opt/aster
 ENV MED_INSTALL=$ASTER_INSTALL/public/med-3.2.1
 ENV HDF_INSTALL=$ASTER_INSTALL/public/hdf5-1.8.14
 ENV CXXFLAGS="-isystem $MED_INSTALL/include -isystem $HDF_INSTALL/include"
-RUN ln -s $MED_INSTALL/lib/libmed.so.1.8.0 /usr/lib/libmed.so && ln -s $MED_INSTALL/lib/libmedC.so.1.8.0 /usr/lib/libmedC.so && ln -s $MED_INSTALL/lib/libmedimport.so.1.8.0 /usr/lib/libmedimport.so && ln -s $MED_INSTALL/lib/libmed.so.1.8.0 /usr/lib/libmed.so.1 && ln -s $MED_INSTALL/lib/libmedC.so.1.8.0 /usr/lib/libmedC.so.1 && ln -s $HDF_INSTALL/lib/libhdf5.so.9.0.0 /usr/lib/libhdf5.so && ln -s $HDF_INSTALL/lib/libhdf5_hl.so.9.0.0 /usr/lib/libhdf5_hl.so && ldconfig /usr/lib
+RUN ln -s $MED_INSTALL/lib/libmed.so.1.8.0 /usr/lib/libmed.so && ln -s $MED_INSTALL/lib/libmedC.so.1.8.0 /usr/lib/libmedC.so && ln -s $MED_INSTALL/lib/libmedimport.so.1.8.0 /usr/lib/libmedimport.so && ln -s $MED_INSTALL/lib/libmed.so.1.8.0 /usr/lib/libmed.so.1 && ln -s $MED_INSTALL/lib/libmedC.so.1.8.0 /usr/lib/libmedC.so.1 && ln -s $HDF_INSTALL/lib/libhdf5.so.9.0.0 /usr/lib/libhdf5.so && ln -s $HDF_INSTALL/lib/libhdf5_hl.so.9.0.0 /usr/lib/libhdf5_hl.so && ln -s $MED_INSTALL/lib/libmed.a /usr/lib/libmed.a && ln -s $MED_INSTALL/lib/libmedC.a /usr/lib/libmedC.a && ln -s $MED_INSTALL/lib/libmedimport.a /usr/lib/libmedimport.a && ldconfig /usr/lib
 ENV HDF5_ROOT=$HDF_INSTALL
 
 RUN addgroup -g 1777 vega && adduser -s /bin/bash -u 1777 -G vega -D vega && echo "vega ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && echo 'export PATH=$ASTER_INSTALL/bin:$PATH' >> /home/vega/.bashrc
