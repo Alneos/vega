@@ -22,11 +22,11 @@ building:
   script:
     - docker pull ldallolio/vegaci
     - docker build -t $TEST_IMAGE -f Dockerfile_gitlab .
-    - docker rm -f "$TEST_CONTAINER"
+    - docker ps -q --filter "name=$TEST_CONTAINER" | grep -q . && docker rm -fv $TEST_CONTAINER
     - docker run --name "$TEST_CONTAINER" "$TEST_IMAGE" /bin/sh -c "source /home/vega/.bashrc && ctest ."
     - docker cp $TEST_CONTAINER:/home/vega/vegapp/build/bin/vegapp .
     - ls
-    - docker rm "$TEST_CONTAINER"
+    - docker rm -f "$TEST_CONTAINER"
     - docker rmi "$TEST_IMAGE"
   artifacts:
     paths:
