@@ -258,7 +258,7 @@ int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &node
 	}
 	if (cpos != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
 		CellGroup* coordinateSystemCellGroup = this->getOrCreateCellGroupForOrientation(cpos);
-		coordinateSystemCellGroup->addCell(cellId);
+		coordinateSystemCellGroup->addCellId(cellId);
 		cellData.csPos = cpos;
 		}
 	cells.cellDatas.push_back(cellData);
@@ -318,7 +318,7 @@ int Mesh::updateCell(int id, const CellType &cellType, const std::vector<int> &n
     }
     if (cpos != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
         CellGroup* coordinateSystemCellGroup = this->getOrCreateCellGroupForOrientation(cpos);
-        coordinateSystemCellGroup->addCell(id);
+        coordinateSystemCellGroup->addCellId(id);
         cellData.csPos = cpos;
         }
     cells.cellDatas.push_back(cellData);

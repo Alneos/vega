@@ -258,7 +258,7 @@ NodeGroup::NodeGroup(Mesh* mesh, const string& name, int groupId, const string& 
 		Group(mesh, name, NODEGROUP, groupId, comment) {
 }
 
-void NodeGroup::addNode(int nodeId) {
+void NodeGroup::addNodeId(int nodeId) {
 	int nodePosition = this->mesh->findOrReserveNode(nodeId);
 	_nodePositions.insert(nodePosition);
 }
@@ -305,16 +305,9 @@ CellGroup::CellGroup(Mesh* mesh, const string& name, int groupId, const string& 
 		Group(mesh, name, CELLGROUP, groupId, comment) {
 
 }
-/*
- void CellGroup::addCell(const CellPositionInfo* cellPositionInfo) {
- this->cellIds.add(cellPositionInfo);
- }*/
 
-void CellGroup::addCell(int cellId) {
+void CellGroup::addCellId(int cellId) {
 	this->cellIds.insert(cellId);
-	if (this->mesh->logLevel >= LogLevel::TRACE) {
-		cout << "Group MA :" << this->getName() << ", Added: " << cellId << endl;
-	}
 }
 
 vector<Cell> CellGroup::getCells() {

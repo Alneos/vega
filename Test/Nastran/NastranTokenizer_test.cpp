@@ -301,6 +301,27 @@ BOOST_AUTO_TEST_CASE(nastran_auto_contiuation_short_incomplete_line) {
     BOOST_CHECK_EQUAL("TEST", tok.nextString());
 }
 
+BOOST_AUTO_TEST_CASE(nastran_THRU_symbol) {
+    string nastranLine = "SPC1    20      246     2       THRU    7                                       ";
+    istringstream istr(nastranLine);
+    NastranTokenizer tokenizer(istr);
+    tokenizer.bulkSection();
+    tokenizer.nextLine();
+    BOOST_CHECK_EQUAL(tokenizer.nextSymbolType, NastranTokenizer::SYMBOL_KEYWORD);
+    BOOST_CHECK_EQUAL("SPC1", tokenizer.nextString());
+    BOOST_CHECK(tokenizer.isNextInt());
+    BOOST_CHECK_EQUAL(20, tokenizer.nextInt());
+    BOOST_CHECK(tokenizer.isNextInt());
+    BOOST_CHECK_EQUAL(246, tokenizer.nextInt());
+    BOOST_CHECK(tokenizer.isNextInt());
+    list<int> ids = tokenizer.nextInts();
+    BOOST_CHECK_EQUAL(6, ids.size());
+    BOOST_CHECK_EQUAL(2, ids.front());
+    BOOST_CHECK_EQUAL(7, ids.back());
+    //end
+    tokenizer.nextLine();
+}
+
 /*void countGridElems(NastranTokenizer& tok) {
     int symcount = 0;
     while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {

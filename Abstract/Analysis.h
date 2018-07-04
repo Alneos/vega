@@ -157,7 +157,7 @@ protected:
     Reference<Objective> frequency_values_reference;
 public:
     LinearDynaModalFreq(Model& model, const FrequencyBand& frequency_band,
-            const ModalDamping& modal_damping, const FrequencyValues& frequency_values,
+            const ModalDamping& modal_damping, const FrequencyRange& frequency_values,
             const bool residual_vector = false,
             const string original_label = "", const int original_id = NO_ORIGINAL_ID);
     LinearDynaModalFreq(Model& model, const int frequency_band_original_id,
@@ -166,7 +166,7 @@ public:
             const string original_label = "", const int original_id = NO_ORIGINAL_ID);
     const bool residual_vector;
     std::shared_ptr<ModalDamping> getModalDamping() const;
-    std::shared_ptr<FrequencyValues> getFrequencyValues() const;
+    std::shared_ptr<FrequencyRange> getFrequencyValues() const;
     std::shared_ptr<Analysis> clone() const;
     bool validate() const override;
 };

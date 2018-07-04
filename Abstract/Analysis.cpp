@@ -375,8 +375,8 @@ shared_ptr<ModalDamping> LinearDynaModalFreq::getModalDamping() const {
     return dynamic_pointer_cast<ModalDamping>(model.find(modal_damping_reference));
 }
 
-shared_ptr<FrequencyValues> LinearDynaModalFreq::getFrequencyValues() const {
-    return dynamic_pointer_cast<FrequencyValues>(model.find(frequency_values_reference));
+shared_ptr<FrequencyRange> LinearDynaModalFreq::getFrequencyValues() const {
+    return dynamic_pointer_cast<FrequencyRange>(model.find(frequency_values_reference));
 }
 
 shared_ptr<Analysis> LinearDynaModalFreq::clone() const {

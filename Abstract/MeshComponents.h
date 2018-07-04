@@ -285,7 +285,7 @@ private:
     std::set<int> _nodePositions;
 public:
     // Add a node using its numerical id. If the node hasn't been yet defined it reserve position in the model.
-    void addNode(int nodeId);
+    void addNodeId(int nodeId);
     void addNodeByPosition(int nodePosition);
     void removeNodeByPosition(int nodePosition);
     const std::set<int> nodePositions() const override;
@@ -364,7 +364,7 @@ private:
     CellGroup(Mesh* mesh, const std::string & name, int id = NO_ORIGINAL_ID, const std::string & comment = "");
 public:
     std::unordered_set<int> cellIds;
-    void addCell(int cellId);
+    void addCellId(int cellId);
     std::vector<Cell> getCells();
     std::vector<int> cellPositions();
     const std::set<int> nodePositions() const override;

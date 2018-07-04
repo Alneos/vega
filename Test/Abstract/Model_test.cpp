@@ -47,13 +47,13 @@ BOOST_AUTO_TEST_CASE( test_model_spc ) {
 	model.mesh->addCell(30, CellType::SEG2, {3, 4});
 	model.mesh->addCell(31, CellType::POINT1, {1});
 	vega::NodeGroup* gn1 = model.mesh->findOrCreateNodeGroup("GN1");
-	gn1->addNode(0);
-	gn1->addNode(6);
+	gn1->addNodeId(0);
+	gn1->addNodeId(6);
 	vega::CellGroup* gm1 = model.mesh->createCellGroup("GM1");
-	gm1->addCell(31);
+	gm1->addCellId(31);
 	vega::CellGroup* gm2 = model.mesh->createCellGroup("GM2");
-	gm2->addCell(28);
-	gm2->addCell(30);
+	gm2->addCellId(28);
+	gm2->addCellId(30);
 	//SinglePointConstraint spc1 = SinglePointConstraint(model, true, true, true, false, false, false,
 	//		0.0, gn1);
 	SinglePointConstraint spc1 = SinglePointConstraint(model,std::array<ValueOrReference, 3>{{ 0, 0, 0 }}, gn1);
@@ -124,8 +124,8 @@ BOOST_AUTO_TEST_CASE( test_Elements ) {
 	model.mesh->addCell(2, CellType::SEG2, {2, 4});
 	model.mesh->addCell(3, CellType::SEG2, {3, 4});
 	vega::CellGroup* cn1 = model.mesh->createCellGroup("GM1");
-	cn1->addCell(1);
-	cn1->addCell(2);
+	cn1->addCellId(1);
+	cn1->addCellId(2);
 	BOOST_TEST_CHECKPOINT("after addcells");
 	RectangularSectionBeam rectangularSectionBeam(model, 100.0, 110.0, Beam::EULER, 1);
 	rectangularSectionBeam.assignCellGroup(cn1);
@@ -177,7 +177,7 @@ shared_ptr<Model> createModelWith1HEXA8() {
 	BOOST_CHECK_EQUAL_COLLECTIONS(face1NodeIds.begin(), face1NodeIds.end(),
 			expectedFace1NodeIds.begin(), expectedFace1NodeIds.end());
 	vega::CellGroup* cn1 = model->mesh->createCellGroup("GM1");
-	cn1->addCell(1);
+	cn1->addCellId(1);
 	BOOST_TEST_CHECKPOINT("after addcells");
 	Continuum continuum(*model, &ModelType::TRIDIMENSIONAL_SI, 1);
 	continuum.assignCellGroup(cn1);
@@ -316,17 +316,17 @@ BOOST_AUTO_TEST_CASE( test_find_methods ) {
 	}
 	vega::NodeGroup* gn1 = model.mesh->findOrCreateNodeGroup("GN1");
 	BOOST_TEST_CHECKPOINT("find_methods: before add Node 0");
-	gn1->addNode(0);
+	gn1->addNodeId(0);
 	BOOST_TEST_CHECKPOINT("find_methods: before add Node 5");
-	gn1->addNode(5);
+	gn1->addNodeId(5);
 	vega::CellGroup* gm1 = model.mesh->createCellGroup("GM1");
-	gm1->addCell(31);
+	gm1->addCellId(31);
 	vega::CellGroup* gm2 = model.mesh->createCellGroup("GM2");
-	gm2->addCell(28);
-	gm2->addCell(30);
+	gm2->addCellId(28);
+	gm2->addCellId(30);
 	vega::CellGroup* gm3 = model.mesh->createCellGroup("GM3");
-	gm3->addCell(28);
-	gm3->addCell(30);
+	gm3->addCellId(28);
+	gm3->addCellId(30);
 	model.finish();
 	BOOST_TEST_CHECKPOINT("find_methods: model completed");
 	BOOST_CHECK_EQUAL(gn1, model.mesh->findGroup("GN1"));

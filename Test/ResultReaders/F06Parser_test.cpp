@@ -42,8 +42,8 @@ BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 	model->mesh->addCell(1, CellType::QUAD4, list_of<int>(1)(2)(3)(4));
 	model->mesh->addCell(2, CellType::QUAD4, list_of<int>(1)(4)(5)(6));
 	CellGroup* cn1 = model->mesh->createCellGroup("GM1");
-	cn1->addCell(1);
-	cn1->addCell(2);
+	cn1->addCellId(1);
+	cn1->addCellId(2);
 	Shell shell(*model, 1.1);
 	shell.assignCellGroup(cn1);
 	model->add(shell);
@@ -133,12 +133,12 @@ BOOST_AUTO_TEST_CASE(test_4a) {
 	model->mesh->addCell(1, CellType::HEXA8, { 1, 2, 3, 4, 5, 6, 7, 8 });
 	model->mesh->addCell(2, CellType::POINT1, { 9 });
 	CellGroup* cn1 = model->mesh->createCellGroup("GM1");
-	cn1->addCell(1);
+	cn1->addCellId(1);
 	Continuum continuum(*model, &ModelType::TRIDIMENSIONAL_SI, 1);
 	continuum.assignCellGroup(cn1);
 	model->add(continuum);
 	CellGroup* cn2 = model->mesh->createCellGroup("GM2");
-	cn2->addCell(2);
+	cn2->addCellId(2);
 	DiscretePoint discrete(*model, { });
 	discrete.assignCellGroup(cn2);
 	model->add(discrete);

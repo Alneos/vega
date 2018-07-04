@@ -46,6 +46,7 @@ using boost::to_upper;
 
 // see also http://www.altairhyperworks.com/hwhelp/Altair/hw12.0/help/hm/hmbat.htm?design_variables.htm
 const set<string> NastranParserImpl::IGNORED_KEYWORDS = {
+        "CHECKEL", // Active le test de qualité des éléments. Inutile de le traduire.
         "DCONSTR", "DCONADD", "DESVAR", "DLINK", //nastran optimization keywords
         "DRAW", "DRESP1", "DRESP2", //ignored in Vega
         //optistruct optimization variable
@@ -57,6 +58,7 @@ const set<string> NastranParserImpl::IGNORED_KEYWORDS = {
         "DTPL", //Topology design variable definition.
         "DVGRID", "DEQATN",
         "DREPORT", "DREPADD", // Optistruct Cards
+        "EFFMAS", // Outputs modal participation factors and effective mass for normal modes analyses. Inutile de le traduire.
         "ENDDATA",
         "PLOTEL",  // Fictitious element for plotting
         "TOPVAR", //  Topological Design Variable
@@ -130,6 +132,7 @@ const unordered_map<string, NastranParserImpl::parseElementFPtr> NastranParserIm
                 { "RBE3", &NastranParserImpl::parseRBE3 },
                 { "RFORCE", &NastranParserImpl::parseRFORCE },
                 { "RLOAD2", &NastranParserImpl::parseRLOAD2 },
+                { "SET3", &NastranParserImpl::parseSET3 },
                 { "SLOAD", &NastranParserImpl::parseSLOAD },
                 { "SPC", &NastranParserImpl::parseSPC },
                 { "SPC1", &NastranParserImpl::parseSPC1 },
@@ -145,17 +148,6 @@ const unordered_map<string, NastranParserImpl::parseElementFPtr> NastranParserIm
 NastranParserImpl::NastranParserImpl() :
         Parser() {
 }
-
-void NastranParserImpl::addCellIds(ElementLoading& loading, int eid1, int eid2) {
-    if (eid2 == NastranTokenizer::UNAVAILABLE_INT) {
-        loading.addCell(eid1);
-    } else {
-        for (int i = eid1; i < eid2; i++) {
-            loading.addCell(i);
-        }
-    }
-}
-
 
 string NastranParserImpl::parseSubcase(NastranTokenizer& tok, shared_ptr<Model> model,
         map<string, string> context) {
@@ -711,7 +703,7 @@ void NastranParserImpl::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> mode
     int cellPosition = model->mesh->addCell(elemId, CellType::POINT1, { g });
     string mn = string("CONM2_") + lexical_cast<string>(elemId);
     CellGroup* mnodale = model->mesh->createCellGroup(mn, CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
-    mnodale->addCell(model->mesh->findCell(cellPosition).id);
+    mnodale->addCellId(model->mesh->findCell(cellPosition).id);
     nodalMass.assignCellGroup(mnodale);
     nodalMass.assignMaterial(model->getVirtualMaterial());
 
@@ -1075,7 +1067,7 @@ void NastranParserImpl::parseFREQ1(NastranTokenizer& tok, shared_ptr<Model> mode
 
     vega::StepRange stepRange(*model, start, step, count);
     stepRange.setParaX(NamedValue::FREQ);
-    FrequencyValues frequencyValues(*model, stepRange, original_id);
+    FrequencyRange frequencyValues(*model, stepRange, original_id);
 
     model->add(stepRange);
     model->add(frequencyValues);
@@ -1090,7 +1082,7 @@ void NastranParserImpl::parseFREQ4(NastranTokenizer& tok, shared_ptr<Model> mode
 
     vega::SpreadRange spreadRange(*model, f1, count, f2, spread);
     spreadRange.setParaX(NamedValue::FREQ);
-    FrequencyValues frequencyValues(*model, spreadRange, original_id);
+    FrequencyRange frequencyValues(*model, spreadRange, original_id);
 
     model->add(spreadRange);
     model->add(frequencyValues);
@@ -1898,19 +1890,11 @@ void NastranParserImpl::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> mod
 void NastranParserImpl::parsePLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) {
     int loadset_id = tok.nextInt();
     double p = tok.nextDouble();
-    int eid1 = tok.nextInt();
-    string strt = tok.nextString();
-    int eid2;
-    if (strt == "THRU") {
-        //format2
-        eid2 = tok.nextInt();
-    } else {
-        //format not recognized
-        handleParsingError(string("Format not yet implemented."), tok, model);
-    }
     Reference<LoadSet> loadSetReference(LoadSet::LOAD, loadset_id);
     NormalPressionFace normalPressionFace(*model, p);
-    addCellIds(normalPressionFace, eid1, eid2);
+    for(int cellId : tok.nextInts()) {
+        normalPressionFace.addCell(cellId);
+    }
     model->addLoadingIntoLoadSet(normalPressionFace, loadSetReference);
     if (!model->find(loadSetReference)) {
         LoadSet loadSet(*model, LoadSet::LOAD, loadset_id);
@@ -1937,10 +1921,9 @@ void NastranParserImpl::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> mod
         g1 = tok.nextInt(true);
         g3_or_4 = tok.nextInt(true);
     } else {
-        string strt = tok.nextString();
-        to_upper(strt);
-        if (strt == "THRU") {
+        if (tok.isNextTHRU()) {
             //format2
+            tok.skip(1);
             eid2 = tok.nextInt();
         } else {
             //format not recognized
@@ -1969,21 +1952,27 @@ void NastranParserImpl::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> mod
     if (is_equal(n1, 0.0) && is_equal(n2, 0.0) && is_equal(n3, 0.0) && cid == 0
             && g1 == NastranTokenizer::UNAVAILABLE_INT) {
         NormalPressionFace normalPressionFace(*model, p1);
-        addCellIds(normalPressionFace, eid1, eid2);
+        for(int cellId = eid1; cellId < eid2; cellId++) {
+            normalPressionFace.addCell(cellId);
+        }
 
         model->add(normalPressionFace);
         model->addLoadingIntoLoadSet(normalPressionFace, loadSetReference);
     } else if (g1 != NastranTokenizer::UNAVAILABLE_INT) {
         PressionFaceTwoNodes pressionFaceTwoNodes(*model, g1, g3_or_4,
                 VectorialValue(n1 * p1, n2 * p1, n3 * p1), VectorialValue(0.0, 0.0, 0.0));
-        addCellIds(pressionFaceTwoNodes, eid1, eid2);
+        for(int cellId = eid1; cellId < eid2; cellId++) {
+            pressionFaceTwoNodes.addCell(cellId);
+        }
 
         model->add(pressionFaceTwoNodes);
         model->addLoadingIntoLoadSet(pressionFaceTwoNodes, loadSetReference);
     } else {
         ForceSurface forceSurface(*model, VectorialValue(n1 * p1, n2 * p1, n3 * p1),
                 VectorialValue(0.0, 0.0, 0.0));
-        addCellIds(forceSurface, eid1, eid2);
+        for(int cellId = eid1; cellId < eid2; cellId++) {
+            forceSurface.addCell(cellId);
+        }
 
         model->add(forceSurface);
         model->addLoadingIntoLoadSet(forceSurface, loadSetReference);
@@ -2317,6 +2306,35 @@ void NastranParserImpl::parseRLOAD2(NastranTokenizer& tok, shared_ptr<Model> mod
     }
 }
 
+void NastranParserImpl::parseSET3(NastranTokenizer& tok, shared_ptr<Model> model) {
+    // page 2457 Labeled Set Definition, defines a list of grids, elements or points.
+    int sid = tok.nextInt();
+    string name = string("SET") + "_" + to_string(sid);
+    string des = tok.nextString();
+
+    if (des == "GRID") {
+        NodeGroup* nodeGroup = model->mesh->findOrCreateNodeGroup(name,sid,"SET");
+        while (tok.isNextInt()) {
+            nodeGroup->addNodeId(tok.nextInt());
+        }
+    } else if (des == "ELEM") {
+        CellGroup* cellGroup = model->mesh->createCellGroup(name,sid,"SET");
+        while (tok.isNextInt()) {
+            cellGroup->addCellId(tok.nextInt());
+        }
+    } else if (des == "FREQ") {
+        list<double> values;
+        while (tok.isNextDouble()) {
+            values.push_back(tok.nextDouble());
+        }
+        FrequencyList frequencyValues(*model, values, sid);
+        model->add(frequencyValues);
+    } else {
+        throw logic_error("Unsupported DES value in SET3");
+    }
+
+}
+
 //FIXME: SLOAD uses the CID of the Grid point to determine X... Not sure it's done here.
 // The "scalar" DOF is supposed to be DOF::DX
 void NastranParserImpl::parseSLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -2352,7 +2370,7 @@ void NastranParserImpl::parseSPC(NastranTokenizer& tok, shared_ptr<Model> model)
         const double displacement = tok.nextDouble(true, 0.0);
         SinglePointConstraint spc = SinglePointConstraint(*model, DOFS::nastranCodeToDOFS(gi), displacement);
         spc.addNodeId(nodeId);
-        spcNodeGroup->addNode(nodeId);
+        spcNodeGroup->addNodeId(nodeId);
 
         model->add(spc);
         model->addConstraintIntoConstraintSet(spc,
@@ -2363,7 +2381,6 @@ void NastranParserImpl::parseSPC(NastranTokenizer& tok, shared_ptr<Model> model)
 void NastranParserImpl::parseSPC1(NastranTokenizer& tok, shared_ptr<Model> model) {
     int set_id = tok.nextInt();
     const int dofInt = tok.nextInt();
-    const int g1 = tok.nextInt();
 
     // We create a constraint
     SinglePointConstraint spc = SinglePointConstraint(*model, DOFS::nastranCodeToDOFS(dofInt), 0.0);
@@ -2373,28 +2390,9 @@ void NastranParserImpl::parseSPC1(NastranTokenizer& tok, shared_ptr<Model> model
     NodeGroup *spcNodeGroup = model->mesh->findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPC1");
 
     // Parsing Nodes
-    string pos2 = trim_copy(tok.nextString(true));
-    to_upper(pos2);
-    if (pos2 == "THRU") {
-        //parse "through" format
-        const int g2 = tok.nextInt();
-        for (int curNode = g1; curNode <= g2; curNode++) {
-            spcNodeGroup->addNode(curNode);
-            spc.addNodeId(curNode);
-        }
-    } else {
-        spcNodeGroup->addNode(g1);
-        spc.addNodeId(g1);
-        if (!pos2.empty()) {
-            int nodeG2 = lexical_cast<int>(pos2);
-            spcNodeGroup->addNode(nodeG2);
-            spc.addNodeId(nodeG2);
-            while (tok.isNextInt()) {
-                int nodeId = tok.nextInt();
-                spcNodeGroup->addNode(nodeId);
-                spc.addNodeId(nodeId);
-            }
-        }
+    for(int gridId : tok.nextInts()) {
+        spcNodeGroup->addNodeId(gridId);
+        spc.addNodeId(gridId);
     }
 
     // Adding the constraint to the model

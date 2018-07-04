@@ -719,7 +719,7 @@ void Model::generateDiscrets() {
                 mesh->allowDOFS(node.position, DOFS::ALL_DOFS);
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::POINT1, cellNodes,
                         true);
-                virtualDiscretTRGroup->addCell(mesh->findCell(cellPosition).id);
+                virtualDiscretTRGroup->addCellId(mesh->findCell(cellPosition).id);
             } else {
                 addedDOFS = DOFS::TRANSLATIONS - node.dofs - missingDOFS;
                 if (virtualDiscretTGroup == nullptr) {
@@ -731,7 +731,7 @@ void Model::generateDiscrets() {
                 }
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::POINT1, { node.id },
                         true);
-                virtualDiscretTGroup->addCell(mesh->findCell(cellPosition).id);
+                virtualDiscretTGroup->addCellId(mesh->findCell(cellPosition).id);
                 mesh->allowDOFS(node.position, DOFS::TRANSLATIONS);
             }
         }
@@ -837,7 +837,7 @@ void Model::generateSkin() {
                         // LD : Workaround for MED name problems, adding single cell groups
                         CellGroup* mappl = this->mesh->createCellGroup(
                                 "C" + boost::lexical_cast<string>(cell.id));
-                        mappl->addCell(cell.id);
+                        mappl->addCellId(cell.id);
                         forceSurface->clear();
                         forceSurface->add(*mappl);
                         // LD : Workaround for Aster problem : MODELISA6_96
@@ -960,7 +960,7 @@ void Model::emulateAdditionalMass() {
             for (auto cell : cells) {
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, cell.type, cell.nodeIds, cell.isvirtual,
                         cell.cid, cell.elementId);
-                newCellGroup->addCell(mesh->findCell(cellPosition).id);
+                newCellGroup->addCellId(mesh->findCell(cellPosition).id);
             }
         }
     }
@@ -994,7 +994,7 @@ void Model::generateBeamsToDisplayHomogeneousConstraint() {
                 for (int slaveNode : rigid->getSlaves()) {
                     nodes[1] = mesh->findNode(slaveNode).id;
                     int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
-                    virtualGroupRigid->addCell(mesh->findCell(cellPosition).id);
+                    virtualGroupRigid->addCellId(mesh->findCell(cellPosition).id);
                     mesh->allowDOFS(slaveNode, DOFS::ALL_DOFS);
                 }
                 break;
@@ -1015,7 +1015,7 @@ void Model::generateBeamsToDisplayHomogeneousConstraint() {
                     nodes[1] = mesh->findNode(slaveNode).id;
                     int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
                     mesh->allowDOFS(slaveNode, DOFS::ALL_DOFS);
-                    virtualGroupRBE3->addCell(mesh->findCell(cellPosition).id);
+                    virtualGroupRBE3->addCellId(mesh->findCell(cellPosition).id);
                 }
                 break;
             }
@@ -1247,7 +1247,7 @@ void Model::replaceDirectMatrices()
                         "MTN" + to_string(matrix_count));
                 discrete.assignCellGroup(matrixGroup);
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, { node.id }, true);
-                matrixGroup->addCell(mesh->findCell(cellPosition).id);
+                matrixGroup->addCellId(mesh->findCell(cellPosition).id);
                 if (discrete.hasRotations()) {
                     addedDofsByNode[nodePosition] = DOFS::ALL_DOFS;
                     mesh->allowDOFS(node.position, DOFS::ALL_DOFS);
@@ -1273,7 +1273,7 @@ void Model::replaceDirectMatrices()
                 matrix_count++;
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, { rowNode.id,
                         colNode.id }, true);
-                matrixGroup->addCell(mesh->findCell(cellPosition).id);
+                matrixGroup->addCellId(mesh->findCell(cellPosition).id);
                 discrete.assignMaterial(getVirtualMaterial());
                 discrete.assignCellGroup(matrixGroup);
                 if (discrete.hasRotations()) {
@@ -1590,7 +1590,7 @@ void Model::makeCellsFromDirectMatrices(){
         }
 
         int cellPosition = mesh->addCell(Cell::AUTO_ID, cellType, vNodeIds, true);
-        matrixGroup->addCell(mesh->findCell(cellPosition).id);
+        matrixGroup->addCellId(mesh->findCell(cellPosition).id);
 
         if (configuration.logLevel >= LogLevel::DEBUG){
            cout << "Built cells, in cellgroup "<<matrixGroup->getName()<<", for Matrix Elements in "<< elementSetM->name<<"."<<endl;
@@ -1649,7 +1649,7 @@ void Model::makeCellsFromLMPC(){
                     nodes.push_back(node.id);
                 }
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::polyType(static_cast<unsigned int>(nodes.size())), nodes, true);
-                group->addCell(mesh->findCell(cellPosition).id);
+                group->addCellId(mesh->findCell(cellPosition).id);
 
                 // Removing the constraint from the model.
                 remove(constraint->getReference(), idConstraintSet, originalIdConstraintSet, natConstraintSet);
@@ -1697,7 +1697,7 @@ void Model::makeCellsFromRBE(){
                 Node slave = mesh->findNode(position);
                 vector<int> nodes = {master.id, slave.id};
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
-                group->addCell(mesh->findCell(cellPosition).id);
+                group->addCellId(mesh->findCell(cellPosition).id);
             }
 
             // Removing the constraint from the model.
@@ -1736,7 +1736,7 @@ void Model::makeCellsFromRBE(){
             // Creating a cell and adding it to the CellGroup
             vector<int> nodes = {masterNode.id, slaveNode.id};
             int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
-            group->addCell(mesh->findCell(cellPosition).id);
+            group->addCellId(mesh->findCell(cellPosition).id);
 
             // Removing the constraint from the model.
             toBeRemoved.push_back(constraint);
@@ -1798,7 +1798,7 @@ void Model::makeCellsFromRBE(){
                     groupByCoefByDOFS[sDOFS][sCoef]= group;
                 }
                 groupRBE3=groupByCoefByDOFS[sDOFS][sCoef];
-                groupRBE3->addCell(mesh->findCell(cellPosition).id);
+                groupRBE3->addCellId(mesh->findCell(cellPosition).id);
             }
 
             // Removing the constraint from the model.
@@ -1855,7 +1855,7 @@ void Model::splitElementsByDOFS(){
                     scalarSpring.assignCellGroup(cellGroup);
                     for (const int cellPosition : it.second){
                         scalarSpring.addSpring(cellPosition, it.first.first, it.first.second);
-                        cellGroup->addCell(this->mesh->findCell(cellPosition).id);
+                        cellGroup->addCellId(this->mesh->findCell(cellPosition).id);
                     }
                     elementSetsToAdd.push_back(scalarSpring);
                     i++;

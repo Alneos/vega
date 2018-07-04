@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -116,7 +116,7 @@ void NastranParserImpl::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model
 
 void NastranParserImpl::addProperty(int property_id, int cell_id, shared_ptr<Model> model) {
     CellGroup* cellGroup = getOrCreateCellGroup(property_id, model);
-    cellGroup->addCell(cell_id);
+    cellGroup->addCellId(cell_id);
 }
 
 CellGroup* NastranParserImpl::getOrCreateCellGroup(int property_id, shared_ptr<Model> model, const string & command) {
@@ -269,7 +269,7 @@ void NastranParserImpl::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> mode
             tok.nextInt(true);
         }
     }
-    
+
     // Spring damper location (S): not supported.
     double s=tok.nextDouble(true, 0.5);
     if (!is_equal(s,0.5)){
@@ -314,7 +314,7 @@ void NastranParserImpl::parseCELAS1(NastranTokenizer& tok, shared_ptr<Model> mod
     connectivity += g1, g2;
     int cellPosition= model->mesh->addCell(eid, CellType::SEG2, connectivity);
     CellGroup* cellGroup = getOrCreateCellGroup(pid, model);
-    cellGroup->addCell(model->mesh->findCell(cellPosition).id);
+    cellGroup->addCellId(model->mesh->findCell(cellPosition).id);
 
     // Creates or update the ElementSet defined by the PELAS key.
     std::shared_ptr<ElementSet> elementSet = model->elementSets.find(pid);
@@ -357,7 +357,7 @@ void NastranParserImpl::parseCELAS2(NastranTokenizer& tok, shared_ptr<Model> mod
     vector<int> connectivity;
     connectivity += g1, g2;
     int cellPosition= model->mesh->addCell(eid, CellType::SEG2, connectivity);
-    springGroup->addCell(model->mesh->findCell(cellPosition).id);
+    springGroup->addCellId(model->mesh->findCell(cellPosition).id);
 
     // Create ElementSet
     ScalarSpring scalarSpring(*model, eid, k ,ge);
@@ -379,7 +379,7 @@ void NastranParserImpl::parseCELAS4(NastranTokenizer& tok, shared_ptr<Model> mod
     vector<int> connectivity;
     connectivity += s1, s2;
     int cellPosition= model->mesh->addCell(eid, CellType::SEG2, connectivity);
-    springGroup->addCell(model->mesh->findCell(cellPosition).id);
+    springGroup->addCellId(model->mesh->findCell(cellPosition).id);
 
     // Create ElementSet
     ScalarSpring scalarSpring(*model, eid, k);
@@ -531,7 +531,7 @@ void NastranParserImpl::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> 
         thetaOrMCID = tok.nextDouble(true,0.0);
         zoffs = tok.nextDouble(true,0.0);
         tok.skip(2);
-        
+
         tflag = tok.nextInt(true, 0);
         for (int i=0; i < 3; i++){
             double t = tok.nextDouble(true);
@@ -629,7 +629,7 @@ void NastranParserImpl::parseSPOINT(NastranTokenizer& tok, shared_ptr<Model> mod
 
     int nodePosition = model->mesh->addNode(id1, x1, x2, x3, cpos, cpos);
     model->mesh->allowDOFS(nodePosition, DOFS::DOFS::ONE);
-    spcNodeGroup->addNode(id1);
+    spcNodeGroup->addNodeId(id1);
     spc.addNodeId(id1);
     if (this->logLevel >= LogLevel::TRACE) {
         cout << fixed << "SPOINT " << id1 << endl;
@@ -641,7 +641,7 @@ void NastranParserImpl::parseSPOINT(NastranTokenizer& tok, shared_ptr<Model> mod
             const int id2 = tok.nextInt();
             nodePosition = model->mesh->addNode(id2, x1, x2, x3, cpos, cpos);
             model->mesh->allowDOFS(nodePosition, DOFS::DOFS::ONE);
-            spcNodeGroup->addNode(id2);
+            spcNodeGroup->addNodeId(id2);
             spc.addNodeId(id2);
             if (this->logLevel >= LogLevel::TRACE) {
                 cout << fixed << "SPOINT " << id2 << endl;
@@ -656,7 +656,7 @@ void NastranParserImpl::parseSPOINT(NastranTokenizer& tok, shared_ptr<Model> mod
             for (int id=id1+1; id<=id2; id++){
                 nodePosition = model->mesh->addNode(id, x1, x2, x3, cpos, cpos);
                 model->mesh->allowDOFS(nodePosition, DOFS::DOFS::ONE);
-                spcNodeGroup->addNode(id);
+                spcNodeGroup->addNodeId(id);
                 spc.addNodeId(id);
                 if (this->logLevel >= LogLevel::TRACE) {
                     cout << fixed << "SPOINT " << id << endl;

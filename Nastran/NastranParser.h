@@ -507,6 +507,12 @@ private:
     void parseRLOAD2(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
+     * Parse the SET keyword (page 2464 of MDN Nastran 2006 Quick Reference Guide.)
+     * Fully supported.
+     */
+    void parseSET3(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
      * Parse the SLOAD keyword (page 2464 of MDN Nastran 2006 Quick Reference Guide.)
      * Fully supported.
      */

@@ -75,6 +75,69 @@ void backtrace() {
     }
   }
 }
+#elif _WIN32
+#include <windows.h>
+#include <DbgHelp.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+
+static void backtrace(void) {
+
+  HANDLE process = GetCurrentProcess();
+  HANDLE thread = GetCurrentThread();
+
+  CONTEXT context;
+  memset(&context, 0, sizeof(CONTEXT));
+  context.ContextFlags = CONTEXT_FULL;
+  RtlCaptureContext(&context);
+
+  SymInitialize(process, NULL, TRUE);
+
+  DWORD image;
+  STACKFRAME64 stackframe;
+  ZeroMemory(&stackframe, sizeof(STACKFRAME64));
+
+  image = IMAGE_FILE_MACHINE_AMD64;
+  stackframe.AddrPC.Offset = context.Rip;
+  stackframe.AddrPC.Mode = AddrModeFlat;
+  stackframe.AddrFrame.Offset = context.Rsp;
+  stackframe.AddrFrame.Mode = AddrModeFlat;
+  stackframe.AddrStack.Offset = context.Rsp;
+  stackframe.AddrStack.Mode = AddrModeFlat;
+
+  for (size_t i = 0; i < 25; i++) {
+
+    BOOL result = StackWalk64(
+      image, process, thread,
+      &stackframe, &context, NULL,
+      SymFunctionTableAccess64, SymGetModuleBase64, NULL);
+
+    if (!result) { break; }
+
+    char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
+    PSYMBOL_INFO symbol = (PSYMBOL_INFO)buffer;
+    symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+    symbol->MaxNameLen = MAX_SYM_NAME;
+
+    DWORD64 displacement = 0;
+    if (SymFromAddr(process, stackframe.AddrPC.Offset, &displacement, symbol)) {
+      printf("[%i] %s\n", i, symbol->Name);
+    } else {
+      printf("[%i] ???\n", i);
+    }
+
+  }
+
+  SymCleanup(process);
+
+}
+
+#else
+// Call this function to get a backtrace.
+void backtrace() {
+    std::cerr << "No backtrace (yet) on this platform, should really add it...\n";
+}
 #endif
 
 void handler(int sig) {

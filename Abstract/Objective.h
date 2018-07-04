@@ -65,10 +65,6 @@ public:
     virtual bool isAssertion() const {
         return false;
     }
-    ;
-    virtual ~Objective() {
-    }
-    ;
 };
 
 class Assertion: public Objective {
@@ -81,8 +77,6 @@ public:
     bool isAssertion() const override {
         return true;
     }
-    virtual ~Assertion() {
-    }
 };
 
 class NodalAssertion: public Assertion {
@@ -94,8 +88,6 @@ public:
     const DOF dof;
     const DOFS getDOFSForNode(int nodePosition) const override final;
     std::set<int> nodePositions() const override final;
-    ~NodalAssertion() {
-    }
 };
 
 class NodalDisplacementAssertion: public NodalAssertion {
@@ -108,9 +100,6 @@ public:
     std::shared_ptr<Objective> clone() const {
         return std::make_shared<NodalDisplacementAssertion>(*this);
     }
-    ~NodalDisplacementAssertion() {
-    }
-    ;
 };
 
 class NodalComplexDisplacementAssertion: public NodalAssertion {
@@ -123,9 +112,6 @@ public:
     std::shared_ptr<Objective> clone() const {
         return std::make_shared<NodalComplexDisplacementAssertion>(*this);
     }
-    ~NodalComplexDisplacementAssertion() {
-    }
-    ;
 };
 
 class FrequencyAssertion: public Assertion {
@@ -138,32 +124,32 @@ public:
     std::shared_ptr<Objective> clone() const;
     const DOFS getDOFSForNode(int nodePosition) const override final;
     std::set<int> nodePositions() const override final;
-    ~FrequencyAssertion() {
-    }
-    ;
 };
 
 class AnalysisParameter: public Objective {
 public:
     AnalysisParameter(const Model&, Type type, int original_id = NO_ORIGINAL_ID);
     std::shared_ptr<Objective> clone() const;
-    ~AnalysisParameter() {
-    }
-    ;
 };
 
-class FrequencyValues: public AnalysisParameter {
+class FrequencyList: public AnalysisParameter {
+protected:
+    std::list<double> values;
+public:
+    FrequencyList(const Model&, const std::list<double>&, int original_id = NO_ORIGINAL_ID);
+    const std::list<double> getValues() const;
+    std::shared_ptr<Objective> clone() const;
+};
+
+class FrequencyRange: public AnalysisParameter {
 protected:
     Reference<NamedValue> valueRange;
 public:
-    FrequencyValues(const Model&, const ValueRange&, int original_id = NO_ORIGINAL_ID);
-    FrequencyValues(const Model&, int step_range_id, int original_id = NO_ORIGINAL_ID);
+    FrequencyRange(const Model&, const ValueRange&, int original_id = NO_ORIGINAL_ID);
+    FrequencyRange(const Model&, int step_range_id, int original_id = NO_ORIGINAL_ID);
     const std::shared_ptr<ValueRange> getValueRange() const;
     const ValuePlaceHolder getValueRangePlaceHolder() const;
     std::shared_ptr<Objective> clone() const;
-    ~FrequencyValues() {
-    }
-    ;
 };
 
 class FrequencyBand: public AnalysisParameter {
@@ -175,9 +161,6 @@ public:
     FrequencyBand(const Model& model, double lower, double upper, int num_max, string norm = "MASS", int original_id =
             NO_ORIGINAL_ID);
     std::shared_ptr<Objective> clone() const;
-    ~FrequencyBand() {
-    }
-    ;
 };
 
 class ModalDamping: public AnalysisParameter {
@@ -191,9 +174,6 @@ public:
     const std::shared_ptr<FunctionTable> getFunctionTable() const;
     const ValuePlaceHolder getFunctionTablePlaceHolder() const;
     std::shared_ptr<Objective> clone() const;
-    ~ModalDamping() {
-    }
-    ;
 };
 
 class NonLinearStrategy: public AnalysisParameter {
@@ -202,9 +182,6 @@ public:
     NonLinearStrategy(const Model& model, const int number_of_increments, int original_id =
             NO_ORIGINAL_ID);
     std::shared_ptr<Objective> clone() const;
-    ~NonLinearStrategy() {
-    }
-    ;
 };
 
 } /* namespace vega */

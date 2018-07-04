@@ -1260,8 +1260,8 @@
 					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
-			<Target title="nastran_tests">
-				<Option output="build/bin/nastran_tests" prefix_auto="0" extension_auto="0" />
+			<Target title="NastranParser_test">
+				<Option output="build/bin/NastranParser_test" prefix_auto="0" extension_auto="0" />
 				<Option working_dir="bin" />
 				<Option object_output="./" />
 				<Option type="1" />
@@ -1285,7 +1285,7 @@
 					<Add directory="/usr/local/include" />
 				</Compiler>
 				<MakeCommands>
-					<Build command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 nastran_tests' />
+					<Build command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 NastranParser_test' />
 					<CompileFile command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
 					<Clean command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 clean' />
 					<DistClean command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 clean' />
@@ -1293,8 +1293,8 @@
 					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
-			<Target title="nastran_tests/fast">
-				<Option output="build/bin/nastran_tests" prefix_auto="0" extension_auto="0" />
+			<Target title="NastranParser_test/fast">
+				<Option output="build/bin/NastranParser_tests" prefix_auto="0" extension_auto="0" />
 				<Option working_dir="bin" />
 				<Option object_output="./" />
 				<Option type="1" />
@@ -1318,7 +1318,7 @@
 					<Add directory="/usr/local/include" />
 				</Compiler>
 				<MakeCommands>
-					<Build command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 nastran_tests/fast' />
+					<Build command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 NastranParser_test/fast' />
 					<CompileFile command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
 					<Clean command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 clean' />
 					<DistClean command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 clean' />
@@ -1326,8 +1326,8 @@
 					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
-			<Target title="nastran_tokenizer_tests">
-				<Option output="build/bin/nastran_tokenizer_tests" prefix_auto="0" extension_auto="0" />
+			<Target title="NastranTokenizer_test">
+				<Option output="build/bin/NastranTokenizer_test" prefix_auto="0" extension_auto="0" />
 				<Option working_dir="bin" />
 				<Option object_output="./" />
 				<Option type="1" />
@@ -1351,7 +1351,7 @@
 					<Add directory="/usr/local/include" />
 				</Compiler>
 				<MakeCommands>
-					<Build command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 nastran_tokenizer_tests' />
+					<Build command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 NastranTokenizer_test' />
 					<CompileFile command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
 					<Clean command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 clean' />
 					<DistClean command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 clean' />
@@ -1359,8 +1359,8 @@
 					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
-			<Target title="nastran_tokenizer_tests/fast">
-				<Option output="build/bin/nastran_tokenizer_tests" prefix_auto="0" extension_auto="0" />
+			<Target title="NastranTokenizer_test/fast">
+				<Option output="build/bin/NastranTokenizer_test" prefix_auto="0" extension_auto="0" />
 				<Option working_dir="bin" />
 				<Option object_output="./" />
 				<Option type="1" />
@@ -1384,7 +1384,7 @@
 					<Add directory="/usr/local/include" />
 				</Compiler>
 				<MakeCommands>
-					<Build command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 nastran_tokenizer_tests/fast' />
+					<Build command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 NastranTokenizer_test/fast' />
 					<CompileFile command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
 					<Clean command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 clean' />
 					<DistClean command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 clean' />

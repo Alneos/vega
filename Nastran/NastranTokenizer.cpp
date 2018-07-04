@@ -194,6 +194,15 @@ bool NastranTokenizer::isNextInt() {
 	return !curField.empty() && (strspn(curField.c_str(), "-0123456789") == curField.size());
 }
 
+bool NastranTokenizer::isNextTHRU() {
+	if (nextSymbolType != NastranTokenizer::SYMBOL_FIELD) {
+		return false;
+	}
+	string curField = trim_copy(currentLineVector[currentField]);
+	boost::to_upper(curField);
+	return curField == "THRU";
+}
+
 bool NastranTokenizer::isNextDouble() {
 	if (nextSymbolType != NastranTokenizer::SYMBOL_FIELD) {
 		return false;
@@ -376,6 +385,23 @@ int NastranTokenizer::nextInt(bool returnDefaultIfNotFoundOrBlank, int defaultVa
 		string message = "Value [" + value + "] can't be converted to int. Field Num: "
 				+ currentFieldstr;
 		handleParsingError(message);
+	}
+	return result;
+}
+
+const list<int> NastranTokenizer::nextInts() {
+	list<int> result;
+	while(isNextInt() or isNextTHRU()) {
+        if (isNextInt()) {
+            result.push_back(nextInt());
+        } else if (isNextTHRU()) {
+            skip(1);
+            int start = result.back();
+            int endint = nextInt();
+            for(int i=start+1;i<=endint;i++) {
+                result.push_back(i);
+            }
+        }
 	}
 	return result;
 }

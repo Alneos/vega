@@ -117,26 +117,38 @@ shared_ptr<Objective> AnalysisParameter::clone() const {
     return make_shared<AnalysisParameter>(*this);
 }
 
-FrequencyValues::FrequencyValues(const Model& model, const ValueRange& valueRange, int original_id) :
+FrequencyRange::FrequencyRange(const Model& model, const ValueRange& valueRange, int original_id) :
         AnalysisParameter(model, FREQUENCY_TARGET, original_id), valueRange(NamedValue::STEP_RANGE,
                 Reference<NamedValue>::NO_ID, valueRange.getId()) {
 }
 
-FrequencyValues::FrequencyValues(const Model& model, int range_id, int original_id) :
+FrequencyRange::FrequencyRange(const Model& model, int range_id, int original_id) :
         AnalysisParameter(model, FREQUENCY_TARGET, original_id), valueRange(NamedValue::STEP_RANGE,
                 range_id) {
 }
 
-const shared_ptr<ValueRange> FrequencyValues::getValueRange() const {
+const shared_ptr<ValueRange> FrequencyRange::getValueRange() const {
     return dynamic_pointer_cast<ValueRange>(model.find(valueRange));
 }
 
-const ValuePlaceHolder FrequencyValues::getValueRangePlaceHolder() const {
+const ValuePlaceHolder FrequencyRange::getValueRangePlaceHolder() const {
     return ValuePlaceHolder(model, valueRange.type, valueRange.original_id, NamedValue::FREQ);
 }
 
-shared_ptr<Objective> FrequencyValues::clone() const {
-    return make_shared<FrequencyValues>(*this);
+shared_ptr<Objective> FrequencyRange::clone() const {
+    return make_shared<FrequencyRange>(*this);
+}
+
+FrequencyList::FrequencyList(const Model& model, const list<double>& values, int original_id) :
+        AnalysisParameter(model, FREQUENCY_TARGET, original_id), values(values) {
+}
+
+const list<double> FrequencyList::getValues() const {
+    return values;
+}
+
+shared_ptr<Objective> FrequencyList::clone() const {
+    return make_shared<FrequencyList>(*this);
 }
 
 FrequencyBand::FrequencyBand(const Model& model, double lower, double upper, int num_max,
