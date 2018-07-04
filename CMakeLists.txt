@@ -103,8 +103,8 @@ else(MSVC)
         add_compile_options(-fPIE)
         #SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
         if(LINUX_DIST STREQUAL "Alpine")
-          # Alpine can also statically link libc
-          set(CMAKE_EXE_LINKER_FLAGS_EXTRA "-static")
+          # Alpine can also statically link glibc
+          set(CMAKE_EXE_LINKER_FLAGS_EXTRA "-static -Wl,-allow-multiple-definition") # unwind seems to be defined multiple times on Alpine in gcc_eh, see also https://stackoverflow.com/questions/11267877/mingw-multiple-definition-of-unwind-resume
         endif()        
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -static-libgcc -static-libstdc++ ${CMAKE_EXE_LINKER_FLAGS_EXTRA}" CACHE INTERNAL "Linker flags")
     else(STATIC_LINKING)
@@ -251,6 +251,13 @@ list(APPEND EXTERNAL_LIBRARIES ${HDF5_LIBRARIES})
 IF(CYGWIN)
   link_directories("${CYGWIN_MOUNT}/lib")
 ENDIF(CYGWIN)
+
+set(LIBUNWIND_USE_STATIC_LIBS ${STATIC_LINKING})
+find_package(Libunwind)
+IF(LIBUNWIND_FOUND)
+    include_directories(SYSTEM ${LIBUNWIND_INCLUDE_DIR})
+    list(APPEND EXTERNAL_LIBRARIES ${LIBUNWIND_LIBRARIES})
+ENDIF(LIBUNWIND_FOUND)
 
 #necessary to find build_properties.h
 include_directories(${CMAKE_BINARY_DIR})

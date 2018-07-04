@@ -16,6 +16,7 @@
 #include <climits>
 #include <string>
 #include <cmath>
+#include <stdio.h>
 #ifdef __GNUC__
 // Avoid tons of warnings with the following code
 #pragma GCC system_header
@@ -24,6 +25,10 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/variant.hpp>
+#if defined(__linux__)
+#define UNW_LOCAL_ONLY
+#include <libunwind.h>
+#endif
 
 namespace vega {
 /**
@@ -47,5 +52,8 @@ namespace ublas = boost::numeric::ublas;
  */
 bool InvertMatrix(const ublas::matrix<double>& input, ublas::matrix<double>& inverse);
 
-		} /* namespace vega */
+void backtrace();
+void handler(int sig);
+
+} /* namespace vega */
 #endif /* UTILITY_H_ */

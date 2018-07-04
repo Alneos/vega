@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -104,25 +104,6 @@ string WritingMessageWarning(string arg, string key, string fname){
 ParsingException::ParsingException(string arg, string fname, int lineNum, string key) {
 
     msg.append(ParsingMessageException(arg, fname, lineNum, key));
-
-#ifdef __GNUC__
-    //defined in top level cmake file
-#ifdef VDEBUG
-    void *array[10];
-    int size;
-    char **strings;
-
-    size = boost::numeric_cast<int>(backtrace(array, 10));
-    strings = backtrace_symbols(array, size);
-    msg.append("\n");
-    for (int i = 0; i < size; i++) {
-        msg.append(strings[i]);
-        msg.append("\n");
-    }
-    free (strings);
-#endif
-#endif
-
 }
 
 ParsingException::operator const char*() const {
@@ -138,25 +119,6 @@ ParsingException::~ParsingException() throw () {
 
 WritingException::WritingException(string arg, string key, string fname) {
     msg.append(WritingMessageException(arg, key, fname));
-
-#ifdef __GNUC__
-    //flag defined by cmake in Release build
-#ifdef VDEBUG
-    void *array[10];
-    int size;
-    char **strings;
-
-    size = boost::numeric_cast<int>(backtrace(array, 10));
-    strings = backtrace_symbols(array, size);
-    msg.append("\n");
-    for (int i = 0; i < size; i++) {
-        msg.append(strings[i]);
-        msg.append("\n");
-    }
-    free (strings);
-#endif
-#endif
-
 }
 
 WritingException::operator const char*() const {
@@ -179,7 +141,11 @@ void Tokenizer::handleParsingError(const string& message) {
 
     switch (translationMode) {
     case ConfigurationParameters::MODE_STRICT:
-        throw ParsingException(message, fileName, lineNumber, currentKeyword);
+        // Problem on static over Alpine
+        //throw ParsingException(message, fileName, lineNumber, currentKeyword);
+        cerr << ParsingException(message, fileName, lineNumber, currentKeyword);
+        vega::backtrace();
+        exit(2);
     case ConfigurationParameters::MESH_AT_LEAST:
         //model->onlyMesh = true;
         cerr << ParsingMessageException(message, fileName, lineNumber, currentKeyword) << endl;

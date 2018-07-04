@@ -44,4 +44,4 @@ nightly:
     - whoami
     - pwd
   script:
-    - ls /opt
+    - ls /

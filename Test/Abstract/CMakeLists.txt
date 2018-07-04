@@ -73,6 +73,20 @@ target_link_libraries(
 )
 
 add_executable(
+ Value_test
+ Value_test.cpp
+)
+
+SET_TARGET_PROPERTIES(Value_test PROPERTIES LINK_SEARCH_START_STATIC ${STATIC_LINKING})
+SET_TARGET_PROPERTIES(Value_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINKING})
+
+target_link_libraries(
+ Value_test
+ abstract
+ ${EXTERNAL_LIBRARIES} 
+)
+
+add_executable(
  Element_test
  Element_test.cpp
 )
@@ -90,6 +104,7 @@ add_test(Dof_test ${EXECUTABLE_OUTPUT_PATH}/Dof_test)
 add_test(CoordinateSystem_tests ${EXECUTABLE_OUTPUT_PATH}/CoordinateSystem_test)
 add_test(Model_test ${EXECUTABLE_OUTPUT_PATH}/Model_test)
 add_test(Utility_test ${EXECUTABLE_OUTPUT_PATH}/Utility_test)
+add_test(Value_test ${EXECUTABLE_OUTPUT_PATH}/Value_test)
 add_test(Mesh_test ${EXECUTABLE_OUTPUT_PATH}/Mesh_test)
 add_test(Element_test ${EXECUTABLE_OUTPUT_PATH}/Element_test)
 
