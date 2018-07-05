@@ -29,38 +29,37 @@ private:
 	friend std::ostream &operator<<(std::ostream &out, const Line& line);
 	unsigned int fieldLength = 0;
 	unsigned int fieldNum = 0;
-	const string keyword = "";
-	std::vector<string> fields;
+	const std::string keyword = "";
+	std::vector<std::string> fields;
 public:
-	Line(string _keyword);
+	Line(string);
 	Line& add();
-	Line& add(double value);
-	Line& add(string value);
-	Line& add(int value);
-	Line& add(const std::vector<int> values);
-	Line& add(const std::vector<double> values);
-	Line& add(const DOFS dofs);
-	Line& add(const VectorialValue vector);
+	Line& add(double);
+	Line& add(std::string);
+	Line& add(int);
+	Line& add(const std::vector<int>);
+	Line& add(const std::vector<double>);
+	Line& add(const DOFS);
+	Line& add(const VectorialValue);
 };
 
 std::ostream &operator<<(std::ostream &out, const Line& line);
 
-class NastranWriterImpl {
+class NastranWriter final : public Writer {
 public:
-	NastranWriterImpl();
-	virtual ~NastranWriterImpl();
-	string writeModel(const std::shared_ptr<Model> model_ptr, const ConfigurationParameters&);
-
+	NastranWriter();
+	std::string writeModel(const std::shared_ptr<Model> model_ptr, const ConfigurationParameters&) override;
+    const std::string toString() const override;
 private:
-	string getDatFilename(const shared_ptr<vega::Model>& model, const string& outputPath) const;
-	void writeSOL(const shared_ptr<vega::Model>& model, ofstream& out) const;
-	void writeCells(const shared_ptr<vega::Model>& model, ofstream& out);
-	void writeNodes(const shared_ptr<vega::Model>& model, ofstream& out);
-	void writeMaterials(const shared_ptr<vega::Model>& model, ofstream& out);
-	void writeConstraints(const shared_ptr<vega::Model>& model, ofstream& out);
-	void writeLoadings(const shared_ptr<vega::Model>& model, ofstream& out);
-	void writeRuler(ofstream& out);
-	void writeElements(const shared_ptr<vega::Model>& model, ofstream& out);
+	std::string getDatFilename(const std::shared_ptr<vega::Model>& model, const std::string& outputPath) const;
+	void writeSOL(const std::shared_ptr<vega::Model>& model, std::ofstream& out) const;
+	void writeCells(const std::shared_ptr<vega::Model>& model, std::ofstream& out);
+	void writeNodes(const std::shared_ptr<vega::Model>& model, std::ofstream& out);
+	void writeMaterials(const std::shared_ptr<vega::Model>& model, std::ofstream& out);
+	void writeConstraints(const std::shared_ptr<vega::Model>& model, std::ofstream& out);
+	void writeLoadings(const std::shared_ptr<vega::Model>& model, std::ofstream& out);
+	void writeRuler(std::ofstream& out);
+	void writeElements(const std::shared_ptr<vega::Model>& model, std::ofstream& out);
 };
 
 }

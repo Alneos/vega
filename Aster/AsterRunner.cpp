@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -38,11 +38,11 @@ namespace aster {
 namespace fs = boost::filesystem;
 using namespace std;
 
-AsterRunnerImpl::AsterRunnerImpl() {
+AsterRunner::AsterRunner() {
 
 }
 
-Runner::ExitCode AsterRunnerImpl::execSolver(const ConfigurationParameters &configuration,
+Runner::ExitCode AsterRunner::execSolver(const ConfigurationParameters &configuration,
         string modelFile) {
     bool local = configuration.solverServer.empty() || configuration.solverServer == "localhost"
             || configuration.solverServer == "127.0.0.1";
@@ -117,10 +117,6 @@ Runner::ExitCode AsterRunnerImpl::execSolver(const ConfigurationParameters &conf
         exitCode = TRANSLATION_SYNTAX_ERROR;
     }
     return exitCode;
-}
-
-AsterRunnerImpl::~AsterRunnerImpl() {
-
 }
 
 }

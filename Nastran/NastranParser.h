@@ -35,7 +35,7 @@ namespace nastran {
 
 namespace fs = boost::filesystem;
 
-class NastranParserImpl: public vega::Parser {
+class NastranParser: public vega::Parser {
 private:
     class GrdSet {
     public:
@@ -52,7 +52,7 @@ private:
     GrdSet grdSet;
 
     std::unordered_map<string, shared_ptr<Reference<ElementSet>>> directMatrixByName;
-    typedef void (NastranParserImpl::*parseElementFPtr)(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    typedef void (NastranParser::*parseElementFPtr)(NastranTokenizer& tok, std::shared_ptr<Model> model);
     static const std::set<string> IGNORED_KEYWORDS;
     static const std::set<string> IGNORED_PARAMS;
     static const std::unordered_map<string, parseElementFPtr> PARSE_FUNCTION_BY_KEYWORD;
@@ -601,8 +601,8 @@ private:
 
     LogLevel logLevel = LogLevel::INFO;
 public:
-    NastranParserImpl();
-    virtual ~NastranParserImpl();
+    NastranParser();
+    virtual ~NastranParser();
     std::shared_ptr<Model> parse(const ConfigurationParameters& configuration) override;
 };
 

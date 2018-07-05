@@ -18,6 +18,7 @@
 #include <istream>
 #include "ConfigurationParameters.h"
 #include <string>
+#include <cfloat>
 
 namespace vega {
 //Forward declarations
@@ -26,8 +27,8 @@ class Assertion;
 
 class Globals {
 public:
-	static const int UNAVAILABLE_INT = INT_MIN;
-	static const double UNAVAILABLE_DOUBLE;
+	static constexpr int UNAVAILABLE_INT = INT_MIN;
+	static constexpr double UNAVAILABLE_DOUBLE = -DBL_MAX;
 };
 
 
@@ -144,13 +145,9 @@ private:
 	/**
 	 * returns a std::string representation of the Writer useful for debugging
 	 */
-	virtual std::string toString() = 0;
-protected:
-	Writer();
+	virtual const std::string toString() const = 0;
 public:
-	virtual ~Writer() {
-	}
-	ConfigurationParameters::TranslationMode translationMode;
+	ConfigurationParameters::TranslationMode translationMode = ConfigurationParameters::BEST_EFFORT;
 	/**
 	 * Write a model to the disk.
 	 *

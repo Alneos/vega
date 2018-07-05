@@ -16,13 +16,11 @@
 namespace vega {
 namespace aster {
 
-class AsterRunnerImpl: public vega::Runner {
+class AsterRunner: public Runner {
 public:
-	AsterRunnerImpl();
+	AsterRunner();
 	virtual ExitCode execSolver(const ConfigurationParameters &configuration,
 			std::string modelFile);
-
-	virtual ~AsterRunnerImpl();
 };
 
 }

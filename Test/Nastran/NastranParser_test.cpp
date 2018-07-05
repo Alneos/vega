@@ -9,7 +9,7 @@
  */
 
 #define BOOST_TEST_MODULE nastran_parser_tests
-#include "../../Nastran/NastranFacade.h"
+#include "../../Nastran/NastranParser.h"
 #include "build_properties.h"
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>

@@ -17,13 +17,13 @@
 namespace vega {
 namespace nastran {
 
-class NastranRunnerImpl: public vega::Runner {
+class NastranRunner: public vega::Runner {
 public:
-	NastranRunnerImpl();
+	NastranRunner();
 	virtual ExitCode execSolver(const ConfigurationParameters &configuration,
 			std::string modelFile);
 
-	virtual ~NastranRunnerImpl();
+	virtual ~NastranRunner();
 };
 
 } /* namespace nastran */

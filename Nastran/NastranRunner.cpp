@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -37,11 +37,11 @@ namespace nastran {
 namespace fs = boost::filesystem;
 using namespace std;
 
-NastranRunnerImpl::NastranRunnerImpl() {
+NastranRunner::NastranRunner() {
 
 }
 
-Runner::ExitCode NastranRunnerImpl::execSolver(const ConfigurationParameters &configuration,
+Runner::ExitCode NastranRunner::execSolver(const ConfigurationParameters &configuration,
         string modelFile) {
     fs::path modelFilePath(modelFile);
     string fname = modelFilePath.stem().string();
@@ -71,7 +71,7 @@ Runner::ExitCode NastranRunnerImpl::execSolver(const ConfigurationParameters &co
     return exitCode;
 }
 
-NastranRunnerImpl::~NastranRunnerImpl() {
+NastranRunner::~NastranRunner() {
 
 }
 

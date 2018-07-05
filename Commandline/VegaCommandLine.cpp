@@ -11,8 +11,11 @@
 #include "VegaCommandLine.h"
 #include "../Abstract/Utility.h"
 #include "build_properties.h"
-#include "../Nastran/NastranFacade.h"
-#include "../Aster/AsterFacade.h"
+#include "../Nastran/NastranParser.h"
+#include "../Nastran/NastranWriter.h"
+#include "../Nastran/NastranRunner.h"
+#include "../Aster/AsterWriter.h"
+#include "../Aster/AsterRunner.h"
 #include "../Systus/SystusWriter.h"
 #include "../Systus/SystusRunner.h"
 #include "../ResultReaders/ResultReadersFacade.h"
@@ -57,13 +60,13 @@ unordered_map<VegaCommandLine::ExitCode, string, hash<int>> VegaCommandLine::fai
 };
 
 VegaCommandLine::VegaCommandLine() {
-    parserBySolverName[NASTRAN] = new nastran::NastranParser();
-    writersBySolverName[CODE_ASTER] = new aster::AsterWriter();
-    writersBySolverName[NASTRAN] = new nastran::NastranWriter();
-    writersBySolverName[SYSTUS] = new SystusWriter();
-    runnerBySolverType[CODE_ASTER] = new aster::AsterRunner();
-    runnerBySolverType[NASTRAN] = new nastran::NastranRunner();
-    runnerBySolverType[SYSTUS] = new SystusRunner();
+    parserBySolverName[NASTRAN] = make_shared<nastran::NastranParser>();
+    writersBySolverName[CODE_ASTER] = make_shared<aster::AsterWriter>();
+    writersBySolverName[NASTRAN] = make_shared<nastran::NastranWriter>();
+    writersBySolverName[SYSTUS] = make_shared<SystusWriter>();
+    runnerBySolverType[CODE_ASTER] = make_shared<aster::AsterRunner>();
+    runnerBySolverType[NASTRAN] = make_shared<nastran::NastranRunner>();
+    runnerBySolverType[SYSTUS] = make_shared<SystusRunner>();
 }
 
 VegaCommandLine::ExitCode VegaCommandLine::convertStudy(
@@ -71,13 +74,12 @@ VegaCommandLine::ExitCode VegaCommandLine::convertStudy(
         const Solver& inputSolver) {
 
     vega::SolverName outputSolver = configuration.outputSolver.getSolverName();
-    unordered_map<SolverName, Writer *, hash<int>>::const_iterator writerIterator =
-            writersBySolverName.find(outputSolver);
+    const auto& writerIterator = writersBySolverName.find(outputSolver);
     if (writerIterator == writersBySolverName.end()) {
         cerr << "Output format " << configuration.outputSolver << "not supported." << endl;
         return INVALID_COMMAND_LINE;
     }
-    Writer* writer = writerIterator->second;
+    shared_ptr<Writer> writer = writerIterator->second;
 
     auto parserIterator = parserBySolverName.find(inputSolver.getSolverName());
     if (parserIterator == parserBySolverName.end()) {
@@ -90,7 +92,7 @@ VegaCommandLine::ExitCode VegaCommandLine::convertStudy(
     }
 
     // Parsing the input file
-    Parser* parser = parserIterator->second;
+    shared_ptr<Parser> parser = parserIterator->second;
     shared_ptr<Model> model = parser->parse(configuration);
 
     //adding assertions if result file is set in the model
@@ -111,18 +113,6 @@ VegaCommandLine::ExitCode VegaCommandLine::convertStudy(
     string modelFile = writer->writeModel(model, configuration);
     modelFileOut.append(modelFile);
     return OK;
-}
-
-VegaCommandLine::~VegaCommandLine() {
-    for (auto parserNamePair : parserBySolverName) {
-        delete (parserNamePair.second);
-    }
-    for (auto writerNamePair : writersBySolverName) {
-        delete (writerNamePair.second);
-    }
-    for (auto writerNamePair : runnerBySolverType) {
-        delete (writerNamePair.second);
-    }
 }
 
 fs::path VegaCommandLine::normalize_path(string strpath) {
@@ -384,13 +374,12 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
 VegaCommandLine::ExitCode VegaCommandLine::runSolver(const ConfigurationParameters& configuration,
         string modelFile) {
     ExitCode result;
-    unordered_map<SolverName, Runner*, hash<int>>::const_iterator runnerIterator =
-            runnerBySolverType.find(configuration.outputSolver.getSolverName());
+    const auto& runnerIterator = runnerBySolverType.find(configuration.outputSolver.getSolverName());
     if (runnerIterator == runnerBySolverType.end()) {
         cerr << "Output runner " << configuration.outputSolver << "not supported." << endl;
         result = ExitCode::INVALID_COMMAND_LINE;
     }
-    Runner* runner = runnerIterator->second;
+    shared_ptr<Runner> runner = runnerIterator->second;
     //Little hack: return codes are the same.
     result = (VegaCommandLine::ExitCode) runner->execSolver(configuration, modelFile);
     return result;

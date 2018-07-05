@@ -40,7 +40,7 @@ class Model;
 class CoordinateSystem: public Identifiable<CoordinateSystem> {
     friend std::ostream& operator<<(std::ostream&, const CoordinateSystem&);
     public:
-    static const int GLOBAL_COORDINATE_SYSTEM_ID = 0;
+    static constexpr int GLOBAL_COORDINATE_SYSTEM_ID = 0;
     enum Type {
         CARTESIAN,
         CYLINDRICAL,
@@ -237,8 +237,8 @@ private:
     friend Model;
     friend CoordinateSystem;
     static int cs_next_position;          /**< Static token for the next CS Position. **/
-    static const int UNAVAILABLE_ID = -INT_MAX;
-    static const int UNAVAILABLE_POSITION = -INT_MAX;
+    static constexpr int UNAVAILABLE_ID = -INT_MAX;
+    static constexpr int UNAVAILABLE_POSITION = -INT_MAX;
     const LogLevel logLevel;
     std::map<int, int> modelIdByPosition; /**< A map < Position, VEGA Id > to keep track of coordinate System. **/
     std::map<int, int> userIdByPosition;  /**< A map < Position, Original Id > to keep track of coordinate System. **/

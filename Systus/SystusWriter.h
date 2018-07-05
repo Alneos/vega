@@ -86,18 +86,16 @@ SMF DOFtoSMF(DOF dof);
 
 static const int defaultNbDesiredRoots=100; /**< Default number of desired roots for a static analysis (chosen from experiment)**/
 
-static double maxYoungModulus = Globals::UNAVAILABLE_DOUBLE;
-
-class SystusWriter: public Writer {
+class SystusWriter final: public Writer {
     int systusOption = 0;
     int systusSubOption = 0;
     int maxNumNodes = 0;
     int nbNodes = 0;						 /**< Useless >**/
+    double maxYoungModulus = Globals::UNAVAILABLE_DOUBLE;
     static int auto_part_id;                 /**< Next available numer for Systus Part ID **/
     static const int DampingAccessId;        /**< Access Id for the Damping Matrices file (Element X9XX type 0)**/
     static const int MassAccessId;			 /**< Access Id for the Mass Matrices file (Element X9XX type 0)**/
     static const int StiffnessAccessId;      /**< Access Id for the Stiffness Matrices file (Element X9XX type 0)**/
-
 
     map<int, vector<long unsigned int> > lists;
     map<long unsigned int, vector<double>> vectors;
@@ -412,8 +410,8 @@ class SystusWriter: public Writer {
     void writeFrequencyAssertion(Assertion& assertion, ostream& out);
     void writeNodalForce(const SystusModel& systusModel, shared_ptr<NodalForce> nodalForce, const int idLoadCase, long unsigned int& vectorId);
 
-    virtual string toString() {
-        return string("SystusWriter");
+    const std::string toString() const override {
+        return std::string("SystusWriter");
     }
     void writeMasses(const SystusModel&, std::ostream& out); /** Write Nodal Masses on outstream. **/
 
@@ -428,7 +426,7 @@ public:
     SystusWriter();
     virtual ~SystusWriter();
 
-    string writeModel(const std::shared_ptr<Model> model, const ConfigurationParameters&)
+    std::string writeModel(const std::shared_ptr<Model> model, const ConfigurationParameters&)
     override;
 };
 

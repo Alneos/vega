@@ -84,7 +84,7 @@ public:
 		ALL
 	};
 	LoadSet(const Model&, Type type = LOAD, int original_id = NO_ORIGINAL_ID);
-	static const int COMMON_SET_ID = 0;
+	static constexpr int COMMON_SET_ID = 0;
 	vector<pair<Reference<LoadSet>, double>> embedded_loadsets;
 	const Type type;
 	static const string name;

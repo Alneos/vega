@@ -42,7 +42,7 @@ namespace vega {
 
 namespace nastran {
 
-const unordered_map<CellType::Code, vector<int>, hash<int>> NastranParserImpl::nastran2medNodeConnectByCellType =
+const unordered_map<CellType::Code, vector<int>, hash<int>> NastranParser::nastran2medNodeConnectByCellType =
         {
                 { CellType::TRI3_CODE, { 0, 2, 1 } },
                 { CellType::TRI6_CODE, { 0, 2, 1, 5, 4, 3 } },
@@ -60,7 +60,7 @@ const unordered_map<CellType::Code, vector<int>, hash<int>> NastranParserImpl::n
                         14, 13, 12 } }
         };
 
-void NastranParserImpl::parseGRDSET(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseGRDSET(NastranTokenizer& tok, shared_ptr<Model> model) {
     tok.skip(1);
     grdSet.cp = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     if (grdSet.cp != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
@@ -76,7 +76,7 @@ void NastranParserImpl::parseGRDSET(NastranTokenizer& tok, shared_ptr<Model> mod
 
 }
 
-void NastranParserImpl::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model) {
     int id = tok.nextInt();
     int cp = tok.nextInt(true, grdSet.cp);
     int cpos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
@@ -114,12 +114,12 @@ void NastranParserImpl::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model
     }
 }
 
-void NastranParserImpl::addProperty(int property_id, int cell_id, shared_ptr<Model> model) {
+void NastranParser::addProperty(int property_id, int cell_id, shared_ptr<Model> model) {
     CellGroup* cellGroup = getOrCreateCellGroup(property_id, model);
     cellGroup->addCellId(cell_id);
 }
 
-CellGroup* NastranParserImpl::getOrCreateCellGroup(int property_id, shared_ptr<Model> model, const string & command) {
+CellGroup* NastranParser::getOrCreateCellGroup(int property_id, shared_ptr<Model> model, const string & command) {
     CellGroup* cellGroup = dynamic_cast<CellGroup*>(model->mesh->findGroup(property_id));
 
     string cellGroupName= command + string("_") + lexical_cast<string>(property_id);
@@ -135,7 +135,7 @@ CellGroup* NastranParserImpl::getOrCreateCellGroup(int property_id, shared_ptr<M
     return cellGroup;
 }
 
-int NastranParserImpl::parseOrientation(int point1, int point2, NastranTokenizer& tok,
+int NastranParser::parseOrientation(int point1, int point2, NastranTokenizer& tok,
         shared_ptr<Model> model) {
 
     vector<string> line = tok.currentDataLine();
@@ -158,7 +158,7 @@ int NastranParserImpl::parseOrientation(int point1, int point2, NastranTokenizer
     return idOCS;
 }
 
-void NastranParserImpl::parseCBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
     int cell_id = tok.nextInt();
     int property_id = tok.nextInt();
     int point1 = tok.nextInt();
@@ -195,7 +195,7 @@ void NastranParserImpl::parseCBAR(NastranTokenizer& tok, shared_ptr<Model> model
     addProperty(property_id, cell_id, model);
 }
 
-void NastranParserImpl::parseCBEAM(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCBEAM(NastranTokenizer& tok, shared_ptr<Model> model) {
     int cell_id = tok.nextInt();
     int property_id = tok.nextInt();
     int point1 = tok.nextInt();
@@ -243,7 +243,7 @@ void NastranParserImpl::parseCBEAM(NastranTokenizer& tok, shared_ptr<Model> mode
 }
 
 
-void NastranParserImpl::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
     int eid = tok.nextInt(); // Cell Id
     int pid = tok.nextInt(); // Property Id
     int ga = tok.nextInt();  // Node A
@@ -300,7 +300,7 @@ void NastranParserImpl::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> mode
     addProperty(pid, eid, model);
 }
 
-void NastranParserImpl::parseCELAS1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCELAS1(NastranTokenizer& tok, shared_ptr<Model> model) {
     // Defines a scalar spring element .
     int eid = tok.nextInt();
     int pid = tok.nextInt();
@@ -334,7 +334,7 @@ void NastranParserImpl::parseCELAS1(NastranTokenizer& tok, shared_ptr<Model> mod
     }
 }
 
-void NastranParserImpl::parseCELAS2(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCELAS2(NastranTokenizer& tok, shared_ptr<Model> model) {
     // Defines a scalar spring element without reference to a property entry.
     int eid = tok.nextInt();
     double k = tok.nextDouble();
@@ -366,7 +366,7 @@ void NastranParserImpl::parseCELAS2(NastranTokenizer& tok, shared_ptr<Model> mod
     model->add(scalarSpring);
 }
 
-void NastranParserImpl::parseCELAS4(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCELAS4(NastranTokenizer& tok, shared_ptr<Model> model) {
     // Defines a scalar spring element that is connected only to scalar points, without
     // reference to a property entry.
     int eid = tok.nextInt();
@@ -388,7 +388,7 @@ void NastranParserImpl::parseCELAS4(NastranTokenizer& tok, shared_ptr<Model> mod
     model->add(scalarSpring);
 }
 
-void NastranParserImpl::parseElem(NastranTokenizer& tok, shared_ptr<Model> model,
+void NastranParser::parseElem(NastranTokenizer& tok, shared_ptr<Model> model,
                                   vector<CellType> cellTypes) {
     int cell_id = tok.nextInt();
     int property_id = tok.nextInt(true, cell_id);
@@ -418,7 +418,7 @@ void NastranParserImpl::parseElem(NastranTokenizer& tok, shared_ptr<Model> model
     addProperty(property_id, cell_id, model);
 }
 
-void NastranParserImpl::parseCGAP(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCGAP(NastranTokenizer& tok, shared_ptr<Model> model) {
     int eid = tok.nextInt();
     int pid = tok.nextInt(true, eid);
     int ga = tok.nextInt();
@@ -442,11 +442,11 @@ void NastranParserImpl::parseCGAP(NastranTokenizer& tok, shared_ptr<Model> model
     }
 }
 
-void NastranParserImpl::parseCHEXA(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCHEXA(NastranTokenizer& tok, shared_ptr<Model> model) {
     parseElem(tok, model, { CellType::HEXA8, CellType::HEXA20 });
 }
 
-void NastranParserImpl::parseCMASS2(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCMASS2(NastranTokenizer& tok, shared_ptr<Model> model) {
     // Defines a scalar mass element without reference to a property entry.
     int eid = tok.nextInt();
     double m = tok.nextDouble();
@@ -459,31 +459,31 @@ void NastranParserImpl::parseCMASS2(NastranTokenizer& tok, shared_ptr<Model> mod
     model->add(matrix);
 }
 
-void NastranParserImpl::parseCPENTA(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCPENTA(NastranTokenizer& tok, shared_ptr<Model> model) {
     parseElem(tok, model, { CellType::PENTA6, CellType::PENTA15 });
 }
 
-void NastranParserImpl::parseCPYRAM(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCPYRAM(NastranTokenizer& tok, shared_ptr<Model> model) {
     parseElem(tok, model, { CellType::PYRA5, CellType::PYRA13 });
 }
 
-void NastranParserImpl::parseCQUAD(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCQUAD(NastranTokenizer& tok, shared_ptr<Model> model) {
     parseElem(tok, model, { CellType::QUAD4, CellType::QUAD8, CellType::QUAD9 });
 }
 
-void NastranParserImpl::parseCQUAD4(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCQUAD4(NastranTokenizer& tok, shared_ptr<Model> model) {
     parseShellElem(tok, model, CellType::QUAD4);
 }
 
-void NastranParserImpl::parseCQUAD8(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCQUAD8(NastranTokenizer& tok, shared_ptr<Model> model) {
     parseShellElem(tok, model, CellType::QUAD8);
 }
 
-void NastranParserImpl::parseCQUADR(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCQUADR(NastranTokenizer& tok, shared_ptr<Model> model) {
     parseShellElem(tok, model, CellType::QUAD4);
 }
 
-void NastranParserImpl::parseCROD(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCROD(NastranTokenizer& tok, shared_ptr<Model> model) {
     int cell_id = tok.nextInt();
     int property_id = tok.nextInt(true, cell_id);
     int point1 = tok.nextInt();
@@ -495,23 +495,23 @@ void NastranParserImpl::parseCROD(NastranTokenizer& tok, shared_ptr<Model> model
     addProperty(property_id, cell_id, model);
 }
 
-void NastranParserImpl::parseCTETRA(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCTETRA(NastranTokenizer& tok, shared_ptr<Model> model) {
     parseElem(tok, model, { CellType::TETRA4, CellType::TETRA10 });
 }
 
-void NastranParserImpl::parseCTRIA3(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCTRIA3(NastranTokenizer& tok, shared_ptr<Model> model) {
     parseShellElem(tok, model, CellType::TRI3);
 }
 
-void NastranParserImpl::parseCTRIA6(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCTRIA6(NastranTokenizer& tok, shared_ptr<Model> model) {
     parseShellElem(tok, model, CellType::TRI6);
 }
 
-void NastranParserImpl::parseCTRIAR(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCTRIAR(NastranTokenizer& tok, shared_ptr<Model> model) {
     parseShellElem(tok, model, CellType::TRI3);
 }
 
-void NastranParserImpl::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> model,
+void NastranParser::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> model,
         CellType cellType) {
     int cell_id = tok.nextInt();
     int property_id = tok.nextInt(true, cell_id);
@@ -614,7 +614,7 @@ void NastranParserImpl::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> 
  * that these GRID points have only one DOF. IT's not the case, so we create SPC to
  * compensate.
  */
-void NastranParserImpl::parseSPOINT(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseSPOINT(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     int id1 = tok.nextInt();
     double x1 = 0.0;

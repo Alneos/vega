@@ -281,6 +281,7 @@ endif(ENABLE_ASTER)
 if(ENABLE_NASTRAN)
   set_config_option(HAVE_NASTRAN "Nastran")
   add_subdirectory(Nastran)
+  add_subdirectory(Optistruct)
 endif(ENABLE_NASTRAN)
 
 if(ENABLE_SYSTUS)

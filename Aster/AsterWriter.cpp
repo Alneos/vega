@@ -26,15 +26,15 @@ namespace fs = boost::filesystem;
 namespace vega {
 namespace aster {
 
-AsterWriterImpl::AsterWriterImpl() {
+AsterWriter::AsterWriter() {
 
 }
 
-AsterWriterImpl::~AsterWriterImpl() {
-
+const string AsterWriter::toString() const {
+	return string("AsterWriter");
 }
 
-string AsterWriterImpl::writeModel(const shared_ptr<vega::Model> model_ptr,
+string AsterWriter::writeModel(const shared_ptr<vega::Model> model_ptr,
 		const vega::ConfigurationParameters &configuration) {
 	AsterModel asterModel(*model_ptr, configuration);
 //string currentOutFile = asterModel.getOutputFileName();
@@ -74,7 +74,7 @@ string AsterWriterImpl::writeModel(const shared_ptr<vega::Model> model_ptr,
 	return exp_path;
 }
 
-void AsterWriterImpl::writeExport(AsterModel &model, ostream& out) {
+void AsterWriter::writeExport(AsterModel &model, ostream& out) {
 	out << "P actions make_etude" << endl;
 	out << "P mem_aster 100.0" << endl;
 	out << "P mode interactif" << endl;
@@ -95,7 +95,7 @@ void AsterWriterImpl::writeExport(AsterModel &model, ostream& out) {
 
 }
 
-void AsterWriterImpl::writeImprResultats(const AsterModel& asterModel, ostream& out) {
+void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out) {
 	if (asterModel.model.analyses.size() > 0) {
 		out << "IMPR_RESU(FORMAT='RESULTAT'," << endl;
 		out << "          RESU=(" << endl;
@@ -212,7 +212,7 @@ void AsterWriterImpl::writeImprResultats(const AsterModel& asterModel, ostream& 
 	}
 }
 
-void AsterWriterImpl::writeAnalyses(const AsterModel& asterModel, ostream& out) {
+void AsterWriter::writeAnalyses(const AsterModel& asterModel, ostream& out) {
 	double debut = 0;
 	for (auto it : asterModel.model.analyses) {
 		Analysis& analysis = *it;
@@ -258,7 +258,7 @@ void AsterWriterImpl::writeAnalyses(const AsterModel& asterModel, ostream& out) 
 	}
 }
 
-void AsterWriterImpl::writeComm(const AsterModel& asterModel, ostream& out) {
+void AsterWriter::writeComm(const AsterModel& asterModel, ostream& out) {
 	string asterVersion(asterModel.getAsterVersion());
 	out << "#Vega++ version " << VEGA_VERSION_MAJOR << "." << VEGA_VERSION_MINOR << endl;
 	out << "#Aster version " << asterModel.getAsterVersion() << endl;
@@ -292,7 +292,7 @@ void AsterWriterImpl::writeComm(const AsterModel& asterModel, ostream& out) {
 	out << "FIN()" << endl;
 }
 
-void AsterWriterImpl::writeLireMaillage(const AsterModel& asterModel, ostream& out) {
+void AsterWriter::writeLireMaillage(const AsterModel& asterModel, ostream& out) {
 	out << mail_name << "=LIRE_MAILLAGE(FORMAT='MED',";
 	if (asterModel.configuration.logLevel >= LogLevel::DEBUG) {
 		out << "INFO_MED=2,VERI_MAIL=_F(VERIF='OUI',),INFO=2";
@@ -302,7 +302,7 @@ void AsterWriterImpl::writeLireMaillage(const AsterModel& asterModel, ostream& o
 	out << ");" << endl << endl;
 }
 
-void AsterWriterImpl::writeAffeModele(const AsterModel& asterModel, ostream& out) {
+void AsterWriter::writeAffeModele(const AsterModel& asterModel, ostream& out) {
 	out << "MODMECA=AFFE_MODELE(MAILLAGE=" << mail_name << "," << endl;
 	out << "                    AFFE=(" << endl;
 	for (auto elementSet : asterModel.model.elementSets) {
@@ -322,7 +322,7 @@ void AsterWriterImpl::writeAffeModele(const AsterModel& asterModel, ostream& out
 	out << "                    );" << endl << endl;
 }
 
-string AsterWriterImpl::writeValue(NamedValue& value, ostream& out) {
+string AsterWriter::writeValue(NamedValue& value, ostream& out) {
 	string concept_name;
 
 	switch (value.type) {
@@ -407,7 +407,7 @@ string AsterWriterImpl::writeValue(NamedValue& value, ostream& out) {
 	return concept_name;
 }
 
-void AsterWriterImpl::writeMaterials(const AsterModel& asterModel, ostream& out) {
+void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 
 	for (auto material : asterModel.model.materials) {
 		if (material->isOriginal()) {
@@ -479,7 +479,7 @@ void AsterWriterImpl::writeMaterials(const AsterModel& asterModel, ostream& out)
 	out << "                    );" << endl << endl;
 }
 
-void AsterWriterImpl::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) {
+void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) {
 	calc_sigm = false;
 	if (asterModel.model.elementSets.size() > 0) {
 		out << "CAEL=AFFE_CARA_ELEM(MODELE=MODMECA," << endl;
@@ -615,7 +615,7 @@ void AsterWriterImpl::writeAffeCaraElem(const AsterModel& asterModel, ostream& o
 	}
 	out << "                    );" << endl << endl;
 }
-void AsterWriterImpl::writeAffeCaraElemPoutre(const ElementSet& elementSet, ostream& out) {
+void AsterWriter::writeAffeCaraElemPoutre(const ElementSet& elementSet, ostream& out) {
 	out << "                            _F(GROUP_MA='" << elementSet.cellGroup->getName() << "',"
 			<< endl;
 	switch (elementSet.type) {
@@ -659,7 +659,7 @@ void AsterWriterImpl::writeAffeCaraElemPoutre(const ElementSet& elementSet, ostr
 	out << "                               )," << endl;
 }
 
-void AsterWriterImpl::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) {
+void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) {
 	for (auto it : asterModel.model.constraintSets) {
 		ConstraintSet& constraintSet = *it;
 		if (constraintSet.getConstraints().size() == 0) {
@@ -734,7 +734,7 @@ void AsterWriterImpl::writeAffeCharMeca(const AsterModel& asterModel, ostream& o
 	}
 }
 
-void AsterWriterImpl::writeDefiContact(const AsterModel& asterModel, ostream& out) {
+void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 	for (auto it : asterModel.model.constraintSets) {
 		ConstraintSet& constraintSet = *it;
 		const set<shared_ptr<Constraint>> gaps = constraintSet.getConstraintsByType(
@@ -817,7 +817,7 @@ void AsterWriterImpl::writeDefiContact(const AsterModel& asterModel, ostream& ou
 	}
 }
 
-void AsterWriterImpl::writeSPC(const AsterModel& asterModel, const ConstraintSet& cset,
+void AsterWriter::writeSPC(const AsterModel& asterModel, const ConstraintSet& cset,
 		ostream&out) {
 	const set<shared_ptr<Constraint>> spcs = cset.getConstraintsByType(Constraint::SPC);
 	if (spcs.size() > 0) {
@@ -866,7 +866,7 @@ void AsterWriterImpl::writeSPC(const AsterModel& asterModel, const ConstraintSet
 		out << "                             )," << endl;
 	}
 }
-void AsterWriterImpl::writeLIAISON_SOLIDE(const AsterModel& asterModel, const ConstraintSet& cset,
+void AsterWriter::writeLIAISON_SOLIDE(const AsterModel& asterModel, const ConstraintSet& cset,
 		ostream& out) {
 
 	const set<shared_ptr<Constraint>> rigidConstraints = cset.getConstraintsByType(
@@ -901,7 +901,7 @@ void AsterWriterImpl::writeLIAISON_SOLIDE(const AsterModel& asterModel, const Co
 	}
 }
 
-void AsterWriterImpl::writeRBE3(const AsterModel& asterModel, const ConstraintSet& cset,
+void AsterWriter::writeRBE3(const AsterModel& asterModel, const ConstraintSet& cset,
 		ostream& out) {
 	const set<shared_ptr<Constraint>> constraints = cset.getConstraintsByType(Constraint::RBE3);
 	if (constraints.size() > 0) {
@@ -981,7 +981,7 @@ void AsterWriterImpl::writeRBE3(const AsterModel& asterModel, const ConstraintSe
 	}
 }
 
-void AsterWriterImpl::writeLMPC(const AsterModel& asterModel, const ConstraintSet& cset,
+void AsterWriter::writeLMPC(const AsterModel& asterModel, const ConstraintSet& cset,
 		ostream& out) {
 	const set<shared_ptr<Constraint>> lmpcs = cset.getConstraintsByType(Constraint::LMPC);
 	if (lmpcs.size() > 0) {
@@ -1032,7 +1032,7 @@ void AsterWriterImpl::writeLMPC(const AsterModel& asterModel, const ConstraintSe
 	}
 }
 
-void AsterWriterImpl::writeGravity(const LoadSet& loadSet, ostream& out) {
+void AsterWriter::writeGravity(const LoadSet& loadSet, ostream& out) {
 	const set<shared_ptr<Loading>> gravities = loadSet.getLoadingsByType(Loading::GRAVITY);
 	if (gravities.size() > 0) {
 		out << "                      PESANTEUR=(" << endl;
@@ -1048,7 +1048,7 @@ void AsterWriterImpl::writeGravity(const LoadSet& loadSet, ostream& out) {
 	}
 }
 
-void AsterWriterImpl::writeRotation(const LoadSet& loadSet, ostream& out) {
+void AsterWriter::writeRotation(const LoadSet& loadSet, ostream& out) {
 	const set<shared_ptr<Loading>> rotations = loadSet.getLoadingsByType(Loading::ROTATION);
 	if (rotations.size() > 0) {
 		out << "                      ROTATION=(" << endl;
@@ -1068,7 +1068,7 @@ void AsterWriterImpl::writeRotation(const LoadSet& loadSet, ostream& out) {
 	}
 }
 
-void AsterWriterImpl::writeNodalForce(const AsterModel& asterModel, const LoadSet& loadSet, ostream& out) {
+void AsterWriter::writeNodalForce(const AsterModel& asterModel, const LoadSet& loadSet, ostream& out) {
 	const set<shared_ptr<Loading>> nodalForces = loadSet.getLoadingsByType(Loading::NODAL_FORCE);
 	if (nodalForces.size() > 0) {
 		out << "                      FORCE_NODALE=(" << endl;
@@ -1099,7 +1099,7 @@ void AsterWriterImpl::writeNodalForce(const AsterModel& asterModel, const LoadSe
 	}
 }
 
-void AsterWriterImpl::writePression(const LoadSet& loadSet, ostream& out) {
+void AsterWriter::writePression(const LoadSet& loadSet, ostream& out) {
 	return; // TODO : check if the cellContainer contain skin or shell elements
 	const set<shared_ptr<Loading>> normalPressionFace = loadSet.getLoadingsByType(
 			Loading::NORMAL_PRESSION_FACE);
@@ -1116,7 +1116,7 @@ void AsterWriterImpl::writePression(const LoadSet& loadSet, ostream& out) {
 	}
 }
 
-void AsterWriterImpl::writeForceCoque(const LoadSet& loadSet, ostream&out) {
+void AsterWriter::writeForceCoque(const LoadSet& loadSet, ostream&out) {
 	const set<shared_ptr<Loading> > pressionFaces = loadSet.getLoadingsByType(
 			Loading::NORMAL_PRESSION_FACE);
 	if (pressionFaces.size() > 0) {
@@ -1132,7 +1132,7 @@ void AsterWriterImpl::writeForceCoque(const LoadSet& loadSet, ostream&out) {
 	}
 }
 
-void AsterWriterImpl::writeForceLine(const LoadSet& loadset, ostream& out) {
+void AsterWriter::writeForceLine(const LoadSet& loadset, ostream& out) {
 	const set<shared_ptr<Loading> > forcesLine = loadset.getLoadingsByType(Loading::FORCE_LINE);
 	vector<shared_ptr<ForceLine>> forcesOnPoutres;
 	vector<shared_ptr<ForceLine>> forcesOnGeometry;
@@ -1184,7 +1184,7 @@ void AsterWriterImpl::writeForceLine(const LoadSet& loadset, ostream& out) {
 	}
 
 }
-void AsterWriterImpl::writeForceSurface(const LoadSet& loadSet, ostream&out) {
+void AsterWriter::writeForceSurface(const LoadSet& loadSet, ostream&out) {
 	const set<shared_ptr<Loading> > forceSurfaces = loadSet.getLoadingsByType(
 			Loading::FORCE_SURFACE);
 	if (forceSurfaces.size() > 0) {
@@ -1214,7 +1214,7 @@ void AsterWriterImpl::writeForceSurface(const LoadSet& loadSet, ostream&out) {
 	}
 }
 
-void AsterWriterImpl::writeCellContainer(const CellContainer& cellContainer, ostream& out) {
+void AsterWriter::writeCellContainer(const CellContainer& cellContainer, ostream& out) {
 	if (cellContainer.hasCellGroups()) {
 		out << "GROUP_MA=(";
 		for (CellGroup* cellGroup : cellContainer.getCellGroups()) {
@@ -1231,7 +1231,7 @@ void AsterWriterImpl::writeCellContainer(const CellContainer& cellContainer, ost
 	}
 }
 
-shared_ptr<NonLinearStrategy> AsterWriterImpl::getNonLinearStrategy(
+shared_ptr<NonLinearStrategy> AsterWriter::getNonLinearStrategy(
 		NonLinearMecaStat& nonLinAnalysis) {
 	shared_ptr<NonLinearStrategy> nonLinearStrategy;
 	shared_ptr<vega::Objective> strategy = nonLinAnalysis.model.find(
@@ -1248,7 +1248,7 @@ shared_ptr<NonLinearStrategy> AsterWriterImpl::getNonLinearStrategy(
 	return nonLinearStrategy;
 }
 
-double AsterWriterImpl::writeAnalysis(const AsterModel& asterModel, Analysis& analysis,
+double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analysis,
 		ostream& out, double debut) {
 	if (analysis.isOriginal()) {
 		out << "# Analysis original id : " << analysis.getOriginalId() << endl;
@@ -1631,7 +1631,7 @@ double AsterWriterImpl::writeAnalysis(const AsterModel& asterModel, Analysis& an
 	return debut;
 }
 
-void AsterWriterImpl::writeNodalDisplacementAssertion(const AsterModel& asterModel,
+void AsterWriter::writeNodalDisplacementAssertion(const AsterModel& asterModel,
 		Assertion& assertion, ostream& out) {
 	NodalDisplacementAssertion& nda = dynamic_cast<NodalDisplacementAssertion&>(assertion);
 	Node node = asterModel.model.mesh->findNode(nda.nodePosition);
@@ -1652,7 +1652,7 @@ void AsterWriterImpl::writeNodalDisplacementAssertion(const AsterModel& asterMod
 
 }
 
-void AsterWriterImpl::writeNodalComplexDisplacementAssertion(const AsterModel& asterModel,
+void AsterWriter::writeNodalComplexDisplacementAssertion(const AsterModel& asterModel,
 		Assertion& assertion, ostream& out) {
 	NodalComplexDisplacementAssertion& nda =
 			dynamic_cast<NodalComplexDisplacementAssertion&>(assertion);
@@ -1671,7 +1671,7 @@ void AsterWriterImpl::writeNodalComplexDisplacementAssertion(const AsterModel& a
 	out << "                     TOLE_MACHINE = (" << (relativeComparison ? nda.tolerance : 1e-5) << "," << 1e-5 << ")," << endl;
 }
 
-void AsterWriterImpl::writeFrequencyAssertion(Assertion& assertion, ostream& out) {
+void AsterWriter::writeFrequencyAssertion(Assertion& assertion, ostream& out) {
 	FrequencyAssertion& frequencyAssertion = dynamic_cast<FrequencyAssertion&>(assertion);
 
 	out << "                     CRITERE = "

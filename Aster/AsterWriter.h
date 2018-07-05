@@ -25,13 +25,13 @@
 namespace vega {
 namespace aster {
 
-class AsterWriterImpl : public Writer{
-	string mail_name, sigm_noeu, sigm_elno, sief_elga;
+class AsterWriter final : public Writer{
+	std::string mail_name, sigm_noeu, sigm_elno, sief_elga;
 	bool calc_sigm = false;
-	std::map<Reference<NamedValue>, string> asternameByValue;
-	std::map<Reference<LoadSet>, string> asternameByLoadSet;
-	std::map<Reference<ConstraintSet>, string> asternameByConstraintSet;
-	static constexpr const double SMALLEST_RELATIVE_COMPARISON = 1e-7;
+	std::map<Reference<NamedValue>, std::string> asternameByValue;
+	std::map<Reference<LoadSet>, std::string> asternameByLoadSet;
+	std::map<Reference<ConstraintSet>, std::string> asternameByConstraintSet;
+	static constexpr double SMALLEST_RELATIVE_COMPARISON = 1e-7;
 
 	void writeExport(AsterModel& model, std::ostream&);
 	void writeComm(const AsterModel& model, std::ostream&);
@@ -60,20 +60,16 @@ class AsterWriterImpl : public Writer{
 	void writeNodalComplexDisplacementAssertion(const AsterModel&, Assertion&, std::ostream&);
 	void writeFrequencyAssertion(Assertion&, std::ostream&);
 	void writeLoadset(LoadSet& loadSet, std::ostream& out);
-	string writeValue(NamedValue& value, std::ostream& out);
+	std::string writeValue(NamedValue& value, std::ostream& out);
 	void writeImprResultats(const AsterModel& asterModel, std::ostream& out);
 	void list_concept_name(StepRange& stepRange);
 	std::shared_ptr<NonLinearStrategy> getNonLinearStrategy(NonLinearMecaStat& nonLinAnalysis);
 	void writeAnalyses(const AsterModel& asterModel, std::ostream& out);
 
 public:
-	AsterWriterImpl();
-	virtual ~AsterWriterImpl();
-	string writeModel(const std::shared_ptr<Model> model_ptr, const ConfigurationParameters&);
-private:
-	//TODO: That's a dummy function to make the compiler happy. Do you want to write a real one?
-	virtual std::string toString() {return "";};
-
+	AsterWriter();
+	std::string writeModel(const std::shared_ptr<Model> model_ptr, const ConfigurationParameters&);
+	const std::string toString() const override;
 };
 
 }

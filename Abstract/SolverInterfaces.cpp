@@ -37,8 +37,6 @@ namespace fs = boost::filesystem;
 using boost::lexical_cast;
 using namespace std;
 
-const double Globals::UNAVAILABLE_DOUBLE = -DBL_MAX;
-
 
 string ParsingMessageException(string arg, string fname, int lineNum, string key){
     string msg;
@@ -196,11 +194,6 @@ void Parser::handleParsingWarning(const string& message, Tokenizer& tok,
         shared_ptr<Model> model) {
     UNUSEDV(model);
     cerr << ParsingMessageWarning(message, tok.fileName, tok.lineNumber, tok.currentKeyword) << endl;
-}
-
-
-Writer::Writer(){
-    this->translationMode= ConfigurationParameters::BEST_EFFORT;
 }
 
 void Writer::handleWritingError(const string& message, const string& keyword, const string& file) {

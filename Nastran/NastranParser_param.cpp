@@ -37,7 +37,7 @@ namespace nastran {
 
 // See chapter 5 of the Nastran Quick Reference guide
 // Please keep alphabetical order for a better readibility
-const set<string> NastranParserImpl::IGNORED_PARAMS = {
+const set<string> NastranParser::IGNORED_PARAMS = {
         "BAILOUT", // Behavior when matrixes are almost singular. Useless for translation.
         "COUPMASS", // Generation of coupled rather than diagonal mass matrices for elements with coupled mass capability
         "DESPCH", "DESPCH1", // Amount of output data to write during an optimization process. Useless for translation.
@@ -50,7 +50,7 @@ const set<string> NastranParserImpl::IGNORED_PARAMS = {
 
 
 //TODO: Add a better switch for PARAM :  map ?
-void NastranParserImpl::parsePARAM(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePARAM(NastranTokenizer& tok, shared_ptr<Model> model) {
     string param = tok.nextString();
     boost::to_upper(param);
     //boost::trim(param);

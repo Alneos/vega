@@ -41,7 +41,7 @@ class Reference final {
 public:
     template<class T2> friend std::string to_str(const Reference<T2>&);
     template<class T2> friend std::ostream& operator<<(std::ostream&, const Reference<T2>&);
-    static const int NO_ID = INT_MIN;
+    static constexpr int NO_ID = INT_MIN;
     // TODO : make type, original_id and id private
     typename T::Type type;
     int original_id;

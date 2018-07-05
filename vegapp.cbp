@@ -1629,12 +1629,6 @@
 		<Unit filename="Abstract/build_properties.h.in">
 			<Option virtualFolder="CMake Files/Abstract/" />
 		</Unit>
-		<Unit filename="Aster/AsterFacade.cpp">
-			<Option target="aster" />
-		</Unit>
-		<Unit filename="Aster/AsterFacade.h">
-			<Option target="aster" />
-		</Unit>
 		<Unit filename="Aster/AsterModel.cpp">
 			<Option target="aster" />
 		</Unit>
@@ -1676,12 +1670,6 @@
 		</Unit>
 		<Unit filename="Nastran/CMakeLists.txt">
 			<Option virtualFolder="CMake Files/Nastran/" />
-		</Unit>
-		<Unit filename="Nastran/NastranFacade.cpp">
-			<Option target="nastran" />
-		</Unit>
-		<Unit filename="Nastran/NastranFacade.h">
-			<Option target="nastran" />
 		</Unit>
 		<Unit filename="Nastran/NastranParser.cpp">
 			<Option target="nastran" />

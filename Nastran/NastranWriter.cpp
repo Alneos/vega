@@ -115,15 +115,15 @@ Line& Line::add(const VectorialValue vector) {
 	return *this;
 }
 
-NastranWriterImpl::NastranWriterImpl() {
+NastranWriter::NastranWriter() {
 
 }
 
-NastranWriterImpl::~NastranWriterImpl() {
-
+const string NastranWriter::toString() const {
+	return string("NastranWriter");
 }
 
-string NastranWriterImpl::getDatFilename(const shared_ptr<vega::Model>& model,
+string NastranWriter::getDatFilename(const shared_ptr<vega::Model>& model,
 		const string& outputPath) const
 		{
 	string outputFileName;
@@ -144,7 +144,7 @@ string NastranWriterImpl::getDatFilename(const shared_ptr<vega::Model>& model,
 	return modelPath;
 }
 
-void NastranWriterImpl::writeSOL(const shared_ptr<vega::Model>& model, ofstream& out) const
+void NastranWriter::writeSOL(const shared_ptr<vega::Model>& model, ofstream& out) const
 		{
 	auto& firstAnalysis = *model->analyses.begin();
 	switch (firstAnalysis->type) {
@@ -173,7 +173,7 @@ void NastranWriterImpl::writeSOL(const shared_ptr<vega::Model>& model, ofstream&
 	}
 }
 
-void NastranWriterImpl::writeCells(const shared_ptr<vega::Model>& model, ofstream& out)
+void NastranWriter::writeCells(const shared_ptr<vega::Model>& model, ofstream& out)
 		{
 	for (const auto& elementSet : model->elementSets) {
 		if (elementSet->isDiscrete() || elementSet->isMatrixElement()) {
@@ -223,7 +223,7 @@ void NastranWriterImpl::writeCells(const shared_ptr<vega::Model>& model, ofstrea
 	}
 }
 
-void NastranWriterImpl::writeNodes(const shared_ptr<vega::Model>& model, ofstream& out)
+void NastranWriter::writeNodes(const shared_ptr<vega::Model>& model, ofstream& out)
 		{
 	for (Node node : model->mesh->nodes) {
 	    if (node.positionCS!= CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID)
@@ -234,7 +234,7 @@ void NastranWriterImpl::writeNodes(const shared_ptr<vega::Model>& model, ofstrea
 	}
 }
 
-void NastranWriterImpl::writeMaterials(const shared_ptr<vega::Model>& model, ofstream& out)
+void NastranWriter::writeMaterials(const shared_ptr<vega::Model>& model, ofstream& out)
 		{
 	for (const auto& material : model->materials) {
 		Line mat1("MAT1");
@@ -254,7 +254,7 @@ void NastranWriterImpl::writeMaterials(const shared_ptr<vega::Model>& model, ofs
 	}
 }
 
-void NastranWriterImpl::writeConstraints(const shared_ptr<vega::Model>& model, ofstream& out)
+void NastranWriter::writeConstraints(const shared_ptr<vega::Model>& model, ofstream& out)
 		{
 	for (const auto& constraintSet : model->constraintSets) {
 		const set<shared_ptr<Constraint> > spcs = constraintSet->getConstraintsByType(
@@ -292,7 +292,7 @@ void NastranWriterImpl::writeConstraints(const shared_ptr<vega::Model>& model, o
 	}
 }
 
-void NastranWriterImpl::writeLoadings(const shared_ptr<vega::Model>& model, ofstream& out)
+void NastranWriter::writeLoadings(const shared_ptr<vega::Model>& model, ofstream& out)
 		{
 	for (const auto& loadingSet : model->loadSets) {
 		const set<shared_ptr<Loading> > gravities = loadingSet->getLoadingsByType(Loading::GRAVITY);
@@ -349,13 +349,13 @@ void NastranWriterImpl::writeLoadings(const shared_ptr<vega::Model>& model, ofst
 	}
 }
 
-void NastranWriterImpl::writeRuler(ofstream& out)
+void NastranWriter::writeRuler(ofstream& out)
 		{
 	out << "$---1--][---2--][---3--][---4--][---5--][---6--][---7--][---8--][---9--][--10--]"
 			<< endl;
 }
 
-void NastranWriterImpl::writeElements(const shared_ptr<vega::Model>& model, ofstream& out)
+void NastranWriter::writeElements(const shared_ptr<vega::Model>& model, ofstream& out)
 		{
 	for (shared_ptr<Beam> beam : model->getBeams()) {
 		Line pbeam("PBEAM");
@@ -382,7 +382,7 @@ void NastranWriterImpl::writeElements(const shared_ptr<vega::Model>& model, ofst
 	}
 }
 
-string NastranWriterImpl::writeModel(const shared_ptr<vega::Model> model,
+string NastranWriter::writeModel(const shared_ptr<vega::Model> model,
 		const vega::ConfigurationParameters &configuration) {
 
 	string outputPath = configuration.outputPath;

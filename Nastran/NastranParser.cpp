@@ -45,7 +45,7 @@ using boost::trim_copy;
 using boost::to_upper;
 
 // see also http://www.altairhyperworks.com/hwhelp/Altair/hw12.0/help/hm/hmbat.htm?design_variables.htm
-const set<string> NastranParserImpl::IGNORED_KEYWORDS = {
+const set<string> NastranParser::IGNORED_KEYWORDS = {
         "CHECKEL", // Active le test de qualité des éléments. Inutile de le traduire.
         "DCONSTR", "DCONADD", "DESVAR", "DLINK", //nastran optimization keywords
         "DRAW", "DRESP1", "DRESP2", //ignored in Vega
@@ -64,92 +64,92 @@ const set<string> NastranParserImpl::IGNORED_KEYWORDS = {
         "TOPVAR", //  Topological Design Variable
 };
 
-const unordered_map<string, NastranParserImpl::parseElementFPtr> NastranParserImpl::PARSE_FUNCTION_BY_KEYWORD =
+const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARSE_FUNCTION_BY_KEYWORD =
         {
-                { "CBAR", &NastranParserImpl::parseCBAR },
-                { "CBEAM", &NastranParserImpl::parseCBEAM },
-                { "CBUSH", &NastranParserImpl::parseCBUSH },
-                { "CGAP", &NastranParserImpl::parseCGAP },
-                { "CELAS1", &NastranParserImpl::parseCELAS1 },
-                { "CELAS2", &NastranParserImpl::parseCELAS2 },
-                { "CELAS4", &NastranParserImpl::parseCELAS4 },
-                { "CHEXA", &NastranParserImpl::parseCHEXA },
-                { "CMASS2", &NastranParserImpl::parseCMASS2 },
-                { "CONM2", &NastranParserImpl::parseCONM2 },
-                { "CORD1R", &NastranParserImpl::parseCORD1R },
-                { "CORD2C", &NastranParserImpl::parseCORD2C },
-                { "CORD2R", &NastranParserImpl::parseCORD2R },
-                { "CPENTA", &NastranParserImpl::parseCPENTA },
-                { "CPYRAMID", &NastranParserImpl::parseCPYRAM },
-                { "CQUAD", &NastranParserImpl::parseCQUAD },
-                { "CQUAD4", &NastranParserImpl::parseCQUAD4 },
-                { "CQUAD8", &NastranParserImpl::parseCQUAD8 },
-                { "CQUADR", &NastranParserImpl::parseCQUADR },
-                { "CROD", &NastranParserImpl::parseCROD },
-                { "CTETRA", &NastranParserImpl::parseCTETRA },
-                { "CTRIA3", &NastranParserImpl::parseCTRIA3 },
-                { "CTRIA6", &NastranParserImpl::parseCTRIA6 },
-                { "CTRIAR", &NastranParserImpl::parseCTRIAR },
-                { "DAREA", &NastranParserImpl::parseDAREA },
-                { "DELAY", &NastranParserImpl::parseDELAY },
-                { "DLOAD", &NastranParserImpl::parseDLOAD },
-                { "DMIG", &NastranParserImpl::parseDMIG },
-                { "DPHASE", &NastranParserImpl::parseDPHASE },
-                { "EIGR", &NastranParserImpl::parseEIGR },
-                { "EIGRL", &NastranParserImpl::parseEIGRL },
-                { "FORCE", &NastranParserImpl::parseFORCE },
-                { "FORCE1", &NastranParserImpl::parseFORCE1 },
-                { "FORCE2", &NastranParserImpl::parseFORCE2 },
-                { "FREQ1", &NastranParserImpl::parseFREQ1 },
-                { "FREQ4", &NastranParserImpl::parseFREQ4 },
-                { "GRAV", &NastranParserImpl::parseGRAV },
-                { "GRID", &NastranParserImpl::parseGRID },
-                { "INCLUDE", &NastranParserImpl::parseInclude },
-                { "LSEQ", &NastranParserImpl::parseLSEQ },
-                { "LOAD", &NastranParserImpl::parseLOAD },
-                { "MAT1", &NastranParserImpl::parseMAT1 },
-                { "MATS1", &NastranParserImpl::parseMATS1 },
-                { "MOMENT", &NastranParserImpl::parseMOMENT },
-                { "MPC", &NastranParserImpl::parseMPC },
-                { "NLPARM", &NastranParserImpl::parseNLPARM },
-                { "PARAM", &NastranParserImpl::parsePARAM },
-                { "PBAR", &NastranParserImpl::parsePBAR },
-                { "PBARL", &NastranParserImpl::parsePBARL },
-                { "PBEAM", &NastranParserImpl::parsePBEAM },
-                { "PBEAML", &NastranParserImpl::parsePBEAML },
-                { "PBUSH", &NastranParserImpl::parsePBUSH },
-                { "PELAS", &NastranParserImpl::parsePELAS },
-                { "PGAP", &NastranParserImpl::parsePGAP },
-                { "PLOAD1", &NastranParserImpl::parsePLOAD1 },
-                { "PLOAD2", &NastranParserImpl::parsePLOAD2 },
-                { "PLOAD4", &NastranParserImpl::parsePLOAD4 },
-                { "PROD", &NastranParserImpl::parsePROD },
-                { "PSHELL", &NastranParserImpl::parsePSHELL },
-                { "PSOLID", &NastranParserImpl::parsePSOLID },
-                { "RBAR", &NastranParserImpl::parseRBAR },
-                { "RBAR1", &NastranParserImpl::parseRBAR1 },
-                { "RBE2", &NastranParserImpl::parseRBE2 },
-                { "RBE3", &NastranParserImpl::parseRBE3 },
-                { "RFORCE", &NastranParserImpl::parseRFORCE },
-                { "RLOAD2", &NastranParserImpl::parseRLOAD2 },
-                { "SET3", &NastranParserImpl::parseSET3 },
-                { "SLOAD", &NastranParserImpl::parseSLOAD },
-                { "SPC", &NastranParserImpl::parseSPC },
-                { "SPC1", &NastranParserImpl::parseSPC1 },
-                { "SPCD", &NastranParserImpl::parseSPCD },
-                { "SPCADD", &NastranParserImpl::parseSPCADD },
-                { "SPOINT", &NastranParserImpl::parseSPOINT },
-                { "TABDMP1", &NastranParserImpl::parseTABDMP1 },
-                { "TABLED1", &NastranParserImpl::parseTABLED1 },
-                { "TEMP", &NastranParserImpl::parseTEMP },
-                { "GRDSET", &NastranParserImpl::parseGRDSET }
+                { "CBAR", &NastranParser::parseCBAR },
+                { "CBEAM", &NastranParser::parseCBEAM },
+                { "CBUSH", &NastranParser::parseCBUSH },
+                { "CGAP", &NastranParser::parseCGAP },
+                { "CELAS1", &NastranParser::parseCELAS1 },
+                { "CELAS2", &NastranParser::parseCELAS2 },
+                { "CELAS4", &NastranParser::parseCELAS4 },
+                { "CHEXA", &NastranParser::parseCHEXA },
+                { "CMASS2", &NastranParser::parseCMASS2 },
+                { "CONM2", &NastranParser::parseCONM2 },
+                { "CORD1R", &NastranParser::parseCORD1R },
+                { "CORD2C", &NastranParser::parseCORD2C },
+                { "CORD2R", &NastranParser::parseCORD2R },
+                { "CPENTA", &NastranParser::parseCPENTA },
+                { "CPYRAMID", &NastranParser::parseCPYRAM },
+                { "CQUAD", &NastranParser::parseCQUAD },
+                { "CQUAD4", &NastranParser::parseCQUAD4 },
+                { "CQUAD8", &NastranParser::parseCQUAD8 },
+                { "CQUADR", &NastranParser::parseCQUADR },
+                { "CROD", &NastranParser::parseCROD },
+                { "CTETRA", &NastranParser::parseCTETRA },
+                { "CTRIA3", &NastranParser::parseCTRIA3 },
+                { "CTRIA6", &NastranParser::parseCTRIA6 },
+                { "CTRIAR", &NastranParser::parseCTRIAR },
+                { "DAREA", &NastranParser::parseDAREA },
+                { "DELAY", &NastranParser::parseDELAY },
+                { "DLOAD", &NastranParser::parseDLOAD },
+                { "DMIG", &NastranParser::parseDMIG },
+                { "DPHASE", &NastranParser::parseDPHASE },
+                { "EIGR", &NastranParser::parseEIGR },
+                { "EIGRL", &NastranParser::parseEIGRL },
+                { "FORCE", &NastranParser::parseFORCE },
+                { "FORCE1", &NastranParser::parseFORCE1 },
+                { "FORCE2", &NastranParser::parseFORCE2 },
+                { "FREQ1", &NastranParser::parseFREQ1 },
+                { "FREQ4", &NastranParser::parseFREQ4 },
+                { "GRAV", &NastranParser::parseGRAV },
+                { "GRID", &NastranParser::parseGRID },
+                { "INCLUDE", &NastranParser::parseInclude },
+                { "LSEQ", &NastranParser::parseLSEQ },
+                { "LOAD", &NastranParser::parseLOAD },
+                { "MAT1", &NastranParser::parseMAT1 },
+                { "MATS1", &NastranParser::parseMATS1 },
+                { "MOMENT", &NastranParser::parseMOMENT },
+                { "MPC", &NastranParser::parseMPC },
+                { "NLPARM", &NastranParser::parseNLPARM },
+                { "PARAM", &NastranParser::parsePARAM },
+                { "PBAR", &NastranParser::parsePBAR },
+                { "PBARL", &NastranParser::parsePBARL },
+                { "PBEAM", &NastranParser::parsePBEAM },
+                { "PBEAML", &NastranParser::parsePBEAML },
+                { "PBUSH", &NastranParser::parsePBUSH },
+                { "PELAS", &NastranParser::parsePELAS },
+                { "PGAP", &NastranParser::parsePGAP },
+                { "PLOAD1", &NastranParser::parsePLOAD1 },
+                { "PLOAD2", &NastranParser::parsePLOAD2 },
+                { "PLOAD4", &NastranParser::parsePLOAD4 },
+                { "PROD", &NastranParser::parsePROD },
+                { "PSHELL", &NastranParser::parsePSHELL },
+                { "PSOLID", &NastranParser::parsePSOLID },
+                { "RBAR", &NastranParser::parseRBAR },
+                { "RBAR1", &NastranParser::parseRBAR1 },
+                { "RBE2", &NastranParser::parseRBE2 },
+                { "RBE3", &NastranParser::parseRBE3 },
+                { "RFORCE", &NastranParser::parseRFORCE },
+                { "RLOAD2", &NastranParser::parseRLOAD2 },
+                { "SET3", &NastranParser::parseSET3 },
+                { "SLOAD", &NastranParser::parseSLOAD },
+                { "SPC", &NastranParser::parseSPC },
+                { "SPC1", &NastranParser::parseSPC1 },
+                { "SPCD", &NastranParser::parseSPCD },
+                { "SPCADD", &NastranParser::parseSPCADD },
+                { "SPOINT", &NastranParser::parseSPOINT },
+                { "TABDMP1", &NastranParser::parseTABDMP1 },
+                { "TABLED1", &NastranParser::parseTABLED1 },
+                { "TEMP", &NastranParser::parseTEMP },
+                { "GRDSET", &NastranParser::parseGRDSET }
         };
 
-NastranParserImpl::NastranParserImpl() :
+NastranParser::NastranParser() :
         Parser() {
 }
 
-string NastranParserImpl::parseSubcase(NastranTokenizer& tok, shared_ptr<Model> model,
+string NastranParser::parseSubcase(NastranTokenizer& tok, shared_ptr<Model> model,
         map<string, string> context) {
     int subCaseId = tok.nextInt(true, 0);
     string nextKeyword;
@@ -183,10 +183,10 @@ string NastranParserImpl::parseSubcase(NastranTokenizer& tok, shared_ptr<Model> 
     return nextKeyword;
 }
 
-NastranParserImpl::~NastranParserImpl() {
+NastranParser::~NastranParser() {
 }
 
-void NastranParserImpl::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<Model> model,
+void NastranParser::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<Model> model,
         map<string, string>& context) {
     bool canContinue = true;
     bool readNewKeyword = true;
@@ -345,16 +345,16 @@ void NastranParserImpl::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<
     }
 }
 
-void NastranParserImpl::parseBULKSection(NastranTokenizer &tok, shared_ptr<Model> model) {
+void NastranParser::parseBULKSection(NastranTokenizer &tok, shared_ptr<Model> model) {
 
     while (tok.nextSymbolType == NastranTokenizer::SYMBOL_KEYWORD) {
         string keyword = tok.nextString(true,"");
         tok.setCurrentKeyword(keyword);
-        unordered_map<string, NastranParserImpl::parseElementFPtr>::const_iterator parseFunctionFptrKeywordPair;
+        unordered_map<string, NastranParser::parseElementFPtr>::const_iterator parseFunctionFptrKeywordPair;
         try{
             if ((parseFunctionFptrKeywordPair = PARSE_FUNCTION_BY_KEYWORD.find(keyword))
                     != PARSE_FUNCTION_BY_KEYWORD.end()) {
-                NastranParserImpl::parseElementFPtr fptr = parseFunctionFptrKeywordPair->second;
+                NastranParser::parseElementFPtr fptr = parseFunctionFptrKeywordPair->second;
                 (this->*fptr)(tok, model);
 
             } else if (IGNORED_KEYWORDS.find(keyword) != IGNORED_KEYWORDS.end()) {
@@ -384,7 +384,7 @@ void NastranParserImpl::parseBULKSection(NastranTokenizer &tok, shared_ptr<Model
 
 }
 
-fs::path NastranParserImpl::findModelFile(const string& filename) {
+fs::path NastranParser::findModelFile(const string& filename) {
     if (!fs::exists(filename)) {
         throw invalid_argument("Can't find file : " + fs::absolute(filename).string());
     }
@@ -392,7 +392,7 @@ fs::path NastranParserImpl::findModelFile(const string& filename) {
     return inputFilePath;
 }
 
-shared_ptr<Model> NastranParserImpl::parse(const ConfigurationParameters& configuration) {
+shared_ptr<Model> NastranParser::parse(const ConfigurationParameters& configuration) {
     this->translationMode = configuration.translationMode;
     this->logLevel = configuration.logLevel;
 
@@ -426,7 +426,7 @@ shared_ptr<Model> NastranParserImpl::parse(const ConfigurationParameters& config
     return model;
 }
 
-void NastranParserImpl::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, map<string, string> &context,
+void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, map<string, string> &context,
         int analysis_id) {
 
     string analysis_str;
@@ -669,7 +669,7 @@ void NastranParserImpl::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> mod
     }
 }
 
-void NastranParserImpl::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> model) {
     int elemId = tok.nextInt();
     int g = tok.nextInt(); // Grid point identification number
     int ci = tok.nextInt(true, 0);
@@ -710,7 +710,7 @@ void NastranParserImpl::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> mode
     model->add(nodalMass);
 }
 
-void NastranParserImpl::parseCORD1R(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCORD1R(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     while (tok.isNextInt()) {
         int cid = tok.nextInt();
@@ -722,7 +722,7 @@ void NastranParserImpl::parseCORD1R(NastranTokenizer& tok, shared_ptr<Model> mod
         }
 }
 
-void NastranParserImpl::parseCORD2C(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCORD2C(NastranTokenizer& tok, shared_ptr<Model> model) {
     int cid = tok.nextInt();
     //reference coordinate system 0 for global.
     int rid = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
@@ -743,7 +743,7 @@ void NastranParserImpl::parseCORD2C(NastranTokenizer& tok, shared_ptr<Model> mod
     model->add(coordinateSystem);
 }
 
-void NastranParserImpl::parseCORD2R(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCORD2R(NastranTokenizer& tok, shared_ptr<Model> model) {
     int cid = tok.nextInt();
     int rid = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     double coor[3];
@@ -762,7 +762,7 @@ void NastranParserImpl::parseCORD2R(NastranTokenizer& tok, shared_ptr<Model> mod
     model->add(coordinateSystem);
 }
 
-void NastranParserImpl::parseDAREA(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseDAREA(NastranTokenizer& tok, shared_ptr<Model> model) {
     int loadset_id = tok.nextInt();
     Reference<vega::LoadSet> loadset_ref(LoadSet::EXCITEID, loadset_id);
     while (tok.isNextInt()) {
@@ -791,7 +791,7 @@ void NastranParserImpl::parseDAREA(NastranTokenizer& tok, shared_ptr<Model> mode
 
 //TODO: Delay should not be a DynaPhase object
 //TODO: But I guess this will be enough for now
-void NastranParserImpl::parseDELAY(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseDELAY(NastranTokenizer& tok, shared_ptr<Model> model) {
     int original_id = tok.nextInt();
     int p = tok.nextInt(true);
     if (p!=Globals::UNAVAILABLE_INT){
@@ -812,7 +812,7 @@ void NastranParserImpl::parseDELAY(NastranTokenizer& tok, shared_ptr<Model> mode
 
 
 
-void NastranParserImpl::parseDLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseDLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
     int loadset_id = tok.nextInt();
     LoadSet loadSet(*model, LoadSet::DLOAD, loadset_id);
 
@@ -829,7 +829,7 @@ void NastranParserImpl::parseDLOAD(NastranTokenizer& tok, shared_ptr<Model> mode
     model->add(loadSet);
 }
 
-void NastranParserImpl::parseDMIG(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseDMIG(NastranTokenizer& tok, shared_ptr<Model> model) {
     string name = tok.nextString();
     if (name == "UACCEL") {
         handleParsingWarning("UACCEL not supported and dismissed.", tok, model);
@@ -903,7 +903,7 @@ void NastranParserImpl::parseDMIG(NastranTokenizer& tok, shared_ptr<Model> model
     }
 }
 
-void NastranParserImpl::parseDPHASE(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseDPHASE(NastranTokenizer& tok, shared_ptr<Model> model) {
     int original_id = tok.nextInt();
     int p = tok.nextInt(true);
     if (p!=Globals::UNAVAILABLE_INT){
@@ -922,7 +922,7 @@ void NastranParserImpl::parseDPHASE(NastranTokenizer& tok, shared_ptr<Model> mod
     model->add(dynaphase);
 }
 
-void NastranParserImpl::parseEIGR(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseEIGR(NastranTokenizer& tok, shared_ptr<Model> model) {
     int original_id = tok.nextInt();
     string method = tok.nextString(true);
     if (method !="LAN"){
@@ -959,7 +959,7 @@ void NastranParserImpl::parseEIGR(NastranTokenizer& tok, shared_ptr<Model> model
     model->add(frequencyBand);
 }
 
-void NastranParserImpl::parseEIGRL(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseEIGRL(NastranTokenizer& tok, shared_ptr<Model> model) {
     int original_id = tok.nextInt();
     double lower = tok.nextDouble(true);
     double upper = tok.nextDouble(true);
@@ -995,7 +995,7 @@ void NastranParserImpl::parseEIGRL(NastranTokenizer& tok, shared_ptr<Model> mode
     model->add(frequencyBand);
 }
 
-void NastranParserImpl::parseFORCE(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseFORCE(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     int loadset_id = tok.nextInt();
     int node_id = tok.nextInt();
@@ -1018,7 +1018,7 @@ void NastranParserImpl::parseFORCE(NastranTokenizer& tok, shared_ptr<Model> mode
     }
 }
 
-void NastranParserImpl::parseFORCE1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseFORCE1(NastranTokenizer& tok, shared_ptr<Model> model) {
 //nodal force two nodes
     int loadset_id = tok.nextInt();
     int node_id = tok.nextInt();
@@ -1038,7 +1038,7 @@ void NastranParserImpl::parseFORCE1(NastranTokenizer& tok, shared_ptr<Model> mod
     }
 }
 
-void NastranParserImpl::parseFORCE2(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseFORCE2(NastranTokenizer& tok, shared_ptr<Model> model) {
     int sid = tok.nextInt();
     int node_id = tok.nextInt();
     double force = tok.nextDouble();
@@ -1059,7 +1059,7 @@ void NastranParserImpl::parseFORCE2(NastranTokenizer& tok, shared_ptr<Model> mod
     }
 }
 
-void NastranParserImpl::parseFREQ1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseFREQ1(NastranTokenizer& tok, shared_ptr<Model> model) {
     int original_id = tok.nextInt();
     double start = tok.nextDouble();
     double step = tok.nextDouble();
@@ -1073,7 +1073,7 @@ void NastranParserImpl::parseFREQ1(NastranTokenizer& tok, shared_ptr<Model> mode
     model->add(frequencyValues);
 }
 
-void NastranParserImpl::parseFREQ4(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseFREQ4(NastranTokenizer& tok, shared_ptr<Model> model) {
     int original_id = tok.nextInt();
     double f1 = tok.nextDouble();
     double f2 = tok.nextDouble();
@@ -1088,7 +1088,7 @@ void NastranParserImpl::parseFREQ4(NastranTokenizer& tok, shared_ptr<Model> mode
     model->add(frequencyValues);
 }
 
-void NastranParserImpl::parseGRAV(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseGRAV(NastranTokenizer& tok, shared_ptr<Model> model) {
     int sid = tok.nextInt();
     int coordinate_system_id = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     if (coordinate_system_id != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
@@ -1114,7 +1114,7 @@ void NastranParserImpl::parseGRAV(NastranTokenizer& tok, shared_ptr<Model> model
         model->add(loadSet);
     }
 }
-void NastranParserImpl::parseInclude(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseInclude(NastranTokenizer& tok, shared_ptr<Model> model) {
     string currentRawDataLine = tok.currentRawDataLine();
     string fileName = currentRawDataLine.substr(7, currentRawDataLine.length() - 7);
     trim(fileName);
@@ -1137,7 +1137,7 @@ void NastranParserImpl::parseInclude(NastranTokenizer& tok, shared_ptr<Model> mo
     tok.skipToNextKeyword();
 }
 
-void NastranParserImpl::parseLSEQ(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseLSEQ(NastranTokenizer& tok, shared_ptr<Model> model) {
     int set_id = tok.nextInt();
     LoadSet loadSet(*model, LoadSet::Type::LOAD, set_id);
     int darea_id = tok.nextInt();
@@ -1153,7 +1153,7 @@ void NastranParserImpl::parseLSEQ(NastranTokenizer& tok, shared_ptr<Model> model
 
 }
 
-void NastranParserImpl::parseLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
     int set_id = tok.nextInt();
     LoadSet loadSet(*model, LoadSet::Type::LOAD, set_id);
     double S = tok.nextDouble(true, 1);
@@ -1167,7 +1167,7 @@ void NastranParserImpl::parseLOAD(NastranTokenizer& tok, shared_ptr<Model> model
     model->add(loadSet);
 }
 
-void NastranParserImpl::parseMAT1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseMAT1(NastranTokenizer& tok, shared_ptr<Model> model) {
     int material_id = tok.nextInt();
     double e = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
     double g = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
@@ -1232,7 +1232,7 @@ void NastranParserImpl::parseMAT1(NastranTokenizer& tok, shared_ptr<Model> model
     material->addNature(ElasticNature(*model, e, nu, g, rho, a, tref, ge));
 }
 
-void NastranParserImpl::parseMATS1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseMATS1(NastranTokenizer& tok, shared_ptr<Model> model) {
     int mid = tok.nextInt();
     auto material = model->getOrCreateMaterial(mid);
     int tid = tok.nextInt(true, 0);
@@ -1283,7 +1283,7 @@ void NastranParserImpl::parseMATS1(NastranTokenizer& tok, shared_ptr<Model> mode
     }
 }
 
-void NastranParserImpl::parseMOMENT(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseMOMENT(NastranTokenizer& tok, shared_ptr<Model> model) {
     int loadset_id = tok.nextInt();
     int node_id = tok.nextInt();
     int coordinate_system_id = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
@@ -1307,7 +1307,7 @@ void NastranParserImpl::parseMOMENT(NastranTokenizer& tok, shared_ptr<Model> mod
     }
 }
 
-void NastranParserImpl::parseMPC(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseMPC(NastranTokenizer& tok, shared_ptr<Model> model) {
     int set_id = tok.nextInt();
     LinearMultiplePointConstraint lmpc(*model);
     int i = 2;
@@ -1330,7 +1330,7 @@ void NastranParserImpl::parseMPC(NastranTokenizer& tok, shared_ptr<Model> model)
             Reference<ConstraintSet>(ConstraintSet::MPC, set_id));
 }
 
-void NastranParserImpl::parseNLPARM(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseNLPARM(NastranTokenizer& tok, shared_ptr<Model> model) {
     int original_id = tok.nextInt();
     int number_of_increments = tok.nextInt(true, 10);
 
@@ -1344,7 +1344,7 @@ void NastranParserImpl::parseNLPARM(NastranTokenizer& tok, shared_ptr<Model> mod
 }
 
 
-void NastranParserImpl::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
     int elemId = tok.nextInt();
     int material_id = tok.nextInt();
     double area = tok.nextDouble();
@@ -1409,7 +1409,7 @@ void NastranParserImpl::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model
     model->add(genericSectionBeam);
 }
 
-void NastranParserImpl::parsePBARL(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePBARL(NastranTokenizer& tok, shared_ptr<Model> model) {
     int propertyId = tok.nextInt(); // PID
     int material_id = tok.nextInt();
 
@@ -1467,7 +1467,7 @@ void NastranParserImpl::parsePBARL(NastranTokenizer& tok, shared_ptr<Model> mode
 
 }
 
-void NastranParserImpl::parsePBEAM(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePBEAM(NastranTokenizer& tok, shared_ptr<Model> model) {
     int elemId = tok.nextInt();
     int material_id = tok.nextInt();
 
@@ -1573,7 +1573,7 @@ void NastranParserImpl::parsePBEAM(NastranTokenizer& tok, shared_ptr<Model> mode
 
 }
 
-void NastranParserImpl::parsePBEAML(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePBEAML(NastranTokenizer& tok, shared_ptr<Model> model) {
     int pid = tok.nextInt();
     int mid = tok.nextInt();
 
@@ -1635,7 +1635,7 @@ void NastranParserImpl::parsePBEAML(NastranTokenizer& tok, shared_ptr<Model> mod
 
 
 /** Parse the NASTRAN PBUSH Keyword: Generalized Spring-And-Damper Property **/
-void NastranParserImpl::parsePBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     int pid = tok.nextInt();
     double k1=0.0;
@@ -1725,7 +1725,7 @@ void NastranParserImpl::parsePBUSH(NastranTokenizer& tok, shared_ptr<Model> mode
 
 }
 
-void NastranParserImpl::parsePELAS(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePELAS(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     int nbProperties=0;
     // One or two elastic spring properties can be defined on a single entry.
@@ -1764,7 +1764,7 @@ void NastranParserImpl::parsePELAS(NastranTokenizer& tok, shared_ptr<Model> mode
     }
 }
 
-void NastranParserImpl::parsePGAP(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePGAP(NastranTokenizer& tok, shared_ptr<Model> model) {
     int pid = tok.nextInt();
     double u0 = tok.nextDouble(true, 0.0);
     double f0 = tok.nextDouble(true, 0.0);
@@ -1800,7 +1800,7 @@ void NastranParserImpl::parsePGAP(NastranTokenizer& tok, shared_ptr<Model> model
     }
 }
 
-void NastranParserImpl::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> model) {
     int loadset_id = tok.nextInt();
     int eid = tok.nextInt();
     string type = tok.nextString();
@@ -1887,7 +1887,7 @@ void NastranParserImpl::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> mod
     }
 }
 
-void NastranParserImpl::parsePLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) {
     int loadset_id = tok.nextInt();
     double p = tok.nextDouble();
     Reference<LoadSet> loadSetReference(LoadSet::LOAD, loadset_id);
@@ -1902,7 +1902,7 @@ void NastranParserImpl::parsePLOAD2(NastranTokenizer& tok, shared_ptr<Model> mod
     }
 }
 
-void NastranParserImpl::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) {
     int loadset_id = tok.nextInt();
     int eid1 = tok.nextInt();
     double p1 = tok.nextDouble();
@@ -1984,7 +1984,7 @@ void NastranParserImpl::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> mod
 }
 
 
-void NastranParserImpl::parsePROD(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePROD(NastranTokenizer& tok, shared_ptr<Model> model) {
     int propId = tok.nextInt();
     int material_id = tok.nextInt();
     double a = tok.nextDouble();
@@ -2004,7 +2004,7 @@ void NastranParserImpl::parsePROD(NastranTokenizer& tok, shared_ptr<Model> model
     model->add(genericSectionBeam);
 }
 
-void NastranParserImpl::parsePSHELL(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePSHELL(NastranTokenizer& tok, shared_ptr<Model> model) {
     int propId = tok.nextInt();
     int material_id1 = tok.nextInt();
     double thickness = tok.nextDouble(true, 0.0);
@@ -2043,7 +2043,7 @@ void NastranParserImpl::parsePSHELL(NastranTokenizer& tok, shared_ptr<Model> mod
     model->add(shell);
 }
 
-void NastranParserImpl::parsePSOLID(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePSOLID(NastranTokenizer& tok, shared_ptr<Model> model) {
     int elemId = tok.nextInt();
     int material_id = tok.nextInt();
     int material_coordinate_system = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
@@ -2083,7 +2083,7 @@ void NastranParserImpl::parsePSOLID(NastranTokenizer& tok, shared_ptr<Model> mod
     model->add(continuum);
 }
 
-void NastranParserImpl::parseRBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseRBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
     int original_id=tok.nextInt();
     int ga = tok.nextInt();
     int gb = tok.nextInt();
@@ -2120,7 +2120,7 @@ void NastranParserImpl::parseRBAR(NastranTokenizer& tok, shared_ptr<Model> model
 
 }
 
-void NastranParserImpl::parseRBAR1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseRBAR1(NastranTokenizer& tok, shared_ptr<Model> model) {
     int original_id=tok.nextInt();
     int ga = tok.nextInt();
     int gb = tok.nextInt();
@@ -2140,7 +2140,7 @@ void NastranParserImpl::parseRBAR1(NastranTokenizer& tok, shared_ptr<Model> mode
 
 }
 
-void NastranParserImpl::parseRBE2(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseRBE2(NastranTokenizer& tok, shared_ptr<Model> model) {
     int original_id = tok.nextInt();
     int masterId = tok.nextInt();
     int dofs = tok.nextInt();
@@ -2162,7 +2162,7 @@ void NastranParserImpl::parseRBE2(NastranTokenizer& tok, shared_ptr<Model> model
     }
 }
 
-void NastranParserImpl::parseRBE3(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseRBE3(NastranTokenizer& tok, shared_ptr<Model> model) {
     int original_id = tok.nextInt();
     tok.skip(1); // ignoring blank
     int masterId = tok.nextInt();
@@ -2182,7 +2182,7 @@ void NastranParserImpl::parseRBE3(NastranTokenizer& tok, shared_ptr<Model> model
     model->addConstraintIntoConstraintSet(rbe3, model->commonConstraintSet);
 }
 
-void NastranParserImpl::parseRFORCE(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseRFORCE(NastranTokenizer& tok, shared_ptr<Model> model) {
     // RFORCE  2       1               200.    0.0     0.0     1.0     2
     int sid = tok.nextInt();
     int g = tok.nextInt();
@@ -2227,7 +2227,7 @@ void NastranParserImpl::parseRFORCE(NastranTokenizer& tok, shared_ptr<Model> mod
 
 }
 
-void NastranParserImpl::parseRLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseRLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) {
     int loadset_id = tok.nextInt();
     int darea_set_id = tok.nextInt();
 
@@ -2306,7 +2306,7 @@ void NastranParserImpl::parseRLOAD2(NastranTokenizer& tok, shared_ptr<Model> mod
     }
 }
 
-void NastranParserImpl::parseSET3(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseSET3(NastranTokenizer& tok, shared_ptr<Model> model) {
     // page 2457 Labeled Set Definition, defines a list of grids, elements or points.
     int sid = tok.nextInt();
     string name = string("SET") + "_" + to_string(sid);
@@ -2337,7 +2337,7 @@ void NastranParserImpl::parseSET3(NastranTokenizer& tok, shared_ptr<Model> model
 
 //FIXME: SLOAD uses the CID of the Grid point to determine X... Not sure it's done here.
 // The "scalar" DOF is supposed to be DOF::DX
-void NastranParserImpl::parseSLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseSLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
     int loadset_id = tok.nextInt();
     Reference<vega::LoadSet> loadset_ref(LoadSet::LOAD, loadset_id);
 
@@ -2355,7 +2355,7 @@ void NastranParserImpl::parseSLOAD(NastranTokenizer& tok, shared_ptr<Model> mode
     }
 
 }
-void NastranParserImpl::parseSPC(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseSPC(NastranTokenizer& tok, shared_ptr<Model> model) {
     int spcSet_id = tok.nextInt();
     string name = string("SPC") + "_" + to_string(spcSet_id);
     NodeGroup *spcNodeGroup = model->mesh->findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPC");
@@ -2378,7 +2378,7 @@ void NastranParserImpl::parseSPC(NastranTokenizer& tok, shared_ptr<Model> model)
     }
 }
 
-void NastranParserImpl::parseSPC1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseSPC1(NastranTokenizer& tok, shared_ptr<Model> model) {
     int set_id = tok.nextInt();
     const int dofInt = tok.nextInt();
 
@@ -2402,7 +2402,7 @@ void NastranParserImpl::parseSPC1(NastranTokenizer& tok, shared_ptr<Model> model
 
 }
 
-void NastranParserImpl::parseSPCADD(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseSPCADD(NastranTokenizer& tok, shared_ptr<Model> model) {
     int set_id = tok.nextInt();
     // retrieve the ConstraintSet that was created in the executive section
     shared_ptr<ConstraintSet> constraintSet_ptr = model->find(
@@ -2422,7 +2422,7 @@ void NastranParserImpl::parseSPCADD(NastranTokenizer& tok, shared_ptr<Model> mod
     }
 }
 
-void NastranParserImpl::parseSPCD(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseSPCD(NastranTokenizer& tok, shared_ptr<Model> model) {
     int set_id = tok.nextInt();
     const int g1 = tok.nextInt();
     const int c1 = tok.nextInt();
@@ -2517,7 +2517,7 @@ void NastranParserImpl::parseSPCD(NastranTokenizer& tok, shared_ptr<Model> model
     }
 }
 
-void NastranParserImpl::parseTABDMP1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseTABDMP1(NastranTokenizer& tok, shared_ptr<Model> model) {
     int original_id = tok.nextInt();
     string type = tok.nextString(true, "G");
     if (type != "CRIT"){
@@ -2573,7 +2573,7 @@ void NastranParserImpl::parseTABDMP1(NastranTokenizer& tok, shared_ptr<Model> mo
     model->add(modalDamping);
 }
 
-void NastranParserImpl::parseTABLED1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseTABLED1(NastranTokenizer& tok, shared_ptr<Model> model) {
     int original_id = tok.nextInt();
     string interpolation = tok.nextString(true, "LINEAR");
     FunctionTable::Interpolation parameter =
@@ -2627,7 +2627,7 @@ void NastranParserImpl::parseTABLED1(NastranTokenizer& tok, shared_ptr<Model> mo
 
 }
 
-void NastranParserImpl::parseTEMP(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseTEMP(NastranTokenizer& tok, shared_ptr<Model> model) {
     int sid = tok.nextInt();
     Reference<vega::LoadSet> loadset_ref(LoadSet::LOAD, sid);
     int g1 = tok.nextInt();
@@ -2662,7 +2662,7 @@ void NastranParserImpl::parseTEMP(NastranTokenizer& tok, shared_ptr<Model> model
 }
 
 
-int NastranParserImpl::parseDOF(NastranTokenizer& tok, shared_ptr<Model> model){
+int NastranParser::parseDOF(NastranTokenizer& tok, shared_ptr<Model> model){
 
     int dofread = tok.nextInt();
 

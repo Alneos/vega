@@ -64,13 +64,12 @@ private:
     static void printHeader();
     std::string expand_user(std::string path);
     static fs::path normalize_path(std::string path);
-    std::unordered_map<SolverName, Parser *, std::hash<int>> parserBySolverName;
-    std::unordered_map<SolverName, Writer *, std::hash<int>> writersBySolverName;
-    std::unordered_map<SolverName, Runner *, std::hash<int>> runnerBySolverType;
+    std::unordered_map<SolverName, std::shared_ptr<Parser>, std::hash<int>> parserBySolverName;
+    std::unordered_map<SolverName, std::shared_ptr<Writer>, std::hash<int>> writersBySolverName;
+    std::unordered_map<SolverName, std::shared_ptr<Runner>, std::hash<int>> runnerBySolverType;
 public:
     VegaCommandLine();
     ExitCode process(int ac, const char* av[]);
-    virtual ~VegaCommandLine();
     static const char * exitCodeToString(ExitCode);
 };
 

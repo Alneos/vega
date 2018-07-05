@@ -63,7 +63,7 @@ public:
 		SPC, SPCD, MPC, ALL
 	};
 	ConstraintSet(const Model&, Type type = SPC, int original_id = NO_ORIGINAL_ID);
-	static const int COMMON_SET_ID = 0;
+	static constexpr int COMMON_SET_ID = 0;
 	const Type type;
 	static const std::string name;
 	static const std::map<Type, std::string> stringByType;
