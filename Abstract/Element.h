@@ -28,9 +28,9 @@ class Model;
 
 class ModelType {
 private:
-	string name;
+	std::string name;
 	SpaceDimension dimension;
-	ModelType(string name, const SpaceDimension dimension);
+	ModelType(std::string name, const SpaceDimension dimension);
 	public:
 	inline bool operator==(const ModelType& rhs) {
 		return this->name == rhs.name;
@@ -44,7 +44,7 @@ private:
 };
 
 class ElementSet: public Identifiable<ElementSet> {
-    friend ostream &operator<<(ostream&, const ElementSet&);    //output
+    friend std::ostream &operator<<(std::ostream&, const ElementSet&);    //output
 public:
     enum Type {
         DISCRETE_0D,
@@ -72,11 +72,11 @@ protected:
     ElementSet(Model&, Type, const ModelType* modelType = nullptr,
             int original_id = NO_ORIGINAL_ID);
 public:
-    static const string name;
-    static const map<Type, string> stringByType;
+    static const std::string name;
+    static const std::map<Type, std::string> stringByType;
     const Type type;
     const ModelType* modelType;
-    CellGroup* cellGroup;
+    std::shared_ptr<CellGroup> cellGroup;
     std::shared_ptr<Material> material;
     virtual ~ElementSet() {
     }
@@ -84,7 +84,7 @@ public:
     void assignMaterial(std::shared_ptr<Material> material) {
         this->material = material;
     }
-    void assignCellGroup(CellGroup *cellGroup);
+    void assignCellGroup(std::shared_ptr<CellGroup>);
     const ModelType getModelType() const;
     virtual bool validate() const override;
     virtual std::shared_ptr<ElementSet> clone() const = 0;
@@ -292,14 +292,14 @@ private:
 public:
 	DiscretePoint(Model&, double x, double y, double z, double rx = NOT_BOUNDED, double ry =
 			NOT_BOUNDED, double rz = NOT_BOUNDED, bool symmetric = true, int original_id = NO_ORIGINAL_ID);
-	DiscretePoint(Model&, vector<double> components = vector<double>(), bool symmetric = true, int original_id =
+	DiscretePoint(Model&, std::vector<double> components = std::vector<double>(), bool symmetric = true, int original_id =
 			NO_ORIGINAL_ID);
 	bool hasTranslations() const override;
 	bool hasRotations() const override;
 	void addStiffness(DOF rowcode, DOF colcode,	double value);
 	double findStiffness(DOF rowcode, DOF colcode) const;
 	void addComponent(DOF, double value);
-	vector<double> asVector(bool addRotationsIfNotPresent = false);
+	std::vector<double> asVector(bool addRotationsIfNotPresent = false);
 	std::shared_ptr<ElementSet> clone() const override;
 };
 
@@ -315,7 +315,7 @@ public:
 	void addStiffness(int rowindex, int colindex, DOF rowdof, DOF coldof,
 			double value);
 	double findStiffness(int rowindex, int colindex, DOF rowdof, DOF coldof) const;
-	vector<double> asVector(bool addRotationsIfNotPresent = false);
+	std::vector<double> asVector(bool addRotationsIfNotPresent = false);
 	std::shared_ptr<ElementSet> clone() const override;
 };
 
@@ -380,7 +380,7 @@ class NodalMass: public ElementSet {
 /* Matrix for a group nodes.*/
 class MatrixElement : public ElementSet {
 private:
-	std::map<std::pair<int, int>, shared_ptr<DOFMatrix>> submatrixByNodes;
+	std::map<std::pair<int, int>, std::shared_ptr<DOFMatrix>> submatrixByNodes;
 	bool symmetric = false;
 public:
 	MatrixElement(Model&, Type type, bool symmetric = false, int original_id = NO_ORIGINAL_ID);
@@ -389,7 +389,7 @@ public:
 	 * Clear all nodes and submatrices of the Matrix.
 	 */
 	void clear();
-	const shared_ptr<DOFMatrix> findSubmatrix(const int nodePosition1, const int nodePosition2) const;
+	const std::shared_ptr<DOFMatrix> findSubmatrix(const int nodePosition1, const int nodePosition2) const;
 	const std::set<int> nodePositions() const override;
 	const std::set<std::pair<int, int>> nodePairs() const;
 	const std::set<std::pair<int, int>> findInPairs(int nodePosition) const;
@@ -482,14 +482,14 @@ public:
 //TODO: Factorize ScalarSpring, DiscreteElement, StructuralSegment ?
 class ScalarSpring : public ElementSet {
 private:
-    std::map<std::pair<DOF, DOF>, vector<int>> cellpositionByDOFS;
+    std::map<std::pair<DOF, DOF>, std::vector<int>> cellpositionByDOFS;
     double stiffness;
     double damping;
 public:
     ScalarSpring(Model&, int original_id = NO_ORIGINAL_ID, double stiffness = Nature::UNAVAILABLE_DOUBLE, double damping= Nature::UNAVAILABLE_DOUBLE);
     double getStiffness() const;
     double getDamping() const;
-    const std::map<std::pair<DOF, DOF>, vector<int>> getCellPositionByDOFS() const;
+    const std::map<std::pair<DOF, DOF>, std::vector<int>> getCellPositionByDOFS() const;
     void setStiffness(const double stiffness);
     void setDamping (const double damping);
     bool hasStiffness() const;

@@ -702,7 +702,7 @@ void NastranParser::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     int cellPosition = model->mesh->addCell(elemId, CellType::POINT1, { g });
     string mn = string("CONM2_") + lexical_cast<string>(elemId);
-    CellGroup* mnodale = model->mesh->createCellGroup(mn, CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
+    auto mnodale = model->mesh->createCellGroup(mn, CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
     mnodale->addCellId(model->mesh->findCell(cellPosition).id);
     nodalMass.assignCellGroup(mnodale);
     nodalMass.assignMaterial(model->getVirtualMaterial());
@@ -1743,15 +1743,15 @@ void NastranParser::parsePELAS(NastranTokenizer& tok, shared_ptr<Model> model) {
             }
         }
 
-        CellGroup* cellGroup = getOrCreateCellGroup(pid, model, "PELAS");
-        std::shared_ptr<ElementSet> elementSet = model->elementSets.find(pid);
+        shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model, "PELAS");
+        shared_ptr<ElementSet> elementSet = model->elementSets.find(pid);
         if (elementSet == nullptr){
             ScalarSpring scalarSpring(*model, pid, k, ge);
             scalarSpring.assignCellGroup(cellGroup);
             model->add(scalarSpring);
         }else{
             if (elementSet->type == ElementSet::SCALAR_SPRING){
-                std::shared_ptr<ScalarSpring> springElementSet = static_pointer_cast<ScalarSpring>(elementSet);
+                shared_ptr<ScalarSpring> springElementSet = static_pointer_cast<ScalarSpring>(elementSet);
                 springElementSet->setStiffness(k);
                 springElementSet->setDamping(ge);
                 springElementSet->assignCellGroup(cellGroup);
@@ -2313,12 +2313,12 @@ void NastranParser::parseSET3(NastranTokenizer& tok, shared_ptr<Model> model) {
     string des = tok.nextString();
 
     if (des == "GRID") {
-        NodeGroup* nodeGroup = model->mesh->findOrCreateNodeGroup(name,sid,"SET");
+        shared_ptr<NodeGroup> nodeGroup = model->mesh->findOrCreateNodeGroup(name,sid,"SET");
         while (tok.isNextInt()) {
             nodeGroup->addNodeId(tok.nextInt());
         }
     } else if (des == "ELEM") {
-        CellGroup* cellGroup = model->mesh->createCellGroup(name,sid,"SET");
+        shared_ptr<CellGroup> cellGroup = model->mesh->createCellGroup(name,sid,"SET");
         while (tok.isNextInt()) {
             cellGroup->addCellId(tok.nextInt());
         }
@@ -2358,7 +2358,7 @@ void NastranParser::parseSLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
 void NastranParser::parseSPC(NastranTokenizer& tok, shared_ptr<Model> model) {
     int spcSet_id = tok.nextInt();
     string name = string("SPC") + "_" + to_string(spcSet_id);
-    NodeGroup *spcNodeGroup = model->mesh->findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPC");
+    shared_ptr<NodeGroup> spcNodeGroup = model->mesh->findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPC");
 
     while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
         const int nodeId = tok.nextInt(true);
@@ -2387,7 +2387,7 @@ void NastranParser::parseSPC1(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     // Nodes are added to the constraint Node Group
     string name = string("SPC1") + "_" + to_string(set_id);
-    NodeGroup *spcNodeGroup = model->mesh->findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPC1");
+    shared_ptr<NodeGroup> spcNodeGroup = model->mesh->findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPC1");
 
     // Parsing Nodes
     for(int gridId : tok.nextInts()) {

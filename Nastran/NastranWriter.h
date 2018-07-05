@@ -32,7 +32,7 @@ private:
 	const std::string keyword = "";
 	std::vector<std::string> fields;
 public:
-	Line(string);
+	Line(std::string);
 	Line& add();
 	Line& add(double);
 	Line& add(std::string);

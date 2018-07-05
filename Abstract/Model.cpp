@@ -687,9 +687,9 @@ const set<shared_ptr<LoadSet>> Model::getUncommonLoadSets() const {
 void Model::generateDiscrets() {
 
     //rigid constraints
-    CellGroup* virtualDiscretTRGroup = nullptr;
+    std::shared_ptr<CellGroup> virtualDiscretTRGroup = nullptr;
 
-    CellGroup* virtualDiscretTGroup = nullptr;
+    std::shared_ptr<CellGroup> virtualDiscretTGroup = nullptr;
 
     for (Node node : this->mesh->nodes) {
         DOFS missingDOFS;
@@ -835,7 +835,7 @@ void Model::generateSkin() {
                     if (faceIds.size() > 0) {
                         vega::Cell cell = generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
                         // LD : Workaround for MED name problems, adding single cell groups
-                        CellGroup* mappl = this->mesh->createCellGroup(
+                        std::shared_ptr<CellGroup> mappl = this->mesh->createCellGroup(
                                 "C" + boost::lexical_cast<string>(cell.id));
                         mappl->addCellId(cell.id);
                         forceSurface->clear();
@@ -953,7 +953,7 @@ void Model::emulateAdditionalMass() {
             materials.add(newMaterial);
             newElementSet->assignMaterial(newMaterial);
             // copy and assign new cellGroup
-            CellGroup* newCellGroup = mesh->createCellGroup(
+            shared_ptr<CellGroup> newCellGroup = mesh->createCellGroup(
                     "VAM_" + boost::lexical_cast<string>(newElementSets.size()));
             newElementSet->assignCellGroup(newCellGroup);
             vector<Cell> cells = elementSet->cellGroup->getCells();
@@ -970,8 +970,8 @@ void Model::emulateAdditionalMass() {
 
 void Model::generateBeamsToDisplayHomogeneousConstraint() {
 
-    CellGroup* virtualGroupRigid = nullptr;
-    CellGroup* virtualGroupRBE3 = nullptr;
+    shared_ptr<CellGroup> virtualGroupRigid = nullptr;
+    shared_ptr<CellGroup> virtualGroupRBE3 = nullptr;
 
     vector<shared_ptr<ConstraintSet>> activeConstraintSets = getActiveConstraintSets();
     for (auto constraintSet : activeConstraintSets) {
@@ -1243,7 +1243,7 @@ void Model::replaceDirectMatrices()
                 }
                 discrete.assignMaterial(getVirtualMaterial());
                 matrix_count++;
-                CellGroup* matrixGroup = mesh->createCellGroup(
+                shared_ptr<CellGroup> matrixGroup = mesh->createCellGroup(
                         "MTN" + to_string(matrix_count));
                 discrete.assignCellGroup(matrixGroup);
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, { node.id }, true);
@@ -1268,7 +1268,7 @@ void Model::replaceDirectMatrices()
                 DOFS requiredColDofs = requiredDofsByNode.find(colNode.position)->second;
 
                 DiscreteSegment discrete(*this);
-                CellGroup* matrixGroup = mesh->createCellGroup(
+                shared_ptr<CellGroup> matrixGroup = mesh->createCellGroup(
                         "MTL" + to_string(matrix_count));
                 matrix_count++;
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, { rowNode.id,
@@ -1578,7 +1578,7 @@ void Model::makeCellsFromDirectMatrices(){
 
         // Create a Cell Group
         idM++;
-        CellGroup* matrixGroup = mesh->createCellGroup("DM" + to_string(idM), Group::NO_ORIGINAL_ID, "Direct Matrix "+ elementSetM->name);
+        shared_ptr<CellGroup> matrixGroup = mesh->createCellGroup("DM" + to_string(idM), Group::NO_ORIGINAL_ID, "Direct Matrix "+ elementSetM->name);
         matrix->assignCellGroup(matrixGroup);
 
         // Create a Cell and add it to the Cell Group
@@ -1603,7 +1603,7 @@ void Model::makeCellsFromDirectMatrices(){
 void Model::makeCellsFromLMPC(){
 
     shared_ptr<Mesh> mesh = this->mesh;
-    map< vector<DOFCoefs>, CellGroup*> groupBySetOfCoefs;
+    map< vector<DOFCoefs>, shared_ptr<CellGroup>> groupBySetOfCoefs;
 
     for (auto analysis : this->analyses) {
         for (const auto& constraintSet : analysis->getConstraintSets()) {
@@ -1623,7 +1623,7 @@ void Model::makeCellsFromLMPC(){
                     sortedCoefs.push_back(lmpc->getDoFCoefsForNode(n));
                 }
 
-                CellGroup* group =nullptr;
+                shared_ptr<CellGroup> group =nullptr;
                 // Lookinf for the cellgroup corresponding to the current DOFCoefs.
                 const auto it = groupBySetOfCoefs.find(sortedCoefs);
                 if(it != groupBySetOfCoefs.end()){
@@ -1685,7 +1685,7 @@ void Model::makeCellsFromRBE(){
             materialRBE2->addNature(RigidNature(*this, 1));
             this->add(materialRBE2);
 
-            CellGroup* group = mesh->createCellGroup("RBE2_"+std::to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBE2");
+            shared_ptr<CellGroup> group = mesh->createCellGroup("RBE2_"+std::to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBE2");
             Rbar elementsetRbe2(*this, mesh->findNode(rbe2->getMaster()).id);
             elementsetRbe2.assignCellGroup(group);
             elementsetRbe2.assignMaterial(materialRBE2);
@@ -1726,7 +1726,7 @@ void Model::makeCellsFromRBE(){
             // Master Node : first one. Slave Node : second and last one
             Node masterNode = mesh->findNode(*rbar->getSlaves().begin());
             Node slaveNode = mesh->findNode(*rbar->getSlaves().rbegin());
-            CellGroup* group = mesh->createCellGroup("RBAR_"+std::to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBAR");
+            shared_ptr<CellGroup> group = mesh->createCellGroup("RBAR_"+std::to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBAR");
 
             Rbar elementsetRBAR(*this, masterNode.id);
             elementsetRBAR.assignCellGroup(group);
@@ -1758,7 +1758,7 @@ void Model::makeCellsFromRBE(){
             const DOFS mDOFS = rbe3->getDOFS();
 
             int nbParts=0;
-            map<DOFS, map<double, CellGroup*>> groupByCoefByDOFS;
+            map<DOFS, map<double, shared_ptr<CellGroup>>> groupByCoefByDOFS;
 
             for (int position : rbe3->getSlaves()){
 
@@ -1770,7 +1770,7 @@ void Model::makeCellsFromRBE(){
                 const DOFS sDOFS = rbe3->getDOFSForNode(position);
                 const double sCoef = rbe3->getCoefForNode(position);
 
-                CellGroup* groupRBE3 = nullptr;
+                shared_ptr<CellGroup> groupRBE3 = nullptr;
                 auto it = groupByCoefByDOFS.find(sDOFS);
                 if (it !=groupByCoefByDOFS.end()){
                     auto it2 = it->second.find(sCoef);
@@ -1786,7 +1786,7 @@ void Model::makeCellsFromRBE(){
                     materialRBE3->addNature(RigidNature(*this, Nature::UNAVAILABLE_DOUBLE, sCoef));
                     this->add(materialRBE3);
 
-                    CellGroup* group = mesh->createCellGroup("RBE3_"+to_string(nbParts)+"_"+to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBE3");
+                    shared_ptr<CellGroup> group = mesh->createCellGroup("RBE3_"+to_string(nbParts)+"_"+to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBE3");
                     Rbe3 elementsetRbe3(*this, master.id, mDOFS, sDOFS);
                     elementsetRbe3.assignCellGroup(group);
                     elementsetRbe3.assignMaterial(materialRBE3);
@@ -1851,7 +1851,7 @@ void Model::splitElementsByDOFS(){
                     cout<< *elementSet << " spring must be split."<<endl;
                 for (const auto & it : ss->getCellPositionByDOFS()){
                     ScalarSpring scalarSpring(*this, Identifiable<ElementSet>::NO_ORIGINAL_ID, stiffness, damping);
-                    CellGroup* cellGroup = this->mesh->createCellGroup(name+"_"+std::to_string(i), Group::NO_ORIGINAL_ID, comment);
+                    shared_ptr<CellGroup> cellGroup = this->mesh->createCellGroup(name+"_"+std::to_string(i), Group::NO_ORIGINAL_ID, comment);
                     scalarSpring.assignCellGroup(cellGroup);
                     for (const int cellPosition : it.second){
                         scalarSpring.addSpring(cellPosition, it.first.first, it.first.second);

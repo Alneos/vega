@@ -29,7 +29,7 @@ class Model;
  */
 class Loading: public Identifiable<Loading>, public BoundaryCondition {
 private:
-	friend std::ostream &operator<<(ostream&, const Loading&);    //output
+	friend std::ostream &operator<<(std::ostream&, const Loading&);    //output
 public:
 	enum Type {
 		DYNAMIC_EXCITATION,
@@ -63,8 +63,8 @@ public:
 	}
 	virtual std::shared_ptr<Loading> clone() const = 0;
 	virtual void scale(double factor) {
-		cerr << "loading scale(" << factor << ") used but not implemented" << endl;
-		throw logic_error("loading scale() used but not implemented");
+		std::cerr << "loading scale(" << factor << ") used but not implemented" << std::endl;
+		throw std::logic_error("loading scale() used but not implemented");
 	}
 	bool validate() const override;
 };
@@ -75,7 +75,7 @@ public:
 class LoadSet: public Identifiable<LoadSet> {
 private:
 	const Model& model;
-	friend ostream &operator<<(ostream&, const LoadSet&);
+	friend std::ostream &operator<<(std::ostream&, const LoadSet&);
 public:
 	enum Type {
 		LOAD,
@@ -85,13 +85,13 @@ public:
 	};
 	LoadSet(const Model&, Type type = LOAD, int original_id = NO_ORIGINAL_ID);
 	static constexpr int COMMON_SET_ID = 0;
-	vector<pair<Reference<LoadSet>, double>> embedded_loadsets;
+	std::vector<std::pair<Reference<LoadSet>, double>> embedded_loadsets;
 	const Type type;
-	static const string name;
-	static const map<Type, string> stringByType;
+	static const std::string name;
+	static const std::map<Type, std::string> stringByType;
 	int size() const;
-	const set<std::shared_ptr<Loading> > getLoadings() const;
-	const set<std::shared_ptr<Loading> > getLoadingsByType(Loading::Type) const;
+	const std::set<std::shared_ptr<Loading> > getLoadings() const;
+	const std::set<std::shared_ptr<Loading> > getLoadingsByType(Loading::Type) const;
 	bool validate() const override;
 	std::shared_ptr<LoadSet> clone() const;
 	bool hasFunctions() const;
@@ -293,8 +293,8 @@ public:
 	}
 	// TODO validate : Check that all the elements are 2D
 	bool validate() const override;
-	virtual vector<int> getApplicationFace() const {
-		return vector<int>();
+	virtual std::vector<int> getApplicationFace() const {
+		return std::vector<int>();
 	}
 };
 
@@ -308,7 +308,7 @@ public:
 
 	PressionFaceTwoNodes(const Model&, int nodeId1, int nodeId2, const VectorialValue& force,
 			const VectorialValue& moment, const int original_id = NO_ORIGINAL_ID);
-	vector<int> getApplicationFace() const;
+	std::vector<int> getApplicationFace() const;
 	virtual std::shared_ptr<Loading> clone() const override;
 };
 

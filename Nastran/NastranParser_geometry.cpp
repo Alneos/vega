@@ -115,12 +115,12 @@ void NastranParser::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model) {
 }
 
 void NastranParser::addProperty(int property_id, int cell_id, shared_ptr<Model> model) {
-    CellGroup* cellGroup = getOrCreateCellGroup(property_id, model);
+    shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(property_id, model);
     cellGroup->addCellId(cell_id);
 }
 
-CellGroup* NastranParser::getOrCreateCellGroup(int property_id, shared_ptr<Model> model, const string & command) {
-    CellGroup* cellGroup = dynamic_cast<CellGroup*>(model->mesh->findGroup(property_id));
+shared_ptr<CellGroup> NastranParser::getOrCreateCellGroup(int property_id, shared_ptr<Model> model, const string & command) {
+    shared_ptr<CellGroup> cellGroup = dynamic_pointer_cast<CellGroup>(model->mesh->findGroup(property_id));
 
     string cellGroupName= command + string("_") + lexical_cast<string>(property_id);
     if (cellGroup == nullptr){
@@ -313,7 +313,7 @@ void NastranParser::parseCELAS1(NastranTokenizer& tok, shared_ptr<Model> model) 
     vector<int> connectivity;
     connectivity += g1, g2;
     int cellPosition= model->mesh->addCell(eid, CellType::SEG2, connectivity);
-    CellGroup* cellGroup = getOrCreateCellGroup(pid, model);
+    shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model);
     cellGroup->addCellId(model->mesh->findCell(cellPosition).id);
 
     // Creates or update the ElementSet defined by the PELAS key.
@@ -353,7 +353,7 @@ void NastranParser::parseCELAS2(NastranTokenizer& tok, shared_ptr<Model> model) 
     }
 
     // Create a Cell and a cellgroup
-    CellGroup* springGroup = model->mesh->createCellGroup("CELAS2_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS2");
+    shared_ptr<CellGroup> springGroup = model->mesh->createCellGroup("CELAS2_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS2");
     vector<int> connectivity;
     connectivity += g1, g2;
     int cellPosition= model->mesh->addCell(eid, CellType::SEG2, connectivity);
@@ -375,7 +375,7 @@ void NastranParser::parseCELAS4(NastranTokenizer& tok, shared_ptr<Model> model) 
     int s2 = tok.nextInt();
 
     // Create a Cell and a cellgroup
-    CellGroup* springGroup = model->mesh->createCellGroup("CELAS4_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS4");
+    shared_ptr<CellGroup> springGroup = model->mesh->createCellGroup("CELAS4_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS4");
     vector<int> connectivity;
     connectivity += s1, s2;
     int cellPosition= model->mesh->addCell(eid, CellType::SEG2, connectivity);
@@ -625,7 +625,7 @@ void NastranParser::parseSPOINT(NastranTokenizer& tok, shared_ptr<Model> model) 
     // Creating or finding the Node Group and Constraint
     SinglePointConstraint spc = SinglePointConstraint(*model, DOFS::ALL_DOFS-DOFS::ONE, 0.0);
     string name = string("SPC_SPOINT");
-    NodeGroup *spcNodeGroup = model->mesh->findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPOINT");
+    shared_ptr<NodeGroup> spcNodeGroup = model->mesh->findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPOINT");
 
     int nodePosition = model->mesh->addNode(id1, x1, x2, x3, cpos, cpos);
     model->mesh->allowDOFS(nodePosition, DOFS::DOFS::ONE);

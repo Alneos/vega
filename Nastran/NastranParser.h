@@ -51,20 +51,20 @@ private:
     };
     GrdSet grdSet;
 
-    std::unordered_map<string, shared_ptr<Reference<ElementSet>>> directMatrixByName;
+    std::unordered_map<std::string, std::shared_ptr<Reference<ElementSet>>> directMatrixByName;
     typedef void (NastranParser::*parseElementFPtr)(NastranTokenizer& tok, std::shared_ptr<Model> model);
-    static const std::set<string> IGNORED_KEYWORDS;
-    static const std::set<string> IGNORED_PARAMS;
-    static const std::unordered_map<string, parseElementFPtr> PARSE_FUNCTION_BY_KEYWORD;
+    static const std::set<std::string> IGNORED_KEYWORDS;
+    static const std::set<std::string> IGNORED_PARAMS;
+    static const std::unordered_map<std::string, parseElementFPtr> PARSE_FUNCTION_BY_KEYWORD;
 
     void addAnalysis(NastranTokenizer& tok, std::shared_ptr<Model> model, std::map<std::string, std::string>& context, int analysis_id =
             Analysis::NO_ORIGINAL_ID);
     void addCellIds(ElementLoading& loading, int eid1, int eid2);
 
-    fs::path findModelFile(const string& filename);
+    fs::path findModelFile(const std::string& filename);
     void parseBULKSection(NastranTokenizer &tok, std::shared_ptr<Model> model1);
 
-    void parseExecutiveSection(NastranTokenizer& tok, std::shared_ptr<Model> model, map<string, string>& context);
+    void parseExecutiveSection(NastranTokenizer& tok, std::shared_ptr<Model> model, std::map<std::string, std::string>& context);
     /**Renumbers the nodes
      * The map has no keys for CellTypes that have the same connectivity in Nastran and Med
      *
@@ -158,7 +158,7 @@ private:
      *        3-----11----0                  1-----8-----0\endcode
      *
      */
-    static const std::unordered_map<CellType::Code, vector<int>, std::hash<int>> nastran2medNodeConnectByCellType;
+    static const std::unordered_map<CellType::Code, std::vector<int>, std::hash<int>> nastran2medNodeConnectByCellType;
     /**
      * Parse the CBAR keyword (page 1154 of MDN Nastran 2006 Quick Reference Guide.)
      * Pin flags (PA, PB) and offset vectors (OFFT, WA, WB) are not supported.
@@ -235,9 +235,9 @@ private:
     void parseCPENTA(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
     void parseCPYRAM(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
     void parseCQUAD(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
-    void parseCQUAD4(NastranTokenizer& tok, shared_ptr<Model> model);//in NastranParser_geometry.cpp
-    void parseCQUAD8(NastranTokenizer& tok, shared_ptr<Model> model);//in NastranParser_geometry.cpp
-    void parseCQUADR(NastranTokenizer& tok, shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void parseCQUAD4(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void parseCQUAD8(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void parseCQUADR(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
 
     /**
      * Parse the CROD keyword (page 1310 of MDN Nastran 2006 Quick Reference Guide.)
@@ -245,9 +245,9 @@ private:
      */
     void parseCROD(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
     void parseCTETRA(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
-    void parseCTRIA3(NastranTokenizer& tok, shared_ptr<Model> model);//in NastranParser_geometry.cpp
-    void parseCTRIA6(NastranTokenizer& tok, shared_ptr<Model> model);//in NastranParser_geometry.cpp
-    void parseCTRIAR(NastranTokenizer& tok, shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void parseCTRIA3(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void parseCTRIA6(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void parseCTRIAR(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
 
     /**
      * Parse the keyword DAREA (page 1377 of MDN Nastran 2006 Quick Reference Guide.)
@@ -260,7 +260,7 @@ private:
      * Point identification (P), Component number (C) and a second phase are
      * ignored.
      */
-    void parseDELAY(NastranTokenizer& tok, shared_ptr<Model> model);
+    void parseDELAY(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * Parse the keyword DLOAD (page 1398 of MDN Nastran 2006 Quick Reference Guide.)
@@ -296,7 +296,7 @@ private:
     /**
      *  Generic function for parsing Element keywords.
      */
-    void parseElem(NastranTokenizer& tok, std::shared_ptr<Model> model, vector<CellType>);//in NastranParser_geometry.cpp
+    void parseElem(NastranTokenizer& tok, std::shared_ptr<Model> model, std::vector<CellType>);//in NastranParser_geometry.cpp
 
     /**
      * Parse the FORCE keyword (page 1549 of MDN Nastran 2006 Quick Reference Guide.)
@@ -570,7 +570,7 @@ private:
      */
     void parseTEMP(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
-    string parseSubcase(NastranTokenizer& tok, std::shared_ptr<Model> model, map<string, string> context);
+    std::string parseSubcase(NastranTokenizer& tok, std::shared_ptr<Model> model, std::map<std::string, std::string> context);
 
     /**
      *  Add the Cell to the CellGroup corresponding to the property_id (use getOrCreateCellGroup)
@@ -580,7 +580,7 @@ private:
      *  Get the Cellgroup corresponding to the property_id. If this group does not exist, it is created.
      *  The name of the group is then "COMMAND_property_id".
      */
-    CellGroup* getOrCreateCellGroup(int property_id, std::shared_ptr<Model> model, const std::string & command="CGVEGA");//in NastranParser_geometry.cpp
+    std::shared_ptr<CellGroup> getOrCreateCellGroup(int property_id, std::shared_ptr<Model> model, const std::string & command="CGVEGA");//in NastranParser_geometry.cpp
 
     /**
      * Parse and build an Orientation referentiel.

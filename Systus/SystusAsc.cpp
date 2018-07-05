@@ -27,6 +27,7 @@
 
 
 namespace vega {
+namespace systus {
 
 
 std::string SystusTableLabelToString(const SystusTableLabel stl){
@@ -69,7 +70,7 @@ void SystusTable::add(const double value){
 }
 
 
-// Start of Systus Matrix 
+// Start of Systus Matrix
 
 SystusMatrix::SystusMatrix(long unsigned int id, int nbDOFS, int nbNodes ) :
         id(id), nbDOFS(nbDOFS), nbNodes(nbNodes){
@@ -164,5 +165,5 @@ std::ostream& operator<<(std::ostream& os, const SystusMatrices & sms)
 }
 
 
-
-} //namespace Vega
+} //namespace systus
+} //namespace vega

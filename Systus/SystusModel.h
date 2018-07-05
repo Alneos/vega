@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -28,6 +28,7 @@
 #include "../Abstract/ConfigurationParameters.h"
 
 namespace vega {
+namespace systus {
 
 class SystusModel {
 public:
@@ -37,15 +38,16 @@ public:
     const vega::ConfigurationParameters configuration;
     /*string phenomene;*/
     /*const string memjeveux;*/
-    const string getName() const;
-    const string getOutputFileName(string extension) const;
+    const std::string getName() const;
+    const std::string getOutputFileName(std::string extension) const;
     double getSystusVersion() const;
-    const string getSystusVersionString() const;
+    const std::string getSystusVersionString() const;
 
 private:
     double systusVersion;
 };
 
-}
+} // namespace systus
+} // namespace vega
 
 #endif /* SYSTUSMODEL_H_ */

@@ -28,6 +28,8 @@
 
 namespace vega {
 
+using namespace std;
+
 CoordinateSystem::CoordinateSystem(const Model& model, Type type, const VectorialValue origin,
         const VectorialValue ex, const VectorialValue ey, const int rcs, int original_id) :
         Identifiable(original_id), model(model), type(type), origin(origin), ex(ex.normalized()), ey(

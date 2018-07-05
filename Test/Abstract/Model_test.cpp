@@ -46,17 +46,17 @@ BOOST_AUTO_TEST_CASE( test_model_spc ) {
 	model.mesh->addCell(29, CellType::SEG2, {2, 3});
 	model.mesh->addCell(30, CellType::SEG2, {3, 4});
 	model.mesh->addCell(31, CellType::POINT1, {1});
-	vega::NodeGroup* gn1 = model.mesh->findOrCreateNodeGroup("GN1");
+	shared_ptr<vega::NodeGroup> gn1 = model.mesh->findOrCreateNodeGroup("GN1");
 	gn1->addNodeId(0);
 	gn1->addNodeId(6);
-	vega::CellGroup* gm1 = model.mesh->createCellGroup("GM1");
+	shared_ptr<vega::CellGroup> gm1 = model.mesh->createCellGroup("GM1");
 	gm1->addCellId(31);
-	vega::CellGroup* gm2 = model.mesh->createCellGroup("GM2");
+	shared_ptr<vega::CellGroup> gm2 = model.mesh->createCellGroup("GM2");
 	gm2->addCellId(28);
 	gm2->addCellId(30);
 	//SinglePointConstraint spc1 = SinglePointConstraint(model, true, true, true, false, false, false,
 	//		0.0, gn1);
-	SinglePointConstraint spc1 = SinglePointConstraint(model,std::array<ValueOrReference, 3>{{ 0, 0, 0 }}, gn1);
+	SinglePointConstraint spc1 = SinglePointConstraint(model,array<ValueOrReference, 3>{{ 0, 0, 0 }}, gn1);
 	model.add(spc1);
 	model.finish();
 
@@ -123,7 +123,7 @@ BOOST_AUTO_TEST_CASE( test_Elements ) {
 	model.mesh->addCell(1, CellType::SEG2, {1, 4});
 	model.mesh->addCell(2, CellType::SEG2, {2, 4});
 	model.mesh->addCell(3, CellType::SEG2, {3, 4});
-	vega::CellGroup* cn1 = model.mesh->createCellGroup("GM1");
+	shared_ptr<vega::CellGroup> cn1 = model.mesh->createCellGroup("GM1");
 	cn1->addCellId(1);
 	cn1->addCellId(2);
 	BOOST_TEST_CHECKPOINT("after addcells");
@@ -176,7 +176,7 @@ shared_ptr<Model> createModelWith1HEXA8() {
 	vector<int> expectedFace1NodeIds = { 50, 51, 52, 53 };
 	BOOST_CHECK_EQUAL_COLLECTIONS(face1NodeIds.begin(), face1NodeIds.end(),
 			expectedFace1NodeIds.begin(), expectedFace1NodeIds.end());
-	vega::CellGroup* cn1 = model->mesh->createCellGroup("GM1");
+	shared_ptr<vega::CellGroup> cn1 = model->mesh->createCellGroup("GM1");
 	cn1->addCellId(1);
 	BOOST_TEST_CHECKPOINT("after addcells");
 	Continuum continuum(*model, &ModelType::TRIDIMENSIONAL_SI, 1);
@@ -314,17 +314,17 @@ BOOST_AUTO_TEST_CASE( test_find_methods ) {
 	for (i = 0; i < 18; i += 3) {
 		model.mesh->addNode(i / 3, coords[i], coords[i + 1], coords[i + 2]);
 	}
-	vega::NodeGroup* gn1 = model.mesh->findOrCreateNodeGroup("GN1");
+	shared_ptr<vega::NodeGroup> gn1 = model.mesh->findOrCreateNodeGroup("GN1");
 	BOOST_TEST_CHECKPOINT("find_methods: before add Node 0");
 	gn1->addNodeId(0);
 	BOOST_TEST_CHECKPOINT("find_methods: before add Node 5");
 	gn1->addNodeId(5);
-	vega::CellGroup* gm1 = model.mesh->createCellGroup("GM1");
+	shared_ptr<vega::CellGroup> gm1 = model.mesh->createCellGroup("GM1");
 	gm1->addCellId(31);
-	vega::CellGroup* gm2 = model.mesh->createCellGroup("GM2");
+	shared_ptr<vega::CellGroup> gm2 = model.mesh->createCellGroup("GM2");
 	gm2->addCellId(28);
 	gm2->addCellId(30);
-	vega::CellGroup* gm3 = model.mesh->createCellGroup("GM3");
+	shared_ptr<vega::CellGroup> gm3 = model.mesh->createCellGroup("GM3");
 	gm3->addCellId(28);
 	gm3->addCellId(30);
 	model.finish();

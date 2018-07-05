@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -25,7 +25,9 @@
 #include <boost/filesystem.hpp>
 
 namespace vega {
+namespace systus {
 namespace fs = boost::filesystem;
+using namespace std;
 
 SystusModel::SystusModel(const vega::Model* model,
         const vega::ConfigurationParameters &configuration) :
@@ -80,5 +82,5 @@ const string SystusModel::getSystusVersionString() const {
     return os.str();
 }
 
-
-}
+} // namespace systus
+} // namespace vega

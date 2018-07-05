@@ -16,6 +16,8 @@
 
 namespace vega {
 
+using namespace std;
+
 Loading::Loading(const Model& model, Loading::Type type, Loading::ApplicationType applicationType,
 		const int original_id, int coordinate_system_id) :
 		Identifiable(original_id), model(model), type(type), applicationType(applicationType), coordinateSystem_reference(

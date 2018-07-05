@@ -35,12 +35,11 @@
 
 namespace vega {
 
-using namespace std;
 class Model;
 
 class Objective: public Identifiable<Objective> {
 private:
-    friend ostream &operator<<(ostream &out, const Objective&);    //output
+    friend std::ostream &operator<<(std::ostream &out, const Objective&);    //output
 public:
     enum Type {
         NODAL_DISPLACEMENT_ASSERTION,
@@ -56,8 +55,8 @@ protected:
 
 public:
     const Type type;
-    static const string name;
-    static const map<Type, string> stringByType;
+    static const std::string name;
+    static const std::map<Type, std::string> stringByType;
 protected:
     Objective(const Model&, Objective::Type, int original_id = NO_ORIGINAL_ID);
 public:
@@ -104,10 +103,10 @@ public:
 
 class NodalComplexDisplacementAssertion: public NodalAssertion {
 public:
-    const complex<double> value;
+    const std::complex<double> value;
     const double frequency = -1;
     NodalComplexDisplacementAssertion(const Model&, double tolerance, int nodeId, DOF dof,
-            complex<double> value, double frequency, int original_id = NO_ORIGINAL_ID);
+            std::complex<double> value, double frequency, int original_id = NO_ORIGINAL_ID);
     friend std::ostream& operator<<(std::ostream&, const NodalComplexDisplacementAssertion&);
     std::shared_ptr<Objective> clone() const {
         return std::make_shared<NodalComplexDisplacementAssertion>(*this);
@@ -157,8 +156,8 @@ public:
     const double lower; /**< Lower bound of the frequency band. **/
     const double upper; /**< Upper bound of the frequency band. **/
     const int num_max;  /**< Number of roots we want to find in the frequency band.**/
-    const string norm;  /**< Method for normalizing eigenvectors: MASS or MAX **/
-    FrequencyBand(const Model& model, double lower, double upper, int num_max, string norm = "MASS", int original_id =
+    const std::string norm;  /**< Method for normalizing eigenvectors: MASS or MAX **/
+    FrequencyBand(const Model& model, double lower, double upper, int num_max, std::string norm = "MASS", int original_id =
             NO_ORIGINAL_ID);
     std::shared_ptr<Objective> clone() const;
 };

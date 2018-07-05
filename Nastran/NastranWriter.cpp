@@ -179,7 +179,7 @@ void NastranWriter::writeCells(const shared_ptr<vega::Model>& model, ofstream& o
 		if (elementSet->isDiscrete() || elementSet->isMatrixElement()) {
 			continue;
 		}
-		CellGroup* cellGroup = elementSet->cellGroup;
+		shared_ptr<CellGroup> cellGroup = elementSet->cellGroup;
 		for (const Cell& cell : cellGroup->getCells()) {
 			string keyword;
 			if (elementSet->isBeam()) {

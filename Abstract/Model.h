@@ -26,7 +26,6 @@
 
 namespace vega {
 
-using namespace std;
 class Mesh;
 //class Constraint;
 
@@ -36,7 +35,7 @@ class Mesh;
 
 class Model final {
 private:
-    const string type;
+    const std::string type;
     std::shared_ptr<Material> virtualMaterial;
     void generateDiscrets();
     void generateSkin();
@@ -50,7 +49,7 @@ private:
      * @see ConfigurationParameters.partitionModel
      */
     void generateMaterialAssignments();
-    Cell generateSkinCell(const vector<int>& faceIds, const SpaceDimension& dimension);
+    Cell generateSkinCell(const std::vector<int>& faceIds, const SpaceDimension& dimension);
     void removeIneffectives();
     void replaceCombinedLoadSets();
     /**
@@ -95,12 +94,12 @@ private:
 public:
     bool finished;
     bool afterValidation = false;
-    string name;
-    string inputSolverVersion;
+    std::string name;
+    std::string inputSolverVersion;
     const SolverName inputSolver;
     ModelType modelType;
-    string title;
-    string description;
+    std::string title;
+    std::string description;
 
     ModelConfiguration configuration;
     vega::ConfigurationParameters::TranslationMode translationMode;
@@ -115,15 +114,15 @@ public:
     const ConstraintSet commonConstraintSet;
 
 private:
-    std::unordered_map<LoadSet::Type, map<int, set<std::shared_ptr<Reference<Loading>>> > ,hash<int>>
+    std::unordered_map<LoadSet::Type, std::map<int, std::set<std::shared_ptr<Reference<Loading>>> > ,std::hash<int>>
     loadingReferences_by_loadSet_original_ids_by_loadSet_type;
-    std::unordered_map<int, set<std::shared_ptr<Reference<Loading>>> >
+    std::unordered_map<int, std::set<std::shared_ptr<Reference<Loading>>> >
     loadingReferences_by_loadSet_ids;
 
     std::unordered_map< ConstraintSet::Type,
-    map<int, set<std::shared_ptr<Reference<Constraint>>>>,hash<int>>
+    std::map<int, std::set<std::shared_ptr<Reference<Constraint>>>>,std::hash<int>>
     constraintReferences_by_constraintSet_original_ids_by_constraintSet_type;
-    std::map< int, set<std::shared_ptr<Reference<Constraint>>>>
+    std::map< int, std::set<std::shared_ptr<Reference<Constraint>>>>
     constraintReferences_by_constraintSet_ids;
 
     template<class T> class Container final {
@@ -137,10 +136,10 @@ private:
         class iterator;
         friend class iterator;
         class iterator : public std::iterator< std::input_iterator_tag,T,ptrdiff_t> {
-            typename map<int,std::shared_ptr<T>>::const_iterator it;
-            const map<int,std::shared_ptr<T>>* mp;
+            typename std::map<int,std::shared_ptr<T>>::const_iterator it;
+            const std::map<int,std::shared_ptr<T>>* mp;
         public:
-            iterator(const map<int,std::shared_ptr<T>>& mp, const typename map<int,std::shared_ptr<T>>::const_iterator& it) : it(it), mp(&mp) {}
+            iterator(const std::map<int,std::shared_ptr<T>>& mp, const typename std::map<int,std::shared_ptr<T>>::const_iterator& it) : it(it), mp(&mp) {}
                         bool operator==(const iterator& x) const {
                             return it == x.it;
                         }
@@ -172,12 +171,12 @@ private:
                     std::shared_ptr<T> get(int) const; /**< Return an object by its Vega Id **/
                     bool validate(){
                         bool isValid = true;
-                        vector<shared_ptr<T>> toBeRemoved;
+                        std::vector<std::shared_ptr<T>> toBeRemoved;
                         for (iterator it = this->begin(); it != this->end(); ++it) {
-                            shared_ptr<T> t = *it;
+                            std::shared_ptr<T> t = *it;
                             if (!t->validate()) {
                                 isValid = false;
-                                cerr << *t << " is not valid" << endl;
+                                std::cerr << *t << " is not valid" << std::endl;
 
                                 switch (model.translationMode) {
                                 case vega::ConfigurationParameters::MODE_STRICT:
@@ -214,7 +213,7 @@ private:
         std::shared_ptr<CoordinateSystemStorage> coordinateSystemStorage; /**< Container for Coordinate System numerotations. **/
         bool onlyMesh;
 
-        Model(string name, string inputSolverVersion = string("UNKNOWN"),
+        Model(std::string name, std::string inputSolverVersion = std::string("UNKNOWN"),
                 SolverName inputSolver = NASTRAN,
                 const ModelConfiguration configuration = ModelConfiguration(),
                 const vega::ConfigurationParameters::TranslationMode translationMode = vega::ConfigurationParameters::BEST_EFFORT);
@@ -274,8 +273,8 @@ private:
 
         /* Get the Id of all elements belonging to set */
         //TODO: make a template, general function?
-        const vector<int> getMaterialsId() const;
-        const vector<int> getElementSetsId() const;
+        const std::vector<int> getMaterialsId() const;
+        const std::vector<int> getElementSetsId() const;
         /**
          * Remove any kind of object from the model, by giving a reference.
          * Very time consuming when the list is big : restrict use to the minimum
@@ -303,7 +302,7 @@ private:
         /**
          * Retrieve all the Loadings corresponding to a given LoadSet.
          */
-        const set<std::shared_ptr<Loading>> getLoadingsByLoadSet(const Reference<LoadSet>&) const;
+        const std::set<std::shared_ptr<Loading>> getLoadingsByLoadSet(const Reference<LoadSet>&) const;
 
         /**
          * Create a material
@@ -333,48 +332,48 @@ private:
         /**
          * Retrieve all the Constraints corresponding to a given ConstraintSet.
          */
-        const set<std::shared_ptr<Constraint>> getConstraintsByConstraintSet(const Reference<ConstraintSet>&) const;
+        const std::set<std::shared_ptr<Constraint>> getConstraintsByConstraintSet(const Reference<ConstraintSet>&) const;
 
         /**
          * Retrieve all the ConstraintSet containing a corresponding Constraint.
          */
-        const set<std::shared_ptr<ConstraintSet>> getConstraintSetsByConstraint(const Reference<Constraint>& constraintReference) const;
+        const std::set<std::shared_ptr<ConstraintSet>> getConstraintSetsByConstraint(const Reference<Constraint>& constraintReference) const;
 
         /**
          * Retrieve all the ConstraintSet of the model that are at least referenced by one analysis
          */
-        const vector<std::shared_ptr<ConstraintSet>> getActiveConstraintSets() const;
+        const std::vector<std::shared_ptr<ConstraintSet>> getActiveConstraintSets() const;
 
         /**
          * Retrieve all the LoadSet of the model that are at least referenced by one analysis
          */
-        const vector<std::shared_ptr<LoadSet>> getActiveLoadSets() const;
+        const std::vector<std::shared_ptr<LoadSet>> getActiveLoadSets() const;
         /**
          * Retrieve all the ConstraintSet of the model that are common to all analysis
          */
-        const vector<std::shared_ptr<ConstraintSet>> getCommonConstraintSets() const;
+        const std::vector<std::shared_ptr<ConstraintSet>> getCommonConstraintSets() const;
 
         /**
          * Retrieve all the LoadSet of the model that are are common to all analysis
          */
-        const vector<std::shared_ptr<LoadSet>> getCommonLoadSets() const;
+        const std::vector<std::shared_ptr<LoadSet>> getCommonLoadSets() const;
         /**
          * Retrieve all the ConstraintSet of the model that are active but not common to all analysis
          */
-        const set<std::shared_ptr<ConstraintSet>> getUncommonConstraintSets() const;
+        const std::set<std::shared_ptr<ConstraintSet>> getUncommonConstraintSets() const;
         /**
          * Retrieve all the ConstraintSet of the model that are active but not common to all analysis
          */
-        const set<std::shared_ptr<LoadSet>> getUncommonLoadSets() const;
+        const std::set<std::shared_ptr<LoadSet>> getUncommonLoadSets() const;
 
         /**
          * Get a non rigid material (virtual)
          */
         std::shared_ptr<Material> getVirtualMaterial();
 
-        const vector<std::shared_ptr<ElementSet>> filterElements(ElementSet::Type type) const;
+        const std::vector<std::shared_ptr<ElementSet>> filterElements(ElementSet::Type type) const;
 
-        const vector<std::shared_ptr<Beam>> getBeams() const;
+        const std::vector<std::shared_ptr<Beam>> getBeams() const;
 
         /**
          * Method that is called when parsing is complete.

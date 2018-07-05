@@ -54,7 +54,7 @@ class AsterWriter final : public Writer{
 	void writeForceCoque(const LoadSet&, std::ostream&);
 	void writeForceLine(const LoadSet&, std::ostream&);
 	void writeForceSurface(const LoadSet&, std::ostream&);
-	void writeCellContainer(const CellContainer& cellContainer, ostream&);
+	void writeCellContainer(const CellContainer& cellContainer, std::ostream&);
 	double writeAnalysis(const AsterModel&, Analysis& analysis, std::ostream&, double debut);
 	void writeNodalDisplacementAssertion(const AsterModel&, Assertion&, std::ostream&);
 	void writeNodalComplexDisplacementAssertion(const AsterModel&, Assertion&, std::ostream&);

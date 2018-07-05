@@ -33,6 +33,7 @@
 
 
 namespace vega {
+namespace systus {
 
 enum SystusTableLabel{
     TL_STANDARD, TL_DIRECT, TL_FILE, TL_FORTRAN, TL_PLASTICITY, TL_PROGRAM, TL_TABLE
@@ -71,9 +72,9 @@ public:
  */
 class SystusMatrix{
 public:
-    
+
     long unsigned int id; /**< Id. Correspond to a "E id" in the material, or "REDUCTION id" in the reduction process.>**/
-    int nbDOFS;			  
+    int nbDOFS;
     int nbNodes;
     int size;
     std::vector<double> values;
@@ -115,6 +116,6 @@ public:
 };
 
 
-
-}
+} // namespace systus
+} // namespace vega
 #endif /* SYSTUSASC_H_ */

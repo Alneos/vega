@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -28,6 +28,7 @@
 #include <fstream>
 
 namespace vega {
+namespace systus {
 
 namespace fs = boost::filesystem;
 using namespace std;
@@ -130,5 +131,6 @@ SystusRunner::~SystusRunner() {
     // TODO Auto-generated destructor stub
 }
 
+} /* namespace systus */
 } /* namespace vega */
 

@@ -22,6 +22,7 @@
 #include <ciso646>
 
 namespace fs = boost::filesystem;
+using namespace std;
 
 namespace vega {
 namespace aster {
@@ -440,7 +441,7 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 	}
 	out << "CHMAT=AFFE_MATERIAU(MAILLAGE=" << mail_name << "," << endl;
 	out << "                    AFFE=(" << endl;
-	for (auto material : asterModel.model.materials) {
+	for (auto& material : asterModel.model.materials) {
 		CellContainer cells = material->getAssignment();
 		if (!cells.empty()) {
 			/*out << "                          _F(GROUP_MA='"
@@ -449,7 +450,7 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 			int celem = 0;
 			if (cells.hasCellGroups()) {
 				out << "GROUP_MA=(";
-				for (CellGroup * cellGroup : cells.getCellGroups()) {
+				for (auto& cellGroup : cells.getCellGroups()) {
 					celem++;
 					out << "'" << cellGroup->getName() << "',";
 					if (celem % 6 == 0) {
@@ -1189,7 +1190,7 @@ void AsterWriter::writeForceSurface(const LoadSet& loadSet, ostream&out) {
 			Loading::FORCE_SURFACE);
 	if (forceSurfaces.size() > 0) {
 		out << "           FORCE_FACE=(" << endl;
-		for (shared_ptr<Loading> loading : forceSurfaces) {
+		for (auto& loading : forceSurfaces) {
 			shared_ptr<ForceSurface> forceSurface = static_pointer_cast<ForceSurface>(loading);
 			VectorialValue force = forceSurface->getForce();
 			VectorialValue moment = forceSurface->getMoment();
@@ -1217,7 +1218,7 @@ void AsterWriter::writeForceSurface(const LoadSet& loadSet, ostream&out) {
 void AsterWriter::writeCellContainer(const CellContainer& cellContainer, ostream& out) {
 	if (cellContainer.hasCellGroups()) {
 		out << "GROUP_MA=(";
-		for (CellGroup* cellGroup : cellContainer.getCellGroups()) {
+		for (shared_ptr<CellGroup>& cellGroup : cellContainer.getCellGroups()) {
 			out << "'" << cellGroup->getName() << "',";
 		}
 		out << "),";

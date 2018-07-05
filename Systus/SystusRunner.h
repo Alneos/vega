@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -27,6 +27,7 @@
 #include "../Abstract/SolverInterfaces.h"
 
 namespace vega {
+namespace systus {
 
 class SystusRunner: public vega::Runner {
 public:
@@ -37,5 +38,6 @@ public:
     virtual ~SystusRunner();
 };
 
+} /* namespace systus */
 } /* namespace vega */
 #endif /* SYSTUSRUNNER_H_ */

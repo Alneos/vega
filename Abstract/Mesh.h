@@ -108,50 +108,49 @@ private:
 	//access flag debug on model
 	friend CellGroup;
 	const LogLevel logLevel;
-	const string name;
+	const std::string name;
 	bool finished;
 
 	//mapping position->external id
-	std::unordered_map<CellType, vector<int>, std::hash<CellType>> cellPositionsByType;
+	std::unordered_map<CellType, std::vector<int>, std::hash<CellType>> cellPositionsByType;
 
-	std::unordered_map<string, Group*> groupByName;
+	std::unordered_map<std::string, std::shared_ptr<Group>> groupByName;
 	/**
 	 * Groups ordered by the id provided by the input solver. Since inputSolver may not provide
 	 * this id this map may not contain all the groups.
 	 */
-	map<int, Group*> groupById;
+	std::map<int, std::shared_ptr<Group>> groupById;
 
-	CellGroup * getOrCreateCellGroupForOrientation(const int cid);
+	std::shared_ptr<CellGroup> getOrCreateCellGroupForOrientation(const int cid);
 	void createFamilies(med_idt fid, const char meshname[MED_NAME_SIZE + 1],
-			vector<Family>& families);
+			std::vector<Family>& families);
 public:
 
-	std::map<int, string> cellGroupNameByCID;
-	Mesh(LogLevel logLevel, const string& name);
-	~Mesh();
+	std::map<int, std::string> cellGroupNameByCID;
+	Mesh(LogLevel logLevel, const std::string& name);
 	NodeStorage nodes;
 	CellStorage cells;
 
-    NodeGroup* createNodeGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
+    std::shared_ptr<NodeGroup> createNodeGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
 	/**
 	 * Find the NodeGroup named "name".
 	 * If it does not exists, create and return a NodeGroup with specified name, groupId and comment.
 	 **/
-	NodeGroup* findOrCreateNodeGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
-	std::vector<NodeGroup*> getNodeGroups() const;
-	CellGroup* createCellGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
-	void renameGroup(const string& oldname, const string& newname, const string& comment);
+	std::shared_ptr<NodeGroup> findOrCreateNodeGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
+	std::vector<std::shared_ptr<NodeGroup>> getNodeGroups() const;
+	std::shared_ptr<CellGroup> createCellGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
+	void renameGroup(const std::string& oldname, const std::string& newname, const std::string& comment);
     /**
      * Remove the Group named "name". Do nothing if the group does not exist.
      */
-    void removeGroup(const string& name);
-	std::vector<CellGroup*> getCellGroups() const;
-	Group* findGroup(string) const;
+    void removeGroup(const std::string& name);
+	std::vector<std::shared_ptr<CellGroup>> getCellGroups() const;
+	std::shared_ptr<Group> findGroup(std::string) const;
 	/**
 	 * Find a group by its "original" id: the id provided by the input solver. If not found
 	 * returns nullptr
 	 */
-	Group* findGroup(int originalId) const;
+	std::shared_ptr<Group> findGroup(int originalId) const;
 
 	int addNode(int id, double x, double y, double z = 0,
 	        int cpPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
@@ -175,7 +174,7 @@ public:
 	int findNodePosition(const int nodeId) const;
 	int findOrReserveNode(int nodeId);
 	//returns a set of nodePositions
-	set<int> findOrReserveNodes(const std::set<int>& nodeIds);
+	std::set<int> findOrReserveNodes(const std::set<int>& nodeIds);
 
 	int countCells() const;
 	int countCells(const CellType &type) const;

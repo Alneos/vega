@@ -31,7 +31,6 @@
 #include <map>
 #include "ConfigurationParameters.h"
 #include <boost/numeric/ublas/matrix.hpp>
-using namespace std;
 
 namespace vega {
 
@@ -64,8 +63,8 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
     boost::numeric::ublas::matrix<double> inverseMatrix;
 
     public:
-    static const string name;
-    static const map<Type, string> stringByType;
+    static const std::string name;
+    static const std::map<Type, std::string> stringByType;
     inline const VectorialValue getOrigin() const {return origin;};
     inline const VectorialValue getEx() const {return ex;};
     inline const VectorialValue getEy() const {return ey;};

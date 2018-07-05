@@ -13,13 +13,13 @@ using namespace vega;
 
 BOOST_AUTO_TEST_CASE( test_NodeGroup2Families ) {
 	Mesh mesh(LogLevel::INFO, "test");
-	vector<NodeGroup *> nodeGroups;
-	NodeGroup* gn1 = mesh.findOrCreateNodeGroup("GN1");
+	vector<shared_ptr<NodeGroup>> nodeGroups;
+	shared_ptr<NodeGroup> gn1 = mesh.findOrCreateNodeGroup("GN1");
 	gn1->addNodeByPosition(0);
 	gn1->addNodeByPosition(3);
 	gn1->addNodeByPosition(4);
 	nodeGroups.push_back(gn1);
-	NodeGroup* gn2 = mesh.findOrCreateNodeGroup("GN2");
+	shared_ptr<NodeGroup> gn2 = mesh.findOrCreateNodeGroup("GN2");
 	gn2->addNodeByPosition(0);
 	gn2->addNodeByPosition(1);
 	nodeGroups.push_back(gn2);
@@ -58,11 +58,11 @@ BOOST_AUTO_TEST_CASE( test_NodeGroup ) {
 	for (int i = 0; i < 12; i += 3) {
 		mesh.addNode(nodeIds[i / 3], coords[i], coords[i + 1], coords[i + 2]);
 	}
-	NodeGroup* nodes = mesh.findOrCreateNodeGroup("test", 5);
+	shared_ptr<NodeGroup> nodes = mesh.findOrCreateNodeGroup("test", 5);
 	std::for_each(nodeIds.begin(), nodeIds.end(), [&nodes](int &nodeId){ nodes->addNodeId(nodeId); });
 	mesh.finish();
 	//find the group by name
-	NodeGroup* testGroup = static_cast<NodeGroup *>(mesh.findGroup("test"));
+	shared_ptr<NodeGroup> testGroup = dynamic_pointer_cast<NodeGroup>(mesh.findGroup("test"));
 	BOOST_ASSERT_MSG(testGroup != nullptr, "Group found by name");
 	BOOST_CHECK_EQUAL(testGroup->nodePositions().size(), (size_t ) 4);
 	const set<int> nodeIds1 = testGroup->getNodeIds();
@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE( test_NodeGroup ) {
 		BOOST_CHECK_MESSAGE(nodeIds1.find(originalId) != nodeIds1.end(), message.c_str());
 	}
 	//find the group by id
-	NodeGroup* groupById = static_cast<NodeGroup *>(mesh.findGroup(5));
+	shared_ptr<NodeGroup> groupById = dynamic_pointer_cast<NodeGroup>(mesh.findGroup(5));
 	BOOST_ASSERT_MSG(groupById != nullptr, "Group found by id");
 }
 

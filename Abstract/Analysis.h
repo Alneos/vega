@@ -40,7 +40,6 @@
 
 namespace vega {
 
-using namespace std;
 class Model;
 class ModelConfiguration;
 
@@ -49,9 +48,9 @@ class ModelConfiguration;
  */
 class Analysis: public Identifiable<Analysis> {
 private:
-    friend ostream &operator<<(ostream &out, const Analysis& analysis);    //output
+    friend std::ostream &operator<<(std::ostream &out, const Analysis& analysis);    //output
     std::map<int, char> boundaryDOFSByNodePosition;
-    const string label;         /**< User defined label for this instance of Analysis. **/
+    const std::string label;         /**< User defined label for this instance of Analysis. **/
 public:
     enum Type {
         LINEAR_MECA_STAT,
@@ -61,18 +60,18 @@ public:
         UNKNOWN,
     };
 protected:
-    list<std::shared_ptr<Reference<LoadSet>>>loadSet_references;
-    list<std::shared_ptr<Reference<ConstraintSet>>> constraintSet_references;
-    list<std::shared_ptr<Reference<Objective>>> assertion_references;
+    std::list<std::shared_ptr<Reference<LoadSet>>>loadSet_references;
+    std::list<std::shared_ptr<Reference<ConstraintSet>>> constraintSet_references;
+    std::list<std::shared_ptr<Reference<Objective>>> assertion_references;
 
 public:
     Model& model;
     const Type type;
-    static const string name;     /**< String conversion of the object, i.e "Analysis" **/
-    static const map<Type,string> stringByType;
+    static const std::string name;     /**< String conversion of the object, i.e "Analysis" **/
+    static const std::map<Type,std::string> stringByType;
     std::shared_ptr<Analysis> previousAnalysis;
 
-    Analysis(Model& model, const Type Type, const string original_label = "", const int original_id = NO_ORIGINAL_ID);
+    Analysis(Model& model, const Type Type, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
 
     void add(const Reference<LoadSet>&);
     void add(const Reference<ConstraintSet>&);
@@ -86,21 +85,21 @@ public:
     void remove(const Reference<ConstraintSet>);
     void remove(const Reference<Objective>);
 
-    const string getLabel() const {return label;}  /**< Getter for the label variable **/
+    const std::string getLabel() const {return label;}  /**< Getter for the label variable **/
 
     /**
      * retrieve the ConstraintSets specific to this analysis
      * plus eventually the common ConstraintSet of all analyzes of the model
      */
-    const vector<std::shared_ptr<ConstraintSet>> getConstraintSets() const;
+    const std::vector<std::shared_ptr<ConstraintSet>> getConstraintSets() const;
 
     /**
      * retrieve the LoadSets specific to this analysis
      * plus eventually the common LoadSet of all analyzes of the model
      */
-    const vector<std::shared_ptr<LoadSet>> getLoadSets() const;
-    const vector<std::shared_ptr<BoundaryCondition>> getBoundaryConditions() const;
-    const vector<std::shared_ptr<Assertion>> getAssertions() const;
+    const std::vector<std::shared_ptr<LoadSet>> getLoadSets() const;
+    const std::vector<std::shared_ptr<BoundaryCondition>> getBoundaryConditions() const;
+    const std::vector<std::shared_ptr<Assertion>> getAssertions() const;
 
     /**
      * Return true if the analysis has at least one SPC (or equivalent SPCD, MPCD, etc)
@@ -111,7 +110,7 @@ public:
     void removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition, const DOFS dofs);
     void addBoundaryDOFS(int nodePosition, const DOFS dofs);
     const DOFS findBoundaryDOFS(int nodePosition) const;
-    const set<int> boundaryNodePositions() const;
+    const std::set<int> boundaryNodePositions() const;
 
     virtual std::shared_ptr<Analysis> clone() const =0;
     bool validate() const override;
@@ -123,16 +122,16 @@ public:
 
 class LinearMecaStat: public Analysis {
 public:
-    LinearMecaStat(Model& model, const string original_label = "", const int original_id = NO_ORIGINAL_ID);
+    LinearMecaStat(Model& model, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     std::shared_ptr<Analysis> clone() const;
 };
 
 class NonLinearMecaStat: public Analysis {
 public:
     Reference<Objective> strategy_reference;
-    NonLinearMecaStat(Model& model, const NonLinearStrategy& strategy, const string original_label = "",
+    NonLinearMecaStat(Model& model, const NonLinearStrategy& strategy, const std::string original_label = "",
             const int original_id = NO_ORIGINAL_ID);
-    NonLinearMecaStat(Model& model, const int strategy_original_id, const string original_label = "",
+    NonLinearMecaStat(Model& model, const int strategy_original_id, const std::string original_label = "",
             const int original_id = NO_ORIGINAL_ID);
     std::shared_ptr<Analysis> clone() const;
     bool validate() const override;
@@ -142,9 +141,9 @@ class LinearModal: public Analysis {
 protected:
     Reference<Objective> frequency_band_reference;
 public:
-    LinearModal(Model& model, const FrequencyBand& frequency_band, const string original_label = "",
+    LinearModal(Model& model, const FrequencyBand& frequency_band, const std::string original_label = "",
             const int original_id = NO_ORIGINAL_ID, const Type type = LINEAR_MODAL);
-    LinearModal(Model& model, const int frequency_band_original_id, const string original_label = "",
+    LinearModal(Model& model, const int frequency_band_original_id, const std::string original_label = "",
             const int original_id = NO_ORIGINAL_ID, const Type type = LINEAR_MODAL);
     std::shared_ptr<FrequencyBand> getFrequencyBand() const;
     std::shared_ptr<Analysis> clone() const;
@@ -159,11 +158,11 @@ public:
     LinearDynaModalFreq(Model& model, const FrequencyBand& frequency_band,
             const ModalDamping& modal_damping, const FrequencyRange& frequency_values,
             const bool residual_vector = false,
-            const string original_label = "", const int original_id = NO_ORIGINAL_ID);
+            const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     LinearDynaModalFreq(Model& model, const int frequency_band_original_id,
             const int modal_damping_original_id, const int frequency_value_original_id,
             const bool residual_vector = false,
-            const string original_label = "", const int original_id = NO_ORIGINAL_ID);
+            const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     const bool residual_vector;
     std::shared_ptr<ModalDamping> getModalDamping() const;
     std::shared_ptr<FrequencyRange> getFrequencyValues() const;

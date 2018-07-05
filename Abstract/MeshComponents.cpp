@@ -22,6 +22,7 @@
 namespace vega {
 using boost::assign::list_of;
 using boost::lexical_cast;
+using namespace std;
 unordered_map<SpaceDimension::Code, SpaceDimension*, hash<int>> SpaceDimension::dimensionByCode =
 		init_map();
 
@@ -640,7 +641,7 @@ void NodeContainer::addNode(int nodeId) {
 }
 
 void NodeContainer::addNodeGroup(const string& groupName) {
-	Group* group = mesh->findGroup(groupName);
+	shared_ptr<Group> group = mesh->findGroup(groupName);
 	if (group == nullptr) {
 		throw logic_error(string("Group name: ") + groupName + "not found.");
 	}
@@ -669,7 +670,7 @@ vector<int> NodeContainer::getNodeIds(bool all) const {
 	vector<int> nodes(nodeIds.begin(), nodeIds.end());
 	if (all) {
 		for (string groupName : groupNames) {
-			NodeGroup* group = static_cast<NodeGroup *>(mesh->findGroup(groupName));
+			shared_ptr<NodeGroup> group = dynamic_pointer_cast<NodeGroup>(mesh->findGroup(groupName));
 			if (group != nullptr) {
 				nodes.insert(nodes.end(), group->getNodeIds().begin(), group->getNodeIds().end());
 			}
@@ -717,7 +718,7 @@ void CellContainer::addCell(int cellId) {
 }
 
 void CellContainer::addCellGroup(const string& groupName) {
-	Group* group = mesh->findGroup(groupName);
+	shared_ptr<Group> group = mesh->findGroup(groupName);
 	if (group == nullptr) {
 		throw logic_error(string("Group name: ") + groupName + "not found.");
 	}
@@ -751,7 +752,7 @@ vector<Cell> CellContainer::getCells(bool all) const {
 	}
 	if (all) {
 		for (string groupName : groupNames) {
-			CellGroup* group = static_cast<CellGroup *>(mesh->findGroup(groupName));
+			shared_ptr<CellGroup> group = dynamic_pointer_cast<CellGroup>(mesh->findGroup(groupName));
 			if (group != nullptr) {
 				vector<Cell> cellsInGroup = group->getCells();
 				cells.insert(cells.end(), cellsInGroup.begin(), cellsInGroup.end());
@@ -765,7 +766,7 @@ vector<int> CellContainer::getCellIds(bool all) const {
 	vector<int> cells(cellIds.begin(), cellIds.end());
 	if (all) {
 		for (string groupName : groupNames) {
-			CellGroup* group = static_cast<CellGroup *>(mesh->findGroup(groupName));
+			shared_ptr<CellGroup> group = dynamic_pointer_cast<CellGroup>(mesh->findGroup(groupName));
 			if (group != nullptr) {
 				cells.insert(cells.end(), group->cellIds.begin(), group->cellIds.end());
 			}
@@ -807,11 +808,11 @@ bool CellContainer::hasCells() const {
 	return !cellIds.empty();
 }
 
-vector<CellGroup *> CellContainer::getCellGroups() const {
-	vector<CellGroup *> cellGroups;
+vector<shared_ptr<CellGroup>> CellContainer::getCellGroups() const {
+	vector<shared_ptr<CellGroup>> cellGroups;
 	cellGroups.reserve(groupNames.size());
 	for (string groupName : groupNames) {
-		CellGroup* group = static_cast<CellGroup *>(mesh->findGroup(groupName));
+		shared_ptr<CellGroup> group = dynamic_pointer_cast<CellGroup>(mesh->findGroup(groupName));
 		if (group == nullptr) {
 			throw invalid_argument("Cannot find group with name:" + groupName);
 		}
@@ -824,13 +825,13 @@ bool CellContainer::hasCellGroups() const {
 	return groupNames.size() > 0;
 }
 
-NodeGroup2Families::NodeGroup2Families(int nnodes, const vector<NodeGroup*> nodeGroups) {
+NodeGroup2Families::NodeGroup2Families(int nnodes, const vector<shared_ptr<NodeGroup>> nodeGroups) {
 	int currentFamilyId = 0;
 	unordered_map<int, int> newFamilyByOldfamily;
 	unordered_map<int, Family> familyByFamilyId;
 	if (nnodes > 0 && nodeGroups.size() > 0) {
 		this->nodes.resize(nnodes, 0);
-		for (NodeGroup * nodeGroup : nodeGroups) {
+		for (auto& nodeGroup : nodeGroups) {
 			newFamilyByOldfamily.clear();
 			for (int nodePosition : nodeGroup->nodePositions()) {
 				int oldFamily = nodes[nodePosition];
@@ -881,17 +882,17 @@ vector<int>& NodeGroup2Families::getFamilyOnNodes() {
 
 CellGroup2Families::CellGroup2Families(
 		const Mesh* mesh, unordered_map<CellType::Code, int, hash<int>> cellCountByType,
-		const vector<CellGroup *>& cellGroups) : mesh(mesh) {
+		const vector<shared_ptr<CellGroup>>& cellGroups) : mesh(mesh) {
 	int currentFamilyId = 0;
 	unordered_map<int, int> newFamilyByOldfamily;
 	unordered_map<int, Family> familyByFamilyId;
-	for (auto cellCountByTypePair : cellCountByType) {
+	for (auto& cellCountByTypePair : cellCountByType) {
 		shared_ptr<vector<int>> cells = make_shared<vector<int>>();
 		cells->resize(cellCountByTypePair.second, 0);
 		cellFamiliesByType[cellCountByTypePair.first] = cells;
 	}
 
-	for (CellGroup * cellGroup : cellGroups) {
+	for (auto& cellGroup : cellGroups) {
 		newFamilyByOldfamily.clear();
 		for (auto cellPosition : cellGroup->cellPositions()) {
 			const Cell& cell = mesh->findCell(cellPosition);

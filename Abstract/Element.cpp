@@ -16,6 +16,8 @@
 
 namespace vega {
 
+using namespace std;
+
 const ModelType ModelType::PLANE_STRESS = ModelType("PLANE_STRESS", SpaceDimension::DIMENSION_2D);
 const ModelType ModelType::PLANE_STRAIN = ModelType("PLANE_STRAIN", SpaceDimension::DIMENSION_2D);
 const ModelType ModelType::AXISYMMETRIC = ModelType("AXISYMMETRIC", SpaceDimension::DIMENSION_2D);
@@ -65,7 +67,7 @@ void ElementSet::assignMaterial(int materialId) {
 	this->material = this->model.getOrCreateMaterial(materialId);
 }
 
-void ElementSet::assignCellGroup(CellGroup* cellGroup) {
+void ElementSet::assignCellGroup(shared_ptr<CellGroup> cellGroup) {
 	this->cellGroup = cellGroup;
 }
 

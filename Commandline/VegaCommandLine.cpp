@@ -63,10 +63,10 @@ VegaCommandLine::VegaCommandLine() {
     parserBySolverName[NASTRAN] = make_shared<nastran::NastranParser>();
     writersBySolverName[CODE_ASTER] = make_shared<aster::AsterWriter>();
     writersBySolverName[NASTRAN] = make_shared<nastran::NastranWriter>();
-    writersBySolverName[SYSTUS] = make_shared<SystusWriter>();
+    writersBySolverName[SYSTUS] = make_shared<systus::SystusWriter>();
     runnerBySolverType[CODE_ASTER] = make_shared<aster::AsterRunner>();
     runnerBySolverType[NASTRAN] = make_shared<nastran::NastranRunner>();
-    runnerBySolverType[SYSTUS] = make_shared<SystusRunner>();
+    runnerBySolverType[SYSTUS] = make_shared<systus::SystusRunner>();
 }
 
 VegaCommandLine::ExitCode VegaCommandLine::convertStudy(

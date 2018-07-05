@@ -31,6 +31,7 @@ namespace vega {
 namespace aster {
 
 namespace fs = boost::filesystem;
+using namespace std;
 
 const map<NamedValue::ParaName, string> AsterModel::NomParaByParaName = {
         { NamedValue::NO_PARA_NAME, "'NO_PARA_NAME'" },

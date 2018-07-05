@@ -146,20 +146,20 @@ public:
 	//GC: static initialization order is undefined. A reference is needed here to
 	//prevent undefined behaviour.
 	static const ValueOrReference& NO_SPC;
-	SinglePointConstraint(const Model& model, const std::array<ValueOrReference, 6>& spcs, Group* group =
+	SinglePointConstraint(const Model& model, const std::array<ValueOrReference, 6>& spcs, std::shared_ptr<Group> group =
 	nullptr, int original_id = NO_ORIGINAL_ID);
 
-	SinglePointConstraint(const Model& model, const std::array<ValueOrReference, 3>& spcs, Group* group =
+	SinglePointConstraint(const Model& model, const std::array<ValueOrReference, 3>& spcs, std::shared_ptr<Group> group =
 	nullptr, int original_id = NO_ORIGINAL_ID);
 
-	SinglePointConstraint(const Model& model, Group* group = nullptr, int original_id = NO_ORIGINAL_ID);
+	SinglePointConstraint(const Model& model, std::shared_ptr<Group> group = nullptr, int original_id = NO_ORIGINAL_ID);
 	/**
 	 * Constructor for backward compatibility.
 	 * The value is assigned to all the dof present in DOFS.
 	 */
-	SinglePointConstraint(const Model& model, DOFS dofs, double value = 0, Group* group = nullptr,
+	SinglePointConstraint(const Model& model, DOFS dofs, double value = 0, std::shared_ptr<Group> group = nullptr,
 			int original_id = NO_ORIGINAL_ID);
-	Group* group;
+	std::shared_ptr<Group> group;
 
 	void addNodeId(int nodeId);
 	void setDOF(const DOF& dof, const ValueOrReference& value);

@@ -23,7 +23,7 @@ class BoundaryCondition {
 public:
 	BoundaryCondition();
 	virtual bool ineffective() const {
-		throw logic_error("boundary condition ineffective() used but not implemented");
+		throw std::logic_error("boundary condition ineffective() used but not implemented");
 	}
     virtual bool hasFunctions() const {
 	    return false;

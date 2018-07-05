@@ -26,6 +26,7 @@
 #include "SystusAsc.h"
 
 namespace vega {
+namespace systus {
 
 /**
  *  This enum regroups all physical caracteristics stocked in Systus Materials.
@@ -56,7 +57,7 @@ enum SMF {
     OAIA, OAIB, OAIC, OAID, EPSI, TOLE, LEVEL, GAP, EXTRAC, TYPE
 };
 
-static const std::map<SMF, string> SMFtoString = {
+static const std::map<SMF, std::string> SMFtoString = {
         {SMF::ID, "ID"},
         {SMF::PSI, "PSI"}, {SMF::THETA, "THETA"}, {SMF::PHI, "PHI"}, {SMF::RHO, "RHO"}, {SMF::E, "E"}, {SMF::NU, "NU"}, {SMF::G, "G"}, {SMF::LX, "LX"}, {SMF::LY, "LY"}, {SMF::LZ, "LZ"},
         {SMF::S, "S"}, {SMF::AY, "AY"}, {SMF::AZ, "AZ"}, {SMF::IX, "IX"}, {SMF::IY, "IY"}, {SMF::IZ, "IZ"}, {SMF::LOCAL, "LOCAL"}, {SMF::XX, "XX"}, {SMF::YY, "YY"}, {SMF::ZZ, "ZZ"},
@@ -97,27 +98,27 @@ class SystusWriter final: public Writer {
     static const int MassAccessId;			 /**< Access Id for the Mass Matrices file (Element X9XX type 0)**/
     static const int StiffnessAccessId;      /**< Access Id for the Stiffness Matrices file (Element X9XX type 0)**/
 
-    map<int, vector<long unsigned int> > lists;
-    map<long unsigned int, vector<double>> vectors;
-    map<int, int> rotationNodeIdByTranslationNodeId; /**< nodeId, nodeId > :  map between the reference node and the reference rotation for 190X elements in 3D mode.**/
-    map<int, map<int, int>> localLoadingIdByLoadsetIdByAnalysisId;
-    map<int, long unsigned int> loadingVectorIdByLocalLoading;
-    map<int, map<int, vector<long unsigned int>>> loadingVectorsIdByLocalLoadingByNodePosition;
-    map<int, map<int, vector<long unsigned int>>> constraintVectorsIdByLocalLoadingByNodePosition;
-    map<int, long unsigned int> localVectorIdByNodePosition;  /**< nodePosition, vectorId> for all Coordinate Systems Vectors. **/
-    map<int, int> loadingListIdByNodePosition;
-    map<int, string> localLoadingListName;
-    map<int, int> constraintListIdByNodePosition;
-    map<int, char> constraintByNodePosition;
-    vector< vector<int> > systusSubcases;   /**< < subcase , <loadcases ids> > : Ids of loadcases composing the subcase **/
-    vector<SystusTable> tables;
+    std::map<int, std::vector<long unsigned int> > lists;
+    std::map<long unsigned int, std::vector<double>> vectors;
+    std::map<int, int> rotationNodeIdByTranslationNodeId; /**< nodeId, nodeId > :  map between the reference node and the reference rotation for 190X elements in 3D mode.**/
+    std::map<int, std::map<int, int>> localLoadingIdByLoadsetIdByAnalysisId;
+    std::map<int, long unsigned int> loadingVectorIdByLocalLoading;
+    std::map<int, std::map<int, std::vector<long unsigned int>>> loadingVectorsIdByLocalLoadingByNodePosition;
+    std::map<int, std::map<int, std::vector<long unsigned int>>> constraintVectorsIdByLocalLoadingByNodePosition;
+    std::map<int, long unsigned int> localVectorIdByNodePosition;  /**< nodePosition, vectorId> for all Coordinate Systems Vectors. **/
+    std::map<int, int> loadingListIdByNodePosition;
+    std::map<int, std::string> localLoadingListName;
+    std::map<int, int> constraintListIdByNodePosition;
+    std::map<int, char> constraintByNodePosition;
+    std::vector< std::vector<int> > systusSubcases;   /**< < subcase , <loadcases ids> > : Ids of loadcases composing the subcase **/
+    std::vector<SystusTable> tables;
     SystusMatrices dampingMatrices;   	    /**< All needed damping matrices (element X9XX type 0). **/
     SystusMatrices massMatrices ;           /**< All needed mass matrices (element X9XX type 0). **/
     SystusMatrices stiffnessMatrices;       /**< All needed rigidity matrices (element X9XX type 0). **/
-    map<int, long unsigned int> tableByElementSet;
-    map<int, long unsigned int> tableByLoadcase;
-    map<int, long unsigned int> seIdByElementSet; /**< Number of the matrix associated to SE (element X9XX type 0). **/
-    map<int, std::string > filebyAccessId;        /**< Names of matrix files **/
+    std::map<int, long unsigned int> tableByElementSet;
+    std::map<int, long unsigned int> tableByLoadcase;
+    std::map<int, long unsigned int> seIdByElementSet; /**< Number of the matrix associated to SE (element X9XX type 0). **/
+    std::map<int, std::string > filebyAccessId;        /**< Names of matrix files **/
     /**
      * Renumbers the nodes
      * see Systus ref manual chapter 15 or chapter 13 2.7
@@ -273,7 +274,7 @@ class SystusWriter final: public Writer {
      *
      **/
     // vs 2013 compiler bug	in initializer list {{3,6}, {4,3}} not supported
-    map<int, int> numberOfDofBySystusOption = boost::assign::map_list_of(3, 6)(4, 3);
+    std::map<int, int> numberOfDofBySystusOption = boost::assign::map_list_of(3, 6)(4, 3);
     /** Converts a vega node Id in its ASC counterpart (i.e add one!)
      *  Now useless, as we now used the model id, which (normally) start to one.
      **/
@@ -281,7 +282,7 @@ class SystusWriter final: public Writer {
     /** Converts a vega DOFS to its ASC material counterpart.
      *  Return the number of material field filled.
      **/
-    int DOFSToMaterial(const DOFS dofs, ostream& out) const;
+    int DOFSToMaterial(const DOFS dofs, std::ostream& out) const;
     /** Converts a vega DOFS to its integer Systus counterpart **/
     int DOFSToInt(const DOFS dofs) const;
     /** Converts a vega DOF to its integer Systus counterpart **/
@@ -289,8 +290,8 @@ class SystusWriter final: public Writer {
 
     /** Find an available Part Id for a Cell Group.
      * If possible, try to use the suffix (_NN) of the Group Name. **/
-    int getPartId(const string partName, std::set<int> & usedPartId);
-    static const std::unordered_map<CellType::Code, vector<int>, hash<int>> systus2medNodeConnectByCellType;
+    int getPartId(const std::string partName, std::set<int> & usedPartId);
+    static const std::unordered_map<CellType::Code, std::vector<int>, std::hash<int>> systus2medNodeConnectByCellType;
     void writeAsc(const SystusModel&, const ConfigurationParameters&, const int idSubcase, std::ostream&);
     void getSystusInformations(const SystusModel&, const ConfigurationParameters&);
 
@@ -323,8 +324,8 @@ class SystusWriter final: public Writer {
      *       L_j the length of the j-th segment of the current Rbar.
      *
      */
-    double generateRbarRigidity(const SystusModel&, const shared_ptr<Rbar>);
-    double generateLmpcRigidity(const SystusModel&, const shared_ptr<Lmpc>);
+    double generateRbarRigidity(const SystusModel&, const std::shared_ptr<Rbar>);
+    double generateLmpcRigidity(const SystusModel&, const std::shared_ptr<Lmpc>);
 
     /**
      *  Generate RBE from Rbars and Rbe3 ElementSet:
@@ -356,13 +357,13 @@ class SystusWriter final: public Writer {
      *  Systus Reference Manual secion "16.2 Local axes (X,Y,Z)"
      *  TODO: Should not be a part of the writer.
      **/
-    CartesianCoordinateSystem buildElementDefaultReferentiel(const SystusModel& systusModel, const vector<int> nodes, const int dim, const int celltype);
+    CartesianCoordinateSystem buildElementDefaultReferentiel(const SystusModel& systusModel, const std::vector<int> nodes, const int dim, const int celltype);
 
     /**
      *  Write the Euler Angles corresponding to an element with local referentiel cpos.
      *  Depending of the type of element, some angles may be dismissed.
      **/
-    void writeElementLocalReferentiel(const SystusModel& systusModel, const int dim, const int celltype, const vector<int> nodes, const int cpos, ostream& out);
+    void writeElementLocalReferentiel(const SystusModel& systusModel, const int dim, const int celltype, const std::vector<int> nodes, const int cpos, std::ostream& out);
     void writeElements(const SystusModel&, const int idSubcase, std::ostream&);
     /**
      * Write the Cells and Nodes groups in ASC format.
@@ -387,14 +388,14 @@ class SystusWriter final: public Writer {
      * the integer conversion of the SMF::key.
      * Value here is a double.
      */
-    void writeMaterialField(const SMF key, const double value, int& nbfields, ostream& out) const;
+    void writeMaterialField(const SMF key, const double value, int& nbfields, std::ostream& out) const;
     /**
      * Writes a Material Field in the ASC Material lines.
      * Output verifies the syntax " number value" where the number is
      * the integer conversion of the SMF::key.
      * Value here is an integer.
      */
-    void writeMaterialField(const SMF key, const int value, int& nbfields, ostream& out) const ;
+    void writeMaterialField(const SMF key, const int value, int& nbfields, std::ostream& out) const ;
     void writeMaterials(const SystusModel&, const ConfigurationParameters&, const int, std::ostream&);
     void writeLoads(std::ostream&);
     void writeLists(std::ostream&);
@@ -405,10 +406,10 @@ class SystusWriter final: public Writer {
     void writeVectors(std::ostream&);
     void writeDat(const SystusModel&, const ConfigurationParameters &, const int idSubcase, std::ostream&);
 
-    void writeNodalDisplacementAssertion(Assertion& assertion, ostream& out);
-    void writeNodalComplexDisplacementAssertion(Assertion& assertion, ostream& out);
-    void writeFrequencyAssertion(Assertion& assertion, ostream& out);
-    void writeNodalForce(const SystusModel& systusModel, shared_ptr<NodalForce> nodalForce, const int idLoadCase, long unsigned int& vectorId);
+    void writeNodalDisplacementAssertion(Assertion& assertion, std::ostream& out);
+    void writeNodalComplexDisplacementAssertion(Assertion& assertion, std::ostream& out);
+    void writeFrequencyAssertion(Assertion& assertion, std::ostream& out);
+    void writeNodalForce(const SystusModel& systusModel, std::shared_ptr<NodalForce> nodalForce, const int idLoadCase, long unsigned int& vectorId);
 
     const std::string toString() const override {
         return std::string("SystusWriter");
@@ -430,5 +431,6 @@ public:
     override;
 };
 
-}
+} // namespace systus
+} // namespace vega
 #endif /* SYSTUSBUILDER_H_ */

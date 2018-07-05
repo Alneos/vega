@@ -253,18 +253,18 @@ shared_ptr<Constraint> RBE3::clone() const {
 const ValueOrReference& SinglePointConstraint::NO_SPC = ValueOrReference::EMPTY_VALUE;
 
 SinglePointConstraint::SinglePointConstraint(const Model& _model,
-        const array<ValueOrReference, 6>& _spcs, Group* _group, int original_id) :
+        const array<ValueOrReference, 6>& _spcs, shared_ptr<Group> _group, int original_id) :
         Constraint(_model, SPC, original_id), spcs(_spcs), group(_group) {
 }
 
 SinglePointConstraint::SinglePointConstraint(const Model& _model,
-        const array<ValueOrReference, 3>& _spcs, Group* _group, int original_id) :
+        const array<ValueOrReference, 3>& _spcs, shared_ptr<Group> _group, int original_id) :
         Constraint(_model, SPC, original_id), spcs( { { NO_SPC, NO_SPC, NO_SPC, NO_SPC, NO_SPC,
                 NO_SPC } }), group(_group) {
     copy_n(_spcs.begin(), 3, spcs.begin());
 }
 
-SinglePointConstraint::SinglePointConstraint(const Model& _model, DOFS dofs, double value, Group* _group,
+SinglePointConstraint::SinglePointConstraint(const Model& _model, DOFS dofs, double value, shared_ptr<Group> _group,
         int original_id) :
         Constraint(_model, SPC, original_id), spcs( { { NO_SPC, NO_SPC, NO_SPC, NO_SPC, NO_SPC,
                 NO_SPC } }), group(_group) {
@@ -273,7 +273,7 @@ SinglePointConstraint::SinglePointConstraint(const Model& _model, DOFS dofs, dou
     }
 }
 
-SinglePointConstraint::SinglePointConstraint(const Model& _model, Group* _group, int original_id) :
+SinglePointConstraint::SinglePointConstraint(const Model& _model, shared_ptr<Group> _group, int original_id) :
         Constraint(_model, SPC, original_id), group(_group) {
 }
 
@@ -293,7 +293,7 @@ void SinglePointConstraint::addNodeId(int nodeId) {
         _nodePositions.insert(nodePosition);
     } else {
         if (group->type == Group::NODEGROUP) {
-            NodeGroup* const ngroup = static_cast<NodeGroup* const >(group);
+            shared_ptr<NodeGroup> const ngroup = dynamic_pointer_cast<NodeGroup>(group);
             ngroup->addNodeByPosition(nodePosition);
         } else {
             throw logic_error("SPC:: addNodeId on unknown group type");
@@ -311,7 +311,7 @@ set<int> SinglePointConstraint::nodePositions() const {
     result.insert(_nodePositions.begin(), _nodePositions.end());
     if (group != nullptr) {
         if (this->group->type == Group::NODEGROUP) {
-            NodeGroup* const ngroup = static_cast<NodeGroup* const >(group);
+            shared_ptr<NodeGroup> const ngroup = dynamic_pointer_cast<NodeGroup>(group);
             set<int> nodePositions = ngroup->nodePositions();
             result.insert(nodePositions.begin(), nodePositions.end());
         } else {
@@ -327,7 +327,7 @@ void SinglePointConstraint::removeNode(int nodePosition) {
     }
     if (group != nullptr) {
         if (group->type == Group::NODEGROUP) {
-            NodeGroup* const ngroup = static_cast<NodeGroup* const >(group);
+            shared_ptr<NodeGroup> const ngroup = dynamic_pointer_cast<NodeGroup>(group);
             ngroup->removeNodeByPosition(nodePosition);
         } else {
             throw logic_error("SPC:: removeNode on unknown group type");

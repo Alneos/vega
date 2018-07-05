@@ -197,12 +197,6 @@ Mesh::Mesh(LogLevel logLevel, const string& modelName) :
 	}
 }
 
-Mesh::~Mesh() {
-	for (auto it : groupByName) {
-		delete (it.second);
-	}
-}
-
 int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &nodeIds,
 		bool virtualCell, const int cpos, int elementId) {
 	int cellId;
@@ -257,7 +251,7 @@ int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &node
 		nodePositionsPtr->push_back(nodePosition);
 	}
 	if (cpos != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-		CellGroup* coordinateSystemCellGroup = this->getOrCreateCellGroupForOrientation(cpos);
+		std::shared_ptr<CellGroup> coordinateSystemCellGroup = this->getOrCreateCellGroupForOrientation(cpos);
 		coordinateSystemCellGroup->addCellId(cellId);
 		cellData.csPos = cpos;
 		}
@@ -317,7 +311,7 @@ int Mesh::updateCell(int id, const CellType &cellType, const std::vector<int> &n
         nodePositionsPtr->push_back(nodePosition);
     }
     if (cpos != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-        CellGroup* coordinateSystemCellGroup = this->getOrCreateCellGroupForOrientation(cpos);
+        std::shared_ptr<CellGroup> coordinateSystemCellGroup = this->getOrCreateCellGroupForOrientation(cpos);
         coordinateSystemCellGroup->addCellId(id);
         cellData.csPos = cpos;
         }
@@ -475,7 +469,7 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 		throw logic_error("ERROR : writing family 0 ...");
 	}
 
-	vector<vega::NodeGroup *> nodeGroups = getNodeGroups();
+	vector<shared_ptr<NodeGroup>> nodeGroups = getNodeGroups();
 	if (nodeGroups.size() > 0) {
 		NodeGroup2Families ng2fam(countNodes(), nodeGroups);
 		//WARN: if writing to file is delayed to MEDfileClose may be necessary
@@ -488,7 +482,7 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 			throw logic_error("ERROR : writing family on nodes ...");
 		}
 	}
-	vector<CellGroup *> cellGroups = this->getCellGroups();
+	vector<shared_ptr<CellGroup>> cellGroups = this->getCellGroups();
 	if (cellGroups.size() > 0) {
 		unordered_map<CellType::Code, int, hash<int>> cellCountByType;
 		for (auto typeAndCodePair : CellType::typeByCode) {
@@ -524,12 +518,12 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 	}
 }
 
-CellGroup* Mesh::getOrCreateCellGroupForOrientation(int cid){
-	CellGroup * result;
+shared_ptr<CellGroup> Mesh::getOrCreateCellGroupForOrientation(int cid){
+	shared_ptr<CellGroup> result;
 	auto cellGroupNameIter = cellGroupNameByCID.find(cid);
 	if (cellGroupNameIter != cellGroupNameByCID.end()) {
 		string cellGroupName = cellGroupNameIter->second;
-		result = dynamic_cast<CellGroup *>(findGroup(cellGroupName));
+		result = dynamic_pointer_cast<CellGroup>(findGroup(cellGroupName));
 	} else {
 		string gmaName;
 		string id = lexical_cast<string>(cellGroupNameByCID.size() + 1);
@@ -574,7 +568,7 @@ void Mesh::finish() {
 
 }
 
-NodeGroup* Mesh::createNodeGroup(const string& name, int group_id, const string & comment) {
+shared_ptr<NodeGroup> Mesh::createNodeGroup(const string& name, int group_id, const string & comment) {
 	if (name.empty()) {
 		throw invalid_argument("Can't create a nodeGroup with empty name ");
 	}
@@ -586,7 +580,7 @@ NodeGroup* Mesh::createNodeGroup(const string& name, int group_id, const string 
 		string errorMessage = "Another group exists with same id : " + to_string(group_id);
 		throw invalid_argument(errorMessage);
 	}
-	NodeGroup* group = new NodeGroup(this, name, group_id, comment);
+	shared_ptr<NodeGroup> group = shared_ptr<NodeGroup>(new NodeGroup(this, name, group_id, comment));
 	this->groupByName[name] = group;
 	if (group_id != NodeGroup::NO_ORIGINAL_ID) {
 		this->groupById[group_id] = group;
@@ -598,25 +592,22 @@ NodeGroup* Mesh::createNodeGroup(const string& name, int group_id, const string 
 	return group;
 }
 
-NodeGroup* Mesh::findOrCreateNodeGroup(const string& name, int group_id, const string & comment) {
+shared_ptr<NodeGroup> Mesh::findOrCreateNodeGroup(const string& name, int group_id, const string & comment) {
 	if (name.empty()) {
 		throw invalid_argument("Can't find or create a nodeGroup with empty name ");
 	}
-	Group* group = this->findGroup(name);
+	shared_ptr<NodeGroup> group = dynamic_pointer_cast<NodeGroup>(this->findGroup(name));
 	if (group==nullptr){
 		return this->createNodeGroup(name, group_id, comment);
 	}else{
 		if (group->type != Group::NODEGROUP) {
 			throw invalid_argument("Group " + name + " is not a nodeGroup.");
 		}
-		return static_cast<NodeGroup*>(group);
+		return group;
 	}
 }
 
-
-
-
-CellGroup* Mesh::createCellGroup(const string& name, int group_id, const string & comment) {
+shared_ptr<CellGroup> Mesh::createCellGroup(const string& name, int group_id, const string & comment) {
 	if (name.empty()) {
 		throw invalid_argument("Can't create a cellGroup with empty name.");
 	}
@@ -628,7 +619,7 @@ CellGroup* Mesh::createCellGroup(const string& name, int group_id, const string 
 		string errorMessage = "Another group exists with same id: " + to_string(group_id);
 		throw invalid_argument(errorMessage);
 	}
-	CellGroup* group= new CellGroup(this, name, group_id, comment);
+	shared_ptr<CellGroup> group= shared_ptr<CellGroup>(new CellGroup(this, name, group_id, comment));
 	this->groupByName[name] = group;
 	if (group_id != CellGroup::NO_ORIGINAL_ID) {
 		this->groupById[group_id] = group;
@@ -650,7 +641,7 @@ void Mesh::renameGroup(const string& oldname, const string& newname, const strin
 	if (this->groupByName.find(oldname) == this->groupByName.end()) {
 		throw invalid_argument("No group exists with this name: " + oldname);
 	}
-	Group* group = this->groupByName[oldname];
+	shared_ptr<Group> group = this->groupByName[oldname];
 	group->name = newname;
 	group->comment = comment;
 	this->groupByName.erase(oldname);
@@ -666,7 +657,7 @@ void Mesh::removeGroup(const string& name) {
 
     auto it = this->groupByName.find(name);
     if (it != this->groupByName.end()) {
-        Group* group = it->second;
+        std::shared_ptr<Group> group = it->second;
         this->groupByName.erase(name);
         const int gId= group->getId();
         if (gId!= Group::NO_ORIGINAL_ID){
@@ -678,26 +669,26 @@ void Mesh::removeGroup(const string& name) {
     }
 }
 
-vector<NodeGroup*> Mesh::getNodeGroups() const {
-	vector<NodeGroup*> groups;
+vector<shared_ptr<NodeGroup>> Mesh::getNodeGroups() const {
+	vector<shared_ptr<NodeGroup>> groups;
 	for (const auto& it : groupByName) {
-		Group* group = it.second;
+		shared_ptr<Group> group = it.second;
 		if (group->type != Group::NODEGROUP) {
 			continue;
 		}
-		groups.push_back(static_cast<NodeGroup*>(group));
+		groups.push_back(dynamic_pointer_cast<NodeGroup>(group));
 	}
 	return groups;
 }
 
-vector<CellGroup*> Mesh::getCellGroups() const {
-	vector<CellGroup*> groups;
+vector<shared_ptr<CellGroup>> Mesh::getCellGroups() const {
+	vector<shared_ptr<CellGroup>> groups;
 	for (const auto& it : groupByName) {
-		Group* group = it.second;
+		shared_ptr<Group> group = it.second;
 		if (group->type != Group::CELLGROUP) {
 			continue;
 		}
-		groups.push_back(static_cast<CellGroup*>(group));
+		groups.push_back(dynamic_pointer_cast<CellGroup>(group));
 	}
 	return groups;
 }
@@ -710,14 +701,14 @@ void Mesh::assignElementId(const CellContainer& cellContainer, int elementId) {
 	}
 }
 
-Group* Mesh::findGroup(string groupName) const {
+shared_ptr<Group> Mesh::findGroup(string groupName) const {
 	auto groupIterator = groupByName.find(groupName);
 	if (groupIterator == groupByName.end())
 		return nullptr;
 	return groupIterator->second;
 }
 
-Group* Mesh::findGroup(int originalId) const {
+shared_ptr<Group> Mesh::findGroup(int originalId) const {
 	auto groupIterator = groupById.find(originalId);
 	if (groupIterator == groupById.end())
 		return nullptr;

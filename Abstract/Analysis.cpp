@@ -31,6 +31,8 @@
 
 namespace vega {
 
+using namespace std;
+
 Analysis::Analysis(Model& model, const Type Type, const string original_label, int original_id) :
         Identifiable(original_id), label(original_label), model(model), type(Type) {
 }

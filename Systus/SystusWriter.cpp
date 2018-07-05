@@ -37,8 +37,10 @@
 #include <ctime>
 
 namespace fs = boost::filesystem;
+using namespace std;
 
 namespace vega {
+namespace systus {
 
 
 string SMFToString(SMF key){
@@ -639,7 +641,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
                 rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
             }
 
-            CellGroup* cellGroup = elementSet->cellGroup;
+            shared_ptr<CellGroup> cellGroup = elementSet->cellGroup;
             for (const Cell& cell : cellGroup->getCells()) {
 
                 vector<int> nodes = cell.nodeIds;
@@ -726,7 +728,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
             }
 
             // Updating the cells
-            CellGroup* cellGroup = elementSet->cellGroup;
+            shared_ptr<CellGroup> cellGroup = elementSet->cellGroup;
             for (const Cell& cell : cellGroup->getCells()) {
 
                 vector<int> nodes = cell.nodeIds;
@@ -793,7 +795,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
             // With a Lagrangian formulation, we add a Lagrange node.
             // Lagrange node must NOT have an orientation, as they inherit it from the original node.
             if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-                CellGroup* cellGroup = elementSet->cellGroup;
+                shared_ptr<CellGroup> cellGroup = elementSet->cellGroup;
                 for (const Cell& cell : cellGroup->getCells()) {
                     vector<int> nodes = cell.nodeIds;
                     Node first = mesh->findNode(cell.nodePositions[0]);
@@ -2295,7 +2297,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
     out << "BEGIN_ELEMENTS " << mesh->countCells() << endl;
     for (const auto& elementSet : systusModel.model->elementSets) {
 
-        CellGroup* cellGroup = elementSet->cellGroup;
+        shared_ptr<CellGroup> cellGroup = elementSet->cellGroup;
         int dim = 0;
         int typecell=0;
 
@@ -2434,8 +2436,8 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
 
 // TODO: Add an option to only write the User groups, and not all vega-created groups.
 void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
-    vector<NodeGroup*> nodeGroups = systusModel.model->mesh->getNodeGroups();
-    vector<CellGroup*> cellGroups = systusModel.model->mesh->getCellGroups();
+    vector<shared_ptr<NodeGroup>> nodeGroups = systusModel.model->mesh->getNodeGroups();
+    vector<shared_ptr<CellGroup>> cellGroups = systusModel.model->mesh->getCellGroups();
 
     ostringstream osgr;
     int nbGroups=0;
@@ -3344,5 +3346,5 @@ void SystusWriter::writeMatrixFiles(const SystusModel& systusModel, const int id
     }
 }
 
-
-} //namespace Vega
+} //namespace systus
+} //namespace vega

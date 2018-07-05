@@ -34,7 +34,6 @@
 #include <vector>
 #include <memory>
 
-using namespace std;
 namespace ublas = boost::numeric::ublas;
 
 namespace vega {
@@ -57,7 +56,7 @@ public:
 protected:
     Value(Value::Type);
 public:
-    static const map<Type, string> stringByType;
+    static const std::map<Type, std::string> stringByType;
     const Value::Type type;
 public:
 
@@ -97,11 +96,11 @@ public:
     };
 
 private:
-    friend ostream &operator<<(ostream&, const NamedValue&);    //output
+    friend std::ostream &operator<<(std::ostream&, const NamedValue&);    //output
 protected:
     const Model& model;
 public:
-    static const string name;
+    static const std::string name;
 protected:
     ParaName paraX;
     ParaName paraY;
@@ -152,11 +151,11 @@ public:
     ;
     std::shared_ptr<NamedValue> clone() const;
     virtual bool iszero() const {
-        throw logic_error("Should not check placeholders for being zero");
+        throw std::logic_error("Should not check placeholders for being zero");
     }
     virtual void scale(double factor) {
         UNUSEDV(factor);
-        throw logic_error("Should not try to scale placeholders");
+        throw std::logic_error("Should not try to scale placeholders");
     }
 };
 
@@ -341,7 +340,7 @@ class ValueOrReference
         bool operator<(const ValueOrReference& rhs) const;
     };
 
-ostream& operator<<(ostream &out, const ValueOrReference& valueOrReference);
+std::ostream& operator<<(std::ostream &out, const ValueOrReference& valueOrReference);
 
 class VectorialFunction final : public NamedValue {//: public TriValue {
 private:

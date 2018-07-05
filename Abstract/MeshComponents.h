@@ -189,7 +189,7 @@ public:
 private:
 
     CellType(Code code, int numNodes, SpaceDimension dimension, const std::string& description);
-    friend ostream &operator<<(ostream &out, const CellType& cellType); //output
+    friend std::ostream &operator<<(std::ostream &out, const CellType& cellType); //output
 
 public:
     CellType(const CellType& other);
@@ -236,7 +236,7 @@ public:
 
 class Node final {
 private:
-    friend ostream &operator<<(ostream &out, const Node& node);    //output
+    friend std::ostream &operator<<(std::ostream &out, const Node& node);    //output
     friend Mesh;
     static int auto_node_id;
     Node(int id, double lx, double ly, double lz, int position, DOFS dofs,
@@ -298,7 +298,7 @@ public:
  */
 class Cell final {
 private:
-    friend ostream &operator<<(ostream &out, const Cell & cell);    //output
+    friend std::ostream &operator<<(std::ostream &out, const Cell & cell);    //output
     friend Mesh;
     int findNodeIdPosition(int node_id2) const;
     /**
@@ -496,13 +496,13 @@ public:
      * in any group.
      */
     bool hasCells() const;
-    std::vector<CellGroup *> getCellGroups() const;
+    std::vector<std::shared_ptr<CellGroup>> getCellGroups() const;
     virtual ~CellContainer() {
     }
 };
 
 struct Family final {
-    std::vector<Group *> groups;
+    std::vector<std::shared_ptr<Group>> groups;
     std::string name;
     int num;
 };
@@ -511,7 +511,7 @@ class NodeGroup2Families {
     std::vector<Family> families;
     std::vector<int> nodes;
 public:
-    NodeGroup2Families(int nnodes, const std::vector<NodeGroup *> nodeGroups);
+    NodeGroup2Families(int nnodes, const std::vector<std::shared_ptr<NodeGroup>> nodeGroups);
     std::vector<Family>& getFamilies();
     std::vector<int>& getFamilyOnNodes();
 };
@@ -523,9 +523,9 @@ private:
     const Mesh* mesh;
 public:
     CellGroup2Families(const Mesh* mesh, std::unordered_map<CellType::Code, int, std::hash<int>> cellCountByType,
-            const std::vector<CellGroup *>& cellGroups);
+            const std::vector<std::shared_ptr<CellGroup>>& cellGroups);
     std::vector<Family>& getFamilies();
-    std::unordered_map<CellType::Code, std::shared_ptr<std::vector<int>>, hash<int>>& getFamilyOnCells();
+    std::unordered_map<CellType::Code, std::shared_ptr<std::vector<int>>, std::hash<int>>& getFamilyOnCells();
 };
 
 } /* namespace vega */
