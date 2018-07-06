@@ -71,10 +71,10 @@ BOOST_AUTO_TEST_CASE( hash_DOF ) {
 }
 
 BOOST_AUTO_TEST_CASE( hash_DOFS ) {
-	BOOST_CHECK_EQUAL(hash<DOFS>()(DOFS((char) 123456)), hash<DOFS>()(DOFS((char) 123456)));
-	BOOST_CHECK_NE(hash<DOFS>()(DOFS((char) 123)), hash<DOFS>()(DOFS((char) 1234)));
+	BOOST_CHECK_EQUAL(hash<DOFS>()(DOFS(static_cast<char>(123456))), hash<DOFS>()(DOFS(static_cast<char>(123456))));
+	BOOST_CHECK_NE(hash<DOFS>()(DOFS(static_cast<char>(123))), hash<DOFS>()(DOFS(static_cast<char>(1234))));
     //BOOST_CHECK_EQUAL(hash<DOFS>()(DOFS::ALL_DOFS), hash<DOFS>()(DOFS((char) 123456)));
-	BOOST_CHECK_EQUAL(hash<DOFS>()(DOFS::NO_DOFS), hash<DOFS>()(DOFS((char) 0)));
+	BOOST_CHECK_EQUAL(hash<DOFS>()(DOFS::NO_DOFS), hash<DOFS>()(DOFS(static_cast<char>(0))));
 }
 
 BOOST_AUTO_TEST_CASE( test_differentnodes ) {

@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE( test_NodeGroup2Families ) {
 	vector<int> result = ng.getFamilyOnNodes();
 	BOOST_CHECK_EQUAL_COLLECTIONS(result.begin(), result.end(), expected, expected + 5);
 	vector<Family> families = ng.getFamilies();
-	BOOST_CHECK_EQUAL((size_t )3, families.size());
+	BOOST_CHECK_EQUAL(static_cast<size_t>(3), families.size());
 	bool famGN1_GN2_found = false;
 	for (Family fam : families) {
 		famGN1_GN2_found |= fam.name == "GN1_GN2";
@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE( test_NodeGroup ) {
 	//find the group by name
 	shared_ptr<NodeGroup> testGroup = dynamic_pointer_cast<NodeGroup>(mesh.findGroup("test"));
 	BOOST_ASSERT_MSG(testGroup != nullptr, "Group found by name");
-	BOOST_CHECK_EQUAL(testGroup->nodePositions().size(), (size_t ) 4);
+	BOOST_CHECK_EQUAL(testGroup->nodePositions().size(), static_cast<size_t>(4));
 	const set<int> nodeIds1 = testGroup->getNodeIds();
 	for (int originalId : nodeIds) {
 		string message = string("Node id ") + to_string(originalId) + " not found";

@@ -97,7 +97,7 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
     vector<const char*> argv1;
     argv1.push_back("vega");
     argv1.push_back("-o");
-    argv1.push_back((const char*) outputPathEscaped.c_str());
+    argv1.push_back(outputPathEscaped.c_str());
     //G.C. debug output kills CDash server in large studies
     if (string("ON") != TESTS_NIGHTLY_BUILD) {
         argv1.push_back("-d");
@@ -116,13 +116,13 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
     string toleranceString = to_string(tolerance);
     if (hasTests) {
         argv1.push_back("-t");
-        argv1.push_back((const char *) test_file.c_str());
+        argv1.push_back(test_file.c_str());
         argv1.push_back("--tolerance");
-        argv1.push_back((const char *) toleranceString.c_str());
+        argv1.push_back(toleranceString.c_str());
     }
 
     string quotedSource = string("\"") + sourceFname.make_preferred().string() + "\"";
-    argv1.push_back((const char *) quotedSource.c_str());
+    argv1.push_back(quotedSource.c_str());
     argv1.push_back(inputSolverString.c_str());
     argv1.push_back(outputSolverString.c_str());
     argv1.push_back(nullptr); // finish argv with zero

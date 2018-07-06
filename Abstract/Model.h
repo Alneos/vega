@@ -161,7 +161,7 @@ private:
                     };
                     iterator begin() const {return iterator(by_id, by_id.begin());}
                     iterator end() const {return iterator(by_id, by_id.end());}
-                    int size() const {return (int)by_id.size();}
+                    int size() const {return static_cast<int>(by_id.size());}
                     bool empty() const {return by_id.size() == 0;}
                     void add(const T&);
                     void add(std::shared_ptr<T> T_ptr);

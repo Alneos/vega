@@ -71,7 +71,7 @@ ostream &operator<<(ostream &out, const LoadSet& loadset) {
 }
 
 int LoadSet::size() const {
-	return (int) getLoadings().size();
+	return static_cast<int>(getLoadings().size());
 }
 
 //bool LoadSet::operator<(const LoadSet &rhs) const {

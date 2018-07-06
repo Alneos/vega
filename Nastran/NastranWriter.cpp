@@ -139,7 +139,7 @@ string NastranWriter::getDatFilename(const shared_ptr<vega::Model>& model,
 	string modelPath = outputFileName + ".dat";
 	bool absolute = true;
 	if (absolute) {
-		modelPath = (fs::path(fs::absolute(outputPath)) / modelPath).string();
+		modelPath = (fs::absolute(outputPath) / modelPath).string();
 	}
 	return modelPath;
 }

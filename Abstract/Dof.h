@@ -216,7 +216,7 @@ struct hash<vega::DOF> {
 template<>
 struct hash<vega::DOFS> {
 	size_t operator()(const vega::DOFS& dofs) const {
-		return hash<char>()((char) dofs);
+		return hash<char>()(static_cast<char>(dofs));
 	}
 };
 

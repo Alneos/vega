@@ -34,21 +34,6 @@ namespace vega {
 
 namespace nastran {
 
-
-// See chapter 5 of the Nastran Quick Reference guide
-// Please keep alphabetical order for a better readibility
-const set<string> NastranParser::IGNORED_PARAMS = {
-        "BAILOUT", // Behavior when matrixes are almost singular. Useless for translation.
-        "COUPMASS", // Generation of coupled rather than diagonal mass matrices for elements with coupled mass capability
-        "DESPCH", "DESPCH1", // Amount of output data to write during an optimization process. Useless for translation.
-        "NASPRT",  // Data recovery during optimization process. Useless for translation.
-        "OUGCORD", // Choice of referentiel for printout
-        "POST",    // Post-treatment parameter. Useless for translation.
-        "PRGPST",  // Printout command
-        "TINY"     // Printout command
-};
-
-
 //TODO: Add a better switch for PARAM :  map ?
 void NastranParser::parsePARAM(NastranTokenizer& tok, shared_ptr<Model> model) {
     string param = tok.nextString();

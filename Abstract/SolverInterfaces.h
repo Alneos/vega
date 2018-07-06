@@ -108,8 +108,6 @@ public:
 	 * configuration: a set of configuration parameters usually specified on the command line
 	 */
 	virtual std::shared_ptr<Model> parse(const ConfigurationParameters& configuration) = 0;
-	virtual ~Parser() {
-	}
 
     /**
      * Generic handler for parsing exceptions.

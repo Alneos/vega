@@ -34,7 +34,30 @@ namespace vega {
 namespace optistruct {
 
 class OptistructParser: public nastran::NastranParser {
+private:
 
+    /**
+     * Parse the SET keyword
+     */
+    void parseSET(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    const std::set<std::string> OPTISTRUCT_IGNORED_KEYWORDS = {
+        //optistruct optimization variable
+        "DOPTPRM", "DCOMP", //Manufacturing constraints for composite sizing optimization.
+        "DESVAR", //Design variable definition.
+        "DSHAPE", //Free-shape design variable definition.
+        "DSHUFFLE", //Parameters for the generation of composite shuffling design variables.
+        "DSIZE", "DTPG", //Topography design variable definition.
+        "DTPL", //Topology design variable definition.
+        "DVGRID", "DEQATN",
+        "DREPORT", "DREPADD", // Optistruct Cards
+    };
+
+public:
+    OptistructParser();
+    //std::shared_ptr<Model> parse(const ConfigurationParameters& configuration) override;
+    virtual ~OptistructParser() {
+	}
 };
 
 } /* namespace optistruct */

@@ -55,7 +55,7 @@ DOF DOF::findByPosition(int position) {
 }
 
 DOF::operator char() const {
-	return (char) code;
+	return static_cast<char>(code);
 }
 
 ostream &operator<<(ostream &out, const DOF& dof) {
@@ -74,10 +74,10 @@ const boost::bimap<int, char> DOFS::DOF_BY_NASTRANCODE = boost::assign::list_of<
 		( 5, DOF::RY_CODE )
 		( 6, DOF::RZ_CODE );
 
-const DOFS DOFS::NO_DOFS((char) 0);
-const DOFS DOFS::ONE((char) DOF::DX_CODE);
-const DOFS DOFS::TRANSLATIONS((char) (DOF::DX_CODE | DOF::DY_CODE | DOF::DZ_CODE));
-const DOFS DOFS::ROTATIONS((char) (DOF::RX_CODE | DOF::RY_CODE | DOF::RZ_CODE));
+const DOFS DOFS::NO_DOFS(static_cast<char>(0));
+const DOFS DOFS::ONE(static_cast<char>(DOF::DX_CODE));
+const DOFS DOFS::TRANSLATIONS(static_cast<char>(DOF::DX_CODE | DOF::DY_CODE | DOF::DZ_CODE));
+const DOFS DOFS::ROTATIONS(static_cast<char>(DOF::RX_CODE | DOF::RY_CODE | DOF::RZ_CODE));
 const DOFS DOFS::ALL_DOFS = TRANSLATIONS + ROTATIONS;
 
 DOFS::DOFS(char _dofsCode) :
@@ -85,7 +85,7 @@ DOFS::DOFS(char _dofsCode) :
 }
 
 DOFS::DOFS(DOF dof) :
-		dofsCode((char) dof.code) {
+		dofsCode(static_cast<char>(dof.code)) {
 }
 
 VectorialValue DOFS::getTranslations() {
@@ -184,7 +184,7 @@ DOFS DOFS::nastranCodeToDOFS(int nastranCode) {
 		auto codeiter = DOF_BY_NASTRANCODE.left.find(nastranDigit);
 		if (codeiter == DOF_BY_NASTRANCODE.left.end()) {
 			throw invalid_argument(
-					string("Invalid Nastran code: " + boost::lexical_cast<string>(nastranCode)));
+					string("Invalid Nastran code: " + nastranCode));
 		}
 		DOFS internalDOFCode = codeiter->second;
 		dofs = dofs + internalDOFCode;
@@ -193,18 +193,18 @@ DOFS DOFS::nastranCodeToDOFS(int nastranCode) {
 }
 
 DOFS operator +(const DOFS lhs, const DOF& rhs) {
-	return DOFS((char) (lhs.dofsCode | rhs.code));
+	return DOFS(static_cast<char>(lhs.dofsCode | rhs.code));
 }
 
 DOFS operator -(const DOFS lhs, const DOF& rhs) {
-	return DOFS((char) (lhs.dofsCode & ~rhs.code));
+	return DOFS(static_cast<char>(lhs.dofsCode & ~rhs.code));
 }
 
 DOFS operator+(const DOFS lhs, const DOFS& rhs) {
-	return DOFS((char) (lhs.dofsCode | rhs.dofsCode));
+	return DOFS(static_cast<char>(lhs.dofsCode | rhs.dofsCode));
 }
 DOFS operator-(const DOFS lhs, const DOFS& rhs) {
-	return DOFS((char) (lhs.dofsCode & (~rhs.dofsCode)));
+	return DOFS(static_cast<char>(lhs.dofsCode & (~rhs.dofsCode)));
 }
 
 DOFS DOFS::combineCodes(bool dx, bool dy, bool dz, bool rx, bool ry, bool rz) {

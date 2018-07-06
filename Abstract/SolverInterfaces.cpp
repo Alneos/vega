@@ -254,7 +254,7 @@ Runner::ExitCode Runner::convertExecResult(int exitCode) const {
 #ifdef __GNUC__
     //bash exit codes http://tldp.org/LDP/abs/html/exitcodes.html
     //int lowByte = 0x00FF & exitCode;
-    int highByte = (exitCode && 0xFF00) >> 8;
+    int highByte = (exitCode & 0xFF00) >> 8;
     if (highByte == 127) {
         result = SOLVER_NOT_FOUND;
     } else if (highByte > 128 && highByte <= 165) {

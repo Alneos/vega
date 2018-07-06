@@ -1701,6 +1701,8 @@
 		<Unit filename="Nastran/NastranWriter.h">
 			<Option target="nastran" />
 		</Unit>
+		<Unit filename="Optistruct/OptistructParser.cpp" />
+		<Unit filename="Optistruct/OptistructParser.h" />
 		<Unit filename="ResultReaders/CMakeLists.txt">
 			<Option virtualFolder="CMake Files/ResultReaders/" />
 		</Unit>

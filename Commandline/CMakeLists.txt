@@ -8,7 +8,7 @@ if(ENABLE_ASTER)
 endif(ENABLE_ASTER)
 
 if(ENABLE_NASTRAN)
-  list(APPEND MODULES nastran)
+  list(APPEND MODULES nastran optistruct)
 endif(ENABLE_NASTRAN)
 
 if(ENABLE_SYSTUS)

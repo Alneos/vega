@@ -88,7 +88,7 @@ const string AsterModel::getOutputFileName(string extension, bool absolute) cons
     string result = outputFileName + extension;
     if (absolute){
         string path = this->configuration.outputPath;
-        result = (fs::path(fs::absolute(path)) / result).string();
+        result = (fs::absolute(path) / result).string();
     }
     return result;
 }
@@ -170,7 +170,7 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
         break;
     }
     default:
-        throw logic_error(string("AFFE_MODELE unsupported" + to_str(*elementSet)));
+        throw logic_error("AFFE_MODELE unsupported" + to_str(*elementSet));
     }
 
     return result;

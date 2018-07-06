@@ -1441,7 +1441,7 @@ void Model::splitDirectMatrices(const unsigned int sizeMax){
 
     vector<shared_ptr<ElementSet>> esToErase;
     vector<shared_ptr<ElementSet>> esToAdd;
-    const int sizeStack = (int)sizeMax/2;
+    const int sizeStack = static_cast<int>(sizeMax/2);
 
     for (auto elementSetM : elementSets) {
         if (!elementSetM->isMatrixElement()) {
@@ -1480,14 +1480,14 @@ void Model::splitDirectMatrices(const unsigned int sizeMax){
             int sI, sJ;
             auto it = stackOfNodesByNodes.find(np.first);
             if (it == stackOfNodesByNodes.end()){
-                sI = (int)stackOfNodesByNodes.size()/sizeStack;
+                sI = static_cast<int>(stackOfNodesByNodes.size()/sizeStack);
                 stackOfNodesByNodes[np.first]=sI;
             }else{
                 sI = it->second;
             }
             it = stackOfNodesByNodes.find(np.second);
             if (it == stackOfNodesByNodes.end()){
-                sJ = (int)stackOfNodesByNodes.size()/sizeStack;
+                sJ = static_cast<int>(stackOfNodesByNodes.size()/sizeStack);
                 stackOfNodesByNodes[np.second]=sJ;
             }else{
                 sJ = it->second;

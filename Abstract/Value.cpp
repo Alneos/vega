@@ -167,9 +167,9 @@ VectorialValue::VectorialValue(ublas::vector<double>& value) :
 		Value(Value::VECTOR), value(value) {
 }
 
-VectorialValue::VectorialValue(std::initializer_list<double> init_list):
+VectorialValue::VectorialValue(initializer_list<double> init_list):
 				Value(Value::VECTOR), value(ublas::vector<double>(3)) {
-	std::copy_n(init_list.begin(),std::min((int)init_list.size(),3), value.begin());
+	copy_n(init_list.begin(),min(static_cast<int>(init_list.size()),3), value.begin());
 }
 
 VectorialValue::VectorialValue() :

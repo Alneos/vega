@@ -44,26 +44,6 @@ using boost::trim;
 using boost::trim_copy;
 using boost::to_upper;
 
-// see also http://www.altairhyperworks.com/hwhelp/Altair/hw12.0/help/hm/hmbat.htm?design_variables.htm
-const set<string> NastranParser::IGNORED_KEYWORDS = {
-        "CHECKEL", // Active le test de qualité des éléments. Inutile de le traduire.
-        "DCONSTR", "DCONADD", "DESVAR", "DLINK", //nastran optimization keywords
-        "DRAW", "DRESP1", "DRESP2", //ignored in Vega
-        //optistruct optimization variable
-        "DOPTPRM", "DCOMP", //Manufacturing constraints for composite sizing optimization.
-        "DESVAR", //Design variable definition.
-        "DSHAPE", //Free-shape design variable definition.
-        "DSHUFFLE", //Parameters for the generation of composite shuffling design variables.
-        "DSIZE", "DTPG", //Topography design variable definition.
-        "DTPL", //Topology design variable definition.
-        "DVGRID", "DEQATN",
-        "DREPORT", "DREPADD", // Optistruct Cards
-        "EFFMAS", // Outputs modal participation factors and effective mass for normal modes analyses. Inutile de le traduire.
-        "ENDDATA",
-        "PLOTEL",  // Fictitious element for plotting
-        "TOPVAR", //  Topological Design Variable
-};
-
 const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARSE_FUNCTION_BY_KEYWORD =
         {
                 { "CBAR", &NastranParser::parseCBAR },
@@ -1693,7 +1673,7 @@ void NastranParser::parsePBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
             ea=tok.nextDouble(true, 1.0);
             et=tok.nextDouble(true, 1.0);
         }else{
-            handleParsingWarning(string("unknown flag: ")+string(flag), tok, model);
+            handleParsingWarning(string("unknown flag: ")+flag, tok, model);
         }
     }
     // Ony K is supported yet

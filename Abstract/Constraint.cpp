@@ -83,7 +83,7 @@ const set<shared_ptr<Constraint> > ConstraintSet::getConstraintsByType(
 }
 
 int ConstraintSet::size() const {
-    return (int) getConstraints().size();
+    return static_cast<int>(getConstraints().size());
 }
 
 const string ConstraintSet::name = "ConstraintSet";

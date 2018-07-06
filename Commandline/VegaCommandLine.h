@@ -18,13 +18,6 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 
-#if defined(__linux__) && defined(__GLIBC__)
-#include <execinfo.h>
-#include <signal.h>
-
-void handler(int sig);
-#endif
-
 namespace vega {
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;

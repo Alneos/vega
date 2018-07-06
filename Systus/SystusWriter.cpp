@@ -845,7 +845,7 @@ void SystusWriter::generateSubcases(const SystusModel& systusModel,
 
 
             // For mechanical static problem, we search the already defined subcases for the same characteristic
-            long unsigned int idSubcase = static_cast<long unsigned int>(systusSubcases.size());
+            long unsigned int idSubcase = systusSubcases.size();
             if (analysis.type == Analysis::Type::LINEAR_MECA_STAT){
                 for (long unsigned int i=0; i<characteristicAnalysis.size(); i++){
                     if (cAna== characteristicAnalysis[i]){
@@ -1036,7 +1036,7 @@ void SystusWriter::writeNodalForce(const SystusModel& systusModel, shared_ptr<No
 void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int idSubcase){
 
     // First available vector
-    long unsigned int vectorId= static_cast<long unsigned int>(vectors.size())+1;
+    long unsigned int vectorId= vectors.size()+1;
 
     // All analysis to do
     const vector<int> analysisId = systusSubcases[idSubcase];
@@ -1157,7 +1157,7 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
 void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const int idSubcase){
 
     // First available vector
-    long unsigned int vectorId = static_cast<long unsigned int>(vectors.size())+1;
+    long unsigned int vectorId = vectors.size()+1;
 
     // All analysis to do
     const vector<int> analysisId = systusSubcases[idSubcase];
@@ -1278,7 +1278,7 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
     UNUSEDV(idSubcase);
 
     // First available vector
-    long unsigned int vectorId = static_cast<long unsigned int>(vectors.size())+1;
+    long unsigned int vectorId = vectors.size()+1;
     map<int, long unsigned int> localVectorIdByCoordinateSystemPos;
 
     // Add vectors for Node Coordinate System
@@ -1384,9 +1384,9 @@ void SystusWriter::fillConstraintsNodes(const SystusModel& systusModel, const in
     // Available degrees of freedom
     char dofCode;
     if (systusOption == 3)
-        dofCode = (char) DOFS::ALL_DOFS;
+        dofCode = static_cast<char>(DOFS::ALL_DOFS);
     else if (systusOption == 4)
-        dofCode = (char) DOFS::TRANSLATIONS;
+        dofCode = static_cast<char>(DOFS::TRANSLATIONS);
     else
         handleWritingError("systusOption not supported");
     const shared_ptr<Mesh> mesh = systusModel.model->mesh;
@@ -1540,7 +1540,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
                 if (pairDOF.first != pairDOF.second){
                     long unsigned int tId2=0;
                     if (ss->hasStiffness()){
-                        long unsigned int tId= static_cast<long unsigned int>(tables.size())+1;
+                        long unsigned int tId= tables.size()+1;
                         SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
                         const double stiffness = ss->getStiffness();
 
@@ -1560,7 +1560,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
                         tId2+=tId;
                     }
                     if (ss->hasDamping()){
-                        long unsigned int tId= static_cast<long unsigned int>(tables.size())+1;
+                        long unsigned int tId= tables.size()+1;
                         SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
                         const double damping = ss->getDamping();
 
@@ -1592,7 +1592,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             //   - Damping  : XX0000
             case ElementSet::STIFFNESS_MATRIX:{
                 shared_ptr<StiffnessMatrix> sm = static_pointer_cast<StiffnessMatrix>(elementSet);
-                long unsigned int tId= static_cast<long unsigned int>(tables.size())+1;
+                long unsigned int tId= tables.size()+1;
                 SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
 
                 //Numbering the node internally to the element
@@ -1619,7 +1619,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             }
             case ElementSet::MASS_MATRIX:{
                 shared_ptr<MassMatrix> mm = static_pointer_cast<MassMatrix>(elementSet);
-                long unsigned int tId= static_cast<long unsigned int>(tables.size())+1;
+                long unsigned int tId= tables.size()+1;
                 SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
 
                 //Numbering the node internally to the element
@@ -1646,7 +1646,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             }
             case ElementSet::DAMPING_MATRIX:{
                 shared_ptr<DampingMatrix> dm = static_pointer_cast<DampingMatrix>(elementSet);
-                long unsigned int tId= static_cast<long unsigned int>(tables.size())+1;
+                long unsigned int tId= tables.size()+1;
                 SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
 
                 //Numbering the node internally to the element
@@ -1713,7 +1713,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
                 continue;
             }
             // The Table for Lmpc is simply the list of coef by dof by nodes
-            long unsigned int tId= static_cast<long unsigned int>(tables.size())+1;
+            long unsigned int tId= tables.size()+1;
             SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
             for (DOFCoefs dofCoefs : lmpc->dofCoefs){
                 for (int i =0; i< numberOfDofBySystusOption[systusOption]; i++){
@@ -2136,7 +2136,7 @@ void SystusWriter::writeInformations(const SystusModel &systusModel, int idSubca
     string sdate(buffer);
 
     // We have 80 characters
-    long unsigned sizeleft =  static_cast<long unsigned>(80 - ssubcase.length() - sdate.length() - slogiciel.length());
+    long unsigned sizeleft =  80 - ssubcase.length() - sdate.length() - slogiciel.length();
     out << slogiciel << systusModel.configuration.inputFile.substr(0, sizeleft) << ssubcase << sdate<< endl;
 
     // NCODES
@@ -2769,7 +2769,7 @@ void SystusWriter::writeLists(ostream& out) {
         for (const long unsigned int d : list.second)
             olist << " " << d;
         olist << endl;
-        nbElements = nbElements + static_cast<long unsigned int>(list.second.size()/2);
+        nbElements = nbElements + list.second.size()/2;
     }
 
     out << "BEGIN_LISTS ";
@@ -2882,7 +2882,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
     const int idAnalysis = systusSubcases[idSubcase][0];
     const shared_ptr<Analysis> analysis = systusModel.model->getAnalysis(idAnalysis);
     if (analysis== nullptr){
-        handleWritingError(string("Analysis " + to_string(idAnalysis) + " not found."));
+        handleWritingError("Analysis " + to_string(idAnalysis) + " not found.");
     }
 
     string sSolver="";
@@ -3146,7 +3146,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
     }
     default:
         handleWritingError(
-                string("Analysis " + Analysis::stringByType.at(analysis->type) + " not (yet) implemented"));
+                "Analysis " + Analysis::stringByType.at(analysis->type) + " not (yet) implemented");
     }
 
     // We Save Results

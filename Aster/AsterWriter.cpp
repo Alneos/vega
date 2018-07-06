@@ -603,7 +603,7 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 		}
 		std::shared_ptr<vega::CoordinateSystem> cs= asterModel.model.getCoordinateSystemByPosition(it.first);
 		if (cs->type!=CoordinateSystem::Type::ORIENTATION){
-		   handleWritingError(string("Coordinate System of Group "+ it.second+" is not an ORIENTATION."));
+		   handleWritingError("Coordinate System of Group "+ it.second+" is not an ORIENTATION.");
 		}
 		std::shared_ptr<OrientationCoordinateSystem> ocs = std::static_pointer_cast<OrientationCoordinateSystem>(cs);
 
@@ -1627,7 +1627,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 
 	default:
 		handleWritingError(
-				string("Analysis " + Analysis::stringByType.at(analysis.type) + " not (yet) implemented"));
+				"Analysis " + Analysis::stringByType.at(analysis.type) + " not (yet) implemented");
 	}
 	return debut;
 }

@@ -513,7 +513,7 @@ int Cell::findNodeIdPosition(int node_id2) const {
 	if (node2connectivityPos == nodeIds.size()) {
 		throw logic_error("node id " + to_string(node_id2) + " not in cell");
 	}
-	return (int) node2connectivityPos;
+	return static_cast<int>(node2connectivityPos);
 }
 
 vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {

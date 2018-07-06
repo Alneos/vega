@@ -97,7 +97,7 @@ else(MSVC)
         add_compile_options(-Wfloat-equal -diag-disable 1170 -fmessage-length=0) # -Wshadow
     ELSE()
         add_compile_options(-std=c++11 -Werror -Wall -Wextra -Winit-self -Wsuggest-attribute=const -Wconversion -pedantic -pedantic-errors)
-        add_compile_options(-Wfloat-equal -Woverlength-strings -fmessage-length=0 -Wmain -Wmissing-declarations -Wundef -Wredundant-decls -Wcast-align -Wswitch-default) # -Wshadow
+        add_compile_options(-Wfloat-equal -Woverlength-strings -fmessage-length=0 -Wmain -Wmissing-declarations -Wundef -Wredundant-decls -Wcast-align -Wswitch-default -Wlogical-op -Wuseless-cast -Wold-style-cast -Wdouble-promotion) # -Wshadow
     ENDIF()
     if(STATIC_LINKING)
         add_compile_options(-fPIE)
@@ -105,7 +105,7 @@ else(MSVC)
         if(LINUX_DIST STREQUAL "Alpine")
           # Alpine can also statically link glibc
           set(CMAKE_EXE_LINKER_FLAGS_EXTRA "-static -Wl,-allow-multiple-definition") # unwind seems to be defined multiple times on Alpine in gcc_eh, see also https://stackoverflow.com/questions/11267877/mingw-multiple-definition-of-unwind-resume
-        endif()        
+        endif()
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -static-libgcc -static-libstdc++ ${CMAKE_EXE_LINKER_FLAGS_EXTRA}" CACHE INTERNAL "Linker flags")
     else(STATIC_LINKING)
         if(NOT MINGW)
@@ -134,9 +134,9 @@ else(MSVC)
        SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
        SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
     endif(CCACHE_FOUND)
-    
+
     # Systus run cannot be enabled by default, since there is no systus runner in continous integration (tests would fail)
-    # It can be enabled on a given machine by changing the build_properties.h file 
+    # It can be enabled on a given machine by changing the build_properties.h file
     set(RUN_SYSTUS 0)
 endif(MSVC)
 

@@ -57,12 +57,12 @@ BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 			model->find(Reference<Analysis>(Analysis::LINEAR_MECA_STAT, 1)));
 	BOOST_ASSERT(linearMecaStat1!=nullptr);
 	vector<shared_ptr<Assertion>> assertions = linearMecaStat1->getAssertions();
-	BOOST_CHECK_EQUAL(assertions.size(), (size_t ) 24);
+	BOOST_CHECK_EQUAL(assertions.size(), static_cast<size_t>(24));
 
 	model->finish();
 	//ineffective assertions are removed by model.finish()
 	vector<shared_ptr<Assertion>> assertions2 = linearMecaStat1->getAssertions();
-	BOOST_CHECK_EQUAL(assertions2.size(), (size_t ) 24);
+	BOOST_CHECK_EQUAL(assertions2.size(), static_cast<size_t>(24));
 	bool found = false;
 	for (auto assertion : assertions) {
 
@@ -109,7 +109,7 @@ BOOST_AUTO_TEST_CASE(node_not_in_elements) {
 
 	//assertion skipped because nodes are not in elements
 	vector<shared_ptr<Assertion>> assertions = linearMecaStat1->getAssertions();
-	BOOST_CHECK_EQUAL(assertions.size(), (size_t ) 0);
+	BOOST_CHECK_EQUAL(assertions.size(), static_cast<size_t>(0));
 
 }
 
@@ -153,12 +153,12 @@ BOOST_AUTO_TEST_CASE(test_4a) {
 	BOOST_ASSERT(linearMecaStat1!=nullptr);
 	//before finish() in the model are present all the assertion found in the f06 file
 	vector<shared_ptr<Assertion>> all_assertions = linearMecaStat1->getAssertions();
-	BOOST_CHECK_EQUAL(all_assertions.size(), (size_t )54);
+	BOOST_CHECK_EQUAL(all_assertions.size(), static_cast<size_t>(54));
 
 	model->finish();
 	//assertion deleted because nodes are not in elements
 	vector<shared_ptr<Assertion>> assertions = linearMecaStat1->getAssertions();
-	BOOST_CHECK_EQUAL(assertions.size(), (size_t )30);
+	BOOST_CHECK_EQUAL(assertions.size(), static_cast<size_t>(30));
 
 }
 

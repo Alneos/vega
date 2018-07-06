@@ -12,6 +12,7 @@
 #include "../Abstract/Utility.h"
 #include "build_properties.h"
 #include "../Nastran/NastranParser.h"
+#include "../Optistruct/OptistructParser.h"
 #include "../Nastran/NastranWriter.h"
 #include "../Nastran/NastranRunner.h"
 #include "../Aster/AsterWriter.h"
@@ -61,6 +62,7 @@ unordered_map<VegaCommandLine::ExitCode, string, hash<int>> VegaCommandLine::fai
 
 VegaCommandLine::VegaCommandLine() {
     parserBySolverName[NASTRAN] = make_shared<nastran::NastranParser>();
+    parserBySolverName[OPTISTRUCT] = make_shared<optistruct::OptistructParser>();
     writersBySolverName[CODE_ASTER] = make_shared<aster::AsterWriter>();
     writersBySolverName[NASTRAN] = make_shared<nastran::NastranWriter>();
     writersBySolverName[SYSTUS] = make_shared<systus::SystusWriter>();
@@ -81,7 +83,7 @@ VegaCommandLine::ExitCode VegaCommandLine::convertStudy(
     }
     shared_ptr<Writer> writer = writerIterator->second;
 
-    auto parserIterator = parserBySolverName.find(inputSolver.getSolverName());
+    const auto& parserIterator = parserBySolverName.find(inputSolver.getSolverName());
     if (parserIterator == parserBySolverName.end()) {
         cerr << "Input format " << inputSolver << "not supported." << endl;
         return INVALID_COMMAND_LINE;
@@ -176,20 +178,6 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
                     " parameter can be specified at once.");
         }
         translationMode = ConfigurationParameters::MESH_AT_LEAST;
-    }
-    if (vm.count("strict")) {
-        if (hasParamBestEffort || hasParamMeshAtLeast) {
-            throw invalid_argument("only one between mesh-at-least, best-effort or strict"
-                    " parameter can be specified at once.");
-        }
-        translationMode = ConfigurationParameters::MODE_STRICT;
-    }
-    if (vm.count("strict")) {
-        if (hasParamBestEffort || hasParamMeshAtLeast) {
-            throw invalid_argument("only one between mesh-at-least, best-effort or strict"
-                    " parameter can be specified at once.");
-        }
-        translationMode = ConfigurationParameters::MODE_STRICT;
     }
     if (vm.count("strict")) {
         if (hasParamBestEffort || hasParamMeshAtLeast) {
@@ -381,7 +369,7 @@ VegaCommandLine::ExitCode VegaCommandLine::runSolver(const ConfigurationParamete
     }
     shared_ptr<Runner> runner = runnerIterator->second;
     //Little hack: return codes are the same.
-    result = (VegaCommandLine::ExitCode) runner->execSolver(configuration, modelFile);
+    result = static_cast<VegaCommandLine::ExitCode>(runner->execSolver(configuration, modelFile));
     return result;
 }
 
@@ -415,9 +403,7 @@ string VegaCommandLine::expand_user(string path) {
 VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
     ExitCode result = VegaCommandLine::OK;
 #ifdef __linux__
-#ifdef __GLIBC__
     signal(SIGSEGV, handler);
-#endif
 #endif
     try {
         string config_file;

@@ -347,7 +347,7 @@ const Cell Mesh::findCell(int cellPosition) const {
 void Mesh::createFamilies(med_idt fid, const char meshname[MED_NAME_SIZE + 1],
 		vector<Family>& families) {
 	for (Family& family : families) {
-		const unsigned int ngroups = (unsigned int) family.groups.size();
+		const unsigned int ngroups = static_cast<unsigned int>(family.groups.size());
 		char* groupname = new char[ngroups * MED_LNAME_SIZE + 1]();
 		for (unsigned int i = 0; i < ngroups; i++) {
 			strncpy(groupname + (i * MED_LNAME_SIZE), family.groups[i]->getName().c_str(),
@@ -433,7 +433,7 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 			const Cell cell = findCell(cellPosition);
 			for (int nodePosition : cell.nodePositions) {
 				// med nodes starts at node number 1.
-				connectivity.push_back(static_cast<med_int>(nodePosition + 1));
+				connectivity.push_back(nodePosition + 1);
 			}
 		}
 		int result = MEDmeshElementConnectivityWr(fid, meshname, MED_NO_DT,
@@ -494,7 +494,7 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 		CellGroup2Families cellGroup2Family = CellGroup2Families(this, cellCountByType, cellGroups);
 		createFamilies(fid, meshname, cellGroup2Family.getFamilies());
 		for (auto cellCodeFamilyVectorPair : cellGroup2Family.getFamilyOnCells()) {
-			int ncells = (int) cellCodeFamilyVectorPair.second->size();
+			int ncells = static_cast<int>(cellCodeFamilyVectorPair.second->size());
 			if (MEDmeshEntityFamilyNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_CELL,
 					cellCodeFamilyVectorPair.first, ncells, cellCodeFamilyVectorPair.second->data())
 					< 0) {
@@ -722,7 +722,7 @@ int Mesh::countCells(const CellType& type) const {
 	//	return 0;
 	//}
 	const vector<int>& positions = cellPositionsByType.find(type)->second;
-	return (int) positions.size();
+	return static_cast<int>(positions.size());
 }
 
 bool Mesh::hasCell(int cellId) const {

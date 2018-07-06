@@ -29,8 +29,9 @@
 namespace vega {
 namespace systus {
 
+using namespace std;
 
-std::string SystusTableLabelToString(const SystusTableLabel stl){
+string SystusTableLabelToString(const SystusTableLabel stl){
     return stringSystusTableLabel.find(stl)->second;
 }
 
@@ -42,7 +43,7 @@ SystusTable::SystusTable(long unsigned int id, SystusTableLabel label, long unsi
 SystusTable::~SystusTable(){
 }
 
-std::ostream& operator<<(std::ostream& os, const SystusTable & st)
+ostream& operator<<(ostream& os, const SystusTable & st)
 {
   os << st.id <<" "<<SystusTableLabelToString(st.label);
   switch (st.label){
@@ -58,10 +59,10 @@ std::ostream& operator<<(std::ostream& os, const SystusTable & st)
       break;
   }
   default:{
-      std::cerr << "Systus Writer: table of type "<<SystusTableLabelToString(st.label)<<" are not supported yet."<<std::endl;
+      cerr << "Systus Writer: table of type "<<SystusTableLabelToString(st.label)<<" are not supported yet."<<endl;
   }
   }
-  os << std::endl;
+  os << endl;
   return os;
 }
 
@@ -86,26 +87,26 @@ void SystusMatrix::setValue(int i, int j, int dofi, int dofj, double value){
 
     int pos = (dofi-1) + nbDOFS*(dofj-1) + nbDOFS*nbDOFS*(i-1)+ nbDOFS*nbDOFS*nbNodes*(j-1);
     if (pos> this->size)
-        throw std::logic_error("Invalid access to Systus Matrix.");
+        throw logic_error("Invalid access to Systus Matrix.");
     this->values[pos]=value;
 }
 
 // A lot of fields are filled with 0, because we don't know what to put here
 // Nonetheless, it seems to work fine this way
 // TODO: Complete the writer
-std::ostream& operator<<(std::ostream& os, const SystusMatrix & sm)
+ostream& operator<<(ostream& os, const SystusMatrix & sm)
 {
-  os << "0"<<std::endl;  // Size of matrix ?
-  os << sm.id <<std::endl;  //
-  os << sm.nbNodes <<std::endl;  //
-  os << sm.nbNodes <<std::endl;  //
-  os << sm.size <<std::endl;  //
-  os << "0"<<std::endl;  //
-  os << "0"<<std::endl;  //
+  os << "0"<<endl;  // Size of matrix ?
+  os << sm.id <<endl;  //
+  os << sm.nbNodes <<endl;  //
+  os << sm.nbNodes <<endl;  //
+  os << sm.size <<endl;  //
+  os << "0"<<endl;  //
+  os << "0"<<endl;  //
 
   // Nodes
   for (int i=1; i<=sm.nbNodes;i++)
-      os << i <<std::endl;
+      os << i <<endl;
 
   // Matrix elements. All dofs of SM(i,j) are written in one line
   long unsigned int ioff=0;
@@ -115,12 +116,12 @@ std::ostream& operator<<(std::ostream& os, const SystusMatrix & sm)
           for (long unsigned int k=0; k<sizeM; k++){
               os << sm.values[k +ioff]<<" ";
           }
-          os << std::endl;
+          os << endl;
           ioff+= sizeM;
       }
   }
 
-  //os << "0"<<std::endl;
+  //os << "0"<<endl;
   return os;
 }
 
@@ -142,25 +143,25 @@ void SystusMatrices::clear(){
 }
 
 long unsigned int SystusMatrices::size(){
-    return static_cast<long unsigned int>(this->matrices.size());
+    return this->matrices.size();
 }
 
 // A lot of fields are filled with 0, because we don't know what to put here
 // Nonetheless, it seems to work fine this way
 // TODO: Complete the writer
-std::ostream& operator<<(std::ostream& os, const SystusMatrices & sms)
+ostream& operator<<(ostream& os, const SystusMatrices & sms)
 {
   for (int i=1 ; i<12; i++)
-      os << "0"<<std::endl;  // Useless parameters ?
-  os << sms.nbDOFS << std::endl;
+      os << "0"<<endl;  // Useless parameters ?
+  os << sms.nbDOFS << endl;
   for (int i=13 ; i<22; i++)
-      os << "0"<<std::endl;  // Useless parameters ?
+      os << "0"<<endl;  // Useless parameters ?
 
   for (long unsigned int i=0; i< sms.matrices.size(); i++)
       os << sms.matrices[i];
 
   // End of file
-  os << SystusMatrix(0,0,0) <<std::endl;  //
+  os << SystusMatrix(0,0,0) <<endl;  //
   return os;
 }
 

@@ -280,9 +280,9 @@ public:
 class NodeGroup final : public Group {
 private:
     friend Mesh;
-    NodeGroup(Mesh* mesh, const std::string& name, int groupId, const std::string& comment="    ");
     // Positions of the nodes participating to the group
     std::set<int> _nodePositions;
+    NodeGroup(Mesh* mesh, const std::string& name, int groupId, const std::string& comment="    ");
 public:
     // Add a node using its numerical id. If the node hasn't been yet defined it reserve position in the model.
     void addNodeId(int nodeId);

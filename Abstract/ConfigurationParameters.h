@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr) 
+ * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * This file is part of Vega.
  *
  *   Vega is free software: you can redistribute it and/or modify
@@ -40,6 +40,7 @@ namespace fs = boost::filesystem;
 enum SolverName {
     CODE_ASTER = 2,
     NASTRAN = 3,
+    OPTISTRUCT = 4,
     SYSTUS = 5
 };
 
@@ -140,7 +141,7 @@ public:
 class ConfigurationParameters {
 public:
     enum TranslationMode {
-        BEST_EFFORT = 0, // 
+        BEST_EFFORT = 0, //
         MESH_AT_LEAST = 1, //
         MODE_STRICT = 2 //
     };

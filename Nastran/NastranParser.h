@@ -53,8 +53,6 @@ private:
 
     std::unordered_map<std::string, std::shared_ptr<Reference<ElementSet>>> directMatrixByName;
     typedef void (NastranParser::*parseElementFPtr)(NastranTokenizer& tok, std::shared_ptr<Model> model);
-    static const std::set<std::string> IGNORED_KEYWORDS;
-    static const std::set<std::string> IGNORED_PARAMS;
     static const std::unordered_map<std::string, parseElementFPtr> PARSE_FUNCTION_BY_KEYWORD;
 
     void addAnalysis(NastranTokenizer& tok, std::shared_ptr<Model> model, std::map<std::string, std::string>& context, int analysis_id =
@@ -600,6 +598,39 @@ private:
     int parseDOF(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     LogLevel logLevel = LogLevel::INFO;
+    protected:
+    // see also http://www.altairhyperworks.com/hwhelp/Altair/hw12.0/help/hm/hmbat.htm?design_variables.htm
+    std::set<std::string> IGNORED_KEYWORDS = {
+        "CHECKEL", // Active le test de qualité des éléments. Inutile de le traduire.
+        "DCONSTR", "DCONADD", "DESVAR", "DLINK", //nastran optimization keywords
+        "DRAW", "DRESP1", "DRESP2", //ignored in Vega
+        //optistruct optimization variable
+        "DOPTPRM", "DCOMP", //Manufacturing constraints for composite sizing optimization.
+        "DESVAR", //Design variable definition.
+        "DSHAPE", //Free-shape design variable definition.
+        "DSHUFFLE", //Parameters for the generation of composite shuffling design variables.
+        "DSIZE", "DTPG", //Topography design variable definition.
+        "DTPL", //Topology design variable definition.
+        "DVGRID", "DEQATN",
+        "DREPORT", "DREPADD", // Optistruct Cards
+        "EFFMAS", // Outputs modal participation factors and effective mass for normal modes analyses. Inutile de le traduire.
+        "ENDDATA",
+        "PLOTEL",  // Fictitious element for plotting
+        "TOPVAR", //  Topological Design Variable
+};
+
+    // See chapter 5 of the Nastran Quick Reference guide
+    // Please keep alphabetical order for a better readibility
+    std::set<std::string> IGNORED_PARAMS = {
+        "BAILOUT", // Behavior when matrixes are almost singular. Useless for translation.
+        "COUPMASS", // Generation of coupled rather than diagonal mass matrices for elements with coupled mass capability
+        "DESPCH", "DESPCH1", // Amount of output data to write during an optimization process. Useless for translation.
+        "NASPRT",  // Data recovery during optimization process. Useless for translation.
+        "OUGCORD", // Choice of referentiel for printout
+        "POST",    // Post-treatment parameter. Useless for translation.
+        "PRGPST",  // Printout command
+        "TINY"     // Printout command
+};
 public:
     NastranParser();
     virtual ~NastranParser();

@@ -38,6 +38,39 @@ namespace optistruct {
 
 using namespace std;
 
+OptistructParser::OptistructParser() :
+        nastran::NastranParser() {
+    nastran::NastranParser::IGNORED_KEYWORDS.insert(OPTISTRUCT_IGNORED_KEYWORDS.begin(), OPTISTRUCT_IGNORED_KEYWORDS.end());
+}
+
+void OptistructParser::parseSET(NastranTokenizer& tok, shared_ptr<Model> model) {
+    // page 2457 Labeled Set Definition, defines a list of grids, elements or points.
+    int sid = tok.nextInt();
+    string name = string("SET") + "_" + to_string(sid);
+    string des = tok.nextString();
+
+    if (des == "GRID") {
+        shared_ptr<NodeGroup> nodeGroup = model->mesh->findOrCreateNodeGroup(name,sid,"SET");
+        while (tok.isNextInt()) {
+            nodeGroup->addNodeId(tok.nextInt());
+        }
+    } else if (des == "ELEM") {
+        shared_ptr<CellGroup> cellGroup = model->mesh->createCellGroup(name,sid,"SET");
+        while (tok.isNextInt()) {
+            cellGroup->addCellId(tok.nextInt());
+        }
+    } else if (des == "FREQ") {
+        list<double> values;
+        while (tok.isNextDouble()) {
+            values.push_back(tok.nextDouble());
+        }
+        FrequencyList frequencyValues(*model, values, sid);
+        model->add(frequencyValues);
+    } else {
+        throw logic_error("Unsupported DES value in SET3");
+    }
+
+}
 
 } //namespace optistruct
 

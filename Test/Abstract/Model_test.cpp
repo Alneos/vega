@@ -136,12 +136,12 @@ BOOST_AUTO_TEST_CASE( test_Elements ) {
 	model.finish();
 	BOOST_CHECK(model.validate());
 	const vector<shared_ptr<ElementSet>> beams = model.filterElements(ElementSet::RECTANGULAR_SECTION_BEAM);
-	BOOST_CHECK_EQUAL((size_t )1, beams.size());
+	BOOST_CHECK_EQUAL(static_cast<size_t>(1), beams.size());
 
 //no virtual elements
 
 	const vector<shared_ptr<ElementSet>> discrets = model.filterElements(ElementSet::DISCRETE_0D);
-	BOOST_CHECK_EQUAL((size_t )0, discrets.size());
+	BOOST_CHECK_EQUAL(static_cast<size_t>(0), discrets.size());
 	CellContainer assignment = model.getOrCreateMaterial(1)->getAssignment();
 
 	BOOST_CHECK(assignment.hasCellGroups());
@@ -224,7 +224,7 @@ BOOST_AUTO_TEST_CASE( test_create_skin2d ) {
 
 	pressionFaceTwoNodes.addCell(1);
 	vector<Cell> cells = pressionFaceTwoNodes.getCells();
-	BOOST_CHECK_EQUAL(cells.size(), (size_t )1);
+	BOOST_CHECK_EQUAL(cells.size(), static_cast<size_t>(1));
 	Cell hexa = cells[0];
 	BOOST_CHECK_EQUAL(hexa.id, 1);
 	//BOOST_CHECK_EQUAL(hexa.cellType, CellType::HEXA8);
@@ -285,7 +285,7 @@ BOOST_AUTO_TEST_CASE(test_Analysis) {
 	BOOST_TEST_CHECKPOINT("after finish");
 // LoadSet2 is missing in the model
 	BOOST_CHECK_EQUAL(1, model.loadSets.size());
-	BOOST_CHECK_EQUAL((size_t ) 2, analysis.getLoadSets().size());
+	BOOST_CHECK_EQUAL(static_cast<size_t>(2), analysis.getLoadSets().size());
 	for (shared_ptr<LoadSet> ls : analysis.getLoadSets()) {
 		if (ls != nullptr)
 			cout << "Found loadset:" << *ls << endl;
@@ -294,7 +294,7 @@ BOOST_AUTO_TEST_CASE(test_Analysis) {
 	BOOST_CHECK(!model.validate());
 
 	set<shared_ptr<Loading>> loadings = model.getLoadingsByLoadSet(loadSet1);
-	BOOST_CHECK_EQUAL((size_t )2, loadings.size());
+	BOOST_CHECK_EQUAL(static_cast<size_t>(2), loadings.size());
 	for (shared_ptr<Loading> loading : loadings) {
 		BOOST_CHECK(loading->getId() == force1.getId() || loading->getId() == force2.getId());
 	}
@@ -341,7 +341,7 @@ BOOST_AUTO_TEST_CASE( combined_loadset1 ) {
 	LoadSet loadSet1(model, LoadSet::LOAD, 1);
 	LoadSet loadSet3(model, LoadSet::LOAD, 3);
 	model.mesh->addNode(1, 0.0, 0.0, 0.0);
-	NodalForce force1 = NodalForce(model, 1, (double) 1.0);
+	NodalForce force1 = NodalForce(model, 1, 1.0);
 	model.add(force1);
 	model.addLoadingIntoLoadSet(force1, loadSet1);
 	NodalForce force3 = NodalForce(model, 1, 3.0);
@@ -355,10 +355,10 @@ BOOST_AUTO_TEST_CASE( combined_loadset1 ) {
 			pair<Reference<LoadSet>, double>(loadSet1.getReference(), 5.0));
 	combination.embedded_loadsets.push_back(
 			pair<Reference<LoadSet>, double>(loadSet3.getReference(), 7.0));
-	BOOST_CHECK_EQUAL(combination.embedded_loadsets.size(), (size_t ) 2);
+	BOOST_CHECK_EQUAL(combination.embedded_loadsets.size(), static_cast<size_t>(2));
 	model.add(combination);
 	model.finish();
-	BOOST_CHECK_EQUAL(model.getLoadingsByLoadSet(combination).size(), (size_t ) 3);
+	BOOST_CHECK_EQUAL(model.getLoadingsByLoadSet(combination).size(), static_cast<size_t>(3));
 }
 
 BOOST_AUTO_TEST_CASE( reference_compare ) {
@@ -421,7 +421,7 @@ BOOST_AUTO_TEST_CASE(test_ineffective_assertions_removed) {
 	BOOST_CHECK_EQUAL(model->analyses.size(), 1);
 	BOOST_CHECK_EQUAL(model->objectives.size(), 1);
 	vector<shared_ptr<Assertion>> assertions = (*model->analyses.begin())->getAssertions();
-	BOOST_CHECK_EQUAL(assertions.size(), (size_t )1);
+	BOOST_CHECK_EQUAL(assertions.size(), static_cast<size_t>(1));
 }
 
 BOOST_AUTO_TEST_CASE(test_rbe3_assertions_not_removed) {
@@ -449,7 +449,7 @@ BOOST_AUTO_TEST_CASE(test_rbe3_assertions_not_removed) {
 	BOOST_CHECK_EQUAL(model.analyses.size(), 1);
 	BOOST_CHECK_EQUAL(model.objectives.size(), 2);
 	vector<shared_ptr<Assertion>> assertions = (*model.analyses.begin())->getAssertions();
-	BOOST_CHECK_EQUAL(assertions.size(), (size_t )2);
+	BOOST_CHECK_EQUAL(assertions.size(), static_cast<size_t>(2));
 }
 
 BOOST_AUTO_TEST_CASE(test_spc_dof_remove) {

@@ -345,7 +345,7 @@ void NastranTokenizer::skip(int fields) {
 		throw "Attempt to read past the end of file. Line:" + this->lineNumber;
 	}
 
-	this->currentField = min((unsigned int) this->currentLineVector.size(),
+	this->currentField = min(static_cast<unsigned int>(this->currentLineVector.size()),
 			this->currentField + fields);
 
 	if (this->currentField == this->currentLineVector.size()) {
