@@ -36,6 +36,9 @@ namespace nastran {
 namespace fs = boost::filesystem;
 
 class NastranParser: public vega::Parser {
+protected:
+    typedef void (NastranParser::*parseElementFPtr)(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    virtual parseElementFPtr findParser(std::string) const;
 private:
     class GrdSet {
     public:
@@ -52,7 +55,6 @@ private:
     GrdSet grdSet;
 
     std::unordered_map<std::string, std::shared_ptr<Reference<ElementSet>>> directMatrixByName;
-    typedef void (NastranParser::*parseElementFPtr)(NastranTokenizer& tok, std::shared_ptr<Model> model);
     static const std::unordered_map<std::string, parseElementFPtr> PARSE_FUNCTION_BY_KEYWORD;
 
     void addAnalysis(NastranTokenizer& tok, std::shared_ptr<Model> model, std::map<std::string, std::string>& context, int analysis_id =
@@ -617,7 +619,7 @@ private:
         "ENDDATA",
         "PLOTEL",  // Fictitious element for plotting
         "TOPVAR", //  Topological Design Variable
-};
+    };
 
     // See chapter 5 of the Nastran Quick Reference guide
     // Please keep alphabetical order for a better readibility
@@ -630,7 +632,7 @@ private:
         "POST",    // Post-treatment parameter. Useless for translation.
         "PRGPST",  // Printout command
         "TINY"     // Printout command
-};
+    };
 public:
     NastranParser();
     virtual ~NastranParser();

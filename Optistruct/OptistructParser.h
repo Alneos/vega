@@ -35,6 +35,7 @@ namespace optistruct {
 
 class OptistructParser: public nastran::NastranParser {
 private:
+    typedef void (OptistructParser::*parseOptistructElementFPtr)(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * Parse the SET keyword
@@ -53,6 +54,9 @@ private:
         "DREPORT", "DREPADD", // Optistruct Cards
     };
 
+    static const std::unordered_map<std::string, parseOptistructElementFPtr> OPTISTRUCT_PARSE_FUNCTION_BY_KEYWORD;
+protected:
+    parseElementFPtr findParser(std::string keyword) const override;
 public:
     OptistructParser();
     //std::shared_ptr<Model> parse(const ConfigurationParameters& configuration) override;

@@ -325,17 +325,24 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<Mode
     }
 }
 
+NastranParser::parseElementFPtr NastranParser::findParser(string keyword) const {
+    auto result = PARSE_FUNCTION_BY_KEYWORD.find(keyword);
+    if (result != PARSE_FUNCTION_BY_KEYWORD.end()) {
+        return result->second;
+    } else {
+        return nullptr;
+    }
+}
+
 void NastranParser::parseBULKSection(NastranTokenizer &tok, shared_ptr<Model> model) {
 
     while (tok.nextSymbolType == NastranTokenizer::SYMBOL_KEYWORD) {
         string keyword = tok.nextString(true,"");
         tok.setCurrentKeyword(keyword);
-        unordered_map<string, NastranParser::parseElementFPtr>::const_iterator parseFunctionFptrKeywordPair;
         try{
-            if ((parseFunctionFptrKeywordPair = PARSE_FUNCTION_BY_KEYWORD.find(keyword))
-                    != PARSE_FUNCTION_BY_KEYWORD.end()) {
-                NastranParser::parseElementFPtr fptr = parseFunctionFptrKeywordPair->second;
-                (this->*fptr)(tok, model);
+            auto parser = findParser(keyword);
+            if (parser != nullptr) {
+                (this->*parser)(tok, model);
 
             } else if (IGNORED_KEYWORDS.find(keyword) != IGNORED_KEYWORDS.end()) {
                 if (model->configuration.logLevel >= LogLevel::TRACE) {

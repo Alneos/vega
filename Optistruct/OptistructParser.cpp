@@ -38,9 +38,27 @@ namespace optistruct {
 
 using namespace std;
 
+const unordered_map<string, OptistructParser::parseOptistructElementFPtr> OptistructParser::OPTISTRUCT_PARSE_FUNCTION_BY_KEYWORD =
+        {
+                { "SET", &OptistructParser::parseSET },
+        };
+
 OptistructParser::OptistructParser() :
         nastran::NastranParser() {
     nastran::NastranParser::IGNORED_KEYWORDS.insert(OPTISTRUCT_IGNORED_KEYWORDS.begin(), OPTISTRUCT_IGNORED_KEYWORDS.end());
+}
+
+nastran::NastranParser::parseElementFPtr OptistructParser::findParser(string keyword) const {
+    auto nastranParser = nastran::NastranParser::findParser(keyword);
+    if (nastranParser != nullptr) {
+        return nastranParser;
+    }
+    auto optistructParser = OPTISTRUCT_PARSE_FUNCTION_BY_KEYWORD.find(keyword);
+    if (optistructParser != OPTISTRUCT_PARSE_FUNCTION_BY_KEYWORD.end()) {
+        return static_cast<nastran::NastranParser::parseElementFPtr>(optistructParser->second);
+    } else {
+        return nullptr;
+    }
 }
 
 void OptistructParser::parseSET(NastranTokenizer& tok, shared_ptr<Model> model) {
