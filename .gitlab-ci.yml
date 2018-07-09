@@ -26,11 +26,11 @@ building:
     - docker ps -aq --filter "name=$TEST_CONTAINER" | grep -q . && docker rm -fv $TEST_CONTAINER
     - docker run --name "$TEST_CONTAINER" "$TEST_IMAGE" /bin/sh -c "source /home/vega/.bashrc && ctest ."
     - ls /srv
-    - docker rm -f "$TEST_CONTAINER"
-    - docker rmi "$TEST_IMAGE"
     - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
     - mkdir /srv/data/$OUTDIR
-    - docker cp $TEST_CONTAINER:/home/vega/vegapp/build/bin/vegapp /srv/data/$OUTDIR
+    - docker cp $TEST_CONTAINER:/home/vega/vegapp/build/bin/vegapp /srv/data/$OUTDIR    
+    - docker rm -f "$TEST_CONTAINER"
+    - docker rmi "$TEST_IMAGE"
   artifacts:
     paths:
     - /home/vega/vegapp/build/bin/vegapp
