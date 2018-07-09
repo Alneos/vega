@@ -12,7 +12,7 @@ building:
     TEST_IMAGE: gitlab/vegairt
     TEST_CONTAINER: vegairt_oncommit
   before_script:
-    - apk add add --update --no-cache git
+    - apk add --update --no-cache git
     - env | grep ^DOCKER_     
     - env | grep ^CI_     
     - cat /etc/issue
