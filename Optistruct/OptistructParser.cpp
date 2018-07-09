@@ -48,14 +48,13 @@ OptistructParser::OptistructParser() :
     nastran::NastranParser::IGNORED_KEYWORDS.insert(OPTISTRUCT_IGNORED_KEYWORDS.begin(), OPTISTRUCT_IGNORED_KEYWORDS.end());
 }
 
-nastran::NastranParser::parseElementFPtr OptistructParser::findParser(string keyword) const {
-    auto nastranParser = nastran::NastranParser::findParser(keyword);
-    if (nastranParser != nullptr) {
-        return nastranParser;
-    }
+nastran::NastranParser::parseElementFPtr OptistructParser::findCmdParser(string keyword) const {
     auto optistructParser = OPTISTRUCT_PARSE_FUNCTION_BY_KEYWORD.find(keyword);
+    auto nastranParser = nastran::NastranParser::findCmdParser(keyword);
     if (optistructParser != OPTISTRUCT_PARSE_FUNCTION_BY_KEYWORD.end()) {
         return static_cast<nastran::NastranParser::parseElementFPtr>(optistructParser->second);
+    } else if (nastranParser != nullptr) {
+        return nastranParser;
     } else {
         return nullptr;
     }

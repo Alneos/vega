@@ -38,7 +38,7 @@ namespace fs = boost::filesystem;
 class NastranParser: public vega::Parser {
 protected:
     typedef void (NastranParser::*parseElementFPtr)(NastranTokenizer& tok, std::shared_ptr<Model> model);
-    virtual parseElementFPtr findParser(std::string) const;
+    virtual parseElementFPtr findCmdParser(std::string) const;
 private:
     class GrdSet {
     public:

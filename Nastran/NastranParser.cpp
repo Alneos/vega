@@ -325,7 +325,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<Mode
     }
 }
 
-NastranParser::parseElementFPtr NastranParser::findParser(string keyword) const {
+NastranParser::parseElementFPtr NastranParser::findCmdParser(string keyword) const {
     auto result = PARSE_FUNCTION_BY_KEYWORD.find(keyword);
     if (result != PARSE_FUNCTION_BY_KEYWORD.end()) {
         return result->second;
@@ -340,7 +340,7 @@ void NastranParser::parseBULKSection(NastranTokenizer &tok, shared_ptr<Model> mo
         string keyword = tok.nextString(true,"");
         tok.setCurrentKeyword(keyword);
         try{
-            auto parser = findParser(keyword);
+            auto parser = findCmdParser(keyword);
             if (parser != nullptr) {
                 (this->*parser)(tok, model);
 
@@ -2309,13 +2309,6 @@ void NastranParser::parseSET3(NastranTokenizer& tok, shared_ptr<Model> model) {
         while (tok.isNextInt()) {
             cellGroup->addCellId(tok.nextInt());
         }
-    } else if (des == "FREQ") {
-        list<double> values;
-        while (tok.isNextDouble()) {
-            values.push_back(tok.nextDouble());
-        }
-        FrequencyList frequencyValues(*model, values, sid);
-        model->add(frequencyValues);
     } else {
         throw logic_error("Unsupported DES value in SET3");
     }

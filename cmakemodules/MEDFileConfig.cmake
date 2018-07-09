@@ -43,7 +43,7 @@ endmacro()
 
 ### First the generic stuff for a standard module:
 
-message("Configuring MED dependencies")
+message(STATUS "Configuring MED dependencies")
 
 SET(MEDFILE_INCLUDE_DIRS "${PACKAGE_PREFIX_DIR}/include")
 MARK_AS_ADVANCED(MEDFILE_INCLUDE_DIRS)

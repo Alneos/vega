@@ -19,10 +19,14 @@ endif()
 
 # Definition of the VEGA version
 set(VEGA_MAJOR_VERSION 2)
-set(VEGA_MINOR_VERSION 4)
-set(VEGA_PATCH_VERSION 3)
+set(VEGA_MINOR_VERSION 5)
+set(VEGA_PATCH_VERSION 0)
 IF(NOT DEFINED VEGA_EXTRA_VERSION)
-    set(VEGA_EXTRA_VERSION "" CACHE STRING "Vega extra version string")
+    IF (DEFINED ENV{CI_COMMIT_SHA})
+        string(SUBSTRING $ENV{CI_COMMIT_SHA} 0 8 VEGA_EXTRA_VERSION)
+    ELSE()
+        set(VEGA_EXTRA_VERSION "" CACHE STRING "Vega extra version string")
+    ENDIF()
 ENDIF(NOT DEFINED VEGA_EXTRA_VERSION)
 
 # add this options before PROJECT keyword
@@ -365,9 +369,7 @@ else(${STATIC_LINKING})
 endif(${STATIC_LINKING})
 #message("")
 #message("Run 'ccmake ${CMAKE_CURRENT_SOURCE_DIR}' to fine-tune the configuration.")
-message("")
-message("Targets:")
-message(" *      doc: generate documentation.")
+
 
 
 #

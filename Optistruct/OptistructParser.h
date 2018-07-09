@@ -56,7 +56,7 @@ private:
 
     static const std::unordered_map<std::string, parseOptistructElementFPtr> OPTISTRUCT_PARSE_FUNCTION_BY_KEYWORD;
 protected:
-    parseElementFPtr findParser(std::string keyword) const override;
+    parseElementFPtr findCmdParser(std::string keyword) const override;
 public:
     OptistructParser();
     //std::shared_ptr<Model> parse(const ConfigurationParameters& configuration) override;
