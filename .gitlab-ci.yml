@@ -28,8 +28,9 @@ building:
     - ls /srv
     - docker rm -f "$TEST_CONTAINER"
     - docker rmi "$TEST_IMAGE"
-    - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H:%M' $CI_COMMIT_SHA)
-    - mkdir /srv/data/$OUTDIR && cp /home/vega/vegapp/build/bin/vegapp /srv/data/$OUTDIR
+    - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
+    - mkdir /srv/data/$OUTDIR
+    - docker cp $TEST_CONTAINER:/home/vega/vegapp/build/bin/vegapp /srv/data/$OUTDIR
   artifacts:
     paths:
     - /home/vega/vegapp/build/bin/vegapp
