@@ -12,26 +12,22 @@
 namespace vega {
 namespace tests {
 
-using std::string;
-
 class CommandLineUtils {
 private:
-    CommandLineUtils();
-    static bool containsWord(const string &fname, const string &word);
-    static std::vector<bool> containWords(const string &fname,
-            const std::vector<string> &words);
+    static bool containsWord(const std::string &fname, const std::string &word);
+    static std::vector<bool> containWords(const std::string &fname,
+            const std::vector<std::string> &words);
     public:
-    static void run(string inputFname, SolverName inputSolver, SolverName outputSolver,
+    static void run(std::string inputFname, SolverName inputSolver, SolverName outputSolver,
             bool runSolver = false, bool strict = false, double tolerance = 0.02);
-    static void nastranStudy2Aster(string fname, bool runAster = false, bool strict = true,
+    static void nastranStudy2Aster(std::string fname, bool runAster = false, bool strict = true,
             double tolerance = 0.02);
-    static void nastranStudy2Systus(string fname, bool runSystus = false, bool strict = true,
+    static void nastranStudy2Systus(std::string fname, bool runSystus = false, bool strict = true,
             double tolerance = 0.02);
-    static void nastranStudy2Nastran(string fname, bool runAster = false, bool strict = true,
+    static void nastranStudy2Nastran(std::string fname, bool runAster = false, bool strict = true,
             double tolerance = 0.02);
-    virtual ~CommandLineUtils();
 };
-}
+} /* namespace tests */
 } /* namespace vega */
 
 #endif /* COMMANDLINEUTILS_H_ */

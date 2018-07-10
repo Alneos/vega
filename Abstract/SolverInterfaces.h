@@ -195,7 +195,7 @@ protected:
 	void deletePreviousResultFiles(std::string currentModel,
 			const std::vector<std::string> extensions);
 	std::string stripExtension(const std::string& currentModel) const;
-	ExitCode convertExecResult(int exitCode) const;
+	ExitCode convertExecResult(const int exitCode) const;
 };
 
 /**

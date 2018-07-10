@@ -209,7 +209,6 @@ public:
 	Gap(Model&, int original_id = NO_ORIGINAL_ID);
 	double initial_gap_opening = 0;
 	virtual std::vector<std::shared_ptr<GapParticipation>> getGaps() const = 0;
-	virtual ~Gap();
 };
 
 class GapTwoNodes: public Gap {

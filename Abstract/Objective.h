@@ -71,7 +71,7 @@ protected:
     Assertion(const Model&, Type, double tolerance, int original_id = NO_ORIGINAL_ID);
 public:
     const double tolerance;
-    virtual const DOFS getDOFSForNode(int nodePosition) const = 0;
+    virtual const DOFS getDOFSForNode(const int nodePosition) const = 0;
     virtual std::set<int> nodePositions() const = 0;
     bool isAssertion() const override {
         return true;
@@ -85,7 +85,7 @@ protected:
 public:
     const int nodePosition;
     const DOF dof;
-    const DOFS getDOFSForNode(int nodePosition) const override final;
+    const DOFS getDOFSForNode(const int nodePosition) const override final;
     std::set<int> nodePositions() const override final;
 };
 
@@ -121,7 +121,7 @@ public:
     FrequencyAssertion(const Model&, int number, double value, double tolerance, int original_id =
             NO_ORIGINAL_ID);
     std::shared_ptr<Objective> clone() const;
-    const DOFS getDOFSForNode(int nodePosition) const override final;
+    const DOFS getDOFSForNode(const int nodePosition) const override final;
     std::set<int> nodePositions() const override final;
 };
 

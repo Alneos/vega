@@ -136,7 +136,7 @@ Gravity::Gravity(const Model& model, double acceleration, const VectorialValue& 
 				acceleration), direction(direction) {
 }
 
-const DOFS Gravity::getDOFSForNode(int nodePosition) const {
+const DOFS Gravity::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
 	return DOFS::NO_DOFS;
 }
@@ -170,7 +170,7 @@ shared_ptr<Loading> Gravity::clone() const {
 	return make_shared<Gravity>(*this);
 }
 
-void Gravity::scale(double factor) {
+void Gravity::scale(const double factor) {
 	acceleration *= factor;
 }
 
@@ -182,7 +182,7 @@ Rotation::Rotation(const Model& model, const int original_id) :
 		Loading(model, ROTATION, NONE, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
 }
 
-const DOFS Rotation::getDOFSForNode(int nodePosition) const {
+const DOFS Rotation::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
 	return DOFS::NO_DOFS;
 }
@@ -217,7 +217,7 @@ shared_ptr<Loading> RotationCenter::clone() const {
 	return make_shared<RotationCenter>(*this);
 }
 
-void RotationCenter::scale(double factor) {
+void RotationCenter::scale(const double factor) {
 	speed *= factor;
 }
 
@@ -244,7 +244,7 @@ shared_ptr<Loading> RotationNode::clone() const {
 	return make_shared<RotationNode>(*this);
 }
 
-void RotationNode::scale(double factor) {
+void RotationNode::scale(const double factor) {
 	speed *= factor;
 }
 
@@ -294,7 +294,7 @@ const VectorialValue NodalForce::getMomentInGlobalCS(int nodePosition) const {
 	return localToGlobal(nodePosition, moment);
 }
 
-const DOFS NodalForce::getDOFSForNode(int nodePosition) const {
+const DOFS NodalForce::getDOFSForNode(const int nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
 	set<int> posSet = nodePositions();
 	VectorialValue globalForce = getForceInGlobalCS(nodePosition);
@@ -320,7 +320,7 @@ shared_ptr<Loading> NodalForce::clone() const {
 	return make_shared<NodalForce>(*this);
 }
 
-void NodalForce::scale(double factor) {
+void NodalForce::scale(const double factor) {
 	force.scale(factor);
 	moment.scale(factor);
 }
@@ -348,7 +348,7 @@ shared_ptr<Loading> NodalForceTwoNodes::clone() const {
 	return make_shared<NodalForceTwoNodes>(*this);
 }
 
-void NodalForceTwoNodes::scale(double factor) {
+void NodalForceTwoNodes::scale(const double factor) {
 	magnitude *= factor;
 }
 
@@ -380,7 +380,7 @@ shared_ptr<Loading> NodalForceFourNodes::clone() const {
     return make_shared<NodalForceFourNodes>(*this);
 }
 
-void NodalForceFourNodes::scale(double factor) {
+void NodalForceFourNodes::scale(const double factor) {
     magnitude *= factor;
 }
 
@@ -460,7 +460,7 @@ const VectorialValue ForceSurface::getMoment() const {
 	return moment;
 }
 
-const DOFS ForceSurface::getDOFSForNode(int nodePosition) const {
+const DOFS ForceSurface::getDOFSForNode(const int nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
 	set<int> nodes = nodePositions();
 	if (nodes.find(nodePosition) != nodes.end()) {
@@ -484,7 +484,7 @@ shared_ptr<Loading> ForceSurface::clone() const {
 	return make_shared<ForceSurface>(*this);
 }
 
-void ForceSurface::scale(double factor) {
+void ForceSurface::scale(const double factor) {
 	force.scale(factor);
 	moment.scale(factor);
 }
@@ -521,7 +521,7 @@ ForceLine::ForceLine(const Model& model, const shared_ptr<NamedValue> force, DOF
 
 }
 
-const DOFS ForceLine::getDOFSForNode(int nodePosition) const {
+const DOFS ForceLine::getDOFSForNode(const int nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
 	set<int> nodes = nodePositions();
 	if (nodes.find(nodePosition) != nodes.end()) {
@@ -535,7 +535,7 @@ shared_ptr<Loading> ForceLine::clone() const {
 	return make_shared<ForceLine>(*this);
 }
 
-void ForceLine::scale(double factor) {
+void ForceLine::scale(const double factor) {
 	force->scale(factor);
 }
 
@@ -556,7 +556,7 @@ NormalPressionFace::NormalPressionFace(const Model& model, double intensity, con
 				CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID), intensity(intensity) {
 }
 
-const DOFS NormalPressionFace::getDOFSForNode(int nodePosition) const {
+const DOFS NormalPressionFace::getDOFSForNode(const int nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
 	set<int> nodes = nodePositions();
 	if (nodes.find(nodePosition) != nodes.end()) {
@@ -569,7 +569,7 @@ shared_ptr<Loading> NormalPressionFace::clone() const {
 	return make_shared<NormalPressionFace>(*this);
 }
 
-void NormalPressionFace::scale(double factor) {
+void NormalPressionFace::scale(const double factor) {
 	intensity *= factor;
 }
 
@@ -622,7 +622,7 @@ set<int> DynamicExcitation::nodePositions() const {
     return set<int>();
 }
 
-const DOFS DynamicExcitation::getDOFSForNode(int nodePosition) const {
+const DOFS DynamicExcitation::getDOFSForNode(const int nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::NO_DOFS;
 }
@@ -648,7 +648,7 @@ shared_ptr<Loading> InitialTemperature::clone() const {
 	return make_shared<InitialTemperature>(*this);
 }
 
-const DOFS InitialTemperature::getDOFSForNode(int nodePosition) const {
+const DOFS InitialTemperature::getDOFSForNode(const int nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::NO_DOFS;
 }

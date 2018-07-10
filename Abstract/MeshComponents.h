@@ -32,7 +32,7 @@
 #include <string>
 #include <stdexcept>
 #include <iterator>
-#ifdef __GNUC__
+#if defined(__GNUC__) || defined(__MINGW32__)
 // Avoid tons of warnings with root code
 #pragma GCC system_header
 #endif
@@ -381,7 +381,6 @@ private:
     friend NodeStorage;
     NodeIterator(const NodeStorage* nodes, int position);
 public:
-    virtual ~NodeIterator();
     //java style iteration
     bool hasNext() const;
     const Node next();
@@ -512,8 +511,8 @@ class NodeGroup2Families {
     std::vector<int> nodes;
 public:
     NodeGroup2Families(int nnodes, const std::vector<std::shared_ptr<NodeGroup>> nodeGroups);
-    std::vector<Family>& getFamilies();
-    std::vector<int>& getFamilyOnNodes();
+    const std::vector<Family>& getFamilies() const;
+    const std::vector<int>& getFamilyOnNodes() const;
 };
 
 class CellGroup2Families final {
@@ -524,8 +523,8 @@ private:
 public:
     CellGroup2Families(const Mesh* mesh, std::unordered_map<CellType::Code, int, std::hash<int>> cellCountByType,
             const std::vector<std::shared_ptr<CellGroup>>& cellGroups);
-    std::vector<Family>& getFamilies();
-    std::unordered_map<CellType::Code, std::shared_ptr<std::vector<int>>, std::hash<int>>& getFamilyOnCells();
+    const std::vector<Family>& getFamilies() const;
+    const std::unordered_map<CellType::Code, std::shared_ptr<std::vector<int>>, std::hash<int>>& getFamilyOnCells() const;
 };
 
 } /* namespace vega */

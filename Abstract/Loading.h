@@ -62,7 +62,7 @@ public:
 				!= CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
 	}
 	virtual std::shared_ptr<Loading> clone() const = 0;
-	virtual void scale(double factor) {
+	virtual void scale(const double factor) {
 		std::cerr << "loading scale(" << factor << ") used but not implemented" << std::endl;
 		throw std::logic_error("loading scale() used but not implemented");
 	}
@@ -138,7 +138,7 @@ public:
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	std::set<int> nodePositions() const override;
 	std::shared_ptr<Loading> clone() const override;
-	void scale(double factor) override;
+	void scale(const double factor) override;
 	bool ineffective() const override;
 };
 
@@ -176,7 +176,7 @@ public:
 	const VectorialValue getAxis() const;
 	const VectorialValue getCenter() const;
 	std::shared_ptr<Loading> clone() const override;
-	void scale(double factor) override;
+	void scale(const double factor) override;
 };
 
 class RotationNode: public Rotation {
@@ -190,7 +190,7 @@ public:
 	const VectorialValue getAxis() const;
 	const VectorialValue getCenter() const;
 	std::shared_ptr<Loading> clone() const override;
-	void scale(double factor) override;
+	void scale(const double factor) override;
 };
 
 /**
@@ -215,7 +215,7 @@ public:
 	virtual const VectorialValue getMomentInGlobalCS(const int nodePosition) const;
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	std::shared_ptr<Loading> clone() const override;
-	void scale(double factor) override;
+	void scale(const double factor) override;
 	bool ineffective() const override;
 };
 
@@ -228,7 +228,7 @@ public:
 			double magnitude, const int original_id = NO_ORIGINAL_ID);
 	const VectorialValue getForceInGlobalCS(const int) const override;
 	std::shared_ptr<Loading> clone() const;
-	void scale(double factor) override;
+	void scale(const double factor) override;
 	bool ineffective() const override;
 };
 
@@ -247,7 +247,7 @@ public:
             const int node3_id, const int node4_id, double magnitude, const int original_id = NO_ORIGINAL_ID);
     const VectorialValue getForceInGlobalCS(const int) const override;
     std::shared_ptr<Loading> clone() const;
-    void scale(double factor) override;
+    void scale(const double factor) override;
     bool ineffective() const override;
 };
 
@@ -286,7 +286,7 @@ public:
 	const VectorialValue getMoment() const;
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	virtual std::shared_ptr<Loading> clone() const;
-	void scale(double factor) override;
+	void scale(const double factor) override;
 	bool ineffective() const override;
 	SpaceDimension getLoadingDimension() const {
 		return SpaceDimension::DIMENSION_2D;
@@ -324,8 +324,8 @@ public:
 			const int original_id = NO_ORIGINAL_ID);
 
 	virtual std::shared_ptr<Loading> clone() const override;
-	const DOFS getDOFSForNode(int nodePosition) const override;
-	void scale(double factor) override;
+	const DOFS getDOFSForNode(const int nodePosition) const override;
+	void scale(const double factor) override;
 	bool ineffective() const override;
 	SpaceDimension getLoadingDimension() const {
 		return SpaceDimension::DIMENSION_1D;
@@ -342,13 +342,13 @@ class NormalPressionFace: public ElementLoading {
 public:
 	double intensity;
 	NormalPressionFace(const Model&, double intensity, const int original_id = NO_ORIGINAL_ID);
-	const DOFS getDOFSForNode(int nodePosition) const override;
+	const DOFS getDOFSForNode(const int nodePosition) const override;
 	bool validate() const override;
 	SpaceDimension getLoadingDimension() const {
 		return SpaceDimension::DIMENSION_2D;
 	}
 	virtual std::shared_ptr<Loading> clone() const override;
-	void scale(double factor) override;
+	void scale(const double factor) override;
 	bool ineffective() const override;
 };
 
@@ -375,7 +375,7 @@ public:
     const ValuePlaceHolder getFunctionTableBPlaceHolder() const;
     const ValuePlaceHolder getFunctionTablePPlaceHolder() const;
     std::set<int> nodePositions() const override;
-    const DOFS getDOFSForNode(int nodePosition) const override;
+    const DOFS getDOFSForNode(const int nodePosition) const override;
     std::shared_ptr<Loading> clone() const override;
     bool validate() const override;
     bool ineffective() const override;
@@ -386,9 +386,9 @@ protected:
 	double temperature;
 public:
     InitialTemperature(const Model&, double temperature, const int original_id = NO_ORIGINAL_ID);
-	const DOFS getDOFSForNode(int nodePosition) const override;
+	const DOFS getDOFSForNode(const int nodePosition) const override;
 	std::shared_ptr<Loading> clone() const override;
-	void scale(double factor) override;
+	void scale(const double factor) override;
 	bool ineffective() const override;
 };
 

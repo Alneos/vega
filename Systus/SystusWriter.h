@@ -88,6 +88,8 @@ SMF DOFtoSMF(DOF dof);
 static const int defaultNbDesiredRoots=100; /**< Default number of desired roots for a static analysis (chosen from experiment)**/
 
 class SystusWriter final: public Writer {
+
+private:
     int systusOption = 0;
     int systusSubOption = 0;
     int maxNumNodes = 0;
@@ -98,14 +100,14 @@ class SystusWriter final: public Writer {
     static const int MassAccessId;			 /**< Access Id for the Mass Matrices file (Element X9XX type 0)**/
     static const int StiffnessAccessId;      /**< Access Id for the Stiffness Matrices file (Element X9XX type 0)**/
 
-    std::map<int, std::vector<long unsigned int> > lists;
-    std::map<long unsigned int, std::vector<double>> vectors;
+    std::map<int, std::vector<systus_ascid_t> > lists;
+    std::map<systus_ascid_t, std::vector<double>> vectors;
     std::map<int, int> rotationNodeIdByTranslationNodeId; /**< nodeId, nodeId > :  map between the reference node and the reference rotation for 190X elements in 3D mode.**/
     std::map<int, std::map<int, int>> localLoadingIdByLoadsetIdByAnalysisId;
-    std::map<int, long unsigned int> loadingVectorIdByLocalLoading;
-    std::map<int, std::map<int, std::vector<long unsigned int>>> loadingVectorsIdByLocalLoadingByNodePosition;
-    std::map<int, std::map<int, std::vector<long unsigned int>>> constraintVectorsIdByLocalLoadingByNodePosition;
-    std::map<int, long unsigned int> localVectorIdByNodePosition;  /**< nodePosition, vectorId> for all Coordinate Systems Vectors. **/
+    std::map<int, systus_ascid_t> loadingVectorIdByLocalLoading;
+    std::map<int, std::map<int, std::vector<systus_ascid_t>>> loadingVectorsIdByLocalLoadingByNodePosition;
+    std::map<int, std::map<int, std::vector<systus_ascid_t>>> constraintVectorsIdByLocalLoadingByNodePosition;
+    std::map<int, systus_ascid_t> localVectorIdByNodePosition;  /**< nodePosition, vectorId> for all Coordinate Systems Vectors. **/
     std::map<int, int> loadingListIdByNodePosition;
     std::map<int, std::string> localLoadingListName;
     std::map<int, int> constraintListIdByNodePosition;
@@ -115,9 +117,9 @@ class SystusWriter final: public Writer {
     SystusMatrices dampingMatrices;   	    /**< All needed damping matrices (element X9XX type 0). **/
     SystusMatrices massMatrices ;           /**< All needed mass matrices (element X9XX type 0). **/
     SystusMatrices stiffnessMatrices;       /**< All needed rigidity matrices (element X9XX type 0). **/
-    std::map<int, long unsigned int> tableByElementSet;
-    std::map<int, long unsigned int> tableByLoadcase;
-    std::map<int, long unsigned int> seIdByElementSet; /**< Number of the matrix associated to SE (element X9XX type 0). **/
+    std::map<int, systus_ascid_t> tableByElementSet;
+    std::map<int, systus_ascid_t> tableByLoadcase;
+    std::map<int, systus_ascid_t> seIdByElementSet; /**< Number of the matrix associated to SE (element X9XX type 0). **/
     std::map<int, std::string > filebyAccessId;        /**< Names of matrix files **/
     /**
      * Renumbers the nodes
@@ -409,7 +411,7 @@ class SystusWriter final: public Writer {
     void writeNodalDisplacementAssertion(Assertion& assertion, std::ostream& out);
     void writeNodalComplexDisplacementAssertion(Assertion& assertion, std::ostream& out);
     void writeFrequencyAssertion(Assertion& assertion, std::ostream& out);
-    void writeNodalForce(const SystusModel& systusModel, std::shared_ptr<NodalForce> nodalForce, const int idLoadCase, long unsigned int& vectorId);
+    void writeNodalForce(const SystusModel& systusModel, std::shared_ptr<NodalForce> nodalForce, const int idLoadCase, systus_ascid_t& vectorId);
 
     const std::string toString() const override {
         return std::string("SystusWriter");

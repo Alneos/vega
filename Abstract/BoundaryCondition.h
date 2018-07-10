@@ -28,9 +28,8 @@ public:
     virtual bool hasFunctions() const {
 	    return false;
 	}
-	virtual const DOFS getDOFSForNode(int nodePosition) const = 0;
+	virtual const DOFS getDOFSForNode(const int nodePosition) const = 0;
 	virtual std::set<int> nodePositions() const = 0;
-	virtual ~BoundaryCondition();
 };
 
 } /* namespace vega */

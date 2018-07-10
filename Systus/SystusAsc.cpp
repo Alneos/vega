@@ -36,7 +36,7 @@ string SystusTableLabelToString(const SystusTableLabel stl){
 }
 
 
-SystusTable::SystusTable(long unsigned int id, SystusTableLabel label, long unsigned int type) :
+SystusTable::SystusTable(systus_ascid_t id, SystusTableLabel label, systus_ascid_t type) :
         id(id), label(label), type(type){
 }
 
@@ -73,7 +73,7 @@ void SystusTable::add(const double value){
 
 // Start of Systus Matrix
 
-SystusMatrix::SystusMatrix(long unsigned int id, int nbDOFS, int nbNodes ) :
+SystusMatrix::SystusMatrix(systus_ascid_t id, int nbDOFS, int nbNodes ) :
         id(id), nbDOFS(nbDOFS), nbNodes(nbNodes){
     this->size=nbNodes*nbNodes*nbDOFS*nbDOFS;
     this->values.resize(this->size, 0.0);
@@ -109,11 +109,11 @@ ostream& operator<<(ostream& os, const SystusMatrix & sm)
       os << i <<endl;
 
   // Matrix elements. All dofs of SM(i,j) are written in one line
-  long unsigned int ioff=0;
-  long unsigned int sizeM = sm.nbDOFS*sm.nbDOFS;
+  systus_ascid_t ioff=0;
+  systus_ascid_t sizeM = sm.nbDOFS*sm.nbDOFS;
   for (int i=0; i<sm.nbNodes; i++){
       for (int j=0; j<sm.nbNodes; j++){
-          for (long unsigned int k=0; k<sizeM; k++){
+          for (systus_ascid_t k=0; k<sizeM; k++){
               os << sm.values[k +ioff]<<" ";
           }
           os << endl;
@@ -142,7 +142,7 @@ void SystusMatrices::clear(){
     this->matrices.clear();
 }
 
-long unsigned int SystusMatrices::size(){
+vector<SystusMatrix>::size_type SystusMatrices::size() const {
     return this->matrices.size();
 }
 
@@ -157,7 +157,7 @@ ostream& operator<<(ostream& os, const SystusMatrices & sms)
   for (int i=13 ; i<22; i++)
       os << "0"<<endl;  // Useless parameters ?
 
-  for (long unsigned int i=0; i< sms.matrices.size(); i++)
+  for (systus_ascid_t i=0; i< sms.matrices.size(); i++)
       os << sms.matrices[i];
 
   // End of file

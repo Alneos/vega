@@ -58,7 +58,6 @@ public:
     const NatureType type;
     Nature(const Model&, NatureType);
     virtual std::shared_ptr<Nature> clone() const = 0;
-    virtual ~Nature();
 };
 
 class ElasticNature: public Nature {
@@ -96,7 +95,6 @@ public:
     double getTref() const;
 
     virtual std::shared_ptr<Nature> clone() const;
-    virtual ~ElasticNature();
 
 };
 
@@ -109,7 +107,6 @@ public:
     BilinearElasticNature(const Model&, const double elastic_limit, const double secondary_slope);
     BilinearElasticNature(const Model&);
     virtual std::shared_ptr<Nature> clone() const;
-    virtual ~BilinearElasticNature();
 };
 
 class NonLinearElasticNature: public Nature {
@@ -119,8 +116,6 @@ public:
     NonLinearElasticNature(const Model&, const int stress_strain_function_id);
     std::shared_ptr<FunctionTable> getStressStrainFunction() const;
     virtual std::shared_ptr<Nature> clone() const;
-    virtual ~NonLinearElasticNature();
-
 };
 
 
@@ -140,7 +135,6 @@ public:
     void setLagrangian(double lagrangian);
 
     virtual std::shared_ptr<Nature> clone() const;
-    virtual ~RigidNature();
 
 };
 
@@ -178,9 +172,6 @@ public:
      * Choose the one appropriate to your input model.
      */
     void assignMaterial(const CellContainer& cellsToAssign);
-    virtual ~Material() {
-    }
-    ;
 };
 
 }

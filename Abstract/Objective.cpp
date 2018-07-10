@@ -57,7 +57,7 @@ NodalAssertion::NodalAssertion(const Model& model, Type type, double tolerance, 
         Assertion(model, type, tolerance, original_id), nodePosition(model.mesh->findOrReserveNode(nodeId)), dof(dof) {
 }
 
-const DOFS NodalAssertion::getDOFSForNode(int nodePosition) const {
+const DOFS NodalAssertion::getDOFSForNode(const int nodePosition) const {
     UNUSEDV(nodePosition);
     return dof;
 }
@@ -97,7 +97,7 @@ FrequencyAssertion::FrequencyAssertion(const Model& model, int number, double va
         Assertion(model, FREQUENCY_ASSERTION, tolerance, original_id), number(number), value(value) {
 }
 
-const DOFS FrequencyAssertion::getDOFSForNode(int nodePosition) const {
+const DOFS FrequencyAssertion::getDOFSForNode(const int nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::NO_DOFS;
 }

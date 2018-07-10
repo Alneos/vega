@@ -102,7 +102,7 @@ Beam::Beam(Model& model, Type type, ModelType* modelType, BeamModel beamModel,
 				additional_mass) {
 }
 
-const DOFS Beam::getDOFSForNode(int nodePosition) const {
+const DOFS Beam::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
 	return DOFS::ALL_DOFS;
 }
@@ -231,12 +231,12 @@ Shell::Shell(Model& model, double thickness, double additional_mass, int origina
 				additional_mass) {
 }
 
-const DOFS Shell::getDOFSForNode(int nodePosition) const {
+const DOFS Shell::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
 	return DOFS::ALL_DOFS;
 }
 
-const DOFS Continuum::getDOFSForNode(int nodePosition) const {
+const DOFS Continuum::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
 	return DOFS::TRANSLATIONS;
 }
@@ -247,7 +247,7 @@ Discrete::Discrete(Model& model, ElementSet::Type type, bool symmetric, int orig
 
 const double Discrete::NOT_BOUNDED = -DBL_MAX;
 
-const DOFS Discrete::getDOFSForNode(int nodePosition) const {
+const DOFS Discrete::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
 	// LD : meaning here is that the node has a variable for the dof, not that it has stiffness
 	// over it
@@ -524,7 +524,7 @@ double NodalMass::getMass() const {
 	return m * mass_multiplier;
 }
 
-const DOFS NodalMass::getDOFSForNode(int nodePosition) const {
+const DOFS NodalMass::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
 	return DOFS::ALL_DOFS;
 }
@@ -662,7 +662,7 @@ const set<int> MatrixElement::nodePositions() const {
 	return result;
 }
 
-const DOFS MatrixElement::getDOFSForNode(int nodePosition) const {
+const DOFS MatrixElement::getDOFSForNode(const int nodePosition) const {
 	DOFS dofs;
 	for (auto& kv : submatrixByNodes) {
 		if (kv.first.first == nodePosition or kv.first.second) {
@@ -731,7 +731,7 @@ RigidSet::RigidSet(Model& model, Type type, int master_id, int original_id) :
 }
 
 
-const DOFS RigidSet::getDOFSForNode(int nodePosition) const {
+const DOFS RigidSet::getDOFSForNode(const int nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::ALL_DOFS;
 }
@@ -794,7 +794,7 @@ bool ScalarSpring::hasStiffness() const {
 bool ScalarSpring::hasDamping() const {
     return !(is_zero(this->damping) || is_equal(this->damping, Nature::UNAVAILABLE_DOUBLE));
 }
-const DOFS ScalarSpring::getDOFSForNode(int nodePosition) const {
+const DOFS ScalarSpring::getDOFSForNode(const int nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::ALL_DOFS;
 }

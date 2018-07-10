@@ -230,7 +230,6 @@ public:
             Interpolation left = NONE, Interpolation right = NONE,
             int original_id = NO_ORIGINAL_ID);
     void setXY(const double X, const double Y);
-    void makeZero();
     const std::vector<std::pair<double, double> >::const_iterator getBeginValuesXY() const;
     const std::vector<std::pair<double, double> >::const_iterator getEndValuesXY() const;
     std::shared_ptr<NamedValue> clone() const;

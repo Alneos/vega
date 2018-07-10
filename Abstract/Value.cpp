@@ -122,10 +122,6 @@ void FunctionTable::setXY(const double X, const double Y) {
     valuesXY.push_back(pair<double, double>(X, Y));
 }
 
-void FunctionTable::makeZero() {
-    ;
-}
-
 const vector<pair<double, double>>::const_iterator FunctionTable::getBeginValuesXY() const {
     return valuesXY.begin();
 }

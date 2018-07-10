@@ -19,7 +19,7 @@
 #include "BoundaryCondition.h"
 #include "MeshComponents.h"
 #include "ConfigurationParameters.h"
-#ifdef __GNUC__
+#if defined(__GNUC__)
 // Avoid tons of warnings with root code
 #pragma GCC system_header
 #endif
@@ -123,7 +123,7 @@ private:
 
 	std::shared_ptr<CellGroup> getOrCreateCellGroupForOrientation(const int cid);
 	void createFamilies(med_idt fid, const char meshname[MED_NAME_SIZE + 1],
-			std::vector<Family>& families);
+			const std::vector<Family>& families);
 public:
 
 	std::map<int, std::string> cellGroupNameByCID;

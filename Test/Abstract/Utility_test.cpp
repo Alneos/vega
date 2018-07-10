@@ -12,6 +12,6 @@ using namespace std;
 using namespace vega;
 
 BOOST_AUTO_TEST_CASE( test_backtrace ) {
-	backtrace(); // Only to check if this works
+	stacktrace(); // Only to check if this works
 	BOOST_CHECK(true);
 }

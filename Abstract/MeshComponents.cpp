@@ -421,10 +421,6 @@ bool NodeIterator::equal(NodeIterator const& other) const {
 	return this->position == other.position;
 }
 
-NodeIterator::~NodeIterator() {
-
-}
-
 NodeIterator& NodeIterator::operator ++() {
 	increment();
 	return *this;
@@ -872,11 +868,11 @@ NodeGroup2Families::NodeGroup2Families(int nnodes, const vector<shared_ptr<NodeG
 	}
 }
 
-vector<Family>& NodeGroup2Families::getFamilies() {
+const vector<Family>& NodeGroup2Families::getFamilies() const {
 	return this->families;
 }
 
-vector<int>& NodeGroup2Families::getFamilyOnNodes() {
+const vector<int>& NodeGroup2Families::getFamilyOnNodes() const {
 	return this->nodes;
 }
 
@@ -939,12 +935,13 @@ CellGroup2Families::CellGroup2Families(
 	}
 }
 
-vector<Family>& CellGroup2Families::getFamilies() {
+const vector<Family>& CellGroup2Families::getFamilies() const {
 	return this->families;
 }
 
-unordered_map<CellType::Code, shared_ptr<vector<int>>, hash<int>>& CellGroup2Families::getFamilyOnCells() {
+const unordered_map<CellType::Code, shared_ptr<vector<int>>, hash<int>>& CellGroup2Families::getFamilyOnCells() const {
 	return this->cellFamiliesByType;
 }
+
 } /* namespace vega */
 

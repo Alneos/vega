@@ -32,10 +32,8 @@ namespace systus {
 class SystusRunner: public vega::Runner {
 public:
     SystusRunner();
-    virtual ExitCode execSolver(const ConfigurationParameters &configuration,
-            std::string modelFile);
-
-    virtual ~SystusRunner();
+    ExitCode execSolver(const ConfigurationParameters &configuration,
+            std::string modelFile) override;
 };
 
 } /* namespace systus */

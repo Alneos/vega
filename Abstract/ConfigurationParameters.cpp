@@ -83,9 +83,6 @@ Solver Solver::fromString(string name) {
     return Solver(solverIterator->second);
 }
 
-Solver::~Solver() {
-}
-
 ModelConfiguration::ModelConfiguration(bool virtualDiscrets, LogLevel logLevel, bool createSkin,
         bool emulateLocalDisplacement, bool displayHomogeneousConstraint,
         bool emulateAdditionalMass, bool replaceCombinedLoadSets, bool removeIneffectives,

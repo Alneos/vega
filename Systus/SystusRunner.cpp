@@ -127,10 +127,6 @@ Runner::ExitCode SystusRunner::execSolver(const ConfigurationParameters &configu
     return exitCode;
 }
 
-SystusRunner::~SystusRunner() {
-    // TODO Auto-generated destructor stub
-}
-
 } /* namespace systus */
 } /* namespace vega */
 

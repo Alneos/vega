@@ -4,7 +4,7 @@
 # bugs and problems to <info@alneos.fr>.
 # Initial version from cmake config in : http://geuz.org/gmsh
 
-cmake_minimum_required(VERSION 3.8.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8.2 FATAL_ERROR)
 
 ########################################################################
 # Provide add_compile_options() when not available
@@ -30,7 +30,7 @@ IF(NOT DEFINED VEGA_EXTRA_VERSION OR "${VEGA_EXTRA_VERSION}" STREQUAL "")
     ENDIF()
 ELSE()
     message(STATUS "VEGA_EXTRA_VERSION:" ${VEGA_EXTRA_VERSION})
-ENDIF(NOT DEFINED VEGA_EXTRA_VERSION)
+ENDIF()
 
 # add this options before PROJECT keyword
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
@@ -103,8 +103,11 @@ else(MSVC)
         add_compile_options(-std=c++11 -Werror -Wall -Wextra -Winit-self -Wconversion -pedantic -pedantic-errors)
         add_compile_options(-Wfloat-equal -diag-disable 1170 -fmessage-length=0) # -Wshadow
     ELSE()
-        add_compile_options(-std=c++11 -Werror -Wall -Wextra -Winit-self -Wsuggest-attribute=const -Wconversion -pedantic -pedantic-errors)
+        add_compile_options(-std=c++11 -Werror -Wall -Wextra -Winit-self -Wconversion -pedantic -pedantic-errors)
         add_compile_options(-Wfloat-equal -Woverlength-strings -fmessage-length=0 -Wmain -Wmissing-declarations -Wundef -Wredundant-decls -Wcast-align -Wswitch-default -Wlogical-op -Wuseless-cast -Wold-style-cast -Wdouble-promotion) # -Wshadow
+        if(NOT MINGW)
+            add_compile_options(-Wsuggest-attribute=const) # LD strange results, probably because MXE is using 5.4.0
+        endif()
     ENDIF()
     if(STATIC_LINKING)
         add_compile_options(-fPIE)
@@ -130,7 +133,7 @@ else(MSVC)
         if(NOT STATIC_LINKING)
             if(NOT MINGW)
                 add_compile_options(-fPIC)
-	        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -rdynamic " CACHE INTERNAL "Linker flags")
+	        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -rdynamic " CACHE INTERNAL "Linker flags") # LD: I think is used only by glib backtrace ?
 	    endif(NOT MINGW)
         endif(NOT STATIC_LINKING)
     ENDIF(CYGWIN)
@@ -259,12 +262,14 @@ IF(CYGWIN)
   link_directories("${CYGWIN_MOUNT}/lib")
 ENDIF(CYGWIN)
 
-set(LIBUNWIND_USE_STATIC_LIBS ${STATIC_LINKING})
-find_package(Libunwind)
-IF(LIBUNWIND_FOUND)
-    include_directories(SYSTEM ${LIBUNWIND_INCLUDE_DIR})
-    list(APPEND EXTERNAL_LIBRARIES ${LIBUNWIND_LIBRARIES})
-ENDIF(LIBUNWIND_FOUND)
+IF(CMAKE_VERSION VERSION_GREATER "3.8.1")
+    set(LIBUNWIND_USE_STATIC_LIBS ${STATIC_LINKING})
+    find_package(Libunwind)
+    IF(LIBUNWIND_FOUND)
+        include_directories(SYSTEM ${LIBUNWIND_INCLUDE_DIR})
+        list(APPEND EXTERNAL_LIBRARIES ${LIBUNWIND_LIBRARIES})
+    ENDIF()
+ENDIF()
 
 #necessary to find build_properties.h
 include_directories(${CMAKE_BINARY_DIR})

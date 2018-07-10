@@ -33,10 +33,6 @@ namespace tests {
 using namespace boost::algorithm;
 using namespace std;
 
-CommandLineUtils::CommandLineUtils() {
-
-}
-
 void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName outputSolver,
         bool runSolver, bool strict, double tolerance) {
     string inputSolverString;
@@ -166,6 +162,7 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
         VegaCommandLine vcl;
         result = vcl.process(static_cast<int>(argv1.size() - 1), &argv1[0]);
     } catch (exception &e) {
+        result = VegaCommandLine::GENERIC_EXCEPTION;
         BOOST_FAIL(string("Exception threw ") + e.what() + " " + sourceFname.string());
     }
     BOOST_TEST_CHECKPOINT(
@@ -285,7 +282,6 @@ bool CommandLineUtils::containsWord(const string &fname, const string &word) {
     }
     return found;
 }
-CommandLineUtils::~CommandLineUtils() {
-}
-}
+
+} /* namespace tests */
 } /* namespace vega */

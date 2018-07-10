@@ -252,7 +252,7 @@ DOFS::iterator DOFS::begin() const {
 	return DOFS::iterator(0, this);
 }
 
-DOFS::iterator DOFS::end() const {
+const DOFS::iterator DOFS::end() const {
 	return DOFS::iterator(6, this);
 }
 

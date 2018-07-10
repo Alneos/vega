@@ -345,8 +345,8 @@ const Cell Mesh::findCell(int cellPosition) const {
 
 
 void Mesh::createFamilies(med_idt fid, const char meshname[MED_NAME_SIZE + 1],
-		vector<Family>& families) {
-	for (Family& family : families) {
+		const vector<Family>& families) {
+	for (auto& family : families) {
 		const unsigned int ngroups = static_cast<unsigned int>(family.groups.size());
 		char* groupname = new char[ngroups * MED_LNAME_SIZE + 1]();
 		for (unsigned int i = 0; i < ngroups; i++) {
@@ -474,7 +474,7 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 		NodeGroup2Families ng2fam(countNodes(), nodeGroups);
 		//WARN: if writing to file is delayed to MEDfileClose may be necessary
 		//to move the allocation outside the if
-		vector<Family>& families = ng2fam.getFamilies();
+		auto& families = ng2fam.getFamilies();
 		createFamilies(fid, meshname, families);
 		//write family number for nodes
 		if (MEDmeshEntityFamilyNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_NODE, MED_NONE,

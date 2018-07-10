@@ -35,6 +35,8 @@
 namespace vega {
 namespace systus {
 
+typedef std::vector<int>::size_type systus_ascid_t;
+
 enum SystusTableLabel{
     TL_STANDARD, TL_DIRECT, TL_FILE, TL_FORTRAN, TL_PLASTICITY, TL_PROGRAM, TL_TABLE
 };
@@ -52,13 +54,13 @@ std::string SystusTableLabelToString(const SystusTableLabel stl);
  */
 class SystusTable{
 public:
-    long unsigned int id;
+    systus_ascid_t id;
 
     SystusTableLabel label;
-    long unsigned int type;
+    systus_ascid_t type;
     std::vector<double> values;
 
-    SystusTable(long unsigned int id, SystusTableLabel label=SystusTableLabel::TL_STANDARD, long unsigned int type=1);
+    SystusTable(systus_ascid_t id, SystusTableLabel label=SystusTableLabel::TL_STANDARD, systus_ascid_t type=1);
     virtual ~SystusTable();
 
     void add(double value);
@@ -73,13 +75,13 @@ public:
 class SystusMatrix{
 public:
 
-    long unsigned int id; /**< Id. Correspond to a "E id" in the material, or "REDUCTION id" in the reduction process.>**/
+    systus_ascid_t id; /**< Id. Correspond to a "E id" in the material, or "REDUCTION id" in the reduction process.>**/
     int nbDOFS;
     int nbNodes;
     int size;
     std::vector<double> values;
 
-    SystusMatrix(long unsigned int id, int nbNodes, int nbDOFS);
+    SystusMatrix(systus_ascid_t id, int nbNodes, int nbDOFS);
     virtual ~SystusMatrix();
 
     void setValue(int i, int j, int dofi, int dofj, double value);
@@ -106,7 +108,7 @@ public:
 
     void add(SystusMatrix sm);
     void clear();
-    long unsigned int size();
+    systus_ascid_t size() const;
     /**
      * Print SystusMatrices to the output stream, in a ASCII format.
      * To be used by SYSTUS, output file must be translated to BINARY format, using the filematrix tool.

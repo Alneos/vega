@@ -6,9 +6,10 @@
  
 FIND_PATH(LIBUNWIND_INCLUDE_DIR libunwind.h)
 if(NOT LIBUNWIND_INCLUDE_DIR)
-  message(FATAL_ERROR "failed to find libunwind.h")
-elif(NOT EXISTS "${LIBUNWIND_INCLUDE_DIR}/unwind.h")
-  message(FATAL_ERROR "libunwind.h was found, but unwind.h was not found in that directory.")
+  message(WARNING "failed to find libunwind.h")
+endif()
+if(NOT EXISTS "${LIBUNWIND_INCLUDE_DIR}/unwind.h")
+  message(WARNING "libunwind.h was found, but unwind.h was not found in that directory.")
   SET(LIBUNWIND_INCLUDE_DIR "")
 endif()
 
@@ -24,7 +25,7 @@ ENDIF(LIBUNWIND_USE_STATIC_LIBS)
  
 
 if (NOT LIBUNWIND_GENERIC_LIBRARY)
-    MESSAGE(FATAL_ERROR "failed to find unwind generic library")
+    MESSAGE(WARNING "failed to find unwind generic library")
 endif ()
 SET(LIBUNWIND_LIBRARIES ${LIBUNWIND_GENERIC_LIBRARY})
 
@@ -49,7 +50,7 @@ if (LIBUNWIND_ARCH)
       FIND_LIBRARY(LIBUNWIND_SPECIFIC_LIBRARY "libunwind-${LIBUNWIND_ARCH}.so" "unwind-${LIBUNWIND_ARCH}.so" "unwind-${LIBUNWIND_ARCH}")
     ENDIF(LIBUNWIND_USE_STATIC_LIBS)
     if (NOT LIBUNWIND_SPECIFIC_LIBRARY)
-        MESSAGE(FATAL_ERROR "failed to find unwind-${LIBUNWIND_ARCH}")
+        MESSAGE(WARNING "failed to find unwind-${LIBUNWIND_ARCH}")
     endif ()
     SET(LIBUNWIND_LIBRARIES ${LIBUNWIND_LIBRARIES} ${LIBUNWIND_SPECIFIC_LIBRARY})
 endif(LIBUNWIND_ARCH)

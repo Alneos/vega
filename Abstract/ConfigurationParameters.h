@@ -26,7 +26,7 @@
 
 #define BOOST_SYSTEM_NO_DEPRECATED 1
 #include <string>
-#ifdef __GNUC__
+#if defined(__GNUC__)
 // Avoid tons of warnings with the following code
 #pragma GCC system_header
 #endif
@@ -61,7 +61,6 @@ private:
     Solver(SolverName name);
     SolverName getSolverName() const;
     static Solver fromString(std::string solverTypeName);
-    ~Solver();
 };
 /**
  * Contains configuration of model operations most of them done during finish()

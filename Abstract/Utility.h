@@ -17,7 +17,7 @@
 #include <string>
 #include <cmath>
 #include <stdio.h>
-#ifdef __GNUC__
+#if defined(__GNUC__)
 // Avoid tons of warnings with the following code
 #pragma GCC system_header
 #endif
@@ -52,7 +52,7 @@ namespace ublas = boost::numeric::ublas;
  */
 bool InvertMatrix(const ublas::matrix<double>& input, ublas::matrix<double>& inverse);
 
-void backtrace();
+void stacktrace();
 void handler(int sig);
 
 } /* namespace vega */

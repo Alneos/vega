@@ -1816,7 +1816,7 @@ void NastranParser::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> model) 
     else
         handleParsingError(string("PLOAD1 TYPE not yet implemented."), tok, model);
 
-    double effx1, effx2, effp1, effp2;
+    double effx1 = x1, effx2 = x2, effp1 = p1, effp2 = p2;
 
     if (scale == "LE") {
         /* If SCALE = LE, the total load applied to the bar is P1(X2 - X1) in the yb direction. */
@@ -2409,8 +2409,8 @@ void NastranParser::parseSPCD(NastranTokenizer& tok, shared_ptr<Model> model) {
     const double d1 = tok.nextDouble();
     int g1pos = model->mesh->findNodePosition(g1);
     int g2 = -1;
-    int c2;
-    double d2;
+    int c2 = -1;
+    double d2 = -1;
     int g2pos = -1;
     if (tok.isNextInt()) {
         g2 = tok.nextInt();
@@ -2489,7 +2489,7 @@ void NastranParser::parseSPCD(NastranTokenizer& tok, shared_ptr<Model> model) {
     spc.addNodeId(g1);
     model->add(spc);
     model->addConstraintIntoConstraintSet(spc, constraintSetReference);
-    if (g2 != -1) {
+    if (g2 != -1 and c2 != -1 and not is_equal(d2,-1)) {
         SinglePointConstraint spc2 = SinglePointConstraint(*model, DOFS::nastranCodeToDOFS(c2), d2);
         spc.addNodeId(g2);
         model->add(spc2);
@@ -2530,6 +2530,7 @@ void NastranParser::parseTABDMP1(NastranTokenizer& tok, shared_ptr<Model> model)
                 continue;
             }else{
                 handleParsingWarning("Invalid key ("+sField+") should be ENDT, SKIP or a real.", tok, model);
+                break;
             }
         }
         if (tok.isNextDouble()){
@@ -2540,6 +2541,7 @@ void NastranParser::parseTABDMP1(NastranTokenizer& tok, shared_ptr<Model> model)
                 continue;
             }else{
                 handleParsingWarning("Invalid key ("+sField+") should be SKIP or a real.", tok, model);
+                break;
             }
         }
         functionTable.setXY(x, y);
@@ -2588,6 +2590,7 @@ void NastranParser::parseTABLED1(NastranTokenizer& tok, shared_ptr<Model> model)
                 continue;
             }else{
                 handleParsingWarning("Invalid key ("+sField+") should be ENDT, SKIP or a real.", tok, model);
+                break;
             }
         }
         if (tok.isNextDouble()){
@@ -2598,6 +2601,7 @@ void NastranParser::parseTABLED1(NastranTokenizer& tok, shared_ptr<Model> model)
                 continue;
             }else{
                 handleParsingWarning("Invalid key ("+sField+") should be SKIP or a real.", tok, model);
+                break;
             }
         }
         functionTable.setXY(x, y);

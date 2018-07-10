@@ -18,8 +18,4 @@ BoundaryCondition::BoundaryCondition() {
 
 }
 
-BoundaryCondition::~BoundaryCondition() {
-
-}
-
 }

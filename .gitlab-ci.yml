@@ -33,7 +33,7 @@ building:
     - docker rmi "$TEST_IMAGE"
   artifacts:
     paths:
-    - /home/vega/vegapp/build/bin/vegapp
+    - /srv/data/$OUTDIR/vegapp
     expire_in: 1 day
 
 nightly:

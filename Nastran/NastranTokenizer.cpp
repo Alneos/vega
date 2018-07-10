@@ -13,6 +13,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <iostream>
+#include <cassert>
 #include <string>
 #include <vector>
 #include <fstream>
@@ -367,7 +368,7 @@ void NastranTokenizer::skipToNextKeyword() {
 
 
 int NastranTokenizer::nextInt(bool returnDefaultIfNotFoundOrBlank, int defaultValue) {
-	int result;
+	int result = 0;
 	string value = trim_copy(nextSymbolString());
 	if (value.empty()) {
 	    if (returnDefaultIfNotFoundOrBlank){
@@ -407,7 +408,7 @@ const list<int> NastranTokenizer::nextInts() {
 }
 
 double NastranTokenizer::nextDouble(bool returnDefaultIfNotFoundOrBlank, double defaultValue) {
-	double result;
+	double result = 0.0;
 	string value = trim_copy(nextSymbolString());
 	if (value.empty()) {
 	    if (returnDefaultIfNotFoundOrBlank){

@@ -109,17 +109,8 @@ std::string to_str(const Nature& nature){
     return oss.str();
 }
 
-
-Nature::~Nature() {
-
-}
-
 shared_ptr<Nature> ElasticNature::clone() const {
 	return make_shared<ElasticNature>(*this);
-}
-
-ElasticNature::~ElasticNature() {
-
 }
 
 ElasticNature::ElasticNature(const Model& model, const double e, const double nu, const double g,
@@ -185,10 +176,6 @@ shared_ptr<Nature> BilinearElasticNature::clone() const {
 	return make_shared<BilinearElasticNature>(*this);
 }
 
-BilinearElasticNature::~BilinearElasticNature() {
-
-}
-
 BilinearElasticNature::BilinearElasticNature(const Model& model, const double elastic_limit,
 		const double secondary_slope) :
 		Nature(model, NATURE_BILINEAR_ELASTIC), elastic_limit(elastic_limit), secondary_slope(
@@ -201,10 +188,6 @@ BilinearElasticNature::BilinearElasticNature(const Model& model) :
 
 shared_ptr<Nature> NonLinearElasticNature::clone() const {
 	return make_shared<NonLinearElasticNature>(*this);
-}
-
-NonLinearElasticNature::~NonLinearElasticNature() {
-
 }
 
 NonLinearElasticNature::NonLinearElasticNature(const Model& model,
@@ -225,9 +208,6 @@ shared_ptr<FunctionTable> NonLinearElasticNature::getStressStrainFunction() cons
 
 shared_ptr<Nature> RigidNature::clone() const {
     return make_shared<RigidNature>(*this);
-}
-
-RigidNature::~RigidNature() {
 }
 
 RigidNature::RigidNature(const Model&, const double rigidity, const double lagrangian) :

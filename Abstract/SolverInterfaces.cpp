@@ -142,7 +142,7 @@ void Tokenizer::handleParsingError(const string& message) {
         // Problem on static over Alpine
         //throw ParsingException(message, fileName, lineNumber, currentKeyword);
         cerr << ParsingException(message, fileName, lineNumber, currentKeyword);
-        vega::backtrace();
+        vega::stacktrace();
         exit(2);
     case ConfigurationParameters::MESH_AT_LEAST:
         //model->onlyMesh = true;
@@ -246,7 +246,7 @@ void Runner::deletePreviousResultFiles(string currentModel, const vector<string>
     }
 }
 
-Runner::ExitCode Runner::convertExecResult(int exitCode) const {
+Runner::ExitCode Runner::convertExecResult(const int exitCode) const {
     if (exitCode == 0) {
         return OK;
     }

@@ -474,9 +474,6 @@ Gap::Gap(Model& model, int original_id) :
         Constraint(model, Constraint::GAP, original_id) {
 }
 
-Gap::~Gap() {
-}
-
 GapTwoNodes::GapTwoNodes(Model& model, int original_id) :
         Gap(model, original_id) {
 }

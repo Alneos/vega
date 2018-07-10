@@ -91,7 +91,7 @@ public:
     virtual const std::set<int> nodePositions() const {
         return cellGroup->nodePositions();
     }
-    virtual const DOFS getDOFSForNode(int nodePosition) const = 0;
+    virtual const DOFS getDOFSForNode(const int nodePosition) const = 0;
     virtual double getAdditionalRho() const {
         return 0;
     }
@@ -134,7 +134,7 @@ public:
 	virtual double getTorsionalConstant() const = 0;
 	virtual double getShearAreaFactorY() const = 0;
 	virtual double getShearAreaFactorZ() const = 0;
-	const DOFS getDOFSForNode(int nodePosition) const override final;
+	const DOFS getDOFSForNode(const int nodePosition) const override final;
 	virtual ~Beam() {
 	}
 
@@ -252,7 +252,7 @@ public:
 	bool isShell() const override final {
 		return true;
 	}
-	const DOFS getDOFSForNode(int nodePosition) const override final;
+	const DOFS getDOFSForNode(const int nodePosition) const override final;
 	virtual ~Shell() {
 	}
 };
@@ -264,7 +264,7 @@ public:
 	std::shared_ptr<ElementSet> clone() const override {
 		return std::make_shared<Continuum>(*this);
 	}
-	const DOFS getDOFSForNode(int nodePosition) const override final;
+	const DOFS getDOFSForNode(const int nodePosition) const override final;
 	virtual ~Continuum() {
 	}
 };
@@ -279,7 +279,7 @@ public:
 	}
 	virtual bool hasTranslations() const = 0;
 	virtual bool hasRotations() const = 0;
-	const DOFS getDOFSForNode(int nodePosition) const override final;
+	const DOFS getDOFSForNode(const int nodePosition) const override final;
 	virtual ~Discrete() {
 	}
 };
@@ -368,7 +368,7 @@ class NodalMass: public ElementSet {
 	 */
 	double getMassAsForce() const;
 
-	const DOFS getDOFSForNode(int nodePosition) const override final;
+	const DOFS getDOFSForNode(const int nodePosition) const override final;
 
 	~NodalMass();
 
@@ -393,7 +393,7 @@ public:
 	const std::set<int> nodePositions() const override;
 	const std::set<std::pair<int, int>> nodePairs() const;
 	const std::set<std::pair<int, int>> findInPairs(int nodePosition) const;
-	const DOFS getDOFSForNode(int nodePosition) const override final;
+	const DOFS getDOFSForNode(const int nodePosition) const override final;
 	bool isMatrixElement() const override final {
 		return true;
 	}
@@ -438,7 +438,7 @@ public:
 class RigidSet: public ElementSet {
 public:
     RigidSet(Model&, Type type, int master_id, int original_id = NO_ORIGINAL_ID);
-    const DOFS getDOFSForNode(int nodePosition) const override final;
+    const DOFS getDOFSForNode(const int nodePosition) const override final;
     virtual ~RigidSet() {}
     int masterId;
 };
@@ -503,7 +503,7 @@ public:
      */
     void addSpring(int cellPosition, DOF dofNodeA, DOF dofNodeB);
 
-    const DOFS getDOFSForNode(int nodePosition) const override final;
+    const DOFS getDOFSForNode(const int nodePosition) const override final;
     virtual bool validate() const {
         return true;
     }

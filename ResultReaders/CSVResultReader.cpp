@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <cassert>
 #include <fstream>
 #include <iostream>
 #include <unordered_map>
@@ -98,9 +99,9 @@ struct CsvGrammar: qi::grammar<stream_iterator_type, void(), qi::locals<vector<L
 		}
 		int i = 0;
 		string result_name;
-		int result_number;
+		int result_number = -1;
 		string node_name;
-		int nodeId;
+		int nodeId = Node::UNAVAILABLE_NODE;
 		int num_step;
 		double time = 0;
 		for (LineItems position : positions) {
@@ -132,11 +133,13 @@ struct CsvGrammar: qi::grammar<stream_iterator_type, void(), qi::locals<vector<L
 		}
 		UNUSEDV(num_step);
 		i = 0;
+		assert(result_number != -1);
 		shared_ptr<Analysis> analysis = model->analyses.find(result_number);
 		for (LineItems position : positions) {
 			auto it = dofPosition_by_lineItemEnum.find(position);
 			if (it != dofPosition_by_lineItemEnum.end()) {
 				double value = atof(columns[i].c_str());
+				assert(nodeId != Node::UNAVAILABLE_NODE);
 				NodalDisplacementAssertion nda(*model, configuration.testTolerance, nodeId,
 						DOF::findByPosition(it->second), value, time);
 				model->add(nda);

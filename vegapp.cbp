@@ -1669,7 +1669,7 @@
 			<Option virtualFolder="CMake Files/" />
 		</Unit>
 		<Unit filename="Nastran/CMakeLists.txt">
-			<Option virtualFolder="CMake Files/Nastran/" />
+			<Option virtualFolder="CMake Files/ResultReaders/" />
 		</Unit>
 		<Unit filename="Nastran/NastranParser.cpp">
 			<Option target="nastran" />

@@ -138,7 +138,7 @@ public:
 		}
 	};
 	iterator begin() const;
-	iterator end() const;
+	const iterator end() const;
 };
 
 DOFS operator+(const DOFS lhs, const DOFS& rhs);
