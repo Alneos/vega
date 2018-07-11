@@ -18,7 +18,7 @@
 //dirty hack to circumvent a boost test dynamic link bug
 #ifdef __unix__
 #include <boost/test/unit_test.hpp>
-#if defined VDEBUG
+#if defined VDEBUG && defined __GNUC__  && !defined(_WIN32)
 #include <valgrind/memcheck.h>
 #endif
 #else

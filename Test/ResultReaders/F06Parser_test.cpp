@@ -13,7 +13,6 @@
 #include "../../Abstract/Model.h"
 #include "../../ResultReaders/F06Parser.h"
 #include <boost/test/unit_test.hpp>
-//#include <valgrind/memcheck.h>
 #include <boost/pointer_cast.hpp>
 #include <boost/assign.hpp>
 #include <string>

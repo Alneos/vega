@@ -1383,13 +1383,19 @@ void SystusWriter::fillConstraintsNodes(const SystusModel& systusModel, const in
 
     // Available degrees of freedom
     char dofCode;
-    if (systusOption == 3)
-        dofCode = static_cast<char>(DOFS::ALL_DOFS);
-    else if (systusOption == 4)
-        dofCode = static_cast<char>(DOFS::TRANSLATIONS);
-    else
-        handleWritingError("systusOption not supported");
-        dofCode = static_cast<char>(DOFS::NO_DOFS);
+    switch (systusOption) {
+        case 3:
+            dofCode = static_cast<char>(DOFS::ALL_DOFS);
+            break;
+        case 4:
+            dofCode = static_cast<char>(DOFS::TRANSLATIONS);
+            break;
+        default:
+            handleWritingError("systusOption not supported");
+            dofCode = static_cast<char>(DOFS::NO_DOFS);
+            break;
+    }
+    
     const shared_ptr<Mesh> mesh = systusModel.model->mesh;
 
 

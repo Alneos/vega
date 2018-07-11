@@ -22,7 +22,7 @@
  *      Author: devel
  */
 
-#if defined VDEBUG && defined __GNUC__
+#if defined VDEBUG && defined __GNUC__ && !defined(_WIN32)
 #include <valgrind/memcheck.h>
 #endif
 #include "Analysis.h"

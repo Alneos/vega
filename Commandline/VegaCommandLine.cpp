@@ -402,7 +402,7 @@ string VegaCommandLine::expand_user(string path) {
 
 VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
     ExitCode result = VegaCommandLine::OK;
-#ifdef __linux__
+#if defined(__linux__)
     signal(SIGSEGV, handler);
 #endif
     try {

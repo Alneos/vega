@@ -27,7 +27,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
 #include <stdio.h>
-#if defined VDEBUG && defined __GNUC__
+#if defined VDEBUG && defined __GNUC__ && !defined(_WIN32)
 #include <execinfo.h>
 #endif
 

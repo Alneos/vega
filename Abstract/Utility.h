@@ -25,9 +25,11 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/variant.hpp>
-#if defined(__linux__)
+#if defined(__linux__) && !defined(__GLIBC__)
 #define UNW_LOCAL_ONLY
 #include <libunwind.h>
+#elif defined(__linux__) && defined(__GLIBC__)
+#include <signal.h>
 #endif
 
 namespace vega {
