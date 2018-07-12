@@ -4,8 +4,6 @@ FROM ubuntu:trusty
 
 MAINTAINER Alter Ego Engineering <contact@aego.ai>
 
-ENV HOST=x86_64-w64-mingw32
-
 RUN apt update && apt install --no-install-recommends -y make hdf5-tools curl
 
 # http://mxe.cc/#requirements
@@ -18,11 +16,13 @@ RUN apt install --no-install-recommends -y \
 
 # https://github.com/mxe/mxe/issues/593 and http://mxe.cc/#requirements-debian
 RUN apt install --no-install-recommends -y libtool g++-multilib libc6-dev-i386
-WORKDIR /opt
-RUN git clone https://github.com/mxe/mxe.git
 ENV MXE_HOME=/opt/mxe
-WORKDIR $MXE_HOME
-RUN make MXE_TARGETS="$HOST.static" boost hdf5
+ENV MXE_BUILD=/root/mxe
+ENV HOST=x86_64-w64-mingw32
+ENV TARGET=${HOST}.static
+RUN git clone https://github.com/mxe/mxe.git $MXE_BUILD
+WORKDIR $MXE_BUILD
+RUN make PREFIX=$MXE_HOME MXE_TARGETS="$TARGET" boost hdf5
 
 ENV MED_VERSION=3.2.0
 ENV MED_HOME=/root/med-${MED_VERSION}
@@ -30,23 +30,26 @@ ENV MED_BUILD=${MED_HOME}/build
 RUN curl -SL http://files.salome-platform.org/Salome/other/med-${MED_VERSION}.tar.gz  | tar -xzC /root
 RUN mkdir $MED_BUILD
 WORKDIR $MED_BUILD
-ENV TARGET=${HOST}.static
-ENV PATH=$PATH:$MXE_HOME/usr/bin
-ENV PKG_CONFIG_PATH=$MXE_HOME/usr/bin/$TARGET-pkg-config
-RUN cp $MXE_HOME/usr/$TARGET/include/lmcons.h $MXE_HOME/usr/$TARGET/include/Lmcons.h
+ENV PATH=$PATH:$MXE_HOME/bin
+ENV PKG_CONFIG_PATH=$MXE_HOME/bin/$TARGET-pkg-config
+RUN cp $MXE_HOME/$TARGET/include/lmcons.h $MXE_HOME/$TARGET/include/Lmcons.h
 
 RUN sed -i 's#/iface:mixed_str_len_arg##' ${MED_HOME}/CMakeLists.txt
-RUN $TARGET-cmake -DCMAKE_BUILD_TYPE=Release -DSTATIC_LINKING=ON -DMEDFILE_BUILD_TESTS=OFF .. && make -j
+RUN $TARGET-cmake -DCMAKE_BUILD_TYPE=Release -DSTATIC_LINKING=ON -DMEDFILE_BUILD_TESTS=OFF -DMEDFILE_BUILD_SHARED_LIBS=OFF -DMEDFILE_BUILD_STATIC_LIBS=ON -DMEDFILE_INSTALL_DOC=OFF .. && make -j
 RUN make install
 
 FROM ubuntu:trusty
 
-COPY --from=0 /opt/mxe .
+WORKDIR /opt
+COPY --from=0 /opt/mxe ./mxe
 
+ENV HOST=x86_64-w64-mingw32
 ENV MXE_HOME=/opt/mxe
 ENV TARGET=${HOST}.static
-ENV PATH=$PATH:$MXE_HOME/usr/bin
-ENV PKG_CONFIG_PATH=$MXE_HOME/usr/bin/$TARGET-pkg-config
+ENV PATH=$PATH:$MXE_HOME/bin
+ENV PKG_CONFIG_PATH=$MXE_HOME/bin/$TARGET-pkg-config
+
+RUN apt update && apt install --no-install-recommends -y make
 
 ENV VEGA_SOURCE=/opt/vega
 COPY . $VEGA_SOURCE
