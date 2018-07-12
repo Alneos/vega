@@ -37,6 +37,7 @@ set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/build/cmake_files)
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CROSSCOMPILING_EMULATOR wine64)
 
 SET(CMAKE_BUILD_TYPE DDebug CACHE STRING
     "Choose the type of build, options are: None DDebug SDebug DRelease SRelease.")
@@ -151,7 +152,6 @@ else(MSVC)
     # It can be enabled on a given machine by changing the build_properties.h file
     set(RUN_SYSTUS 0)
 endif(MSVC)
-
 
 #set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>:_DEBUG>)
 # this variable controls the default value of the "ENABLE_XXX" options which are

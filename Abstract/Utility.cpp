@@ -75,7 +75,7 @@ void stacktrace() {
     }
   }
 }
-#elif defined(__linux__) && defined(__GLIBC__) && defined(VDEBUG)
+#elif defined(__GLIBC__) && defined(VDEBUG)
 #include <execinfo.h>
 // Call this function to get a backtrace.
 void stacktrace() {

@@ -24,7 +24,7 @@
 // TEST_EXEC_SOLVER is "false" on development pc and "true" on node0
 // Code Aster launched only on node0, to launch it in the local machine
 // either replace "TESTS_EXEC_SOLVER" with true or run
-// cmake -TESTS_EXEC_SOLVER=1 ../..
+// cmake -DTESTS_EXEC_SOLVER=1 ../..
 
 namespace vega {
 namespace tests {
@@ -32,35 +32,35 @@ namespace tests {
 using namespace std;
 
 BOOST_AUTO_TEST_CASE( prob6 ) {
-	CommandLineUtils::nastranStudy2Aster("/caw/prob6/prob6.dat", true, true, 0.02);
+	CommandLineUtils::nastranStudy2Aster("/caw/prob6/prob6.dat", TESTS_EXEC_SOLVER, true, 0.02);
 }
 
 BOOST_AUTO_TEST_CASE( prob19 ) {
-	CommandLineUtils::nastranStudy2Aster("/caw/prob19/prob19.dat", true, true, 0.001);
+	CommandLineUtils::nastranStudy2Aster("/caw/prob19/prob19.dat", TESTS_EXEC_SOLVER, true, 0.001);
 }
 
 BOOST_AUTO_TEST_CASE( prob30c ) {
-	CommandLineUtils::nastranStudy2Aster("/caw/prob30c/prob30c.dat", true, true, 0.9);
+	CommandLineUtils::nastranStudy2Aster("/caw/prob30c/prob30c.dat", TESTS_EXEC_SOLVER, true, 0.9);
 }
 
 BOOST_AUTO_TEST_CASE( test4a ) {
-	CommandLineUtils::nastranStudy2Aster("/alneos/test4a/test4a.dat", true, true, 0.00001);
+	CommandLineUtils::nastranStudy2Aster("/alneos/test4a/test4a.dat", TESTS_EXEC_SOLVER, true, 0.00001);
 }
 
 BOOST_AUTO_TEST_CASE( rbar1mod ) {
-	CommandLineUtils::nastranStudy2Aster("/alneos/rbar1mod/rbar1mod.dat", true, true, 0.00001);
+	CommandLineUtils::nastranStudy2Aster("/alneos/rbar1mod/rbar1mod.dat", TESTS_EXEC_SOLVER, true, 0.00001);
 }
 
 BOOST_AUTO_TEST_CASE( rod1freeforce ) {
-	CommandLineUtils::nastranStudy2Aster("/alneos/rod1freeforce/rod1freeforce.dat", true, true, 0.00001);
+	CommandLineUtils::nastranStudy2Aster("/alneos/rod1freeforce/rod1freeforce.dat", TESTS_EXEC_SOLVER, true, 0.00001);
 }
 
 BOOST_AUTO_TEST_CASE( fixedcircularplate ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/fixed_circular_plate/fixed_circular_plate.dat", true, true, 0.1);
+	CommandLineUtils::nastranStudy2Aster("/irt/fixed_circular_plate/fixed_circular_plate.dat", TESTS_EXEC_SOLVER, true, 0.1);
 }
 
 BOOST_AUTO_TEST_CASE( prob2 ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/prob2/prob2.dat", true, true, 0.15);
+	CommandLineUtils::nastranStudy2Aster("/irt/prob2/prob2.dat", TESTS_EXEC_SOLVER, true, 0.15);
 }
 
 } /* namespace test */

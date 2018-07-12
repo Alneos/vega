@@ -69,7 +69,7 @@ SET_TARGET_PROPERTIES(Utility_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LI
 target_link_libraries(
  Utility_test
  abstract
- ${EXTERNAL_LIBRARIES} 
+ ${EXTERNAL_LIBRARIES}
 )
 
 add_executable(
@@ -83,7 +83,7 @@ SET_TARGET_PROPERTIES(Value_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINK
 target_link_libraries(
  Value_test
  abstract
- ${EXTERNAL_LIBRARIES} 
+ ${EXTERNAL_LIBRARIES}
 )
 
 add_executable(
@@ -97,16 +97,16 @@ SET_TARGET_PROPERTIES(Element_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LI
 target_link_libraries(
  Element_test
  abstract
- ${EXTERNAL_LIBRARIES} 
+ ${EXTERNAL_LIBRARIES}
 )
 
-add_test(Dof_test ${EXECUTABLE_OUTPUT_PATH}/Dof_test)
-add_test(CoordinateSystem_tests ${EXECUTABLE_OUTPUT_PATH}/CoordinateSystem_test)
-add_test(Model_test ${EXECUTABLE_OUTPUT_PATH}/Model_test)
-add_test(Utility_test ${EXECUTABLE_OUTPUT_PATH}/Utility_test)
-add_test(Value_test ${EXECUTABLE_OUTPUT_PATH}/Value_test)
-add_test(Mesh_test ${EXECUTABLE_OUTPUT_PATH}/Mesh_test)
-add_test(Element_test ${EXECUTABLE_OUTPUT_PATH}/Element_test)
+add_test(NAME Dof_test COMMAND $<TARGET_FILE:Dof_test>)
+add_test(NAME CoordinateSystem_test  COMMAND $<TARGET_FILE:CoordinateSystem_test>)
+add_test(NAME Model_test COMMAND $<TARGET_FILE:Model_test>)
+add_test(NAME Utility_test COMMAND $<TARGET_FILE:Utility_test>)
+add_test(NAME Value_test COMMAND $<TARGET_FILE:Value_test>)
+add_test(NAME Mesh_test COMMAND $<TARGET_FILE:Mesh_test>)
+add_test(NAME Element_test COMMAND $<TARGET_FILE:Element_test>)
 
 #uncomment to see details of each test method (update tests.cmake with
 #the batch file ../update_tests.sh
