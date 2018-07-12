@@ -1,0 +1,9 @@
+FROM ldallolio/xvegaci
+
+MAINTAINER Alter Ego Engineering <contact@aego.ai>
+
+ENV VEGA_SOURCE=/opt/vega
+ENV VEGA_BUILD=$VEGA_SOURCE/build
+COPY . $VEGA_SOURCE
+WORKDIR $VEGA_BUILD
+RUN $TARGET-cmake -DTESTS_EXEC_SOLVER=0 -DCMAKE_BUILD_TYPE=SDebug .. && make -j && ctest .

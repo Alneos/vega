@@ -45,7 +45,7 @@ Build debug (default, dynamic linking):
 
 cmake -DCMAKE_BUILD_TYPE=Debug  ../..
 
-make -j 4
+make -j
 
 ctest .
 
@@ -53,6 +53,6 @@ Build release (static linking):
 
 cmake -DCMAKE_BUILD_TYPE=SRelease ../..
 
-make -j 4
+make -j
 
 ctest .

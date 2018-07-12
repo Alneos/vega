@@ -1,10 +1,10 @@
 # - Config file for the MEDFile package
-# It defines the following variables. 
+# It defines the following variables.
 # Specific to the pacakge MEDFile itself:
-#  MEDFILE_INCLUDE_DIRS - include directories 
+#  MEDFILE_INCLUDE_DIRS - include directories
 #  MEDFILE_LIBRARIES    - libraries to link against (C and Fortran)
 #  MEDFILE_C_LIBRARIES  - C libraries only
-#  MEDFILE_EXTRA_LIBRARIES 
+#  MEDFILE_EXTRA_LIBRARIES
 #  MEDFILE_ROOT_DIR_EXP - the root path of the installation providing this CMake file
 #
 # Other stuff specific to this package:
@@ -61,7 +61,7 @@ IF(MEDFILE_USE_STATIC_LIBS)
   IF(WIN32)
     FIND_LIBRARY(MEDFILE_C_LIBRARIES NAMES medC.lib medC)
   ELSE(WIN32)
-    FIND_LIBRARY(MEDFILE_C_LIBRARIES NAMES libmedC.a medC)    
+    FIND_LIBRARY(MEDFILE_C_LIBRARIES NAMES libmedC.a medC)
   ENDIF(WIN32)
 ELSE(MEDFILE_USE_STATIC_LIBS)
   FIND_LIBRARY(MEDFILE_C_LIBRARIES NAMES libmedC.so medC)
@@ -89,9 +89,9 @@ MESSAGE(STATUS "MEDFILE_LIBRARIES: " ${MEDFILE_LIBRARIES})
 
 # If HDF5 was found in CONFIG mode, we need to include its targets so that
 # dependent projects can compile
-IF(HDF5_USE_STATIC_LIBRARIES)
-  find_library(HDF5_C_LIBRARY_z NAMES libz.a z)
-ENDIF(HDF5_USE_STATIC_LIBRARIES)
+#IF(HDF5_USE_STATIC_LIBRARIES)
+#  find_library(HDF5_C_LIBRARY_z NAMES libz.a z)
+#ENDIF(HDF5_USE_STATIC_LIBRARIES)
 FIND_PACKAGE(HDF5)
 
 IF(NOT WIN32 AND MEDFILE_USE_MPI)
@@ -99,5 +99,5 @@ IF(NOT WIN32 AND MEDFILE_USE_MPI)
 ENDIF()
 
 # Package root dir:
-SET_AND_CHECK(MEDFILE_ROOT_DIR_EXP "${PACKAGE_PREFIX_DIR}") 
+SET_AND_CHECK(MEDFILE_ROOT_DIR_EXP "${PACKAGE_PREFIX_DIR}")
 

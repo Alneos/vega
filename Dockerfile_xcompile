@@ -28,7 +28,7 @@ ENV MED_VERSION=3.2.0
 ENV MED_HOME=/root/med-${MED_VERSION}
 ENV MED_BUILD=${MED_HOME}/build
 WORKDIR $MED_BUILD
-RUN curl -SL http://files.salome-platform.org/Salome/other/med-${MED_VERSION}.tar.gz  | tar -xzC /root && mkdir $MED_BUILD && sed -i 's#/iface:mixed_str_len_arg##' ${MED_HOME}/CMakeLists.txt && $TARGET-cmake -DCMAKE_BUILD_TYPE=Release -DSTATIC_LINKING=ON -DMEDFILE_BUILD_TESTS=OFF -DMEDFILE_BUILD_SHARED_LIBS=OFF -DMEDFILE_BUILD_STATIC_LIBS=ON -DMEDFILE_INSTALL_DOC=OFF .. && make -j && make install && rm -rf $MED_BUILD
+RUN curl -SL http://files.salome-platform.org/Salome/other/med-${MED_VERSION}.tar.gz  | tar -xzC /root && sed -i 's#/iface:mixed_str_len_arg##' ${MED_HOME}/CMakeLists.txt && $TARGET-cmake -DCMAKE_BUILD_TYPE=Release -DSTATIC_LINKING=ON -DMEDFILE_BUILD_TESTS=OFF -DMEDFILE_BUILD_SHARED_LIBS=OFF -DMEDFILE_BUILD_STATIC_LIBS=ON -DMEDFILE_INSTALL_DOC=OFF .. && make -j && make install && rm -rf $MED_BUILD
 
 FROM ubuntu:trusty
 
@@ -44,7 +44,7 @@ ENV PATH=$PATH:$MXE_HOME/bin:$MXE_HOME/x86_64-pc-linux-gnu/bin
 ENV PKG_CONFIG_PATH=$MXE_HOME/bin/$TARGET-pkg-config
 ENV WINEPREFIX=/root/.wine
 
-ENV VEGA_SOURCE=/opt/vega
-COPY . $VEGA_SOURCE
-WORKDIR $VEGA_SOURCE/build
-RUN $TARGET-cmake -DTESTS_EXEC_SOLVER=0 -DCMAKE_BUILD_TYPE=SDebug .. && make -j && ctest .
+#ENV VEGA_SOURCE=/opt/vega
+#COPY . $VEGA_SOURCE
+#WORKDIR $VEGA_SOURCE/build
+#RUN $TARGET-cmake -DTESTS_EXEC_SOLVER=0 -DCMAKE_BUILD_TYPE=SDebug .. && make -j && ctest .
