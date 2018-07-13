@@ -63,15 +63,15 @@ target_link_libraries(
 # Utility_test
 # Utility_test.cpp
 #)
-
-SET_TARGET_PROPERTIES(Utility_test PROPERTIES LINK_SEARCH_START_STATIC ${STATIC_LINKING})
-SET_TARGET_PROPERTIES(Utility_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINKING})
-
-target_link_libraries(
- Utility_test
- abstract
- ${EXTERNAL_LIBRARIES}
-)
+#
+#SET_TARGET_PROPERTIES(Utility_test PROPERTIES LINK_SEARCH_START_STATIC ${STATIC_LINKING})
+#SET_TARGET_PROPERTIES(Utility_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINKING})
+#
+#target_link_libraries(
+# Utility_test
+# abstract
+# ${EXTERNAL_LIBRARIES}
+#)
 
 add_executable(
  Value_test
