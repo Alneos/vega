@@ -72,6 +72,7 @@ target_link_libraries(
 # abstract
 # ${EXTERNAL_LIBRARIES}
 #)
+#add_test(NAME Utility_test COMMAND $<TARGET_FILE:Utility_test>)
 
 add_executable(
  Value_test
@@ -104,7 +105,6 @@ target_link_libraries(
 add_test(NAME Dof_test COMMAND $<TARGET_FILE:Dof_test>)
 add_test(NAME CoordinateSystem_test  COMMAND $<TARGET_FILE:CoordinateSystem_test>)
 add_test(NAME Model_test COMMAND $<TARGET_FILE:Model_test>)
-add_test(NAME Utility_test COMMAND $<TARGET_FILE:Utility_test>)
 add_test(NAME Value_test COMMAND $<TARGET_FILE:Value_test>)
 add_test(NAME Mesh_test COMMAND $<TARGET_FILE:Mesh_test>)
 add_test(NAME Element_test COMMAND $<TARGET_FILE:Element_test>)
