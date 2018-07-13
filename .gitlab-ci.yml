@@ -14,6 +14,8 @@ building:
     TEST_CONTAINER: vegairt_oncommit
   before_script:
     - apk add --update --no-cache git
+    - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
+    - env | grep ^OUTDIR
     - env | grep ^DOCKER_     
     - env | grep ^CI_     
     - cat /etc/issue
@@ -27,7 +29,6 @@ building:
     - docker ps -aq --filter "name=$TEST_CONTAINER" | grep -q . && docker rm -fv $TEST_CONTAINER
     - docker run --name "$TEST_CONTAINER" "$TEST_IMAGE" /bin/sh -c "source /home/vega/.bashrc && ctest ."
     - ls /srv
-    - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
     - mkdir /srv/data/$OUTDIR
     - docker cp $TEST_CONTAINER:/home/vega/vegapp/build/bin/vegapp /srv/data/$OUTDIR    
     - docker rm -f "$TEST_CONTAINER"
@@ -44,10 +45,11 @@ xbuilding:
     - docker
     - irt
   variables:
-    TEST_IMAGE: gitlab/xvegairt
-    TEST_CONTAINER: xvegairt_oncommit
+    XTEST_IMAGE: gitlab/xvegairt
+    XTEST_CONTAINER: xvegairt_oncommit
   before_script:
     - apk add --update --no-cache git
+    - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
     - env | grep ^DOCKER_     
     - env | grep ^CI_     
     - cat /etc/issue
@@ -57,11 +59,10 @@ xbuilding:
     - docker info
   script:
     - docker pull ldallolio/xvegaci
-    - docker build -t $TEST_IMAGE -f Dockerfile_xgitlab .
-    - docker ps -aq --filter "name=$TEST_CONTAINER" | grep -q . && docker rm -fv $TEST_CONTAINER
-    - docker run --privileged --name "$TEST_CONTAINER" "$TEST_IMAGE" "ctest ."
+    - docker build -t $XTEST_IMAGE -f Dockerfile_xgitlab .
+    - docker ps -aq --filter "name=$XTEST_CONTAINER" | grep -q . && docker rm -fv $XTEST_CONTAINER
+    - docker run --privileged --name "$XTEST_CONTAINER" "$XTEST_IMAGE" "ctest ."
     - ls /srv
-    - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
     - mkdir /srv/data/$OUTDIR
     - docker cp $TEST_CONTAINER:/opt/vega/build/bin/vegapp.exe /srv/data/$OUTDIR    
     - docker rm -f "$TEST_CONTAINER"
