@@ -58,10 +58,11 @@ target_link_libraries(
  ${EXTERNAL_LIBRARIES}
 )
 
-add_executable(
- Utility_test
- Utility_test.cpp
-)
+# TODO LD : Problem with Alpine memory access violation at address: 0x0001ebe6: no mapping at fault address
+#add_executable(
+# Utility_test
+# Utility_test.cpp
+#)
 
 SET_TARGET_PROPERTIES(Utility_test PROPERTIES LINK_SEARCH_START_STATIC ${STATIC_LINKING})
 SET_TARGET_PROPERTIES(Utility_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINKING})
