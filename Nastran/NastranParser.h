@@ -39,6 +39,7 @@ class NastranParser: public vega::Parser {
 protected:
     typedef void (NastranParser::*parseElementFPtr)(NastranTokenizer& tok, std::shared_ptr<Model> model);
     virtual parseElementFPtr findCmdParser(std::string) const;
+    virtual std::string defaultAnalysis() const;
 private:
     class GrdSet {
     public:
@@ -59,7 +60,6 @@ private:
 
     void addAnalysis(NastranTokenizer& tok, std::shared_ptr<Model> model, std::map<std::string, std::string>& context, int analysis_id =
             Analysis::NO_ORIGINAL_ID);
-    void addCellIds(ElementLoading& loading, int eid1, int eid2);
 
     fs::path findModelFile(const std::string& filename);
     void parseBULKSection(NastranTokenizer &tok, std::shared_ptr<Model> model1);
@@ -606,15 +606,6 @@ private:
         "CHECKEL", // Active le test de qualité des éléments. Inutile de le traduire.
         "DCONSTR", "DCONADD", "DESVAR", "DLINK", //nastran optimization keywords
         "DRAW", "DRESP1", "DRESP2", //ignored in Vega
-        //optistruct optimization variable
-        "DOPTPRM", "DCOMP", //Manufacturing constraints for composite sizing optimization.
-        "DESVAR", //Design variable definition.
-        "DSHAPE", //Free-shape design variable definition.
-        "DSHUFFLE", //Parameters for the generation of composite shuffling design variables.
-        "DSIZE", "DTPG", //Topography design variable definition.
-        "DTPL", //Topology design variable definition.
-        "DVGRID", "DEQATN",
-        "DREPORT", "DREPADD", // Optistruct Cards
         "EFFMAS", // Outputs modal participation factors and effective mass for normal modes analyses. Inutile de le traduire.
         "ENDDATA",
         "PLOTEL",  // Fictitious element for plotting

@@ -56,7 +56,7 @@ ConfigurationParameters::~ConfigurationParameters() {
 
 const boost::bimap<SolverName, string> Solver::SOLVERNAME_BY_SOLVER = assign::list_of<
         boost::bimap<SolverName, string>::relation>(NASTRAN, string("NASTRAN"))(CODE_ASTER,
-        string("ASTER"))(SYSTUS, string("SYSTUS"));
+        string("ASTER"))(SYSTUS, string("SYSTUS"))(OPTISTRUCT, string("OPTISTRUCT"));
 
 ostream &operator<<(ostream &out, const Solver& solver) {
     out << Solver::SOLVERNAME_BY_SOLVER.left.find(solver.solverName)->second;

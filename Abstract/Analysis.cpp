@@ -104,28 +104,34 @@ void Analysis::add(const Reference<ConstraintSet>& constraintSetReference) {
 }
 
 void Analysis::remove(const Reference<LoadSet> loadSetReference) {
-    for (auto it = loadSet_references.begin(); it != loadSet_references.end(); ++it) {
+    auto it = loadSet_references.begin();
+    while (it != loadSet_references.end()) {
         if (**it == loadSetReference) {
-            loadSet_references.erase(it);
-            return;
+            it = loadSet_references.erase(it);
+        } else {
+            ++it;
         }
     }
 }
 
 void Analysis::remove(const Reference<ConstraintSet> constraintSetReference) {
-    for (auto it = constraintSet_references.begin(); it != constraintSet_references.end(); ++it) {
+    auto it = constraintSet_references.begin();
+    while (it != constraintSet_references.end()) {
         if (**it == constraintSetReference) {
-            constraintSet_references.erase(it);
-            return;
+            it = constraintSet_references.erase(it);
+        } else {
+            ++it;
         }
     }
 }
 
 void Analysis::remove(const Reference<Objective> objectiveReference) {
-    for (auto it = assertion_references.begin(); it != assertion_references.end(); ++it) {
+    auto it = assertion_references.begin();
+    while (it != assertion_references.end()) {
         if (**it == objectiveReference) {
-            assertion_references.erase(it);
-            return;
+            it = assertion_references.erase(it);
+        } else {
+            ++it;
         }
     }
 }
@@ -218,12 +224,13 @@ bool Analysis::hasSPC() const{
 }
 
 bool Analysis::validate() const {
+    bool result = true;
     for (auto &constraintSetReference : this->constraintSet_references) {
         if (model.find(*constraintSetReference) == nullptr) {
             if (model.configuration.logLevel >= LogLevel::INFO) {
                 cout << "Missing constraintset reference:" << *constraintSetReference << endl;
             }
-            return false;
+            result = false;
         }
     }
     for (auto &loadSetReference : this->loadSet_references) {
@@ -231,10 +238,10 @@ bool Analysis::validate() const {
             if (model.configuration.logLevel >= LogLevel::INFO) {
                 cout << "Missing loadset reference:" << *loadSetReference << endl;
             }
-            return false;
+            result = false;
         }
     }
-    return true;
+    return result;
 }
 
 

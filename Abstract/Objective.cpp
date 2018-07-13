@@ -157,6 +157,28 @@ FrequencyBand::FrequencyBand(const Model& model, double lower, double upper, int
                 num_max), norm(norm) {
 }
 
+double FrequencyBand::getLower() const {
+    auto lower_cutoff_frequency = model.parameters.find(Model::LOWER_CUTOFF_FREQUENCY);
+    if (lower_cutoff_frequency != model.parameters.end()) {
+        if (model.configuration.logLevel >= LogLevel::TRACE) {
+            cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
+        }
+        return max(lower_cutoff_frequency->second, lower);
+    }
+    return lower;
+}
+
+double FrequencyBand::getUpper() const {
+    auto upper_cutoff_frequency = model.parameters.find(Model::UPPER_CUTOFF_FREQUENCY);
+    if (upper_cutoff_frequency != model.parameters.end()) {
+        if (model.configuration.logLevel >= LogLevel::TRACE) {
+            cout << "Parameter UPPER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
+        }
+        return min(upper_cutoff_frequency->second, upper);
+    }
+    return upper;
+}
+
 shared_ptr<Objective> FrequencyBand::clone() const {
     return make_shared<FrequencyBand>(*this);
 }

@@ -264,6 +264,10 @@ void NodeGroup::addNodeId(int nodeId) {
 	_nodePositions.insert(nodePosition);
 }
 
+void NodeGroup::addNode(const Node& node) {
+	_nodePositions.insert(node.position);
+}
+
 void NodeGroup::addNodeByPosition(int nodePosition) {
 	_nodePositions.insert(nodePosition);
 }
@@ -632,7 +636,7 @@ NodeContainer::NodeContainer(shared_ptr<Mesh> mesh) :
 		mesh(mesh) {
 }
 
-void NodeContainer::addNode(int nodeId) {
+void NodeContainer::addNodeId(int nodeId) {
 	nodeIds.insert(nodeId);
 }
 
@@ -645,7 +649,7 @@ void NodeContainer::addNodeGroup(const string& groupName) {
 }
 
 void NodeContainer::add(const Node& node) {
-	addNode(node.id);
+	addNodeId(node.id);
 }
 
 void NodeContainer::add(const NodeGroup& nodeGroup) {

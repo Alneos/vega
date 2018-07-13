@@ -578,6 +578,9 @@ shared_ptr<NodeGroup> Mesh::createNodeGroup(const string& name, int group_id, co
 	if (group_id != NodeGroup::NO_ORIGINAL_ID
 			&& this->groupById.find(group_id) != this->groupById.end()) {
 		string errorMessage = "Another group exists with same id : " + to_string(group_id);
+        if (logLevel >= LogLevel::DEBUG) {
+            stacktrace();
+        }
 		throw invalid_argument(errorMessage);
 	}
 	shared_ptr<NodeGroup> group = shared_ptr<NodeGroup>(new NodeGroup(this, name, group_id, comment));
@@ -617,6 +620,9 @@ shared_ptr<CellGroup> Mesh::createCellGroup(const string& name, int group_id, co
 	if (group_id != CellGroup::NO_ORIGINAL_ID
 			&& this->groupById.find(group_id) != this->groupById.end()) {
 		string errorMessage = "Another group exists with same id: " + to_string(group_id);
+		if (logLevel >= LogLevel::DEBUG) {
+            stacktrace();
+        }
 		throw invalid_argument(errorMessage);
 	}
 	shared_ptr<CellGroup> group= shared_ptr<CellGroup>(new CellGroup(this, name, group_id, comment));

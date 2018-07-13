@@ -405,6 +405,7 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
 #if defined(__linux__)
     signal(SIGSEGV, handler);
 #endif
+    LogLevel logLevel = LogLevel::TRACE;
     try {
         string config_file;
 
@@ -535,6 +536,7 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
 
 
         const ConfigurationParameters configuration = readCommandLineParameters(vm);
+        logLevel = configuration.logLevel;
         if (configuration.resultFile.string().size() >= 1) {
             if (!fs::exists(configuration.resultFile)) {
                 cerr << "Test file specified " << configuration.resultFile << " can't be found. \n";
@@ -566,19 +568,34 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
             result = runSolver(configuration, modelFile);
         }
     } catch (invalid_argument &e) {
-        cerr << "\nInvalid argument: " << e.what() << "\n";
+        if (logLevel >= LogLevel::DEBUG) {
+            throw;
+        } else
+            cerr << "\nInvalid argument: " << e.what() << "\n";
         return INVALID_COMMAND_LINE;
     } catch (ParsingException & e) {   // A parsing error occurred.
-    	cerr << "\n" << e.what() << "\n";
+        if (logLevel >= LogLevel::DEBUG) {
+            throw;
+        } else
+            cerr << "\n" << e.what() << "\n";
     	return PARSING_EXCEPTION;
     } catch (WritingException & e) {   // An error occurred in the Writer.
-    	cerr << "\n" << e.what() << "\n";
+        if (logLevel >= LogLevel::DEBUG) {
+            throw;
+        } else
+            cerr << "\n" << e.what() << "\n";
     	return WRITING_EXCEPTION;
     } catch (logic_error& e) {
-        cerr << "\nLogic error: " << e.what() << "\n";
+        if (logLevel >= LogLevel::DEBUG) {
+            throw;
+        } else
+            cerr << "\nLogic error: " << e.what() << "\n";
         return GENERIC_EXCEPTION;
     } catch (exception& e) {
-        cerr << "\nException: " << e.what() << "\n";
+        if (logLevel >= LogLevel::DEBUG) {
+            throw;
+        } else
+            cerr << "\nException: " << e.what() << "\n";
         return GENERIC_EXCEPTION;
     }
     return result;

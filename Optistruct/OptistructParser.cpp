@@ -60,31 +60,53 @@ nastran::NastranParser::parseElementFPtr OptistructParser::findCmdParser(string 
     }
 }
 
+string OptistructParser::defaultAnalysis() const {
+    return "200";
+}
+
 void OptistructParser::parseSET(NastranTokenizer& tok, shared_ptr<Model> model) {
-    // page 2457 Labeled Set Definition, defines a list of grids, elements or points.
+    // https://www.sharcnet.ca/Software/Hyperworks/help/hwsolvers/set_bulk_data.htm
     int sid = tok.nextInt();
     string name = string("SET") + "_" + to_string(sid);
-    string des = tok.nextString();
+    string type = tok.nextString();
+    string subtype = tok.nextString(true, "LIST");
+    tok.skipToNotEmpty();
 
-    if (des == "GRID") {
-        shared_ptr<NodeGroup> nodeGroup = model->mesh->findOrCreateNodeGroup(name,sid,"SET");
-        while (tok.isNextInt()) {
-            nodeGroup->addNodeId(tok.nextInt());
+    if (subtype != "LIST") {
+        throw logic_error("Unsupported SUBTYPE value in SET");
+    }
+
+    if (type == "GRID") {
+        shared_ptr<NodeGroup> nodeGroup = model->mesh->findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SET");
+        while(!tok.isEmptyUntilNextKeyword()) {
+            for (auto& id : tok.nextInts()) {
+                nodeGroup->addNodeId(id);
+            }
+            tok.skipToNotEmpty();
         }
-    } else if (des == "ELEM") {
-        shared_ptr<CellGroup> cellGroup = model->mesh->createCellGroup(name,sid,"SET");
-        while (tok.isNextInt()) {
-            cellGroup->addCellId(tok.nextInt());
+        tok.skipToNextKeyword();
+    } else if (type == "ELEM") {
+        shared_ptr<CellGroup> cellGroup = model->mesh->createCellGroup(name,CellGroup::NO_ORIGINAL_ID,"SET");
+        while(!tok.isEmptyUntilNextKeyword()) {
+            for (auto& id : tok.nextInts()) {
+                cellGroup->addCellId(id);
+            }
+            tok.skipToNotEmpty();
         }
-    } else if (des == "FREQ") {
+        tok.skipToNextKeyword();
+    } else if (type == "FREQ") {
         list<double> values;
-        while (tok.isNextDouble()) {
-            values.push_back(tok.nextDouble());
+        while(!tok.isEmptyUntilNextKeyword()) {
+            while (tok.isNextDouble()) {
+                values.push_back(tok.nextDouble());
+            }
+            tok.skipToNotEmpty();
         }
+        tok.skipToNextKeyword();
         FrequencyList frequencyValues(*model, values, sid);
         model->add(frequencyValues);
     } else {
-        throw logic_error("Unsupported DES value in SET3");
+        throw logic_error("Unsupported TYPE value in SET");
     }
 
 }

@@ -108,7 +108,9 @@ public:
     enum Parameter {
         MASS_OVER_FORCE_MULTIPLIER,
         PRINT_MAXIM,
-        LARGE_DISPLACEMENTS
+        LARGE_DISPLACEMENTS,
+        LOWER_CUTOFF_FREQUENCY,
+        UPPER_CUTOFF_FREQUENCY
     };
     const LoadSet commonLoadSet;
     const ConstraintSet commonConstraintSet;

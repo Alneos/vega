@@ -115,6 +115,7 @@ public:
     bool isNextDouble();
     bool isNextEmpty();
     bool isEmptyUntilNextKeyword();
+    std::string remainingTextUntilNextKeyword();
     /**
      * Returns the next symbol the Nastran file as a String
      *  and advances to next symbol.

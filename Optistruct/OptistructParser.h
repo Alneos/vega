@@ -33,7 +33,7 @@ namespace vega {
 
 namespace optistruct {
 
-class OptistructParser: public nastran::NastranParser {
+class OptistructParser final: public nastran::NastranParser {
 private:
     typedef void (OptistructParser::*parseOptistructElementFPtr)(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
@@ -57,6 +57,7 @@ private:
     static const std::unordered_map<std::string, parseOptistructElementFPtr> OPTISTRUCT_PARSE_FUNCTION_BY_KEYWORD;
 protected:
     parseElementFPtr findCmdParser(std::string keyword) const override;
+    std::string defaultAnalysis() const override;
 public:
     OptistructParser();
     //std::shared_ptr<Model> parse(const ConfigurationParameters& configuration) override;

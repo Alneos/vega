@@ -61,7 +61,7 @@ xbuilding:
     - docker pull ldallolio/xvegaci
     - docker build -t $XTEST_IMAGE -f Dockerfile_xgitlab .
     - docker ps -aq --filter "name=$XTEST_CONTAINER" | grep -q . && docker rm -fv $XTEST_CONTAINER
-    - docker run --name "$XTEST_CONTAINER" "$XTEST_IMAGE" "ctest ."
+#    - docker run --name "$XTEST_CONTAINER" "$XTEST_IMAGE" "ctest ."
     - mkdir /srv/data/$OUTDIR
     - docker cp $TEST_CONTAINER:/opt/vega/build/bin/vegapp.exe /srv/data/$OUTDIR
     - cp /srv/data/$OUTDIR/vegapp.exe /srv/data

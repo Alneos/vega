@@ -11,6 +11,7 @@
 #include "Utility.h"
 #include "Value.h"
 #include <math.h>       /* pow */
+#include <stddef.h>     /* __GLIBC__ */
 #include <boost/numeric/ublas/vector_expression.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/lu.hpp>
@@ -47,7 +48,24 @@ bool InvertMatrix(const ublas::matrix<double>& input, ublas::matrix<double>& inv
    return true;
 }
 
-#if defined(__linux__) && !defined(__GLIBC__)
+#if Backtrace_FOUND
+#include <execinfo.h>
+// Call this function to get a backtrace.
+void stacktrace() {
+    //defined in top level cmake file
+    void *array[10];
+    int size;
+    char **strings;
+
+    size = boost::numeric_cast<int>(backtrace(array, 10));
+    strings = backtrace_symbols(array, size);
+    std::cerr << std::endl;
+    for (int i = 0; i < size; i++) {
+        std::cerr << strings[i] << std::endl;
+    }
+    free (strings);
+}
+#elif LIBUNWIND_FOUND
 
 // Call this function to get a backtrace.
 void stacktrace() {
@@ -75,23 +93,7 @@ void stacktrace() {
     }
   }
 }
-#elif defined(__GLIBC__) && defined(VDEBUG)
-#include <execinfo.h>
-// Call this function to get a backtrace.
-void stacktrace() {
-    //defined in top level cmake file
-    void *array[10];
-    int size;
-    char **strings;
 
-    size = boost::numeric_cast<int>(backtrace(array, 10));
-    strings = backtrace_symbols(array, size);
-    std::cerr << std::endl;
-    for (int i = 0; i < size; i++) {
-        std::cerr << strings[i] << std::endl;
-    }
-    free (strings);
-}
 #elif defined(_WIN32) && !defined(__MINGW32__)
 #include <windows.h>
 #include <DbgHelp.h>

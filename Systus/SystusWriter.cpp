@@ -1395,7 +1395,7 @@ void SystusWriter::fillConstraintsNodes(const SystusModel& systusModel, const in
             dofCode = static_cast<char>(DOFS::NO_DOFS);
             break;
     }
-    
+
     const shared_ptr<Mesh> mesh = systusModel.model->mesh;
 
 
@@ -2920,8 +2920,8 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         // Parameters of the analysis
         const LinearModal& linearModal = static_cast<const LinearModal&>(*analysis);
         FrequencyBand& frequencyBand = *(linearModal.getFrequencyBand());
-        double upperF = frequencyBand.upper;
-        double lowerF = frequencyBand.lower;
+        double upperF = frequencyBand.getUpper();
+        double lowerF = frequencyBand.getLower();
         int nmodes = (frequencyBand.num_max == vega::Globals::UNAVAILABLE_INT ? defaultNbDesiredRoots : frequencyBand.num_max);
 
         // We can't treat the case where only lowerF is defined
@@ -3060,8 +3060,8 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             // exactly the numbers of modes for the next part (so no STURM)
             // However, we keep the same syntax, for future development.
             FrequencyBand& frequencyBand = *(linearDynaModalFreq.getFrequencyBand());
-            double upperF = frequencyBand.upper;
-            double lowerF = frequencyBand.lower;
+            double upperF = frequencyBand.getUpper();
+            double lowerF = frequencyBand.getLower();
             int nModes = (frequencyBand.num_max == vega::Globals::UNAVAILABLE_INT ? defaultNbDesiredRoots : frequencyBand.num_max);
             if ((!is_equal(upperF, vega::Globals::UNAVAILABLE_DOUBLE))||(!is_equal(upperF, vega::Globals::UNAVAILABLE_DOUBLE))){
                 handleWritingWarning("Modal analysis with bound frequency not supported yet. Will search for "+to_string(nModes)+" Eigenmodes instead.", "Analysis file");

@@ -1407,7 +1407,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		out << "                       MATR_MASS=MASS" << linearModal.getId() << "," << endl;
 		out << "                       SOLVEUR_MODAL=_F(METHODE='TRI_DIAG')," << endl;
 		FrequencyBand& frequencyBand = *(linearModal.getFrequencyBand());
-		if (!is_equal(frequencyBand.upper, vega::Globals::UNAVAILABLE_DOUBLE)) {
+		if (!is_equal(frequencyBand.getUpper(), vega::Globals::UNAVAILABLE_DOUBLE)) {
 			out << "                                    OPTION='BANDE'," << endl;
 		} else {
 			out << "                                    OPTION='PLUS_PETITE'," << endl;
@@ -1415,12 +1415,12 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 
 		out << "                       CALC_FREQ=_F(" << endl;
 
-		if (!is_equal(frequencyBand.upper, vega::Globals::UNAVAILABLE_DOUBLE)) {
+		if (!is_equal(frequencyBand.getUpper(), vega::Globals::UNAVAILABLE_DOUBLE)) {
 			double lower =
-					(!is_equal(frequencyBand.lower , vega::Globals::UNAVAILABLE_DOUBLE)) ?
-							frequencyBand.lower : 0.0;
+					(!is_equal(frequencyBand.getLower() , vega::Globals::UNAVAILABLE_DOUBLE)) ?
+							frequencyBand.getLower() : 0.0;
 			out << "                                    FREQ=(" << lower << ","
-					<< frequencyBand.upper << ")," << endl;
+					<< frequencyBand.getUpper() << ")," << endl;
 		} else {
 			if (frequencyBand.num_max != vega::Globals::UNAVAILABLE_INT)
 				out << "                                    NMAX_FREQ=" << frequencyBand.num_max

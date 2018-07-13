@@ -357,7 +357,7 @@ void NastranParser::parseBULKSection(NastranTokenizer &tok, shared_ptr<Model> mo
 
             //Warning if there are unparsed fields. Skip the empty ones
             if (!tok.isEmptyUntilNextKeyword()) {
-                string message(string("Parsing of line not complete."));
+                string message(string("Parsing of line not complete:[") + tok.remainingTextUntilNextKeyword()+"]");
                 handleParsingError(message, tok, model);
             }
 
@@ -413,6 +413,10 @@ shared_ptr<Model> NastranParser::parse(const ConfigurationParameters& configurat
     return model;
 }
 
+string NastranParser::defaultAnalysis() const {
+    return "101";
+}
+
 void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, map<string, string> &context,
         int analysis_id) {
 
@@ -421,7 +425,7 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
     if (it != context.end())
         analysis_str = trim_copy(it->second);
     else
-        analysis_str = "101";
+        analysis_str = defaultAnalysis();
 
     if (analysis_str == "200" || analysis_str == "DESOPT") {
         auto it = context.find("ANALYSIS");
@@ -766,7 +770,7 @@ void NastranParser::parseDAREA(NastranTokenizer& tok, shared_ptr<Model> model) {
         double rz = dofs.contains(DOF::RZ) ? ai : 0;
 
         NodalForce force1(*model, tx, ty, tz, rx, ry, rz, Loading::NO_ORIGINAL_ID);
-        force1.addNode(node_id);
+        force1.addNodeId(node_id);
         model->add(force1);
         model->addLoadingIntoLoadSet(force1, loadset_ref);
     }
@@ -994,7 +998,7 @@ void NastranParser::parseFORCE(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     NodalForce force1(*model, fx, fy, fz, 0., 0., 0., Loading::NO_ORIGINAL_ID,
             coordinate_system_id);
-    force1.addNode(node_id);
+    force1.addNodeId(node_id);
 
     model->add(force1);
     Reference<vega::LoadSet> loadset_ref(LoadSet::LOAD, loadset_id);
@@ -1014,7 +1018,7 @@ void NastranParser::parseFORCE1(NastranTokenizer& tok, shared_ptr<Model> model) 
     int node2 = tok.nextInt();
 
     NodalForceTwoNodes force1(*model, node1, node2, force);
-    force1.addNode(node_id);
+    force1.addNodeId(node_id);
 
     model->add(force1);
     Reference<vega::LoadSet> loadset_ref(LoadSet::LOAD, loadset_id);
@@ -1035,7 +1039,7 @@ void NastranParser::parseFORCE2(NastranTokenizer& tok, shared_ptr<Model> model) 
     int node4 = tok.nextInt();
 
     NodalForceFourNodes force2(*model, node1, node2, node3, node4, force);
-    force2.addNode(node_id);
+    force2.addNodeId(node_id);
 
     model->add(force2);
     Reference<vega::LoadSet> loadset_ref(LoadSet::LOAD, sid);
@@ -1284,7 +1288,7 @@ void NastranParser::parseMOMENT(NastranTokenizer& tok, shared_ptr<Model> model) 
 
     NodalForce force1(*model, VectorialValue(0, 0, 0), VectorialValue(frx, fry, frz),
             Loading::NO_ORIGINAL_ID);
-    force1.addNode(node_id);
+    force1.addNodeId(node_id);
     model->add(force1);
     Reference<vega::LoadSet> loadset_ref(LoadSet::LOAD, loadset_id);
     model->addLoadingIntoLoadSet(force1, loadset_ref);
@@ -2300,12 +2304,12 @@ void NastranParser::parseSET3(NastranTokenizer& tok, shared_ptr<Model> model) {
     string des = tok.nextString();
 
     if (des == "GRID") {
-        shared_ptr<NodeGroup> nodeGroup = model->mesh->findOrCreateNodeGroup(name,sid,"SET");
+        shared_ptr<NodeGroup> nodeGroup = model->mesh->findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SET");
         while (tok.isNextInt()) {
             nodeGroup->addNodeId(tok.nextInt());
         }
     } else if (des == "ELEM") {
-        shared_ptr<CellGroup> cellGroup = model->mesh->createCellGroup(name,sid,"SET");
+        shared_ptr<CellGroup> cellGroup = model->mesh->createCellGroup(name,CellGroup::NO_ORIGINAL_ID,"SET");
         while (tok.isNextInt()) {
             cellGroup->addCellId(tok.nextInt());
         }
@@ -2617,7 +2621,7 @@ void NastranParser::parseTEMP(NastranTokenizer& tok, shared_ptr<Model> model) {
     int g1 = tok.nextInt();
     double t1 = tok.nextDouble();
     InitialTemperature temp1(*model, t1);
-    temp1.addNode(g1);
+    temp1.addNodeId(g1);
     model->add(temp1);
     model->addLoadingIntoLoadSet(temp1, loadset_ref);
 
@@ -2625,7 +2629,7 @@ void NastranParser::parseTEMP(NastranTokenizer& tok, shared_ptr<Model> model) {
         int g2 = tok.nextInt();
         double t2 = tok.nextDouble();
         InitialTemperature temp2(*model, t2);
-        temp2.addNode(g2);
+        temp2.addNodeId(g2);
         model->add(temp2);
         model->addLoadingIntoLoadSet(temp2, loadset_ref);
     }
@@ -2634,7 +2638,7 @@ void NastranParser::parseTEMP(NastranTokenizer& tok, shared_ptr<Model> model) {
         int g3 = tok.nextInt();
         double t3 = tok.nextDouble();
         InitialTemperature temp3(*model, t3);
-        temp3.addNode(g3);
+        temp3.addNodeId(g3);
         model->add(temp3);
         model->addLoadingIntoLoadSet(temp3, loadset_ref);
     }

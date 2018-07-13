@@ -235,6 +235,22 @@ bool NastranTokenizer::isEmptyUntilNextKeyword() {
 	return result;
 }
 
+string NastranTokenizer::remainingTextUntilNextKeyword() {
+	if (nextSymbolType == NastranTokenizer::SYMBOL_KEYWORD) {
+		return "";
+	} else if (nextSymbolType == NastranTokenizer::SYMBOL_EOF) {
+		return "";
+	}
+    ostringstream oss;
+	for (size_t i = currentField; i < this->currentLineVector.size(); i++) {
+        string curfield = trim_copy(currentLineVector[i]);
+        if (!curfield.empty()) {
+            oss << "," << curfield;
+        }
+	}
+	return oss.str();
+}
+
 void NastranTokenizer::nextLine() {
 
 	currentLineVector.clear();

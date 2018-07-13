@@ -105,6 +105,14 @@ void NastranParser::parsePARAM(NastranTokenizer& tok, shared_ptr<Model> model) {
             handleParsingWarning(
                     string("Ignored parameter ") + param + string(" value ") + to_string(value), tok, model);
         }
+    } else if (param == "HFREQ") {
+        /* Default = 1.+30
+         PARAM,HFREQ gives the upper limit on the frequency range of retained modes.
+         */
+        double val = tok.nextDouble(true, 1e30);
+        if (!is_equal(val, 1e30)) {
+            model->parameters[Model::UPPER_CUTOFF_FREQUENCY] = val;
+        }
     } else if (param == "K6ROT") {
         /* K6ROT specifies the scaling factor of the penalty stiffness to be added
          to the normal rotation for CQUAD4 and CTRIA3 elements. The
@@ -114,6 +122,14 @@ void NastranParser::parsePARAM(NastranTokenizer& tok, shared_ptr<Model> model) {
             handleParsingError(
                     string("unsupported parameter ") + param + string(" value in parsePARAM. "),
                     tok, model);
+        }
+    } else if (param == "LFREQ") {
+        /* Default = 0.0
+         PARAM,LFREQ gives the lower limit on the frequency range of retained modes.
+         */
+        double val = tok.nextDouble(true, 0.0);
+        if (!is_equal(val, 0.0)) {
+            model->parameters[Model::LOWER_CUTOFF_FREQUENCY] = val;
         }
     } else if (param == "LGDISP") {
         /* Default = -1

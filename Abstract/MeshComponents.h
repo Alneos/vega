@@ -286,6 +286,7 @@ private:
 public:
     // Add a node using its numerical id. If the node hasn't been yet defined it reserve position in the model.
     void addNodeId(int nodeId);
+    void addNode(const Node& node);
     void addNodeByPosition(int nodePosition);
     void removeNodeByPosition(int nodePosition);
     const std::set<int> nodePositions() const override;
@@ -418,8 +419,8 @@ public:
 };
 
 /**
- * This class represents a container of cells or groups of cells.
- * It can split the groups into single cells.
+ * This class represents a container of nodes or groups of nodes.
+ * It can split the groups into single nodes.
  *
  */
 class NodeContainer {
@@ -430,7 +431,7 @@ protected:
 public:
     NodeContainer(std::shared_ptr<Mesh> mesh);
     // Adds a nodeId to the current set
-    void addNode(int nodeId);
+    void addNodeId(int nodeId);
     void addNodeGroup(const std::string& groupName);
     void add(const Node& node);
     void add(const NodeGroup& nodeGroup);
