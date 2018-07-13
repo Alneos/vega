@@ -1,5 +1,6 @@
 stages:
   - build
+  - xbuild
   - test
 
 building:
@@ -37,7 +38,7 @@ building:
     expire_in: 1 day
 
 xbuilding:
-  stage: build
+  stage: xbuild
   image: docker:dind
   tags:
     - docker
