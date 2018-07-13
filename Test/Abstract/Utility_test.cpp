@@ -5,7 +5,7 @@
 
 #define BOOST_TEST_MODULE utility_tests
 #include "build_properties.h"
-#include "../../Abstract/Value.h"
+#include "../../Abstract/Utility.h"
 #include <boost/test/unit_test.hpp>
 
 using namespace std;
