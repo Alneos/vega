@@ -27,7 +27,7 @@ building:
   script:
     - docker pull ldallolio/vegaci
     - docker build -t $TEST_IMAGE -f Dockerfile_gitlab .
-    - docker ps -aq --filter "name=$TEST_CONTAINER" | grep -q . && docker rm -fv $TEST_CONTAINER; true
+    - { docker ps -aq --filter "name=$TEST_CONTAINER" | grep -q . && docker rm -fv $TEST_CONTAINER } ; true
     - docker run --name "$TEST_CONTAINER" "$TEST_IMAGE"
     - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
     - mkdir -p /srv/data/$OUTDIR
@@ -63,7 +63,7 @@ xbuilding:
   script:
     - docker pull ldallolio/xvegaci
     - docker build -t $XTEST_IMAGE -f Dockerfile_xgitlab .
-    - docker ps -aq --filter "name=$XTEST_CONTAINER" | grep -q . && docker rm -fv $XTEST_CONTAINER; true
+    - { docker ps -aq --filter "name=$XTEST_CONTAINER" | grep -q . && docker rm -fv $XTEST_CONTAINER} ; true
     - docker run --name "$XTEST_CONTAINER" "$XTEST_IMAGE" "ctest ."
     - mkdir -p /srv/data/$OUTDIR
     - docker cp $XTEST_CONTAINER:/opt/vega/build/bin/vegapp.exe /srv/data/$OUTDIR
