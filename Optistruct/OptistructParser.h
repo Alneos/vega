@@ -52,12 +52,18 @@ private:
         "DTPL", //Topology design variable definition.
         "DVGRID", "DEQATN",
         "DREPORT", "DREPADD", // Optistruct Cards
+        "ELEMQUAL", // Parameters for element mesh quality checks https://www.sharcnet.ca/Software/Hyperworks/help/hwsolvers/hwsolvers.htm?elemqual.htm
     };
 
     static const std::unordered_map<std::string, parseOptistructElementFPtr> OPTISTRUCT_PARSE_FUNCTION_BY_KEYWORD;
+
+    std::set<std::string> IGNORED_PARAMS = {
+        "CHECKEL" // Activates element mesh quality checks, https://www.sharcnet.ca/Software/Hyperworks/help/hwsolvers/param_checkel.htm
+    };
 protected:
     parseElementFPtr findCmdParser(std::string keyword) const override;
     std::string defaultAnalysis() const override;
+    void parsePARAM(NastranTokenizer& tok, std::shared_ptr<Model> model) override;
 public:
     OptistructParser();
     //std::shared_ptr<Model> parse(const ConfigurationParameters& configuration) override;

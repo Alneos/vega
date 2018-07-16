@@ -14,8 +14,8 @@ building:
     TEST_CONTAINER: vegairt_oncommit
   before_script:
     - apk add --update --no-cache git
-    - env | grep ^DOCKER_     
-    - env | grep ^CI_     
+    - env | grep ^DOCKER_
+    - env | grep ^CI_
     - cat /etc/issue
     - whoami
     - pwd
@@ -50,8 +50,8 @@ xbuilding:
   before_script:
     - apk add --update --no-cache git
     - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
-    - env | grep ^DOCKER_     
-    - env | grep ^CI_     
+    - env | grep ^DOCKER_
+    - env | grep ^CI_
     - cat /etc/issue
     - whoami
     - pwd
@@ -71,7 +71,7 @@ xbuilding:
     name: "$CI_JOB_NAME"
     paths:
     - /srv/data/vegapp.exe
-    expire_in: 1 day    
+    expire_in: 1 day
 
 nightly:
   stage: test
@@ -81,7 +81,9 @@ nightly:
   only:
     - schedules
   before_script:
+    - apk add --update --no-cache git
     - whoami
     - pwd
+    - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
   script:
-    - ls /
+    - ./vegapp /srv/data/input/v02_K9Kgen6_simplif/original/v02_K9Kgen6_simplif.fem optistruct systus

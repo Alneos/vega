@@ -9,3 +9,7 @@ COPY --chown=vega:vega . $VEGA_SOURCE
 RUN mkdir $VEGA_BUILD
 WORKDIR $VEGA_BUILD
 RUN source /home/vega/.bashrc && cmake -DCMAKE_BUILD_TYPE=SDebug .. && make -j
+
+#FROM scratch
+#COPY --from=0 /home/vega/vegapp/build/bin/vegapp /
+#CMD ["/vegapp"]

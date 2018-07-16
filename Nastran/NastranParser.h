@@ -40,6 +40,12 @@ protected:
     typedef void (NastranParser::*parseElementFPtr)(NastranTokenizer& tok, std::shared_ptr<Model> model);
     virtual parseElementFPtr findCmdParser(std::string) const;
     virtual std::string defaultAnalysis() const;
+
+    /**
+     * Parse the keyword PARAM (page 2088 of MDN Nastran 2006 Quick Reference Guide.)
+     * Partial support, with unknown reliability.
+     */
+    virtual void parsePARAM(NastranTokenizer& tok, std::shared_ptr<Model> model);
 private:
     class GrdSet {
     public:
@@ -387,12 +393,6 @@ private:
      * All parameters are ignored except NINC.
      */
     void parseNLPARM(NastranTokenizer& tok, std::shared_ptr<Model> model);
-
-    /**
-     * Parse the keyword PARAM (page 2088 of MDN Nastran 2006 Quick Reference Guide.)
-     * Partial support, with unknown reliability.
-     */
-    void parsePARAM(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * Parse the PBAR keyword (page 2092 of MDN Nastran 2006 Quick Reference Guide.)

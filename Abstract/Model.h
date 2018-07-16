@@ -110,7 +110,8 @@ public:
         PRINT_MAXIM,
         LARGE_DISPLACEMENTS,
         LOWER_CUTOFF_FREQUENCY,
-        UPPER_CUTOFF_FREQUENCY
+        UPPER_CUTOFF_FREQUENCY,
+        ELEMENT_QUALITY_CHECK
     };
     const LoadSet commonLoadSet;
     const ConstraintSet commonConstraintSet;

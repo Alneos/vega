@@ -111,6 +111,11 @@ void OptistructParser::parseSET(NastranTokenizer& tok, shared_ptr<Model> model) 
 
 }
 
+void OptistructParser::parsePARAM(NastranTokenizer& tok, shared_ptr<Model> model) {
+    // TODO LD: avoid side effect in using tok.nextString here
+    nastran::NastranParser::parsePARAM(tok, model);
+}
+
 } //namespace optistruct
 
 } //namespace vega
