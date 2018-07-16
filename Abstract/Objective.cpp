@@ -158,23 +158,27 @@ FrequencyBand::FrequencyBand(const Model& model, double lower, double upper, int
 }
 
 double FrequencyBand::getLower() const {
-    auto lower_cutoff_frequency = model.parameters.find(Model::LOWER_CUTOFF_FREQUENCY);
-    if (lower_cutoff_frequency != model.parameters.end()) {
-        if (model.configuration.logLevel >= LogLevel::TRACE) {
-            cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
+    if (is_equal(lower, Globals::UNAVAILABLE_DOUBLE)) {
+        auto lower_cutoff_frequency = model.parameters.find(Model::LOWER_CUTOFF_FREQUENCY);
+        if (lower_cutoff_frequency != model.parameters.end()) {
+            if (model.configuration.logLevel >= LogLevel::TRACE) {
+                cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
+            }
+            return lower_cutoff_frequency->second;
         }
-        return max(lower_cutoff_frequency->second, lower);
     }
     return lower;
 }
 
 double FrequencyBand::getUpper() const {
-    auto upper_cutoff_frequency = model.parameters.find(Model::UPPER_CUTOFF_FREQUENCY);
-    if (upper_cutoff_frequency != model.parameters.end()) {
-        if (model.configuration.logLevel >= LogLevel::TRACE) {
-            cout << "Parameter UPPER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
+    if (is_equal(upper, Globals::UNAVAILABLE_DOUBLE)) {
+        auto upper_cutoff_frequency = model.parameters.find(Model::UPPER_CUTOFF_FREQUENCY);
+        if (upper_cutoff_frequency != model.parameters.end()) {
+            if (model.configuration.logLevel >= LogLevel::TRACE) {
+                cout << "Parameter UPPER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
+            }
+            return min(upper_cutoff_frequency->second, upper);
         }
-        return min(upper_cutoff_frequency->second, upper);
     }
     return upper;
 }

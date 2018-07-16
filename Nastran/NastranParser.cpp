@@ -1160,35 +1160,35 @@ void NastranParser::parseLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
 
 void NastranParser::parseMAT1(NastranTokenizer& tok, shared_ptr<Model> model) {
     int material_id = tok.nextInt();
-    double e = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
-    double g = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
-    double nu = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
-    double rho = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
-    double a = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
-    double tref = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
-    double ge = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
+    double e = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    double g = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    double nu = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    double rho = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    double a = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    double tref = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    double ge = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
 
     // Default behavior from page 1664 of MDN Nastran 2006 Quick Reference Guide
-    if ((is_equal(e,NastranTokenizer::UNAVAILABLE_DOUBLE))&&(is_equal(g,NastranTokenizer::UNAVAILABLE_DOUBLE))){
+    if ((is_equal(e,Globals::UNAVAILABLE_DOUBLE))&&(is_equal(g,Globals::UNAVAILABLE_DOUBLE))){
         string message = "Material " + to_string(material_id)+": E and G may not both be blank.";
         handleParsingWarning(message, tok, model);
     }
-    if (is_equal(nu,NastranTokenizer::UNAVAILABLE_DOUBLE)){
-        if (is_equal(g,NastranTokenizer::UNAVAILABLE_DOUBLE)){
+    if (is_equal(nu,Globals::UNAVAILABLE_DOUBLE)){
+        if (is_equal(g,Globals::UNAVAILABLE_DOUBLE)){
             nu = 0.0;
             g = 0.0;
-        }else if (is_equal(e,NastranTokenizer::UNAVAILABLE_DOUBLE)){
+        }else if (is_equal(e,Globals::UNAVAILABLE_DOUBLE)){
             nu = 0.0;
             e = 0.0;
         }else
             nu = e/(2.0*g)-1;
     }
-    if ((is_equal(e,NastranTokenizer::UNAVAILABLE_DOUBLE))&&
-            (!is_equal(g,NastranTokenizer::UNAVAILABLE_DOUBLE))&&(!is_equal(nu,NastranTokenizer::UNAVAILABLE_DOUBLE))){
+    if ((is_equal(e,Globals::UNAVAILABLE_DOUBLE))&&
+            (!is_equal(g,Globals::UNAVAILABLE_DOUBLE))&&(!is_equal(nu,Globals::UNAVAILABLE_DOUBLE))){
         e= 2.0 * (1+nu) * g;
     }
-    if ((is_equal(g,NastranTokenizer::UNAVAILABLE_DOUBLE))&&
-            (!is_equal(e,NastranTokenizer::UNAVAILABLE_DOUBLE))&&(!is_equal(nu,NastranTokenizer::UNAVAILABLE_DOUBLE))){
+    if ((is_equal(g,Globals::UNAVAILABLE_DOUBLE))&&
+            (!is_equal(e,Globals::UNAVAILABLE_DOUBLE))&&(!is_equal(nu,Globals::UNAVAILABLE_DOUBLE))){
         g = e / (2.0 * (1+nu));
     }
 
@@ -1199,16 +1199,16 @@ void NastranParser::parseMAT1(NastranTokenizer& tok, shared_ptr<Model> model) {
      and have no effect on the computational procedures. See “Beam
      Element (CBEAM)” in Chapter 3 of the MSC.Nastran Reference Guide.
      (Real > 0.0 or blank)*/
-    double st = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
-    if (!is_equal(st, NastranTokenizer::UNAVAILABLE_DOUBLE)) {
+    double st = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    if (!is_equal(st, Globals::UNAVAILABLE_DOUBLE)) {
         handleParsingWarning("st value ignored " + to_string(st), tok, model);
     }
-    double sc = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
-    if (!is_equal(sc, NastranTokenizer::UNAVAILABLE_DOUBLE)) {
+    double sc = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    if (!is_equal(sc, Globals::UNAVAILABLE_DOUBLE)) {
         handleParsingWarning("sc value ignored " + to_string(sc), tok, model);
     }
-    double ss = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
-    if (!is_equal(ss, NastranTokenizer::UNAVAILABLE_DOUBLE)) {
+    double ss = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    if (!is_equal(ss, Globals::UNAVAILABLE_DOUBLE)) {
         handleParsingWarning("ss value ignored " + to_string(ss), tok, model);
     }
     /*  MCSID
@@ -1228,11 +1228,11 @@ void NastranParser::parseMATS1(NastranTokenizer& tok, shared_ptr<Model> model) {
     auto material = model->getOrCreateMaterial(mid);
     int tid = tok.nextInt(true, 0);
     string type = tok.nextString();
-    double h = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
+    double h = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
     int yf = tok.nextInt(true, 1);
     int hr = tok.nextInt(true, 1);
-    double limit1 = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
-    double limit2 = tok.nextDouble(true, NastranTokenizer::UNAVAILABLE_DOUBLE);
+    double limit1 = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    double limit2 = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
     if (type == "NLELAST") {
         NonLinearElasticNature nonLinearElasticNature = NonLinearElasticNature(*model, tid);
         material->addNature(nonLinearElasticNature);
@@ -1240,7 +1240,7 @@ void NastranParser::parseMATS1(NastranTokenizer& tok, shared_ptr<Model> model) {
         if (tid == 0) {
             BilinearElasticNature biNature = BilinearElasticNature(*model);
             biNature.elastic_limit = limit1;
-            if (!is_equal(limit2, NastranTokenizer::UNAVAILABLE_DOUBLE)) {
+            if (!is_equal(limit2, Globals::UNAVAILABLE_DOUBLE)) {
                 handleParsingError("MATS1 limit2 " + to_string(yf) + " not yet implemented.", tok,
                         model);
             }
@@ -1376,15 +1376,15 @@ void NastranParser::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
     const double k1 = tok.nextDouble(true); // K1 = Kzz
     const double k2 = tok.nextDouble(true); // K2 = Kyy
     double invk1, invk2;
-    if (is_equal(k1, NastranTokenizer::UNAVAILABLE_DOUBLE)){
+    if (is_equal(k1, Globals::UNAVAILABLE_DOUBLE)){
         invk1= 0.0;
     }else{
-        invk1 = is_zero(k1) ? NastranTokenizer::UNAVAILABLE_DOUBLE : 1.0/k1;
+        invk1 = is_zero(k1) ? Globals::UNAVAILABLE_DOUBLE : 1.0/k1;
     }
-    if (is_equal(k2, NastranTokenizer::UNAVAILABLE_DOUBLE)){
+    if (is_equal(k2, Globals::UNAVAILABLE_DOUBLE)){
         invk2= 0.0;
     }else{
-        invk2 = is_zero(k2) ? NastranTokenizer::UNAVAILABLE_DOUBLE : 1.0/k2;
+        invk2 = is_zero(k2) ? Globals::UNAVAILABLE_DOUBLE : 1.0/k2;
     }
 
     double i12 = tok.nextDouble(true, 0.0);
@@ -1728,7 +1728,7 @@ void NastranParser::parsePELAS(NastranTokenizer& tok, shared_ptr<Model> model) {
         const double s = tok.nextDouble(true);
 
         // S is only used for post-treatment, and so discarded.
-        if (!is_equal(s, NastranTokenizer::UNAVAILABLE_DOUBLE)){
+        if (!is_equal(s, Globals::UNAVAILABLE_DOUBLE)){
             if (this->logLevel >= LogLevel::DEBUG) {
                 handleParsingWarning("Stress coefficient (S) is only used for post-treatment and dismissed.", tok, model);
             }
@@ -1904,9 +1904,9 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) 
         handleParsingWarning("Non uniform pressure not implemented.", tok, model);
     }
     bool format1 = tok.isNextInt() || tok.isNextEmpty();
-    int g1 = NastranTokenizer::UNAVAILABLE_INT;
-    int g3_or_4 = NastranTokenizer::UNAVAILABLE_INT;
-    int eid2 = NastranTokenizer::UNAVAILABLE_INT;
+    int g1 = Globals::UNAVAILABLE_INT;
+    int g3_or_4 = Globals::UNAVAILABLE_INT;
+    int eid2 = Globals::UNAVAILABLE_INT;
     if (format1) {
         //format 1
         g1 = tok.nextInt(true);
@@ -1941,7 +1941,7 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) 
 
     Reference<LoadSet> loadSetReference(LoadSet::LOAD, loadset_id);
     if (is_equal(n1, 0.0) && is_equal(n2, 0.0) && is_equal(n3, 0.0) && cid == 0
-            && g1 == NastranTokenizer::UNAVAILABLE_INT) {
+            && g1 == Globals::UNAVAILABLE_INT) {
         NormalPressionFace normalPressionFace(*model, p1);
         for(int cellId = eid1; cellId < eid2; cellId++) {
             normalPressionFace.addCell(cellId);
@@ -1949,7 +1949,7 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) 
 
         model->add(normalPressionFace);
         model->addLoadingIntoLoadSet(normalPressionFace, loadSetReference);
-    } else if (g1 != NastranTokenizer::UNAVAILABLE_INT) {
+    } else if (g1 != Globals::UNAVAILABLE_INT) {
         PressionFaceTwoNodes pressionFaceTwoNodes(*model, g1, g3_or_4,
                 VectorialValue(n1 * p1, n2 * p1, n3 * p1), VectorialValue(0.0, 0.0, 0.0));
         for(int cellId = eid1; cellId < eid2; cellId++) {
@@ -2000,7 +2000,7 @@ void NastranParser::parsePSHELL(NastranTokenizer& tok, shared_ptr<Model> model) 
     int material_id1 = tok.nextInt();
     double thickness = tok.nextDouble(true, 0.0);
     int material_id2 = tok.nextInt(true);
-    if (material_id2 != NastranTokenizer::UNAVAILABLE_INT && material_id2 != material_id1) {
+    if (material_id2 != Globals::UNAVAILABLE_INT && material_id2 != material_id1) {
         handleParsingWarning("Material 2 not yet supported and dismissed.", tok, model);
     }
     double bending_moment = tok.nextDouble(true, 1.0);
@@ -2009,7 +2009,7 @@ void NastranParser::parsePSHELL(NastranTokenizer& tok, shared_ptr<Model> model) 
                 model);
     }
     int material_id3 = tok.nextInt(true);
-    if (material_id3 != NastranTokenizer::UNAVAILABLE_INT && material_id3 != material_id1) {
+    if (material_id3 != Globals::UNAVAILABLE_INT && material_id3 != material_id1) {
         handleParsingWarning("Material 3 not yet supported and dismissed.", tok, model);
     }
     double ts_t_ratio = tok.nextDouble(true, 0.833333);
@@ -2019,12 +2019,12 @@ void NastranParser::parsePSHELL(NastranTokenizer& tok, shared_ptr<Model> model) 
     double nsm = tok.nextDouble(true, 0);
     double z1 = tok.nextDouble(true);
     double z2 = tok.nextDouble(true);
-    if (!is_equal(z1, NastranTokenizer::UNAVAILABLE_DOUBLE)
-            || !is_equal(z2, NastranTokenizer::UNAVAILABLE_DOUBLE)) {
+    if (!is_equal(z1, Globals::UNAVAILABLE_DOUBLE)
+            || !is_equal(z2, Globals::UNAVAILABLE_DOUBLE)) {
         handleParsingWarning("Fiber distances z1,z2 not supported", tok, model);
     }
     int material_id4 = tok.nextInt(true);
-    if (material_id4 != NastranTokenizer::UNAVAILABLE_INT && material_id4 != material_id1) {
+    if (material_id4 != Globals::UNAVAILABLE_INT && material_id4 != material_id1) {
         handleParsingWarning("Material 4 not yet supported and dismissed.", tok, model);
     }
 
@@ -2104,7 +2104,7 @@ void NastranParser::parseRBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
         handleParsingWarning("cma or cmb not supported.", tok, model);
     }
     double alpha = tok.nextDouble(true);
-    if (!is_equal(alpha, NastranTokenizer::UNAVAILABLE_DOUBLE)) {
+    if (!is_equal(alpha, Globals::UNAVAILABLE_DOUBLE)) {
         handleParsingWarning("ALPHA field: " + lexical_cast<string>(alpha) + " not supported",
                 tok, model);
     }
@@ -2124,7 +2124,7 @@ void NastranParser::parseRBAR1(NastranTokenizer& tok, shared_ptr<Model> model) {
     model->addConstraintIntoConstraintSet(qrc, model->commonConstraintSet);
 
     double alpha = tok.nextDouble(true);
-    if (!is_equal(alpha, NastranTokenizer::UNAVAILABLE_DOUBLE)) {
+    if (!is_equal(alpha, Globals::UNAVAILABLE_DOUBLE)) {
         handleParsingError("RBAR1: ALPHA field: " + lexical_cast<string>(alpha) + " not supported",
                 tok, model);
     }
@@ -2147,7 +2147,7 @@ void NastranParser::parseRBE2(NastranTokenizer& tok, shared_ptr<Model> model) {
     model->addConstraintIntoConstraintSet(qrc, model->commonConstraintSet);
 
     double alpha = tok.nextDouble(true);
-    if (!is_equal(alpha, NastranTokenizer::UNAVAILABLE_DOUBLE)) {
+    if (!is_equal(alpha, Globals::UNAVAILABLE_DOUBLE)) {
         handleParsingWarning("ALPHA field: " + lexical_cast<string>(alpha) + " not supported",
                 tok, model);
     }
@@ -2346,7 +2346,7 @@ void NastranParser::parseSPC(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD) {
         const int nodeId = tok.nextInt(true);
-        if (nodeId == NastranTokenizer::UNAVAILABLE_INT) {
+        if (nodeId == Globals::UNAVAILABLE_INT) {
             //space at the end of line found,consume it.
             continue;
         }

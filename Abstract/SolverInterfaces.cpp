@@ -130,7 +130,6 @@ const char* WritingException::what() const throw () {
 WritingException::~WritingException() throw () {
 }
 
-
 Tokenizer::Tokenizer(istream& stream, vega::LogLevel logLevel,  string fileName, vega::ConfigurationParameters::TranslationMode translationMode) :
     instrream(stream), logLevel(logLevel), fileName(fileName), translationMode(translationMode), lineNumber(0), currentKeyword(""){
 }
@@ -268,5 +267,5 @@ Runner::ExitCode Runner::convertExecResult(const int exitCode) const {
     return result;
 }
 
-}
+} //namespace vega
 

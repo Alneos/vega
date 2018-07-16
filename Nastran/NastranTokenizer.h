@@ -32,6 +32,10 @@
 #include "../Abstract/ConfigurationParameters.h"
 #include "../Abstract/SolverInterfaces.h"
 
+namespace vega {
+
+namespace nastran {
+
 //TODO implements iterator
 class NastranTokenizer : public vega::Tokenizer {
 public:
@@ -76,9 +80,6 @@ public:
         SECTION_BULK
     };
 
-    static const int UNAVAILABLE_INT;
-    static const double UNAVAILABLE_DOUBLE;
-
 
     SectionType currentSection;
     SymbolType nextSymbolType;
@@ -108,7 +109,7 @@ public:
      *      if false throws exception
      * @return
      */
-    int nextInt(bool returnDefaultIfNotFoundOrBlank = false, int defaultValue = UNAVAILABLE_INT);
+    int nextInt(bool returnDefaultIfNotFoundOrBlank = false, int defaultValue = Globals::UNAVAILABLE_INT);
     const std::list<int> nextInts();
     bool isNextInt();
     bool isNextTHRU();
@@ -132,7 +133,7 @@ public:
      * @return
      */
     double nextDouble(bool returnDefaultIfNotFoundOrBlank = false, double defaultValue =
-            UNAVAILABLE_DOUBLE);
+            Globals::UNAVAILABLE_DOUBLE);
 
     /**
      * Skip at most n fields. It stops if end of line is reached.
@@ -163,5 +164,9 @@ public:
     void nextLine();
 
 };
+
+} /* namespace nastran */
+
+} /* namespace vega */
 
 #endif /* NASTRANTOKENIZER_H_ */

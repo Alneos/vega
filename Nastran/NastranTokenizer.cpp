@@ -28,8 +28,9 @@ using boost::offset_separator;
 using boost::lexical_cast;
 using boost::trim_copy;
 
-const int NastranTokenizer::UNAVAILABLE_INT = vega::Globals::UNAVAILABLE_INT;
-const double NastranTokenizer::UNAVAILABLE_DOUBLE = vega::Globals::UNAVAILABLE_DOUBLE;
+namespace vega {
+
+namespace nastran {
 
 NastranTokenizer::NastranTokenizer(istream& stream, vega::LogLevel logLevel, const string fileName,
 		const vega::ConfigurationParameters::TranslationMode translationMode) :
@@ -461,3 +462,7 @@ vector<string> NastranTokenizer::currentDataLine() const {
 const string NastranTokenizer::currentRawDataLine() const {
 	return this->currentLine;
 }
+
+} /* namespace nastran */
+
+} /* namespace vega */

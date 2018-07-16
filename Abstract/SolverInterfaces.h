@@ -12,25 +12,17 @@
 #define INPUTOUTPUT_H_
 
 #include <memory>
-#include <climits>
 #include <iostream>
 #include <vector>
 #include <istream>
 #include "ConfigurationParameters.h"
+#include "Utility.h"
 #include <string>
-#include <cfloat>
 
 namespace vega {
 //Forward declarations
 class Model;
 class Assertion;
-
-class Globals {
-public:
-	static constexpr int UNAVAILABLE_INT = INT_MIN;
-	static constexpr double UNAVAILABLE_DOUBLE = -DBL_MAX;
-};
-
 
 std::string ParsingMessageException(std::string arg, std::string fname, int lineNum, std::string key);
 std::string ParsingMessageWarning(std::string arg, std::string fname, int lineNum, std::string key);
@@ -164,7 +156,7 @@ public:
 	void handleWritingError(const std::string& message, const std::string& keyword="", const std::string& file="");
 
     /**
-     * Generic handler for writing warnings.
+     * Generic handler for namespace vega {writing warnings.
      * Print a warning message
      */
 	//TODO: Decide of a politic for warning.

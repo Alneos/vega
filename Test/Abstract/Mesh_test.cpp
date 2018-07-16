@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE( test_node_iterator ) {
 	//(*nodeIterator).buildGlobalXYZ();
 	Node node = *nodeIterator;
 	node.buildGlobalXYZ();
-	BOOST_CHECK_CLOSE(1.0, node.x, DOUBLE_COMPARE_TOLERANCE);
+	BOOST_CHECK_CLOSE(1.0, node.x, Globals::DOUBLE_COMPARE_TOLERANCE);
 	for (i = 0; nodeIterator.hasNext(); i++) {
 		Node node = nodeIterator.next();
 		node.buildGlobalXYZ();

@@ -173,7 +173,7 @@ void NastranParser::parseCBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
     // Pin flags : not supported.
     int pa = tok.nextInt(true);
     int pb = tok.nextInt(true);
-    if ((pa != NastranTokenizer::UNAVAILABLE_INT) || (pb != NastranTokenizer::UNAVAILABLE_INT)) {
+    if ((pa != Globals::UNAVAILABLE_INT) || (pb != Globals::UNAVAILABLE_INT)) {
         string message = string("Pin flags (PA, PB) not supported and dismissed.");
         handleParsingWarning(message, tok, model);
     }
@@ -210,7 +210,7 @@ void NastranParser::parseCBEAM(NastranTokenizer& tok, shared_ptr<Model> model) {
     // Pin flags : not supported.
     int pa = tok.nextInt(true);
     int pb = tok.nextInt(true);
-    if ((pa != NastranTokenizer::UNAVAILABLE_INT) || (pb != NastranTokenizer::UNAVAILABLE_INT)) {
+    if ((pa != Globals::UNAVAILABLE_INT) || (pb != Globals::UNAVAILABLE_INT)) {
         string message = string("Pin flags (PA, PB) not supported and dismissed.");
         handleParsingWarning(message, tok, model);
     }
@@ -230,7 +230,7 @@ void NastranParser::parseCBEAM(NastranTokenizer& tok, shared_ptr<Model> model) {
     // Scalar or grid point identification number: not supported.
     int sa = tok.nextInt(true);
     int sb = tok.nextInt(true);
-    if ((sa != NastranTokenizer::UNAVAILABLE_INT) || (sb != NastranTokenizer::UNAVAILABLE_INT)) {
+    if ((sa != Globals::UNAVAILABLE_INT) || (sb != Globals::UNAVAILABLE_INT)) {
         string message = string("Grid point identification numbers (SA, SB) not supported and dismissed.");
         handleParsingWarning(message, tok, model);
     }
@@ -248,7 +248,7 @@ void NastranParser::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
     int pid = tok.nextInt(); // Property Id
     int ga = tok.nextInt();  // Node A
     int gb = tok.nextInt(true);  // Node B
-    bool forbidOrientation = (gb == NastranTokenizer::UNAVAILABLE_INT);
+    bool forbidOrientation = (gb == Globals::UNAVAILABLE_INT);
 
     // Local element coordinate system
     int cpos = 0;
@@ -290,7 +290,7 @@ void NastranParser::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     // Add cell
     vector<int> connectivity;
-    if (gb == NastranTokenizer::UNAVAILABLE_INT){
+    if (gb == Globals::UNAVAILABLE_INT){
         connectivity += ga;
         model->mesh->addCell(eid, CellType::POINT1, connectivity, false, cpos);
     }else{
@@ -346,7 +346,7 @@ void NastranParser::parseCELAS2(NastranTokenizer& tok, shared_ptr<Model> model) 
 
     // S is only used for post-treatment, and so discarded.
     double s = tok.nextDouble(true);
-    if (!is_equal(s, NastranTokenizer::UNAVAILABLE_DOUBLE)){
+    if (!is_equal(s, Globals::UNAVAILABLE_DOUBLE)){
         if (this->logLevel >= LogLevel::DEBUG) {
             handleParsingWarning("Stress coefficient (S) is only used for post-treatment and dismissed.", tok, model);
         }
@@ -536,7 +536,7 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> mode
         for (int i=0; i < 3; i++){
             double t = tok.nextDouble(true);
             ti.push_back(t);
-            isThereT = isThereT or (!is_equal(t, NastranTokenizer::UNAVAILABLE_DOUBLE));
+            isThereT = isThereT or (!is_equal(t, Globals::UNAVAILABLE_DOUBLE));
         }
         break;
 
@@ -551,7 +551,7 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> mode
         for (int i=0; i < 4; i++){
             double t = tok.nextDouble(true);
             ti.push_back(t);
-            isThereT = isThereT or (!is_equal(t, NastranTokenizer::UNAVAILABLE_DOUBLE));
+            isThereT = isThereT or (!is_equal(t, Globals::UNAVAILABLE_DOUBLE));
         }
         break;
 
@@ -563,7 +563,7 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> mode
         for (int i=0; i < 3; i++){
             double t = tok.nextDouble(true);
             ti.push_back(t);
-            isThereT = isThereT or (!is_equal(t, NastranTokenizer::UNAVAILABLE_DOUBLE));
+            isThereT = isThereT or (!is_equal(t, Globals::UNAVAILABLE_DOUBLE));
         }
         tflag = tok.nextInt(true,0);
         break;
@@ -574,7 +574,7 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> mode
         for (int i=0; i < 4; i++){
             double t = tok.nextDouble(true);
             ti.push_back(t);
-            isThereT = isThereT or (!is_equal(t, NastranTokenizer::UNAVAILABLE_DOUBLE));
+            isThereT = isThereT or (!is_equal(t, Globals::UNAVAILABLE_DOUBLE));
         }
         thetaOrMCID = tok.nextDouble(true,0.0);
         zoffs = tok.nextDouble(true,0.0);

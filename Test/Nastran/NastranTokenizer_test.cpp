@@ -27,12 +27,13 @@
 #include <cstddef>
 #include <fstream>
 #include <vector>
+#include "build_properties.h"
+#include "../../Nastran/NastranTokenizer.h"
 
 namespace fs = boost::filesystem;
 using namespace std;
-
-#include "build_properties.h"
-#include "../../Nastran/NastranTokenizer.h"
+using namespace vega;
+using namespace nastran;
 
 BOOST_AUTO_TEST_CASE(nastran_short_with_comments) {
     string nastranLine = "$comment comment \nKEYWORD 12345\n2NDLINE 1234567 1234567 ";

@@ -35,12 +35,12 @@ namespace optistruct {
 
 class OptistructParser final: public nastran::NastranParser {
 private:
-    typedef void (OptistructParser::*parseOptistructElementFPtr)(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    typedef void (OptistructParser::*parseOptistructElementFPtr)(nastran::NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * Parse the SET keyword
      */
-    void parseSET(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseSET(nastran::NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     const std::set<std::string> OPTISTRUCT_IGNORED_KEYWORDS = {
         //optistruct optimization variable
@@ -63,7 +63,7 @@ private:
 protected:
     parseElementFPtr findCmdParser(std::string keyword) const override;
     std::string defaultAnalysis() const override;
-    void parsePARAM(NastranTokenizer& tok, std::shared_ptr<Model> model) override;
+    void parsePARAM(nastran::NastranTokenizer& tok, std::shared_ptr<Model> model) override;
 public:
     OptistructParser();
     //std::shared_ptr<Model> parse(const ConfigurationParameters& configuration) override;

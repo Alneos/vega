@@ -64,7 +64,7 @@ string OptistructParser::defaultAnalysis() const {
     return "200";
 }
 
-void OptistructParser::parseSET(NastranTokenizer& tok, shared_ptr<Model> model) {
+void OptistructParser::parseSET(nastran::NastranTokenizer& tok, shared_ptr<Model> model) {
     // https://www.sharcnet.ca/Software/Hyperworks/help/hwsolvers/set_bulk_data.htm
     int sid = tok.nextInt();
     string name = string("SET") + "_" + to_string(sid);
@@ -111,7 +111,7 @@ void OptistructParser::parseSET(NastranTokenizer& tok, shared_ptr<Model> model) 
 
 }
 
-void OptistructParser::parsePARAM(NastranTokenizer& tok, shared_ptr<Model> model) {
+void OptistructParser::parsePARAM(nastran::NastranTokenizer& tok, shared_ptr<Model> model) {
     // TODO LD: avoid side effect in using tok.nextString here
     nastran::NastranParser::parsePARAM(tok, model);
 }

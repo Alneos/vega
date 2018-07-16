@@ -17,6 +17,8 @@
 #include <string>
 #include <cmath>
 #include <stdio.h>
+#include <cfloat>
+
 #if defined(__GNUC__)
 // Avoid tons of warnings with the following code
 #pragma GCC system_header
@@ -34,16 +36,24 @@
 #endif
 
 namespace vega {
+
+class Globals {
+public:
+	static constexpr int UNAVAILABLE_INT = INT_MIN;
+	static constexpr double UNAVAILABLE_DOUBLE = -DBL_MAX;
+	static constexpr double DOUBLE_COMPARE_TOLERANCE = std::numeric_limits<double>::epsilon() * 5;
+};
+
 /**
  * Tolerance used in comparing double.
  */
-const double DOUBLE_COMPARE_TOLERANCE = std::numeric_limits<double>::epsilon() * 5;
 
-inline bool is_zero(double x, double tolerance = DOUBLE_COMPARE_TOLERANCE) {
+
+inline bool is_zero(double x, double tolerance = Globals::DOUBLE_COMPARE_TOLERANCE) {
 	return std::abs(x) <= tolerance;
 }
 
-inline bool is_equal(double x, double y, double tolerance = DOUBLE_COMPARE_TOLERANCE) {
+inline bool is_equal(double x, double y, double tolerance = Globals::DOUBLE_COMPARE_TOLERANCE) {
 	return std::abs(x - y) <= tolerance * std::max(1.0, std::max(std::abs(x), std::abs(y)));
 }
 
