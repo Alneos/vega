@@ -19,16 +19,19 @@ building:
     - cat /etc/issue
     - whoami
     - pwd
+    - hostname
+    - ls /var/run
     - which docker
+    - ls /srv
     - docker info
   script:
     - docker pull ldallolio/vegaci
     - docker build -t $TEST_IMAGE -f Dockerfile_gitlab .
     - docker ps -aq --filter "name=$TEST_CONTAINER" | grep -q . && docker rm -fv $TEST_CONTAINER; true
-    - docker run --name "$TEST_CONTAINER" "$TEST_IMAGE" /bin/sh -c "source /home/vega/.bashrc && ctest ."
+    - docker run --name "$TEST_CONTAINER" "$TEST_IMAGE"
     - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
     - mkdir /srv/data/$OUTDIR
-    - docker cp $TEST_CONTAINER:/home/vega/vegapp/build/bin/vegapp /srv/data/$OUTDIR
+    - docker cp $TEST_CONTAINER:/vegapp /srv/data/$OUTDIR
     - cp /srv/data/$OUTDIR/vegapp /srv/data
     - docker rm -f "$TEST_CONTAINER"
     - docker rmi "$TEST_IMAGE"
@@ -84,6 +87,7 @@ nightly:
     - apk add --update --no-cache git
     - whoami
     - pwd
+    - ls /srv/data
     - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
   script:
-    - ./vegapp /srv/data/input/v02_K9Kgen6_simplif/original/v02_K9Kgen6_simplif.fem optistruct systus
+    - /srv/data/vegapp -o $OUTDIR --run-solver /srv/data/input/v02_K9Kgen6_simplif/original/v02_K9Kgen6_simplif.fem optistruct systus

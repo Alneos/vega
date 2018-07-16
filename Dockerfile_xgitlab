@@ -9,5 +9,5 @@ WORKDIR $VEGA_BUILD
 RUN $TARGET-cmake -DTESTS_EXEC_SOLVER=0 -DCMAKE_BUILD_TYPE=SDebug .. && make -j
 
 FROM scratch
-COPY --from=0 /home/vega/vegapp/build/bin/vegapp.exe /
+COPY --from=0 /opt/vega/build/bin/vegapp.exe /
 CMD ["/vegapp.exe"]
