@@ -60,12 +60,9 @@ xbuilding:
   script:
     - docker pull ldallolio/xvegaci
     - docker build -t $XTEST_IMAGE -f Dockerfile_xgitlab .
-    #- ( docker ps -aq --filter "name=$XTEST_CONTAINER" | grep -q . && docker rm -fv $XTEST_CONTAINER) ; true
-    #- docker run --name "$XTEST_CONTAINER" "$XTEST_IMAGE" "ctest ."
-    #- mkdir -p /srv/data/$OUTDIR
-    #- docker cp $XTEST_CONTAINER:/opt/vega/build/bin/vegapp.exe /srv/data/$OUTDIR
-    #- cp /srv/data/$OUTDIR/vegapp.exe /srv/data
-    #- docker rm -f "$XTEST_CONTAINER"
+    - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
+    - mkdir -p /srv/data/$OUTDIR
+    - docker run --rm --privileged -v /srv:/srv "$XTEST_IMAGE" sh -c "update-binfmts --import /usr/share/binfmts/wine && ctest . && cp ./bin/vegapp.exe /srv/data/$OUTDIR"
     - docker rmi "$XTEST_IMAGE"
   artifacts:
     name: "$CI_JOB_NAME"
