@@ -1526,6 +1526,7 @@
 			</Target>
 		</Build>
 		<Unit filename=".gitlab-ci.yml" />
+		<Unit filename=".travis.yml" />
 		<Unit filename="Abstract/Analysis.cpp">
 			<Option target="abstract" />
 		</Unit>

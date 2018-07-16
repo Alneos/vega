@@ -32,7 +32,7 @@ RUN curl -SL http://files.salome-platform.org/Salome/other/med-${MED_VERSION}.ta
 
 FROM ubuntu:trusty
 
-RUN dpkg --add-architecture i386 && echo "deb http://dl.winehq.org/wine-builds/ubuntu/ trusty main" >> /etc/apt/sources.list.d/winehq.list && apt update && apt install --allow-unauthenticated --no-install-recommends -y winehq-stable make
+RUN dpkg --add-architecture i386 && echo "deb http://dl.winehq.org/wine-builds/ubuntu/ trusty main" >> /etc/apt/sources.list.d/winehq.list && apt update && apt install --allow-unauthenticated --no-install-recommends -y winehq-stable binfmt-support make && printf "package wine\ninterpreter /usr/bin/wine\nmagic MZ" > /usr/share/binfmts/wine && update-binfmts --import /usr/share/binfmts/wine
 
 WORKDIR /opt
 COPY --from=0 /opt/mxe ./mxe
@@ -48,3 +48,4 @@ ENV WINEPREFIX=/root/.wine
 #COPY . $VEGA_SOURCE
 #WORKDIR $VEGA_SOURCE/build
 #RUN $TARGET-cmake -DTESTS_EXEC_SOLVER=0 -DCMAKE_BUILD_TYPE=SDebug .. && make -j && ctest .
+
