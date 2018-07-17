@@ -238,7 +238,8 @@ const CellType CellType::polyType(unsigned int nbNodes) {
 }
 
 Group::Group(Mesh* mesh, const string& name, Type type, int _id, string comment) :
-		Identifiable(_id), mesh(mesh), name(name), type(type), comment(comment) {
+                Identifiable(_id), mesh(mesh), name(name), type(type), comment(comment) {
+    isUseful=false;
 }
 
 const string Group::getName() const {

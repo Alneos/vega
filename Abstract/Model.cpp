@@ -1603,37 +1603,36 @@ void Model::makeCellsFromDirectMatrices(){
 void Model::makeCellsFromLMPC(){
 
     shared_ptr<Mesh> mesh = this->mesh;
-    map< vector<DOFCoefs>, shared_ptr<CellGroup>> groupBySetOfCoefs;
+    shared_ptr<Material> materialLMPC= nullptr;
 
     for (auto analysis : this->analyses) {
+        map< vector<DOFCoefs>, shared_ptr<CellGroup>> groupBySetOfCoefs;
         for (const auto& constraintSet : analysis->getConstraintSets()) {
-
-            const int idConstraintSet = constraintSet->getId();
-            const int originalIdConstraintSet = constraintSet->getOriginalId();
-            const ConstraintSet::Type natConstraintSet = constraintSet->type;
 
             set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::LMPC);
             for (const auto& constraint : constraints) {
                 const std::shared_ptr<LinearMultiplePointConstraint> lmpc = std::static_pointer_cast<LinearMultiplePointConstraint>(constraint);
 
-                // We sorted the Coeffs in order to fuse various lmpc into the same Elementset/Cellgroup
+                // We sort the Coeffs in order to fuse various LMPC into the same ElementSet/CellGroup
                 vector<int> sortedNodesPosition= lmpc->sortNodePositionByCoefs();
                 vector<DOFCoefs> sortedCoefs;
                 for (int n : sortedNodesPosition){
                     sortedCoefs.push_back(lmpc->getDoFCoefsForNode(n));
                 }
 
+                // Looking for the CellGroup corresponding to the current DOFCoefs.
                 shared_ptr<CellGroup> group =nullptr;
-                // Lookinf for the cellgroup corresponding to the current DOFCoefs.
                 const auto it = groupBySetOfCoefs.find(sortedCoefs);
                 if(it != groupBySetOfCoefs.end()){
                     group = it->second;
                 }else{
-                    // If not found, creating an elementset, a CellGroup and a dummy rigid material
-                    shared_ptr<Material> materialLMPC = make_shared<Material>(this);
-                    materialLMPC->addNature(RigidNature(*this, 1));
-                    this->add(materialLMPC);
-                    group = mesh->createCellGroup("MPC_"+std::to_string(constraint->bestId()), CellGroup::NO_ORIGINAL_ID, "MPC");
+                    // If not found, creating an ElementSet, a CellGroup and a (single) dummy rigid material
+                    if (materialLMPC==nullptr){
+                        materialLMPC= make_shared<Material>(this);
+                        materialLMPC->addNature(RigidNature(*this, 1));
+                        this->add(materialLMPC);
+                    }
+                    group = mesh->createCellGroup("MPC_"+std::to_string(analysis->bestId())+"_"+std::to_string(constraint->bestId()), CellGroup::NO_ORIGINAL_ID, "MPC");
                     Lmpc elementsetLMPC(*this, analysis->getId());
                     elementsetLMPC.assignCellGroup(group);
                     elementsetLMPC.assignMaterial(materialLMPC);
@@ -1650,12 +1649,24 @@ void Model::makeCellsFromLMPC(){
                 }
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::polyType(static_cast<unsigned int>(nodes.size())), nodes, true);
                 group->addCellId(mesh->findCell(cellPosition).id);
-
-                // Removing the constraint from the model.
-                remove(constraint->getReference(), idConstraintSet, originalIdConstraintSet, natConstraintSet);
                 if (configuration.logLevel >= LogLevel::DEBUG){
                     cout << "Building cells in group "<<group->getName()<<" from "<< *lmpc<<"."<<endl;
                 }
+            }
+
+        }
+    }
+
+    // After the translation, we remove all LMPC constraints
+    // We don't do this during the loop because some LMPC may be used by several analysis.
+    for (auto analysis : this->analyses) {
+        for (const auto& constraintSet : analysis->getConstraintSets()) {
+            const int idConstraintSet = constraintSet->getId();
+            const int originalIdConstraintSet = constraintSet->getOriginalId();
+            const ConstraintSet::Type natConstraintSet = constraintSet->type;
+            set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::LMPC);
+            for (const auto& constraint : constraints) {
+                remove(constraint->getReference(), idConstraintSet, originalIdConstraintSet, natConstraintSet);
             }
         }
     }
