@@ -29,7 +29,7 @@ building:
     - docker build -t $TEST_IMAGE -f Dockerfile_gitlab .
     - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
     - mkdir -p /srv/data/$OUTDIR
-    - docker run --rm -v /srv:/srv "$TEST_IMAGE" sh -c "cp /vegapp /srv/data/$OUTDIR"
+    - docker run --rm -v /srv:/srv "$TEST_IMAGE" sh -c "cp ./bin/vegapp /srv/data/$OUTDIR"
     - cp /srv/data/$OUTDIR/vegapp /srv/data
     - docker rmi "$TEST_IMAGE"
   artifacts:
