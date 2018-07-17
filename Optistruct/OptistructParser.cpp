@@ -43,15 +43,32 @@ const unordered_map<string, OptistructParser::parseOptistructElementFPtr> Optist
                 { "SET", &OptistructParser::parseSET },
         };
 
+const unordered_map<string, OptistructParser::parseOptistructElementFPtr> OptistructParser::OPTISTRUCT_PARSEPARAM_FUNCTION_BY_KEYWORD =
+        {
+        };
+
 OptistructParser::OptistructParser() :
         nastran::NastranParser() {
     nastran::NastranParser::IGNORED_KEYWORDS.insert(OPTISTRUCT_IGNORED_KEYWORDS.begin(), OPTISTRUCT_IGNORED_KEYWORDS.end());
+    nastran::NastranParser::IGNORED_PARAMS.insert(OPTISTRUCT_IGNORED_PARAMS.begin(), OPTISTRUCT_IGNORED_PARAMS.end());
 }
 
-nastran::NastranParser::parseElementFPtr OptistructParser::findCmdParser(string keyword) const {
+nastran::NastranParser::parseElementFPtr OptistructParser::findCmdParser(const string keyword) const {
     auto optistructParser = OPTISTRUCT_PARSE_FUNCTION_BY_KEYWORD.find(keyword);
     auto nastranParser = nastran::NastranParser::findCmdParser(keyword);
     if (optistructParser != OPTISTRUCT_PARSE_FUNCTION_BY_KEYWORD.end()) {
+        return static_cast<nastran::NastranParser::parseElementFPtr>(optistructParser->second);
+    } else if (nastranParser != nullptr) {
+        return nastranParser;
+    } else {
+        return nullptr;
+    }
+}
+
+nastran::NastranParser::parseElementFPtr OptistructParser::findParamParser(const string param) const {
+    auto optistructParser = OPTISTRUCT_PARSEPARAM_FUNCTION_BY_KEYWORD.find(param);
+    auto nastranParser = nastran::NastranParser::findParamParser(param);
+    if (optistructParser != OPTISTRUCT_PARSEPARAM_FUNCTION_BY_KEYWORD.end()) {
         return static_cast<nastran::NastranParser::parseElementFPtr>(optistructParser->second);
     } else if (nastranParser != nullptr) {
         return nastranParser;
@@ -109,11 +126,6 @@ void OptistructParser::parseSET(nastran::NastranTokenizer& tok, shared_ptr<Model
         throw logic_error("Unsupported TYPE value in SET");
     }
 
-}
-
-void OptistructParser::parsePARAM(nastran::NastranTokenizer& tok, shared_ptr<Model> model) {
-    // TODO LD: avoid side effect in using tok.nextString here
-    nastran::NastranParser::parsePARAM(tok, model);
 }
 
 } //namespace optistruct

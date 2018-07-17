@@ -38,14 +38,9 @@ namespace fs = boost::filesystem;
 class NastranParser: public vega::Parser {
 protected:
     typedef void (NastranParser::*parseElementFPtr)(NastranTokenizer& tok, std::shared_ptr<Model> model);
-    virtual parseElementFPtr findCmdParser(std::string) const;
+    virtual parseElementFPtr findCmdParser(const std::string) const;
+    virtual parseElementFPtr findParamParser(const std::string) const;
     virtual std::string defaultAnalysis() const;
-
-    /**
-     * Parse the keyword PARAM (page 2088 of MDN Nastran 2006 Quick Reference Guide.)
-     * Partial support, with unknown reliability.
-     */
-    virtual void parsePARAM(NastranTokenizer& tok, std::shared_ptr<Model> model);
 private:
     class GrdSet {
     public:
@@ -63,6 +58,7 @@ private:
 
     std::unordered_map<std::string, std::shared_ptr<Reference<ElementSet>>> directMatrixByName;
     static const std::unordered_map<std::string, parseElementFPtr> PARSE_FUNCTION_BY_KEYWORD;
+    static const std::unordered_map<std::string, parseElementFPtr> PARSEPARAM_FUNCTION_BY_KEYWORD;
 
     void addAnalysis(NastranTokenizer& tok, std::shared_ptr<Model> model, std::map<std::string, std::string>& context, int analysis_id =
             Analysis::NO_ORIGINAL_ID);
@@ -165,6 +161,12 @@ private:
      *
      */
     static const std::unordered_map<CellType::Code, std::vector<int>, std::hash<int>> nastran2medNodeConnectByCellType;
+
+    /**
+     * PARAM AUTOSPC
+     */
+    void parseAUTOSPC(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
     /**
      * Parse the CBAR keyword (page 1154 of MDN Nastran 2006 Quick Reference Guide.)
      * Pin flags (PA, PB) and offset vectors (OFFT, WA, WB) are not supported.
@@ -350,7 +352,33 @@ private:
      * CP coordinate system not supported, and taken as blank.
      */
     void parseGRID(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+
+    /**
+     * PARAM GRDPNT
+     */
+    void parseGRDPNT(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * PARAM HFREQ
+     */
+    void parseHFREQ(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * PARAM HFREQ
+     */
+    void parseK6ROT(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
     void parseInclude(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * PARAM LFREQ
+     */
+    void parseLFREQ(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * PARAM LGDISP
+     */
+    void parseLGDISP(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * Parse the LSEQ keyword
@@ -393,6 +421,22 @@ private:
      * All parameters are ignored except NINC.
      */
     void parseNLPARM(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * PARAM NOCOMPS
+     */
+    void parseNOCOMPS(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * Parse the keyword PARAM (page 2088 of MDN Nastran 2006 Quick Reference Guide.)
+     * Partial support, with unknown reliability.
+     */
+    virtual void parsePARAM(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * PARAM PATVER
+     */
+    void parsePATVER(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * Parse the PBAR keyword (page 2092 of MDN Nastran 2006 Quick Reference Guide.)
@@ -457,6 +501,11 @@ private:
      * Only uniform pressure are supported.
      */
     void parsePROD(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * PARAM PRTMAXIM
+     */
+    void parsePRTMAXIM(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * Parse the PSHELL keyword (page 2250 of MDN Nastran 2006 Quick Reference Guide.)
@@ -569,6 +618,11 @@ private:
      * Parse the keyword TEMP (page 2572 of MDN Nastran 2006 Quick Reference Guide.)
      */
     void parseTEMP(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * PARAM WTMASS
+     */
+    void parseWTMASS(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     std::string parseSubcase(NastranTokenizer& tok, std::shared_ptr<Model> model, std::map<std::string, std::string> context);
 

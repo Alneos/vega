@@ -57,13 +57,16 @@ private:
 
     static const std::unordered_map<std::string, parseOptistructElementFPtr> OPTISTRUCT_PARSE_FUNCTION_BY_KEYWORD;
 
-    std::set<std::string> IGNORED_PARAMS = {
-        "CHECKEL" // Activates element mesh quality checks, https://www.sharcnet.ca/Software/Hyperworks/help/hwsolvers/param_checkel.htm
+    static const std::unordered_map<std::string, parseOptistructElementFPtr> OPTISTRUCT_PARSEPARAM_FUNCTION_BY_KEYWORD;
+
+    std::set<std::string> OPTISTRUCT_IGNORED_PARAMS = {
+        "CHECKEL", // Activates element mesh quality checks, https://www.sharcnet.ca/Software/Hyperworks/help/hwsolvers/param_checkel.htm
+        "EFFMAS", // If YES the modal participation factors and effective mass will be computed and output to the .out file for normal modes analysis.
     };
 protected:
-    parseElementFPtr findCmdParser(std::string keyword) const override;
+    parseElementFPtr findCmdParser(const std::string) const override;
+    parseElementFPtr findParamParser(const std::string) const override;
     std::string defaultAnalysis() const override;
-    void parsePARAM(nastran::NastranTokenizer& tok, std::shared_ptr<Model> model) override;
 public:
     OptistructParser();
     //std::shared_ptr<Model> parse(const ConfigurationParameters& configuration) override;
