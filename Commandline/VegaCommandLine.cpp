@@ -293,40 +293,40 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
 
 
 
-    // Default value is "auto", caracterized by a void systusSubcases
+    // Default value is "auto", characterized by a void systusSubcases
     vector< vector<int> > systusSubcases;
     if (vm.count("systus.Subcase")){
-    	vector<string> subcases = vm["systus.Subcase"].as< vector<string>>();
-    	std::string delimiter=",";
-    	std::string allowedchars="0123456789"+delimiter;
-    	for (size_t i = 0; i < subcases.size(); ++i){
-    		vector<int> vec;
-    		string soptions = subcases[i];
-    		// Single: every analysis in a separate file, is caracterized by
-    		// systusSubcases = < <-1> >
-    		// TODO: Not very elegant. Do better.
-    		if (soptions=="single"){
-    			systusSubcases.clear();
-    			systusSubcases.push_back({-1});
-    			break;
-    		}
-    		if (soptions=="auto"){
-    			systusSubcases.clear();
-    			break;
-    		}
+        vector<string> subcases = vm["systus.Subcase"].as< vector<string>>();
+        std::string delimiter=",";
+        std::string allowedchars="0123456789"+delimiter;
+        for (size_t i = 0; i < subcases.size(); ++i){
+            vector<int> vec;
+            string soptions = subcases[i];
+            // Single: every analysis in a separate file, is characterized by
+            // systusSubcases = < <-1> >
+            // TODO: Not very elegant. Do better.
+            if (soptions=="single"){
+                systusSubcases.clear();
+                systusSubcases.push_back({-1});
+                break;
+            }
+            if (soptions=="auto"){
+                systusSubcases.clear();
+                break;
+            }
 
-    		if (strspn(soptions.c_str(), allowedchars.c_str()) != soptions.size() ){
-        		throw invalid_argument("Systus Subcase list must verify the syntax 'n1,n2,n3'.");
-        	}
-    		size_t pos = 0;
-    		while ((pos = soptions.find(delimiter)) != string::npos) {
-    		    string token = soptions.substr(0, pos);
-    		    soptions.erase(0, pos + delimiter.length());
-    		    vec.push_back(  atoi(token.c_str()) );
-    		}
-    		vec.push_back(atoi(soptions.c_str()));
-    		systusSubcases.push_back(vec);
-    	}
+            if (strspn(soptions.c_str(), allowedchars.c_str()) != soptions.size() ){
+                throw invalid_argument("Systus Subcase list must verify the syntax 'n1,n2,n3'.");
+            }
+            size_t pos = 0;
+            while ((pos = soptions.find(delimiter)) != string::npos) {
+                string token = soptions.substr(0, pos);
+                soptions.erase(0, pos + delimiter.length());
+                vec.push_back(  atoi(token.c_str()) );
+            }
+            vec.push_back(atoi(soptions.c_str()));
+            systusSubcases.push_back(vec);
+        }
     }
 
 
@@ -438,9 +438,9 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
         ("best-effort,b", "All the recognized keywords in the source file are "
                 "translated, unknown keywords are skipped.") //
         ("listOptions,l", "Print the options used by current translation.") //
-		("mesh-at-least,m", "If the source study is fully understood it is translated, "
-		        " otherwise it is translated only the mesh.") //
-		("strict,s", "Stops translation at the first "
+        ("mesh-at-least,m", "If the source study is fully understood it is translated, "
+                " otherwise it is translated only the mesh.") //
+        ("strict,s", "Stops translation at the first "
                 "unrecognized keyword or parameter.")//
         ("verbosity", po::value<string>(), "Verbosity of VEGA. From low to high: ERROR, WARN, INFO, DEBUG, TRACE"); //
 
