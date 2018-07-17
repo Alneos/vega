@@ -63,6 +63,7 @@ xbuilding:
     - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
     - mkdir -p /srv/data/$OUTDIR
     - docker run --rm -v /srv:/srv "$XTEST_IMAGE" sh -c "sudo cp ./bin/vegapp.exe /srv/data/$OUTDIR"
+    - cp /srv/data/$OUTDIR/vegapp.exe /srv/data
     - docker rmi "$XTEST_IMAGE"
   artifacts:
     name: "$CI_JOB_NAME"
@@ -78,10 +79,9 @@ nightly:
   only:
     - schedules
   before_script:
-    - apk add --update --no-cache git
     - whoami
     - pwd
     - ls /srv/data
-    - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
+    - export OUTDIR=$(date +%Y-%m-%d_%H%M)
   script:
     - /srv/data/vegapp -o $OUTDIR --run-solver /srv/data/input/v02_K9Kgen6_simplif/original/v02_K9Kgen6_simplif.fem optistruct systus
