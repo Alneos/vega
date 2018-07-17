@@ -1823,6 +1823,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
             case ElementSet::STRUCTURAL_SEGMENT:
             case ElementSet::SHELL:
             case ElementSet::CONTINUUM:
+            case ElementSet::LMPC:
             case ElementSet::NODAL_MASS:
             case ElementSet::RBAR:
             case ElementSet::RBE3:{
@@ -1987,7 +1988,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
 
             default: {
                 //TODO : throw WriterException("ElementSet type not supported");
-                cout << "Warning in FillMatrices: " << *elementSet << " not supported" << endl;
+                handleWritingWarning(to_str(*elementSet) +" not supported", "Filling Matrices");
             }
             }
         }
@@ -2305,6 +2306,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
     for (const auto& elementSet : systusModel.model->elementSets) {
 
         shared_ptr<CellGroup> cellGroup = elementSet->cellGroup;
+        cellGroup->isUseful=false;
         int dim = 0;
         int typecell=0;
 
@@ -2394,6 +2396,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
             typecell = 0;
         }
         }
+        cellGroup->isUseful=true;
         for (const Cell& cell : cellGroup->getCells()) {
             auto systus2med_it = systus2medNodeConnectByCellType.find(cell.type.code);
             if (systus2med_it == systus2medNodeConnectByCellType.end()) {
@@ -2449,20 +2452,18 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
     ostringstream osgr;
     int nbGroups=0;
 
-    // Write CellGroups
+    /* Write useful CellGroups, those corresponding to real cells and to this analysis
+     * Useless groups :
+     *  - NodalMass groups, as they are not cells in Systus
+     *  - Orientation groups, as they are not parts.
+     */
     set<int> pids= {};
     for (const auto& cellGroup : cellGroups) {
-        // We don't write the groups of Nodal Mass, as they are not cells in Systus
-        // We don't write the Orientation groups, they are not parts.
-        // It IS an Ugly Fix. I know it is.
-        // TODO: DO better
-        if ((cellGroup->getComment().substr(0,10)!="NODAL MASS")&&
-                (cellGroup->getComment()!="Orientation")){
+        if (cellGroup->isUseful){
             nbGroups++;
             osgr << nbGroups << " " << cellGroup->getName() << " 2 0 ";
             osgr << "\"PART_ID "<< getPartId(cellGroup->getName(), pids) << "\"  \"\"  ";
             osgr << "\"PART built in VEGA from "<< cellGroup->getComment() << "\"";
-
             for (const auto& cell : cellGroup->getCells())
                 osgr << " " << cell.id;
             osgr << endl;

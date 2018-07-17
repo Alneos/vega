@@ -228,6 +228,7 @@ public:
     //const SpaceDimension dimension;
     const Type type;
     std::string comment; ///< A comment string, usually use to retain the command which created the group.
+    bool isUseful; ///< A boolean that can be used by Writer to keep or discard group.
     const std::string getName() const;
     const std::string getComment() const;
     virtual const std::set<int> nodePositions() const = 0;
