@@ -255,7 +255,10 @@ include_directories(SYSTEM ${MPI_CXX_INCLUDE_PATH})
 #link_directories ( ${MEDFILE_LIBRARY_DIR} )
 list(APPEND EXTERNAL_LIBRARIES ${MEDFILE_C_LIBRARIES})
 list(APPEND EXTERNAL_LIBRARIES ${MPI_C_LIBRARIES})
-#list(APPEND EXTERNAL_LIBRARIES ${HDF5_LIBRARIES})
+IF(NOT CYGWIN)
+    # Needed in static linking
+    list(APPEND EXTERNAL_LIBRARIES ${HDF5_LIBRARIES})
+ENDIF(NOT CYGWIN)
 
 # On Cygwin, we need to explicitely look some libraries on /lib
 IF(CYGWIN)
