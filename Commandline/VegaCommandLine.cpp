@@ -402,7 +402,7 @@ string VegaCommandLine::expand_user(string path) {
 
 VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
     ExitCode result = VegaCommandLine::OK;
-#if defined(__linux__)
+#if Backtrace_FOUND
     signal(SIGSEGV, handler);
 #endif
     LogLevel logLevel = LogLevel::TRACE;
