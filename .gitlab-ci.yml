@@ -29,7 +29,7 @@ building:
     - docker build -t $TEST_IMAGE -f Dockerfile_gitlab .
     - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
     - mkdir -p /srv/data/$OUTDIR
-    - docker run --rm -v /srv:/srv "$TEST_IMAGE" sh -c "cp ./bin/vegapp /srv/data/$OUTDIR"
+    - docker run --rm -v /srv:/srv "$TEST_IMAGE" sh -c "sudo cp ./bin/vegapp /srv/data/$OUTDIR"
     - cp /srv/data/$OUTDIR/vegapp /srv/data
     - docker rmi "$TEST_IMAGE"
   artifacts:
@@ -62,7 +62,7 @@ xbuilding:
     - docker build -t $XTEST_IMAGE -f Dockerfile_xgitlab .
     - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
     - mkdir -p /srv/data/$OUTDIR
-    - docker run --rm --privileged -v /srv:/srv "$XTEST_IMAGE" sh -c "update-binfmts --import /usr/share/binfmts/wine && ctest . && cp ./bin/vegapp.exe /srv/data/$OUTDIR"
+    - docker run --rm -v /srv:/srv "$XTEST_IMAGE" sh -c "sudo cp ./bin/vegapp.exe /srv/data/$OUTDIR"
     - docker rmi "$XTEST_IMAGE"
   artifacts:
     name: "$CI_JOB_NAME"
