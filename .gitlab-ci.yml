@@ -83,5 +83,7 @@ nightly:
     - pwd
     - ls /srv/data
     - export OUTDIR=$(date +%Y-%m-%d_%H%M)
+    - export PATH=$PATH:/opt/TOP/sysworld2016/
+    - mkdir -p /srv/data/$OUTDIR
   script:
-    - /srv/data/vegapp -o $OUTDIR --run-solver /srv/data/input/v02_K9Kgen6_simplif/original/v02_K9Kgen6_simplif.fem optistruct systus
+    - /srv/data/vegapp -s -o /srv/data/$OUTDIR --run-solver /srv/data/input/v02_K9Kgen6_simplif/original/v02_K9Kgen6_simplif.fem optistruct systus
