@@ -2328,7 +2328,8 @@ void NastranParser::parseSLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
     while (tok.isNextInt()) {
         int grid_id = tok.nextInt();
         double magnitude = tok.nextDouble();
-        NodalForce force1(*model, grid_id, magnitude, 0.0, 0.0, 0., 0., 0., Loading::NO_ORIGINAL_ID);
+        NodalForce force1(*model, magnitude, 0., 0., 0., 0., 0., Loading::NO_ORIGINAL_ID);
+        force1.addNodeId(grid_id);
         model->add(force1);
         model->addLoadingIntoLoadSet(force1, loadset_ref);
     }
