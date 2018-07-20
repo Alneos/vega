@@ -31,20 +31,26 @@ int main(int ac, const char* av[]) {
         //parent process
         int status = 0;
         wait(&status);
-        return status;
+        if (WIFEXITED(status)) {
+            return WEXITSTATUS(status);
+        } else {
+            cerr << "The child did not provide an exit code. It probably crashed?" << endl;
+            return VegaCommandLine::CHILD_CRASHED;
+        }
     } else if (child_pid == 0) {
 #endif
         VegaCommandLine vcl = VegaCommandLine();
         VegaCommandLine::ExitCode exitCode = vcl.process(ac, av);
         if (exitCode != VegaCommandLine::OK) {
             cerr << VegaCommandLine::exitCodeToString(exitCode) << endl;
+            cerr << "Exitcode:" << exitCode << endl;
         }
         return exitCode;
 #if defined(unix)
     } else {
         //child pid <0
         cerr << "fork failed " << child_pid << endl << " exiting " << endl;
-        return 6;
+        return VegaCommandLine::FORK_FAILED;
     }
 #endif
 }

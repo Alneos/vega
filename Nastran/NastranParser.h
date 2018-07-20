@@ -480,6 +480,11 @@ private:
      */
     void parsePGAP(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
+/**
+     * Parse the PLOAD keyword
+     */
+    void parsePLOAD(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
     /**
      * Parse the PLOAD1 keyword
      */

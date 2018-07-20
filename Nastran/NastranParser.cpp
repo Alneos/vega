@@ -100,6 +100,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "PBUSH", &NastranParser::parsePBUSH },
                 { "PELAS", &NastranParser::parsePELAS },
                 { "PGAP", &NastranParser::parsePGAP },
+                { "PLOAD", &NastranParser::parsePLOAD },
                 { "PLOAD1", &NastranParser::parsePLOAD1 },
                 { "PLOAD2", &NastranParser::parsePLOAD2 },
                 { "PLOAD4", &NastranParser::parsePLOAD4 },
@@ -1891,6 +1892,20 @@ void NastranParser::parsePLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) 
         LoadSet loadSet(*model, LoadSet::LOAD, loadset_id);
         model->add(loadSet);
     }
+}
+
+void NastranParser::parsePLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
+    /*int loadset_id = tok.nextInt();
+    double p = tok.nextDouble();
+    int g1 = tok.nextInt();
+    int g2 = tok.nextInt();
+    int g3 = tok.nextInt();
+    int g4 = tok.nextInt(true);
+    if (g4 == Globals::UNAVAILABLE_INT) {
+        throw logic_error("PLOAD without g4 not yet implemented");
+    }*/
+    handleParsingWarning("Ignoring PLOAD (not yet implemented).", tok, model);
+    tok.skipToNextKeyword();
 }
 
 void NastranParser::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) {
