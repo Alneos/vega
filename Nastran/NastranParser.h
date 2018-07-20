@@ -165,7 +165,7 @@ private:
     /**
      * PARAM AUTOSPC
      */
-    void parseAUTOSPC(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamAUTOSPC(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * Parse the CBAR keyword (page 1154 of MDN Nastran 2006 Quick Reference Guide.)
@@ -356,29 +356,29 @@ private:
     /**
      * PARAM GRDPNT
      */
-    void parseGRDPNT(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamGRDPNT(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * PARAM HFREQ
      */
-    void parseHFREQ(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamHFREQ(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * PARAM HFREQ
      */
-    void parseK6ROT(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamK6ROT(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     void parseInclude(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * PARAM LFREQ
      */
-    void parseLFREQ(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamLFREQ(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * PARAM LGDISP
      */
-    void parseLGDISP(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamLGDISP(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * Parse the LSEQ keyword
@@ -425,7 +425,7 @@ private:
     /**
      * PARAM NOCOMPS
      */
-    void parseNOCOMPS(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamNOCOMPS(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * Parse the keyword PARAM (page 2088 of MDN Nastran 2006 Quick Reference Guide.)
@@ -436,7 +436,7 @@ private:
     /**
      * PARAM PATVER
      */
-    void parsePATVER(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamPATVER(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * Parse the PBAR keyword (page 2092 of MDN Nastran 2006 Quick Reference Guide.)
@@ -505,7 +505,7 @@ private:
     /**
      * PARAM PRTMAXIM
      */
-    void parsePRTMAXIM(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamPRTMAXIM(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * Parse the PSHELL keyword (page 2250 of MDN Nastran 2006 Quick Reference Guide.)
@@ -622,7 +622,7 @@ private:
     /**
      * PARAM WTMASS
      */
-    void parseWTMASS(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamWTMASS(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     std::string parseSubcase(NastranTokenizer& tok, std::shared_ptr<Model> model, std::map<std::string, std::string> context);
 
