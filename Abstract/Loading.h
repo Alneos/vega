@@ -252,6 +252,24 @@ public:
 };
 
 /**
+ * See Nastran PLOAD
+ */
+class StaticPressure: public NodalForce {
+    const int node_position1;
+    const int node_position2;
+    const int node_position3;
+    const int node_position4 = Globals::UNAVAILABLE_INT;
+    double magnitude;
+public:
+    StaticPressure(const Model&, const int node1_id, const int node2_id,
+            const int node3_id, const int node4_id, double magnitude, const int original_id = NO_ORIGINAL_ID);
+    const VectorialValue getForceInGlobalCS(const int) const override;
+    std::shared_ptr<Loading> clone() const;
+    void scale(const double factor) override;
+    bool ineffective() const override;
+};
+
+/**
  * Represent loading applied on cells
  */
 class ElementLoading: public Loading, public CellContainer {

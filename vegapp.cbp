@@ -1865,6 +1865,10 @@
 		<Unit filename="testdata/nastran/caw/prob6/prob6.dat" />
 		<Unit filename="testdata/nastran/caw/prob6/prob6.f06" />
 		<Unit filename="testdata/nastran/caw/prob9/prob9.dat" />
+		<Unit filename="testdata/nastran/esi/ploads/ploads.f04" />
+		<Unit filename="testdata/nastran/esi/ploads/ploads.f06" />
+		<Unit filename="testdata/nastran/esi/ploads/ploads.log" />
+		<Unit filename="testdata/nastran/esi/ploads/ploads.nas" />
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/fixed_circular_plate.dat" />
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/fixed_circular_plate.f06" />
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/readme.txt" />

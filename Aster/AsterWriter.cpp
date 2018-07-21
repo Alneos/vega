@@ -1647,9 +1647,11 @@ void AsterWriter::writeNodalDisplacementAssertion(const AsterModel& asterModel,
 	} else {
 		out << "                     NUME_ORDRE = 1," << endl;
 	}
-
-	out << "                     VALE_CALC = " << nda.value << "," << endl;
-	out << "                     TOLE_MACHINE = (" << (relativeComparison ? nda.tolerance : 1e-5) << "," << 1e-5 << ")," << endl;
+    out << "                     REFERENCE = 'SOURCE_EXTERNE'," << endl;
+    out << "                     PRECISION = " << nda.tolerance << "," << endl;
+	out << "                     VALE_REFE = " << nda.value << "," << endl;
+	out << "                     VALE_CALC = " << (is_zero(nda.value) ? 1e-10 : nda.value) << "," << endl;
+	out << "                     TOLE_MACHINE = (" << nda.tolerance << "," << 1e-5 << ")," << endl;
 
 }
 

@@ -1792,6 +1792,23 @@ void NastranParser::parsePGAP(NastranTokenizer& tok, shared_ptr<Model> model) {
     }
 }
 
+void NastranParser::parsePLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int loadset_id = tok.nextInt();
+    double p = tok.nextDouble();
+    int g1 = tok.nextInt();
+    int g2 = tok.nextInt();
+    int g3 = tok.nextInt();
+    int g4 = tok.nextInt(true, Globals::UNAVAILABLE_INT);
+    Reference<LoadSet> loadSetReference(LoadSet::LOAD, loadset_id);
+    StaticPressure staticPressure(*model, g1, g2, g3, g4, p);
+    model->add(staticPressure);
+    model->addLoadingIntoLoadSet(staticPressure, loadSetReference);
+    if (!model->find(loadSetReference)) {
+        LoadSet loadSet(*model, LoadSet::LOAD, loadset_id);
+        model->add(loadSet);
+    }
+}
+
 void NastranParser::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> model) {
     int loadset_id = tok.nextInt();
     int eid = tok.nextInt();
@@ -1885,27 +1902,15 @@ void NastranParser::parsePLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) 
     Reference<LoadSet> loadSetReference(LoadSet::LOAD, loadset_id);
     NormalPressionFace normalPressionFace(*model, p);
     for(int cellId : tok.nextInts()) {
+        cout << "cellId:" << cellId << endl;
         normalPressionFace.addCell(cellId);
     }
+    model->add(normalPressionFace);
     model->addLoadingIntoLoadSet(normalPressionFace, loadSetReference);
     if (!model->find(loadSetReference)) {
         LoadSet loadSet(*model, LoadSet::LOAD, loadset_id);
         model->add(loadSet);
     }
-}
-
-void NastranParser::parsePLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
-    /*int loadset_id = tok.nextInt();
-    double p = tok.nextDouble();
-    int g1 = tok.nextInt();
-    int g2 = tok.nextInt();
-    int g3 = tok.nextInt();
-    int g4 = tok.nextInt(true);
-    if (g4 == Globals::UNAVAILABLE_INT) {
-        throw logic_error("PLOAD without g4 not yet implemented");
-    }*/
-    handleParsingWarning("Ignoring PLOAD (not yet implemented).", tok, model);
-    tok.skipToNextKeyword();
 }
 
 void NastranParser::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -1918,7 +1923,7 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) 
     if (!is_equal(p2, p1) || !is_equal(p3, p1) || !is_equal(p4, p1)) {
         handleParsingWarning("Non uniform pressure not implemented.", tok, model);
     }
-    bool format1 = tok.isNextInt() || tok.isNextEmpty();
+    bool format1 = tok.isNextInt() || tok.isNextEmpty() || tok.isEmptyUntilNextKeyword();
     int g1 = Globals::UNAVAILABLE_INT;
     int g3_or_4 = Globals::UNAVAILABLE_INT;
     int eid2 = Globals::UNAVAILABLE_INT;
@@ -1926,6 +1931,7 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) 
         //format 1
         g1 = tok.nextInt(true);
         g3_or_4 = tok.nextInt(true);
+        eid2 = eid1 + 1;
     } else {
         if (tok.isNextTHRU()) {
             //format2
