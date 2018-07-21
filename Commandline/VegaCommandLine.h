@@ -38,6 +38,8 @@ public:
         MODEL_VALIDATION_ERROR = 5, //Validation of model failed.
 		PARSING_EXCEPTION = 6, // Error in the Parser.
 		WRITING_EXCEPTION = 7, // Error in the Writer.
+		CHILD_CRASHED = 8, // Child not providing status
+		FORK_FAILED = 9, // Fork in main could not be done by the system
         SOLVER_NOT_FOUND = Runner::SOLVER_NOT_FOUND, //solver was not found
         SOLVER_KILLED = Runner::SOLVER_KILLED,
         SOLVER_EXIT_NOT_ZERO = Runner::SOLVER_EXIT_NOT_ZERO,
@@ -63,7 +65,7 @@ private:
 public:
     VegaCommandLine();
     ExitCode process(int ac, const char* av[]);
-    static const char * exitCodeToString(ExitCode);
+    static const std::string exitCodeToString(ExitCode);
 };
 
 } /* namespace vega */

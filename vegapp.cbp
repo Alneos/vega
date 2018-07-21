@@ -5,6 +5,7 @@
 		<Option title="vegapp" />
 		<Option makefile_is_custom="1" />
 		<Option execution_dir="build/" />
+		<Option default_target="vegapp" />
 		<Option compiler="gcc" />
 		<Option virtualFolders="CMake Files/;CMake Files/cmakemodules/;CMake Files/Aster/;CMake Files/Nastran/;CMake Files/Systus/;CMake Files/Abstract/;CMake Files/ResultReaders/;CMake Files/Commandline/;CMake Files/Test/;CMake Files/Test/Abstract/;CMake Files/Test/Aster/;CMake Files/Test/Commandline/;CMake Files/Test/Nastran/;CMake Files/Test/ResultReaders/;CMake Files/Test/Systus/;CMake Files/Test/NightlyTests/;" />
 		<Build>
@@ -542,6 +543,7 @@
 				<Option object_output="./" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="-R -o /tmp /local/data/TOP/v02_K9Kgen6_simplif/v02_K9Kgen6_simplif.fem optistruct aster" />
 				<Compiler>
 					<Add directory="build" />
 					<Add directory="include" />
@@ -1863,6 +1865,10 @@
 		<Unit filename="testdata/nastran/caw/prob6/prob6.dat" />
 		<Unit filename="testdata/nastran/caw/prob6/prob6.f06" />
 		<Unit filename="testdata/nastran/caw/prob9/prob9.dat" />
+		<Unit filename="testdata/nastran/esi/ploads/ploads.f04" />
+		<Unit filename="testdata/nastran/esi/ploads/ploads.f06" />
+		<Unit filename="testdata/nastran/esi/ploads/ploads.log" />
+		<Unit filename="testdata/nastran/esi/ploads/ploads.nas" />
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/fixed_circular_plate.dat" />
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/fixed_circular_plate.f06" />
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/readme.txt" />

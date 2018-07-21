@@ -375,7 +375,7 @@ VegaCommandLine::ExitCode VegaCommandLine::runSolver(const ConfigurationParamete
 
 void VegaCommandLine::printHelp(const po::options_description& visible) {
     cout << endl << "vegapp [options] inputFile input-format output-format" << endl;
-    cout << visible << "\n";
+    cout << visible << endl;
 }
 
 void VegaCommandLine::printHeader() {
@@ -519,7 +519,7 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
             //TODO: Global Handler for error.
             // We only make a warning if the user provided a config file
             if (!vm["config"].defaulted()){
-               cerr << "Warning: cannot open configuration file " << config_file << ". Default behavior used.\n";
+               cerr << "Warning: cannot open configuration file " << config_file << ". Default behavior used." << endl;
             }
         } else {
             store(parse_config_file(ifs, config_file_options), vm);
@@ -539,7 +539,7 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
         logLevel = configuration.logLevel;
         if (configuration.resultFile.string().size() >= 1) {
             if (!fs::exists(configuration.resultFile)) {
-                cerr << "Test file specified " << configuration.resultFile << " can't be found. \n";
+                cerr << "Test file specified " << configuration.resultFile << " can't be found. " << endl;
                 return NO_INPUT_FILE;
             }
         }
@@ -571,37 +571,38 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
         if (logLevel >= LogLevel::DEBUG) {
             throw;
         } else
-            cerr << "\nInvalid argument: " << e.what() << "\n";
+            cerr  << endl << "Invalid argument: " << e.what()  << endl;
         return INVALID_COMMAND_LINE;
     } catch (ParsingException & e) {   // A parsing error occurred.
         if (logLevel >= LogLevel::DEBUG) {
             throw;
         } else
-            cerr << "\n" << e.what() << "\n";
+            cerr << endl << e.what() << endl;
     	return PARSING_EXCEPTION;
     } catch (WritingException & e) {   // An error occurred in the Writer.
         if (logLevel >= LogLevel::DEBUG) {
             throw;
         } else
-            cerr << "\n" << e.what() << "\n";
+            cerr << endl << e.what() << endl;
     	return WRITING_EXCEPTION;
     } catch (logic_error& e) {
         if (logLevel >= LogLevel::DEBUG) {
             throw;
         } else
-            cerr << "\nLogic error: " << e.what() << "\n";
+            cerr << endl << "Logic error: " << e.what() << endl;
         return GENERIC_EXCEPTION;
     } catch (exception& e) {
         if (logLevel >= LogLevel::DEBUG) {
             throw;
         } else
-            cerr << "\nException: " << e.what() << "\n";
+            cerr << endl << "Exception: " << e.what() << endl;
         return GENERIC_EXCEPTION;
     }
     return result;
 }
 
-const char * VegaCommandLine::exitCodeToString(ExitCode exitCode) {
+const string VegaCommandLine::exitCodeToString(ExitCode exitCode)
+ {
     auto it = failureReason_by_ExitCode.find(exitCode);
     if (it == failureReason_by_ExitCode.end()) {
         return "UNKNOWN FAILURE";

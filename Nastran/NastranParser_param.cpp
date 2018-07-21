@@ -36,19 +36,19 @@ namespace nastran {
 
 const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARSEPARAM_FUNCTION_BY_KEYWORD =
         {
-                { "AUTOSPC", &NastranParser::parseAUTOSPC },
-                { "GRDPNT", &NastranParser::parseGRDPNT },
-                { "HFREQ", &NastranParser::parseHFREQ },
-                { "K6ROT", &NastranParser::parseK6ROT },
-                { "LFREQ", &NastranParser::parseLFREQ },
-                { "LGDISP", &NastranParser::parseLGDISP },
-                { "NOCOMPS", &NastranParser::parseNOCOMPS },
-                { "PATVER", &NastranParser::parsePATVER },
-                { "PRTMAXIM", &NastranParser::parsePRTMAXIM },
-                { "WTMASS", &NastranParser::parseWTMASS },
+                { "AUTOSPC", &NastranParser::parseParamAUTOSPC },
+                { "GRDPNT", &NastranParser::parseParamGRDPNT },
+                { "HFREQ", &NastranParser::parseParamHFREQ },
+                { "K6ROT", &NastranParser::parseParamK6ROT },
+                { "LFREQ", &NastranParser::parseParamLFREQ },
+                { "LGDISP", &NastranParser::parseParamLGDISP },
+                { "NOCOMPS", &NastranParser::parseParamNOCOMPS },
+                { "PATVER", &NastranParser::parseParamPATVER },
+                { "PRTMAXIM", &NastranParser::parseParamPRTMAXIM },
+                { "WTMASS", &NastranParser::parseParamWTMASS },
         };
 
-void NastranParser::parseAUTOSPC(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamAUTOSPC(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     /*
      AUTOSPC specifies the action to take when singularities exist in the stiffness
@@ -64,12 +64,12 @@ void NastranParser::parseAUTOSPC(NastranTokenizer& tok, shared_ptr<Model> model)
     string value = tok.nextString(true, "NO");
     if (value == "YES") {
         handleParsingError(
-                string("unsupported AUTOSPC value in parseAUTOSPC. "),
+                string("unsupported AUTOSPC value in parseParamAUTOSPC. "),
                 tok, model);
     }
 }
 
-void NastranParser::parseGRDPNT(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamGRDPNT(NastranTokenizer& tok, shared_ptr<Model> model) {
     /*GRDPNT
      Default = -1
      GRDPNT>-1 will cause the grid point weight generator to be
@@ -114,7 +114,7 @@ void NastranParser::parseGRDPNT(NastranTokenizer& tok, shared_ptr<Model> model) 
     }
 }
 
-void NastranParser::parseHFREQ(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamHFREQ(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     /* Default = 1.+30
      PARAM,HFREQ gives the upper limit on the frequency range of retained modes.
@@ -125,7 +125,7 @@ void NastranParser::parseHFREQ(NastranTokenizer& tok, shared_ptr<Model> model) {
     }
 }
 
-void NastranParser::parseK6ROT(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamK6ROT(NastranTokenizer& tok, shared_ptr<Model> model) {
     /* K6ROT specifies the scaling factor of the penalty stiffness to be added
      to the normal rotation for CQUAD4 and CTRIA3 elements. The
      contribution of the penalty term to the strain energy functional is ...*/
@@ -137,7 +137,7 @@ void NastranParser::parseK6ROT(NastranTokenizer& tok, shared_ptr<Model> model) {
     }
 }
 
-void NastranParser::parseLFREQ(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamLFREQ(NastranTokenizer& tok, shared_ptr<Model> model) {
     /* Default = 0.0
      PARAM,LFREQ gives the lower limit on the frequency range of retained modes.
      */
@@ -147,7 +147,7 @@ void NastranParser::parseLFREQ(NastranTokenizer& tok, shared_ptr<Model> model) {
     }
 }
 
-void NastranParser::parseLGDISP(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamLGDISP(NastranTokenizer& tok, shared_ptr<Model> model) {
     /* Default = -1
      If LGDlSP = 1, all the nonlinear element types that have a large
      displacement capability in SOLs 106, 129, 153, 159, 400, and 600 (see
@@ -167,7 +167,7 @@ void NastranParser::parseLGDISP(NastranTokenizer& tok, shared_ptr<Model> model) 
     }
 }
 
-void NastranParser::parseNOCOMPS(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamNOCOMPS(NastranTokenizer& tok, shared_ptr<Model> model) {
     /*
      NOCOMPS controls the computation and printout of composite
      element ply stresses, strains and failure indices. If NOCOMPS = 1,
@@ -183,19 +183,19 @@ void NastranParser::parseNOCOMPS(NastranTokenizer& tok, shared_ptr<Model> model)
     int value = tok.nextInt(true, 1);
     handleParsingWarning(
             string("Ignored parameter NOCOMPS value ") + to_string(value)
-                    + string(" in parseNOCOMPS. "), tok, model);
+                    + string(" in parseParamNOCOMPS. "), tok, model);
 }
 
-void NastranParser::parsePATVER(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamPATVER(NastranTokenizer& tok, shared_ptr<Model> model) {
     double val = tok.nextDouble(true, 3.0);
     if (!is_equal(val, 3.0)) {
         handleParsingError(
-                string("unsupported parameter PATVER value in parsePATVER. "),
+                string("unsupported parameter PATVER value in parseParamPATVER. "),
                 tok, model);
     }
 }
 
-void NastranParser::parsePRTMAXIM(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamPRTMAXIM(NastranTokenizer& tok, shared_ptr<Model> model) {
     /*
      * PRTMAXIM
      * Default = NO
@@ -211,7 +211,7 @@ void NastranParser::parsePRTMAXIM(NastranTokenizer& tok, shared_ptr<Model> model
     }
 }
 
-void NastranParser::parseWTMASS(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamWTMASS(NastranTokenizer& tok, shared_ptr<Model> model) {
     double value = tok.nextDouble(true, 1);
     model->parameters[Model::MASS_OVER_FORCE_MULTIPLIER] = value;
 }

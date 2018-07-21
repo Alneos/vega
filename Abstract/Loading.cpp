@@ -297,9 +297,9 @@ const VectorialValue NodalForce::getMomentInGlobalCS(int nodePosition) const {
 const DOFS NodalForce::getDOFSForNode(const int nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
 	set<int> posSet = nodePositions();
-	VectorialValue globalForce = getForceInGlobalCS(nodePosition);
-	VectorialValue globalTorque = getMomentInGlobalCS(nodePosition);
 	if (posSet.find(nodePosition) != posSet.end()) {
+        VectorialValue globalForce = getForceInGlobalCS(nodePosition);
+        VectorialValue globalTorque = getMomentInGlobalCS(nodePosition);
 		if (!is_zero(globalForce.x()))
 			dofs = dofs + DOF::DX;
 		if (!is_zero(globalForce.y()))
@@ -385,7 +385,92 @@ void NodalForceFourNodes::scale(const double factor) {
 }
 
 bool NodalForceFourNodes::ineffective() const {
-    return is_zero(magnitude) or force.iszero();
+    return is_zero(magnitude);
+}
+
+StaticPressure::StaticPressure(const Model& model, const int node1_id,
+        const int node2_id, const int node3_id, const int node4_id, double magnitude, const int original_id) :
+        NodalForce(model, original_id, 0.0, 0.0, 0.0, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID),
+                node_position1(model.mesh->findOrReserveNode(node1_id)),
+                node_position2(model.mesh->findOrReserveNode(node2_id)),
+                node_position3(model.mesh->findOrReserveNode(node3_id)),
+                node_position4(node4_id == Globals::UNAVAILABLE_INT ? Globals::UNAVAILABLE_INT : model.mesh->findOrReserveNode(node4_id)),
+                magnitude(magnitude) {
+    addNodeId(node1_id);
+    addNodeId(node2_id);
+    addNodeId(node3_id);
+    if (node4_id != Globals::UNAVAILABLE_INT) {
+        addNodeId(node4_id);
+    }
+}
+
+const VectorialValue StaticPressure::getForceInGlobalCS(int nodePosition) const {
+    set<int> posSet = nodePositions();
+	if (posSet.find(nodePosition) == posSet.end()) {
+	    return VectorialValue();
+	}
+	VectorialValue forceNode;
+    Node node1 = model.mesh->findNode(node_position1, true, &model);
+    Node node2 = model.mesh->findNode(node_position2, true, &model);
+    Node node3 = model.mesh->findNode(node_position3, true, &model);
+    VectorialValue v12 = VectorialValue(node2.x, node2.y, node2.z) - VectorialValue(node1.x, node1.y, node1.z);
+    VectorialValue v13 = VectorialValue(node3.x, node3.y, node3.z) - VectorialValue(node1.x, node1.y, node1.z);
+    if (node_position4 != Globals::UNAVAILABLE_INT) {
+        /*
+        In the case of a quadrilateral surface, the grid points G1, G2, G3, and G4 should form a consecutive sequence around the perimeter. The right-hand rule is applied to find the assumed direction of the pressure. Four concentrated loads are applied to the grid points in approximately the same manner as for a triangular surface. The following specific procedures are adopted to accommodate irregular and/or warped surfaces:
+        The surface is divided into two sets of overlapping triangular surfaces. Each triangular surface is bounded by two of the sides and one of the diagonals of the quadrilateral.
+        One-half of the pressure is applied to each triangle, which is then treated in the manner described in Remark 2.
+        */
+        Node node4 = model.mesh->findNode(node_position4, true, &model);
+        VectorialValue v14 = VectorialValue(node4.x, node4.y, node4.z) - VectorialValue(node1.x, node1.y, node1.z);
+        VectorialValue v24 = VectorialValue(node4.x, node4.y, node4.z) - VectorialValue(node2.x, node2.y, node2.z);
+        VectorialValue force1;
+        VectorialValue force2;
+        if (v13.norm() < v24.norm()) {
+            // triangles : G1,G2,G3 and G1,G3,G4
+            VectorialValue direction1 = v12.cross(v13).normalized();
+            VectorialValue direction2 = v13.cross(v14).normalized();
+            force1 = (magnitude / 6) * direction1;
+            force2 = (magnitude / 6) * direction2;
+            if (nodePosition == node_position1 || nodePosition == node_position3) {
+                forceNode = force1 + force2;
+            } else if (nodePosition == node_position2) {
+                forceNode = force1;
+            } else if (nodePosition == node_position4) {
+                forceNode = force2;
+            }
+        } else {
+            // triangles : G1,G2,G4 and G2,G3,G4
+            VectorialValue v23 = VectorialValue(node3.x, node3.y, node3.z) - VectorialValue(node2.x, node2.y, node2.z);
+            VectorialValue direction1 = v12.cross(v14).normalized();
+            VectorialValue direction2 = v13.cross(v14).normalized();
+            force1 = (magnitude / 6) * direction1;
+            force2 = (magnitude / 6) * direction2;
+            if (nodePosition == node_position2 || nodePosition == node_position4) {
+                forceNode = force1;// + force2;
+            } else if (nodePosition == node_position1) {
+                forceNode = force1;
+            } else if (nodePosition == node_position3) {
+                forceNode = force1;//force2;
+            }
+        }
+    } else {
+        VectorialValue direction = v12.cross(v13).normalized();
+        forceNode = (magnitude / 3) * direction;
+    }
+    return localToGlobal(nodePosition, forceNode);
+}
+
+shared_ptr<Loading> StaticPressure::clone() const {
+    return make_shared<StaticPressure>(*this);
+}
+
+void StaticPressure::scale(const double factor) {
+    magnitude *= factor;
+}
+
+bool StaticPressure::ineffective() const {
+    return is_zero(magnitude);
 }
 
 ElementLoading::ElementLoading(const Model& model, Loading::Type type, int original_id,

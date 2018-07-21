@@ -63,5 +63,9 @@ BOOST_AUTO_TEST_CASE( prob2 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/prob2/prob2.dat", TESTS_EXEC_SOLVER, true, 0.15);
 }
 
+/*BOOST_AUTO_TEST_CASE( ploads ) {
+	CommandLineUtils::nastranStudy2Aster("/esi/ploads/ploads.nas", TESTS_EXEC_SOLVER, true, 0.00001);
+}*/
+
 } /* namespace test */
 } /* namespace vega */
