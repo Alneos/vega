@@ -76,6 +76,7 @@ nightly:
   tags:
     - shell
     - irt
+    - linux
   only:
     - schedules
   before_script:

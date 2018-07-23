@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE( prob2 ) {
 }
 
 /*BOOST_AUTO_TEST_CASE( ploads ) {
-	CommandLineUtils::nastranStudy2Aster("/esi/ploads/ploads.nas", TESTS_EXEC_SOLVER, true, 0.00001);
+	CommandLineUtils::nastranStudy2Aster("/irt/t01331/t01331a.inp", TESTS_EXEC_SOLVER, true, 0.00001);
 }*/
 
 } /* namespace test */
