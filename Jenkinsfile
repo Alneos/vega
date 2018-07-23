@@ -10,7 +10,6 @@ podTemplate(label: 'dockerpod',
   node('dockerpod') {
     stage('Build Docker image') {
       checkout([$class: 'GitSCM', branches: [[name: '*/$GIT_BRANCH']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: PULL_KEY, url: GIT_URL]]])
-      sh "echo hello from jenkins"
       sh "pwd"
       sh "ls"
       sh "whoami"
