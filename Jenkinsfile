@@ -6,7 +6,7 @@ podTemplate(label: 'dockerpod',
   volumes: [hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock')]
   ) {
 
-  def image = "harbor.irtsysx.fr/TOP/vegairt:1.0"
+  def image = "harbor.irtsysx.fr/top/vegairt:1.0"
   node('dockerpod') {
     stage('Build Docker image') {
       checkout([$class: 'GitSCM', branches: [[name: '*/$GIT_BRANCH']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: PULL_KEY, url: GIT_URL]]])
