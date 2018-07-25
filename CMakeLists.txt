@@ -77,8 +77,6 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES "[Ss][Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmakemodules/")
 
-OPTION(ENABLE_CODECOVERAGE "prepare coverage analysis" OFF)
-
 if(MSVC)
     # Patch for MSVC10 generator, 64 bit
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHa /MP")
@@ -111,12 +109,12 @@ else(MSVC)
         if(NOT CMAKE_CROSSCOMPILING)
             add_compile_options(-Wsuggest-attribute=const) # LD strange results, probably because MXE is using 5.4.0
         endif()
-        if(ENABLE_CODECOVERAGE)
-            find_program( GCOV_PATH gcov )
+        find_program( GCOV_PATH gcov )
+        if(GCOV_PATH)
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 --coverage")
             list(APPEND EXTERNAL_LIBRARIES gcov)
             set(CTEST_COVERAGE_COMMAND "gcov")
-        endif(ENABLE_CODECOVERAGE)
+        endif(GCOV_PATH)
     ENDIF()
     if(STATIC_LINKING)
         if(NOT CMAKE_CROSSCOMPILING)
