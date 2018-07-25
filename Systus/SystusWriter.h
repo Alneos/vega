@@ -112,7 +112,7 @@ private:
     std::map<int, std::string> localLoadingListName;
     std::map<int, int> constraintListIdByNodePosition;
     std::map<int, char> constraintByNodePosition;
-    std::vector< std::vector<int> > systusSubcases;   /**< < subcase , <loadcases ids> > : Ids of loadcases composing the subcase **/
+    std::vector< std::vector<int> > systusSubcases;   /**< Ids of loadcases composing the subcase **/
     std::vector<SystusTable> tables;
     SystusMatrices dampingMatrices;   	    /**< All needed damping matrices (element X9XX type 0). **/
     SystusMatrices massMatrices ;           /**< All needed mass matrices (element X9XX type 0). **/

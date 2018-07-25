@@ -107,6 +107,8 @@ public:
      *  @param returnDefaultIfNotFoundOrBlank
      *      if true returns default if the field is not found or blank
      *      if false throws exception
+     *  @param defaultValue
+     *      default value to use instead
      * @return
      */
     int nextInt(bool returnDefaultIfNotFoundOrBlank = false, int defaultValue = Globals::UNAVAILABLE_INT);
@@ -124,6 +126,8 @@ public:
      *  @param returnDefaultIfNotFoundOrBlank
      *      if true returns default if the field is not found or blank
      *      if false throws exception
+     *  @param defaultValue
+     *      default value to use instead
      * @return
      */
     std::string nextString(bool returnDefaultIfNotFoundOrBlank = false, std::string defaultValue = "");

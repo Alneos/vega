@@ -75,6 +75,10 @@ IF(CMAKE_BUILD_TYPE MATCHES "[Ss][Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
     option(STATIC_LINKING "Static Linking" ON)
 ENDIF(CMAKE_BUILD_TYPE MATCHES "[Ss][Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
 
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmakemodules/")
+
+OPTION(ENABLE_CODECOVERAGE "prepare coverage analysis" OFF)
+
 if(MSVC)
     # Patch for MSVC10 generator, 64 bit
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHa /MP")
@@ -96,19 +100,23 @@ else(MSVC)
         string(REGEX MATCH "Debian|Ubuntu|Alpine" LINUX_DIST ${ETC_ISSUE})
     endif()
 
-    # Options generic to all "gnu" compilations
     SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fstack-protector-all")
     #SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2")
     #set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} -Wl,--strip-all")
+    add_compile_options(-std=c++11 -Werror -Wall -Wextra -Winit-self -Wconversion -pedantic -pedantic-errors)
     IF(CMAKE_C_COMPILER_ID MATCHES "Intel")
-        add_compile_options(-std=c++11 -Werror -Wall -Wextra -Winit-self -Wconversion -pedantic -pedantic-errors)
         add_compile_options(-Wfloat-equal -diag-disable 1170 -fmessage-length=0) # -Wshadow
-    ELSE()
-        add_compile_options(-std=c++11 -Werror -Wall -Wextra -Winit-self -Wconversion -pedantic -pedantic-errors)
+    ELSEIF(CMAKE_C_COMPILER_ID MATCHES "GNU")
         add_compile_options(-Wfloat-equal -Woverlength-strings -fmessage-length=0 -Wmain -Wmissing-declarations -Wundef -Wredundant-decls -Wcast-align -Wswitch-default -Wlogical-op -Wuseless-cast -Wold-style-cast -Wdouble-promotion) # -Wshadow
         if(NOT CMAKE_CROSSCOMPILING)
             add_compile_options(-Wsuggest-attribute=const) # LD strange results, probably because MXE is using 5.4.0
         endif()
+        if(ENABLE_CODECOVERAGE)
+            find_program( GCOV_PATH gcov )
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 --coverage")
+            list(APPEND EXTERNAL_LIBRARIES gcov)
+            set(CTEST_COVERAGE_COMMAND "gcov")
+        endif(ENABLE_CODECOVERAGE)
     ENDIF()
     if(STATIC_LINKING)
         if(NOT CMAKE_CROSSCOMPILING)
@@ -121,7 +129,7 @@ else(MSVC)
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -static-libgcc -static-libstdc++ ${CMAKE_EXE_LINKER_FLAGS_EXTRA}" CACHE INTERNAL "Linker flags")
     else(STATIC_LINKING)
         if(NOT CMAKE_CROSSCOMPILING)
-        	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -shared-libgcc -pipe" CACHE INTERNAL "Linker flags")
+        	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -shared-libgcc -pipe")
     	endif(NOT CMAKE_CROSSCOMPILING)
     endif(STATIC_LINKING)
 
@@ -134,7 +142,7 @@ else(MSVC)
         if(NOT STATIC_LINKING)
             if(NOT CMAKE_CROSSCOMPILING)
                 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-                set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -rdynamic " CACHE INTERNAL "Linker flags") # LD: I think is used only by glib backtrace ?
+                set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -rdynamic") # LD: I think is used only by glib backtrace ?
             endif(NOT CMAKE_CROSSCOMPILING)
         endif(NOT STATIC_LINKING)
     ENDIF(CYGWIN)
@@ -222,7 +230,6 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   set_config_option(HAVE_64BIT_SIZE_T "Have64BitSizeT")
 endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
 
-SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmakemodules/")
 # Default value for MEDFile_DIR
 IF(NOT DEFINED MEDFile_DIR)
     set(MEDFile_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmakemodules/" CACHE PATH "MEDFile cmake config path")
@@ -351,11 +358,13 @@ mark_as_advanced(VEGA_EXTRA_VERSION HDF5_DIR Boost_DIR)
 # add a target to generate API documentation with Doxygen
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
-add_custom_target(doc ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    COMMENT "Generating API documentation with Doxygen" VERBATIM
-)
+    set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+    add_custom_target(doc_doxygen ALL
+            COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating API documentation with Doxygen" VERBATIM
+    )
 endif(DOXYGEN_FOUND)
 
 message("")

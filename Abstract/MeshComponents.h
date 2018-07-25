@@ -309,12 +309,6 @@ private:
     static const std::unordered_map<CellType::Code, std::vector<std::vector<int>>, std::hash<int> > FACE_BY_CELLTYPE;
     static std::unordered_map<CellType::Code, std::vector<std::vector<int>>, std::hash<int> > init_faceByCelltype();
     static int auto_cell_id;
-    /**
-     * @param connectivity
-     * To know the exact meaning of the vector of connectivity.
-     * @see http://www.code-aster.org/outils/med/html/connectivites.html
-     */
-
     Cell(int id, const CellType &type, const std::vector<int> &nodeIds, const std::vector<int> &nodePositions, bool isvirtual,
             int cid, int elementId, int cellTypePosition);
 public:
@@ -330,15 +324,15 @@ public:
     int cellTypePosition;
     int cid; /**< Id of local Coordinate System **/
     /**
-     * @param node1: grid point connected to a corner of the face.
+     * @param nodeId1: grid point connected to a corner of the face.
      * Required data for solid elements only.
-     * @param node2: grid point connected to a corner diagonally
+     * @param nodeId2: grid point connected to a corner diagonally
      * opposite to nodePosition1 on the same face of a CHEXA or CPENTA element.
      * Required data for quadrilateral faces of CHEXA and CPENTA
      * elements only. nodePosition2 must be omitted for a triangular surface on a
      * CPENTA element.
      *
-     * node2 : CTETRA grid point located at the corner;
+     * nodeId2 : CTETRA grid point located at the corner;
      * this grid point may not reside on the face being loaded. This is
      * required data and is used for CTETRA elements only.
      *

@@ -1657,6 +1657,9 @@
 		<Unit filename="CMakeLists.txt">
 			<Option virtualFolder="CMake Files/" />
 		</Unit>
+		<Unit filename="CTestConfig.cmake">
+			<Option virtualFolder="CMake Files/" />
+		</Unit>
 		<Unit filename="Commandline/CMakeLists.txt">
 			<Option virtualFolder="CMake Files/Commandline/" />
 		</Unit>
@@ -1671,11 +1674,13 @@
 		</Unit>
 		<Unit filename="Dockerfile" />
 		<Unit filename="Dockerfile_gitlab" />
+		<Unit filename="Dockerfile_jenkins" />
 		<Unit filename="Dockerfile_xcompile" />
 		<Unit filename="Dockerfile_xgitlab" />
 		<Unit filename="Doxyfile.in">
 			<Option virtualFolder="CMake Files/" />
 		</Unit>
+		<Unit filename="Jenkinsfile" />
 		<Unit filename="Nastran/CMakeLists.txt">
 			<Option virtualFolder="CMake Files/ResultReaders/" />
 		</Unit>
@@ -1825,9 +1830,6 @@
 		</Unit>
 		<Unit filename="Test/Systus/CMakeLists.txt">
 			<Option virtualFolder="CMake Files/Test/Systus/" />
-		</Unit>
-		<Unit filename="cmakemodules/CTestConfig.cmake">
-			<Option virtualFolder="CMake Files/cmakemodules/" />
 		</Unit>
 		<Unit filename="cmakemodules/FindLibunwind.cmake">
 			<Option virtualFolder="CMake Files/cmakemodules/" />
