@@ -17,6 +17,8 @@ target_link_libraries(
  commandline
 )
 
+add_test(NAME Nastran2Aster_test COMMAND $<TARGET_FILE:Nastran2Aster_test>)
+
 add_executable(
  Nastran2Systus_test
  Nastran2Systus_test.cpp
@@ -30,6 +32,8 @@ target_link_libraries(
  command_line_test_utils
  commandline
 )
+
+add_test(NAME Nastran2Systus_test COMMAND $<TARGET_FILE:Nastran2Systus_test>)
 
 add_executable(
  Nastran2Nastran_test
@@ -45,9 +49,23 @@ target_link_libraries(
  commandline
 )
 
-add_test(NAME Nastran2Systus_test COMMAND $<TARGET_FILE:Nastran2Systus_test>)
-add_test(NAME Nastran2Aster_test COMMAND $<TARGET_FILE:Nastran2Aster_test>)
 add_test(NAME Nastran2Nastran_test COMMAND $<TARGET_FILE:Nastran2Nastran_test>)
+
+add_executable(
+ Optistruct2Aster_test
+ Optistruct2Aster_test.cpp
+)
+
+SET_TARGET_PROPERTIES(Optistruct2Aster_test PROPERTIES LINK_SEARCH_START_STATIC ${STATIC_LINKING})
+SET_TARGET_PROPERTIES(Optistruct2Aster_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINKING})
+
+target_link_libraries(
+ Optistruct2Aster_test
+ command_line_test_utils
+ commandline
+)
+
+add_test(NAME Optistruct2Aster_test COMMAND $<TARGET_FILE:Optistruct2Aster_test>)
 
 #uncomment to see details of each test method (update tests.cmake with
 #the batch file ../update_tests.sh

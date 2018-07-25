@@ -47,6 +47,7 @@ const map<ElementSet::Type, string> ElementSet::stringByType = {
         { GENERIC_SECTION_BEAM, "GENERIC_SECTION_BEAM" },
         { STRUCTURAL_SEGMENT, "STRUCTURAL_SEGMENT" },
         { SHELL, "SHELL" },
+        { COMPOSITE, "COMPOSITE" },
         { CONTINUUM, "CONTINUUM" },
         { STIFFNESS_MATRIX, "STIFFNESS_MATRIX" },
         { MASS_MATRIX, "MASS_MATRIX" },
@@ -232,6 +233,31 @@ Shell::Shell(Model& model, double thickness, double additional_mass, int origina
 }
 
 const DOFS Shell::getDOFSForNode(const int nodePosition) const {
+	UNUSEDV(nodePosition);
+	return DOFS::ALL_DOFS;
+}
+
+CompositeLayer::CompositeLayer(int materialId, double thickness, double orientation) :
+		_materialId(materialId), _thickness(thickness), _orientation(orientation) {
+}
+
+Composite::Composite(Model& model, int original_id) :
+		ElementSet(model, ElementSet::COMPOSITE, nullptr, original_id) {
+}
+
+void Composite::addLayer(int materialId, double thickness, double orientation) {
+    layers.push_back(CompositeLayer(materialId, thickness, orientation));
+}
+
+double Composite::getTotalThickness() {
+    double total = 0.0;
+    for(auto& layer : layers) {
+        total += layer.getThickness();
+    }
+    return total;
+}
+
+const DOFS Composite::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
 	return DOFS::ALL_DOFS;
 }

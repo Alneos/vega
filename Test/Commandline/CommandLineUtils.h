@@ -26,6 +26,8 @@ private:
             double tolerance = 0.02);
     static void nastranStudy2Nastran(std::string fname, bool runAster = false, bool strict = true,
             double tolerance = 0.02);
+    static void optistructStudy2Aster(std::string fname, bool runAster = false, bool strict = true,
+            double tolerance = 0.02);
 };
 } /* namespace tests */
 } /* namespace vega */

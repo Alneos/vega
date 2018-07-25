@@ -65,6 +65,7 @@ public:
         RBE3,
         LMPC,
         SCALAR_SPRING,
+        COMPOSITE,
         UNKNOWN,
     };
 protected:
@@ -89,6 +90,7 @@ public:
     virtual bool validate() const override;
     virtual std::shared_ptr<ElementSet> clone() const = 0;
     virtual const std::set<int> nodePositions() const {
+        assert(cellGroup != nullptr);
         return cellGroup->nodePositions();
     }
     virtual const DOFS getDOFSForNode(const int nodePosition) const = 0;
@@ -99,6 +101,9 @@ public:
         return false;
     }
     virtual bool isShell() const {
+        return false;
+    }
+    virtual bool isComposite() const {
         return false;
     }
     virtual bool isDiscrete() const {
@@ -254,6 +259,45 @@ public:
 	}
 	const DOFS getDOFSForNode(const int nodePosition) const override final;
 	virtual ~Shell() {
+	}
+};
+
+class Composite;
+class CompositeLayer {
+    friend Composite;
+    int _materialId;
+    double _thickness;
+    double _orientation;
+	CompositeLayer(int materialId, double thickness, double orientation = 0);
+public:
+	inline int getMaterialId() const {
+	    return _materialId;
+	}
+	inline double getThickness() const {
+	    return _thickness;
+	}
+    inline double getOrientation() const {
+	    return _orientation;
+	}
+};
+
+class Composite: public ElementSet {
+    std::vector<CompositeLayer> layers;
+	public:
+	Composite(Model&, int original_id = NO_ORIGINAL_ID);
+	std::shared_ptr<ElementSet> clone() const override {
+		return std::make_shared<Composite>(*this);
+	}
+	void addLayer(int materialId, double thickness, double orientation = 0);
+	double getTotalThickness();
+	inline const std::vector<CompositeLayer>& getLayers() const {
+	    return layers;
+	}
+	bool isComposite() const override final {
+		return true;
+	}
+	const DOFS getDOFSForNode(const int nodePosition) const override final;
+	virtual ~Composite() {
 	}
 };
 

@@ -36,6 +36,9 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
     case NASTRAN:
         inputSolverString = "NASTRAN";
         break;
+    case OPTISTRUCT:
+        inputSolverString = "OPTISTRUCT";
+        break;
     default:
         BOOST_FAIL("InputSolver not recognized");
     }
@@ -234,6 +237,11 @@ void CommandLineUtils::nastranStudy2Systus(string fname, bool runSystus, bool st
 void CommandLineUtils::nastranStudy2Nastran(string fname, bool runSolver, bool strict,
         double tolerance) {
     run(fname, NASTRAN, NASTRAN, runSolver, strict, tolerance);
+}
+
+void CommandLineUtils::optistructStudy2Aster(string fname, bool runSolver, bool strict,
+        double tolerance) {
+    run(fname, OPTISTRUCT, CODE_ASTER, runSolver, strict, tolerance);
 }
 
 vector<bool> CommandLineUtils::containWords(const string &fname, const vector<string> &words) {

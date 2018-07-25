@@ -1887,8 +1887,8 @@ void Model::splitElementsByDOFS(){
         this->elementSets.erase(Reference<ElementSet>(*elementSet));
     }
     for (auto & elementSet : elementSetsToAdd){
-         this->add(elementSet);
-        }
+        this->add(elementSet);
+    }
 }
 
 void Model::finish() {

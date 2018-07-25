@@ -251,6 +251,7 @@ BOOST_AUTO_TEST_CASE(double_precision) {
     NastranTokenizer tokenizer(istr);
     tokenizer.bulkSection();
     tokenizer.nextLine();
+    BOOST_CHECK(!tokenizer.isNextEmpty(2));
     BOOST_CHECK_EQUAL(tokenizer.nextString(), "KEYWORD");
     BOOST_CHECK(tokenizer.isNextDouble());
     BOOST_CHECK(tokenizer.nextDouble());
@@ -288,7 +289,8 @@ BOOST_AUTO_TEST_CASE(nastran_auto_contiuation_short_incomplete_line) {
     BOOST_CHECK_EQUAL(1, elemId);
     int material_id = tok.nextInt();
     BOOST_CHECK_EQUAL(2, material_id);
-
+    BOOST_CHECK(tok.isNextEmpty(1));
+    BOOST_CHECK(!tok.isNextEmpty(2));
     string group = tok.nextString(true);
     string type = tok.nextString();
     BOOST_CHECK_EQUAL("BAR", type);

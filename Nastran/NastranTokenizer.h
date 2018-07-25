@@ -116,7 +116,7 @@ public:
     bool isNextInt();
     bool isNextTHRU();
     bool isNextDouble();
-    bool isNextEmpty();
+    bool isNextEmpty(int n = 1);
     bool isEmptyUntilNextKeyword();
     std::string remainingTextUntilNextKeyword();
     /**

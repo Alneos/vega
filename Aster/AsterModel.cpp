@@ -129,6 +129,7 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
         }
         break;
     case ElementSet::SHELL:
+    case ElementSet::COMPOSITE:
         result = "('DKT',)";
         /*??
          coque_3D.modelisations = ("COQUE_3D",)

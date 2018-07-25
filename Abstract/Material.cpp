@@ -54,7 +54,10 @@ bool Material::validate() const {
 	 */
 	if (!model->configuration.partitionModel) {
 		CellContainer assignment = getAssignment();
-		validMaterial &= !assignment.empty();
+		if (assignment.empty()) {
+            validMaterial = false;
+            cerr << *this << " has no cell assigned.";
+		}
 	}
 	return validMaterial;
 }
@@ -89,6 +92,7 @@ const map<Nature::NatureType, string> Nature::stringByType = {
         ,{NATURE_BILINEAR_ELASTIC, "NATURE BILINEAR ELASTIC"}
         ,{NATURE_NONLINEAR_ELASTIC, "NATURE NONLINEAR ELASTIC"}
         ,{NATURE_RIGID, "NATURE RIGID"}
+        ,{NATURE_ORTHOTROPIC, "NATURE ORTHOTROPIC"}
 };
 
 ostream &operator<<(ostream &out, const Nature& nature) {
@@ -170,6 +174,43 @@ double ElasticNature::getTref() const {
 
 double ElasticNature::getGE() const {
     return ge;
+}
+
+shared_ptr<Nature> OrthotropicNature::clone() const {
+	return make_shared<OrthotropicNature>(*this);
+}
+
+OrthotropicNature::OrthotropicNature(const Model& model, const double e_longitudinal, const double e_transverse,
+                                     const double nu_longitudinal_transverse, const double g_longitudinal_transverse,
+                                     const double g_transverse_normal, const double g_longitudinal_normal) :
+		Nature(model, NATURE_ORTHOTROPIC), _e_longitudinal(e_longitudinal), _e_transverse(e_transverse),
+		_nu_longitudinal_transverse(nu_longitudinal_transverse),
+		_g_longitudinal_transverse(g_longitudinal_transverse), _g_transverse_normal(g_transverse_normal),
+		_g_longitudinal_normal(g_longitudinal_normal) {
+}
+
+double OrthotropicNature::getE_longitudinal() const {
+	return _e_longitudinal;
+}
+
+double OrthotropicNature::getE_transverse() const {
+	return _e_longitudinal;
+}
+
+double OrthotropicNature::getNu_longitudinal_transverse() const {
+	return _nu_longitudinal_transverse;
+}
+
+double OrthotropicNature::getG_longitudinal_transverse() const {
+	return _g_longitudinal_transverse;
+}
+
+double OrthotropicNature::getG_transverse_normal() const {
+	return _g_transverse_normal;
+}
+
+double OrthotropicNature::getG_longitudinal_normal() const {
+	return _g_longitudinal_normal;
 }
 
 shared_ptr<Nature> BilinearElasticNature::clone() const {

@@ -65,6 +65,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "CQUAD4", &NastranParser::parseCQUAD4 },
                 { "CQUAD8", &NastranParser::parseCQUAD8 },
                 { "CQUADR", &NastranParser::parseCQUADR },
+                { "CRIGD1", &NastranParser::parseCRIGD1 },
                 { "CROD", &NastranParser::parseCROD },
                 { "CTETRA", &NastranParser::parseCTETRA },
                 { "CTRIA3", &NastranParser::parseCTRIA3 },
@@ -88,6 +89,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "LSEQ", &NastranParser::parseLSEQ },
                 { "LOAD", &NastranParser::parseLOAD },
                 { "MAT1", &NastranParser::parseMAT1 },
+                { "MAT8", &NastranParser::parseMAT8 },
                 { "MATS1", &NastranParser::parseMATS1 },
                 { "MOMENT", &NastranParser::parseMOMENT },
                 { "MPC", &NastranParser::parseMPC },
@@ -98,6 +100,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "PBEAM", &NastranParser::parsePBEAM },
                 { "PBEAML", &NastranParser::parsePBEAML },
                 { "PBUSH", &NastranParser::parsePBUSH },
+                { "PCOMP", &NastranParser::parsePCOMP },
                 { "PELAS", &NastranParser::parsePELAS },
                 { "PGAP", &NastranParser::parsePGAP },
                 { "PLOAD", &NastranParser::parsePLOAD },
@@ -754,6 +757,22 @@ void NastranParser::parseCORD2R(NastranTokenizer& tok, shared_ptr<Model> model) 
     model->add(coordinateSystem);
 }
 
+void NastranParser::parseCRIGD1(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int original_id = tok.nextInt();
+    if (tok.isNextEmpty()) {
+        tok.skip(1);
+    } else {
+        handleParsingWarning("CRIGD1 Format not respected (NASA manual v16)", tok, model);
+    }
+    int masterId = tok.nextInt();
+    RigidConstraint qrc(*model, masterId, original_id);
+    while (tok.isNextInt()) {
+        qrc.addSlave(tok.nextInt());
+    }
+    model->add(qrc);
+    model->addConstraintIntoConstraintSet(qrc, model->commonConstraintSet);
+}
+
 void NastranParser::parseDAREA(NastranTokenizer& tok, shared_ptr<Model> model) {
     int loadset_id = tok.nextInt();
     Reference<vega::LoadSet> loadset_ref(LoadSet::EXCITEID, loadset_id);
@@ -1223,6 +1242,19 @@ void NastranParser::parseMAT1(NastranTokenizer& tok, shared_ptr<Model> model) {
     shared_ptr<Material> material = model->getOrCreateMaterial(material_id);
     material->addNature(ElasticNature(*model, e, nu, g, rho, a, tref, ge));
 }
+
+void NastranParser::parseMAT8(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int material_id = tok.nextInt();
+    double e1 = tok.nextDouble();
+    double e2 = tok.nextDouble();
+    double nu12 = tok.nextDouble();
+    double g12 = tok.nextDouble();
+    double g1Z = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    double g2Z = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    shared_ptr<Material> material = model->getOrCreateMaterial(material_id);
+    material->addNature(OrthotropicNature(*model, e1, e2, nu12, g12, g2Z, g1Z));
+}
+
 
 void NastranParser::parseMATS1(NastranTokenizer& tok, shared_ptr<Model> model) {
     int mid = tok.nextInt();
@@ -1715,6 +1747,39 @@ void NastranParser::parsePBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     model->add(structuralElement);
 
+}
+
+void NastranParser::parsePCOMP(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int pid = tok.nextInt();
+    if (tok.isNextEmpty(7)) {
+        tok.skip(7);
+    } else {
+        handleParsingError("PCOMP fields not yet handled", tok, model);
+    }
+    Composite composite(*model, pid);
+    shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model,"PCOMP");
+    composite.assignCellGroup(cellGroup);
+    int mid1 = tok.nextInt();
+    shared_ptr<Material> material = model->getOrCreateMaterial(mid1);
+    composite.assignMaterial(material);
+    double t1 = tok.nextDouble();
+    double theta1 = tok.nextDouble(true, 0.0);
+    tok.skip(1); // SOUT1
+    composite.addLayer(material->getId(), t1, theta1);
+    while(not tok.isNextEmpty(4) and not tok.isEmptyUntilNextKeyword()) {
+        int midn = tok.nextInt(true, mid1);
+        if (midn != mid1) {
+            handleParsingError("Multi material relationship not yet handled or tested", tok, model);
+        }
+        shared_ptr<Material> layermatn= model->getOrCreateMaterial(midn);
+        // LD TODO : should change relationship between materials and cellgroups : it is a many to many with composites
+        composite.assignMaterial(layermatn);
+        double tn = tok.nextDouble(true, t1);
+        double thetan = tok.nextDouble(true, theta1);
+        tok.skip(1); // SOUTn
+        composite.addLayer(layermatn->getId(), tn, thetan);
+    }
+    model->add(composite);
 }
 
 void NastranParser::parsePELAS(NastranTokenizer& tok, shared_ptr<Model> model) {

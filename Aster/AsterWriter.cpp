@@ -427,6 +427,22 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
                 cerr <<"Warning in Material: no support for GE material properties yet.";
 			}
 		}
+		const shared_ptr<Nature> onature = material->findNature(Nature::NATURE_ORTHOTROPIC);
+		if (onature) {
+			const OrthotropicNature& orthoNature = dynamic_cast<OrthotropicNature&>(*onature);
+			out << "                 ELAS_ORTH=_F(" << endl;
+			out << "                         E_L=" << orthoNature.getE_longitudinal() << "," << endl;
+            out << "                         E_T=" << orthoNature.getE_transverse() << "," << endl;
+            out << "                         G_LT=" << orthoNature.getG_longitudinal_transverse() << "," << endl;
+            if (!is_equal(orthoNature.getG_transverse_normal(),Globals::UNAVAILABLE_DOUBLE)){
+                out << "                         G_TN=" << orthoNature.getG_transverse_normal() << "," << endl;
+            }
+            if (!is_equal(orthoNature.getG_longitudinal_normal(),Globals::UNAVAILABLE_DOUBLE)){
+                out << "                         G_LN=" << orthoNature.getG_longitudinal_normal() << "," << endl;
+            }
+			out << "                         NU_LT=" << orthoNature.getNu_longitudinal_transverse() << "," << endl;
+			out << "                         )," << endl;
+		}
 		const shared_ptr<Nature> binature = material->findNature(Nature::NATURE_BILINEAR_ELASTIC);
 		if (binature) {
 			const BilinearElasticNature& bilinearNature =
@@ -439,6 +455,20 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 		}
 		out << "                 );" << endl << endl;
 	}
+
+	vector<shared_ptr<ElementSet>> composites = asterModel.model.filterElements(ElementSet::COMPOSITE);
+    out << "                    # writing " << composites.size() << " composites" << endl;
+    for (shared_ptr<ElementSet> c : composites) {
+        shared_ptr<Composite> composite = dynamic_pointer_cast<Composite>(c);
+        out << "MC" << composite->getId() << "=DEFI_COMPOSITE(" << endl;
+        out << "                 COUCHE=(" << endl;
+        for (auto& layer : composite->getLayers()) {
+            out << "                     _F(EPAIS=" << layer.getThickness() << ",  MATER=M" << layer.getMaterialId() << ", ORIENTATION=" << layer.getOrientation() << ")," << endl;
+        }
+        out << "                         )," << endl;
+        out << "                 );" << endl << endl;
+    }
+
 	out << "CHMAT=AFFE_MATERIAU(MAILLAGE=" << mail_name << "," << endl;
 	out << "                    AFFE=(" << endl;
 	for (auto& material : asterModel.model.materials) {
@@ -475,6 +505,10 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 			out << "# WARN Skipping material id " << material->getId() << " because no assignment"
 					<< endl;
 		}
+	}
+	for (shared_ptr<ElementSet> c : composites) {
+	    shared_ptr<Composite> composite = dynamic_pointer_cast<Composite>(c);
+        out << "                          _F(MATER=MC" << composite ->getId() << ", GROUP_MA='" << composite->cellGroup->getName() << "')," << endl;
 	}
 	out << "                          )," << endl;
 	out << "                    );" << endl << endl;
@@ -558,8 +592,9 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 			out << "                            )," << endl;
 		}
 		vector<shared_ptr<ElementSet>> shells = asterModel.model.filterElements(ElementSet::SHELL);
-		out << "                    # writing " << shells.size() << " shells" << endl;
-		if (shells.size() > 0) {
+		vector<shared_ptr<ElementSet>> composites = asterModel.model.filterElements(ElementSet::COMPOSITE);
+		out << "                    # writing " << shells.size()+composites.size() << " shells (ou composites)" << endl;
+		if (shells.size() + +composites.size() > 0) {
 			calc_sigm = true;
 			out << "                    COQUE=(" << endl;
 			for (shared_ptr<ElementSet> shell : shells) {
@@ -572,6 +607,21 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 				} else
 					out
 							<< "                           # WARN Finite Element : COQUE ignored because its GROUP_MA is empty."
+							<< endl;
+			}
+			for (shared_ptr<ElementSet> c : composites) {
+                shared_ptr<Composite> composite = dynamic_pointer_cast<Composite>(c);
+				if (composite->cellGroup != nullptr) {
+					out << "                           _F(GROUP_MA='" << composite->cellGroup->getName()
+							<< "'," << endl;
+					out << "                              EPAIS="
+							<< composite->getTotalThickness() << "," << endl;
+					out << "                              COQUE_NCOU="
+							<< composite->getLayers().size() << "," << endl;
+					out << "                              VECTEUR=(1.0,0.0,0.0))," << endl;
+				} else
+					out
+							<< "                           # WARN Finite Element : COMPOSITE ignored because its GROUP_MA is empty."
 							<< endl;
 			}
 			out << "                           )," << endl;

@@ -214,12 +214,17 @@ bool NastranTokenizer::isNextDouble() {
 	return !curField.empty() && (strspn(curField.c_str(), "-+0123456789.eEdD") == curField.size());
 }
 
-bool NastranTokenizer::isNextEmpty() {
-	if (nextSymbolType != NastranTokenizer::SYMBOL_FIELD) {
-		return false;
-	}
-	string curField = trim_copy(currentLineVector[currentField]);
-	return curField.empty();
+bool NastranTokenizer::isNextEmpty(int n) {
+    bool result = true;
+    for(int i = 0; i < n; i++) {
+        if (nextSymbolType != NastranTokenizer::SYMBOL_FIELD) {
+            result = false;
+            break;
+        }
+        string curField = trim_copy(currentLineVector[currentField + i]);
+        result &= curField.empty();
+    }
+	return result;
 }
 
 bool NastranTokenizer::isEmptyUntilNextKeyword() {

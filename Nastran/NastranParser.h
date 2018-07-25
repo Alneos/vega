@@ -236,6 +236,12 @@ private:
     void parseCORD2C(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
+     * Parse the CRIGD1 keyword (page 385 of THE NASTRAN USER'S MANUAL)
+     *
+     */
+    void parseCRIGD1(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
      * Parse the CORD2R keyword (page 1273 of MDN Nastran 2006 Quick Reference Guide.)
      * Reference coordinate system (RID) not supported.
      */
@@ -399,6 +405,12 @@ private:
     void parseMAT1(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
+     * Parse the MAT8 keyword
+     * Only mandatory part is supported
+     */
+    void parseMAT8(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
      * Parse the keyword MATS1 (page 1928 of MDN Nastran 2006 Quick Reference Guide.)
      * Unknown reliability.
      */
@@ -467,6 +479,11 @@ private:
      * Only Stiffness (K) is supported.
      */
     void parsePBUSH(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+
+    /**
+     * Parse the PCOMP keyword
+     */
+    void parsePCOMP(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * Parse the PELAS keyword (page 2202 of MDN Nastran 2006 Quick Reference Guide.)
