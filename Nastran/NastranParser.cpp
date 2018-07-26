@@ -22,7 +22,6 @@
  */
 
 #include "NastranParser.h"
-#include <boost/unordered_map.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/tokenizer.hpp>

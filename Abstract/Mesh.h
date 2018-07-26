@@ -112,21 +112,23 @@ private:
 	bool finished;
 
 	//mapping position->external id
-	std::unordered_map<CellType, std::vector<int>, std::hash<CellType>> cellPositionsByType;
+	std::map<CellType, std::vector<int>> cellPositionsByType;
 
-	std::unordered_map<std::string, std::shared_ptr<Group>> groupByName;
+	std::map<std::string, std::shared_ptr<Group>> groupByName;
+
 	/**
 	 * Groups ordered by the id provided by the input solver. Since inputSolver may not provide
 	 * this id this map may not contain all the groups.
 	 */
 	std::map<int, std::shared_ptr<Group>> groupById;
 
-	std::shared_ptr<CellGroup> getOrCreateCellGroupForOrientation(const int cid);
+	std::shared_ptr<CellGroup> getOrCreateCellGroupForCS(const int cid);
 	void createFamilies(med_idt fid, const char meshname[MED_NAME_SIZE + 1],
 			const std::vector<Family>& families);
 public:
 
 	std::map<int, std::string> cellGroupNameByCID;
+	std::map<int, std::string> cellGroupNameByMaterialOrientationTimes100;
 	Mesh(LogLevel logLevel, const std::string& name);
 	NodeStorage nodes;
 	CellStorage cells;

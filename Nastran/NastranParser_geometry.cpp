@@ -489,9 +489,9 @@ void NastranParser::parseCROD(NastranTokenizer& tok, shared_ptr<Model> model) {
     int point1 = tok.nextInt();
     int point2 = tok.nextInt();
     CellType cellType = CellType::SEG2;
-    vector<int> coords;
-    coords += point1, point2;
-    model->mesh->addCell(cell_id, cellType, coords);
+    vector<int> nodeIds;
+    nodeIds += point1, point2;
+    model->mesh->addCell(cell_id, cellType, nodeIds);
     addProperty(property_id, cell_id, model);
 }
 
@@ -516,7 +516,7 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> mode
     int cell_id = tok.nextInt();
     int property_id = tok.nextInt(true, cell_id);
 
-    vector<int> coords;
+    vector<int> nodeIds;
     vector<double> ti;
     double thetaOrMCID=0.0;
     double zoffs=0.0;
@@ -527,7 +527,7 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> mode
     switch (code) {
     case CellType::TRI3_CODE:
         for (int i=0; i < 3; i++)
-            coords.push_back(tok.nextInt());
+            nodeIds.push_back(tok.nextInt());
         thetaOrMCID = tok.nextDouble(true,0.0);
         zoffs = tok.nextDouble(true,0.0);
         tok.skip(2);
@@ -542,7 +542,7 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> mode
 
     case CellType::QUAD4_CODE:
         for (int i=0; i < 4; i++)
-            coords.push_back(tok.nextInt());
+            nodeIds.push_back(tok.nextInt());
         thetaOrMCID = tok.nextDouble(true,0.0);
         zoffs = tok.nextDouble(true,0.0);
 
@@ -557,7 +557,7 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> mode
 
     case CellType::TRI6_CODE:
         for (int i=0; i < 6; i++)
-            coords.push_back(tok.nextInt());
+            nodeIds.push_back(tok.nextInt());
         thetaOrMCID = tok.nextDouble(true,0.0);
         zoffs = tok.nextDouble(true,0.0);
         for (int i=0; i < 3; i++){
@@ -570,7 +570,7 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> mode
 
     case CellType::QUAD8_CODE:
         for (int i=0; i < 8; i++)
-            coords.push_back(tok.nextInt());
+            nodeIds.push_back(tok.nextInt());
         for (int i=0; i < 4; i++){
             double t = tok.nextDouble(true);
             ti.push_back(t);
@@ -586,10 +586,13 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> mode
         handleParsingError(msg, tok, model);
     }
 
-    // A lot of things are ignored in this shell
+    //double theta = 0.0;
     if (!is_zero(thetaOrMCID)){
-        const string msg = "THETA or MCID parameter ignored.";
-        handleParsingWarning(msg, tok, model);
+        //if (tok.isNextDouble()) {
+        //    theta = tok.nextDouble(true, 0.0);
+        //} else {
+            handleParsingWarning("THETA/MCID parameter ignored.", tok, model);
+        //}
     }
     if (!is_zero(zoffs)){
         const string msg = "non-null ZOFFS parameter ignored.";
@@ -604,7 +607,7 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> mode
         handleParsingWarning(msg, tok, model);
     }
 
-    model->mesh->addCell(cell_id, cellType, coords);
+    model->mesh->addCell(cell_id, cellType, nodeIds);
     addProperty(property_id, cell_id, model);
 
 }

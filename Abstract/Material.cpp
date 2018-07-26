@@ -48,17 +48,6 @@ bool Material::validate() const {
 	if (!validMaterial) {
 		cerr << *this << " has no nature assigned.";
 	}
-	/*
-	 * if the model is configured to assign materials to cells directly check
-	 * that every material is assigned to some cell or cellgroup
-	 */
-	if (!model->configuration.partitionModel) {
-		CellContainer assignment = getAssignment();
-		if (assignment.empty()) {
-            validMaterial = false;
-            cerr << *this << " has no cell assigned.";
-		}
-	}
 	return validMaterial;
 }
 

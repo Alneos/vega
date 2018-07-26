@@ -51,6 +51,7 @@ private:
     void generateMaterialAssignments();
     Cell generateSkinCell(const std::vector<int>& faceIds, const SpaceDimension& dimension);
     void removeIneffectives();
+    void removeUnassignedMaterials();
     void replaceCombinedLoadSets();
     /**
      * This method assign elements to cells. It is important for Code Aster to know which
@@ -143,63 +144,63 @@ private:
             const std::map<int,std::shared_ptr<T>>* mp;
         public:
             iterator(const std::map<int,std::shared_ptr<T>>& mp, const typename std::map<int,std::shared_ptr<T>>::const_iterator& it) : it(it), mp(&mp) {}
-                        bool operator==(const iterator& x) const {
-                            return it == x.it;
-                        }
-                        bool operator!=(const iterator& x) const {
-                            return !(*this == x);
-                        }
-                        const std::shared_ptr<T> operator*() const {
-                            return it->second;
-                        }
-                        iterator& operator++() {
-                            ++it;
-                            return *this;
-                        }
-                        iterator operator++(int) {
-                            iterator tmp = *this;
-                            ++*this;
-                            return tmp;
-                        }
-                    };
-                    iterator begin() const {return iterator(by_id, by_id.begin());}
-                    iterator end() const {return iterator(by_id, by_id.end());}
-                    int size() const {return static_cast<int>(by_id.size());}
-                    bool empty() const {return by_id.size() == 0;}
-                    void add(const T&);
-                    void add(std::shared_ptr<T> T_ptr);
-                    void erase(const Reference<T>);
-                    std::shared_ptr<T> find(const Reference<T>&) const;
-                    std::shared_ptr<T> find(int) const; /**< Find an object by its Original Id **/
-                    std::shared_ptr<T> get(int) const; /**< Return an object by its Vega Id **/
-                    bool validate(){
-                        bool isValid = true;
-                        std::vector<std::shared_ptr<T>> toBeRemoved;
-                        for (iterator it = this->begin(); it != this->end(); ++it) {
-                            std::shared_ptr<T> t = *it;
-                            if (!t->validate()) {
-                                isValid = false;
-                                std::cerr << *t << " is not valid" << std::endl;
+                bool operator==(const iterator& x) const {
+                    return it == x.it;
+                }
+                bool operator!=(const iterator& x) const {
+                    return !(*this == x);
+                }
+                const std::shared_ptr<T> operator*() const {
+                    return it->second;
+                }
+                iterator& operator++() {
+                    ++it;
+                    return *this;
+                }
+                iterator operator++(int) {
+                    iterator tmp = *this;
+                    ++*this;
+                    return tmp;
+                }
+        }; /* iterator class */
+        iterator begin() const {return iterator(by_id, by_id.begin());}
+        iterator end() const {return iterator(by_id, by_id.end());}
+        int size() const {return static_cast<int>(by_id.size());}
+        bool empty() const {return by_id.size() == 0;}
+        void add(const T&);
+        void add(std::shared_ptr<T> T_ptr);
+        void erase(const Reference<T>);
+        std::shared_ptr<T> find(const Reference<T>&) const;
+        std::shared_ptr<T> find(int) const; /**< Find an object by its Original Id **/
+        std::shared_ptr<T> get(int) const; /**< Return an object by its Vega Id **/
+        bool validate(){
+            bool isValid = true;
+            std::vector<std::shared_ptr<T>> toBeRemoved;
+            for (iterator it = this->begin(); it != this->end(); ++it) {
+                std::shared_ptr<T> t = *it;
+                if (!t->validate()) {
+                    isValid = false;
+                    std::cerr << *t << " is not valid" << std::endl;
 
-                                switch (model.translationMode) {
-                                case vega::ConfigurationParameters::MODE_STRICT:
-                                    // Shouldn't do any cleanup in STRICT mode
-                                    break;
-                                case vega::ConfigurationParameters::MESH_AT_LEAST:
-                                case vega::ConfigurationParameters::BEST_EFFORT:
-                                    toBeRemoved.push_back(t);
-                                    break;
-                                default:
-                                    throw std::logic_error("Unknown enum in Translation mode");
-                                }
-                            }
-                        }
-                        for(auto& t: toBeRemoved) {
-                            this->erase(*t);
-                        }
-                        return isValid;
-                    };
-                };
+                    switch (model.translationMode) {
+                    case vega::ConfigurationParameters::MODE_STRICT:
+                        // Shouldn't do any cleanup in STRICT mode
+                        break;
+                    case vega::ConfigurationParameters::MESH_AT_LEAST:
+                    case vega::ConfigurationParameters::BEST_EFFORT:
+                        toBeRemoved.push_back(t);
+                        break;
+                    default:
+                        throw std::logic_error("Unknown enum in Translation mode");
+                    }
+                }
+            }
+            for(auto& t: toBeRemoved) {
+                this->erase(*t);
+            }
+            return isValid;
+        };
+        }; /* Container class */
         std::unordered_map<int,CellContainer> material_assignment_by_material_id;
     public:
         Container<Analysis> analyses = Container<Analysis>(*this);

@@ -251,10 +251,10 @@ int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &node
 		nodePositionsPtr->push_back(nodePosition);
 	}
 	if (cpos != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-		std::shared_ptr<CellGroup> coordinateSystemCellGroup = this->getOrCreateCellGroupForOrientation(cpos);
+		std::shared_ptr<CellGroup> coordinateSystemCellGroup = this->getOrCreateCellGroupForCS(cpos);
 		coordinateSystemCellGroup->addCellId(cellId);
 		cellData.csPos = cpos;
-		}
+    }
 	cells.cellDatas.push_back(cellData);
 	return cellPosition;
 }
@@ -311,7 +311,7 @@ int Mesh::updateCell(int id, const CellType &cellType, const std::vector<int> &n
         nodePositionsPtr->push_back(nodePosition);
     }
     if (cpos != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-        std::shared_ptr<CellGroup> coordinateSystemCellGroup = this->getOrCreateCellGroupForOrientation(cpos);
+        std::shared_ptr<CellGroup> coordinateSystemCellGroup = this->getOrCreateCellGroupForCS(cpos);
         coordinateSystemCellGroup->addCellId(id);
         cellData.csPos = cpos;
         }
@@ -518,7 +518,7 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 	}
 }
 
-shared_ptr<CellGroup> Mesh::getOrCreateCellGroupForOrientation(int cid){
+shared_ptr<CellGroup> Mesh::getOrCreateCellGroupForCS(int cid){
 	shared_ptr<CellGroup> result;
 	auto cellGroupNameIter = cellGroupNameByCID.find(cid);
 	if (cellGroupNameIter != cellGroupNameByCID.end()) {

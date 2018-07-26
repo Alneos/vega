@@ -15,7 +15,6 @@
 #include <fstream>
 #include <boost/lexical_cast.hpp>
 #include <boost/assign.hpp>
-#include <boost/unordered_map.hpp>
 #include <ciso646>
 
 using namespace std;
@@ -878,7 +877,7 @@ Cell Model::generateSkinCell(const vector<int>& faceIds, const SpaceDimension& d
 }
 
 void Model::emulateLocalDisplacementConstraint() {
-    boost::unordered_map<shared_ptr<Constraint>, set<LinearMultiplePointConstraint*>> linearMultiplePointConstraintsByConstraint;
+    unordered_map<shared_ptr<Constraint>, set<LinearMultiplePointConstraint*>> linearMultiplePointConstraintsByConstraint;
     // first pass : create LinearMultiplePoint constraints for each constraint that need it
     for (auto it = constraints.begin(); it != constraints.end(); it++) {
         const shared_ptr<Constraint>& constraint = *it;
@@ -1115,6 +1114,23 @@ void Model::removeIneffectives() {
         if (configuration.logLevel >= LogLevel::DEBUG)
             cout << "Removed empty " << *elementSet << endl;
         this->elementSets.erase(Reference<ElementSet>(*elementSet));
+    }
+}
+
+void Model::removeUnassignedMaterials() {
+    vector<shared_ptr<Material>> materialsToRemove;
+    for (auto& material : materials) {
+        /*
+         * if the model is configured to assign materials to cells directly check
+         * that for every material at lest a cell or cellgroup is assigned
+         */
+        //if (!configuration.partitionModel and material->getAssignment().empty())
+        //        materialsToRemove.push_back(material);
+    }
+    for (auto& material : materialsToRemove) {
+        if (configuration.logLevel >= LogLevel::DEBUG)
+            cout << "Removed unassigned " << *material << endl;
+        this->materials.erase(Reference<Material>(*material));
     }
 }
 
@@ -1974,7 +1990,13 @@ void Model::finish() {
 
     assignElementsToCells();
     generateMaterialAssignments();
+
+    if (this->configuration.removeIneffectives) {
+        removeUnassignedMaterials();
+    }
+
     addDefaultAnalysis();
+
 
     this->mesh->finish();
     finished = true;
