@@ -221,16 +221,16 @@ public:
     };
 protected:
     friend Mesh;
-    Group(Mesh* mesh, const std::string& name, Type, int id = NO_ORIGINAL_ID, std::string comment=" ");
-    Mesh* const mesh;
+    Group(Mesh& mesh, const std::string& name, Type, int id = NO_ORIGINAL_ID, const std::string& comment=" ");
+    Mesh& mesh;
     std::string name;
 public:
     //const SpaceDimension dimension;
-    const Type type;
+    Type type;
     std::string comment; ///< A comment string, usually use to retain the command which created the group.
     bool isUseful; ///< A boolean that can be used by Writer to keep or discard group.
-    const std::string getName() const;
-    const std::string getComment() const;
+    const std::string& getName() const;
+    const std::string& getComment() const;
     virtual const std::set<int> nodePositions() const = 0;
     virtual ~Group();
 };
@@ -270,7 +270,7 @@ public:
     double z; /**< Z coordinate of the Node in the Global Coordinate System **/
 
     //bool, but Valgrind isn't happy maybe gcc 2.7.2 bug?
-    const DOFS dofs;
+    DOFS dofs;
     const int positionCS;     /**< Vega Position of the CS used to compute the position of node. **/
     const int displacementCS; /**< Vega Position of the CS used to compute displacement, loadings, etc. **/
     const std::string getMedName() const;
@@ -283,7 +283,7 @@ private:
     friend Mesh;
     // Positions of the nodes participating to the group
     std::set<int> _nodePositions;
-    NodeGroup(Mesh* mesh, const std::string& name, int groupId, const std::string& comment="    ");
+    NodeGroup(Mesh& mesh, const std::string& name, int groupId, const std::string& comment="    ");
 public:
     // Add a node using its numerical id. If the node hasn't been yet defined it reserve position in the model.
     void addNodeId(int nodeId);
@@ -357,12 +357,12 @@ public:
 class CellGroup final: public Group {
 private:
     friend Mesh;
-    CellGroup(Mesh* mesh, const std::string & name, int id = NO_ORIGINAL_ID, const std::string & comment = "");
+    CellGroup(Mesh& mesh, const std::string & name, int id = NO_ORIGINAL_ID, const std::string & comment = "");
 public:
     std::unordered_set<int> cellIds;
     void addCellId(int cellId);
-    std::vector<Cell> getCells();
-    std::vector<int> cellPositions();
+    const std::vector<Cell> getCells();
+    const std::vector<int> cellPositions();
     const std::set<int> nodePositions() const override;
     virtual ~CellGroup();
 };
@@ -420,11 +420,11 @@ public:
  */
 class NodeContainer {
 protected:
-    std::shared_ptr<Mesh> mesh;
+    const Mesh& mesh;
     std::unordered_set<int> nodeIds;
     std::unordered_set<std::string> groupNames;
 public:
-    NodeContainer(std::shared_ptr<Mesh> mesh);
+    NodeContainer(const Mesh& mesh);
     // Adds a nodeId to the current set
     void addNodeId(int nodeId);
     void addNodeGroup(const std::string& groupName);
@@ -433,9 +433,9 @@ public:
     void add(const NodeContainer& nodeContainer);
     // Returns the nodeIds contained into the Container
     // @param all: if true include also the nodes inside all the cellGroups
-    std::vector<int> getNodeIds(bool all = false) const;
+    const std::vector<int> getNodeIds(bool all = false) const;
 
-    std::set<int> nodePositions() const;
+    const std::set<int> nodePositions() const;
 
     // True if the container contains some nodeGroup
     bool hasNodeGroups() const;
@@ -454,11 +454,11 @@ public:
  */
 class CellContainer {
 protected:
-    std::shared_ptr<Mesh> mesh;
+    const Mesh& mesh;
     std::unordered_set<int> cellIds;
     std::unordered_set<std::string> groupNames;
 public:
-    CellContainer(std::shared_ptr<Mesh> mesh);
+    CellContainer(const Mesh& mesh);
     /**
      * Adds a cellId to the current set
      */
@@ -470,16 +470,16 @@ public:
     /**
      * @param all: if true include also the cells inside all the cellGroups
      */
-    std::vector<Cell> getCells(bool all = false) const;
+    const std::vector<Cell> getCells(bool all = false) const;
     /**
      * Returns the cellIds contained into the Container
      * @param all: if true include also the cells inside all the cellGroups
      */
-    std::vector<int> getCellIds(bool all = false) const;
+    const std::vector<int> getCellIds(bool all = false) const;
 
-    std::set<int> nodePositions() const;
+    const std::set<int> nodePositions() const;
 
-    bool containsCells(CellType cellType, bool all = false);
+    bool containsCells(const CellType& cellType, bool all = false);
     /**
      * True if the container contains some cellGroup
      */
@@ -491,7 +491,7 @@ public:
      * in any group.
      */
     bool hasCells() const;
-    std::vector<std::shared_ptr<CellGroup>> getCellGroups() const;
+    const std::vector<std::shared_ptr<CellGroup>> getCellGroups() const;
     virtual ~CellContainer() {
     }
 };

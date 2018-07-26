@@ -57,9 +57,9 @@ private:
 	int reserveNodePosition(int nodeId);
 	static const double RESERVED_POSITION;
 public:
-	Mesh* mesh;
+	Mesh& mesh;
 
-	NodeStorage(Mesh* mesh, LogLevel logLevel);
+	NodeStorage(Mesh& mesh, LogLevel logLevel);
 	NodeIterator begin() const;
 	NodeIterator end() const;
 
@@ -92,8 +92,8 @@ private:
 	 */
 	int reserveCellPosition(int nodeId);
 public:
-	Mesh* mesh;
-	CellStorage(Mesh* mesh, LogLevel logLevel);
+	Mesh& mesh;
+	CellStorage(Mesh& mesh, LogLevel logLevel);
 	CellIterator cells_begin(const CellType &type) const;
 	CellIterator cells_end(const CellType &type) const;
 

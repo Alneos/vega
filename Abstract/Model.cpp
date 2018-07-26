@@ -777,7 +777,7 @@ const CellContainer Model::getMaterialAssignment(int materialId) const {
         return it->second;
     } else {
         //return empty cell container if no assigmnent is found
-        return CellContainer(this->mesh);
+        return CellContainer(*(this->mesh));
     }
 }
 
@@ -1043,7 +1043,7 @@ void Model::generateMaterialAssignments() {
                     if (it != material_assignment_by_material_id.end()) {
                         it->second.add(*(element->cellGroup));
                     } else {
-                        CellContainer assignment(this->mesh);
+                        CellContainer assignment(*(this->mesh));
                         assignment.add(*(element->cellGroup));
                         material_assignment_by_material_id.insert(make_pair(mat_id, assignment));
                     }
@@ -2040,7 +2040,7 @@ bool Model::validate() {
 void Model::assignElementsToCells() {
     for (shared_ptr<ElementSet> element : elementSets) {
         if (element->cellGroup != nullptr) {
-            CellContainer container(mesh);
+            CellContainer container(*mesh);
             container.add(*element->cellGroup);
             mesh->assignElementId(container, element->getId());
         }

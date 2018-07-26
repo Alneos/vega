@@ -123,7 +123,7 @@ shared_ptr<LoadSet> LoadSet::clone() const {
 
 NodeLoading::NodeLoading(const Model& model, Loading::Type type, int original_id,
 		int coordinateSystemId) :
-		Loading(model, type, Loading::NODE, original_id, coordinateSystemId), NodeContainer(model.mesh) {
+		Loading(model, type, Loading::NODE, original_id, coordinateSystemId), NodeContainer(*(model.mesh)) {
 }
 
 set<int> NodeLoading::nodePositions() const {
@@ -475,7 +475,7 @@ bool StaticPressure::ineffective() const {
 
 ElementLoading::ElementLoading(const Model& model, Loading::Type type, int original_id,
 		int coordinateSystemId) :
-		Loading(model, type, Loading::ELEMENT, original_id, coordinateSystemId), CellContainer(model.mesh) {
+		Loading(model, type, Loading::ELEMENT, original_id, coordinateSystemId), CellContainer(*(model.mesh)) {
 }
 
 set<int> ElementLoading::nodePositions() const {

@@ -1268,14 +1268,14 @@ void AsterWriter::writeForceSurface(const LoadSet& loadSet, ostream&out) {
 void AsterWriter::writeCellContainer(const CellContainer& cellContainer, ostream& out) {
 	if (cellContainer.hasCellGroups()) {
 		out << "GROUP_MA=(";
-		for (shared_ptr<CellGroup>& cellGroup : cellContainer.getCellGroups()) {
+		for (auto& cellGroup : cellContainer.getCellGroups()) {
 			out << "'" << cellGroup->getName() << "',";
 		}
 		out << "),";
 	}
 	if (cellContainer.hasCells()) {
 		out << "MAILLE=(";
-		for (Cell& cell : cellContainer.getCells()) {
+		for (auto& cell : cellContainer.getCells()) {
 			out << "'" << cell.getMedName() << "',";
 		}
 		out << "),";

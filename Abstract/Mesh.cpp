@@ -45,7 +45,7 @@ const double NodeStorage::RESERVED_POSITION = -DBL_MAX;
 /**
  * Node Container class
  */
-NodeStorage::NodeStorage(Mesh* mesh, LogLevel logLevel) :
+NodeStorage::NodeStorage(Mesh& mesh, LogLevel logLevel) :
 		logLevel(logLevel), mesh(mesh) {
 	nodeDatas.reserve(4096);
 }
@@ -59,7 +59,7 @@ NodeIterator NodeStorage::end() const {
 }
 
 int NodeStorage::reserveNodePosition(int nodeId) {
-	int nodePosition = mesh->addNode(nodeId, RESERVED_POSITION, RESERVED_POSITION,
+	int nodePosition = mesh.addNode(nodeId, RESERVED_POSITION, RESERVED_POSITION,
 			RESERVED_POSITION);
 	nodepositionById[nodeId] = nodePosition;
 	if (this->logLevel >= LogLevel::TRACE) {
@@ -188,8 +188,8 @@ bool NodeStorage::validate() const {
 
 Mesh::Mesh(LogLevel logLevel, const string& modelName) :
 		logLevel(logLevel), name(modelName), //
-		nodes(NodeStorage(this, this->logLevel)),
-				cells(CellStorage(this, this->logLevel)) {
+		nodes(NodeStorage(*this, this->logLevel)),
+				cells(CellStorage(*this, this->logLevel)) {
 
 	finished = false;
 	for (auto cellTypePair : CellType::typeByCode) {
@@ -538,7 +538,7 @@ shared_ptr<CellGroup> Mesh::getOrCreateCellGroupForCS(int cid){
 	return result;
 }
 
-CellStorage::CellStorage(Mesh* mesh, LogLevel logLevel) :
+CellStorage::CellStorage(Mesh& mesh, LogLevel logLevel) :
 		logLevel(logLevel), mesh(mesh) {
 }
 
@@ -583,7 +583,7 @@ shared_ptr<NodeGroup> Mesh::createNodeGroup(const string& name, int group_id, co
         }
 		throw invalid_argument(errorMessage);
 	}
-	shared_ptr<NodeGroup> group = shared_ptr<NodeGroup>(new NodeGroup(this, name, group_id, comment));
+	shared_ptr<NodeGroup> group = shared_ptr<NodeGroup>(new NodeGroup(*this, name, group_id, comment));
 	this->groupByName[name] = group;
 	if (group_id != NodeGroup::NO_ORIGINAL_ID) {
 		this->groupById[group_id] = group;
@@ -625,7 +625,7 @@ shared_ptr<CellGroup> Mesh::createCellGroup(const string& name, int group_id, co
         }
 		throw invalid_argument(errorMessage);
 	}
-	shared_ptr<CellGroup> group= shared_ptr<CellGroup>(new CellGroup(this, name, group_id, comment));
+	shared_ptr<CellGroup> group= shared_ptr<CellGroup>(new CellGroup(*this, name, group_id, comment));
 	this->groupByName[name] = group;
 	if (group_id != CellGroup::NO_ORIGINAL_ID) {
 		this->groupById[group_id] = group;
