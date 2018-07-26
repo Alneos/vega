@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<FileVersion major="1" minor="0" />
+	<ActiveTarget name="Nastran2Aster_test" />
+	<File name="Abstract/Objective.cpp" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="6562" topLine="153" />
+		</Cursor>
+	</File>
+	<File name="Nastran/NastranParser_geometry.cpp" open="1" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="23662" topLine="574" />
+		</Cursor>
+	</File>
+	<File name="CMakeLists.txt" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5021" topLine="97" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Constraint.h" open="0" top="0" tabpos="36" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="4190" topLine="138" />
+		</Cursor>
+	</File>
+	<File name="Systus/SystusRunner.cpp" open="0" top="0" tabpos="32" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5190" topLine="79" />
+		</Cursor>
+	</File>
+	<File name="Nastran/NastranTokenizer.cpp" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="11769" topLine="399" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Material.h" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5316" topLine="156" />
+		</Cursor>
+	</File>
+	<File name="Abstract/SolverInterfaces.cpp" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5023" topLine="163" />
+		</Cursor>
+	</File>
+	<File name="Test/Commandline/CommandLineUtils.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="262" topLine="9" />
+		</Cursor>
+	</File>
+	<File name="cmakemodules/MEDFileConfig.cmake" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3429" topLine="50" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Element.cpp" open="0" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="9359" topLine="286" />
+		</Cursor>
+	</File>
+	<File name="Optistruct/OptistructParser.cpp" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3974" topLine="80" />
+		</Cursor>
+	</File>
+	<File name="Optistruct/OptistructParser.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2276" topLine="35" />
+		</Cursor>
+	</File>
+	<File name="Abstract/BoundaryCondition.h" open="0" top="0" tabpos="15" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="657" topLine="13" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Element.h" open="0" top="0" tabpos="13" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="14632" topLine="462" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Dof.h" open="0" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="4956" topLine="172" />
+		</Cursor>
+	</File>
+	<File name="Nastran/NastranParser.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="24000" topLine="600" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Constraint.cpp" open="0" top="0" tabpos="37" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="7869" topLine="250" />
+		</Cursor>
+	</File>
+	<File name="Test/Commandline/Nastran2Systus_test.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="8" />
+		</Cursor>
+	</File>
+	<File name="Test/Nastran/NastranParser_test.cpp" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2930" topLine="62" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Mesh.h" open="1" top="0" tabpos="13" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="6210" topLine="161" />
+		</Cursor>
+	</File>
+	<File name="Nastran/CMakeLists.txt" open="0" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="Abstract/MeshComponents.h" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="15036" topLine="413" />
+		</Cursor>
+	</File>
+	<File name="Systus/SystusWriter.h" open="0" top="0" tabpos="27" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="19443" topLine="347" />
+		</Cursor>
+	</File>
+	<File name="Abstract/CoordinateSystem.cpp" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="7106" topLine="187" />
+		</Cursor>
+	</File>
+	<File name="Test/Abstract/CoordinateSystem_test.cpp" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1782" topLine="143" />
+		</Cursor>
+	</File>
+	<File name="Systus/SystusRunner.h" open="0" top="0" tabpos="34" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1125" topLine="17" />
+		</Cursor>
+	</File>
+	<File name="Nastran/NastranRunner.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="546" topLine="1" />
+		</Cursor>
+	</File>
+	<File name="Aster/AsterRunner.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1190" topLine="21" />
+		</Cursor>
+	</File>
+	<File name="Test/Abstract/Dof_test.cpp" open="0" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2507" topLine="57" />
+		</Cursor>
+	</File>
+	<File name="Test/Abstract/Model_test.cpp" open="0" top="0" tabpos="35" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="17815" topLine="439" />
+		</Cursor>
+	</File>
+	<File name="Abstract/BoundaryCondition.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="331" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="Dockerfile_gitlab" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="391" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="Abstract/CoordinateSystem.h" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3601" topLine="89" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Objective.h" open="0" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1973" topLine="59" />
+		</Cursor>
+	</File>
+	<File name="Systus/SystusModel.h" open="0" top="0" tabpos="26" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="973" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="Abstract/ConfigurationParameters.h" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5072" topLine="125" />
+		</Cursor>
+	</File>
+	<File name="Nastran/NastranWriter.cpp" open="0" top="0" tabpos="25" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="12072" topLine="411" />
+		</Cursor>
+	</File>
+	<File name="Nastran/NastranRunner.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2338" topLine="49" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Dof.cpp" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="4497" topLine="174" />
+		</Cursor>
+	</File>
+	<File name="Commandline/VegaCommandLine.h" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1312" topLine="14" />
+		</Cursor>
+	</File>
+	<File name="Nastran/NastranParser.cpp" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="86466" topLine="2078" />
+		</Cursor>
+	</File>
+	<File name="Nastran/NastranParser_param.cpp" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="9888" topLine="126" />
+		</Cursor>
+	</File>
+	<File name="Test/Abstract/CMakeLists.txt" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1562" topLine="60" />
+		</Cursor>
+	</File>
+	<File name="Test/Commandline/CommandLineUtils.cpp" open="0" top="0" tabpos="13" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="552" topLine="6" />
+		</Cursor>
+	</File>
+	<File name="Aster/AsterModel.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="892" topLine="13" />
+		</Cursor>
+	</File>
+	<File name="Systus/SystusAsc.h" open="0" top="0" tabpos="33" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3213" topLine="52" />
+		</Cursor>
+	</File>
+	<File name="Abstract/SolverInterfaces.h" open="0" top="0" tabpos="20" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="6183" topLine="164" />
+		</Cursor>
+	</File>
+	<File name="Test/Nastran/NastranTokenizer_test.cpp" open="0" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="6595" topLine="141" />
+		</Cursor>
+	</File>
+	<File name="Aster/AsterWriter.h" open="0" top="0" tabpos="22" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2270" topLine="24" />
+		</Cursor>
+	</File>
+	<File name="Commandline/vegamain.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="996" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Material.cpp" open="0" top="0" tabpos="13" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2823" topLine="105" />
+		</Cursor>
+	</File>
+	<File name="Test/Abstract/Element_test.cpp" open="0" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name=".gitlab-ci.yml" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1769" topLine="36" />
+		</Cursor>
+	</File>
+	<File name="Test/Commandline/Nastran2Aster_test.cpp" open="1" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2127" topLine="19" />
+		</Cursor>
+	</File>
+	<File name="Systus/SystusModel.cpp" open="0" top="0" tabpos="27" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1254" topLine="33" />
+		</Cursor>
+	</File>
+	<File name="ResultReaders/CSVResultReader.cpp" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="178" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Reference.h" open="0" top="0" tabpos="13" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1436" topLine="30" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Utility.cpp" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2543" topLine="48" />
+		</Cursor>
+	</File>
+	<File name="Test/Commandline/Nastran2Nastran_test.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="17" />
+		</Cursor>
+	</File>
+	<File name="Dockerfile_xgitlab" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="255" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="Test/ResultReaders/F06Parser_test.cpp" open="0" top="0" tabpos="39" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5543" topLine="44" />
+		</Cursor>
+	</File>
+	<File name="Abstract/MeshComponents.cpp" open="0" top="0" tabpos="17" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="8780" topLine="219" />
+		</Cursor>
+	</File>
+	<File name="testdata/nastran/irt/t01331/readme.txt" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="63" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="Nastran/NastranTokenizer.h" open="0" top="0" tabpos="24" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="4623" topLine="119" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Mesh.cpp" open="1" top="1" tabpos="12" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1573" topLine="44" />
+		</Cursor>
+	</File>
+	<File name="Abstract/ConfigurationParameters.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2868" topLine="40" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Utility.h" open="1" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1124" topLine="19" />
+		</Cursor>
+	</File>
+	<File name="Aster/AsterModel.cpp" open="0" top="0" tabpos="24" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5390" topLine="156" />
+		</Cursor>
+	</File>
+	<File name="ResultReaders/F06Parser.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="9887" topLine="268" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Analysis.cpp" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3624" topLine="48" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Object.h" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1069" topLine="23" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Analysis.h" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1843" topLine="109" />
+		</Cursor>
+	</File>
+	<File name="Dockerfile" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2589" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="Aster/AsterRunner.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="367" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="Systus/SystusWriter.cpp" open="0" top="0" tabpos="26" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5554" topLine="151" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Model.h" open="0" top="0" tabpos="19" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="9966" topLine="217" />
+		</Cursor>
+	</File>
+	<File name="Aster/AsterWriter.cpp" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="67235" topLine="1626" />
+		</Cursor>
+	</File>
+	<File name="Abstract/build_properties.h.in" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="445" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Value.cpp" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="6726" topLine="193" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Loading.h" open="0" top="0" tabpos="15" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="8098" topLine="196" />
+		</Cursor>
+	</File>
+	<File name="Test/Abstract/Mesh_test.cpp" open="0" top="0" tabpos="38" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2761" topLine="45" />
+		</Cursor>
+	</File>
+	<File name="Systus/SystusAsc.cpp" open="0" top="0" tabpos="31" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="4256" topLine="30" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Model.cpp" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="17206" topLine="511" />
+		</Cursor>
+	</File>
+	<File name="Nastran/NastranWriter.h" open="0" top="0" tabpos="25" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="505" topLine="8" />
+		</Cursor>
+	</File>
+	<File name="Dockerfile_xcompile" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1923" topLine="1" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Value.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="7296" topLine="264" />
+		</Cursor>
+	</File>
+	<File name="Abstract/Loading.cpp" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="13224" topLine="369" />
+		</Cursor>
+	</File>
+	<File name="Test/Abstract/Utility_test.cpp" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="342" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="Commandline/VegaCommandLine.cpp" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="25714" topLine="560" />
+		</Cursor>
+	</File>
+</CodeBlocks_layout_file>
