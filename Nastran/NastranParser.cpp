@@ -1967,7 +1967,6 @@ void NastranParser::parsePLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) 
     Reference<LoadSet> loadSetReference(LoadSet::LOAD, loadset_id);
     NormalPressionFace normalPressionFace(*model, p);
     for(int cellId : tok.nextInts()) {
-        cout << "cellId:" << cellId << endl;
         normalPressionFace.addCell(cellId);
     }
     model->add(normalPressionFace);
