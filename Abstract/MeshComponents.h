@@ -515,9 +515,9 @@ class CellGroup2Families final {
 private:
     std::vector<Family> families;
     std::unordered_map<CellType::Code, std::shared_ptr<std::vector<int>>, std::hash<int>> cellFamiliesByType;
-    const Mesh* mesh;
+    const Mesh& mesh;
 public:
-    CellGroup2Families(const Mesh* mesh, std::unordered_map<CellType::Code, int, std::hash<int>> cellCountByType,
+    CellGroup2Families(const Mesh& mesh, std::unordered_map<CellType::Code, int, std::hash<int>> cellCountByType,
             const std::vector<std::shared_ptr<CellGroup>>& cellGroups);
     const std::vector<Family>& getFamilies() const;
     const std::unordered_map<CellType::Code, std::shared_ptr<std::vector<int>>, std::hash<int>>& getFamilyOnCells() const;

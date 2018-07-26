@@ -491,7 +491,7 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 				cellCountByType[typeAndCodePair.first] = cellNum;
 			}
 		}
-		CellGroup2Families cellGroup2Family = CellGroup2Families(this, cellCountByType, cellGroups);
+		CellGroup2Families cellGroup2Family = CellGroup2Families(*this, cellCountByType, cellGroups);
 		createFamilies(fid, meshname, cellGroup2Family.getFamilies());
 		for (auto cellCodeFamilyVectorPair : cellGroup2Family.getFamilyOnCells()) {
 			int ncells = static_cast<int>(cellCodeFamilyVectorPair.second->size());

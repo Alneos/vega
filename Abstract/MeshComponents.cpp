@@ -882,7 +882,7 @@ const vector<int>& NodeGroup2Families::getFamilyOnNodes() const {
 }
 
 CellGroup2Families::CellGroup2Families(
-		const Mesh* mesh, unordered_map<CellType::Code, int, hash<int>> cellCountByType,
+		const Mesh& mesh, unordered_map<CellType::Code, int, hash<int>> cellCountByType,
 		const vector<shared_ptr<CellGroup>>& cellGroups) : mesh(mesh) {
 	int currentFamilyId = 0;
 	unordered_map<int, int> newFamilyByOldfamily;
@@ -896,7 +896,7 @@ CellGroup2Families::CellGroup2Families(
 	for (auto& cellGroup : cellGroups) {
 		newFamilyByOldfamily.clear();
 		for (auto cellPosition : cellGroup->cellPositions()) {
-			const Cell& cell = mesh->findCell(cellPosition);
+			const Cell& cell = mesh.findCell(cellPosition);
 			shared_ptr<vector<int>> currentCellFamilies = cellFamiliesByType[cell.type.code];
 			int oldFamily = currentCellFamilies->at(cell.cellTypePosition);
 			auto newFamilyPair = newFamilyByOldfamily.find(oldFamily);
