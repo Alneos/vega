@@ -236,7 +236,7 @@ const VectorialValue RotationNode::getAxis() const {
 }
 
 const VectorialValue RotationNode::getCenter() const {
-	Node node = model.mesh->findNode(node_position, true, &model);
+	const Node& node = model.mesh->findNode(node_position, true, &model);
 	return VectorialValue(node.x, node.y, node.z);
 }
 
@@ -274,6 +274,7 @@ const VectorialValue NodalForce::localToGlobal(int nodePosition, const Vectorial
 				<< " for nodal force not found." << endl;
 		throw logic_error(oss.str());
 	}
+	// TODO : LD try to avoid the need to copy and update node object
 	Node node = model.mesh->findNode(nodePosition, true, &model);
 	node.buildGlobalXYZ(&model);
 	coordSystem->updateLocalBase(VectorialValue(node.x, node.y, node.z));
@@ -337,8 +338,8 @@ NodalForceTwoNodes::NodalForceTwoNodes(const Model& model, const int node1_id,
 }
 
 const VectorialValue NodalForceTwoNodes::getForceInGlobalCS(int nodePosition) const {
-	Node node1 = model.mesh->findNode(node_position1, true, &model);
-	Node node2 = model.mesh->findNode(node_position2, true, &model);
+	const Node& node1 = model.mesh->findNode(node_position1, true, &model);
+	const Node& node2 = model.mesh->findNode(node_position2, true, &model);
 	VectorialValue direction = (VectorialValue(node2.x, node2.y, node2.z)
 			- VectorialValue(node1.x, node1.y, node1.z)).normalized();
 	return localToGlobal(nodePosition, magnitude * direction);
@@ -366,13 +367,13 @@ NodalForceFourNodes::NodalForceFourNodes(const Model& model, const int node1_id,
 }
 
 const VectorialValue NodalForceFourNodes::getForceInGlobalCS(int nodePosition) const {
-    Node node1 = model.mesh->findNode(node_position1, true, &model);
-    Node node2 = model.mesh->findNode(node_position2, true, &model);
-    Node node3 = model.mesh->findNode(node_position3, true, &model);
-    Node node4 = model.mesh->findNode(node_position4, true, &model);
-    VectorialValue v1 = VectorialValue(node2.x, node2.y, node2.z) - VectorialValue(node1.x, node1.y, node1.z);
-    VectorialValue v2 = VectorialValue(node4.x, node4.y, node4.z) - VectorialValue(node3.x, node3.y, node3.z);
-    VectorialValue direction = v1.cross(v2).normalized();
+    const Node& node1 = model.mesh->findNode(node_position1, true, &model);
+    const Node& node2 = model.mesh->findNode(node_position2, true, &model);
+    const Node& node3 = model.mesh->findNode(node_position3, true, &model);
+    const Node& node4 = model.mesh->findNode(node_position4, true, &model);
+    const VectorialValue& v1 = VectorialValue(node2.x, node2.y, node2.z) - VectorialValue(node1.x, node1.y, node1.z);
+    const VectorialValue& v2 = VectorialValue(node4.x, node4.y, node4.z) - VectorialValue(node3.x, node3.y, node3.z);
+    const VectorialValue& direction = v1.cross(v2).normalized();
     return localToGlobal(nodePosition, magnitude * direction);
 }
 
@@ -410,26 +411,26 @@ const VectorialValue StaticPressure::getForceInGlobalCS(int nodePosition) const 
 	    return VectorialValue();
 	}
 	VectorialValue forceNode;
-    Node node1 = model.mesh->findNode(node_position1, true, &model);
-    Node node2 = model.mesh->findNode(node_position2, true, &model);
-    Node node3 = model.mesh->findNode(node_position3, true, &model);
-    VectorialValue v12 = VectorialValue(node2.x, node2.y, node2.z) - VectorialValue(node1.x, node1.y, node1.z);
-    VectorialValue v13 = VectorialValue(node3.x, node3.y, node3.z) - VectorialValue(node1.x, node1.y, node1.z);
+    const Node& node1 = model.mesh->findNode(node_position1, true, &model);
+    const Node& node2 = model.mesh->findNode(node_position2, true, &model);
+    const Node& node3 = model.mesh->findNode(node_position3, true, &model);
+    const VectorialValue& v12 = VectorialValue(node2.x, node2.y, node2.z) - VectorialValue(node1.x, node1.y, node1.z);
+    const VectorialValue& v13 = VectorialValue(node3.x, node3.y, node3.z) - VectorialValue(node1.x, node1.y, node1.z);
     if (node_position4 != Globals::UNAVAILABLE_INT) {
         /*
         In the case of a quadrilateral surface, the grid points G1, G2, G3, and G4 should form a consecutive sequence around the perimeter. The right-hand rule is applied to find the assumed direction of the pressure. Four concentrated loads are applied to the grid points in approximately the same manner as for a triangular surface. The following specific procedures are adopted to accommodate irregular and/or warped surfaces:
         The surface is divided into two sets of overlapping triangular surfaces. Each triangular surface is bounded by two of the sides and one of the diagonals of the quadrilateral.
         One-half of the pressure is applied to each triangle, which is then treated in the manner described in Remark 2.
         */
-        Node node4 = model.mesh->findNode(node_position4, true, &model);
-        VectorialValue v14 = VectorialValue(node4.x, node4.y, node4.z) - VectorialValue(node1.x, node1.y, node1.z);
-        VectorialValue v24 = VectorialValue(node4.x, node4.y, node4.z) - VectorialValue(node2.x, node2.y, node2.z);
+        const Node& node4 = model.mesh->findNode(node_position4, true, &model);
+        const VectorialValue& v14 = VectorialValue(node4.x, node4.y, node4.z) - VectorialValue(node1.x, node1.y, node1.z);
+        const VectorialValue& v24 = VectorialValue(node4.x, node4.y, node4.z) - VectorialValue(node2.x, node2.y, node2.z);
         VectorialValue force1;
         VectorialValue force2;
         if (v13.norm() < v24.norm()) {
             // triangles : G1,G2,G3 and G1,G3,G4
-            VectorialValue direction1 = v12.cross(v13).normalized();
-            VectorialValue direction2 = v13.cross(v14).normalized();
+            const VectorialValue& direction1 = v12.cross(v13).normalized();
+            const VectorialValue& direction2 = v13.cross(v14).normalized();
             force1 = (magnitude / 6) * direction1;
             force2 = (magnitude / 6) * direction2;
             if (nodePosition == node_position1 || nodePosition == node_position3) {
@@ -441,9 +442,9 @@ const VectorialValue StaticPressure::getForceInGlobalCS(int nodePosition) const 
             }
         } else {
             // triangles : G1,G2,G4 and G2,G3,G4
-            VectorialValue v23 = VectorialValue(node3.x, node3.y, node3.z) - VectorialValue(node2.x, node2.y, node2.z);
-            VectorialValue direction1 = v12.cross(v14).normalized();
-            VectorialValue direction2 = v13.cross(v14).normalized();
+            const VectorialValue& v23 = VectorialValue(node3.x, node3.y, node3.z) - VectorialValue(node2.x, node2.y, node2.z);
+            const VectorialValue& direction1 = v12.cross(v14).normalized();
+            const VectorialValue& direction2 = v13.cross(v14).normalized();
             force1 = (magnitude / 6) * direction1;
             force2 = (magnitude / 6) * direction2;
             if (nodePosition == node_position2 || nodePosition == node_position4) {
@@ -455,7 +456,7 @@ const VectorialValue StaticPressure::getForceInGlobalCS(int nodePosition) const 
             }
         }
     } else {
-        VectorialValue direction = v12.cross(v13).normalized();
+        const VectorialValue& direction = v12.cross(v13).normalized();
         forceNode = (magnitude / 3) * direction;
     }
     return localToGlobal(nodePosition, forceNode);
@@ -594,9 +595,9 @@ vector<int> PressionFaceTwoNodes::getApplicationFace() const {
 	if (cells.size() != 1) {
 		throw logic_error("More than one cell specified for a PressionFaceTwoNodes");
 	}
-	Node node1 = model.mesh->findNode(nodePosition1);
-	Node node2 = model.mesh->findNode(nodePosition2);
-	vector<int> nodeIds = cells[0].faceids_from_two_nodes(node1.id, node2.id);
+	const Node& node1 = model.mesh->findNode(nodePosition1);
+	const Node& node2 = model.mesh->findNode(nodePosition2);
+	const vector<int>& nodeIds = cells[0].faceids_from_two_nodes(node1.id, node2.id);
 	return nodeIds;
 }
 

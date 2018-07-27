@@ -246,15 +246,15 @@ bool Analysis::validate() const {
 
 
 void Analysis::removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition,  const DOFS dofsToRemove) {
-    DOFS remainingDofs = spc.getDOFSForNode(nodePosition) - dofsToRemove;
-    Node node = model.mesh->findNode(nodePosition);
+    const DOFS& remainingDofs = spc.getDOFSForNode(nodePosition) - dofsToRemove;
+    const Node& node = model.mesh->findNode(nodePosition);
     set<shared_ptr<ConstraintSet>> affectedConstraintSets =
             model.getConstraintSetsByConstraint(
                     spc);
     if (remainingDofs.size() != 0) {
         SinglePointConstraint remainingSpc = SinglePointConstraint(this->model);
         remainingSpc.addNodeId(node.id);
-        for (DOF remainingDof : remainingDofs) {
+        for (const DOF& remainingDof : remainingDofs) {
             remainingSpc.setDOF(remainingDof, spc.getDoubleForDOF(remainingDof));
         }
         model.add(remainingSpc);

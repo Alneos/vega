@@ -53,13 +53,13 @@ public:
 private:
 	std::string getDatFilename(const std::shared_ptr<vega::Model>& model, const std::string& outputPath) const;
 	void writeSOL(const std::shared_ptr<vega::Model>& model, std::ofstream& out) const;
-	void writeCells(const std::shared_ptr<vega::Model>& model, std::ofstream& out);
-	void writeNodes(const std::shared_ptr<vega::Model>& model, std::ofstream& out);
-	void writeMaterials(const std::shared_ptr<vega::Model>& model, std::ofstream& out);
-	void writeConstraints(const std::shared_ptr<vega::Model>& model, std::ofstream& out);
-	void writeLoadings(const std::shared_ptr<vega::Model>& model, std::ofstream& out);
-	void writeRuler(std::ofstream& out);
-	void writeElements(const std::shared_ptr<vega::Model>& model, std::ofstream& out);
+	void writeCells(const std::shared_ptr<vega::Model>& model, std::ofstream& out) const;
+	void writeNodes(const std::shared_ptr<vega::Model>& model, std::ofstream& out) const;
+	void writeMaterials(const std::shared_ptr<vega::Model>& model, std::ofstream& out) const;
+	void writeConstraints(const std::shared_ptr<vega::Model>& model, std::ofstream& out) const;
+	void writeLoadings(const std::shared_ptr<vega::Model>& model, std::ofstream& out) const;
+	void writeRuler(std::ofstream& out) const;
+	void writeElements(const std::shared_ptr<vega::Model>& model, std::ofstream& out) const;
 };
 
 }

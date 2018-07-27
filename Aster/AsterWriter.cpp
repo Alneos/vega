@@ -1683,9 +1683,9 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 }
 
 void AsterWriter::writeNodalDisplacementAssertion(const AsterModel& asterModel,
-		Assertion& assertion, ostream& out) {
-	NodalDisplacementAssertion& nda = dynamic_cast<NodalDisplacementAssertion&>(assertion);
-	Node node = asterModel.model.mesh->findNode(nda.nodePosition);
+		const Assertion& assertion, ostream& out) const {
+	const NodalDisplacementAssertion& nda = dynamic_cast<const NodalDisplacementAssertion&>(assertion);
+	const Node& node = asterModel.model.mesh->findNode(nda.nodePosition);
 	bool relativeComparison = abs(nda.value) >= SMALLEST_RELATIVE_COMPARISON;
 	out << "                     CRITERE = "
 			<< (relativeComparison ? "'RELATIF'," : "'ABSOLU',") << endl;
@@ -1706,10 +1706,10 @@ void AsterWriter::writeNodalDisplacementAssertion(const AsterModel& asterModel,
 }
 
 void AsterWriter::writeNodalComplexDisplacementAssertion(const AsterModel& asterModel,
-		Assertion& assertion, ostream& out) {
-	NodalComplexDisplacementAssertion& nda =
-			dynamic_cast<NodalComplexDisplacementAssertion&>(assertion);
-	Node node = asterModel.model.mesh->findNode(nda.nodePosition);
+		const Assertion& assertion, ostream& out) const {
+	const NodalComplexDisplacementAssertion& nda =
+			dynamic_cast<const NodalComplexDisplacementAssertion&>(assertion);
+	const Node& node = asterModel.model.mesh->findNode(nda.nodePosition);
 	bool relativeComparison = abs(nda.value) >= SMALLEST_RELATIVE_COMPARISON;
 	out << "                     CRITERE = "
 			<< (relativeComparison ? "'RELATIF'," : "'ABSOLU',") << endl;
@@ -1724,8 +1724,8 @@ void AsterWriter::writeNodalComplexDisplacementAssertion(const AsterModel& aster
 	out << "                     TOLE_MACHINE = (" << (relativeComparison ? nda.tolerance : 1e-5) << "," << 1e-5 << ")," << endl;
 }
 
-void AsterWriter::writeFrequencyAssertion(Assertion& assertion, ostream& out) {
-	FrequencyAssertion& frequencyAssertion = dynamic_cast<FrequencyAssertion&>(assertion);
+void AsterWriter::writeFrequencyAssertion(const Assertion& assertion, ostream& out) const {
+	const FrequencyAssertion& frequencyAssertion = dynamic_cast<const FrequencyAssertion&>(assertion);
 
 	out << "                     CRITERE = "
 			<< (!is_equal(frequencyAssertion.value, 0) ? "'RELATIF'," : "'ABSOLU',") << endl;

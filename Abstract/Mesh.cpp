@@ -42,6 +42,10 @@ namespace fs = boost::filesystem;
 
 const double NodeStorage::RESERVED_POSITION = -DBL_MAX;
 
+NodeData::NodeData(int id, const DOFS& dofs, double x, double y, double z, int cpPos, int cdPos) :
+    id(id), dofs(dofs), x(x), y(y), z(z), cpPos(cpPos), cdPos(cdPos) {
+}
+
 /**
  * Node Container class
  */
@@ -68,7 +72,7 @@ int NodeStorage::reserveNodePosition(int nodeId) {
 	return nodePosition;
 }
 
-CellData::CellData(int id, CellType type, bool isvirtual, int elementId, int cellTypePosition) :
+CellData::CellData(int id, const CellType& type, bool isvirtual, int elementId, int cellTypePosition) :
 		id(id), typeCode(type.code), isvirtual(isvirtual), elementId(
 				elementId), cellTypePosition(cellTypePosition) {
 }
@@ -86,15 +90,7 @@ int Mesh::addNode(int id, double x, double y, double z, int cpPos, int cdPos) {
 	auto positionIterator = nodes.nodepositionById.find(id);
 	if (positionIterator == nodes.nodepositionById.end()) {
 		nodePosition = static_cast<int>(nodes.nodeDatas.size());
-		NodeData nodeData;
-
-		nodeData.id = id;
-		nodeData.x = x;
-		nodeData.y = y;
-		nodeData.z = z;
-		nodeData.dofs = DOFS::NO_DOFS;
-		nodeData.cpPos = cpPos;
-		nodeData.cdPos = cdPos;
+		NodeData nodeData(id, DOFS::NO_DOFS, x, y, z, cpPos, cdPos);
 		nodes.nodeDatas.push_back(nodeData);
 		nodes.nodepositionById[id] = nodePosition;
 	} else {
@@ -162,7 +158,7 @@ int Mesh::findNodePosition(const int nodeId) const {
 	return positionIterator->second;
 }
 
-void Mesh::allowDOFS(int nodePosition, const DOFS allowed) {
+void Mesh::allowDOFS(int nodePosition, const DOFS& allowed) {
 	nodes.nodeDatas[nodePosition].dofs = static_cast<char>(nodes.nodeDatas[nodePosition].dofs
 			| allowed);
 }
@@ -430,7 +426,7 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 		vector<med_int> connectivity;
 		connectivity.reserve(numCells * type.numNodes);
 		for (int cellPosition : cellPositions) {
-			const Cell cell = findCell(cellPosition);
+			const Cell& cell = findCell(cellPosition);
 			for (int nodePosition : cell.nodePositions) {
 				// med nodes starts at node number 1.
 				connectivity.push_back(nodePosition + 1);

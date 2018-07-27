@@ -1915,13 +1915,13 @@ void NastranParser::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> model) 
          * and (X1 ≠ X2) the distributed load is input in terms of the projected length of the bar.*/
         // TODO LD: encapsulate all this in mesh/cell/node (but it needs model)
         int cellPos = model->mesh->findCellPosition(eid);
-        Cell cell = model->mesh->findCell(cellPos);
+        const Cell& cell = model->mesh->findCell(cellPos);
         std::shared_ptr<OrientationCoordinateSystem> ocs = cell.getOrientation(model.get());
         Node firstNode = model->mesh->findNode(cell.nodePositions.front());
         firstNode.buildGlobalXYZ(model.get());
         Node lastNode = model->mesh->findNode(cell.nodePositions.back());
         lastNode.buildGlobalXYZ(model.get());
-        VectorialValue barvect = VectorialValue(lastNode.x - firstNode.x, lastNode.y - firstNode.y, lastNode.z - firstNode.z);
+        const VectorialValue& barvect = VectorialValue(lastNode.x - firstNode.x, lastNode.y - firstNode.y, lastNode.z - firstNode.z);
         double dist = barvect.norm();
         /* If SCALE = LE (length), the Xi values are actual distances along the bar x-axis,
          * and (if X1 ≠ X2) Pi are load intensities per unit length of the bar. */

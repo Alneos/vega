@@ -146,14 +146,14 @@ void CartesianCoordinateSystem::build(){
         int nZ  = this->nodesId[1];
         int nXZ = this->nodesId[2];
 
-        Node nodeO = model.mesh->findNode(model.mesh->findNodePosition(nO), true, &model);
+        const Node& nodeO = model.mesh->findNode(model.mesh->findNodePosition(nO), true, &model);
         this->origin = VectorialValue(nodeO.x, nodeO.y, nodeO.z);
 
-        Node nodeZ = model.mesh->findNode(model.mesh->findNodePosition(nZ), true, &model);
+        const Node& nodeZ = model.mesh->findNode(model.mesh->findNodePosition(nZ), true, &model);
         this->ez = VectorialValue(nodeZ.x - nodeO.x, nodeZ.y - nodeO.y, nodeZ.z - nodeO.z).normalized();
 
-        Node nodeXZ = model.mesh->findNode(model.mesh->findNodePosition(nXZ), true, &model);
-        VectorialValue v = VectorialValue(nodeXZ.x - nodeO.x, nodeXZ.y - nodeO.y, nodeXZ.z - nodeO.z).normalized();
+        const Node& nodeXZ = model.mesh->findNode(model.mesh->findNodePosition(nXZ), true, &model);
+        const VectorialValue& v = VectorialValue(nodeXZ.x - nodeO.x, nodeXZ.y - nodeO.y, nodeXZ.z - nodeO.z).normalized();
 
         this->ex = v.orthonormalized(this->ez);
         this->ey = this->ez.cross(this->ex);
@@ -256,14 +256,14 @@ OrientationCoordinateSystem::OrientationCoordinateSystem(const Model& model, con
 void OrientationCoordinateSystem::build(){
 
     if (isVirtual){
-        Node nodeO = model.mesh->findNode(model.mesh->findNodePosition(this->getNodeO()), true, &model);
+        const Node& nodeO = model.mesh->findNode(model.mesh->findNodePosition(this->getNodeO()), true, &model);
         this->origin = VectorialValue(nodeO.x, nodeO.y, nodeO.z);
 
-        Node nodeX = model.mesh->findNode(model.mesh->findNodePosition(this->getNodeX()), true, &model);
+        const Node& nodeX = model.mesh->findNode(model.mesh->findNodePosition(this->getNodeX()), true, &model);
         this->ex = VectorialValue(nodeX.x - nodeO.x, nodeX.y - nodeO.y, nodeX.z - nodeO.z).normalized();
 
         if(this->getNodeV() != Node::UNAVAILABLE_NODE){
-            Node nodeV = model.mesh->findNode(model.mesh->findNodePosition(this->getNodeV()), true, &model);
+            const Node& nodeV = model.mesh->findNode(model.mesh->findNodePosition(this->getNodeV()), true, &model);
             this->v = VectorialValue(nodeV.x - nodeO.x, nodeV.y - nodeO.y, nodeV.z - nodeO.z).normalized();
         }
         this->ey = this->v.orthonormalized(this->ex);

@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE( test_faceIds )
     vector<int> nodeIds = { 101, 102, 103, 104, 105, 106, 107, 108 };
     Mesh mesh(LogLevel::INFO, "test");
     int cellPosition = mesh.addCell(1, CellType::HEXA8, nodeIds);
-    Cell hexa = mesh.findCell(cellPosition);
+    const Cell& hexa = mesh.findCell(cellPosition);
     vector<int> face1NodeIds = hexa.faceids_from_two_nodes(101, 104);
     vector<int> expectedFace1NodeIds = { 101, 102, 103, 104 };
     BOOST_CHECK_EQUAL_COLLECTIONS(face1NodeIds.begin(), face1NodeIds.end(),

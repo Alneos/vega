@@ -99,7 +99,7 @@ public:
 	DOFS& operator+=(const DOFS& other );
 	DOFS& operator+=(const DOF& other );
 	DOFS& operator=(const DOF& dof);
-	int size();
+	int size() const;
 	int nastranCode() const;
 
 	class iterator;

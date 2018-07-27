@@ -168,7 +168,7 @@ shared_ptr<Model> createModelWith1HEXA8() {
 		model->mesh->addNode(nodeIds[i], coords[i*3], coords[i*3 + 1], coords[i*3 + 2]);
 	}
 	int cellPosition = model->mesh->addCell(1, CellType::HEXA8, nodeIds);
-	Cell hexa = model->mesh->findCell(cellPosition);
+	const Cell& hexa = model->mesh->findCell(cellPosition);
 	BOOST_CHECK_EQUAL_COLLECTIONS(hexa.nodeIds.begin(), hexa.nodeIds.end(), nodeIds.begin(),
 			nodeIds.end());
 	BOOST_CHECK_EQUAL(hexa.id, 1);
@@ -187,34 +187,45 @@ shared_ptr<Model> createModelWith1HEXA8() {
 	return model;
 }
 
-// BOOST_AUTO_TEST_CASE( test_VirtualElements ) {
-// Model model = createModelWith1HEXA8();
-// //moment on x axis on node 51
-// model.add(NodalForceComponents(model, 51, 0, 0, 0, 1.0, 0, 0));
-// //force on x axis on node 52
-// model.add(NodalForceComponents(model, 52, 1.0, 0, 0, 0.0, 0, 0));
-// model.add(NodalForceComponents(model, 53, 0.0, 0.0, 0.0, 1.0, 0, 1.0));
-// model.finish();
-// BOOST_CHECK(model.validate());
-//
-// //two virtual elements
-// vector<Element *> discrets = model.filterElements(Element::DISCRET);
-// BOOST_CHECK_EQUAL(1, discrets.size());
-//
-// Node node51 = model.mesh->nodes.findNode(model.mesh->nodes.findNodePosition(51));
-// BOOST_CHECK(node51.dofs == DOFS::ALL_DOFS);
-// Node node52 = model.mesh->nodes.findNode(model.mesh->nodes.findNodePosition(52));
-// BOOST_CHECK(node52.dofs == DOFS::TRANSLATIONS);
-// Node node53 = model.mesh->nodes.findNode(model.mesh->nodes.findNodePosition(53));
-// BOOST_CHECK(node53.dofs == DOFS::ALL_DOFS);
-//
-// map<int, ConstraintSet> constraints = model.getConstraintBySetId();
-// BOOST_CHECK_EQUAL(1, constraints.size());
-// ConstraintSet set = constraints.find(0)->second;
-// vector<shared_ptr<Constraint> > spcs = set.getConstraintByType(
-// Constraint::SPC);
-// BOOST_CHECK_EQUAL(5, spcs.size());
-// }
+ BOOST_AUTO_TEST_CASE( test_VirtualElements ) {
+     shared_ptr<Model> model = createModelWith1HEXA8();
+     LoadSet loadSet1(*model, LoadSet::LOAD, 1);
+     //moment on x axis on node 51
+     NodalForce f1(*model, 0, 0, 0, 1.0, 0, 0);
+     f1.addNodeId(51);
+     model->add(f1);
+     model->addLoadingIntoLoadSet(f1, loadSet1);
+     //force on x axis on node 52
+     NodalForce f2(*model, 1.0, 0, 0, 0.0, 0, 0);
+     f2.addNodeId(52);
+     model->add(f2);
+     model->addLoadingIntoLoadSet(f2, loadSet1);
+     NodalForce f3(*model, 0.0, 0.0, 0.0, 1.0, 0, 1.0);
+     f3.addNodeId(53);
+     model->addLoadingIntoLoadSet(f3, loadSet1);
+     model->add(f3);
+     LinearMecaStat analysis(*model);
+     analysis.add(loadSet1);
+     model->add(analysis);
+     model->finish(); // Should add constraints, discretes to add dofs
+     BOOST_CHECK(model->validate());
+
+     //two virtual elements
+     auto& discrets = model->filterElements(ElementSet::DISCRETE_0D);
+     BOOST_CHECK_EQUAL(1, discrets.size());
+
+     const Node& node51 = model->mesh->findNode(model->mesh->findNodePosition(51));
+     BOOST_CHECK(node51.dofs == DOFS::ALL_DOFS);
+     const Node& node52 = model->mesh->findNode(model->mesh->findNodePosition(52));
+     BOOST_CHECK(node52.dofs == DOFS::TRANSLATIONS);
+     const Node& node53 = model->mesh->findNode(model->mesh->findNodePosition(53));
+     BOOST_CHECK(node53.dofs == DOFS::ALL_DOFS);
+
+     BOOST_CHECK_EQUAL(2, model->constraintSets.size());
+     //auto cset = model->constraintSets.next();
+     //auto& spcs = cset->getConstraintsByType(Constraint::SPC);
+     //BOOST_CHECK_EQUAL(5, spcs.size());
+ }
 
 
 BOOST_AUTO_TEST_CASE( test_create_skin2d ) {

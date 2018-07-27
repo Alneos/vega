@@ -149,7 +149,7 @@ DOFS& DOFS::operator+=(const DOFS& other) {
 	return *this;
 }
 
-int DOFS::size() {
+int DOFS::size() const {
 	int result = contains(DOF::DX) ? 1 : 0;
 	result += contains(DOF::DY) ? 1 : 0;
 	result += contains(DOF::DZ) ? 1 : 0;

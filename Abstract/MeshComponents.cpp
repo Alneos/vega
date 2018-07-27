@@ -337,7 +337,7 @@ const set<int> CellGroup::nodePositions() const {
 	set<int> result;
 	for (int cellId : cellIds) {
 		int position = mesh.findCellPosition(cellId);
-		Cell cell = mesh.findCell(position);
+		const Cell& cell = mesh.findCell(position);
 		result.insert(cell.nodePositions.begin(), cell.nodePositions.end());
 	}
 	return result;
@@ -449,7 +449,7 @@ const Node NodeIterator::operator *() {
 }
 
 const Node NodeIterator::next() {
-	Node result(nodeStorage->mesh.findNode(position));
+	const Node& result(nodeStorage->mesh.findNode(position));
 	this->increment();
 	return result;
 }

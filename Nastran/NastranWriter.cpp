@@ -173,7 +173,7 @@ void NastranWriter::writeSOL(const shared_ptr<vega::Model>& model, ofstream& out
 	}
 }
 
-void NastranWriter::writeCells(const shared_ptr<vega::Model>& model, ofstream& out)
+void NastranWriter::writeCells(const shared_ptr<vega::Model>& model, ofstream& out) const
 		{
 	for (const auto& elementSet : model->elementSets) {
 		if (elementSet->isDiscrete() || elementSet->isMatrixElement()) {
@@ -223,7 +223,7 @@ void NastranWriter::writeCells(const shared_ptr<vega::Model>& model, ofstream& o
 	}
 }
 
-void NastranWriter::writeNodes(const shared_ptr<vega::Model>& model, ofstream& out)
+void NastranWriter::writeNodes(const shared_ptr<vega::Model>& model, ofstream& out) const
 		{
 	for (Node node : model->mesh->nodes) {
 	    if (node.positionCS!= CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID)
@@ -234,7 +234,7 @@ void NastranWriter::writeNodes(const shared_ptr<vega::Model>& model, ofstream& o
 	}
 }
 
-void NastranWriter::writeMaterials(const shared_ptr<vega::Model>& model, ofstream& out)
+void NastranWriter::writeMaterials(const shared_ptr<vega::Model>& model, ofstream& out) const
 		{
 	for (const auto& material : model->materials) {
 		Line mat1("MAT1");
@@ -254,24 +254,24 @@ void NastranWriter::writeMaterials(const shared_ptr<vega::Model>& model, ofstrea
 	}
 }
 
-void NastranWriter::writeConstraints(const shared_ptr<vega::Model>& model, ofstream& out)
+void NastranWriter::writeConstraints(const shared_ptr<vega::Model>& model, ofstream& out) const
 		{
 	for (const auto& constraintSet : model->constraintSets) {
-		const set<shared_ptr<Constraint> > spcs = constraintSet->getConstraintsByType(
+		const set<shared_ptr<Constraint> >& spcs = constraintSet->getConstraintsByType(
 				Constraint::SPC);
 		if (spcs.size() > 0) {
 			for (shared_ptr<Constraint> constraint : spcs) {
 				shared_ptr<const SinglePointConstraint> spc = static_pointer_cast<
 						const SinglePointConstraint>(constraint);
 				for (int nodePosition : spc->nodePositions()) {
-					Node node = model->mesh->findNode(nodePosition);
+					const Node& node = model->mesh->findNode(nodePosition);
 					out
 							<< Line("SPC1").add(constraintSet->bestId()).add(
 									spc->getDOFSForNode(nodePosition)).add(node.id);
 				}
 			}
 		}
-		const set<shared_ptr<Constraint> > rigidConstraints = constraintSet->getConstraintsByType(
+		const set<shared_ptr<Constraint> >& rigidConstraints = constraintSet->getConstraintsByType(
 				Constraint::RIGID);
 		if (rigidConstraints.size() > 0) {
 			for (shared_ptr<Constraint> constraint : rigidConstraints) {
@@ -279,11 +279,11 @@ void NastranWriter::writeConstraints(const shared_ptr<vega::Model>& model, ofstr
 						static_pointer_cast<const RigidConstraint>(constraint);
 				Line rbe2("RBE2");
 				rbe2.add(constraintSet->bestId());
-				Node master = model->mesh->findNode(rigid->getMaster());
+				const Node& master = model->mesh->findNode(rigid->getMaster());
 				rbe2.add(master.id);
 				rbe2.add(DOFS::ALL_DOFS);
 				for (int slavePosition : rigid->getSlaves()) {
-					Node slave = model->mesh->findNode(slavePosition);
+					const Node& slave = model->mesh->findNode(slavePosition);
 					rbe2.add(slave.id);
 				}
 				out << rbe2;
@@ -292,7 +292,7 @@ void NastranWriter::writeConstraints(const shared_ptr<vega::Model>& model, ofstr
 	}
 }
 
-void NastranWriter::writeLoadings(const shared_ptr<vega::Model>& model, ofstream& out)
+void NastranWriter::writeLoadings(const shared_ptr<vega::Model>& model, ofstream& out) const
 		{
 	for (const auto& loadingSet : model->loadSets) {
 		const set<shared_ptr<Loading> > gravities = loadingSet->getLoadingsByType(Loading::GRAVITY);
@@ -349,13 +349,13 @@ void NastranWriter::writeLoadings(const shared_ptr<vega::Model>& model, ofstream
 	}
 }
 
-void NastranWriter::writeRuler(ofstream& out)
+void NastranWriter::writeRuler(ofstream& out) const
 		{
 	out << "$---1--][---2--][---3--][---4--][---5--][---6--][---7--][---8--][---9--][--10--]"
 			<< endl;
 }
 
-void NastranWriter::writeElements(const shared_ptr<vega::Model>& model, ofstream& out)
+void NastranWriter::writeElements(const shared_ptr<vega::Model>& model, ofstream& out) const
 		{
 	for (shared_ptr<Beam> beam : model->getBeams()) {
 		Line pbeam("PBEAM");

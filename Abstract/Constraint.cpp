@@ -492,8 +492,8 @@ vector<shared_ptr<Gap::GapParticipation>> GapTwoNodes::getGaps() const {
     vector<shared_ptr<Gap::GapParticipation>> result;
     result.reserve(directionNodePositionByconstrainedNodePosition.size());
     for (auto it : directionNodePositionByconstrainedNodePosition) {
-        Node constrainedNode = model.mesh->findNode(it.first, true, &model);
-        Node directionNode = model.mesh->findNode(it.second, true, &model);
+        const Node& constrainedNode = model.mesh->findNode(it.first, true, &model);
+        const Node& directionNode = model.mesh->findNode(it.second, true, &model);
         VectorialValue direction(directionNode.x - constrainedNode.x,
                 directionNode.y - constrainedNode.y, directionNode.z - constrainedNode.z);
         shared_ptr<GapParticipation> gp = make_shared<GapParticipation>(constrainedNode.position, direction.normalized());
@@ -522,8 +522,8 @@ const DOFS GapTwoNodes::getDOFSForNode(int nodePosition) const {
     auto it = directionNodePositionByconstrainedNodePosition.find(nodePosition);
     DOFS dofs(DOFS::NO_DOFS);
     if (it != directionNodePositionByconstrainedNodePosition.end()) {
-        Node constrainedNode = model.mesh->findNode(it->first, true, &model);
-        Node directionNode = model.mesh->findNode(it->second, true, &model);
+        const Node& constrainedNode = model.mesh->findNode(it->first, true, &model);
+        const Node& directionNode = model.mesh->findNode(it->second, true, &model);
         VectorialValue direction(directionNode.x - constrainedNode.x,
                 directionNode.y - constrainedNode.y, directionNode.z - constrainedNode.z);
         if (!is_zero(direction.x()))
@@ -555,7 +555,7 @@ vector<shared_ptr<Gap::GapParticipation>> GapNodeDirection::getGaps() const {
     vector<shared_ptr<Gap::GapParticipation>> result;
     result.reserve(directionBynodePosition.size());
     for (auto it : directionBynodePosition) {
-        Node constrainedNode = model.mesh->findNode(it.first);
+        const Node& constrainedNode = model.mesh->findNode(it.first);
         shared_ptr<GapParticipation> gp = make_shared<GapParticipation>(constrainedNode.position, it.second.normalized());
         result.push_back(gp);
     }

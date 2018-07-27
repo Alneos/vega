@@ -142,9 +142,9 @@ protected:
     Reference<Objective> frequency_band_reference;
 public:
     LinearModal(Model& model, const FrequencyBand& frequency_band, const std::string original_label = "",
-            const int original_id = NO_ORIGINAL_ID, const Type type = LINEAR_MODAL);
+            const int original_id = NO_ORIGINAL_ID, const Type type = Type::LINEAR_MODAL);
     LinearModal(Model& model, const int frequency_band_original_id, const std::string original_label = "",
-            const int original_id = NO_ORIGINAL_ID, const Type type = LINEAR_MODAL);
+            const int original_id = NO_ORIGINAL_ID, const Type type = Type::LINEAR_MODAL);
     std::shared_ptr<FrequencyBand> getFrequencyBand() const;
     std::shared_ptr<Analysis> clone() const;
     bool validate() const override;

@@ -32,7 +32,8 @@ class Mesh;
 
 class NodeData final {
 public:
-	int id;
+    NodeData(int id, const DOFS& dofs, double x, double y, double z, int cpPos, int cdPos);
+	const int id;
 	char dofs;
 	double x;
 	double y;
@@ -68,13 +69,13 @@ public:
 
 class CellData final {
 public:
-	CellData(int id, CellType type, bool isvirtual, int elementId, int cellTypePosition);
-	int id;
-	CellType::Code typeCode;
-	bool isvirtual;
+	CellData(int id, const CellType& type, bool isvirtual, int elementId, int cellTypePosition);
+	const int id;
+	const CellType::Code typeCode;
+	const bool isvirtual;
 	int csPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID; /**< Vega Position Number for the CS **/
 	int elementId;
-	int cellTypePosition;
+	const int cellTypePosition;
 };
 
 class CellStorage final {
@@ -158,7 +159,7 @@ public:
 	        int cpPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
 	        int cdPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
 	int countNodes() const;
-	void allowDOFS(int nodePosition, const DOFS allowed);
+	void allowDOFS(int nodePosition, const DOFS& allowed);
 	/**
 	 * Find a node from its Vega position.
 	 * If buildGlobalXYZ is true, we compute the position (x,y,z) of the Node in
