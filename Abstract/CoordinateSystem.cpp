@@ -54,18 +54,23 @@ ostream &operator<<(ostream &out, const CoordinateSystem& coordinateSystem) {
     return out;
 }
 
-const VectorialValue CoordinateSystem::getEulerAnglesIntrinsicZYX(const CoordinateSystem *rcs) const {
+const VectorialValue CoordinateSystem::getEulerAnglesIntrinsicZYX(const CoordinateSystem *cs) const {
     double ax, ay, az = 0;
     VectorialValue EX, EY, EZ;
 
-    if (rcs== nullptr){
-        EX = this->ex;
-        EY = this->ey;
-        EZ = this->ez;
+    if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
+        EX= this->ex;
+        EY= this->ey;
+        EZ= this->ez;
     }else{
-        EX = rcs->vectorToLocal(this->ex);
-        EY = rcs->vectorToLocal(this->ey);
-        EZ = rcs->vectorToLocal(this->ez);
+        EX= vectorToGlobal(this->ex);
+        EY= vectorToGlobal(this->ey);
+        EZ= vectorToGlobal(this->ez);
+    }
+    if (cs != nullptr){
+        EX = cs->vectorToLocal(EX);
+        EY = cs->vectorToLocal(EY);
+        EZ = cs->vectorToLocal(EZ);
     }
 
     double cy = sqrt(EZ.z() * EZ.z() + EY.z() * EY.z());
@@ -96,12 +101,12 @@ CartesianCoordinateSystem::CartesianCoordinateSystem(const Model& model,
 }
 
 const VectorialValue CartesianCoordinateSystem::positionToGlobal(const VectorialValue& local) const{
-    VectorialValue position = this->getOrigin()+vectorToGlobal(local);
+    VectorialValue global = vectorToGlobal(local);
     if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-        return position;
+        return this->getOrigin()+ global;
     } else {
         shared_ptr<CoordinateSystem> coordSystem = model.getCoordinateSystem(rcs);
-        return coordSystem->positionToGlobal(position);
+        return coordSystem->positionToGlobal(this->getOrigin())+global;
     }
 }
 
@@ -225,9 +230,9 @@ shared_ptr<CoordinateSystem> CylindricalCoordinateSystem::clone() const {
     return make_shared<CylindricalCoordinateSystem>(*this);
 }
 
-const VectorialValue CylindricalCoordinateSystem::getLocalEulerAnglesIntrinsicZYX(const CoordinateSystem *rcs) const {
+const VectorialValue CylindricalCoordinateSystem::getLocalEulerAnglesIntrinsicZYX(const CoordinateSystem *cs) const {
     CartesianCoordinateSystem localCS(this->model, VectorialValue(0,0,0), this->ur, this->utheta);
-    return localCS.getEulerAnglesIntrinsicZYX(rcs);
+    return localCS.getEulerAnglesIntrinsicZYX(cs);
 }
 
 

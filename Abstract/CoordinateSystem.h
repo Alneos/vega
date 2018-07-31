@@ -56,7 +56,7 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
     VectorialValue origin;
     VectorialValue ex;
     VectorialValue ey;
-    int rcs;
+    const int rcs;
     VectorialValue ez; // internally computed as cross product of ex and ey
     bool isVirtual=false;
     std::vector<int> nodesId;
@@ -101,7 +101,7 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
      *  coordinate system is used.
      * TODO LD use internal RCS ?
      **/
-    virtual const VectorialValue getEulerAnglesIntrinsicZYX(const CoordinateSystem *rcs = nullptr) const;
+    virtual const VectorialValue getEulerAnglesIntrinsicZYX(const CoordinateSystem *cs = nullptr) const;
     virtual std::shared_ptr<CoordinateSystem> clone() const = 0;
 };
 
