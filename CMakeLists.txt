@@ -29,7 +29,7 @@ IF(NOT DEFINED VEGA_EXTRA_VERSION OR "${VEGA_EXTRA_VERSION}" STREQUAL "")
         set(VEGA_EXTRA_VERSION "" CACHE STRING "Vega extra version string")
     ENDIF()
 ELSE()
-    message(STATUS "VEGA_EXTRA_VERSION:" ${VEGA_EXTRA_VERSION})
+    message(STATUS "VEGA_EXTRA_VERSION: " ${VEGA_EXTRA_VERSION})
 ENDIF()
 
 # add this options before PROJECT keyword
@@ -105,7 +105,7 @@ else(MSVC)
     IF(CMAKE_C_COMPILER_ID MATCHES "Intel")
         add_compile_options(-Wfloat-equal -diag-disable 1170 -fmessage-length=0) # -Wshadow
     ELSEIF(CMAKE_C_COMPILER_ID MATCHES "GNU")
-        add_compile_options(-Wfloat-equal -Woverlength-strings -fmessage-length=0 -Wmain -Wmissing-declarations -Wundef -Wredundant-decls -Wcast-align -Wswitch-default -Wlogical-op -Wuseless-cast -Wold-style-cast -Wdouble-promotion) # -Wshadow
+        add_compile_options(-Wfloat-equal -Woverlength-strings -fmessage-length=0 -Wmain -Wmissing-declarations -Wundef -Wredundant-decls -Wcast-align -Wswitch-default -Wlogical-op -Wuseless-cast -Wold-style-cast -Wdouble-promotion -Wunused-variable) # -Wshadow
         if(NOT CMAKE_CROSSCOMPILING)
             add_compile_options(-Wsuggest-attribute=const) # LD strange results, probably because MXE is using 5.4.0
         endif()

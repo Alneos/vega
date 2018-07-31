@@ -444,7 +444,7 @@ const VectorialValue StaticPressure::getForceInGlobalCS(int nodePosition) const 
             // triangles : G1,G2,G4 and G2,G3,G4
             const VectorialValue& v23 = VectorialValue(node3.x, node3.y, node3.z) - VectorialValue(node2.x, node2.y, node2.z);
             const VectorialValue& direction1 = v12.cross(v14).normalized();
-            const VectorialValue& direction2 = v13.cross(v14).normalized();
+            const VectorialValue& direction2 = v23.cross(v14).normalized();
             force1 = (magnitude / 6) * direction1;
             force2 = (magnitude / 6) * direction2;
             if (nodePosition == node_position2 || nodePosition == node_position4) {

@@ -979,13 +979,14 @@ void SystusWriter::fillLoads(const SystusModel& systusModel, const int idSubcase
 }
 
 void SystusWriter::writeNodalForce(const SystusModel& systusModel, shared_ptr<NodalForce> nodalForce, const int idLoadCase, systus_ascid_t& vectorId) {
-    vector<double> vec;
-    double normvec = 0.0;
+
     for(auto& nodePosition : nodalForce->nodePositions()) {
         const VectorialValue& force = nodalForce->getForceInGlobalCS(nodePosition);
         const VectorialValue& moment = nodalForce->getMomentInGlobalCS(nodePosition);
         const Node& node = systusModel.model->mesh->findNode(nodePosition);
 
+        vector<double> vec;
+        double normvec = 0.0;
         vec.push_back(0);
         vec.push_back(0);
         vec.push_back(0);
