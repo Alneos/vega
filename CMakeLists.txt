@@ -29,7 +29,7 @@ IF(NOT DEFINED VEGA_EXTRA_VERSION OR "${VEGA_EXTRA_VERSION}" STREQUAL "")
         set(VEGA_EXTRA_VERSION "" CACHE STRING "Vega extra version string")
     ENDIF()
 ELSE()
-    message(STATUS "VEGA_EXTRA_VERSION:" ${VEGA_EXTRA_VERSION})
+    message(STATUS "VEGA_EXTRA_VERSION: " ${VEGA_EXTRA_VERSION})
 ENDIF()
 
 # add this options before PROJECT keyword
