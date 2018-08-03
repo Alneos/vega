@@ -44,7 +44,7 @@ private:
 
     const std::set<std::string> OPTISTRUCT_IGNORED_KEYWORDS = {
         //optistruct optimization variable
-        "DOPTPRM", "DCOMP", //Manufacturing constraints for composite sizing optimization.
+        "DCOMP", //Manufacturing constraints for composite sizing optimization.
         "DESVAR", //Design variable definition.
         "DSHAPE", //Free-shape design variable definition.
         "DSHUFFLE", //Parameters for the generation of composite shuffling design variables.

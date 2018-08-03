@@ -681,6 +681,7 @@ private:
     std::set<std::string> IGNORED_KEYWORDS = {
         "CHECKEL", // Active le test de qualité des éléments. Inutile de le traduire.
         "DCONSTR", "DCONADD", "DESVAR", "DLINK", //nastran optimization keywords
+        "DOPTPRM", // Nastran optimization keyword
         "DRAW", "DRESP1", "DRESP2", //ignored in Vega
         "EFFMAS", // Outputs modal participation factors and effective mass for normal modes analyses. Inutile de le traduire.
         "ENDDATA",
