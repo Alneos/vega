@@ -1852,12 +1852,12 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
                         systus_ascid_t seId= stiffnessMatrices.size()+1;
                         // Building the Systus Matrix
                         SystusMatrix aMatrix = SystusMatrix(seId, nbDOFS, 2);
-                        //for (const auto np : dam->nodePairs()){
                         int dofI = DOFToInt(pairDOF.first);
                         int dofJ = DOFToInt(pairDOF.second);
                         aMatrix.setValue(1, 1, dofI, dofI, ss->getStiffness());
                         aMatrix.setValue(2, 2, dofJ, dofJ, ss->getStiffness());
                         aMatrix.setValue(1, 2, dofI, dofJ, -ss->getStiffness());
+                        aMatrix.setValue(2, 1, dofJ, dofI, -ss->getStiffness());
                         tId2+=SystusWriter::StiffnessAccessId;
                         seIdByElementSet[elementSet->getId()]= seId;
                         stiffnessMatrices.add(aMatrix);
@@ -1873,8 +1873,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
                         aMatrix.setValue(1, 1, dofI, dofI, ss->getDamping());
                         aMatrix.setValue(2, 2, dofJ, dofJ, ss->getDamping());
                         aMatrix.setValue(1, 2, dofI, dofJ, -ss->getDamping());
-
-
+                        aMatrix.setValue(2, 1, dofJ, dofI, -ss->getDamping());
                         tId2+=SystusWriter::DampingAccessId*10000;
                         seIdByElementSet[elementSet->getId()]= seId;
                         dampingMatrices.add(aMatrix);
