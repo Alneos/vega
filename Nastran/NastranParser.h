@@ -682,6 +682,7 @@ private:
         "CHECKEL", // Active le test de qualité des éléments. Inutile de le traduire.
         "DCONSTR", "DCONADD", "DESVAR", "DLINK", //nastran optimization keywords
         "DOPTPRM", // Nastran optimization keyword
+        "DEQATN", // Defines one or more equations for use in design sensitivity
         "DRAW", "DRESP1", "DRESP2", //ignored in Vega
         "EFFMAS", // Outputs modal participation factors and effective mass for normal modes analyses. Inutile de le traduire.
         "ENDDATA",

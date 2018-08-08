@@ -50,7 +50,7 @@ private:
         "DSHUFFLE", //Parameters for the generation of composite shuffling design variables.
         "DSIZE", "DTPG", //Topography design variable definition.
         "DTPL", //Topology design variable definition.
-        "DVGRID", "DEQATN",
+        "DVGRID",
         "DREPORT", "DREPADD", // Optistruct Cards
         "ELEMQUAL", // Parameters for element mesh quality checks https://www.sharcnet.ca/Software/Hyperworks/help/hwsolvers/hwsolvers.htm?elemqual.htm
     };
