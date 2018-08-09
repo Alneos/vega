@@ -128,8 +128,8 @@ shared_ptr<CellGroup> NastranParser::getOrCreateCellGroup(int property_id, share
     }
     else{
         // If the Group already exists, and if it was not already done, we enforce the name and comment of the Group
-        if (cellGroup->getName().substr(0,6)=="CGVEGA"){
-        	model->mesh->renameGroup(cellGroup->getName(), cellGroupName, command);
+        if ((command != "CGVEGA") && (cellGroup->getName().substr(0,6)=="CGVEGA")){
+            model->mesh->renameGroup(cellGroup->getName(), cellGroupName, command);
         }
     }
     return cellGroup;

@@ -634,25 +634,27 @@ shared_ptr<CellGroup> Mesh::createCellGroup(const string& name, int group_id, co
 }
 
 void Mesh::renameGroup(const string& oldname, const string& newname, const string& comment) {
-	if (oldname.empty()) {
-		throw invalid_argument("Can't rename a group with empty oldname.");
-	}
-	if (newname.empty()) {
-		throw invalid_argument("Can't rename a group with empty newname.");
-	}
-	if (this->groupByName.find(oldname) == this->groupByName.end()) {
-		throw invalid_argument("No group exists with this name: " + oldname);
-	}
-	shared_ptr<Group> group = this->groupByName[oldname];
-	group->name = newname;
-	group->comment = comment;
-	this->groupByName.erase(oldname);
-	this->groupByName[newname] = group;
+    if (oldname.empty()) {
+        throw invalid_argument("Can't rename a group with empty oldname.");
+    }
+    if (newname.empty()) {
+        throw invalid_argument("Can't rename a group with empty newname.");
+    }
+    const auto & it = this->groupByName.find(oldname);
+    if (it == this->groupByName.end()) {
+        throw invalid_argument("No group exists with this name: " + oldname);
+    }
+
+    shared_ptr<Group> group = it->second;
+    group->name = newname;
+    group->comment = comment;
+    this->groupByName.erase(it);
+    this->groupByName[newname] = group;
 
 
-	if (this->logLevel >= LogLevel::DEBUG) {
-		cout << "Renamed Cell Group: " << newname << endl;
-	}
+    if (this->logLevel >= LogLevel::DEBUG) {
+        cout << "Renamed Cell Group: " << newname << endl;
+    }
 }
 
 void Mesh::removeGroup(const string& name) {
