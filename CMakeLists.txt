@@ -120,8 +120,7 @@ else(MSVC)
         if(NOT CMAKE_CROSSCOMPILING)
             add_compile_options(-fPIE)
         endif(NOT CMAKE_CROSSCOMPILING)
-        if(LINUX_DIST STREQUAL "Alpine")
-          # Alpine can also statically link glibc
+        if(NOT LINUX_DIST STREQUAL "Ubuntu")
           set(CMAKE_EXE_LINKER_FLAGS_EXTRA "-static") # cannot statically link on ubuntu because of glibc, so I do it only on Alpine
         endif()
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -static-libgcc -static-libstdc++ ${CMAKE_EXE_LINKER_FLAGS_EXTRA}" CACHE INTERNAL "Linker flags")
