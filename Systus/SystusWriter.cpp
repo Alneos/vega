@@ -966,6 +966,7 @@ void SystusWriter::fillLoads(const SystusModel& systusModel, const int idSubcase
         }
         localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]= {};
         const vector<shared_ptr<LoadSet>> analysisLoadSets = analysis->getLoadSets();
+        int idSystusLoadByAnalysis=0;
         for (const auto& loadSet : analysisLoadSets) {
             localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()][loadSet->getId()]= idSystusLoad;
 
@@ -973,6 +974,14 @@ void SystusWriter::fillLoads(const SystusModel& systusModel, const int idSubcase
             // It is limited to 80 characters
             string suffixe = "_LOAD"+to_string(loadSet->bestId());
             localLoadingListName[idSystusLoad]= analysis->getLabel().substr(0, 80 - suffixe.length())+ suffixe;
+            idSystusLoad++;
+            idSystusLoadByAnalysis++;
+        }
+
+        // We need at least one loadset by analysis
+        if (idSystusLoadByAnalysis==0){
+            localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()][0]= idSystusLoad;
+            localLoadingListName[idSystusLoad]= analysis->getLabel().substr(0, 80);
             idSystusLoad++;
         }
     }
