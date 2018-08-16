@@ -2735,9 +2735,9 @@ void NastranParser::parseTEMP(NastranTokenizer& tok, shared_ptr<Model> model) {
 }
 
 
-int NastranParser::parseDOF(NastranTokenizer& tok, shared_ptr<Model> model){
+int NastranParser::parseDOF(NastranTokenizer& tok, shared_ptr<Model> model, bool returnDefaultIfNotFoundOrBlank, int defaultValue){
 
-    int dofread = tok.nextInt();
+    int dofread = tok.nextInt(returnDefaultIfNotFoundOrBlank, defaultValue);
 
     // Check for errors
     if ((dofread<0) || (dofread>6)){

@@ -301,18 +301,26 @@ void NastranParser::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
 }
 
 void NastranParser::parseCELAS1(NastranTokenizer& tok, shared_ptr<Model> model) {
-    // Defines a scalar spring element .
+    // Defines a scalar spring element.
     int eid = tok.nextInt();
     int pid = tok.nextInt();
     int g1 = tok.nextInt();
     int c1 = parseDOF(tok,model);
-    int g2 = tok.nextInt();
-    int c2 = parseDOF(tok,model);
+    int g2 = tok.nextInt(true);
+    int c2 = parseDOF(tok,model,true);
 
     // Creates cell
+    // If G2 is undefined, it is considered a fictitious grounded point, and c2=c1
     vector<int> connectivity;
-    connectivity += g1, g2;
-    int cellPosition= model->mesh->addCell(eid, CellType::SEG2, connectivity);
+    connectivity += g1;
+    CellType cellType =  CellType::POINT1;
+    if (g2 == Globals::UNAVAILABLE_INT){
+        c2= c1;
+    }else{
+        connectivity += g2;
+        cellType = CellType::SEG2;
+    }
+    int cellPosition= model->mesh->addCell(eid, cellType, connectivity);
     shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model);
     cellGroup->addCellId(model->mesh->findCell(cellPosition).id);
 
