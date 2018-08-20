@@ -2740,7 +2740,7 @@ int NastranParser::parseDOF(NastranTokenizer& tok, shared_ptr<Model> model, bool
     int dofread = tok.nextInt(returnDefaultIfNotFoundOrBlank, defaultValue);
 
     // Check for errors
-    if ((dofread<0) || (dofread>6)){
+    if ((dofread!=defaultValue) && ((dofread<0) || (dofread>6))){
         string message = "Out of bound degrees of freedom : " + std::to_string(dofread);
         handleParsingWarning(message, tok, model);
     }
