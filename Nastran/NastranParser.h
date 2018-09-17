@@ -673,7 +673,7 @@ private:
      *   - Scalar point have a "0" Nastran DOF, translated as a "0" (DX) Vega DOF
      *   - Classic Nastran dofs go from 1 to 6, VEGA from 0 to 5.
      */
-    int parseDOF(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    int parseDOF(NastranTokenizer& tok, std::shared_ptr<Model> model, bool returnDefaultIfNotFoundOrBlank = false, int defaultValue = Globals::UNAVAILABLE_INT);
 
     LogLevel logLevel = LogLevel::INFO;
     protected:
@@ -681,6 +681,8 @@ private:
     std::set<std::string> IGNORED_KEYWORDS = {
         "CHECKEL", // Active le test de qualité des éléments. Inutile de le traduire.
         "DCONSTR", "DCONADD", "DESVAR", "DLINK", //nastran optimization keywords
+        "DOPTPRM", // Nastran optimization keyword
+        "DEQATN", // Defines one or more equations for use in design sensitivity
         "DRAW", "DRESP1", "DRESP2", //ignored in Vega
         "EFFMAS", // Outputs modal participation factors and effective mass for normal modes analyses. Inutile de le traduire.
         "ENDDATA",

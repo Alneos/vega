@@ -966,6 +966,7 @@ void SystusWriter::fillLoads(const SystusModel& systusModel, const int idSubcase
         }
         localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]= {};
         const vector<shared_ptr<LoadSet>> analysisLoadSets = analysis->getLoadSets();
+        int idSystusLoadByAnalysis=0;
         for (const auto& loadSet : analysisLoadSets) {
             localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()][loadSet->getId()]= idSystusLoad;
 
@@ -974,18 +975,27 @@ void SystusWriter::fillLoads(const SystusModel& systusModel, const int idSubcase
             string suffixe = "_LOAD"+to_string(loadSet->bestId());
             localLoadingListName[idSystusLoad]= analysis->getLabel().substr(0, 80 - suffixe.length())+ suffixe;
             idSystusLoad++;
+            idSystusLoadByAnalysis++;
+        }
+
+        // We need at least one loadset by analysis
+        if (idSystusLoadByAnalysis==0){
+            localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()][0]= idSystusLoad;
+            localLoadingListName[idSystusLoad]= analysis->getLabel().substr(0, 80);
+            idSystusLoad++;
         }
     }
 }
 
 void SystusWriter::writeNodalForce(const SystusModel& systusModel, shared_ptr<NodalForce> nodalForce, const int idLoadCase, systus_ascid_t& vectorId) {
-    vector<double> vec;
-    double normvec = 0.0;
+
     for(auto& nodePosition : nodalForce->nodePositions()) {
         const VectorialValue& force = nodalForce->getForceInGlobalCS(nodePosition);
         const VectorialValue& moment = nodalForce->getMomentInGlobalCS(nodePosition);
         const Node& node = systusModel.model->mesh->findNode(nodePosition);
 
+        vector<double> vec;
+        double normvec = 0.0;
         vec.push_back(0);
         vec.push_back(0);
         vec.push_back(0);
@@ -1851,12 +1861,12 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
                         systus_ascid_t seId= stiffnessMatrices.size()+1;
                         // Building the Systus Matrix
                         SystusMatrix aMatrix = SystusMatrix(seId, nbDOFS, 2);
-                        //for (const auto np : dam->nodePairs()){
                         int dofI = DOFToInt(pairDOF.first);
                         int dofJ = DOFToInt(pairDOF.second);
                         aMatrix.setValue(1, 1, dofI, dofI, ss->getStiffness());
                         aMatrix.setValue(2, 2, dofJ, dofJ, ss->getStiffness());
                         aMatrix.setValue(1, 2, dofI, dofJ, -ss->getStiffness());
+                        aMatrix.setValue(2, 1, dofJ, dofI, -ss->getStiffness());
                         tId2+=SystusWriter::StiffnessAccessId;
                         seIdByElementSet[elementSet->getId()]= seId;
                         stiffnessMatrices.add(aMatrix);
@@ -1872,8 +1882,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
                         aMatrix.setValue(1, 1, dofI, dofI, ss->getDamping());
                         aMatrix.setValue(2, 2, dofJ, dofJ, ss->getDamping());
                         aMatrix.setValue(1, 2, dofI, dofJ, -ss->getDamping());
-
-
+                        aMatrix.setValue(2, 1, dofJ, dofI, -ss->getDamping());
                         tId2+=SystusWriter::DampingAccessId*10000;
                         seIdByElementSet[elementSet->getId()]= seId;
                         dampingMatrices.add(aMatrix);

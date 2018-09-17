@@ -1119,14 +1119,14 @@ void Model::removeIneffectives() {
 
 void Model::removeUnassignedMaterials() {
     vector<shared_ptr<Material>> materialsToRemove;
-    for (auto& material : materials) {
+    //for (auto& material : materials) {
         /*
          * if the model is configured to assign materials to cells directly check
          * that for every material at lest a cell or cellgroup is assigned
          */
         //if (!configuration.partitionModel and material->getAssignment().empty())
         //        materialsToRemove.push_back(material);
-    }
+    //}
     for (auto& material : materialsToRemove) {
         if (configuration.logLevel >= LogLevel::DEBUG)
             cout << "Removed unassigned " << *material << endl;
