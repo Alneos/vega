@@ -526,6 +526,33 @@ double StructuralSegment::findStiffness(DOF rowdof, DOF coldof) const{
 	return result;
 }
 
+vector<double> StructuralSegment::asVector(bool addRotationsIfNotPresent) {
+	// LD TODO : at least rename this method (it only does stiffness and with aster convention!!)
+	vector<double> result;
+	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
+	int max_row_element_index = 0;
+	for (int colindex = 0; colindex < 2; ++colindex) {
+		for (int coldof = 0; coldof < ncomp; coldof++) {
+			DOF colcode = DOF::findByPosition(coldof);
+			max_row_element_index++;
+			int row_element_index = 0;
+			for (int rowindex = 0; rowindex < 2; ++rowindex) {
+				for (int rowdof = 0; rowdof < ncomp; rowdof++) {
+					row_element_index++;
+					if (row_element_index > max_row_element_index) {
+						break;
+					}
+					DOF rowcode = DOF::findByPosition(rowdof);
+					double value = findStiffness(rowcode, colcode);
+					result.push_back(value);
+				}
+			}
+		}
+	}
+	return result;
+}
+
+
 std::shared_ptr<ElementSet> StructuralSegment::clone() const{
 	return make_shared<StructuralSegment>(*this);
 }

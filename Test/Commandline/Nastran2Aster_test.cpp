@@ -68,5 +68,9 @@ BOOST_AUTO_TEST_CASE( t01331a ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/t01331/t01331a.inp", TESTS_EXEC_SOLVER, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( cbush ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/cbush/cbush.inp", TESTS_EXEC_SOLVER, true, 0.00001);
+}
+
 } /* namespace test */
 } /* namespace vega */

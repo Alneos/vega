@@ -365,7 +365,8 @@ public:
 
 
 /** Generalized Structural Two points elements : used for spring, damper elements.
- *  It may overlapped some functionnalities of DiscreteSegment.*/
+ *  It may overlapped some functionnalities of DiscreteSegment.
+ TODO LD : is this really needed or we could use DiscreteSegment ? */
 class StructuralSegment final : public Discrete {
 private:
 	DOFMatrix stiffness;
@@ -382,6 +383,7 @@ public:
 	void addMass(DOF rowdof, DOF coldof, double value);
 	void addDamping(DOF rowdof, DOF coldof, double value);
 	double findStiffness(DOF rowdof, DOF coldof) const;
+	std::vector<double> asVector(bool addRotationsIfNotPresent = false);
 	std::shared_ptr<ElementSet> clone() const override;
 };
 

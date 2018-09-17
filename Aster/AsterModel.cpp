@@ -156,6 +156,7 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
         }
     }
         break;
+    case ElementSet::STRUCTURAL_SEGMENT:
     case ElementSet::DISCRETE_0D:
     case ElementSet::DISCRETE_1D: {
         shared_ptr<DiscretePoint> discret = (static_pointer_cast<DiscretePoint>(elementSet));
@@ -171,7 +172,7 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
         break;
     }
     default:
-        throw logic_error("AFFE_MODELE unsupported" + to_str(*elementSet));
+        throw logic_error("AFFE_MODELE unsupported " + to_str(*elementSet));
     }
 
     return result;

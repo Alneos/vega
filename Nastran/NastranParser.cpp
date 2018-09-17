@@ -1743,6 +1743,7 @@ void NastranParser::parsePBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
     structuralElement.addStiffness(DOF::RX, DOF::RX, k4);
     structuralElement.addStiffness(DOF::RY, DOF::RY, k5);
     structuralElement.addStiffness(DOF::RZ, DOF::RZ, k6);
+    structuralElement.assignMaterial(model->getVirtualMaterial());
 
     model->add(structuralElement);
 

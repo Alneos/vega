@@ -469,49 +469,51 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
         out << "                 );" << endl << endl;
     }
 
-	out << "CHMAT=AFFE_MATERIAU(MAILLAGE=" << mail_name << "," << endl;
-	out << "                    AFFE=(" << endl;
-	for (auto& material : asterModel.model.materials) {
-		CellContainer cells = material->getAssignment();
-		if (!cells.empty()) {
-			/*out << "                          _F(GROUP_MA='"
-			 << elementSet->cellGroup->getName() << "'," << endl;*/
-			out << "                          _F(MATER=M" << material->getId() << ",";
-			int celem = 0;
-			if (cells.hasCellGroups()) {
-				out << "GROUP_MA=(";
-				for (auto& cellGroup : cells.getCellGroups()) {
-					celem++;
-					out << "'" << cellGroup->getName() << "',";
-					if (celem % 6 == 0) {
-						out << endl << "                             ";
-					}
-				}
-				out << "),";
-			}
-			if (cells.hasCells()) {
-				out << "MAILLE=(";
-				for (Cell cell : cells.getCells()) {
-					celem++;
-					out << "'M" << cell.id << "',";
-					if (celem % 6 == 0) {
-						out << endl << "                             ";
-					}
-				}
-				out << "),";
-			}
-			out << ")," << endl;
-		} else {
-			out << "# WARN Skipping material id " << material->getId() << " because no assignment"
-					<< endl;
-		}
-	}
-	for (shared_ptr<ElementSet> c : composites) {
-	    shared_ptr<Composite> composite = dynamic_pointer_cast<Composite>(c);
-        out << "                          _F(MATER=MC" << composite ->getId() << ", GROUP_MA='" << composite->cellGroup->getName() << "')," << endl;
-	}
-	out << "                          )," << endl;
-	out << "                    );" << endl << endl;
+  if (asterModel.model.materials.size() >= 1) {
+    out << "CHMAT=AFFE_MATERIAU(MAILLAGE=" << mail_name << "," << endl;
+    out << "                    AFFE=(" << endl;
+    for (auto& material : asterModel.model.materials) {
+      CellContainer cells = material->getAssignment();
+      if (!cells.empty()) {
+        /*out << "                          _F(GROUP_MA='"
+         << elementSet->cellGroup->getName() << "'," << endl;*/
+        out << "                          _F(MATER=M" << material->getId() << ",";
+        int celem = 0;
+        if (cells.hasCellGroups()) {
+          out << "GROUP_MA=(";
+          for (auto& cellGroup : cells.getCellGroups()) {
+            celem++;
+            out << "'" << cellGroup->getName() << "',";
+            if (celem % 6 == 0) {
+              out << endl << "                             ";
+            }
+          }
+          out << "),";
+        }
+        if (cells.hasCells()) {
+          out << "MAILLE=(";
+          for (Cell cell : cells.getCells()) {
+            celem++;
+            out << "'M" << cell.id << "',";
+            if (celem % 6 == 0) {
+              out << endl << "                             ";
+            }
+          }
+          out << "),";
+        }
+        out << ")," << endl;
+      } else {
+        out << "# WARN Skipping material id " << material->getId() << " because no assignment"
+            << endl;
+      }
+    }
+    for (shared_ptr<ElementSet> c : composites) {
+        shared_ptr<Composite> composite = dynamic_pointer_cast<Composite>(c);
+          out << "                          _F(MATER=MC" << composite ->getId() << ", GROUP_MA='" << composite->cellGroup->getName() << "')," << endl;
+    }
+    out << "                          )," << endl;
+    out << "                    );" << endl << endl;
+  }
 }
 
 void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) {
@@ -525,9 +527,11 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 				ElementSet::DISCRETE_1D);
 		vector<shared_ptr<ElementSet>> nodal_masses = asterModel.model.filterElements(
 				ElementSet::NODAL_MASS);
-		out << "                    # writing " << discrets_0d.size() + nodal_masses.size()
+		vector<shared_ptr<ElementSet>> structural_segments = asterModel.model.filterElements(
+				ElementSet::STRUCTURAL_SEGMENT);
+		out << "                    # writing " << discrets_0d.size() + nodal_masses.size() + discrets_1d.size() + structural_segments.size()
 				<< " discrets" << endl;
-		if (discrets_0d.size() + nodal_masses.size() > 0) {
+		if (discrets_0d.size() + nodal_masses.size() + discrets_1d.size() + structural_segments.size() > 0) {
 			out << "                    DISCRET=(" << endl;
 			for (shared_ptr<ElementSet> discret : discrets_0d) {
 				if (discret->cellGroup != nullptr) {
@@ -556,6 +560,23 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 					else
 						out << "                                CARA='K_T_L', VALE=(";
 					for (double rigi : discret_1d->asVector())
+						out << rigi << ",";
+					out << "),)," << endl;
+				} else
+					out
+							<< "                             # WARN Finite Element : DISCRETE_1D ignored because its GROUP_MA is empty."
+							<< endl;
+			}
+			for (shared_ptr<ElementSet> segment : structural_segments) {
+				if (segment->cellGroup != nullptr) {
+					out << "                             _F(GROUP_MA='"
+							<< segment->cellGroup->getName() << "'," << endl;
+					shared_ptr<StructuralSegment> segment_1d = static_pointer_cast<StructuralSegment>(segment);
+					if (segment_1d->hasRotations())
+						out << "                                CARA='K_TR_L', VALE=(";
+					else
+						out << "                                CARA='K_T_L', VALE=(";
+					for (double rigi : segment_1d->asVector())
 						out << rigi << ",";
 					out << "),)," << endl;
 				} else
@@ -1309,7 +1330,9 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		LinearMecaStat& linearMecaStat = dynamic_cast<LinearMecaStat&>(analysis);
 
 		out << "RESU" << linearMecaStat.getId() << "=MECA_STATIQUE(MODELE=MODMECA," << endl;
-		out << "                    CHAM_MATER=CHMAT," << endl;
+		if (asterModel.model.materials.size() >= 1) {
+      out << "                    CHAM_MATER=CHMAT," << endl;
+		}
 		out << "                    CARA_ELEM=CAEL," << endl;
 		out << "                    EXCIT=(" << endl;
 		for (shared_ptr<LoadSet> loadSet : linearMecaStat.getLoadSets()) {
@@ -1349,7 +1372,9 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 					<< stepRange.start << ",1.0," << stepRange.end << ",0.0,));" << endl;
 		}
 		out << "RESU" << nonLinAnalysis.getId() << "=STAT_NON_LINE(MODELE=MODMECA," << endl;
-		out << "                    CHAM_MATER=CHMAT," << endl;
+		if (asterModel.model.materials.size() >= 1) {
+      out << "                    CHAM_MATER=CHMAT," << endl;
+		}
 		out << "                    CARA_ELEM=CAEL," << endl;
 		out << "                    EXCIT=(" << endl;
 		if (nonLinAnalysis.previousAnalysis) {
@@ -1433,7 +1458,9 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		LinearModal& linearModal = dynamic_cast<LinearModal&>(analysis);
 
 		out << "ASSEMBLAGE(MODELE=MODMECA," << endl;
-		out << "           CHAM_MATER=CHMAT," << endl;
+		if (asterModel.model.materials.size() >= 1) {
+      out << "           CHAM_MATER=CHMAT," << endl;
+		}
 		out << "           CARA_ELEM=CAEL," << endl;
 		out << "           CHARGE=(" << endl;
 		for (shared_ptr<ConstraintSet> constraintSet : linearModal.getConstraintSets()) {
@@ -1631,7 +1658,9 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 				<< ".EXTR_TABLE().values()['TOUTRESU']" << endl;
 
 		out << "GENE" << linearDynaModalFreq.getId() << " = DYNA_VIBRA(" << endl;
-		out << "                   CHAM_MATER=CHMAT," << endl;
+		if (asterModel.model.materials.size() >= 1) {
+      out << "                   CHAM_MATER=CHMAT," << endl;
+		}
 		out << "                   CARA_ELEM=CAEL," << endl;
 		out << "                   TYPE_CALCUL='HARM'," << endl;
 		out << "                   BASE_CALCUL='GENE'," << endl;
