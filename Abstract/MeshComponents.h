@@ -233,6 +233,7 @@ public:
     const std::string& getComment() const;
     virtual const std::set<int> nodePositions() const = 0;
     virtual ~Group();
+    Group(const Group& that) = delete;
 };
 
 class Node final {

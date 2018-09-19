@@ -173,7 +173,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<Mode
         map<string, string>& context) {
     bool canContinue = true;
     bool readNewKeyword = true;
-    bool subCaseFound = false;
+//    bool subCaseFound = false;
     string keyword = "";
 
     tok.nextLine();
@@ -186,9 +186,9 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<Mode
             tok.setCurrentKeyword(keyword);
             if (keyword.find("BEGIN") != string::npos) {
                 canContinue = false;
-                if (!subCaseFound) {
-                    addAnalysis(tok, model, context);
-                }
+//                if (!subCaseFound) {
+//                    addAnalysis(tok, model, context);
+//                }
             } else if (keyword == "B2GG") {
                 // Selects direct input damping matrix or matrices.
                 string line;
@@ -282,7 +282,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<Mode
             } else if (keyword == "SUBCASE") {
                 keyword = parseSubcase(tok, model, context);
                 readNewKeyword = false;
-                subCaseFound = true;
+//                subCaseFound = true;
             } else if (keyword == "SUBTITLE") {
                 string line;
                 while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD)

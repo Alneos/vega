@@ -335,8 +335,8 @@ const Cell Mesh::findCell(int cellPosition) const {
 		const NodeData &nodeData = nodes.nodeDatas[nodePositions[i]];
 		nodeIds[i] = nodeData.id;
 	}
-	Cell cell(cellData.id, *type, nodeIds, nodePositions, false, cellData.csPos, cellData.elementId, cellData.cellTypePosition);
-	return cell;
+	// Should stay as a "return unnamed" so that compiler can avoid rvalue copy
+	return Cell(cellData.id, *type, nodeIds, nodePositions, false, cellData.csPos, cellData.elementId, cellData.cellTypePosition);
 }
 
 
@@ -426,7 +426,7 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 		vector<med_int> connectivity;
 		connectivity.reserve(numCells * type.numNodes);
 		for (int cellPosition : cellPositions) {
-			const Cell& cell = findCell(cellPosition);
+			const Cell&& cell = findCell(cellPosition);
 			for (int nodePosition : cell.nodePositions) {
 				// med nodes starts at node number 1.
 				connectivity.push_back(nodePosition + 1);

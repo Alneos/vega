@@ -321,8 +321,7 @@ void NastranWriter::writeLoadings(const shared_ptr<vega::Model>& model, ofstream
 				pload4.add(loadingSet->bestId());
 				vector<Cell> cells = forceSurface->getCells();
 				if (cells.size() == 1) {
-					Cell cell = cells[0];
-					pload4.add(cell.id);
+					pload4.add(cells[0].id);
 				} else {
 					throw logic_error("Unimplemented multiple cells in PLOAD4");
 				}

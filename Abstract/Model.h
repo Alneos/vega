@@ -200,19 +200,20 @@ private:
             }
             return isValid;
         };
+        Container(const Container& that) = delete;
         }; /* Container class */
         std::unordered_map<int,CellContainer> material_assignment_by_material_id;
     public:
-        Container<Analysis> analyses = Container<Analysis>(*this);
-        Container<Objective> objectives = Container<Objective>(*this);
-        Container<NamedValue> values = Container<NamedValue>(*this);
-        Container<Loading> loadings = Container<Loading>(*this);
-        Container<LoadSet> loadSets = Container<LoadSet>(*this);
-        Container<Constraint> constraints = Container<Constraint>(*this);
-        Container<ConstraintSet> constraintSets = Container<ConstraintSet>(*this);
-        Container<CoordinateSystem> coordinateSystems = Container<CoordinateSystem>(*this);
-        Container<ElementSet> elementSets = Container<ElementSet>(*this);
-        Container<Material> materials = Container<Material>(*this);
+        Container<Analysis> analyses{*this};
+        Container<Objective> objectives{*this};
+        Container<NamedValue> values{*this};
+        Container<Loading> loadings{*this};
+        Container<LoadSet> loadSets{*this};
+        Container<Constraint> constraints{*this};
+        Container<ConstraintSet> constraintSets{*this};
+        Container<CoordinateSystem> coordinateSystems{*this};
+        Container<ElementSet> elementSets{*this};
+        Container<Material> materials{*this};
         std::map<Parameter, double> parameters;
         std::shared_ptr<CoordinateSystemStorage> coordinateSystemStorage; /**< Container for Coordinate System numerotations. **/
         bool onlyMesh;
@@ -221,8 +222,7 @@ private:
                 SolverName inputSolver = NASTRAN,
                 const ModelConfiguration configuration = ModelConfiguration(),
                 const vega::ConfigurationParameters::TranslationMode translationMode = vega::ConfigurationParameters::BEST_EFFORT);
-        //GC: bad bad things happens if you ever try to use this (back references to model are not up to date).
-        Model(const Model& that) = delete;
+        Model(const Model& that) = delete; /** bad bad things happens if you ever try to use this (back references to model are not up to date). */
         virtual ~Model();
 
         /**

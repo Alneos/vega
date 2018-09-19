@@ -209,6 +209,7 @@ public:
 	void writeMED(const Model& model, const char* medFileName);
 	void finish();
 	bool validate() const;
+	Mesh(const Mesh& that) = delete;
 };
 
 } /* namespace vega */

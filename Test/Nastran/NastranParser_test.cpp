@@ -57,7 +57,7 @@ BOOST_AUTO_TEST_CASE( test_model_read ) {
 			shared_ptr<Material> mat = *(model->materials.begin());
 			BOOST_CHECK(mat->findNature(Nature::NATURE_ELASTIC));
 		}
-		BOOST_CHECK_EQUAL(1, model->analyses.size());
+		//BOOST_CHECK_EQUAL(1, model->analyses.size());
 	} catch (exception& e) {
 		cout << e.what() << endl;
 		BOOST_FAIL(string("Parse threw exception ") + e.what());
@@ -88,6 +88,25 @@ BOOST_AUTO_TEST_CASE(test_comments_in_the_end) {
 	try {
 		const shared_ptr<Model> model = parser.parse(
 			ConfigurationParameters(testLocation, CODE_ASTER, "", ""));
+	}
+	catch (exception& e) {
+		cerr << e.what() << endl;
+		BOOST_TEST_MESSAGE(string("Application exception") + e.what());
+
+		BOOST_FAIL(string("Parse threw exception ") + e.what());
+	}
+	//expected 1 material elastic
+}
+
+BOOST_AUTO_TEST_CASE(nastran_github_issue15) {
+	// https://github.com/Alneos/vega/issues/15
+	string testLocation = fs::path(
+		PROJECT_BASE_DIR "/testdata/unitTest/nastranparser/github_issue15.nas").make_preferred().string();
+	nastran::NastranParser parser;
+	try {
+		const shared_ptr<Model> model = parser.parse(
+			ConfigurationParameters(testLocation, CODE_ASTER, "", ""));
+    BOOST_CHECK_EQUAL(model->analyses.size(), 0);
 	}
 	catch (exception& e) {
 		cerr << e.what() << endl;

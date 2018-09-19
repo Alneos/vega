@@ -896,7 +896,7 @@ CellGroup2Families::CellGroup2Families(
 	for (auto& cellGroup : cellGroups) {
 		newFamilyByOldfamily.clear();
 		for (auto cellPosition : cellGroup->cellPositions()) {
-			const Cell& cell = mesh.findCell(cellPosition);
+			const Cell&& cell = mesh.findCell(cellPosition);
 			shared_ptr<vector<int>> currentCellFamilies = cellFamiliesByType[cell.type.code];
 			int oldFamily = currentCellFamilies->at(cell.cellTypePosition);
 			auto newFamilyPair = newFamilyByOldfamily.find(oldFamily);

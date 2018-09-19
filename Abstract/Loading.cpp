@@ -499,7 +499,7 @@ bool ElementLoading::appliedToGeometry() {
 	bool isForceOnPoutre = false;
 	bool assigned = false;
 	vector<Cell> cells = getCells(true);
-	for (Cell cell : cells) {
+	for (const Cell& cell : cells) {
 		int element_id = cell.elementId;
 		if (element_id != Cell::UNAVAILABLE_CELL) {
 			shared_ptr<ElementSet> element = model.find(

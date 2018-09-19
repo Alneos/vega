@@ -252,7 +252,7 @@ void Analysis::removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition,  
             model.getConstraintSetsByConstraint(
                     spc);
     if (remainingDofs.size() != 0) {
-        SinglePointConstraint remainingSpc = SinglePointConstraint(this->model);
+        SinglePointConstraint remainingSpc(this->model);
         remainingSpc.addNodeId(node.id);
         for (const DOF& remainingDof : remainingDofs) {
             remainingSpc.setDOF(remainingDof, spc.getDoubleForDOF(remainingDof));
@@ -270,7 +270,7 @@ void Analysis::removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition,  
     if (model.analyses.size() >= 2) {
         ConstraintSet otherAnalysesCS(model, ConstraintSet::SPC);
         model.add(otherAnalysesCS);
-        SinglePointConstraint otherAnalysesSpc = SinglePointConstraint(this->model);
+        SinglePointConstraint otherAnalysesSpc(this->model);
         otherAnalysesSpc.addNodeId(node.id);
         for (DOF removedDof : dofsToRemove) {
             otherAnalysesSpc.setDOF(removedDof, spc.getDoubleForDOF(removedDof));

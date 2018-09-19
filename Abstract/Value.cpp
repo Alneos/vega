@@ -249,6 +249,7 @@ bool operator!=(const VectorialValue& left, const VectorialValue& right) {
 }
 
 
+const VectorialValue VectorialValue::O(0, 0, 0);
 const VectorialValue VectorialValue::X(1, 0, 0);
 const VectorialValue VectorialValue::Y(0, 1, 0);
 const VectorialValue VectorialValue::Z(0, 0, 1);

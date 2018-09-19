@@ -508,5 +508,18 @@ BOOST_AUTO_TEST_CASE(test_spc_dof_remove) {
 		}
 	}
 }
+
+
+BOOST_AUTO_TEST_CASE( test_cdnoanalysis )
+{
+    // https://github.com/Alneos/vega/issues/15
+    Model model("github_issue_15", "10.3", SolverName::NASTRAN,
+					ModelConfiguration(false, LogLevel::INFO, false, false, false));
+    CartesianCoordinateSystem coordinateSystem(model);
+    model.add(coordinateSystem);
+    model.mesh->addNode(7, 0.0, 0.0, 0.0, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, coordinateSystem.getOriginalId());
+    BOOST_CHECK_EQUAL(model.analyses.size(), 0);
+
+}
 //____________________________________________________________________________//
 
