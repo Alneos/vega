@@ -64,12 +64,12 @@ void NastranParser::parseGRDSET(NastranTokenizer& tok, shared_ptr<Model> model) 
     tok.skip(1);
     grdSet.cp = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     if (grdSet.cp != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
-        grdSet.cp = model->findOrReserveCoordinateSystem(grdSet.cp);
+        grdSet.cp = model->mesh->findOrReserveCoordinateSystem(grdSet.cp);
         }
     tok.skip(3);
     grdSet.cd = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     if (grdSet.cd != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
-        grdSet.cd = model->findOrReserveCoordinateSystem(grdSet.cd);
+        grdSet.cd = model->mesh->findOrReserveCoordinateSystem(grdSet.cd);
         }
     grdSet.ps = tok.nextInt(true, 0);
     grdSet.seid = tok.nextInt(true, 0);
@@ -82,7 +82,7 @@ void NastranParser::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model) {
     int cpos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
     string scp;
     if (cp != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
-        cpos = model->findOrReserveCoordinateSystem(cp);
+        cpos = model->mesh->findOrReserveCoordinateSystem(cp);
         scp=" in CS"+to_string(cp)+"_"+to_string(cpos);
     }
 
@@ -95,7 +95,7 @@ void NastranParser::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model) {
     int cdos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
     string scd="";
     if (cd != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
-        cdos = model->findOrReserveCoordinateSystem(cd);
+        cdos = model->mesh->findOrReserveCoordinateSystem(cd);
         scd=", DISP in CS"+to_string(cd)+"_"+to_string(cdos);
     }
     model->mesh->addNode(id, x1, x2, x3, cpos, cdos);
@@ -145,15 +145,15 @@ int NastranParser::parseOrientation(int point1, int point2, NastranTokenizer& to
         int g0 = tok.nextInt();
         tok.nextDouble(true);
         tok.nextDouble(true);
-        ocs = new OrientationCoordinateSystem(*model, point1, point2, g0);
+        ocs = new OrientationCoordinateSystem(*(model->mesh), point1, point2, g0);
     } else {
         double x1, x2, x3;
         x1 = tok.nextDouble();
         x2 = tok.nextDouble();
         x3 = tok.nextDouble();
-        ocs = new OrientationCoordinateSystem(*model, point1, point2, VectorialValue(x1,x2,x3));
+        ocs = new OrientationCoordinateSystem(*(model->mesh), point1, point2, VectorialValue(x1,x2,x3));
     }
-    const int idOCS = model->addOrFindOrientation(*ocs);
+    const int idOCS = model->mesh->addOrFindOrientation(*ocs);
     delete(ocs);
     return idOCS;
 }
@@ -257,7 +257,7 @@ void NastranParser::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
         // A CID is provided by the user
         tok.skip(3);
         int cid = tok.nextInt();
-        cpos = model->findOrReserveCoordinateSystem(cid);
+        cpos = model->mesh->findOrReserveCoordinateSystem(cid);
     }else{
         // Local definition of the element coordinate system
         if (forbidOrientation){

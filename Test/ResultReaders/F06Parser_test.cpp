@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 		BOOST_CHECK_EQUAL(assertion->type, Assertion::NODAL_DISPLACEMENT_ASSERTION);
 		NodalDisplacementAssertion & nodalDispAssertion =
 				dynamic_cast<NodalDisplacementAssertion&>(*assertion);
-		int nodeId = model->mesh->findNode(nodalDispAssertion.nodePosition).id;
+		int nodeId = model->mesh->findNodeId(nodalDispAssertion.nodePosition);
 		if (nodeId == 3 && nodalDispAssertion.dof == DOF::DX) {
 			found = true;
 			BOOST_CHECK_EQUAL(nodalDispAssertion.value, 4.901961E-01);

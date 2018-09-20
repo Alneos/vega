@@ -81,13 +81,9 @@ int F06Parser::readDisplacementSection(const Model& model,
 				VectorialValue translation(stod(tokens[2]), stod(tokens[3]), stod(tokens[4]));
 				VectorialValue rotation(stod(tokens[5]), stod(tokens[6]), stod(tokens[7]));
 
-				int nodePosition = model.mesh->findNodePosition(nodeId);
-				const Node& node = model.mesh->findNode(nodePosition, true, &model);
+				const Node& node = model.mesh->findNode(model.mesh->findNodePosition(nodeId));
 				if (node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-					const Node& node = model.mesh->findNode(nodePosition, true, &model);
-					shared_ptr<CoordinateSystem> coordSystem = model.find(
-							Reference<CoordinateSystem>(CoordinateSystem::UNKNOWN,
-									node.displacementCS));
+					shared_ptr<CoordinateSystem> coordSystem = model.mesh->getCoordinateSystem(node.displacementCS);
 					coordSystem->updateLocalBase(VectorialValue(node.x, node.y, node.z));
 					translation = coordSystem->vectorToGlobal(translation);
 					rotation = coordSystem->vectorToGlobal(rotation);
@@ -251,11 +247,9 @@ int F06Parser::addAssertionsToModel(int currentSubcase, double loadStep, Model &
 		if (analysis == nullptr and model.configuration.logLevel >= LogLevel::INFO) {
 			cout << "Could not find subcase : " << currentSubcase << " in model." << endl;
 		}
-	} else {
-		// LD If no subcase indicated, the first one is used.
-		// FIXME: what if the model don't have an analysis and the default one is
-		// created inside the finish()? GC
-		analysis = *model.analyses.begin();
+	} else if (not model.analyses.empty()) {
+		// LD If no subcase indicated, the first one is used if exists.
+		analysis = *(model.analyses.begin());
 	}
 	for (Assertion* assertion : assertions) {
 		if (analysis != nullptr) {

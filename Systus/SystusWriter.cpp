@@ -185,8 +185,8 @@ CartesianCoordinateSystem SystusWriter::buildElementDefaultReferentiel(const Sys
         // Other 1D elements are computed from the orientation of the "bar"
         }else{
             shared_ptr<Mesh> mesh = systusModel.model->mesh;
-            const Node& nO = mesh->findNode(mesh->findNodePosition(nodes[0]), true, systusModel.model);
-            const Node& nX = mesh->findNode(mesh->findNodePosition(nodes[1]), true, systusModel.model);
+            const Node& nO = mesh->findNode(mesh->findNodePosition(nodes[0]));
+            const Node& nX = mesh->findNode(mesh->findNodePosition(nodes[1]));
             O = VectorialValue(nO.x, nO.y, nO.z);
             x = VectorialValue(nX.x-nO.x, nX.y-nO.y, nX.z-nO.z);
             // If the beam is parallel to Oz, we have a special treatment.
@@ -211,7 +211,7 @@ CartesianCoordinateSystem SystusWriter::buildElementDefaultReferentiel(const Sys
         O = VectorialValue(0,0,0);
         int nbnodes=0;
         for (auto n : nodes){
-            const Node& node = mesh->findNode(mesh->findNodePosition(n), true, systusModel.model);
+            const Node& node = mesh->findNode(mesh->findNodePosition(n));
             O = O + VectorialValue(node.x, node.y, node.z);
             nbnodes++;
         }
@@ -229,9 +229,9 @@ CartesianCoordinateSystem SystusWriter::buildElementDefaultReferentiel(const Sys
 
             //  See Systus Reference Manual, Section 16.2.2, subsection "Shell element with three nodes" page 1114
             if (nbnodes==3){
-                const Node& nA0 = mesh->findNode(mesh->findNodePosition(nodes[0]), true, systusModel.model);
-                const Node& nA1 = mesh->findNode(mesh->findNodePosition(nodes[1]), true, systusModel.model);
-                const Node& nA2 = mesh->findNode(mesh->findNodePosition(nodes[2]), true, systusModel.model);
+                const Node& nA0 = mesh->findNode(mesh->findNodePosition(nodes[0]));
+                const Node& nA1 = mesh->findNode(mesh->findNodePosition(nodes[1]));
+                const Node& nA2 = mesh->findNode(mesh->findNodePosition(nodes[2]));
 
                 const VectorialValue& a0a1 = VectorialValue(nA1.x-nA0.x, nA1.y-nA0.y, nA1.z-nA0.z);
                 const VectorialValue& a0a2 = VectorialValue(nA2.x-nA0.x, nA2.y-nA0.y, nA2.z-nA0.z);
@@ -272,7 +272,7 @@ CartesianCoordinateSystem SystusWriter::buildElementDefaultReferentiel(const Sys
     }
     }
 
-    CartesianCoordinateSystem rcs = CartesianCoordinateSystem(*(systusModel.model), O, x, y);
+    CartesianCoordinateSystem rcs = CartesianCoordinateSystem(*(systusModel.model->mesh), O, x, y);
     rcs.build();
     return rcs;
 
@@ -509,12 +509,12 @@ double SystusWriter::generateRbarRigidity(const SystusModel& systusModel, const 
     // Master node is the same for all cells
     const int masterId = rbar->masterId;
     const int masterPosition = mesh->findNodePosition(masterId);
-    const Node& mN = mesh->findNode(masterPosition, true, systusModel.model);
+    const Node& mN = mesh->findNode(masterPosition);
 
     double maxLength=0.0;
     for (const Cell& cell : rbar->cellGroup->getCells()) {
        vector<int> nodes = cell.nodeIds;
-       const Node& sN = mesh->findNode(cell.nodePositions[1],true, systusModel.model);
+       const Node& sN = mesh->findNode(cell.nodePositions[1]);
        double lengthRbar = sqrt( pow(mN.x-sN.x,2) +pow(mN.y-sN.y,2) + pow(mN.z-sN.z,2));
        maxLength=max(maxLength, lengthRbar);
     }
@@ -553,9 +553,9 @@ double SystusWriter::generateLmpcRigidity(const SystusModel& systusModel, const 
     for (const Cell& cell : lmpc->cellGroup->getCells()) {
         // The reference one is the first one. Why ? Why not ?
         // TODO: a much much better formulation
-        const Node& mN = mesh->findNode(cell.nodePositions[0],true, systusModel.model);
+        const Node& mN = mesh->findNode(cell.nodePositions[0]);
         for (unsigned int i=1;i<cell.nodePositions.size();i++){
-            const Node& sN = mesh->findNode(cell.nodePositions[i],true, systusModel.model);
+            const Node& sN = mesh->findNode(cell.nodePositions[i]);
             double lengthLmpc = sqrt( pow(mN.x-sN.x,2) +pow(mN.y-sN.y,2) + pow(mN.z-sN.z,2));
            maxLength=max(maxLength, lengthLmpc);
         }
@@ -637,7 +637,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 
             if (systusOption == 4){
                 int master_rot_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
-                master_rot_id = mesh->findNode(master_rot_position).id;
+                master_rot_id = mesh->findNodeId(master_rot_position);
                 rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
             }
 
@@ -661,7 +661,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
                 if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
                     const Node& slave = mesh->findNode(cell.nodePositions[1]);
                     int slave_lagr_position = mesh->addNode(Node::AUTO_ID, slave.lx, slave.ly, slave.lz, slave.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-                    int slave_lagr_id = mesh->findNode(slave_lagr_position).id;
+                    int slave_lagr_id = mesh->findNodeId(slave_lagr_position);
                     nodes.push_back(slave_lagr_id);
                 }
 
@@ -714,17 +714,17 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
             // Creating a Lagrange node
             // Lagrange node must NOT have an orientation, as they inherit it from the slave node.
             int master_lagr_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-            int master_lagr_id = mesh->findNode(master_lagr_position).id;
+            int master_lagr_id = mesh->findNodeId(master_lagr_position);
 
             // Creating rotation nodes if needed
             int master_rot_id=0;
             int master_lagr_rot_id=0;
             if (systusOption == 4){
                 int master_rot_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
-                master_rot_id = mesh->findNode(master_rot_position).id;
+                master_rot_id = mesh->findNodeId(master_rot_position);
                 rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
                 int master_lagr_rot_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-                master_lagr_rot_id = mesh->findNode(master_lagr_rot_position).id;
+                master_lagr_rot_id = mesh->findNodeId(master_lagr_rot_position);
             }
 
             // Updating the cells
@@ -800,7 +800,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
                     vector<int> nodes = cell.nodeIds;
                     const Node& first = mesh->findNode(cell.nodePositions[0]);
                     int first_lagr_position = mesh->addNode(Node::AUTO_ID, first.lx, first.ly, first.lz, first.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-                    int first_lagr_id = mesh->findNode(first_lagr_position).id;
+                    int first_lagr_id = mesh->findNodeId(first_lagr_position);
                     nodes.push_back(first_lagr_id);
                     mesh->updateCell(cell.id, CellType::polyType(static_cast<unsigned int>(nodes.size())), nodes, true);
                 }
@@ -992,7 +992,7 @@ void SystusWriter::writeNodalForce(const SystusModel& systusModel, shared_ptr<No
     for(auto& nodePosition : nodalForce->nodePositions()) {
         const VectorialValue& force = nodalForce->getForceInGlobalCS(nodePosition);
         const VectorialValue& moment = nodalForce->getMomentInGlobalCS(nodePosition);
-        const Node& node = systusModel.model->mesh->findNode(nodePosition);
+        const int nodeId = systusModel.model->mesh->findNodeId(nodePosition);
 
         vector<double> vec;
         double normvec = 0.0;
@@ -1018,8 +1018,7 @@ void SystusWriter::writeNodalForce(const SystusModel& systusModel, shared_ptr<No
         // Rigid Body Element in option 3D.
         // We report the force from the master node to the master rotational node.
         if (systusOption == 4){
-            int nid = node.id;
-            const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
+            const auto & it = rotationNodeIdByTranslationNodeId.find(nodeId);
             if (it != rotationNodeIdByTranslationNodeId.end()){
                 int rotNodePosition= systusModel.model->mesh->findNodePosition(it->second);
                 normvec = 0.0;
@@ -1247,7 +1246,7 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
                             if (!is_zero(normvec)){
                                 bool firstTime=true;
                                 for (int nodePosition : constraint->nodePositions()){
-                                    int nid = systusModel.model->mesh->findNode(nodePosition,false).id;
+                                    int nid = systusModel.model->mesh->findNodeId(nodePosition);
                                     const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
                                     if (it!=rotationNodeIdByTranslationNodeId.end()){
                                         int rotNodePosition= systusModel.model->mesh->findNodePosition(it->second);
@@ -1304,7 +1303,7 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
                 continue;
             }
 
-            auto cs = systusModel.model->getCoordinateSystemByPosition(node.displacementCS);
+            auto cs = systusModel.model->mesh->getCoordinateSystemByPosition(node.displacementCS);
             vector<double> vec;
             switch (cs->type){
             case CoordinateSystem::CARTESIAN:{
@@ -1324,7 +1323,7 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
             // Element orientation : it depends of the kind of elements.
             case CoordinateSystem::ORIENTATION:{
                 handleWritingWarning("Local coordinate system are forbidden for nodes.");
-                handleWritingWarning("We will fill a null vector for the node "+ to_string(mesh->findNode(node.position).id));
+                handleWritingWarning("We will fill a null vector for the node "+ to_string(mesh->findNodeId(node.position)));
                 vec.push_back(0);
                 vec.push_back(0);
                 vec.push_back(0);
@@ -1339,7 +1338,7 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
 
             // Cylyndrical orientation : we create a vector by point
             case CoordinateSystem::CYLINDRICAL:{
-                const Node& nNode = mesh->findNode(node.position, true, systusModel.model);
+                const Node& nNode = mesh->findNode(node.position);
                 shared_ptr<CylindricalCoordinateSystem> ccs = static_pointer_cast<CylindricalCoordinateSystem>(cs);
                 ccs->updateLocalBase(VectorialValue(nNode.x, nNode.y, nNode.z));
                 const VectorialValue& angles = ccs->getLocalEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
@@ -1359,7 +1358,7 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
                 ostringstream oerr;
                 oerr << *cs << " is not supported. Referentiel dismissed.";
                 handleWritingWarning(oerr.str());
-                handleWritingWarning("We will fill a null vector for the node "+ to_string(mesh->findNode(node.position).id));
+                handleWritingWarning("We will fill a null vector for the node "+ to_string(mesh->findNodeId(node.position)));
                 vec.push_back(0);
                 vec.push_back(0);
                 vec.push_back(0);
@@ -1443,7 +1442,7 @@ void SystusWriter::fillConstraintsNodes(const SystusModel& systusModel, const in
                     // Rigid Body Element in option 3D.
                     // We report the constraints from the master node to the master rotational node.
                     if (systusOption==4){
-                        int nid =  mesh->findNode(nodePosition).id;
+                        int nid =  mesh->findNodeId(nodePosition);
                         const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
                         if (it != rotationNodeIdByTranslationNodeId.end()){
                             DOFS constrainedRot(constrained.contains(DOF::RX),constrained.contains(DOF::RY),constrained.contains(DOF::RZ));
@@ -2201,8 +2200,7 @@ void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
     out << " 3" << endl; // number of coordinates
 
     for (const auto& node : mesh->nodes) {
-        const Node& nNode = mesh->findNode(node.position, true, systusModel.model);
-        int nid = nNode.id;
+        int nid = node.id;
         int iconst = 0;
         auto it = constraintByNodePosition.find(node.position);
         if (it != constraintByNodePosition.end())
@@ -2222,10 +2220,10 @@ void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
             idisp = it2->second;
         out << nid << " " << iconst << " " << imeca << " " << iangl << " " << isol << " " << idisp
                 << " ";
-        out << nNode.x << " " << nNode.y << " " << nNode.z << endl;
+        out << node.x << " " << node.y << " " << node.z << endl;
 
         // Small warning against "infinite" node.
-        if (nNode.x < -1.0e+300){
+        if (node.x < -1.0e+300){
             handleWritingWarning("Infinite node with Id: " + std::to_string(nid),"Nodes");
         }
     }
@@ -2237,7 +2235,7 @@ void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
 void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel,
         const int dim, const int celltype, const vector<int> nodes, const int cpos, ostream& out){
 
-    shared_ptr<CoordinateSystem> cs = systusModel.model->getCoordinateSystemByPosition(cpos);
+    shared_ptr<CoordinateSystem> cs = systusModel.model->mesh->getCoordinateSystemByPosition(cpos);
     if (cs== nullptr){
         out << " 0";
         handleWritingWarning("Unknown coordinate system of position " +to_string(cpos), "Angle Elements");

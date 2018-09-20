@@ -264,10 +264,10 @@ void NastranWriter::writeConstraints(const shared_ptr<vega::Model>& model, ofstr
 				shared_ptr<const SinglePointConstraint> spc = static_pointer_cast<
 						const SinglePointConstraint>(constraint);
 				for (int nodePosition : spc->nodePositions()) {
-					const Node& node = model->mesh->findNode(nodePosition);
+					const int nodeId = model->mesh->findNodeId(nodePosition);
 					out
 							<< Line("SPC1").add(constraintSet->bestId()).add(
-									spc->getDOFSForNode(nodePosition)).add(node.id);
+									spc->getDOFSForNode(nodePosition)).add(nodeId);
 				}
 			}
 		}
@@ -279,12 +279,12 @@ void NastranWriter::writeConstraints(const shared_ptr<vega::Model>& model, ofstr
 						static_pointer_cast<const RigidConstraint>(constraint);
 				Line rbe2("RBE2");
 				rbe2.add(constraintSet->bestId());
-				const Node& master = model->mesh->findNode(rigid->getMaster());
-				rbe2.add(master.id);
+				const int masterId = model->mesh->findNodeId(rigid->getMaster());
+				rbe2.add(masterId);
 				rbe2.add(DOFS::ALL_DOFS);
 				for (int slavePosition : rigid->getSlaves()) {
-					const Node& slave = model->mesh->findNode(slavePosition);
-					rbe2.add(slave.id);
+					const int slaveId = model->mesh->findNodeId(slavePosition);
+					rbe2.add(slaveId);
 				}
 				out << rbe2;
 			}
@@ -302,7 +302,7 @@ void NastranWriter::writeLoadings(const shared_ptr<vega::Model>& model, ofstream
 				Line grav("GRAV");
 				grav.add(loadingSet->bestId());
 				if (gravity->hasCoordinateSystem()) {
-					grav.add(model->find(gravity->coordinateSystem_reference)->bestId());
+					grav.add(gravity->coordinate_system_id);
 				} else {
 					grav.add(0);
 				}
@@ -336,7 +336,7 @@ void NastranWriter::writeLoadings(const shared_ptr<vega::Model>& model, ofstream
 				pload4.add(forceSurface->getApplicationFace()[0]);
 				pload4.add(forceSurface->getApplicationFace()[2]);
 				if (forceSurface->hasCoordinateSystem()) {
-					shared_ptr<CoordinateSystem> coordinateSystem = model->find(forceSurface->coordinateSystem_reference);
+					shared_ptr<CoordinateSystem> coordinateSystem = model->mesh->getCoordinateSystem(forceSurface->coordinate_system_id);
 					pload4.add(coordinateSystem->bestId());
 					pload4.add(coordinateSystem->vectorToGlobal(forceSurface->getForce().normalized()));
 				} else {
@@ -417,7 +417,8 @@ string NastranWriter::writeModel(const shared_ptr<vega::Model> model,
 	out << "TITLE=Vega Exported Model" << endl;
 	out << "BEGIN BULK" << endl;
 
-	for (shared_ptr<CoordinateSystem> coordinateSystem : model->coordinateSystems) {
+	for (auto& coordinateSystemEntry : model->mesh->coordinateSystemStorage.coordinateSystemById) {
+    shared_ptr<CoordinateSystem> coordinateSystem = coordinateSystemEntry.second;
 		switch (coordinateSystem->type) {
 			case CoordinateSystem::CARTESIAN:
 				// TODO LD complete

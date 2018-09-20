@@ -26,6 +26,7 @@
 
 #include "CoordinateSystem.h"
 #include "Dof.h"
+#include <boost/lexical_cast.hpp>
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
@@ -242,17 +243,11 @@ private:
     friend Mesh;
     static int auto_node_id;
     Node(int id, double lx, double ly, double lz, int position, DOFS dofs,
-            int positionCS = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
+            double gx, double gy, double gz, int positionCS = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
             int displacementCS = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
 public:
     static const int AUTO_ID = INT_MIN;
     static const int UNAVAILABLE_NODE = INT_MIN;
-
-    /**
-     * Compute (x,y,z) the position of the Node in the Global Coordinate System
-     * from (lx,ly,lz) the position of the Node in the Local Coordinate System.
-     */
-    void buildGlobalXYZ(const Model* model = nullptr);
 
     /** Usually, the original id of the node, from the input mesh.
      *  Can also be an automatic generated id.
@@ -266,17 +261,22 @@ public:
     const double lx; /**< X coordinate of the Node in the Local Coordinate System positionCS **/
     const double ly; /**< Y coordinate of the Node in the Local Coordinate System positionCS **/
     const double lz; /**< Z coordinate of the Node in the Local Coordinate System positionCS **/
+    //bool, but Valgrind isn't happy maybe gcc 2.7.2 bug?
+    DOFS dofs;
     double x; /**< X coordinate of the Node in the Global Coordinate System **/
     double y; /**< Y coordinate of the Node in the Global Coordinate System **/
     double z; /**< Z coordinate of the Node in the Global Coordinate System **/
-
-    //bool, but Valgrind isn't happy maybe gcc 2.7.2 bug?
-    DOFS dofs;
     const int positionCS;     /**< Vega Position of the CS used to compute the position of node. **/
     const int displacementCS; /**< Vega Position of the CS used to compute displacement, loadings, etc. **/
-    const std::string getMedName() const;
+    inline static const std::string MedName(const int nodePosition) {
+        if (nodePosition == Node::UNAVAILABLE_NODE) {
+          throw std::logic_error(std::string("Node position ") + std::to_string(nodePosition) + " not found.");
+        }
+        return "N" + std::to_string(nodePosition + 1);
+    }
     ~Node() {
     }
+    //Node(const Node& that) = delete;
 };
 
 class NodeGroup final : public Group {
@@ -311,7 +311,7 @@ private:
     static std::unordered_map<CellType::Code, std::vector<std::vector<int>>, std::hash<int> > init_faceByCelltype();
     static int auto_cell_id;
     Cell(int id, const CellType &type, const std::vector<int> &nodeIds, const std::vector<int> &nodePositions, bool isvirtual,
-            int cid, int elementId, int cellTypePosition);
+            int cid, int elementId, int cellTypePosition, std::shared_ptr<OrientationCoordinateSystem> orientation = nullptr);
 public:
     static const int AUTO_ID = INT_MIN;
     static const int UNAVAILABLE_CELL = INT_MIN;
@@ -324,6 +324,8 @@ public:
     int elementId;
     int cellTypePosition;
     int cid; /**< Id of local Coordinate System **/
+    std::shared_ptr<OrientationCoordinateSystem> orientation;
+
     /**
      * @param nodeId1: grid point connected to a corner of the face.
      * Required data for solid elements only.
@@ -345,12 +347,13 @@ public:
      */
 
     std::vector<int> faceids_from_two_nodes(int nodeId1, int nodeId2 = INT_MIN) const;
+
     /**
      * Returns the name used in med file for this cell
      */
-    std::string getMedName() const;
-
-    std::shared_ptr<OrientationCoordinateSystem> getOrientation(const Model* model = nullptr) const;
+    inline static const std::string MedName(const int id) {
+        return "M" + std::to_string(id);
+    }
 
     virtual ~Cell();
 };

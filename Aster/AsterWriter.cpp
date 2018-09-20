@@ -45,6 +45,16 @@ string AsterWriter::writeModel(const shared_ptr<vega::Model> model_ptr,
 		throw iostream::failure("Directory " + path + " don't exist.");
 	}
 
+  fs::path inputFile(asterModel.configuration.inputFile);
+	if (fs::exists(inputFile)) {
+		fs::copy_file(inputFile, fs::absolute(path) / inputFile.filename(), fs::copy_option::overwrite_if_exists);
+	}
+
+  fs::path testFile = asterModel.configuration.resultFile;
+	if (fs::exists(testFile)) {
+		fs::copy_file(testFile, fs::absolute(path) / testFile.filename(), fs::copy_option::overwrite_if_exists);
+	}
+
 	string exp_path = asterModel.getOutputFileName(".export");
 	string med_path = asterModel.getOutputFileName(".med");
 	string comm_path = asterModel.getOutputFileName(".comm");
@@ -672,7 +682,7 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 			out << "                    ORIENTATION=(" << endl;
 			orientationsPrinted = true;
 		}
-		std::shared_ptr<vega::CoordinateSystem> cs= asterModel.model.getCoordinateSystemByPosition(it.first);
+		std::shared_ptr<vega::CoordinateSystem> cs= asterModel.model.mesh->getCoordinateSystemByPosition(it.first);
 		if (cs->type!=CoordinateSystem::Type::ORIENTATION){
 		   handleWritingError("Coordinate System of Group "+ it.second+" is not an ORIENTATION.");
 		}
@@ -855,7 +865,7 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 				gapCount++;
 				out << "                             _F(";
 				out << "NOEUD='"
-						<< asterModel.model.mesh->findNode(gapParticipation->nodePosition).getMedName()
+						<< Node::MedName(gapParticipation->nodePosition)
 						<< "',";
 				out << "COEF_IMPO=" << "C" << constraintSet.getId() << "I" << to_string(gapCount)
 						<< ",";
@@ -891,6 +901,7 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 
 void AsterWriter::writeSPC(const AsterModel& asterModel, const ConstraintSet& cset,
 		ostream&out) {
+  UNUSEDV(asterModel);
 	const set<shared_ptr<Constraint>> spcs = cset.getConstraintsByType(Constraint::SPC);
 	if (spcs.size() > 0) {
 		out << "                   DDL_IMPO=(" << endl;
@@ -909,7 +920,7 @@ void AsterWriter::writeSPC(const AsterModel& asterModel, const ConstraintSet& cs
 					out << "NOEUD=(";
 					for (int nodePosition : spc->nodePositions()) {
 						out << "'"
-								<< asterModel.model.mesh->findNode(nodePosition).getMedName()
+								<< Node::MedName(nodePosition)
 								<< "', ";
 					}
 					out << "),";
@@ -940,6 +951,7 @@ void AsterWriter::writeSPC(const AsterModel& asterModel, const ConstraintSet& cs
 }
 void AsterWriter::writeLIAISON_SOLIDE(const AsterModel& asterModel, const ConstraintSet& cset,
 		ostream& out) {
+  UNUSEDV(asterModel);
 
 	const set<shared_ptr<Constraint>> rigidConstraints = cset.getConstraintsByType(
 			Constraint::RIGID);
@@ -963,7 +975,7 @@ void AsterWriter::writeLIAISON_SOLIDE(const AsterModel& asterModel, const Constr
 
 			out << "                                   _F(NOEUD=(";
 			for (int node : quasiRigidPtr->nodePositions()) {
-				out << "'" << asterModel.model.mesh->findNode(node).getMedName() << "',";
+				out << "'" << Node::MedName(node) << "',";
 			}
 			out << ")," << endl;
 			out << "                                      )," << endl;
@@ -975,6 +987,7 @@ void AsterWriter::writeLIAISON_SOLIDE(const AsterModel& asterModel, const Constr
 
 void AsterWriter::writeRBE3(const AsterModel& asterModel, const ConstraintSet& cset,
 		ostream& out) {
+  UNUSEDV(asterModel);
 	const set<shared_ptr<Constraint>> constraints = cset.getConstraintsByType(Constraint::RBE3);
 	if (constraints.size() > 0) {
 		out << "                   LIAISON_RBE3=(" << endl;
@@ -982,7 +995,7 @@ void AsterWriter::writeRBE3(const AsterModel& asterModel, const ConstraintSet& c
 			shared_ptr<const RBE3> rbe3 = static_pointer_cast<const RBE3>(constraint);
 			int masterNode = rbe3->getMaster();
 			out << "                                 _F(NOEUD_MAIT='"
-					<< asterModel.model.mesh->findNode(masterNode).getMedName() << "',"
+					<< Node::MedName(masterNode) << "',"
 					<< endl;
 			out << "                                    DDL_MAIT=(";
 			DOFS dofs = rbe3->getDOFSForNode(masterNode);
@@ -1003,7 +1016,7 @@ void AsterWriter::writeRBE3(const AsterModel& asterModel, const ConstraintSet& c
 
 			out << "                                    NOEUD_ESCL=(";
 			for (int slaveNode : slaveNodes) {
-				out << "'" << asterModel.model.mesh->findNode(slaveNode).getMedName() << "',";
+				out << "'" << Node::MedName(slaveNode) << "',";
 			}
 			out << ")," << endl;
 			out << "                                    DDL_ESCL=(";
@@ -1055,6 +1068,7 @@ void AsterWriter::writeRBE3(const AsterModel& asterModel, const ConstraintSet& c
 
 void AsterWriter::writeLMPC(const AsterModel& asterModel, const ConstraintSet& cset,
 		ostream& out) {
+  UNUSEDV(asterModel);
 	const set<shared_ptr<Constraint>> lmpcs = cset.getConstraintsByType(Constraint::LMPC);
 	if (lmpcs.size() > 0) {
 		out << "                   LIAISON_DDL=(" << endl;
@@ -1064,7 +1078,7 @@ void AsterWriter::writeLMPC(const AsterModel& asterModel, const ConstraintSet& c
 			out << "                                _F(NOEUD=(";
 			set<int> nodes = lmpc->nodePositions();
 			for (int nodePosition : nodes) {
-				string nodeName = asterModel.model.mesh->findNode(nodePosition).getMedName();
+				string nodeName = Node::MedName(nodePosition);
 				DOFS dofs = lmpc->getDOFSForNode(nodePosition);
 				for (int i = 0; i < dofs.size(); i++) {
 					out << "'" << nodeName << "', ";
@@ -1141,6 +1155,7 @@ void AsterWriter::writeRotation(const LoadSet& loadSet, ostream& out) {
 }
 
 void AsterWriter::writeNodalForce(const AsterModel& asterModel, const LoadSet& loadSet, ostream& out) {
+  UNUSEDV(asterModel);
 	const set<shared_ptr<Loading>> nodalForces = loadSet.getLoadingsByType(Loading::NODAL_FORCE);
 	if (nodalForces.size() > 0) {
 		out << "                      FORCE_NODALE=(" << endl;
@@ -1150,7 +1165,7 @@ void AsterWriter::writeNodalForce(const AsterModel& asterModel, const LoadSet& l
                 VectorialValue force = nodal_force->getForceInGlobalCS(nodePosition);
                 VectorialValue moment = nodal_force->getMomentInGlobalCS(nodePosition);
                 out << "                                    _F(NOEUD='"
-                        << asterModel.model.mesh->findNode(nodePosition).getMedName() << "',";
+                        << Node::MedName(nodePosition) << "',";
                 if (!is_zero(force.x()))
                     out << "FX=" << force.x() << ",";
                 if (!is_zero(force.y()))
@@ -1296,8 +1311,8 @@ void AsterWriter::writeCellContainer(const CellContainer& cellContainer, ostream
 	}
 	if (cellContainer.hasCells()) {
 		out << "MAILLE=(";
-		for (auto& cell : cellContainer.getCells()) {
-			out << "'" << cell.getMedName() << "',";
+		for (int cellId : cellContainer.getCellIds()) {
+			out << "'" << Cell::MedName(cellId) << "',";
 		}
 		out << "),";
 	}
@@ -1536,7 +1551,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
                                 VectorialValue force = nodal_force->getForceInGlobalCS(nodePosition);
                                 VectorialValue moment = nodal_force->getMomentInGlobalCS(nodePosition);
                                 out << "                                    _F(NOEUD='"
-                                        << asterModel.model.mesh->findNode(nodePosition).getMedName() << "'," << endl;
+                                        << Node::MedName(nodePosition) << "'," << endl;
                                 out << "                                      AVEC_CMP=(";
                                 if (!is_equal(force.x(),0))
                                     out << "'DX',";
@@ -1713,12 +1728,12 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 
 void AsterWriter::writeNodalDisplacementAssertion(const AsterModel& asterModel,
 		const Assertion& assertion, ostream& out) const {
+  UNUSEDV(asterModel);
 	const NodalDisplacementAssertion& nda = dynamic_cast<const NodalDisplacementAssertion&>(assertion);
-	const Node& node = asterModel.model.mesh->findNode(nda.nodePosition);
 	bool relativeComparison = abs(nda.value) >= SMALLEST_RELATIVE_COMPARISON;
 	out << "                     CRITERE = "
 			<< (relativeComparison ? "'RELATIF'," : "'ABSOLU',") << endl;
-	out << "                     NOEUD='" << node.getMedName() << "'," << endl;
+	out << "                     NOEUD='" << Node::MedName(nda.nodePosition) << "'," << endl;
 	out << "                     NOM_CMP    = '" << AsterModel::DofByPosition.at(nda.dof.position) << "'," << endl;
 	out << "                     NOM_CHAM   = 'DEPL'," << endl;
 	if (!is_equal(nda.instant, -1)) {
@@ -1736,13 +1751,13 @@ void AsterWriter::writeNodalDisplacementAssertion(const AsterModel& asterModel,
 
 void AsterWriter::writeNodalComplexDisplacementAssertion(const AsterModel& asterModel,
 		const Assertion& assertion, ostream& out) const {
+  UNUSEDV(asterModel);
 	const NodalComplexDisplacementAssertion& nda =
 			dynamic_cast<const NodalComplexDisplacementAssertion&>(assertion);
-	const Node& node = asterModel.model.mesh->findNode(nda.nodePosition);
 	bool relativeComparison = abs(nda.value) >= SMALLEST_RELATIVE_COMPARISON;
 	out << "                     CRITERE = "
 			<< (relativeComparison ? "'RELATIF'," : "'ABSOLU',") << endl;
-	out << "                     NOEUD='" << node.getMedName() << "'," << endl;
+	out << "                     NOEUD='" << Node::MedName(nda.nodePosition) << "'," << endl;
 	out << "                     NOM_CMP = '" << AsterModel::DofByPosition.at(nda.dof.position)
 			<< "'," << endl;
 	out << "                     NOM_CHAM = 'DEPL'," << endl;

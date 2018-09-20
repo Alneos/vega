@@ -351,50 +351,9 @@ CellGroup::~CellGroup() {
 ///////////////////////////////////////////////////////////////////////////////
 int Node::auto_node_id = 9999999;
 
-Node::Node(int id, double lx, double ly, double lz, int position1, DOFS inElement1, int _positionCS, int _displacementCS) :
-		id(id), position(position1), lx(lx), ly(ly), lz(lz), dofs(inElement1),
+Node::Node(int id, double lx, double ly, double lz, int position1, DOFS inElement1, double gx, double gy, double gz, int _positionCS, int _displacementCS) :
+		id(id), position(position1), lx(lx), ly(ly), lz(lz), dofs(inElement1), x(gx), y(gy), z(gz),
 		positionCS(_positionCS), displacementCS(_displacementCS) {
-    x=-2.0e+300;
-    y=-2.0e+300;
-    z=-2.0e+300;
-}
-
-const string Node::getMedName() const {
-    // MED will renumber nodes without taking ids into account
-	return string("N") + lexical_cast<string>(position + 1);
-}
-
-void Node::buildGlobalXYZ(const Model *model){
-    if (positionCS == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
-        this->x=this->lx;
-        this->y=this->ly;
-        this->z=this->lz;
-    }else{
-        if (model == nullptr){
-            ostringstream oss;
-            oss << "ERROR: Model needed to access Local Coordinate System."<<endl;
-            throw logic_error(oss.str());
-        }
-        shared_ptr<CoordinateSystem> coordSystem = model->getCoordinateSystemByPosition(positionCS);
-        if (!coordSystem) {
-            ostringstream oss;
-            oss << "ERROR: Coordinate System of position " << positionCS << " for Node "<<this->id<<" not found.";
-            // We should throw an error... but only in "strict mode".
-            // For other, it's too harsh for a regular translation.
-            //throw logic_error(oss.str());
-            oss <<  " Global Coordinate System used instead."<< endl;
-            cerr<< oss.str();
-            this->x=this->lx;
-            this->y=this->ly;
-            this->z=this->lz;
-            return;
-        }
-
-        VectorialValue gCoord = coordSystem->positionToGlobal(VectorialValue(this->lx,this->ly,this->lz));
-        this->x= gCoord.x();
-        this->y= gCoord.y();
-        this->z= gCoord.z();
-    }
 }
 
 ostream &operator<<(ostream &out, const Node& node) {
@@ -484,20 +443,11 @@ unordered_map<CellType::Code, vector<vector<int>>, hash<int> > Cell::init_faceBy
 
 Cell::Cell(int id, const CellType &type, const std::vector<int> &nodeIds,
 		const std::vector<int> &nodePositions, bool isvirtual,
-		int cid, int element_id, int cellTypePosition) :
+		int cid, int element_id, int cellTypePosition,
+		std::shared_ptr<OrientationCoordinateSystem> orientation) :
 		id(id), hasOrientation(cid!=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID), type(type),
 				nodeIds(nodeIds), nodePositions(nodePositions), isvirtual(isvirtual), elementId(
-						element_id), cellTypePosition(cellTypePosition), cid(cid) {
-}
-
-string Cell::getMedName() const {
-    // TODO LD check this one: MED will probably renumber cells ignoring id!!
-	return string("M") + lexical_cast<string>(id);
-}
-
-shared_ptr<OrientationCoordinateSystem> Cell::getOrientation(const Model* model) const {
-    shared_ptr<CoordinateSystem> cs = model->getCoordinateSystemByPosition(cid);
-    return static_pointer_cast<OrientationCoordinateSystem>(cs);
+						element_id), cellTypePosition(cellTypePosition), cid(cid), orientation(orientation) {
 }
 
 Cell::~Cell() {

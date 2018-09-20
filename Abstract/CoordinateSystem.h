@@ -34,7 +34,7 @@
 
 namespace vega {
 
-class Model;
+class Mesh;
 
 class CoordinateSystem: public Identifiable<CoordinateSystem> {
     friend std::ostream& operator<<(std::ostream&, const CoordinateSystem&);
@@ -48,7 +48,7 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
         UNKNOWN
     };
     protected:
-    const Model &model;
+    const Mesh &mesh;
     public:
     const Type type;
 
@@ -71,7 +71,7 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
     inline const VectorialValue getEz() const {return ez;};
 
     protected:
-    CoordinateSystem(const Model&, Type, const VectorialValue origin, const VectorialValue ex,
+    CoordinateSystem(const Mesh&, Type, const VectorialValue origin, const VectorialValue ex,
             const VectorialValue ey, const int rcs = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
     public:
     virtual void updateLocalBase(const VectorialValue&) {
@@ -107,9 +107,9 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
 
 class CartesianCoordinateSystem: public CoordinateSystem {
 public:
-    CartesianCoordinateSystem(const Model&, const VectorialValue& origin = VectorialValue::O, const VectorialValue& ex = VectorialValue::X,
+    CartesianCoordinateSystem(const Mesh&, const VectorialValue& origin = VectorialValue::O, const VectorialValue& ex = VectorialValue::X,
             const VectorialValue& ey = VectorialValue::Y, const int rcs = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
-    CartesianCoordinateSystem(const Model& model, int nO, int nZ, int nXZ, const int rcs = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
+    CartesianCoordinateSystem(const Mesh&, int nO, int nZ, int nXZ, const int rcs = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
 
     /**
      * Build (O, ex,ey,ez) from nodesId.
@@ -132,9 +132,9 @@ public:
  */
 class OrientationCoordinateSystem: public CoordinateSystem {
 public:
-    OrientationCoordinateSystem(const Model&, const int nO, const int nX,
+    OrientationCoordinateSystem(const Mesh&, const int nO, const int nX,
             const int nV, const int rcs = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
-    OrientationCoordinateSystem(const Model&, const int nO, const int nX,
+    OrientationCoordinateSystem(const Mesh&, const int nO, const int nX,
                 const VectorialValue v, const int rcs = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
 
 protected:
@@ -163,7 +163,7 @@ class CylindricalCoordinateSystem: public CoordinateSystem {
     VectorialValue ur;
     VectorialValue utheta;
     public:
-    CylindricalCoordinateSystem(const Model&, const VectorialValue origin, const VectorialValue ex,
+    CylindricalCoordinateSystem(const Mesh&, const VectorialValue origin, const VectorialValue ex,
             const VectorialValue ey, const int rcs = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
 
     /**
@@ -233,7 +233,7 @@ class CylindricalCoordinateSystem: public CoordinateSystem {
  *  */
 class CoordinateSystemStorage final {
 private:
-    friend Model;
+    friend Mesh;
     friend CoordinateSystem;
     static int cs_next_position;          /**< Static token for the next CS Position. */
     static constexpr int UNAVAILABLE_ID = -INT_MAX;
@@ -246,23 +246,30 @@ private:
      * Reserve a CS position given a user id (input model id).
      */
     int reserve(int user_id);
+    const Mesh& mesh;
+    CoordinateSystemStorage(const Mesh&, LogLevel logLevel);
 public:
-    Model* model;
-    CoordinateSystemStorage(Model* model, LogLevel logLevel);
+    std::map<int, std::shared_ptr<CoordinateSystem>> coordinateSystemById;
+
     /** Find the Position related to the input user id.
+     * TODO LD : what is this ?? also look at findPositionById !!
      *  Return UNAVAILABLE_POSITION if nothing is found.
      */
     int findPositionByUserId(int user_id) const;
+
     /** Find the Position related to the input model id.
+     * TODO LD : what is this ?? also look at findPositionByUserId !!
      *  Return UNAVAILABLE_POSITION if nothing is found.
      */
     int findPositionById(int model_id) const;
+
     /** Update the maps with the data (id, original_id)
      *  of this CS.
      *  Return the corresponding Position.
      */
     int add(const CoordinateSystem& coordinateSystem);
-    int getId(int cpos) const;
+    std::shared_ptr<CoordinateSystem> get(int csid) const;
+    int getId(int cpos) const; /**< TODO LD : what is this for? */
     //bool validate() const;
 };
 

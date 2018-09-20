@@ -56,9 +56,9 @@ public:
 	static const std::string name;
 	static const std::map<Type, std::string> stringByType;
 	const ApplicationType applicationType;
-	const Reference<CoordinateSystem> coordinateSystem_reference;
-	bool hasCoordinateSystem() const {
-		return coordinateSystem_reference.original_id
+	const int coordinate_system_id;
+	inline bool hasCoordinateSystem() const {
+		return coordinate_system_id
 				!= CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
 	}
 	virtual std::shared_ptr<Loading> clone() const = 0;

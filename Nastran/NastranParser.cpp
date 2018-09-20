@@ -173,7 +173,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<Mode
         map<string, string>& context) {
     bool canContinue = true;
     bool readNewKeyword = true;
-//    bool subCaseFound = false;
+    bool subCaseFound = false;
     string keyword = "";
 
     tok.nextLine();
@@ -186,9 +186,9 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<Mode
             tok.setCurrentKeyword(keyword);
             if (keyword.find("BEGIN") != string::npos) {
                 canContinue = false;
-//                if (!subCaseFound) {
-//                    addAnalysis(tok, model, context);
-//                }
+                if (!subCaseFound) {
+                    addAnalysis(tok, model, context);
+                }
             } else if (keyword == "B2GG") {
                 // Selects direct input damping matrix or matrices.
                 string line;
@@ -282,7 +282,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<Mode
             } else if (keyword == "SUBCASE") {
                 keyword = parseSubcase(tok, model, context);
                 readNewKeyword = false;
-//                subCaseFound = true;
+                subCaseFound = true;
             } else if (keyword == "SUBTITLE") {
                 string line;
                 while (tok.nextSymbolType == NastranTokenizer::SYMBOL_FIELD)
@@ -417,7 +417,7 @@ shared_ptr<Model> NastranParser::parse(const ConfigurationParameters& configurat
 }
 
 string NastranParser::defaultAnalysis() const {
-    return "101";
+    return ""; // see github #15
 }
 
 void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, map<string, string> &context,
@@ -429,6 +429,10 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         analysis_str = trim_copy(it->second);
     else
         analysis_str = defaultAnalysis();
+
+    if (analysis_str.empty()) {
+      return;
+    }
 
     if (analysis_str == "200" || analysis_str == "DESOPT") {
         auto it = context.find("ANALYSIS");
@@ -711,8 +715,8 @@ void NastranParser::parseCORD1R(NastranTokenizer& tok, shared_ptr<Model> model) 
         int nA  = tok.nextInt();
         int nB  = tok.nextInt();
         int nC  = tok.nextInt();
-        CartesianCoordinateSystem coordinateSystem(*model, nA, nB, nC, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, cid);
-        model->add(coordinateSystem);
+        CartesianCoordinateSystem coordinateSystem(*(model->mesh), nA, nB, nC, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, cid);
+        model->mesh->add(coordinateSystem);
         }
 }
 
@@ -733,8 +737,8 @@ void NastranParser::parseCORD2C(NastranTokenizer& tok, shared_ptr<Model> model) 
     VectorialValue ex = (vect[2] - vect[0]).orthonormalized(ez);
     VectorialValue ey = ez.cross(ex);
 
-    CylindricalCoordinateSystem coordinateSystem(*model, vect[0], ex, ey, rid, cid);
-    model->add(coordinateSystem);
+    CylindricalCoordinateSystem coordinateSystem(*(model->mesh), vect[0], ex, ey, rid, cid);
+    model->mesh->add(coordinateSystem);
 }
 
 void NastranParser::parseCORD2R(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -752,8 +756,8 @@ void NastranParser::parseCORD2R(NastranTokenizer& tok, shared_ptr<Model> model) 
     VectorialValue ex = (vect[2] - vect[0]).orthonormalized(ez);
     VectorialValue ey = ez.cross(ex);
 
-    CartesianCoordinateSystem coordinateSystem(*model, vect[0], ex, ey, rid, cid);
-    model->add(coordinateSystem);
+    CartesianCoordinateSystem coordinateSystem(*(model->mesh), vect[0], ex, ey, rid, cid);
+    model->mesh->add(coordinateSystem);
 }
 
 void NastranParser::parseCRIGD1(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -1917,11 +1921,9 @@ void NastranParser::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> model) 
         // TODO LD: encapsulate all this in mesh/cell/node (but it needs model)
         int cellPos = model->mesh->findCellPosition(eid);
         const Cell& cell = model->mesh->findCell(cellPos);
-        std::shared_ptr<OrientationCoordinateSystem> ocs = cell.getOrientation(model.get());
-        Node firstNode = model->mesh->findNode(cell.nodePositions.front());
-        firstNode.buildGlobalXYZ(model.get());
-        Node lastNode = model->mesh->findNode(cell.nodePositions.back());
-        lastNode.buildGlobalXYZ(model.get());
+        std::shared_ptr<OrientationCoordinateSystem> ocs = cell.orientation;
+        const Node& firstNode = model->mesh->findNode(cell.nodePositions.front());
+        const Node& lastNode = model->mesh->findNode(cell.nodePositions.back());
         const VectorialValue& barvect = VectorialValue(lastNode.x - firstNode.x, lastNode.y - firstNode.y, lastNode.z - firstNode.z);
         double dist = barvect.norm();
         /* If SCALE = LE (length), the Xi values are actual distances along the bar x-axis,

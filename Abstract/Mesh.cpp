@@ -77,6 +77,37 @@ CellData::CellData(int id, const CellType& type, bool isvirtual, int elementId, 
 				elementId), cellTypePosition(cellTypePosition) {
 }
 
+bool NodeStorage::validate() const {
+	bool validNodes = true;
+	for (size_t i = 0; i < nodeDatas.size(); ++i) {
+		const NodeData &nodeData = nodeDatas[i];
+		if (nodeData.id == Node::UNAVAILABLE_NODE) {
+			validNodes = false;
+			cerr << "Node in position " << i << " has been reserved, but never defined" << endl;
+		}
+	}
+	if (validNodes && this->logLevel >= LogLevel::DEBUG) {
+		cout << "All the reserved nodes have been defined." << endl;
+	}
+	return validNodes;
+}
+
+/******************************************************************************
+ * Mesh class
+ ******************************************************************************/
+
+Mesh::Mesh(LogLevel logLevel, const string& modelName) :
+		logLevel(logLevel), name(modelName), //
+		nodes(NodeStorage(*this, this->logLevel)),
+				cells(CellStorage(*this, this->logLevel)),
+				coordinateSystemStorage(*this, this->logLevel) {
+
+	finished = false;
+	for (auto cellTypePair : CellType::typeByCode) {
+		cellPositionsByType[*(cellTypePair.second)] = vector<int>();
+	}
+}
+
 int Mesh::addNode(int id, double x, double y, double z, int cpPos, int cdPos) {
 	int nodePosition;
 
@@ -110,28 +141,33 @@ int Mesh::countNodes() const {
 	return static_cast<int>(nodes.nodeDatas.size());
 }
 
-const Node Mesh::findNode(const int nodePosition, const bool buildGlobalXYZ, const Model* model) const {
+const Node Mesh::findNode(const int nodePosition) const {
 	if (nodePosition == Node::UNAVAILABLE_NODE) {
 		throw invalid_argument(
 				string("Node position ") + lexical_cast<string>(nodePosition) + " not found.");
 	}
 	const NodeData &nodeData = nodes.nodeDatas[nodePosition];
-	Node node1 = Node(nodeData.id, nodeData.x, nodeData.y, nodeData.z, nodePosition, nodeData.dofs,
-			nodeData.cpPos, nodeData.cdPos);
-
-	// If asked, we compute the position of the Node in the Global Referentiel System
-	// TODO LD: change this with something more explicit (like globalx etc.)
-	if (buildGlobalXYZ){
-	    node1.buildGlobalXYZ(model);
+	if (nodeData.cpPos == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+      // Should always be an "unnamed return" to avoid useless copies
+      return Node(nodeData.id, nodeData.x, nodeData.y, nodeData.z, nodePosition, nodeData.dofs,
+          nodeData.x, nodeData.y, nodeData.z, nodeData.cpPos, nodeData.cdPos);
+	} else {
+      shared_ptr<CoordinateSystem> coordSystem = this->getCoordinateSystemByPosition(nodeData.cpPos);
+      if (!coordSystem) {
+          ostringstream oss;
+          oss << "ERROR: Coordinate System of position " << nodeData.cpPos << " for Node "<<nodeData.id<<" not found.";
+          // We should throw an error... but only in "strict mode".
+          // For other, it's too harsh for a regular translation.
+          //throw logic_error(oss.str());
+          oss <<  " Global Coordinate System used instead."<< endl;
+          cerr<< oss.str();
+          return Node(nodeData.id, nodeData.x, nodeData.y, nodeData.z, nodePosition, nodeData.dofs,
+              nodeData.x, nodeData.y, nodeData.z, nodeData.cpPos, nodeData.cdPos);
+      }
+      const VectorialValue& gCoord = coordSystem->positionToGlobal(VectorialValue(nodeData.x,nodeData.y,nodeData.z));
+      return Node(nodeData.id, nodeData.x, nodeData.y, nodeData.z, nodePosition, nodeData.dofs,
+          gCoord.x(), gCoord.y(), gCoord.z(), nodeData.cpPos, nodeData.cdPos);
 	}
-	/*
-	 * #if defined VDEBUG && defined __GNUC__
-	 *	cerr << "node:" << node1 << endl;
-	 *	VALGRIND_CHECK_VALUE_IS_DEFINED(node1);
-	 *	cerr << "valid" << endl;
-	 * #endif
-	 */
-	return node1;
 }
 
 int Mesh::findOrReserveNode(int nodeId) {
@@ -150,6 +186,14 @@ set<int> Mesh::findOrReserveNodes(const set<int>& nodeIds) {
 	return nodePositions;
 }
 
+int Mesh::findNodeId(const int nodePosition) const {
+	if (nodePosition == Node::UNAVAILABLE_NODE) {
+		throw invalid_argument(
+				string("Node position ") + lexical_cast<string>(nodePosition) + " not found.");
+	}
+	return nodes.nodeDatas[nodePosition].id;
+}
+
 int Mesh::findNodePosition(const int nodeId) const {
 	auto positionIterator = this->nodes.nodepositionById.find(nodeId);
 	if (positionIterator == this->nodes.nodepositionById.end()) {
@@ -161,36 +205,6 @@ int Mesh::findNodePosition(const int nodeId) const {
 void Mesh::allowDOFS(int nodePosition, const DOFS& allowed) {
 	nodes.nodeDatas[nodePosition].dofs = static_cast<char>(nodes.nodeDatas[nodePosition].dofs
 			| allowed);
-}
-
-bool NodeStorage::validate() const {
-	bool validNodes = true;
-	for (size_t i = 0; i < nodeDatas.size(); ++i) {
-		const NodeData &nodeData = nodeDatas[i];
-		if (nodeData.id == Node::UNAVAILABLE_NODE) {
-			validNodes = false;
-			cerr << "Node in position " << i << " has been reserved, but never defined" << endl;
-		}
-	}
-	if (validNodes && this->logLevel >= LogLevel::DEBUG) {
-		cout << "All the reserved nodes have been defined." << endl;
-	}
-	return validNodes;
-}
-
-/******************************************************************************
- * Mesh class
- ******************************************************************************/
-
-Mesh::Mesh(LogLevel logLevel, const string& modelName) :
-		logLevel(logLevel), name(modelName), //
-		nodes(NodeStorage(*this, this->logLevel)),
-				cells(CellStorage(*this, this->logLevel)) {
-
-	finished = false;
-	for (auto cellTypePair : CellType::typeByCode) {
-		cellPositionsByType[*(cellTypePair.second)] = vector<int>();
-	}
 }
 
 int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &nodeIds,
@@ -394,7 +408,7 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
             coordinates.push_back(nodeData.y);
             coordinates.push_back(nodeData.z);
 	    } else {
-	        shared_ptr<CoordinateSystem> coordSystem = model.getCoordinateSystemByPosition(nodeData.cpPos);
+	        shared_ptr<CoordinateSystem> coordSystem = model.mesh->getCoordinateSystemByPosition(nodeData.cpPos);
             VectorialValue gCoord = coordSystem->positionToGlobal(VectorialValue(nodeData.x,nodeData.y,nodeData.z));
             coordinates.push_back(gCoord.x());
             coordinates.push_back(gCoord.y());
@@ -532,6 +546,56 @@ shared_ptr<CellGroup> Mesh::getOrCreateCellGroupForCS(int cid){
 		result = createCellGroup(gmaName, CellGroup::NO_ORIGINAL_ID, string("Orientation"));
 	}
 	return result;
+}
+
+void Mesh::add(const CoordinateSystem& coordinateSystem) {
+  if (this->logLevel >= LogLevel::DEBUG) {
+      cout << "Adding " << coordinateSystem << endl;
+  }
+  coordinateSystemStorage.add(coordinateSystem);
+}
+
+std::shared_ptr<CoordinateSystem> Mesh::getCoordinateSystem(int cid) const {
+  return coordinateSystemStorage.get(cid);
+}
+
+int Mesh::findOrReserveCoordinateSystem(int cid){
+	if (cid == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID)
+		return CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
+	int cpos = coordinateSystemStorage.findPositionByUserId(cid);
+	if (cpos == CoordinateSystemStorage::UNAVAILABLE_POSITION)
+		cpos = coordinateSystemStorage.reserve(cid);
+	return cpos;
+}
+
+int Mesh::addOrFindOrientation(const OrientationCoordinateSystem & ocs){
+
+	int posOrientation = findOrientation(ocs);
+	if (posOrientation==0){
+		this->add(ocs);
+		posOrientation = coordinateSystemStorage.findPositionById(ocs.getId());
+	}
+	return posOrientation;
+}
+
+int Mesh::findOrientation(const OrientationCoordinateSystem & ocs) const{
+	int posOrientation=0;
+	for (auto& coordinateSystemEntry : this->coordinateSystemStorage.coordinateSystemById) {
+    shared_ptr<CoordinateSystem> coordinateSystem = coordinateSystemEntry.second;
+		if (coordinateSystem->type==CoordinateSystem::Type::ORIENTATION){
+			std::shared_ptr<OrientationCoordinateSystem> mocs = std::static_pointer_cast<OrientationCoordinateSystem>(coordinateSystem);
+			if (ocs == *mocs){
+				posOrientation = coordinateSystemStorage.findPositionById(mocs->getId());
+				break;
+			}
+		}
+	}
+	return posOrientation;
+}
+
+std::shared_ptr<vega::CoordinateSystem> Mesh::getCoordinateSystemByPosition(const int pos) const{
+	const int cid =  coordinateSystemStorage.getId(pos);
+	return getCoordinateSystem(cid);
 }
 
 CellStorage::CellStorage(Mesh& mesh, LogLevel logLevel) :

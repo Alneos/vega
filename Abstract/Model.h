@@ -200,7 +200,7 @@ private:
             }
             return isValid;
         };
-        Container(const Container& that) = delete;
+        Container(const Container& that) = delete; /**< Containers should never be copied */
         }; /* Container class */
         std::unordered_map<int,CellContainer> material_assignment_by_material_id;
     public:
@@ -211,24 +211,22 @@ private:
         Container<LoadSet> loadSets{*this};
         Container<Constraint> constraints{*this};
         Container<ConstraintSet> constraintSets{*this};
-        Container<CoordinateSystem> coordinateSystems{*this};
         Container<ElementSet> elementSets{*this};
         Container<Material> materials{*this};
         std::map<Parameter, double> parameters;
-        std::shared_ptr<CoordinateSystemStorage> coordinateSystemStorage; /**< Container for Coordinate System numerotations. **/
         bool onlyMesh;
 
         Model(std::string name, std::string inputSolverVersion = std::string("UNKNOWN"),
                 SolverName inputSolver = NASTRAN,
                 const ModelConfiguration configuration = ModelConfiguration(),
                 const vega::ConfigurationParameters::TranslationMode translationMode = vega::ConfigurationParameters::BEST_EFFORT);
-        Model(const Model& that) = delete; /** bad bad things happens if you ever try to use this (back references to model are not up to date). */
+        Model(const Model& that) = delete; /** bad bad things happens if you ever try to copy a Model (back references to model are not up to date). */
         virtual ~Model();
 
         /**
          * Add any kind of object to the model.
          */
-        //TODO : make and use a template, does not work because of inherited objects
+        //TODO : make and use a template, does not work because of inherited objects, or, better, avoid need to add altogether (object creation should implicitily add)
         //template<typename T> void add(const T&);
         void add(const Analysis&);
         void add(const Loading&);
@@ -237,7 +235,6 @@ private:
         void add(const ConstraintSet&);
         void add(const Objective&);
         void add(const NamedValue&);
-        void add(const CoordinateSystem&);
         void add(const ElementSet&);
         void add(const std::shared_ptr<Material>);
 
@@ -250,30 +247,8 @@ private:
         std::shared_ptr<ConstraintSet> getConstraintSet(int id) const; /**< Return a ConstraintSet by its Vega Id **/
         std::shared_ptr<Objective> getObjective(int id) const; /**< Return an Objective by its Vega Id **/
         std::shared_ptr<NamedValue> getValue(int id) const; /**< Return a Value by its Vega Id **/
-        std::shared_ptr<CoordinateSystem> getCoordinateSystem(int id) const; /**< Return a CoordinateSystem by its USER Id (problem somewhere?)**/
         std::shared_ptr<ElementSet> getElementSet(int id) const; /**< Return an ElementSet by its Vega Id **/
         std::shared_ptr<Material> getMaterial(int id) const; /**< Return a Material by its Vega Id **/
-
-        /**
-         * Find or Reserve a Coordinate System in the model by Input Id.
-         * Return the VEGA Id (position) of the Coordinate System.
-         */
-        int findOrReserveCoordinateSystem(int cid);
-        /**
-         * Add or Find an Orientation Coordinate System in the model.
-         * Return the Position of the Orientation Coordinate System.
-         */
-        int addOrFindOrientation(const OrientationCoordinateSystem & ocs);
-        /**
-         * Find an Orientation Coordinate System in the model, by checking its axis.
-         * Return 0 if nothing has been found.
-         */
-        int findOrientation(const OrientationCoordinateSystem & ocs) const;
-        /**
-         * Get a Coordinate System in the model from its VEGA Position.
-         * Return nullptr if nothing has been found.
-         */
-        std::shared_ptr<vega::CoordinateSystem> getCoordinateSystemByPosition(const int pos) const;
 
         /* Get the Id of all elements belonging to set */
         //TODO: make a template, general function?
