@@ -276,7 +276,6 @@ public:
     }
     ~Node() {
     }
-    //Node(const Node& that) = delete;
 };
 
 class NodeGroup final : public Group {

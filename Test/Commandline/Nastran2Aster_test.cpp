@@ -72,5 +72,10 @@ BOOST_AUTO_TEST_CASE( cbush ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/cbush/cbush.inp", TESTS_EXEC_SOLVER, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( probA ) {
+  // TODO : LD RESU NOOK, maybe mesh refine ?
+	CommandLineUtils::nastranStudy2Aster("/irt/probA/probA.bdf", TESTS_EXEC_SOLVER, true, 0.05);
+}
+
 } /* namespace test */
 } /* namespace vega */

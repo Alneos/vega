@@ -417,7 +417,7 @@ shared_ptr<Model> NastranParser::parse(const ConfigurationParameters& configurat
 }
 
 string NastranParser::defaultAnalysis() const {
-    return ""; // see github #15
+    return ""; // instead of "101": see github #15
 }
 
 void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, map<string, string> &context,
