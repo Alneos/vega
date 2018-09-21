@@ -426,9 +426,9 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         int analysis_id) {
 
     string analysis_str;
-    auto it = context.find("SOL");
-    if (it != context.end())
-        analysis_str = trim_copy(it->second);
+    auto it0 = context.find("SOL");
+    if (it0 != context.end())
+        analysis_str = trim_copy(it0->second);
     else
         analysis_str = defaultAnalysis();
 
@@ -458,9 +458,9 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
 
     // Finding label
     string labelAnalysis="Analysis_"+to_string(analysis_id);
-    it = context.find("LABEL");
-    if (it != context.end())
-        labelAnalysis = trim_copy(it->second);
+    it0 = context.find("LABEL");
+    if (it0 != context.end())
+        labelAnalysis = trim_copy(it0->second);
 
 
     if (analysis_str == "101" || analysis_str == "SESTATIC") {
@@ -531,12 +531,12 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         model->add(analysis);
     } else if (analysis_str == "106" || analysis_str == "NLSTATIC") {
 
-        auto it = context.find("NLPARM");
+        auto itparam = context.find("NLPARM");
         int strategy_original_id = 0;
-        if (it == context.end())
+        if (itparam == context.end())
             handleParsingError("NLPARM not found for non linear analysis", tok, model);
         else
-            strategy_original_id = atoi(it->second.c_str());
+            strategy_original_id = atoi(itparam->second.c_str());
 
         NonLinearMecaStat analysis(*model, strategy_original_id, labelAnalysis, analysis_id);
 
@@ -2723,11 +2723,11 @@ void NastranParser::parseTABDMP1(NastranTokenizer& tok, shared_ptr<Model> model)
         if (tok.isNextDouble()){
             y = tok.nextDouble();
         }else{
-            string sField=tok.nextString(); //Code_Aster convention : Nastran is coherent with factor 2 for sdamping : not so sure
-            if (sField=="SKIP"){
+            string sField2=tok.nextString(); //Code_Aster convention : Nastran is coherent with factor 2 for sdamping : not so sure
+            if (sField2=="SKIP"){
                 continue;
             }else{
-                handleParsingWarning("Invalid key ("+sField+") should be SKIP or a real.", tok, model);
+                handleParsingWarning("Invalid key ("+sField2+") should be SKIP or a real.", tok, model);
                 break;
             }
         }
@@ -2783,11 +2783,11 @@ void NastranParser::parseTABLED1(NastranTokenizer& tok, shared_ptr<Model> model)
         if (tok.isNextDouble()){
             y = tok.nextDouble();
         }else{
-            string sField=tok.nextString(); //Code_Aster convention : Nastran is coherent with factor 2 for sdamping : not so sure
-            if (sField=="SKIP"){
+            string sField2=tok.nextString(); //Code_Aster convention : Nastran is coherent with factor 2 for sdamping : not so sure
+            if (sField2=="SKIP"){
                 continue;
             }else{
-                handleParsingWarning("Invalid key ("+sField+") should be SKIP or a real.", tok, model);
+                handleParsingWarning("Invalid key ("+sField2+") should be SKIP or a real.", tok, model);
                 break;
             }
         }

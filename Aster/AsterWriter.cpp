@@ -1035,35 +1035,35 @@ void AsterWriter::writeRBE3(const AsterModel& asterModel, const ConstraintSet& c
 			out << ")," << endl;
 			out << "                                    DDL_ESCL=(";
 			for (int slaveNode : slaveNodes) {
-				DOFS dofs = rbe3->getDOFSForNode(slaveNode);
+				DOFS slaveDofs = rbe3->getDOFSForNode(slaveNode);
 				int size = 0;
 				out << "'";
-				if (dofs.contains(DOF::DX)) {
+				if (slaveDofs.contains(DOF::DX)) {
 					out << "DX";
-					if (++size < dofs.size())
+					if (++size < slaveDofs.size())
 						out << "-";
 				}
-				if (dofs.contains(DOF::DY)) {
+				if (slaveDofs.contains(DOF::DY)) {
 					out << "DY";
-					if (++size < dofs.size())
+					if (++size < slaveDofs.size())
 						out << "-";
 				}
-				if (dofs.contains(DOF::DZ)) {
+				if (slaveDofs.contains(DOF::DZ)) {
 					out << "DZ";
-					if (++size < dofs.size())
+					if (++size < slaveDofs.size())
 						out << "-";
 				}
-				if (dofs.contains(DOF::RX)) {
+				if (slaveDofs.contains(DOF::RX)) {
 					out << "DRX";
-					if (++size < dofs.size())
+					if (++size < slaveDofs.size())
 						out << "-";
 				}
-				if (dofs.contains(DOF::RY)) {
+				if (slaveDofs.contains(DOF::RY)) {
 					out << "DRY";
-					if (++size < dofs.size())
+					if (++size < slaveDofs.size())
 						out << "-";
 				}
-				if (dofs.contains(DOF::RZ)) {
+				if (slaveDofs.contains(DOF::RZ)) {
 					out << "DRZ";
 				}
 				out << "',";
@@ -1202,11 +1202,11 @@ void AsterWriter::writeNodalForce(const AsterModel& asterModel, const LoadSet& l
 
 void AsterWriter::writePression(const LoadSet& loadSet, ostream& out) {
 	return; // TODO : check if the cellContainer contain skin or shell elements
-	const set<shared_ptr<Loading>> normalPressionFace = loadSet.getLoadingsByType(
+	const set<shared_ptr<Loading>> loading = loadSet.getLoadingsByType(
 			Loading::NORMAL_PRESSION_FACE);
-	if (normalPressionFace.size() > 0) {
+	if (loading.size() > 0) {
 		out << "           PRESS_REP=(" << endl;
-		for (shared_ptr<Loading> pressionFace : normalPressionFace) {
+		for (shared_ptr<Loading> pressionFace : loading) {
 			shared_ptr<NormalPressionFace> normalPressionFace = static_pointer_cast<
 					NormalPressionFace>(pressionFace);
 			out << "                         _F(PRES= " << normalPressionFace->intensity << endl;

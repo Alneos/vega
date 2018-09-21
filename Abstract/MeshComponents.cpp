@@ -785,14 +785,14 @@ NodeGroup2Families::NodeGroup2Families(int nnodes, const vector<shared_ptr<NodeG
 		for (auto& nodeGroup : nodeGroups) {
 			newFamilyByOldfamily.clear();
 			for (int nodePosition : nodeGroup->nodePositions()) {
-				int oldFamily = nodes[nodePosition];
-				auto newFamilyPair = newFamilyByOldfamily.find(oldFamily);
+				int oldFamilyId = nodes[nodePosition];
+				auto newFamilyPair = newFamilyByOldfamily.find(oldFamilyId);
 				int newFamilyId;
 				if (newFamilyPair == newFamilyByOldfamily.end()) {
 					//family not found, create one
 					currentFamilyId++;
 					Family fam;
-					auto oldFamilyPair = familyByFamilyId.find(oldFamily);
+					auto oldFamilyPair = familyByFamilyId.find(oldFamilyId);
 					if (oldFamilyPair != familyByFamilyId.end()) {
 						Family& oldFamily = oldFamilyPair->second;
 						fam.groups.insert(fam.groups.begin(), oldFamily.groups.begin(),
@@ -806,7 +806,7 @@ NodeGroup2Families::NodeGroup2Families(int nnodes, const vector<shared_ptr<NodeG
 					}
 					newFamilyId = fam.num = currentFamilyId;
 					fam.groups.push_back(nodeGroup);
-					newFamilyByOldfamily.insert(make_pair(oldFamily, currentFamilyId));
+					newFamilyByOldfamily.insert(make_pair(oldFamilyId, currentFamilyId));
 					familyByFamilyId.insert(make_pair(currentFamilyId, fam));
 				} else {
 					newFamilyId = newFamilyPair->second;
@@ -848,14 +848,14 @@ CellGroup2Families::CellGroup2Families(
 		for (auto cellPosition : cellGroup->cellPositions()) {
 			const Cell&& cell = mesh.findCell(cellPosition);
 			shared_ptr<vector<int>> currentCellFamilies = cellFamiliesByType[cell.type.code];
-			int oldFamily = currentCellFamilies->at(cell.cellTypePosition);
-			auto newFamilyPair = newFamilyByOldfamily.find(oldFamily);
+			int oldFamilyId = currentCellFamilies->at(cell.cellTypePosition);
+			auto newFamilyPair = newFamilyByOldfamily.find(oldFamilyId);
 			int newFamilyId;
 			if (newFamilyPair == newFamilyByOldfamily.end()) {
 				//family not found, create one
 				currentFamilyId--;
 				Family fam;
-				auto oldFamilyPair = familyByFamilyId.find(oldFamily);
+				auto oldFamilyPair = familyByFamilyId.find(oldFamilyId);
 				if (oldFamilyPair != familyByFamilyId.end()) {
 					Family& oldFamily = oldFamilyPair->second;
 					fam.groups.insert(fam.groups.begin(), oldFamily.groups.begin(),
@@ -869,7 +869,7 @@ CellGroup2Families::CellGroup2Families(
 				}
 				newFamilyId = fam.num = currentFamilyId;
 				fam.groups.push_back(cellGroup);
-				newFamilyByOldfamily[oldFamily] = currentFamilyId;
+				newFamilyByOldfamily[oldFamilyId] = currentFamilyId;
 				familyByFamilyId[currentFamilyId] = fam;
 			} else {
 				newFamilyId = newFamilyPair->second;

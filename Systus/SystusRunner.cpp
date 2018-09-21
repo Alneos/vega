@@ -107,13 +107,13 @@ Runner::ExitCode SystusRunner::execSolver(const ConfigurationParameters &configu
                     if (fs::exists(outputFsPath / fs::path(resuFilename))){
                         //check if it contains nook
                         string resuFileStr = (outputFsPath / fs::path(resuFilename)).string();
-                        string line;
-                        int lineNumber = 0;
+                        string line2;
+                        int lineNumber2 = 0;
                         ifstream resuFile(resuFileStr);
-                        while (getline(resuFile, line)) {
-                            lineNumber += 1;
-                            if (line.find("NOOK") != string::npos) {
-                                cerr << "Test fail: line " << lineNumber << " file: " << resuFilename << endl;
+                        while (getline(resuFile, line2)) {
+                            lineNumber2 += 1;
+                            if (line2.find("NOOK") != string::npos) {
+                                cerr << "Test fail: line " << lineNumber2 << " file: " << resuFilename << endl;
                                 exitCode = TEST_FAIL;
                             }
                         }

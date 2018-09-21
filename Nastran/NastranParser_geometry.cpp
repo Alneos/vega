@@ -419,8 +419,8 @@ void NastranParser::parseElem(NastranTokenizer& tok, shared_ptr<Model> model,
     } else {
         vector<int> nastran2medNodeConnect = nastran2med_it->second;
         medConnect.resize(cellType.numNodes);
-        for (unsigned int i = 0; i < cellType.numNodes; i++)
-            medConnect[nastran2medNodeConnect[i]] = nastranConnect[i];
+        for (unsigned int i2 = 0; i2 < cellType.numNodes; i2++)
+            medConnect[nastran2medNodeConnect[i2]] = nastranConnect[i2];
     }
     model->mesh->addCell(cell_id, cellType, medConnect);
     addProperty(property_id, cell_id, model);

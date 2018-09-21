@@ -103,8 +103,8 @@ BOOST_AUTO_TEST_CASE( test_node_iterator )
     BOOST_CHECK_CLOSE(1.0, node.x, Globals::DOUBLE_COMPARE_TOLERANCE);
     for (i = 0; nodeIterator.hasNext(); i++)
     {
-        Node node = nodeIterator.next();
-        cout << node << endl;
+        Node node2 = nodeIterator.next();
+        cout << node2 << endl;
     }
     BOOST_CHECK_EQUAL(mesh.countNodes(), i);
     BOOST_CHECK(!mesh.nodes.end().hasNext());
@@ -116,17 +116,17 @@ BOOST_AUTO_TEST_CASE( test_node_iterator )
     BOOST_CHECK(!mesh.nodes.end().hasNext());
 
     i = 0;
-    for (auto& node : mesh.nodes) {
+    for (auto& node2 : mesh.nodes) {
         i++;
-        cout << node << endl;
+        cout << node2 << endl;
     }
     BOOST_CHECK_EQUAL(4, i);
 
     nodeIterator = mesh.nodes.begin();
     for (i = 0; nodeIterator.hasNext(); i++)
     {
-        const Node node = nodeIterator.next();
-        cout << node << endl;
+        const Node node2 = nodeIterator.next();
+        cout << node2 << endl;
     }
     BOOST_CHECK_EQUAL(mesh.countNodes(), i);
 }

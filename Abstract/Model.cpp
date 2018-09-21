@@ -1305,8 +1305,8 @@ void Model::replaceDirectMatrices()
         }
 
         for (const auto loading : loadings) {
-            for (int nodePosition : loading->nodePositions()) {
-                required += loading->getDOFSForNode(nodePosition);
+            for (int nodePosition2 : loading->nodePositions()) {
+                required += loading->getDOFSForNode(nodePosition2);
             }
         }
         for (const auto constraint : constraints) {

@@ -342,8 +342,8 @@ void NastranTokenizer::splitFixedFormat(string& line, const bool longFormat, con
 			for (; count < fieldMax; count++) {
 				currentLineVector.push_back("");
 			}
-			bool longFormat = (c == '*');
-			splitFixedFormat(line2, longFormat, false);
+			bool longFormat2 = (c == '*');
+			splitFixedFormat(line2, longFormat2, false);
 		}
 	}
 
