@@ -155,10 +155,10 @@ protected:
     Reference<Objective> modal_damping_reference;
     Reference<Objective> frequency_values_reference;
 public:
-    LinearDynaModalFreq(Model& model, const FrequencyBand& frequency_band,
-            const ModalDamping& modal_damping, const FrequencyRange& frequency_values,
-            const bool residual_vector = false,
-            const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
+//    LinearDynaModalFreq(Model& model, const FrequencyBand& frequency_band,
+//            const ModalDamping& modal_damping, const FrequencyRange& frequency_values,
+//            const bool residual_vector = false,
+//            const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     LinearDynaModalFreq(Model& model, const int frequency_band_original_id,
             const int modal_damping_original_id, const int frequency_value_original_id,
             const bool residual_vector = false,

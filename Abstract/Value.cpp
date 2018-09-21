@@ -37,7 +37,7 @@ Value::Value(Value::Type type) : type(type) {
 const string NamedValue::name = "NamedValue";
 
 const map<Value::Type, string> Value::stringByType = { { STEP_RANGE, "STEP_RANGE" }, { SPREAD_RANGE, "SPREAD_RANGE" }, {
-        FUNCTION_TABLE, "FUNCTION_TABLE" }, { DYNA_PHASE, "DYNA_PHASE" }, };
+        FUNCTION_TABLE, "FUNCTION_TABLE" }, { DYNA_PHASE, "DYNA_PHASE" }, { LIST, "LIST" }};
 
 ostream &operator<<(ostream &out, const NamedValue& value) {
     out << to_str(value);
@@ -88,6 +88,26 @@ bool StepRange::iszero() const {
 void StepRange::scale(double factor) {
     UNUSEDV(factor);
     throw logic_error("Should not try to scale stepranges");
+}
+
+ListValue::ListValue(const Model& model, list<double> alist, int original_id) :
+        NamedValue(model, LIST, original_id), alist(alist) {
+}
+
+const std::list<double> ListValue::getList() const {
+  return alist;
+}
+
+shared_ptr<NamedValue> ListValue::clone() const {
+    return make_shared<ListValue>(*this);
+}
+
+bool ListValue::iszero() const {
+    return alist.empty();
+}
+
+void ListValue::scale(double factor) {
+    std::transform(alist.begin(), alist.end(), alist.begin(), [factor](double d) -> double { return d * factor; });
 }
 
 SpreadRange::SpreadRange(const Model& model, double start, int count, double end, double spread, int original_id) :

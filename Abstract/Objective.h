@@ -140,13 +140,13 @@ public:
     std::shared_ptr<Objective> clone() const;
 };
 
+
 class FrequencyRange: public AnalysisParameter {
 protected:
-    Reference<NamedValue> valueRange;
+    Reference<NamedValue> namedValue;
 public:
-    FrequencyRange(const Model&, const ValueRange&, int original_id = NO_ORIGINAL_ID);
-    FrequencyRange(const Model&, int step_range_id, int original_id = NO_ORIGINAL_ID);
-    const std::shared_ptr<ValueRange> getValueRange() const;
+    FrequencyRange(const Model&, const NamedValue&, int original_id = NO_ORIGINAL_ID);
+    const std::shared_ptr<NamedValue> getValue() const;
     const ValuePlaceHolder getValueRangePlaceHolder() const;
     std::shared_ptr<Objective> clone() const;
 };

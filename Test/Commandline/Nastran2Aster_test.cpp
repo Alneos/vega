@@ -77,5 +77,9 @@ BOOST_AUTO_TEST_CASE( probA ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/probA/probA.bdf", TESTS_EXEC_SOLVER, true, 0.05);
 }
 
+BOOST_AUTO_TEST_CASE( cbush1 ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/cbush1/cbush1.bdf", false, false, 0.05);
+}
+
 } /* namespace test */
 } /* namespace vega */

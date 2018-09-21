@@ -113,6 +113,7 @@ public:
      */
     int nextInt(bool returnDefaultIfNotFoundOrBlank = false, int defaultValue = Globals::UNAVAILABLE_INT);
     const std::list<int> nextInts();
+    const std::list<double> nextDoubles();
     bool isNextInt();
     bool isNextTHRU();
     bool isNextDouble();

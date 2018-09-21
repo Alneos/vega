@@ -49,6 +49,7 @@ public:
         STEP_RANGE,
         SPREAD_RANGE,
         FUNCTION_TABLE,
+        LIST,
         DYNA_PHASE,
         VECTOR,
         VECTORFUNCTION
@@ -157,6 +158,16 @@ public:
         UNUSEDV(factor);
         throw std::logic_error("Should not try to scale placeholders");
     }
+};
+
+class ListValue: public NamedValue {
+    std::list<double> alist;
+public:
+    ListValue(const Model&, std::list<double> values, int original_id = NO_ORIGINAL_ID);
+    const std::list<double> getList() const;
+    std::shared_ptr<NamedValue> clone() const;
+    virtual void scale(double factor);
+    virtual bool iszero() const;
 };
 
 class ValueRange: public NamedValue {

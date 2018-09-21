@@ -329,7 +329,7 @@ void NastranTokenizer::splitFixedFormat(string& line, const bool longFormat, con
 		if (!iseof) {
 			splitFixedFormat(line2, longFormat, false);
 		} else {
-			throw "Continuation Expected: Line N " + this->lineNumber;
+			throw "Continuation Expected: Line N " + to_string(this->lineNumber);
 		}
 	} else {
 		/** Test for automatic continuation : we allow tabulation
@@ -425,6 +425,14 @@ const list<int> NastranTokenizer::nextInts() {
                 result.push_back(i);
             }
         }
+	}
+	return result;
+}
+
+const list<double> NastranTokenizer::nextDoubles() {
+	list<double> result;
+	while(isNextDouble()) {
+      result.push_back(nextDouble());
 	}
 	return result;
 }

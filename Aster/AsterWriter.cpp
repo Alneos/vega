@@ -337,6 +337,20 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
 	string concept_name;
 
 	switch (value.type) {
+	case NamedValue::LIST: {
+		ListValue& listValue = dynamic_cast<ListValue&>(value);
+		ostringstream list_concept_ss;
+		list_concept_ss << "LST" << setfill('0') << setw(5) << listValue.getId();
+		concept_name = list_concept_ss.str();
+		out << concept_name << "=DEFI_LIST_REEL(" << endl;
+		out << "                        VALE = (";
+    for (auto frequency : listValue.getList()) {
+      out << frequency << ",";
+    }
+    out << ")," << endl;
+		out << "                        );" << endl << endl;
+		break;
+	}
 	case NamedValue::STEP_RANGE: {
 		StepRange& stepRange = dynamic_cast<StepRange&>(value);
 		ostringstream list_concept_ss;
@@ -1657,37 +1671,40 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		out << "pfreq" << linearDynaModalFreq.getId() << "= LIMODE" << linearDynaModalFreq.getId()
 				<< ".EXTR_TABLE().values()['FREQ']" << endl;
 
-		out << "AMOR_I" << linearDynaModalFreq.getId() << "=CALC_FONC_INTERP(FONCTION = FCT"
-				<< setfill('0') << setw(5)
-				<< linearDynaModalFreq.getModalDamping()->getFunctionTable()->getId() << ","
-				<< endl;
-		out << "                         VALE_PARA = pfreq" << linearDynaModalFreq.getId() << endl;
-		out << "                         );" << endl << endl;
+    if (linearDynaModalFreq.getModalDamping() != nullptr) {
+      out << "AMOR_I" << linearDynaModalFreq.getId() << "=CALC_FONC_INTERP(FONCTION = FCT"
+          << setfill('0') << setw(5)
+          << linearDynaModalFreq.getModalDamping()->getFunctionTable()->getId() << ","
+          << endl;
+      out << "                         VALE_PARA = pfreq" << linearDynaModalFreq.getId() << endl;
+      out << "                         );" << endl << endl;
 
-		out << "AMOR_T" << linearDynaModalFreq.getId()
-				<< "=CREA_TABLE(FONCTION=_F(FONCTION = AMOR_I" << linearDynaModalFreq.getId()
-				<< ")," << endl;
-		out << "                   );" << endl << endl;
+      out << "AMOR_T" << linearDynaModalFreq.getId()
+          << "=CREA_TABLE(FONCTION=_F(FONCTION = AMOR_I" << linearDynaModalFreq.getId()
+          << ")," << endl;
+      out << "                   );" << endl << endl;
 
-		out << "AMOR" << linearDynaModalFreq.getId() << "=AMOR_T" << linearDynaModalFreq.getId()
-				<< ".EXTR_TABLE().values()['TOUTRESU']" << endl;
+      out << "AMOR" << linearDynaModalFreq.getId() << "=AMOR_T" << linearDynaModalFreq.getId()
+          << ".EXTR_TABLE().values()['TOUTRESU']" << endl;
+    }
 
 		out << "GENE" << linearDynaModalFreq.getId() << " = DYNA_VIBRA(" << endl;
-		if (asterModel.model.materials.size() >= 1) {
-      out << "                   CHAM_MATER=CHMAT," << endl;
-		}
-		out << "                   CARA_ELEM=CAEL," << endl;
+//		if (asterModel.model.materials.size() >= 1) {
+//      out << "                   CHAM_MATER=CHMAT," << endl;
+//		}
+//		out << "                   CARA_ELEM=CAEL," << endl;
 		out << "                   TYPE_CALCUL='HARM'," << endl;
 		out << "                   BASE_CALCUL='GENE'," << endl;
 		out << "                   MATR_MASS  = MASSG" << linearDynaModalFreq.getId() << ","
 				<< endl;
 		out << "                   MATR_RIGI  = RIGIG" << linearDynaModalFreq.getId() << ","
 				<< endl;
-		out << "                   AMOR_MODAL = _F(AMOR_REDUIT = AMOR"
-				<< linearDynaModalFreq.getId() << ",)," << endl;
-
-		out << "                   LIST_FREQ  = LST" << setfill('0') << setw(5)
-				<< linearDynaModalFreq.getFrequencyValues()->getValueRange()->getId() << "," << endl;
+    if (linearDynaModalFreq.getModalDamping() != nullptr) {
+      out << "                   AMOR_MODAL = _F(AMOR_REDUIT = AMOR"
+          << linearDynaModalFreq.getId() << ",)," << endl;
+    }
+    out << "                   LIST_FREQ  = LST" << setfill('0') << setw(5)
+        << linearDynaModalFreq.getFrequencyValues()->getValue()->getId() << "," << endl;
 		out << "                   EXCIT      = (" << endl;
 		for (shared_ptr<LoadSet> loadSet : linearDynaModalFreq.getLoadSets()) {
 			for (shared_ptr<Loading> loading : loadSet->getLoadings()) {

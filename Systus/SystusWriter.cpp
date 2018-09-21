@@ -3006,18 +3006,18 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
 
         // Frequency
         ostringstream oFrequency;
-        shared_ptr<ValueRange> freqValueRange = linearDynaModalFreq.getFrequencyValues()->getValueRange();
-        switch (freqValueRange->type) {
+        shared_ptr<NamedValue> freqValue = linearDynaModalFreq.getFrequencyValues()->getValue();
+        switch (freqValue->type) {
             case NamedValue::STEP_RANGE: {
-                const StepRange& freqValueSteps = dynamic_cast<StepRange&>(*freqValueRange);
+                const StepRange& freqValueSteps = dynamic_cast<StepRange&>(*freqValue);
                 oFrequency << "INITIAL "  << (freqValueSteps.start - freqValueSteps.step) << endl;
                 oFrequency << " " << (freqValueSteps.end - freqValueSteps.step) << " STEP " << freqValueSteps.step;
                 break;
             }
             default:{
-                handleWritingWarning("Frequency range of type "+ to_string(freqValueRange->type)+" not available yet.", "Analysis file");
+                handleWritingWarning("Frequency range of type "+ to_string(freqValue->type)+" not available yet.", "Analysis file");
             }
-            }
+        }
 
         // Damping
         shared_ptr<FunctionTable> modalDampingTable = linearDynaModalFreq.getModalDamping()->getFunctionTable();

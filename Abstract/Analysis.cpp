@@ -371,6 +371,16 @@ bool LinearModal::validate() const {
     return isValid;
 }
 
+//LinearDynaModalFreq::LinearDynaModalFreq(Model& model, const FrequencyBand& frequency_band,
+//        const ModalDamping& modal_damping, const FrequencyRange& frequency_values,
+//        const bool residual_vector,
+//        const std::string original_label, const int original_id) :
+//        LinearModal(model, frequency_band, original_label, original_id,
+//                Analysis::LINEAR_DYNA_MODAL_FREQ),
+//                modal_damping_reference(modal_damping),
+//                frequency_values_reference(frequency_values), residual_vector(residual_vector) {
+//}
+
 LinearDynaModalFreq::LinearDynaModalFreq(Model& model, const int frequency_band_original_id,
         const int modal_damping_original_id, const int frequency_value_original_id,
         const bool residual_vector, const string original_label, const int original_id) :
@@ -400,12 +410,12 @@ bool LinearDynaModalFreq::validate() const {
         }
         isValid = false;
     }
-    if (getModalDamping() == nullptr) {
-        if (model.configuration.logLevel >= LogLevel::INFO) {
-            cout << "Modal analysis is not valid: cannot find modal damping definition:" << modal_damping_reference << endl;
-        }
-        isValid = false;
-    }
+//    if (getModalDamping() == nullptr) {
+//        if (model.configuration.logLevel >= LogLevel::INFO) {
+//            cout << "Modal analysis is not valid: cannot find modal damping definition:" << modal_damping_reference << endl;
+//        }
+//        isValid = false;
+//    }
     return isValid;
 }
 

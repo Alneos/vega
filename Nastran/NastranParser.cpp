@@ -80,6 +80,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "FORCE", &NastranParser::parseFORCE },
                 { "FORCE1", &NastranParser::parseFORCE1 },
                 { "FORCE2", &NastranParser::parseFORCE2 },
+                { "FREQ", &NastranParser::parseFREQ },
                 { "FREQ1", &NastranParser::parseFREQ1 },
                 { "FREQ4", &NastranParser::parseFREQ4 },
                 { "GRAV", &NastranParser::parseGRAV },
@@ -114,6 +115,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "RBE2", &NastranParser::parseRBE2 },
                 { "RBE3", &NastranParser::parseRBE3 },
                 { "RFORCE", &NastranParser::parseRFORCE },
+                { "RLOAD1", &NastranParser::parseRLOAD1 },
                 { "RLOAD2", &NastranParser::parseRLOAD2 },
                 { "SET3", &NastranParser::parseSET3 },
                 { "SLOAD", &NastranParser::parseSLOAD },
@@ -527,7 +529,6 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         }
 
         model->add(analysis);
-
     } else if (analysis_str == "106" || analysis_str == "NLSTATIC") {
 
         auto it = context.find("NLPARM");
@@ -556,6 +557,11 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
                     ConstraintSet constraintSet(*model, ConstraintSet::MPC, id);
                     model->add(constraintSet);
                 }
+                analysis.add(constraintReference);
+                if (!model->find(constraintReference)) { // constraintSet is added in the model if not found in the model
+                    ConstraintSet constraintSet(*model, ConstraintSet::SPC, id);
+                    model->add(constraintSet);
+                }
             } else if (!key.compare(0, 4, "LOAD")) {
                 Reference<LoadSet> loadsetReference(LoadSet::LOAD, id);
                 analysis.add(loadsetReference);
@@ -582,7 +588,7 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         }
         model->add(analysis);
 
-    } else if (analysis_str == "111" || analysis_str == "SEMFREQ") {
+    } else if (analysis_str == "108" || analysis_str == "SEDFREQ" || analysis_str == "111" || analysis_str == "SEMFREQ") {
 
         int frequency_band_original_id = 0;
         int modal_damping_original_id = 0;
@@ -600,8 +606,8 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
 
         if (frequency_band_original_id == 0)
             handleParsingError("METHOD not found for linear dynamic modal frequency analysis", tok, model);
-        if (modal_damping_original_id == 0)
-            handleParsingError("SDAMPING not found for linear dynamic modal frequency analysis", tok, model);
+//        if (modal_damping_original_id == 0)
+//            handleParsingError("SDAMPING not found for linear dynamic modal frequency analysis", tok, model);
         if (frequency_value_original_id == 0)
             handleParsingError("FREQ not found for linear dynamic modal frequency analysis", tok, model);
 
@@ -1071,6 +1077,17 @@ void NastranParser::parseFORCE2(NastranTokenizer& tok, shared_ptr<Model> model) 
         LoadSet loadSet(*model, LoadSet::LOAD, sid);
         model->add(loadSet);
     }
+}
+
+void NastranParser::parseFREQ(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int original_id = tok.nextInt();
+    list<double> frequencies = tok.nextDoubles();
+
+    ListValue frequencyValue(*model, frequencies);
+    model->add(frequencyValue);
+    FrequencyRange frequencyRange(*model, frequencyValue, original_id);
+
+    model->add(frequencyRange);
 }
 
 void NastranParser::parseFREQ1(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -2303,6 +2320,84 @@ void NastranParser::parseRFORCE(NastranTokenizer& tok, shared_ptr<Model> model) 
         model->add(loadSet);
     }
 
+}
+
+void NastranParser::parseRLOAD1(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int loadset_id = tok.nextInt();
+    int darea_set_id = tok.nextInt();
+
+    // Delay
+    int delay_id = 0;
+    double delay = 0.0;
+    if (tok.isNextInt())
+        delay_id = tok.nextInt(true, 0);
+    else
+        delay = tok.nextDouble(true, 0.0);
+
+    // DPhase
+    int dphase_id = 0;
+    double dphase = 0.0;
+    if (tok.isNextInt())
+        dphase_id = tok.nextInt(true, 0);
+    else
+        dphase = tok.nextDouble(true, 0.0);
+
+    int functionTableC_original_id = tok.nextInt(); //TC
+    int functionTableD_original_id = tok.nextInt(true, 0); //TD
+    if (functionTableD_original_id != 0)
+      handleParsingError("TYPE in RLOAD1 not supported. ", tok, model);
+
+    // Type
+    string type = tok.nextString(true, "LOAD").substr(0, 1);
+    if (type != "L" && type != "0")
+        handleParsingError("TYPE in RLOAD1 not supported. ", tok, model);
+
+    Reference<NamedValue> dynaDelay_ref = Reference<NamedValue>(NamedValue::DYNA_PHASE, delay_id);
+    if (delay_id == 0) {
+        DynaPhase dynadelay(*model, -2*M_PI*delay);
+        model->add(dynadelay);
+        dynaDelay_ref = Reference<NamedValue>(dynadelay);
+    }
+    Reference<NamedValue> dynaPhase_ref = Reference<NamedValue>(NamedValue::DYNA_PHASE, dphase_id);
+    if (dphase_id == 0) {
+        DynaPhase dynaphase(*model, dphase);
+        model->add(dynaphase);
+        dynaPhase_ref = Reference<NamedValue>(dynaphase);
+    }
+    Reference<NamedValue> functionTableC_ref(NamedValue::FUNCTION_TABLE, functionTableC_original_id);
+    Reference<NamedValue> functionTableD_ref(NamedValue::FUNCTION_TABLE, functionTableD_original_id);
+
+    // If needed, creates a LoadSet EXCITEID for the DynamicExcitation
+    LoadSet darea(*model, LoadSet::EXCITEID, darea_set_id);
+    Reference<LoadSet> darea_ref(darea);
+    if (!model->find(darea_ref)){
+       model->add(darea);
+    }
+
+    // if loadSet DLOAD does not exist (was not declared in the bulk), loadset_id become the original id of DynamicExcitation
+    // else DynamicExcitation is created without original_id and is mapped to this loadSet
+    int original_id;
+    Reference<LoadSet> loadSetReference(LoadSet::DLOAD, loadset_id);
+    if (model->find(loadSetReference))
+        original_id = Loading::NO_ORIGINAL_ID;
+    else
+        original_id = loadset_id;
+
+    DynamicExcitation dynamicExcitation(*model, dynaDelay_ref, dynaPhase_ref, functionTableC_ref, functionTableD_ref, darea_ref,
+            original_id);
+    model->add(dynamicExcitation);
+
+    model->addLoadingIntoLoadSet(dynamicExcitation, loadSetReference);
+    if (!model->find(loadSetReference)) {
+        LoadSet loadSet(*model, LoadSet::DLOAD, loadset_id);
+        model->add(loadSet);
+    }
+
+    // PlaceHolder to complete the Value attribute paraX of FunctionTable
+    model->add(dynamicExcitation.getFunctionTableBPlaceHolder());
+    if (functionTableD_original_id>0){
+        model->add(dynamicExcitation.getFunctionTablePPlaceHolder());
+    }
 }
 
 void NastranParser::parseRLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) {

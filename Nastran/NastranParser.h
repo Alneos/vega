@@ -331,6 +331,12 @@ private:
     void parseFORCE2(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
+     * Parse the keyword FREQ (page 1555 of MDN Nastran 2006 Quick Reference Guide.)
+     * Fully supported.
+     */
+    void parseFREQ(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
      * Parse the keyword FREQ1 (page 1556 of MDN Nastran 2006 Quick Reference Guide.)
      * Fully supported.
      */
@@ -572,8 +578,15 @@ private:
     void parseRFORCE(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
+     * Parse the keyword RLOAD1 (page 2384 of MDN Nastran 2006 Quick Reference Guide.)
+     * Full support, albeit with constant DELAY and DPHASE (see these commands)
+     * and **without** imaginary D(f) term
+     */
+    void parseRLOAD1(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
      * Parse the keyword RLOAD2 (page 2387 of MDN Nastran 2006 Quick Reference Guide.)
-     * Full support, albeit with constant DELAY and DPHASE (see theses commands)
+     * Full support, albeit with constant DELAY and DPHASE (see these commands)
      */
     void parseRLOAD2(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
