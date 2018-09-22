@@ -44,6 +44,9 @@ SET(CMAKE_BUILD_TYPE DDebug CACHE STRING
 #make outputs build commands and options
 OPTION(CMAKE_VERBOSE_MAKEFILE "make outputs build commands" OFF)
 project ( vegapp CXX C)
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG(-Wshadow=local COMPILER_SUPPORTS_WSHADOWLOCAL)
+CHECK_CXX_COMPILER_FLAG(-Wshadow=ivar COMPILER_SUPPORTS_WSHADOWIVAR)
 
 # Debug and Release are reserved words for cmake see https://cmake.org/cmake/help/v3.0/variable/CMAKE_BUILD_TYPE.html
 IF(CMAKE_BUILD_TYPE MATCHES "^[Dd][Ee][Bb][Uu][Gg]")
@@ -111,7 +114,14 @@ else(MSVC)
     IF(CMAKE_C_COMPILER_ID MATCHES "Intel")
         add_compile_options(-Wfloat-equal -diag-disable 1170 -fmessage-length=0) # -Wshadow
     ELSEIF(CMAKE_C_COMPILER_ID MATCHES "GNU")
-        add_compile_options(-Wfloat-equal -Woverlength-strings -fmessage-length=0 -Wmain -Wmissing-declarations -Wundef -Wredundant-decls -Wcast-align -Wswitch-default -Wlogical-op -Wuseless-cast -Wold-style-cast -Wdouble-promotion -Wunused-variable -Wshadow=local) # -Wshadow
+        add_compile_options(-Wfloat-equal -Woverlength-strings -fmessage-length=0 -Wmain -Wmissing-declarations -Wundef -Wredundant-decls -Wcast-align -Wswitch-default -Wlogical-op -Wuseless-cast -Wold-style-cast -Wdouble-promotion -Wunused-variable)
+
+        if(COMPILER_SUPPORTS_WSHADOWLOCAL)
+          add_compile_options(-Wshadow=local)
+        elseif(COMPILER_SUPPORTS_WSHADOWIVAR)
+          add_compile_options(-Wshadow=ivar)
+        endif()
+
         if(NOT CMAKE_CROSSCOMPILING)
             add_compile_options(-Wsuggest-attribute=const) # LD strange results, probably because MXE is using 5.4.0
         endif()
