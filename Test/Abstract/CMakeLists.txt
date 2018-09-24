@@ -71,7 +71,7 @@ target_link_libraries(
  abstract
  ${EXTERNAL_LIBRARIES}
 )
-add_test(NAME Utility_test COMMAND $<TARGET_FILE:Utility_test>)
+add_test(NAME Utility_test COMMAND Utility_test)
 
 add_executable(
  Value_test
@@ -101,12 +101,12 @@ target_link_libraries(
  ${EXTERNAL_LIBRARIES}
 )
 
-add_test(NAME Dof_test COMMAND $<TARGET_FILE:Dof_test>)
-add_test(NAME CoordinateSystem_test  COMMAND $<TARGET_FILE:CoordinateSystem_test>)
-add_test(NAME Model_test COMMAND $<TARGET_FILE:Model_test>)
-add_test(NAME Value_test COMMAND $<TARGET_FILE:Value_test>)
-add_test(NAME Mesh_test COMMAND $<TARGET_FILE:Mesh_test>)
-add_test(NAME Element_test COMMAND $<TARGET_FILE:Element_test>)
+add_test(NAME Dof_test COMMAND Dof_test)
+add_test(NAME CoordinateSystem_test  COMMAND CoordinateSystem_test)
+add_test(NAME Model_test COMMAND Model_test)
+add_test(NAME Value_test COMMAND Value_test)
+add_test(NAME Mesh_test COMMAND Mesh_test)
+add_test(NAME Element_test COMMAND Element_test)
 
 #uncomment to see details of each test method (update tests.cmake with
 #the batch file ../update_tests.sh

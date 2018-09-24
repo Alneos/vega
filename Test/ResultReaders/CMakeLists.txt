@@ -8,7 +8,7 @@ target_link_libraries(
  resultReaders
 )
 
-add_test(NAME CSVResultReader_test COMMAND $<TARGET_FILE:CSVResultReader_test>)
+add_test(NAME CSVResultReader_test COMMAND CSVResultReader_test)
 
 #----
 
@@ -25,4 +25,4 @@ target_link_libraries(
  resultReaders
 )
 
-add_test(NAME F06Parser_test COMMAND $<TARGET_FILE:F06Parser_test>)
+add_test(NAME F06Parser_test COMMAND F06Parser_test)

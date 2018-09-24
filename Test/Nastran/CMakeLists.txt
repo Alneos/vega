@@ -25,6 +25,6 @@ target_link_libraries(
  nastran
 )
 
-add_test(NAME NastranParser COMMAND $<TARGET_FILE:NastranParser_test>)
+add_test(NAME NastranParser COMMAND NastranParser_test)
 
-add_test(NAME NastranTokenizer COMMAND $<TARGET_FILE:NastranTokenizer_test>)
+add_test(NAME NastranTokenizer COMMAND NastranTokenizer_test)
