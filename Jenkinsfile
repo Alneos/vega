@@ -19,6 +19,7 @@ podTemplate(label: 'dockerpod',
         sh "ls"
         sh "whoami"
         sh "docker build -t ${image} -f Dockerfile_jenkins ."
+        sh "docker push ${image}"
       }
     }
   }

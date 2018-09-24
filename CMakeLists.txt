@@ -46,7 +46,6 @@ OPTION(CMAKE_VERBOSE_MAKEFILE "make outputs build commands" OFF)
 project ( vegapp CXX C)
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG(-Wshadow=local COMPILER_SUPPORTS_WSHADOWLOCAL)
-CHECK_CXX_COMPILER_FLAG(-Wshadow=ivar COMPILER_SUPPORTS_WSHADOWIVAR)
 
 # Debug and Release are reserved words for cmake see https://cmake.org/cmake/help/v3.0/variable/CMAKE_BUILD_TYPE.html
 IF(CMAKE_BUILD_TYPE MATCHES "^[Dd][Ee][Bb][Uu][Gg]")
@@ -118,8 +117,6 @@ else(MSVC)
 
         if(COMPILER_SUPPORTS_WSHADOWLOCAL)
           add_compile_options(-Wshadow=local)
-        elseif(COMPILER_SUPPORTS_WSHADOWIVAR)
-          add_compile_options(-Wshadow=ivar)
         endif()
 
         if(NOT CMAKE_CROSSCOMPILING)
