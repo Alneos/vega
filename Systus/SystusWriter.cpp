@@ -2927,10 +2927,31 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
 
         // Parameters of the analysis
         const LinearModal& linearModal = static_cast<const LinearModal&>(*analysis);
-        FrequencyBand& frequencyBand = *(linearModal.getFrequencyBand());
-        double upperF = frequencyBand.getUpper();
-        double lowerF = frequencyBand.getLower();
-        int nmodes = (frequencyBand.num_max == vega::Globals::UNAVAILABLE_INT ? defaultNbDesiredRoots : frequencyBand.num_max);
+        FrequencyTarget& frequencySearch = *(linearModal.getFrequencySearch());
+        double upperF;
+        double lowerF;
+        int nmodes;
+        switch(frequencySearch.frequencyType) {
+        case FrequencyTarget::BAND: {
+          StepRange band = dynamic_cast<StepRange&>(*frequencySearch.getValue());
+          upperF = band.end;
+          lowerF = band.start;
+          if (is_equal(lowerF, Globals::UNAVAILABLE_DOUBLE)) {
+            auto lower_cutoff_frequency = systusModel.model->parameters.find(Model::LOWER_CUTOFF_FREQUENCY);
+            if (lower_cutoff_frequency != systusModel.model->parameters.end()) {
+                if (systusModel.model->configuration.logLevel >= LogLevel::TRACE) {
+                    cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
+                }
+                lowerF = lower_cutoff_frequency->second;
+            }
+          }
+          nmodes = (band.count == vega::Globals::UNAVAILABLE_INT ? defaultNbDesiredRoots : band.count);
+          break;
+        }
+        default:
+          handleWritingError(
+            "Frequency search " + to_string(frequencySearch.frequencyType) + " not (yet) implemented");
+        }
 
         // We can't treat the case where only lowerF is defined
         if (is_equal(upperF, vega::Globals::UNAVAILABLE_DOUBLE)){
@@ -2971,15 +2992,20 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
 
         // Choice of norm
         string sNorm;
-        if (frequencyBand.norm=="MAX"){
+        switch (frequencySearch.norm) {
+          case(FrequencyTarget::MASS): {
+            sNorm=" NORM MASS";
+            break;
+          }
+          case(FrequencyTarget::MAX): {
             sNorm="";
-        }else if (frequencyBand.norm=="MASS"){
+            break;
+          }
+          default: {
+            handleWritingWarning("Requested normalisation not yet implemented, assuming MASS.", "DAT file");
             sNorm=" NORM MASS";
-        }else{
-            handleWritingWarning("Unknown normalization method. Mass method chosen.", "DAT file");
-            sNorm=" NORM MASS";
+          }
         }
-
 
         // Writing the DAT file
         out << "# WE COMPUTE "<< nmodes << " MODES" << sBand <<"." << endl;
@@ -3006,7 +3032,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
 
         // Frequency
         ostringstream oFrequency;
-        shared_ptr<NamedValue> freqValue = linearDynaModalFreq.getFrequencyValues()->getValue();
+        shared_ptr<NamedValue> freqValue = linearDynaModalFreq.getFrequencySearch()->getValue();
         switch (freqValue->type) {
             case NamedValue::STEP_RANGE: {
                 const StepRange& freqValueSteps = dynamic_cast<StepRange&>(*freqValue);
@@ -3067,10 +3093,31 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             // It's a limited version of what is done in Analysis::LINEAR_MODAL, because we need to know
             // exactly the numbers of modes for the next part (so no STURM)
             // However, we keep the same syntax, for future development.
-            FrequencyBand& frequencyBand = *(linearDynaModalFreq.getFrequencyBand());
-            double upperF = frequencyBand.getUpper();
-            double lowerF = frequencyBand.getLower();
-            int nModes = (frequencyBand.num_max == vega::Globals::UNAVAILABLE_INT ? defaultNbDesiredRoots : frequencyBand.num_max);
+            FrequencyTarget& frequencySearch = *(linearDynaModalFreq.getFrequencySearch());
+            double upperF;
+            double lowerF;
+            int nModes;
+            switch(frequencySearch.frequencyType) {
+            case FrequencyTarget::BAND: {
+              StepRange band = dynamic_cast<StepRange&>(*frequencySearch.getValue());
+              upperF = band.end;
+              lowerF = band.start;
+              if (is_equal(lowerF, Globals::UNAVAILABLE_DOUBLE)) {
+                auto lower_cutoff_frequency = systusModel.model->parameters.find(Model::LOWER_CUTOFF_FREQUENCY);
+                if (lower_cutoff_frequency != systusModel.model->parameters.end()) {
+                    if (systusModel.model->configuration.logLevel >= LogLevel::TRACE) {
+                        cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
+                    }
+                    lowerF = lower_cutoff_frequency->second;
+                }
+              }
+              nModes = (band.count == vega::Globals::UNAVAILABLE_INT ? defaultNbDesiredRoots : band.count);
+              break;
+            }
+            default:
+              handleWritingError(
+                "Frequency search " + to_string(frequencySearch.frequencyType) + " not (yet) implemented");
+            }
             if ((!is_equal(upperF, vega::Globals::UNAVAILABLE_DOUBLE))||(!is_equal(upperF, vega::Globals::UNAVAILABLE_DOUBLE))){
                 handleWritingWarning("Modal analysis with bound frequency not supported yet. Will search for "+to_string(nModes)+" Eigenmodes instead.", "Analysis file");
                 lowerF=vega::Globals::UNAVAILABLE_DOUBLE;
@@ -3079,13 +3126,19 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             }
             // Choice of norm
             string sNorm;
-            if (frequencyBand.norm=="MAX"){
+            switch (frequencySearch.norm) {
+              case(FrequencyTarget::MASS): {
+                sNorm=" NORM MASS";
+                break;
+              }
+              case(FrequencyTarget::MAX): {
                 sNorm="";
-            }else if (frequencyBand.norm=="MASS"){
+                break;
+              }
+              default: {
+                handleWritingWarning("Requested normalisation not yet implemented, assuming MASS.", "DAT file");
                 sNorm=" NORM MASS";
-            }else{
-                handleWritingWarning("Unknown normalization method. Mass method chosen.", "DAT file");
-                sNorm=" NORM MASS";
+              }
             }
             // Number of iteration
             int niter = 2*nModes + 2;

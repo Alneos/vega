@@ -120,8 +120,10 @@ void OptistructParser::parseSET(nastran::NastranTokenizer& tok, shared_ptr<Model
             tok.skipToNotEmpty();
         }
         tok.skipToNextKeyword();
-        FrequencyList frequencyValues(*model, values, sid);
-        model->add(frequencyValues);
+        ListValue frequencyValue(*model, values);
+        model->add(frequencyValue);
+        FrequencyTarget frequencyRange(*model, FrequencyTarget::LIST, frequencyValue, FrequencyTarget::MASS, sid);
+        model->add(frequencyRange);
     } else {
         throw logic_error("Unsupported TYPE value in SET");
     }

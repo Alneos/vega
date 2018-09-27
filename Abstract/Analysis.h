@@ -139,33 +139,30 @@ public:
 
 class LinearModal: public Analysis {
 protected:
-    Reference<Objective> frequency_band_reference;
+    Reference<Objective> frequencySearchRef;
 public:
-    LinearModal(Model& model, const FrequencyBand& frequency_band, const std::string original_label = "",
+    LinearModal(Model&, const FrequencyTarget&, const std::string original_label = "",
             const int original_id = NO_ORIGINAL_ID, const Type type = Type::LINEAR_MODAL);
-    LinearModal(Model& model, const int frequency_band_original_id, const std::string original_label = "",
+    LinearModal(Model&, const int frequency_band_original_id, const std::string original_label = "",
             const int original_id = NO_ORIGINAL_ID, const Type type = Type::LINEAR_MODAL);
-    std::shared_ptr<FrequencyBand> getFrequencyBand() const;
+    std::shared_ptr<FrequencyTarget> getFrequencySearch() const;
     std::shared_ptr<Analysis> clone() const;
+    bool use_direct_solver = false;
     bool validate() const override;
 };
 
 class LinearDynaModalFreq: public LinearModal {
 protected:
     Reference<Objective> modal_damping_reference;
-    Reference<Objective> frequency_values_reference;
+    Reference<Objective> frequencyExcitationRef;
 public:
-//    LinearDynaModalFreq(Model& model, const FrequencyBand& frequency_band,
-//            const ModalDamping& modal_damping, const FrequencyRange& frequency_values,
-//            const bool residual_vector = false,
-//            const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     LinearDynaModalFreq(Model& model, const int frequency_band_original_id,
             const int modal_damping_original_id, const int frequency_value_original_id,
             const bool residual_vector = false,
             const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     const bool residual_vector;
     std::shared_ptr<ModalDamping> getModalDamping() const;
-    std::shared_ptr<FrequencyRange> getFrequencyValues() const;
+    std::shared_ptr<FrequencyTarget> getFrequencyExcitation() const;
     std::shared_ptr<Analysis> clone() const;
     bool validate() const override;
 };

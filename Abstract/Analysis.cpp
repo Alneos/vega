@@ -348,12 +348,12 @@ bool NonLinearMecaStat::validate() const {
 
 LinearModal::LinearModal(Model& model, const int frequency_band_original_id,
         const string original_label, const int original_id, const Type type) :
-        Analysis(model, type, original_label, original_id), frequency_band_reference(Objective::FREQUENCY_BAND,
+        Analysis(model, type, original_label, original_id), frequencySearchRef(Objective::FREQUENCY_TARGET,
                 frequency_band_original_id) {
 }
 
-shared_ptr<FrequencyBand> LinearModal::getFrequencyBand() const {
-    return dynamic_pointer_cast<FrequencyBand>(model.find(frequency_band_reference));
+shared_ptr<FrequencyTarget> LinearModal::getFrequencySearch() const {
+    return dynamic_pointer_cast<FrequencyTarget>(model.find(frequencySearchRef));
 }
 
 shared_ptr<Analysis> LinearModal::clone() const {
@@ -362,31 +362,21 @@ shared_ptr<Analysis> LinearModal::clone() const {
 
 bool LinearModal::validate() const {
     bool isValid = Analysis::validate();
-    if (!getFrequencyBand()) {
+    if (!getFrequencySearch()) {
         if (model.configuration.logLevel >= LogLevel::INFO) {
-            cout << "Modal analysis is not valid: cannot find frenquency band definition:" << frequency_band_reference << endl;
+            cout << "Modal analysis is not valid: cannot find frenquency search:" << frequencySearchRef << endl;
         }
         isValid = false;
     }
     return isValid;
 }
 
-//LinearDynaModalFreq::LinearDynaModalFreq(Model& model, const FrequencyBand& frequency_band,
-//        const ModalDamping& modal_damping, const FrequencyRange& frequency_values,
-//        const bool residual_vector,
-//        const std::string original_label, const int original_id) :
-//        LinearModal(model, frequency_band, original_label, original_id,
-//                Analysis::LINEAR_DYNA_MODAL_FREQ),
-//                modal_damping_reference(modal_damping),
-//                frequency_values_reference(frequency_values), residual_vector(residual_vector) {
-//}
-
 LinearDynaModalFreq::LinearDynaModalFreq(Model& model, const int frequency_band_original_id,
         const int modal_damping_original_id, const int frequency_value_original_id,
         const bool residual_vector, const string original_label, const int original_id) :
         LinearModal(model, frequency_band_original_id, original_label, original_id,
                 Analysis::LINEAR_DYNA_MODAL_FREQ), modal_damping_reference(Objective::MODAL_DAMPING,
-                modal_damping_original_id), frequency_values_reference(Objective::FREQUENCY_TARGET,
+                modal_damping_original_id), frequencyExcitationRef(Objective::FREQUENCY_TARGET,
                 frequency_value_original_id), residual_vector(residual_vector) {
 }
 
@@ -394,8 +384,8 @@ shared_ptr<ModalDamping> LinearDynaModalFreq::getModalDamping() const {
     return dynamic_pointer_cast<ModalDamping>(model.find(modal_damping_reference));
 }
 
-shared_ptr<FrequencyRange> LinearDynaModalFreq::getFrequencyValues() const {
-    return dynamic_pointer_cast<FrequencyRange>(model.find(frequency_values_reference));
+shared_ptr<FrequencyTarget> LinearDynaModalFreq::getFrequencyExcitation() const {
+    return dynamic_pointer_cast<FrequencyTarget>(model.find(frequencyExcitationRef));
 }
 
 shared_ptr<Analysis> LinearDynaModalFreq::clone() const {
@@ -404,18 +394,12 @@ shared_ptr<Analysis> LinearDynaModalFreq::clone() const {
 
 bool LinearDynaModalFreq::validate() const {
     bool isValid = Analysis::validate();
-    if (getFrequencyValues() == nullptr) {
+    if (getFrequencyExcitation() == nullptr) {
         if (model.configuration.logLevel >= LogLevel::INFO) {
-            cout << "Modal analysis is not valid: cannot find frenquency values definition:" << frequency_values_reference << endl;
+            cout << "Modal analysis is not valid: cannot find frenquency excitation:" << frequencyExcitationRef << endl;
         }
         isValid = false;
     }
-//    if (getModalDamping() == nullptr) {
-//        if (model.configuration.logLevel >= LogLevel::INFO) {
-//            cout << "Modal analysis is not valid: cannot find modal damping definition:" << modal_damping_reference << endl;
-//        }
-//        isValid = false;
-//    }
     return isValid;
 }
 

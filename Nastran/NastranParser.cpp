@@ -604,8 +604,6 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
                 frequency_value_original_id = stoi(it->second);
         }
 
-        if (frequency_band_original_id == 0)
-            handleParsingError("METHOD not found for linear dynamic modal frequency analysis", tok, model);
 //        if (modal_damping_original_id == 0)
 //            handleParsingError("SDAMPING not found for linear dynamic modal frequency analysis", tok, model);
         if (frequency_value_original_id == 0)
@@ -645,8 +643,20 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         if (it != context.end() && it->second == "YES")
             residual_vector = true;
 
+        if (analysis_str == "108" || analysis_str == "SEDFREQ") {
+            if (frequency_band_original_id == 0)
+                frequency_band_original_id = frequency_value_original_id; // in this case we can/should use excitation frequencies in the direct solver
+        } else {
+            if (frequency_band_original_id == 0)
+                handleParsingError("METHOD not found for linear dynamic modal frequency analysis", tok, model);
+        }
+
         LinearDynaModalFreq analysis(*model, frequency_band_original_id, modal_damping_original_id,
                 frequency_value_original_id, residual_vector, labelAnalysis, analysis_id);
+
+        if (analysis_str == "108" || analysis_str == "SEDFREQ") {
+            analysis.use_direct_solver = true;
+        }
 
         it = context.find("SPC");
         if (it != context.end()) {
@@ -961,10 +971,15 @@ void NastranParser::parseEIGR(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     tok.skip(2);
 
-    string norm = tok.nextString(true, "MASS");
-    if ((norm !="MASS") && (norm != "MAX")){
+    FrequencyTarget::NormType norm;
+    string normString = tok.nextString(true, "MASS");
+    if (normString == "MASS")
+        norm = FrequencyTarget::NormType::MASS;
+    else if (normString == "MAX")
+        norm = FrequencyTarget::NormType::MAX;
+    else {
         handleParsingWarning("Only MASS and MAX normalizing method (NORM) supported. Default (MASS) assumed.", tok, model);
-        norm = "MASS";
+        norm = FrequencyTarget::NormType::MAX;
     }
     int g = tok.nextInt(true);
     if (g!=Globals::UNAVAILABLE_INT){
@@ -975,8 +990,12 @@ void NastranParser::parseEIGR(NastranTokenizer& tok, shared_ptr<Model> model) {
         handleParsingWarning("Component number (C) not supported.", tok, model);
     }
 
-    FrequencyBand frequencyBand(*model, lower, upper, nd, norm, original_id);
-    model->add(frequencyBand);
+    StepRange stepRange(*model, lower, nd, upper);
+    stepRange.setParaX(NamedValue::FREQ);
+    FrequencyTarget frequencyTarget(*model, FrequencyTarget::FrequencyType::BAND, stepRange, norm, original_id);
+
+    model->add(stepRange);
+    model->add(frequencyTarget);
 }
 
 void NastranParser::parseEIGRL(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -1005,14 +1024,22 @@ void NastranParser::parseEIGRL(NastranTokenizer& tok, shared_ptr<Model> model) {
     }
 
     // Normalization method
-    string norm = tok.nextString(true, "MASS");
-    if ((norm !="MASS") && (norm != "MAX")){
+    FrequencyTarget::NormType norm;
+    string normString = tok.nextString(true, "MASS");
+    if (normString == "MASS")
+        norm = FrequencyTarget::NormType::MASS;
+    else if (normString == "MAX")
+        norm = FrequencyTarget::NormType::MAX;
+    else {
         handleParsingWarning("Only MASS and MAX normalizing method (NORM) supported. Default (MASS) assumed.", tok, model);
-        norm="MASS";
+        norm = FrequencyTarget::NormType::MAX;
     }
+    StepRange stepRange(*model, lower, nd, upper);
+    stepRange.setParaX(NamedValue::FREQ);
+    FrequencyTarget frequencyTarget(*model, FrequencyTarget::FrequencyType::BAND, stepRange, norm, original_id);
 
-    FrequencyBand frequencyBand(*model, lower, upper, nd, norm, original_id);
-    model->add(frequencyBand);
+    model->add(stepRange);
+    model->add(frequencyTarget);
 }
 
 void NastranParser::parseFORCE(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -1085,7 +1112,7 @@ void NastranParser::parseFREQ(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     ListValue frequencyValue(*model, frequencies);
     model->add(frequencyValue);
-    FrequencyRange frequencyRange(*model, frequencyValue, original_id);
+    FrequencyTarget frequencyRange(*model, FrequencyTarget::LIST, frequencyValue, FrequencyTarget::MASS, original_id);
 
     model->add(frequencyRange);
 }
@@ -1098,10 +1125,10 @@ void NastranParser::parseFREQ1(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     vega::StepRange stepRange(*model, start, step, count);
     stepRange.setParaX(NamedValue::FREQ);
-    FrequencyRange frequencyValues(*model, stepRange, original_id);
+    FrequencyTarget frequencyTarget(*model, FrequencyTarget::BAND, stepRange, FrequencyTarget::MASS, original_id);
 
     model->add(stepRange);
-    model->add(frequencyValues);
+    model->add(frequencyTarget);
 }
 
 void NastranParser::parseFREQ4(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -1113,10 +1140,10 @@ void NastranParser::parseFREQ4(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     vega::SpreadRange spreadRange(*model, f1, count, f2, spread);
     spreadRange.setParaX(NamedValue::FREQ);
-    FrequencyRange frequencyValues(*model, spreadRange, original_id);
+    FrequencyTarget frequencyTarget(*model, FrequencyTarget::SPREAD, spreadRange, FrequencyTarget::MASS, original_id);
 
     model->add(spreadRange);
-    model->add(frequencyValues);
+    model->add(frequencyTarget);
 }
 
 void NastranParser::parseGRAV(NastranTokenizer& tok, shared_ptr<Model> model) {

@@ -38,7 +38,6 @@ const map<Objective::Type, string> Objective::stringByType = {
         { NODAL_DISPLACEMENT_ASSERTION, "NODAL_DISPLACEMENT_ASSERTION" },
         { FREQUENCY_ASSERTION, "FREQUENCY_ASSERTION" },
         { FREQUENCY_TARGET, "FREQUENCY_TARGET" },
-        { FREQUENCY_BAND, "FREQUENCY_BAND" },
         { MODAL_DAMPING, "MODAL_DAMPING" },
         { NONLINEAR_STRATEGY, "NONLINEAR_STRATEGY" }
 };
@@ -117,68 +116,20 @@ shared_ptr<Objective> AnalysisParameter::clone() const {
     return make_shared<AnalysisParameter>(*this);
 }
 
-FrequencyRange::FrequencyRange(const Model& model, const NamedValue& namedValue, int original_id) :
-        AnalysisParameter(model, FREQUENCY_TARGET, original_id), namedValue(namedValue) {
+FrequencyTarget::FrequencyTarget(const Model& model, const FrequencyType frequencyType, const NamedValue& namedValue, NormType norm, int original_id) :
+        AnalysisParameter(model, FREQUENCY_TARGET, original_id), namedValue(namedValue), frequencyType(frequencyType), norm(norm) {
 }
 
-const shared_ptr<NamedValue> FrequencyRange::getValue() const {
+const shared_ptr<NamedValue> FrequencyTarget::getValue() const {
     return dynamic_pointer_cast<NamedValue>(model.find(namedValue));
 }
 
-const ValuePlaceHolder FrequencyRange::getValueRangePlaceHolder() const {
+const ValuePlaceHolder FrequencyTarget::getValueRangePlaceHolder() const {
     return ValuePlaceHolder(model, namedValue.type, namedValue.original_id, NamedValue::FREQ);
 }
 
-shared_ptr<Objective> FrequencyRange::clone() const {
-    return make_shared<FrequencyRange>(*this);
-}
-
-FrequencyBand::FrequencyBand(const Model& model, double lower, double upper, int num_max,
-        string norm, int original_id) :
-        AnalysisParameter(model, FREQUENCY_BAND, original_id), lower(lower), upper(upper), num_max(
-                num_max), norm(norm) {
-}
-
-double FrequencyBand::getLower() const {
-    if (is_equal(lower, Globals::UNAVAILABLE_DOUBLE)) {
-        auto lower_cutoff_frequency = model.parameters.find(Model::LOWER_CUTOFF_FREQUENCY);
-        if (lower_cutoff_frequency != model.parameters.end()) {
-            if (model.configuration.logLevel >= LogLevel::TRACE) {
-                cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
-            }
-            return lower_cutoff_frequency->second;
-        }
-    }
-    return lower;
-}
-
-double FrequencyBand::getUpper() const {
-    if (is_equal(upper, Globals::UNAVAILABLE_DOUBLE)) {
-        auto upper_cutoff_frequency = model.parameters.find(Model::UPPER_CUTOFF_FREQUENCY);
-        if (upper_cutoff_frequency != model.parameters.end()) {
-            if (model.configuration.logLevel >= LogLevel::TRACE) {
-                cout << "Parameter UPPER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
-            }
-            return min(upper_cutoff_frequency->second, upper);
-        }
-    }
-    return upper;
-}
-
-shared_ptr<Objective> FrequencyBand::clone() const {
-    return make_shared<FrequencyBand>(*this);
-}
-
-FrequencyList::FrequencyList(const Model& model, const list<double>& values, int original_id) :
-        AnalysisParameter(model, FREQUENCY_TARGET, original_id), values(values) {
-}
-
-const list<double> FrequencyList::getValues() const {
-    return values;
-}
-
-shared_ptr<Objective> FrequencyList::clone() const {
-    return make_shared<FrequencyList>(*this);
+shared_ptr<Objective> FrequencyTarget::clone() const {
+    return make_shared<FrequencyTarget>(*this);
 }
 
 ModalDamping::ModalDamping(const Model& model, const FunctionTable& function_table, int original_id) :

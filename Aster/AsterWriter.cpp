@@ -353,15 +353,19 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
 	}
 	case NamedValue::STEP_RANGE: {
 		StepRange& stepRange = dynamic_cast<StepRange&>(value);
-		ostringstream list_concept_ss;
-		list_concept_ss << "LST" << setfill('0') << setw(5) << stepRange.getId();
-		concept_name = list_concept_ss.str();
-		out << concept_name << "=DEFI_LIST_REEL(" << endl;
-		out << "                        DEBUT = " << stepRange.start << "," << endl;
-		out << "                        INTERVALLE = _F(JUSQU_A = " << stepRange.end << "," << endl;
-		out << "                                        NOMBRE = " << stepRange.count << endl;
-		out << "                                        )," << endl;
-		out << "                        );" << endl << endl;
+    ostringstream list_concept_ss;
+    list_concept_ss << "LST" << setfill('0') << setw(5) << stepRange.getId();
+    concept_name = list_concept_ss.str();
+		if (not is_equal(stepRange.end, Globals::UNAVAILABLE_DOUBLE)) {
+      out << concept_name << "=DEFI_LIST_REEL(" << endl;
+      out << "                        DEBUT = " << stepRange.start << "," << endl;
+      out << "                        INTERVALLE = _F(JUSQU_A = " << stepRange.end << "," << endl;
+      out << "                                        NOMBRE = " << stepRange.count << endl;
+      out << "                                        )," << endl;
+      out << "                        );" << endl << endl;
+		} else {
+		  out << "# Ignoring " << concept_name << " because: no end value" << endl;
+		}
 		break;
 	}
 	case NamedValue::SPREAD_RANGE: {
@@ -419,7 +423,7 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
 		out << "                       PROL_DROITE="
 				<< AsterModel::ProlongementByInterpolation.find(functionTable.right)->second << ","
 				<< endl;
-		out << "                       );" << endl << endl;
+		out << "                       );" << "# Original id:" << functionTable.getOriginalId() << endl << endl;
 		break;
 	}
 	case NamedValue::DYNA_PHASE:
@@ -477,7 +481,7 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 			out << "                         SY=" << bilinearNature.elastic_limit << "," << endl;
 			out << "                         )," << endl;
 		}
-		out << "                 );" << endl << endl;
+		out << "                 );" << "# Original id:" << material->getOriginalId() << endl << endl;
 	}
 
 	vector<shared_ptr<ElementSet>> composites = asterModel.model.filterElements(ElementSet::COMPOSITE);
@@ -1511,28 +1515,58 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		out << linearModal.getId() << "=CALC_MODES(MATR_RIGI=RIGI" << linearModal.getId()
 				<< "," << endl;
 		out << "                       MATR_MASS=MASS" << linearModal.getId() << "," << endl;
-		out << "                       SOLVEUR_MODAL=_F(METHODE='TRI_DIAG')," << endl;
-		FrequencyBand& frequencyBand = *(linearModal.getFrequencyBand());
-		if (!is_equal(frequencyBand.getUpper(), vega::Globals::UNAVAILABLE_DOUBLE)) {
-			out << "                                    OPTION='BANDE'," << endl;
+		if (linearModal.use_direct_solver) {
+      out << "                       SOLVEUR_MODAL=_F(OPTION_INV='DIRECT')," << endl;
 		} else {
-			out << "                                    OPTION='PLUS_PETITE'," << endl;
+      out << "                       SOLVEUR_MODAL=_F(METHODE='TRI_DIAG')," << endl;
 		}
-
-		out << "                       CALC_FREQ=_F(" << endl;
-
-		if (!is_equal(frequencyBand.getUpper(), vega::Globals::UNAVAILABLE_DOUBLE)) {
-			double lower =
-					(!is_equal(frequencyBand.getLower() , vega::Globals::UNAVAILABLE_DOUBLE)) ?
-							frequencyBand.getLower() : 0.0;
-			out << "                                    FREQ=(" << lower << ","
-					<< frequencyBand.getUpper() << ")," << endl;
-		} else {
-			if (frequencyBand.num_max != vega::Globals::UNAVAILABLE_INT)
-				out << "                                    NMAX_FREQ=" << frequencyBand.num_max
-						<< "," << endl;
+		FrequencyTarget& frequencySearch = *(linearModal.getFrequencySearch());
+		switch(frequencySearch.frequencyType) {
+    case FrequencyTarget::BAND: {
+      StepRange band = dynamic_cast<StepRange&>(*frequencySearch.getValue());
+      if (not is_equal(band.end, Globals::UNAVAILABLE_DOUBLE)) {
+        out << "                       OPTION='BANDE'," << endl;
+        out << "                       CALC_FREQ=_F(" << endl;
+        out << "                                    FREQ=(";
+        if (is_equal(band.start, Globals::UNAVAILABLE_DOUBLE)) {
+          auto lower_cutoff_frequency = asterModel.model.parameters.find(Model::LOWER_CUTOFF_FREQUENCY);
+          if (lower_cutoff_frequency != asterModel.model.parameters.end()) {
+              if (asterModel.model.configuration.logLevel >= LogLevel::TRACE) {
+                  cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
+              }
+              out << lower_cutoff_frequency->second;
+          } else {
+            out << 0.0;
+          }
+        } else {
+          out << band.start;
+        }
+        out << ", " << band.end << ")," << endl;
+        out << "                                    )," << endl;
+      } else {
+        out << "                       OPTION='PLUS_PETITE'," << endl;
+        out << "                       CALC_FREQ=_F(" << endl;
+        out << "                                    NMAX_FREQ=" << band.count << endl;
+        out << "                                    )," << endl;
+      }
+      break;
+    }
+    case FrequencyTarget::LIST: {
+      ListValue frequencyList = dynamic_cast<ListValue&>(*frequencySearch.getValue());
+      out << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
+      out << "                       CALC_FREQ=_F(" << endl;
+      out << "                                    FREQ=(";
+      for (auto frequency : frequencyList.getList()) {
+        out << frequency << ",";
+      }
+      out << ")," << endl;
+      out << "                                    )," << endl;
+      break;
+    }
+    default:
+      handleWritingError(
+				"Frequency search " + to_string(frequencySearch.frequencyType) + " not (yet) implemented");
 		}
-		out << "                                    )," << endl;
 		out << "                       VERI_MODE=_F(STOP_ERREUR='NON',)," << endl;
 		out << "                       SOLVEUR=_F(METHODE='MUMPS'," << endl;
 		out << "                                  RENUM='PORD'," << endl;
@@ -1704,7 +1738,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
           << linearDynaModalFreq.getId() << ",)," << endl;
     }
     out << "                   LIST_FREQ  = LST" << setfill('0') << setw(5)
-        << linearDynaModalFreq.getFrequencyValues()->getValue()->getId() << "," << endl;
+        << linearDynaModalFreq.getFrequencyExcitation()->getValue()->getId() << "," << endl;
 		out << "                   EXCIT      = (" << endl;
 		for (shared_ptr<LoadSet> loadSet : linearDynaModalFreq.getLoadSets()) {
 			for (shared_ptr<Loading> loading : loadSet->getLoadings()) {
@@ -1724,7 +1758,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 			}
 		}
 		out << "                                 )," << endl;
-		out << "                   SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS',NPREC=8)," << endl;
+		out << "                   #SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS',NPREC=8)," << endl; // MUMPS: Error in function orderMinPriority no valid number of stages in multisector (#stages = 2)
 		out << "                   );" << endl << endl;
 
 		out << "RESU" << linearDynaModalFreq.getId() << " = REST_GENE_PHYS(RESU_GENE = GENE"

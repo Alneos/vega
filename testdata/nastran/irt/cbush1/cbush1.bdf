@@ -5,7 +5,7 @@ TITLE = VERIFICATION PROBLEM, FREQ. DEP. IMPEDANCE      BUSHVER
 SUBTITLE = SINGLE DOF, CRITICAL DAMPING, 3 EXCITATION FREQUENCIES
 ECHO = BOTH
 SPC = 1002
-METHOD = 1
+$METHOD = 1
 DLOAD = 1
 DISP = ALL
 FREQ = 10
@@ -20,7 +20,7 @@ $
 $
 $
 $ CONVENTIONAL INPUT FOR FREQUENCY RESPONSE
-EIGRL   1                       10      0
+$EIGRL   1                       10      0
 CBUSH   1000    2000    11      12                              0
 CONM2   12      12              1.0
 DAREA   1       12      1       2.
