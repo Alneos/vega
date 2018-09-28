@@ -37,9 +37,6 @@ set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/build/cmake_files)
 set(CMAKE_CXX_STANDARD 11)
-if(CMAKE_CROSSCOMPILING)
-  set(CMAKE_CROSSCOMPILING_EMULATOR wine64)
-endif()
 
 SET(CMAKE_BUILD_TYPE DDebug CACHE STRING
     "Choose the type of build, options are: None DDebug SDebug DRelease SRelease.")
@@ -48,6 +45,11 @@ OPTION(CMAKE_VERBOSE_MAKEFILE "make outputs build commands" OFF)
 project ( vegapp CXX C)
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG(-Wshadow=local COMPILER_SUPPORTS_WSHADOWLOCAL)
+
+if(CMAKE_CROSSCOMPILING)
+  find_program(WINE_EXECUTABLE NAMES wine64 wine)
+  set(CMAKE_CROSSCOMPILING_EMULATOR ${WINE_EXECUTABLE})
+endif(CMAKE_CROSSCOMPILING)
 
 # Debug and Release are reserved words for cmake see https://cmake.org/cmake/help/v3.0/variable/CMAKE_BUILD_TYPE.html
 IF(CMAKE_BUILD_TYPE MATCHES "^[Dd][Ee][Bb][Uu][Gg]")
@@ -392,6 +394,7 @@ message(STATUS "Vega ${VEGA_VERSION} has been configured for ${VEGA_OS} with the
 message(STATUS "C compiler: " ${CMAKE_C_COMPILER})
 message(STATUS "C++ compiler: " ${CMAKE_CXX_COMPILER})
 message(STATUS "CMAKE_CROSSCOMPILING: ${CMAKE_CROSSCOMPILING}")
+message(STATUS "CMAKE_CROSSCOMPILING_EMULATOR: ${CMAKE_CROSSCOMPILING_EMULATOR}")
 message(STATUS "CMAKE_C_COMPILER_ID: ${CMAKE_C_COMPILER_ID}")
 message(STATUS "CMAKE_SYSTEM_INFO_FILE: ${CMAKE_SYSTEM_INFO_FILE}")
 message(STATUS "CMAKE_SYSTEM_NAME:      ${CMAKE_SYSTEM_NAME}")

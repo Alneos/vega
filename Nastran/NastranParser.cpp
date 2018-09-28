@@ -1433,23 +1433,6 @@ void NastranParser::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
     double e2 = tok.nextDouble(true, 0.0);
     double f1 = tok.nextDouble(true, 0.0);
     double f2 = tok.nextDouble(true, 0.0);
-    if (!is_equal(c1, 0.0)
-            || !is_equal(c2, 0.0)
-            || !is_equal(d1, 0.0)
-            || !is_equal(d2, 0.0)
-            || !is_equal(e1, 0.0)
-            || !is_equal(e2, 0.0)
-            || !is_equal(f1, 0.0)
-            || !is_equal(f2, 0.0)) {
-        /* Ci, Di, Ei, Fi Stress recovery coefficients. (Real; Default = 0.0)
-         * The stress recovery coefficients C1 and C2, etc., are the y and z coordinates
-         * in the bar element coordinate system of a point at which stresses are
-         * computed. Stresses are computed at both ends of the bar.
-         */
-        // Output and stress assertions, currently ignored
-        string message = "PBAR Stress coefficients are dismissed and taken as 0.0";
-        handleParsingWarning(message, tok, model);
-    }
 
     // K1, K2: Area factors for shear. VEGA works with 1/K1 and 1/K2
     // Default values is infinite
@@ -1477,6 +1460,14 @@ void NastranParser::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
             elemId);
     genericSectionBeam.assignMaterial(material_id);
     genericSectionBeam.assignCellGroup(getOrCreateCellGroup(elemId, model, "PBAR"));
+    std::list<std::pair<double, double>> reccoefs = { {c1, c2}, {d1, d2}, {e1, e2}, {f1, f2} };
+    for (auto& reccoef : reccoefs) {
+        if (is_equal(reccoef.first, 0.0) and is_equal(reccoef.second, 0.0)) continue;
+        RecoveryPoint c1recpointa(*model, 0.0, reccoef.first, reccoef.second);
+        genericSectionBeam.recoveryPoints.push_back(c1recpointa);
+        RecoveryPoint c1recpointb(*model, 1.0, reccoef.first, reccoef.second);
+        genericSectionBeam.recoveryPoints.push_back(c1recpointb);
+    }
     model->add(genericSectionBeam);
 }
 

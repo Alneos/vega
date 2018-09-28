@@ -502,8 +502,7 @@ bool ElementLoading::appliedToGeometry() {
 					Reference<ElementSet>(ElementSet::UNKNOWN, Reference<ElementSet>::NO_ID,
 							element_id));
 			if (element) {
-				if (element->type >= ElementSet::CIRCULAR_SECTION_BEAM
-						&& element->type <= ElementSet::GENERIC_SECTION_BEAM) {
+				if (element->isBeam()) {
 					if (assigned && !isForceOnPoutre) {
 						cerr << "Can't calculate the element type assigned to the load " << *this
 								<< endl;

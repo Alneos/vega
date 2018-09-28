@@ -112,10 +112,6 @@ AnalysisParameter::AnalysisParameter(const Model& model, Type type, int original
         Objective(model, type, original_id) {
 }
 
-shared_ptr<Objective> AnalysisParameter::clone() const {
-    return make_shared<AnalysisParameter>(*this);
-}
-
 FrequencyTarget::FrequencyTarget(const Model& model, const FrequencyType frequencyType, const NamedValue& namedValue, NormType norm, int original_id) :
         AnalysisParameter(model, FREQUENCY_TARGET, original_id), namedValue(namedValue), frequencyType(frequencyType), norm(norm) {
 }

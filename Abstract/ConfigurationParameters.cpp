@@ -96,7 +96,7 @@ ModelConfiguration::ModelConfiguration(bool virtualDiscrets, LogLevel logLevel, 
                 removeRedundantSpcs), splitDirectMatrices(splitDirectMatrices), sizeDirectMatrices(sizeDirectMatrices),
                 makeCellsFromDirectMatrices(makeCellsFromDirectMatrices),
                 makeCellsFromLMPC(makeCellsFromLMPC),
-                makeCellsFromRBE(makeCellsFromRBE), splitElementsByDOFS(splitElementsByDOFS){
+                makeCellsFromRBE(makeCellsFromRBE), splitElementsByDOFS(splitElementsByDOFS) {
 }
 
 }

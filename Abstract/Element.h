@@ -114,8 +114,17 @@ public:
     }
 };
 
-class Beam: public ElementSet {
+class RecoveryPoint {
+private:
+    const Model& model;
+    const VectorialValue localCoords;
+public:
+    RecoveryPoint(const Model& model, const double lx, const double ly, const double lz);
+    const VectorialValue getLocalCoords() const;
+    const VectorialValue getGlobalCoords(const int cellId) const;
+};
 
+class Beam: public ElementSet {
 public:
 	enum BeamModel {
 		EULER,
@@ -127,6 +136,7 @@ public:
 	Beam(Model&, Type type, ModelType* modelType = nullptr, BeamModel beamModel = EULER,
 			double additionalMass = 0.0, int original_id = NO_ORIGINAL_ID);
 	public:
+    std::vector<RecoveryPoint> recoveryPoints;
 	double getAdditionalRho() const {
 		return additional_mass / std::max(getAreaCrossSection(), DBL_MIN);
 	}

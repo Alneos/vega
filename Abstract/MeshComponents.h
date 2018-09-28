@@ -293,6 +293,7 @@ public:
     const std::set<int> nodePositions() const override;
     const std::set<int> getNodeIds() const;
     const std::vector<Node> getNodes() const;
+    NodeGroup(const NodeGroup& that) = delete;
 };
 
 /**
@@ -368,6 +369,7 @@ public:
     const std::vector<int> cellPositions();
     const std::set<int> nodePositions() const override;
     virtual ~CellGroup();
+    CellGroup(const CellGroup& that) = delete;
 };
 
 class NodeIterator final: public std::iterator<std::input_iterator_tag, const Node> {

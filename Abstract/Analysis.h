@@ -62,7 +62,7 @@ public:
 protected:
     std::list<std::shared_ptr<Reference<LoadSet>>>loadSet_references;
     std::list<std::shared_ptr<Reference<ConstraintSet>>> constraintSet_references;
-    std::list<std::shared_ptr<Reference<Objective>>> assertion_references;
+    std::list<std::shared_ptr<Reference<Objective>>> objectiveReferences;
 
 public:
     Model& model;
@@ -100,6 +100,7 @@ public:
     const std::vector<std::shared_ptr<LoadSet>> getLoadSets() const;
     const std::vector<std::shared_ptr<BoundaryCondition>> getBoundaryConditions() const;
     const std::vector<std::shared_ptr<Assertion>> getAssertions() const;
+
 
     /**
      * Return true if the analysis has at least one SPC (or equivalent SPCD, MPCD, etc)
@@ -162,7 +163,7 @@ public:
             const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     const bool residual_vector;
     std::shared_ptr<ModalDamping> getModalDamping() const;
-    std::shared_ptr<FrequencyTarget> getFrequencyExcitation() const;
+    std::shared_ptr<FrequencyTarget> getExcitationFrequencies() const;
     std::shared_ptr<Analysis> clone() const;
     bool validate() const override;
 };

@@ -75,6 +75,7 @@ public:
     bool isAssertion() const override {
         return true;
     }
+    virtual std::shared_ptr<Objective> clone() const=0;
 };
 
 class NodalAssertion: public Assertion {
@@ -127,7 +128,7 @@ public:
 class AnalysisParameter: public Objective {
 public:
     AnalysisParameter(const Model&, Type type, int original_id = NO_ORIGINAL_ID);
-    std::shared_ptr<Objective> clone() const;
+    virtual std::shared_ptr<Objective> clone() const=0;
 };
 
 class FrequencyTarget: public AnalysisParameter {

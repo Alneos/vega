@@ -126,10 +126,10 @@ void Analysis::remove(const Reference<ConstraintSet> constraintSetReference) {
 }
 
 void Analysis::remove(const Reference<Objective> objectiveReference) {
-    auto it = assertion_references.begin();
-    while (it != assertion_references.end()) {
+    auto it = objectiveReferences.begin();
+    while (it != objectiveReferences.end()) {
         if (**it == objectiveReference) {
-            it = assertion_references.erase(it);
+            it = objectiveReferences.erase(it);
         } else {
             ++it;
         }
@@ -155,7 +155,7 @@ bool Analysis::contains(const Reference<ConstraintSet> reference) const {
 }
 
 bool Analysis::contains(const Reference<Objective> reference) const {
-    for (auto assertion_ref_ptr : assertion_references) {
+    for (auto assertion_ref_ptr : objectiveReferences) {
         if (reference == *assertion_ref_ptr) {
             return true;
         }
@@ -177,15 +177,16 @@ const vector<shared_ptr<ConstraintSet>> Analysis::getConstraintSets() const {
 }
 
 void Analysis::add(const Reference<Objective>& assertionReference) {
-    assertion_references.push_back(assertionReference.clone());
+    objectiveReferences.push_back(assertionReference.clone());
 }
 
 const vector<shared_ptr<Assertion>> Analysis::getAssertions() const {
     vector<shared_ptr<Assertion>> assertions;
-    for (auto assertion_reference : assertion_references) {
+    for (auto assertion_reference : objectiveReferences) {
         shared_ptr<Objective> objective = model.find(*assertion_reference);
-            assertions.push_back(dynamic_pointer_cast<Assertion>(objective));
-        }
+        if (not objective->isAssertion()) continue;
+        assertions.push_back(dynamic_pointer_cast<Assertion>(objective));
+    }
     return assertions;
 }
 
@@ -384,7 +385,7 @@ shared_ptr<ModalDamping> LinearDynaModalFreq::getModalDamping() const {
     return dynamic_pointer_cast<ModalDamping>(model.find(modal_damping_reference));
 }
 
-shared_ptr<FrequencyTarget> LinearDynaModalFreq::getFrequencyExcitation() const {
+shared_ptr<FrequencyTarget> LinearDynaModalFreq::getExcitationFrequencies() const {
     return dynamic_pointer_cast<FrequencyTarget>(model.find(frequencyExcitationRef));
 }
 
@@ -394,7 +395,7 @@ shared_ptr<Analysis> LinearDynaModalFreq::clone() const {
 
 bool LinearDynaModalFreq::validate() const {
     bool isValid = Analysis::validate();
-    if (getFrequencyExcitation() == nullptr) {
+    if (getExcitationFrequencies() == nullptr) {
         if (model.configuration.logLevel >= LogLevel::INFO) {
             cout << "Modal analysis is not valid: cannot find frenquency excitation:" << frequencyExcitationRef << endl;
         }

@@ -108,6 +108,37 @@ const DOFS Beam::getDOFSForNode(const int nodePosition) const {
 	return DOFS::ALL_DOFS;
 }
 
+RecoveryPoint::RecoveryPoint(const Model& model, const double lx, const double ly, const double lz) :
+    model(model), localCoords(lx, ly, lz) {
+}
+
+const VectorialValue RecoveryPoint::getLocalCoords() const {
+    return localCoords;
+}
+
+const VectorialValue RecoveryPoint::getGlobalCoords(const int cellId) const {
+    UNUSEDV(cellId);
+    const Cell& cell = model.mesh->findCell(model.mesh->findCellPosition(cellId));
+    if (cell.nodeIds.size() != 2) {
+        throw runtime_error("Recovery point currently implemented only for two-node cells.");
+    }
+    if (localCoords.x() < 0 or localCoords.x() > 1) {
+        throw runtime_error("X local axis is currently considered as normalized.");
+    }
+    const Node& node1 = model.mesh->findNode(cell.nodePositions[0]);
+    const Node& node2 = model.mesh->findNode(cell.nodePositions[1]);
+    VectorialValue segment = VectorialValue(node2.x-node1.x, node2.y-node1.y, node2.z-node1.z);
+    if (segment.iszero()) {
+        throw runtime_error("Recovery point requested over zero-length cell.");
+    }
+    VectorialValue localPoint(localCoords.x()*segment.norm(), localCoords.y(), localCoords.z());
+    if (cell.orientation != nullptr)
+        return cell.orientation->positionToGlobal(localPoint);
+    else {
+        return localPoint + VectorialValue(node1.x, node1.y, node1.z);
+    }
+}
+
 CircularSectionBeam::CircularSectionBeam(Model& model, double _radius, BeamModel beamModel,
 		double additional_mass, int original_id) :
 		Beam(model, CIRCULAR_SECTION_BEAM, nullptr, beamModel, additional_mass, original_id), radius(

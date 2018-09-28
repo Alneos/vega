@@ -325,8 +325,13 @@ const VectorialValue OrientationCoordinateSystem::positionToGlobal(const Vectori
     if (isVirtual){
         throw logic_error("Coordinate System is still virtual.");
     }
-    cerr << "OrientationCoordinateSystem::positionToGlobal not implemented, returns local position"<<endl;
-    return local;
+    VectorialValue global = vectorToGlobal(local);
+    if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+        return origin + global;
+    } else {
+        shared_ptr<CoordinateSystem> coordSystem = mesh.getCoordinateSystem(rcs);
+        return coordSystem->positionToGlobal(origin + global);
+    }
 }
 
 const VectorialValue OrientationCoordinateSystem::vectorToGlobal(const VectorialValue& local) const {

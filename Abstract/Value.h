@@ -320,7 +320,7 @@ class VectorialValue final : public Value {//: public TriValue {
 		friend bool operator==(const VectorialValue&, const VectorialValue&);
 		friend bool operator!=(const VectorialValue&, const VectorialValue&);
 
-    static const VectorialValue O;
+        static const VectorialValue O;
 		static const VectorialValue X;
 		static const VectorialValue Y;
 		static const VectorialValue Z;

@@ -220,6 +220,68 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 			out << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
 			out << "             UNITE=26)" << endl << endl;
 		}
+
+		for (auto analysis : asterModel.model.analyses) {
+		    bool hasRecoveryPoints = false;
+            for (auto elementSet : asterModel.model.elementSets) {
+                if (not elementSet->isBeam()) continue;
+                auto beam = dynamic_pointer_cast<Beam>(elementSet);
+                if (beam->recoveryPoints.size() >= 1) {
+                    hasRecoveryPoints = true;
+                    break;
+                }
+            }
+            if (not hasRecoveryPoints) continue;
+
+			out << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
+					<< endl;
+			out << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
+			out << "           MODELE=MODMECA," << endl;
+			out << "           CONTRAINTE =('SIPO_NOEU')," << endl;
+			out << ")" << endl;
+
+            out << "RCTB" << analysis->getId() << "=MACR_LIGN_COUPE(" << endl;
+            out << "            RESULTAT=RESU" << analysis->getId() << "," << endl;
+            out << "            NOM_CHAM='SIPO_NOEU'," << endl;
+            out << "            MODELE=MODMECA," << endl;
+            out << "            LIGN_COUPE=(" << endl;
+            for (auto elementSet : asterModel.model.elementSets) {
+                if (not elementSet->isBeam()) continue;
+                auto beam = dynamic_pointer_cast<Beam>(elementSet);
+                for (auto recoveryPoint : beam->recoveryPoints) {
+                    const VectorialValue& localCoords = recoveryPoint.getLocalCoords();
+                    for (const Cell& cell : beam->cellGroup->getCells()) {
+                        const Node& node1 = asterModel.model.mesh->findNode(cell.nodePositions[0]);
+                        const VectorialValue& globalCoords = recoveryPoint.getGlobalCoords(cell.id);
+                        out << "                    _F(" << endl;
+                        out << "                        INTITULE='Cell " << cell.id << " stress recovery at (local):" << localCoords << ", global:" << globalCoords << "'," << endl;
+                        out << "                        NOM_CMP=('SN','SMFY','SMFZ','SVY','SVZ','SMT')," << endl;
+                        out << "                        TYPE='SEGMENT'," << endl;
+                        out << "                        DISTANCE_MAX=" << abs(max(localCoords.y(), localCoords.z()))*2 << "," << endl;
+                        out << "                        NB_POINTS=2," << endl;
+                        out << "                        COOR_ORIG=(" << globalCoords.x() << "," << globalCoords.y() << "," << globalCoords.z() << ")," << endl;
+                        // TODO LD find a better solution here
+                        out << "                        COOR_EXTR=(" << node1.x << "," << node1.y << "," << node1.z << ")," << endl;
+                        out << "                    )," << endl;
+                    }
+                }
+            }
+            out << "                    )" << endl;
+			out << "            )" << endl;
+
+            out << "DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
+			out << "             UNITE=26," << endl;
+			out << "             FICHIER='REPE_OUT/tbrecup_" << analysis->getId() << ".csv')" << endl << endl;
+
+            out << "IMPR_TABLE(TABLE=RCTB" << analysis->getId() << "," << endl;
+			out << "           FORMAT='TABLEAU'," << endl;
+			out << "           UNITE=26," << endl;
+			out << "           SEPARATEUR=' ,'," << endl;
+			out << "           TITRE='RESULTS',)" << endl << endl;
+
+            out << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
+			out << "             UNITE=26)" << endl << endl;
+		}
 	}
 }
 
@@ -234,7 +296,7 @@ void AsterWriter::writeAnalyses(const AsterModel& asterModel, ostream& out) {
 					<< endl;
 			out << "           RESULTAT=RESU" << analysis.getId() << "," << endl;
 			out << "           MODELE=MODMECA," << endl;
-			out << "           CONTRAINTE =('SIGM_ELNO', )," << endl;
+			out << "           CONTRAINTE =('SIGM_ELNO')," << endl;
 			out << "           FORCE = 'REAC_NODA'," << endl;
 			out << ")" << endl;
 		}
@@ -1738,7 +1800,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
           << linearDynaModalFreq.getId() << ",)," << endl;
     }
     out << "                   LIST_FREQ  = LST" << setfill('0') << setw(5)
-        << linearDynaModalFreq.getFrequencyExcitation()->getValue()->getId() << "," << endl;
+        << linearDynaModalFreq.getExcitationFrequencies()->getValue()->getId() << "," << endl;
 		out << "                   EXCIT      = (" << endl;
 		for (shared_ptr<LoadSet> loadSet : linearDynaModalFreq.getLoadSets()) {
 			for (shared_ptr<Loading> loading : loadSet->getLoadings()) {

@@ -136,7 +136,7 @@ public:
 	CellStorage cells;
 	CoordinateSystemStorage coordinateSystemStorage; /**< Container for Coordinate System numerotations. **/
 
-  std::shared_ptr<NodeGroup> createNodeGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
+    std::shared_ptr<NodeGroup> createNodeGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
 	/**
 	 * Find the NodeGroup named "name".
 	 * If it does not exists, create and return a NodeGroup with specified name, groupId and comment.
@@ -145,10 +145,10 @@ public:
 	std::vector<std::shared_ptr<NodeGroup>> getNodeGroups() const;
 	std::shared_ptr<CellGroup> createCellGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
 	void renameGroup(const std::string& oldname, const std::string& newname, const std::string& comment);
-  /**
-   * Remove the Group named "name". Do nothing if the group does not exist.
-   */
-  void removeGroup(const std::string& name);
+    /**
+     * Remove the Group named "name". Do nothing if the group does not exist.
+     */
+    void removeGroup(const std::string& name);
 	std::vector<std::shared_ptr<CellGroup>> getCellGroups() const;
 	std::shared_ptr<Group> findGroup(std::string) const;
 	/**
@@ -156,28 +156,28 @@ public:
 	 * returns nullptr
 	 */
 	std::shared_ptr<Group> findGroup(int originalId) const;
-  /**
-   * Find or Reserve a Coordinate System in the model by Input Id.
-   * Return the VEGA Id (position) of the Coordinate System.
-   */
-  int findOrReserveCoordinateSystem(int cid);
-  void add(const CoordinateSystem& coordinateSystem);
+    /**
+     * Find or Reserve a Coordinate System in the model by Input Id.
+     * Return the VEGA Id (position) of the Coordinate System.
+     */
+    int findOrReserveCoordinateSystem(int cid);
+    void add(const CoordinateSystem& coordinateSystem);
 	std::shared_ptr<CoordinateSystem> getCoordinateSystem(int cid) const; /**< Return a CoordinateSystem by its USER Id **/
-  /**
-   * Add or Find an Orientation Coordinate System in the model.
-   * Return the Position of the Orientation Coordinate System.
-   */
-  int addOrFindOrientation(const OrientationCoordinateSystem & ocs);
-  /**
-   * Find an Orientation Coordinate System in the model, by checking its axis.
-   * Return 0 if nothing has been found.
-   */
-  int findOrientation(const OrientationCoordinateSystem & ocs) const;
-  /**
-   * Get a Coordinate System in the model from its VEGA Position.
-   * Return nullptr if nothing has been found.
-   */
-  std::shared_ptr<vega::CoordinateSystem> getCoordinateSystemByPosition(const int pos) const;
+    /**
+     * Add or Find an Orientation Coordinate System in the model.
+     * Return the Position of the Orientation Coordinate System.
+     */
+    int addOrFindOrientation(const OrientationCoordinateSystem & ocs);
+    /**
+     * Find an Orientation Coordinate System in the model, by checking its axis.
+     * Return 0 if nothing has been found.
+     */
+    int findOrientation(const OrientationCoordinateSystem & ocs) const;
+    /**
+     * Get a Coordinate System in the model from its VEGA Position.
+     * Return nullptr if nothing has been found.
+     */
+    std::shared_ptr<vega::CoordinateSystem> getCoordinateSystemByPosition(const int pos) const;
 	int addNode(int id, double x, double y, double z = 0,
 	        int cpPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
 	        int cdPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);

@@ -1921,7 +1921,7 @@ void Model::finish() {
 
     if (this->configuration.splitElementsByDOFS){
         splitElementsByDOFS();
-        }
+    }
 
     assignElementsToCells();
     generateMaterialAssignments();
@@ -1931,7 +1931,6 @@ void Model::finish() {
     }
 
     addDefaultAnalysis();
-
 
     this->mesh->finish();
     finished = true;
