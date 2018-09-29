@@ -1587,7 +1587,11 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
     case FrequencyTarget::BAND: {
       StepRange band = dynamic_cast<StepRange&>(*frequencySearch.getValue());
       if (not is_equal(band.end, Globals::UNAVAILABLE_DOUBLE)) {
-        out << "                       OPTION='BANDE'," << endl;
+        if (linearModal.use_direct_solver) {
+            out << "                       OPTION='SEPARE'," << endl;
+        } else {
+            out << "                       OPTION='BANDE'," << endl;
+        }
         out << "                       CALC_FREQ=_F(" << endl;
         out << "                                    FREQ=(";
         if (is_equal(band.start, Globals::UNAVAILABLE_DOUBLE)) {
