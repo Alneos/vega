@@ -1879,6 +1879,9 @@
 		<Unit filename="testdata/nastran/irt/prob2/prob2.dat" />
 		<Unit filename="testdata/nastran/irt/prob2/prob2.f06" />
 		<Unit filename="testdata/nastran/irt/prob2/readme.txt" />
+		<Unit filename="testdata/nastran/irt/prob5/plate.bdf" />
+		<Unit filename="testdata/nastran/irt/prob5/prob5.bdf" />
+		<Unit filename="testdata/nastran/irt/prob5/readme.txt" />
 		<Unit filename="testdata/nastran/irt/probA/probA.bdf" />
 		<Unit filename="testdata/nastran/irt/probA/probA.f06" />
 		<Unit filename="testdata/nastran/irt/probA/readme.txt" />

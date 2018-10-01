@@ -30,12 +30,13 @@ building:
     - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
     - mkdir -p /srv/data/$OUTDIR
     - docker run --rm -v /srv:/srv "$TEST_IMAGE" sh -c "sudo cp ./bin/vegapp /srv/data/$OUTDIR"
+    - docker cp $TEST_CONTAINER:/home/vega/vegapp/build/bin/vegapp .
     - cp /srv/data/$OUTDIR/vegapp /srv/data
     - docker rmi "$TEST_IMAGE"
   artifacts:
     name: "$CI_JOB_NAME"
     paths:
-    - /srv/data/vegapp
+    - vegapp
     expire_in: 1 day
 
 xbuilding:
@@ -63,12 +64,13 @@ xbuilding:
     - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
     - mkdir -p /srv/data/$OUTDIR
     - docker run --rm -v /srv:/srv "$XTEST_IMAGE" sh -c "sudo cp ./bin/vegapp.exe /srv/data/$OUTDIR"
+    - docker cp $TEST_CONTAINER:/home/vega/vegapp/build/bin/vegapp.exe .
     - cp /srv/data/$OUTDIR/vegapp.exe /srv/data
     - docker rmi "$XTEST_IMAGE"
   artifacts:
     name: "$CI_JOB_NAME"
     paths:
-    - /srv/data/vegapp.exe
+    - vegapp.exe
     expire_in: 1 day
 
 nightly:
