@@ -54,6 +54,11 @@ private:
     void removeUnassignedMaterials();
     void replaceCombinedLoadSets();
     /**
+     * This method assign a virtual material to some specific element types, important
+     * for Code_Aster
+     */
+    void assignVirtualMaterial();
+    /**
      * This method assign elements to cells. It is important for Code Aster to know which
      * Element is associated to a cell (for instance to write an FORCE_ARETE or a FORCE_POUTRE)
      */
@@ -91,6 +96,10 @@ private:
      * This method splits the ElementSets to have only one direction in each.
      */
     void splitElementsByDOFS();
+    /**
+     * Get a non rigid material (virtual)
+     */
+    std::shared_ptr<Material> getVirtualMaterial();
 
 public:
     bool finished;
@@ -303,6 +312,7 @@ private:
          * Choose the one appropriate to your input model.
          */
         void assignMaterial(int materialId, const CellContainer& cellsToAssign);
+
         /**
          * Add a Constraint reference into a ConstraintSet reference.
          */
@@ -344,11 +354,6 @@ private:
          * Retrieve all the ConstraintSet of the model that are active but not common to all analysis
          */
         const std::set<std::shared_ptr<LoadSet>> getUncommonLoadSets() const;
-
-        /**
-         * Get a non rigid material (virtual)
-         */
-        std::shared_ptr<Material> getVirtualMaterial();
 
         const std::vector<std::shared_ptr<ElementSet>> filterElements(ElementSet::Type type) const;
 

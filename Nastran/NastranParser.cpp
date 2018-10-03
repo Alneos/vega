@@ -719,7 +719,6 @@ void NastranParser::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> model) {
     auto mnodale = model->mesh->createCellGroup(mn, CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
     mnodale->addCellId(model->mesh->findCell(cellPosition).id);
     nodalMass.assignCellGroup(mnodale);
-    nodalMass.assignMaterial(model->getVirtualMaterial());
 
     model->add(nodalMass);
 }
@@ -1782,7 +1781,6 @@ void NastranParser::parsePBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
     structuralElement.addStiffness(DOF::RX, DOF::RX, k4);
     structuralElement.addStiffness(DOF::RY, DOF::RY, k5);
     structuralElement.addStiffness(DOF::RZ, DOF::RZ, k6);
-    structuralElement.assignMaterial(model->getVirtualMaterial());
 
     model->add(structuralElement);
 

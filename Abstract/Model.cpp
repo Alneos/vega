@@ -644,7 +644,9 @@ void Model::generateDiscrets() {
                     DiscretePoint virtualDiscretTR(*this, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
                     virtualDiscretTRGroup = mesh->createCellGroup("VDiscrTR");
                     virtualDiscretTR.assignCellGroup(virtualDiscretTRGroup);
-                    virtualDiscretTR.assignMaterial(getVirtualMaterial());
+                    if (this->configuration.addVirtualMaterial) {
+                        virtualDiscretTR.assignMaterial(getVirtualMaterial());
+                    }
                     this->add(virtualDiscretTR);
                 }
                 vector<int> cellNodes;
@@ -659,7 +661,9 @@ void Model::generateDiscrets() {
                     DiscretePoint virtualDiscretT(*this, 0.0, 0.0, 0.0);
                     virtualDiscretTGroup = mesh->createCellGroup("VDiscrT");
                     virtualDiscretT.assignCellGroup(virtualDiscretTGroup);
-                    virtualDiscretT.assignMaterial(getVirtualMaterial());
+                    if (this->configuration.addVirtualMaterial) {
+                        virtualDiscretT.assignMaterial(getVirtualMaterial());
+                    }
                     this->add(virtualDiscretT);
                 }
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::POINT1, { node.id },
@@ -914,7 +918,9 @@ void Model::generateBeamsToDisplayHomogeneousConstraint() {
             case Constraint::RIGID: {
                 if (!virtualGroupRigid) {
                     CircularSectionBeam virtualBeam(*this, 0.001, Beam::EULER, 0.0);
-                    virtualBeam.assignMaterial(getVirtualMaterial());
+                    if (this->configuration.addVirtualMaterial) {
+                        virtualBeam.assignMaterial(getVirtualMaterial());
+                    }
                     virtualGroupRigid = mesh->createCellGroup("VRigid");
                     virtualBeam.assignCellGroup(virtualGroupRigid);
                     this->add(virtualBeam);
@@ -935,7 +941,9 @@ void Model::generateBeamsToDisplayHomogeneousConstraint() {
             case Constraint::RBE3: {
                 if (!virtualGroupRBE3) {
                     CircularSectionBeam virtualBeam(*this, 0.001, Beam::EULER, 0.0);
-                    virtualBeam.assignMaterial(getVirtualMaterial());
+                    if (configuration.addVirtualMaterial) {
+                        virtualBeam.assignMaterial(getVirtualMaterial());
+                    }
                     virtualGroupRBE3 = mesh->createCellGroup("VRBE3");
                     virtualBeam.assignCellGroup(virtualGroupRBE3);
                     this->add(virtualBeam);
@@ -1191,7 +1199,9 @@ void Model::replaceDirectMatrices()
                         requiredDofs += dof2;
                     }
                 }
-                discrete.assignMaterial(getVirtualMaterial());
+                if (configuration.addVirtualMaterial) {
+                    discrete.assignMaterial(getVirtualMaterial());
+                }
                 matrix_count++;
                 shared_ptr<CellGroup> matrixGroup = mesh->createCellGroup(
                         "MTN" + to_string(matrix_count));
@@ -1226,7 +1236,9 @@ void Model::replaceDirectMatrices()
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, { rowNodeId,
                         colNodeId }, true);
                 matrixGroup->addCellId(mesh->findCell(cellPosition).id);
-                discrete.assignMaterial(getVirtualMaterial());
+                if (configuration.addVirtualMaterial) {
+                    discrete.assignMaterial(getVirtualMaterial());
+                }
                 discrete.assignCellGroup(matrixGroup);
                 if (discrete.hasRotations()) {
                     addedDofsByNode[rowNodePosition] = DOFS::ALL_DOFS;
@@ -1923,6 +1935,10 @@ void Model::finish() {
         splitElementsByDOFS();
     }
 
+    if (this->configuration.addVirtualMaterial) {
+        assignVirtualMaterial();
+    }
+
     assignElementsToCells();
     generateMaterialAssignments();
 
@@ -1969,6 +1985,15 @@ bool Model::validate() {
             && validCos && validAna;
     this->afterValidation = true;
     return allValid;
+}
+
+void Model::assignVirtualMaterial() {
+    for (shared_ptr<ElementSet> element : filterElements(ElementSet::STRUCTURAL_SEGMENT)) {
+        element->assignMaterial(getVirtualMaterial());
+    }
+    for (shared_ptr<ElementSet> element : filterElements(ElementSet::NODAL_MASS)) {
+        element->assignMaterial(getVirtualMaterial());
+    }
 }
 
 void Model::assignElementsToCells() {

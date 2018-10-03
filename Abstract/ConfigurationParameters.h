@@ -67,9 +67,29 @@ private:
  * method.
  */
 class ModelConfiguration {
+private:
+//    const std::map<ConfigurationFlag, bool> flagByName;
 public:
+//    enum ConfigurationFlag {
+//        VIRTUAL_DISCRETS,
+//        CREATE_SKIN,
+//        EMULATE_LOCAL_DISPLACEMENT,
+//        DISPLAY_HOMOGENEOUS_CONSTRAINT,
+//        EMULATE_ADDITIONAL_MASS,
+//        REPLACE_COMBINED_LOADSETS,
+//        REMOVE_INEFFECTIVES,
+//        PARTITION_MODEL,
+//        REPLACE_DIRECT_MATRICES,
+//        REMOVE_REDUNDANT_SPCS,
+//        SPLIT_DIRECT_MATRICES,
+//        MAKE_CELLS_FROM_DIRECT_MATRICES,
+//        MAKE_CELLS_FROM_LMPC,
+//        MAKE_CELLS_FROM_RBE,
+//        SPLIT_ELEMENTS_BY_DOFS,
+//        ADD_VIRTUAL_MATERIAL
+//    };
     ModelConfiguration(bool virtualDiscrets = true, LogLevel logLevel = LogLevel::INFO,
-            bool createSkin = true, bool emulateLocalDisplacement = true,
+            bool createSkin = true, bool emulateLocalDisplacement = false,
             bool displayHomogeneousConstraint = false, bool emulateAdditionalMass = true,
             bool replaceCombinedLoadSets = true, bool removeIneffectives = true,
             bool partitionModel = false, bool replaceDirectMatrices = true,
@@ -77,10 +97,13 @@ public:
             bool splitDirectMatrices = false, int sizeDirectMatrices = 999,
             bool makeCellsFromDirectMatrices = false,
             bool makeCellsFromLMPC = false,
-            bool makeCellsFromRBE = false, bool splitElementsByDOFS=false
+            bool makeCellsFromRBE = false, bool splitElementsByDOFS=false,
+            bool addVirtualMaterial = false
             );
     virtual ~ModelConfiguration() {
     }
+
+//    bool isactive(ConfigurationFlag) const;
 
     const bool virtualDiscrets;
     LogLevel logLevel;
@@ -134,6 +157,12 @@ public:
      *  This bool commands the use of Model::splitElementsByDOFS in Model::finish() which split the ElementSet
      */
     const bool splitElementsByDOFS;
+    /**
+     * ElementSets of Direct Matrices usually do not have an associated material, this can create issues in Code_Aster,
+     * so a virtual material should be added. This must not be done in Systus instead.
+     */
+    const bool addVirtualMaterial;
+
 };
 // TODO: THe Configuration Parameters should be much more generalized. With this,
 // it's a pain in the keyboard to add options!!
