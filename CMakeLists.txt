@@ -268,6 +268,12 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 link_directories ( ${Boost_LIBRARY_DIRS} )
 list(APPEND EXTERNAL_LIBRARIES ${Boost_LIBRARIES})
 
+# Bug fix for https://stackoverflow.com/questions/35007134/c-boost-undefined-reference-to-boostfilesystemdetailcopy-file
+IF("105800" STRGREATER ${Boost_MAJOR_VERSION})
+  message(STATUS "BOOST VERSION UNDER 1.58, BOOST_NO_CXX11_SCOPED_ENUMS is defined.")
+  add_definitions(-DBOOST_NO_CXX11_SCOPED_ENUMS)
+ENDIF("105800" STRGREATER ${Boost_MAJOR_VERSION})
+
 #works only in Linux, in windows always choose the static version
 set(MEDFILE_USE_STATIC_LIBS ${STATIC_LINKING})
 SET(HDF5_USE_STATIC_LIBRARIES ${STATIC_LINKING})
