@@ -69,7 +69,7 @@ StepRange::StepRange(const Model& model, double start, double step, double end, 
 
 StepRange::StepRange(const Model& model, double start, int count, double end, int original_id) :
         ValueRange(model, STEP_RANGE, original_id), start(start), count(count), end(end) {
-    assert(count > 0);
+    //assert(count > 0);
     step = (end - start) / count;
 }
 StepRange::StepRange(const Model& model, double start, double step, int count, int original_id) :

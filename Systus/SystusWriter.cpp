@@ -3032,7 +3032,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
 
         // Frequency
         ostringstream oFrequency;
-        shared_ptr<NamedValue> freqValue = linearDynaModalFreq.getFrequencySearch()->getValue();
+        shared_ptr<NamedValue> freqValue = linearDynaModalFreq.getExcitationFrequencies()->getValue();
         switch (freqValue->type) {
             case NamedValue::STEP_RANGE: {
                 const StepRange& freqValueSteps = dynamic_cast<StepRange&>(*freqValue);
