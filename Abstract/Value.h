@@ -46,6 +46,7 @@ class Model;
 class Value {
 public:
     enum Type {
+        BAND_RANGE,
         STEP_RANGE,
         SPREAD_RANGE,
         FUNCTION_TABLE,
@@ -71,17 +72,6 @@ public:
         return false;
     }
 };
-
-/*class TriValue : public Value {
-protected:
-    TriValue(Value::Type);
-public:
-    virtual Value& vx() const = 0;
-	virtual Value& vy() const = 0;
-    virtual Value& vz() const = 0;
-    virtual void scale(double factor) = 0;
-    virtual bool iszero() const = 0;
-};*/
 
 /**
  * The generic vega::Value class is useful to store information on simple values such as a table or a function
@@ -173,6 +163,23 @@ public:
 class ValueRange: public NamedValue {
 protected:
     ValueRange(const Model&, Type, int original_id = NO_ORIGINAL_ID);
+};
+
+/**
+ * band, searching for root inside a range
+ * see Nastran EIGRL
+ */
+class BandRange: public ValueRange {
+public:
+    const double start; /**< start of band */
+    const int maxsearch; /**< see EIGRL ND */
+    const double end; /**< end of band */
+public:
+    BandRange(const Model& model, double start, int searchcount, double end, int original_id =
+            NO_ORIGINAL_ID);
+    std::shared_ptr<NamedValue> clone() const;
+    virtual void scale(double factor);
+    virtual bool iszero() const;
 };
 
 class StepRange: public ValueRange {

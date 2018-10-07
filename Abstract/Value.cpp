@@ -31,9 +31,6 @@ namespace vega {
 Value::Value(Value::Type type) : type(type) {
 }
 
-/*TriValue::TriValue(Value::Type type) : Value(type) {
-}*/
-
 const string NamedValue::name = "NamedValue";
 
 const map<Value::Type, string> Value::stringByType = { { STEP_RANGE, "STEP_RANGE" }, { SPREAD_RANGE, "SPREAD_RANGE" }, {
@@ -61,6 +58,23 @@ ValueRange::ValueRange(const Model& model, Type type, int original_id) :
         NamedValue(model, type, original_id) {
 }
 
+BandRange::BandRange(const Model& model, double start, int maxsearch, double end, int original_id) :
+        ValueRange(model, BAND_RANGE, original_id), start(start), maxsearch(maxsearch), end(end) {
+}
+
+shared_ptr<NamedValue> BandRange::clone() const {
+    return make_shared<BandRange>(*this);
+}
+
+bool BandRange::iszero() const {
+    return is_equal(start, end);
+}
+
+void BandRange::scale(double factor) {
+    UNUSEDV(factor);
+    throw logic_error("Should not try to scale bandranges");
+}
+
 StepRange::StepRange(const Model& model, double start, double step, double end, int original_id) :
         ValueRange(model, STEP_RANGE, original_id), start(start), step(step), end(end) {
     assert(step > 0);
@@ -69,7 +83,9 @@ StepRange::StepRange(const Model& model, double start, double step, double end, 
 
 StepRange::StepRange(const Model& model, double start, int count, double end, int original_id) :
         ValueRange(model, STEP_RANGE, original_id), start(start), count(count), end(end) {
-    //assert(count > 0);
+    if (count <= 0) {
+        throw logic_error("Count should be positive in steprange");
+    }
     step = (end - start) / count;
 }
 StepRange::StepRange(const Model& model, double start, double step, int count, int original_id) :

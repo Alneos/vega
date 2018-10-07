@@ -85,7 +85,7 @@ nightly:
     - whoami
     - pwd
     - export OUTDIR=$(date +%Y-%m-%d_%H%M)
-    - export PATH=$PATH:/opt/TOP/sysworld2016/
+    - export PATH=$PATH:/opt/TOP/ESI/sysworld/v2018.0/GB/
     - mkdir -p /srv/data/$OUTDIR
     - ls /srv/data
   script:

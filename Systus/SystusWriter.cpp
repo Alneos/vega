@@ -2933,7 +2933,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         int nmodes;
         switch(frequencySearch.frequencyType) {
         case FrequencyTarget::BAND: {
-          StepRange band = dynamic_cast<StepRange&>(*frequencySearch.getValue());
+          BandRange band = dynamic_cast<BandRange&>(*frequencySearch.getValue());
           upperF = band.end;
           lowerF = band.start;
           if (is_equal(lowerF, Globals::UNAVAILABLE_DOUBLE)) {
@@ -2945,7 +2945,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
                 lowerF = lower_cutoff_frequency->second;
             }
           }
-          nmodes = (band.count == vega::Globals::UNAVAILABLE_INT ? defaultNbDesiredRoots : band.count);
+          nmodes = (band.maxsearch == vega::Globals::UNAVAILABLE_INT ? defaultNbDesiredRoots : band.maxsearch);
           break;
         }
         default:
@@ -3099,7 +3099,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             int nModes;
             switch(frequencySearch.frequencyType) {
             case FrequencyTarget::BAND: {
-              StepRange band = dynamic_cast<StepRange&>(*frequencySearch.getValue());
+              BandRange band = dynamic_cast<BandRange&>(*frequencySearch.getValue());
               upperF = band.end;
               lowerF = band.start;
               if (is_equal(lowerF, Globals::UNAVAILABLE_DOUBLE)) {
@@ -3111,7 +3111,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
                     lowerF = lower_cutoff_frequency->second;
                 }
               }
-              nModes = (band.count == vega::Globals::UNAVAILABLE_INT ? defaultNbDesiredRoots : band.count);
+              nModes = (band.maxsearch == vega::Globals::UNAVAILABLE_INT ? defaultNbDesiredRoots : band.maxsearch);
               break;
             }
             default:

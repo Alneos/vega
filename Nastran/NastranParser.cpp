@@ -989,11 +989,11 @@ void NastranParser::parseEIGR(NastranTokenizer& tok, shared_ptr<Model> model) {
         handleParsingWarning("Component number (C) not supported.", tok, model);
     }
 
-    StepRange stepRange(*model, lower, nd, upper);
-    stepRange.setParaX(NamedValue::FREQ);
-    FrequencyTarget frequencyTarget(*model, FrequencyTarget::FrequencyType::BAND, stepRange, norm, original_id);
+    BandRange bandRange(*model, lower, nd, upper);
+    bandRange.setParaX(NamedValue::FREQ);
+    FrequencyTarget frequencyTarget(*model, FrequencyTarget::FrequencyType::BAND, bandRange, norm, original_id);
 
-    model->add(stepRange);
+    model->add(bandRange);
     model->add(frequencyTarget);
 }
 
@@ -1033,11 +1033,11 @@ void NastranParser::parseEIGRL(NastranTokenizer& tok, shared_ptr<Model> model) {
         handleParsingWarning("Only MASS and MAX normalizing method (NORM) supported. Default (MASS) assumed.", tok, model);
         norm = FrequencyTarget::NormType::MAX;
     }
-    StepRange stepRange(*model, lower, nd, upper);
-    stepRange.setParaX(NamedValue::FREQ);
-    FrequencyTarget frequencyTarget(*model, FrequencyTarget::FrequencyType::BAND, stepRange, norm, original_id);
+    BandRange bandRange(*model, lower, nd, upper);
+    bandRange.setParaX(NamedValue::FREQ);
+    FrequencyTarget frequencyTarget(*model, FrequencyTarget::FrequencyType::BAND, bandRange, norm, original_id);
 
-    model->add(stepRange);
+    model->add(bandRange);
     model->add(frequencyTarget);
 }
 
@@ -1124,7 +1124,7 @@ void NastranParser::parseFREQ1(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     vega::StepRange stepRange(*model, start, step, count);
     stepRange.setParaX(NamedValue::FREQ);
-    FrequencyTarget frequencyTarget(*model, FrequencyTarget::BAND, stepRange, FrequencyTarget::MASS, original_id);
+    FrequencyTarget frequencyTarget(*model, FrequencyTarget::STEP, stepRange, FrequencyTarget::MASS, original_id);
 
     model->add(stepRange);
     model->add(frequencyTarget);

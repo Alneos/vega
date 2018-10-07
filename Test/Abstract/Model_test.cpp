@@ -112,8 +112,7 @@ BOOST_AUTO_TEST_CASE( test_cells_iterator ) {
 }
 
 BOOST_AUTO_TEST_CASE( test_Elements ) {
-	Model model("inputfile", "10.3", SolverName::NASTRAN,
-			ModelConfiguration(true, LogLevel::INFO, true, true, false, false));
+	Model model("inputfile", "10.3", SolverName::NASTRAN);
 	double coords[12] = { -433., 250., 0., 433., 250., 0., 0., -500., 0., 0., 0., 1000. };
 	int j = 1;
 	for (int i = 0; i < 12; i += 3) {
@@ -150,8 +149,11 @@ BOOST_AUTO_TEST_CASE( test_Elements ) {
 }
 
 shared_ptr<Model> createModelWith1HEXA8() {
+    ModelConfiguration configuration;
+    configuration.virtualDiscrets = true;
+    configuration.createSkin = true;
 	shared_ptr<Model> model = make_shared<Model>("inputfile", "10.3", SolverName::NASTRAN,
-					ModelConfiguration(true, LogLevel::INFO, true));
+					configuration);
 	double coords[24] = {
 			0., 0., 0.,
 			1., 0., 0.,
@@ -255,8 +257,7 @@ BOOST_AUTO_TEST_CASE( test_create_skin2d ) {
 }
 
 BOOST_AUTO_TEST_CASE(test_Analysis) {
-	ModelConfiguration configuration(false, LogLevel::DEBUG, false, false, false, false, false);
-	Model model("inputfile", "10.3", SolverName::NASTRAN, configuration);
+	Model model("inputfile", "10.3", SolverName::NASTRAN);
 	double coords[12] = { -433., 250., 0., 433., 250., 0., 0., -500., 0., 0., 0., 1000. };
 	int j = 1;
 	for (int i = 0; i < 12; i += 3) {
@@ -347,7 +348,9 @@ BOOST_AUTO_TEST_CASE( test_find_methods ) {
 }
 
 BOOST_AUTO_TEST_CASE( combined_loadset1 ) {
-	Model model("inputfile", "10.3", SolverName::NASTRAN);
+    ModelConfiguration configuration;
+    configuration.replaceCombinedLoadSets = true;
+	Model model("inputfile", "10.3", SolverName::NASTRAN, configuration);
 	model.configuration.logLevel = LogLevel::DEBUG;
 	LoadSet loadSet1(model, LoadSet::LOAD, 1);
 	LoadSet loadSet3(model, LoadSet::LOAD, 3);
@@ -436,8 +439,7 @@ BOOST_AUTO_TEST_CASE(test_ineffective_assertions_removed) {
 }
 
 BOOST_AUTO_TEST_CASE(test_rbe3_assertions_not_removed) {
-	Model model("fakemodelfortest", "10.3", SolverName::NASTRAN,
-					ModelConfiguration(false, LogLevel::INFO, false, false, false));
+	Model model("fakemodelfortest", "10.3", SolverName::NASTRAN);
 	model.mesh->addNode(100, 0.0, 0.0, 0.0);
 	model.mesh->addNode(101, 1.0, 1.0, 1.0);
 	RBE3 rbe3(model, 100, DOFS::ALL_DOFS);
@@ -513,8 +515,7 @@ BOOST_AUTO_TEST_CASE(test_spc_dof_remove) {
 BOOST_AUTO_TEST_CASE( test_cdnoanalysis )
 {
     // https://github.com/Alneos/vega/issues/15
-    Model model("github_issue_15", "10.3", SolverName::NASTRAN,
-					ModelConfiguration(false, LogLevel::INFO, false, false, false));
+    Model model("github_issue_15", "10.3", SolverName::NASTRAN);
     CartesianCoordinateSystem coordinateSystem(*model.mesh);
     model.mesh->add(coordinateSystem);
     model.mesh->addNode(7, 0.0, 0.0, 0.0, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, coordinateSystem.getOriginalId());

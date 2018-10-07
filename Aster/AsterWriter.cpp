@@ -488,6 +488,7 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
 		out << "                       );" << "# Original id:" << functionTable.getOriginalId() << endl << endl;
 		break;
 	}
+	case NamedValue::BAND_RANGE:
 	case NamedValue::DYNA_PHASE:
 		break;
 	default:
@@ -1585,41 +1586,63 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		FrequencyTarget& frequencySearch = *(linearModal.getFrequencySearch());
 		switch(frequencySearch.frequencyType) {
     case FrequencyTarget::BAND: {
-      StepRange band = dynamic_cast<StepRange&>(*frequencySearch.getValue());
-      if (not is_equal(band.end, Globals::UNAVAILABLE_DOUBLE)) {
-        if (linearModal.use_direct_solver) {
-            out << "                       OPTION='SEPARE'," << endl;
-        } else {
-            out << "                       OPTION='BANDE'," << endl;
-        }
-        out << "                       CALC_FREQ=_F(" << endl;
-        out << "                                    FREQ=(";
-        if (is_equal(band.start, Globals::UNAVAILABLE_DOUBLE)) {
-          auto lower_cutoff_frequency = asterModel.model.parameters.find(Model::LOWER_CUTOFF_FREQUENCY);
-          if (lower_cutoff_frequency != asterModel.model.parameters.end()) {
-              if (asterModel.model.configuration.logLevel >= LogLevel::TRACE) {
-                  cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
-              }
-              out << lower_cutoff_frequency->second;
-          } else {
-            out << 0.0;
-          }
-        } else {
-          out << band.start;
-        }
-        out << ", " << band.end << ")," << endl;
-        out << "                                    )," << endl;
+      BandRange band = dynamic_cast<BandRange&>(*frequencySearch.getValue());
+      if (linearModal.use_direct_solver) {
+          out << "                       OPTION='SEPARE'," << endl;
+      } else if (is_equal(band.end, Globals::UNAVAILABLE_DOUBLE)) {
+          out << "                       OPTION='CENTRE'," << endl; // LD : could be replaced by PLUS_PETITE + FILTRE
       } else {
-        out << "                       OPTION='PLUS_PETITE'," << endl;
-        out << "                       CALC_FREQ=_F(" << endl;
-        out << "                                    NMAX_FREQ=" << band.count << endl;
-        out << "                                    )," << endl;
+          out << "                       OPTION='BANDE'," << endl;
       }
+      out << "                       CALC_FREQ=_F(" << endl;
+      out << "                                    FREQ=(";
+      if (is_equal(band.start, Globals::UNAVAILABLE_DOUBLE)) {
+        auto lower_cutoff_frequency = asterModel.model.parameters.find(Model::LOWER_CUTOFF_FREQUENCY);
+        if (lower_cutoff_frequency != asterModel.model.parameters.end()) {
+            if (asterModel.model.configuration.logLevel >= LogLevel::TRACE) {
+                cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
+            }
+            out << lower_cutoff_frequency->second;
+        } else {
+          out << 0.0;
+        }
+      } else {
+        out << band.start;
+      }
+      if (is_equal(band.end, Globals::UNAVAILABLE_DOUBLE)) {
+          out << ", " << ")," << endl;
+      } else {
+          out << ", " << band.end << ")," << endl;
+      }
+      if (not is_equal(band.maxsearch, Globals::UNAVAILABLE_DOUBLE)) {
+          out << "                                    NMAX_FREQ=" << band.maxsearch << endl;
+      }
+      out << "                                    )," << endl;
+      break;
+    }
+    case FrequencyTarget::STEP: {
+      StepRange frequencyStep = dynamic_cast<StepRange&>(*frequencySearch.getValue());
+      if (linearModal.use_direct_solver) {
+        out << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
+      } else {
+        out << "                       OPTION='CENTRE'," << endl;
+      }
+      out << "                       CALC_FREQ=_F(" << endl;
+      out << "                                    FREQ=(";
+      for (double frequency = frequencyStep.start; frequency < frequencyStep.end; frequency += frequencyStep.step ) {
+        out << frequency << ",";
+      }
+      out << ")," << endl;
+      out << "                                    )," << endl;
       break;
     }
     case FrequencyTarget::LIST: {
       ListValue frequencyList = dynamic_cast<ListValue&>(*frequencySearch.getValue());
-      out << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
+      if (linearModal.use_direct_solver) {
+        out << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
+      } else {
+        out << "                       OPTION='CENTRE'," << endl;
+      }
       out << "                       CALC_FREQ=_F(" << endl;
       out << "                                    FREQ=(";
       for (auto frequency : frequencyList.getList()) {

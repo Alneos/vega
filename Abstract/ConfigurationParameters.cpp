@@ -39,33 +39,36 @@ ConfigurationParameters::ConfigurationParameters(string inputFile, Solver output
 }
 
 const ModelConfiguration ConfigurationParameters::getModelConfiguration() const {
+    ModelConfiguration configuration;
+    configuration.logLevel = this->logLevel;
     if (this->outputSolver.getSolverName() == CODE_ASTER) {
-        return ModelConfiguration(true /* virtualDiscrets */,
-                                  this->logLevel,
-                                  true /* createSkin */,
-                                  true /* emulateLocalDisplacement */,
-                                  false /* displayHomogeneousConstraint */,
-                                  true /* emulateAdditionalMass */,
-                                  true /* replaceCombinedLoadSets */,
-                                  true /* removeIneffectives */,
-                                  false /* partitionModel */,
-                                  true /* replaceDirectMatrices */,
-                                  true /* removeRedundantSpcs */,
-                                  false /* splitDirectMatrices */,
-                                  999 /* sizeDirectMatrices */,
-                                  false /* makeCellsFromDirectMatrices */,
-                                  false /* makeCellsFromLMPC */,
-                                  false /* makeCellsFromRBE */,
-                                  false /* splitElementsByDOFS */,
-                                  true /* addVirtualMaterial */);
+        configuration.virtualDiscrets = true;
+        configuration.createSkin = true;
+        configuration.emulateLocalDisplacement = true;
+        configuration.emulateAdditionalMass = true;
+        configuration.replaceCombinedLoadSets = true;
+        configuration.removeIneffectives = true;
+        configuration.replaceDirectMatrices = true;
+        configuration.removeRedundantSpcs = true;
+        configuration.addVirtualMaterial = true;
     } else if (this->outputSolver.getSolverName() == SYSTUS) {
-        return ModelConfiguration(false, this->logLevel, true, false, false, true, true, true, false, false, true, true, this->systusSizeMatrix, true, true, true, true, false);
+        configuration.createSkin = true;
+        configuration.emulateAdditionalMass = true;
+        configuration.replaceCombinedLoadSets = true;
+        configuration.removeIneffectives = true;
+        configuration.removeRedundantSpcs = true;
+        configuration.splitDirectMatrices = true;
+        configuration.sizeDirectMatrices = this->systusSizeMatrix;
+        configuration.makeCellsFromDirectMatrices = true;
+        configuration.makeCellsFromLMPC = true;
+        configuration.makeCellsFromRBE = true;
+        configuration.splitElementsByDOFS = true;
     } else if (this->outputSolver.getSolverName() == NASTRAN) {
-        return ModelConfiguration(false, this->logLevel, false, false, false, false, false, false,
-                false, false, false, false, false);
+        // default should be always false
     } else {
         throw logic_error(" solver not implemented");
     }
+    return configuration;
 }
 
 ConfigurationParameters::~ConfigurationParameters() {
@@ -100,27 +103,8 @@ Solver Solver::fromString(string name) {
     return Solver(solverIterator->second);
 }
 
-ModelConfiguration::ModelConfiguration(bool virtualDiscrets, LogLevel logLevel, bool createSkin,
-        bool emulateLocalDisplacement, bool displayHomogeneousConstraint,
-        bool emulateAdditionalMass, bool replaceCombinedLoadSets, bool removeIneffectives,
-        bool partitionModel, bool replaceDirectMatrices, bool removeRedundantSpcs, bool splitDirectMatrices, int sizeDirectMatrices,
-        bool makeCellsFromDirectMatrices, bool makeCellsFromLMPC, bool makeCellsFromRBE, bool splitElementsByDOFS, bool addVirtualMaterial) :
-        virtualDiscrets(virtualDiscrets), logLevel(logLevel), createSkin(createSkin), emulateLocalDisplacement(
-                emulateLocalDisplacement), displayHomogeneousConstraint(
-                displayHomogeneousConstraint), emulateAdditionalMass(emulateAdditionalMass), replaceCombinedLoadSets(
-                replaceCombinedLoadSets), removeIneffectives(removeIneffectives), partitionModel(
-                partitionModel), replaceDirectMatrices(replaceDirectMatrices), removeRedundantSpcs(
-                removeRedundantSpcs), splitDirectMatrices(splitDirectMatrices), sizeDirectMatrices(sizeDirectMatrices),
-                makeCellsFromDirectMatrices(makeCellsFromDirectMatrices),
-                makeCellsFromLMPC(makeCellsFromLMPC),
-                makeCellsFromRBE(makeCellsFromRBE), splitElementsByDOFS(splitElementsByDOFS),
-                addVirtualMaterial(addVirtualMaterial) {
+ModelConfiguration::ModelConfiguration() {
 }
-
-//ModelConfiguration::isactive(ConfigurationFlag flag) const {
-//    const auto& flagEntry = flagByName.find(flag);
-//    return flagEntry != flagByName.end() and flagEntry->second;
-//}
 
 }
 

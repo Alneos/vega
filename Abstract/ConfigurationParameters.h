@@ -67,69 +67,36 @@ private:
  * method.
  */
 class ModelConfiguration {
-private:
-//    const std::map<ConfigurationFlag, bool> flagByName;
 public:
-//    enum ConfigurationFlag {
-//        VIRTUAL_DISCRETS,
-//        CREATE_SKIN,
-//        EMULATE_LOCAL_DISPLACEMENT,
-//        DISPLAY_HOMOGENEOUS_CONSTRAINT,
-//        EMULATE_ADDITIONAL_MASS,
-//        REPLACE_COMBINED_LOADSETS,
-//        REMOVE_INEFFECTIVES,
-//        PARTITION_MODEL,
-//        REPLACE_DIRECT_MATRICES,
-//        REMOVE_REDUNDANT_SPCS,
-//        SPLIT_DIRECT_MATRICES,
-//        MAKE_CELLS_FROM_DIRECT_MATRICES,
-//        MAKE_CELLS_FROM_LMPC,
-//        MAKE_CELLS_FROM_RBE,
-//        SPLIT_ELEMENTS_BY_DOFS,
-//        ADD_VIRTUAL_MATERIAL
-//    };
-    ModelConfiguration(bool virtualDiscrets = true, LogLevel logLevel = LogLevel::INFO,
-            bool createSkin = true, bool emulateLocalDisplacement = false,
-            bool displayHomogeneousConstraint = false, bool emulateAdditionalMass = true,
-            bool replaceCombinedLoadSets = true, bool removeIneffectives = true,
-            bool partitionModel = false, bool replaceDirectMatrices = true,
-            bool removeRedundantSpcs = true,
-            bool splitDirectMatrices = false, int sizeDirectMatrices = 999,
-            bool makeCellsFromDirectMatrices = false,
-            bool makeCellsFromLMPC = false,
-            bool makeCellsFromRBE = false, bool splitElementsByDOFS=false,
-            bool addVirtualMaterial = false
-            );
+    ModelConfiguration();
     virtual ~ModelConfiguration() {
     }
 
-//    bool isactive(ConfigurationFlag) const;
-
-    const bool virtualDiscrets;
-    LogLevel logLevel;
-    const bool createSkin;
-    const bool emulateLocalDisplacement;
-    const bool displayHomogeneousConstraint;
-    const bool emulateAdditionalMass;
-    const bool replaceCombinedLoadSets;
-    const bool removeIneffectives;
+    bool virtualDiscrets = false;
+    LogLevel logLevel = LogLevel::INFO;
+    bool createSkin = false;
+    bool emulateLocalDisplacement = false;
+    bool displayHomogeneousConstraint = false;
+    bool emulateAdditionalMass = false;
+    bool replaceCombinedLoadSets = false;
+    bool removeIneffectives = false;
     /**
      * Create a partition of materials and elements in the model, so that
      * materials are assigned to elements.
      * This is necessary for output languages such as Nastran.
      * TODO: this is unimplemented at the moment.
      */
-    const bool partitionModel;
-    const bool replaceDirectMatrices;
-    const bool removeRedundantSpcs;
+    bool partitionModel = false;
+    bool replaceDirectMatrices = false;
+    bool removeRedundantSpcs = false;
     /**
      *  Direct Matrices (DISCRETE_0D, DISCRETE_1D, STIFFNESS_MATRIX, MASS_MATRIX, DAMPING_MATRIX) may be
      *  too big to be handled by some solver (eg Systus).
      *  This bool commands the use of Model::splitDirectMatrices() in Model::finish(), which splits the matrices
      *  into smaller ones.
      */
-    const bool splitDirectMatrices;
-    const int sizeDirectMatrices;
+    bool splitDirectMatrices = false;
+    int sizeDirectMatrices = 999;
     /**
      *  ElementSets of Direct Matrices (DISCRETE_0D, DISCRETE_1D, STIFFNESS_MATRIX, MASS_MATRIX, DAMPING_MATRIX)
      *  generally don't have associated cells/cellgroup. This may causes problems in generic element writer,
@@ -137,31 +104,31 @@ public:
      *  This bool commands the use of Model::makeCellsFromDirectMatrices() in Model::finish(), which creates the
      *  needed cells.
      */
-    const bool makeCellsFromDirectMatrices;
+    bool makeCellsFromDirectMatrices = false;
     /**
      *  Build the corresponding cells to the LMPC constraints with a group, and a Rigid material.
      *  This bool commands the use of Model::makeCellsFromLMPC() in Model::finish(), which creates the
      *  needed cells.
      */
-    const bool makeCellsFromLMPC;
+    bool makeCellsFromLMPC = false;
     /**
      *  Build the corresponding cells of RigidSets (RBAR, RBE3) with a group, and a Rigid material.
      *  This bool commands the use of Model::makeCellsFromRBE() in Model::finish(), which creates the
      *  needed cells.
      */
-    const bool makeCellsFromRBE;
+    bool makeCellsFromRBE = false;
     /**
      *  Some elementSet can hold very general elements, acting on various DOFs of the corresponding cells.
      *  For example, Nastran PELAS1 can regroup CELAS1 cells which "spring" in various DOFS 'DXtoDX, DYtoDZ, etc)
      *  whereas Systus can only have one spring direction by 1902 Part (the translation).
      *  This bool commands the use of Model::splitElementsByDOFS in Model::finish() which split the ElementSet
      */
-    const bool splitElementsByDOFS;
+    bool splitElementsByDOFS = false;
     /**
      * ElementSets of Direct Matrices usually do not have an associated material, this can create issues in Code_Aster,
      * so a virtual material should be added. This must not be done in Systus instead.
      */
-    const bool addVirtualMaterial;
+    bool addVirtualMaterial = false;
 
 };
 // TODO: THe Configuration Parameters should be much more generalized. With this,

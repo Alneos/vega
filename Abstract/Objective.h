@@ -138,6 +138,7 @@ public:
 
     enum FrequencyType {
         BAND,
+        STEP,
         LIST,
         SPREAD
     };

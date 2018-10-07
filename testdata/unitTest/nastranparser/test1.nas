@@ -1,15 +1,15 @@
-ABBA$PAPPA  
+ABBA$PAPPA
 SOL 101
 DIAG 8
 $TIME 3.15E7
-CEND                                                                            
-$                                                                            
+CEND
+$
 TITLE=TEST
 SUBTITLE=test analyse modale
 LABEL=modes de vibrations
 METHOD=1
 $RESVEC(NOINREL)=YES
-ECHO=NONE                                                                  
+ECHO=NONE
 DISPLACEMENT=ALL
 $STRESS=ALL
 $
@@ -20,8 +20,8 @@ $SUBCASE 2
 $BC=2
 $ ALNEOS UNCOMMENT NEXT 1 LINE
 SPC=1
-$                                                                               
-BEGIN BULK                                                                      
+$
+BEGIN BULK
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 GRID      551673        434.2049-258.195371.9998
 GRID      863773        434.2049-258.195371.9998
@@ -41,12 +41,13 @@ $PARAM,MAXRATIO,1.E7
 $PARAM,SNORM,20.
 PARAM,COUPMASS,-1
 PARAM,TINY,0.0
-PARAM,POST,-2    
-$ ALNEOS COMMENT NEXT 1 LINE                                                               
+PARAM,POST,-2
+$ ALNEOS COMMENT NEXT 1 LINE
 $EIGRL          1    50.0   100.0
-$ ALNEOS ADD NEXT 1 LINE
+$ ALNEOS ADD NEXT 2 LINES
 EIGRL          1                      50
-$EIGRL          1                      5       0                
+EIGRL         10        1600.0                                      MASS
+$EIGRL          1                      5       0
 $EIGRL          1                      1.      100.
 $GC next line added for test
 FORCE   1       4               5000.   0.      -1.     0.
