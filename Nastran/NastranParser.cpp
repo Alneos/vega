@@ -557,11 +557,6 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
                     ConstraintSet constraintSet(*model, ConstraintSet::MPC, id);
                     model->add(constraintSet);
                 }
-                analysis.add(constraintReference);
-                if (!model->find(constraintReference)) { // constraintSet is added in the model if not found in the model
-                    ConstraintSet constraintSet(*model, ConstraintSet::SPC, id);
-                    model->add(constraintSet);
-                }
             } else if (!key.compare(0, 4, "LOAD")) {
                 Reference<LoadSet> loadsetReference(LoadSet::LOAD, id);
                 analysis.add(loadsetReference);
