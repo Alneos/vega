@@ -2635,10 +2635,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                     case (ElementSet::CONTINUUM): {
                         break;
                     }
-                    // Nodal Masses are not material in Systus
-                    case (ElementSet::NODAL_MASS): {
-                        continue;
-                    }
+
                     // Default : we only print the default fields: E, NU, etc.
                     default:
                         handleWritingWarning(to_str(*elementSet) +" not supported", "Elastic Material");
@@ -2780,23 +2777,30 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                 case ElementSet::DAMPING_MATRIX:{
                     auto it = tableByElementSet.find(elementSet->getId());
                     if (it == tableByElementSet.end()){
-                        cout << "Warning in Materials: "<< *elementSet << " has no table."<<endl;
+                        handleWritingWarning(to_str(*elementSet)+" has no table.","Material");
                         break;
                     }
                     writeMaterialField(SMF::TABLE, int(it->second), nbElementsMaterial, omat);
                     if (systusModel.configuration.systusOutputMatrix=="file"){
                         auto it2 = seIdByElementSet.find(elementSet->getId());
                         if (it2 == seIdByElementSet.end()){
-                            cout << "Warning in Materials: "<< *elementSet << " has no reduction number."<<endl;
+                            handleWritingWarning(to_str(*elementSet)+" has no reduction number.","Material");
                             break;
                         }
                         writeMaterialField(SMF::E, double(it2->second), nbElementsMaterial, omat);
                     }
                     break;
                 }
+
+                // Nodal Masses are not material in Systus
+                case (ElementSet::NODAL_MASS): {
+                    isValid=false;
+                    break;
+                }
+
                 default:{
                     isValid=false;
-                    cout << "Warning in Materials: " << *elementSet << " not supported" << endl;
+                    handleWritingWarning(to_str(*elementSet)+" not supported.","Material");
                 }
                 }
             }
