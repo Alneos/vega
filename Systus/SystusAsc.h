@@ -30,6 +30,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include "../Abstract/Dof.h"
 
 
 namespace vega {
@@ -117,6 +118,27 @@ public:
 
 };
 
+
+enum class SystusOption : int {
+    SHELL = 3,
+    CONTINUOUS = 4
+};
+enum class SystusSubOption : int {
+    NONE = 0,
+    MULTI = 3
+};
+
+static const std::map<SystusOption, std::string> SystusOptiontoString = {
+        {SystusOption::SHELL, "Shells"},
+        {SystusOption::CONTINUOUS, "3D Structures"}
+};
+static const std::map<SystusSubOption, std::string> SystusSubOptiontoString = {
+        {SystusSubOption::NONE, ""},
+        {SystusSubOption::MULTI, "Multi"}
+};
+std::string SystusOptionToString(SystusOption sO, SystusSubOption ssO);
+std::ostream& operator<<(std::ostream& os, const SystusOption & sO);
+std::ostream& operator<<(std::ostream& os, const SystusSubOption & ssO);
 
 } // namespace systus
 } // namespace vega

@@ -166,5 +166,24 @@ ostream& operator<<(ostream& os, const SystusMatrices & sms)
 }
 
 
+
+string SystusOptionToString(SystusOption sO, SystusSubOption ssO){
+    string s1 = SystusOptiontoString.find(sO)->second;
+    string s2 = SystusSubOptiontoString.find(ssO)->second;
+    if (s2 != "")
+        s1+="-"+s2;
+    return s1;
+}
+
+std::ostream& operator<<(std::ostream& os, const SystusOption & sO){
+    os << static_cast<int>(sO);
+    return os;
+}
+std::ostream& operator<<(std::ostream& os, const SystusSubOption & ssO){
+    os << static_cast<int>(ssO);
+    return os;
+}
+
+
 } //namespace systus
 } //namespace vega

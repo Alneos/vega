@@ -440,51 +440,135 @@ string SystusWriter::writeModel(const shared_ptr<Model> model,
     return dat_path;
 }
 
-void SystusWriter::getSystusInformations(const SystusModel& systusModel, const ConfigurationParameters& configurationParameters) {
-
-    CellType cellType[21] = { CellType::POINT1, CellType::SEG2, CellType::SEG3, CellType::SEG4, CellType::SEG5,
-            CellType::TRI3, CellType::QUAD4, CellType::TRI6, CellType::TRI7, CellType::QUAD8,
-            CellType::QUAD9, CellType::TETRA4, CellType::PYRA5, CellType::PENTA6, CellType::HEXA8,
-            CellType::TETRA10, CellType::HEXGP12, CellType::PYRA13, CellType::PENTA15,
-            CellType::HEXA20, CellType::HEXA27 };
-
-    bool hasElement[21];
-    int numNodes[21];
-    for (int i = 0; i < 21; i++) {
-        hasElement[i] = !!systusModel.model->mesh->countCells(cellType[i]);
-        numNodes[i] = hasElement[i] ? cellType[i].numNodes : 0;
-    }
+void SystusWriter::getSystusAutomaticOption(const SystusModel& systusModel, SystusOption & autoSystusOption, SystusSubOption & autoSystusSubOption) {
 
     bool has1DOr2DElements = false;
-    for (int i = 0; i < 11; i++)
-        has1DOr2DElements = hasElement[i] || has1DOr2DElements;
     bool has3DElements = false;
-    for (int i = 11; i < 21; i++)
-        has3DElements = hasElement[i] || has3DElements;
 
-    if (configurationParameters.systusOptionAnalysis =="auto"){
-        if (has1DOr2DElements){
-            systusOption = 3;
-            systusSubOption = has3DElements ? 3 : 0;
-        }else{
-            systusOption = 4;
-            systusSubOption = 0;
+    /**
+     *  The list of elements supported by the 3D option is available in the
+     *  SYSTUS Reference Manual  (section 8.4.3 Three Dimensional Analysis)
+     **/
+    for (const auto& elementSet : systusModel.model->elementSets) {
+        switch (elementSet->type) {
+
+        // Those elements need 6 DDL
+        case ElementSet::CIRCULAR_SECTION_BEAM:
+        case ElementSet::GENERIC_SECTION_BEAM:
+        case ElementSet::I_SECTION_BEAM:
+        case ElementSet::RECTANGULAR_SECTION_BEAM:
+        case ElementSet::SHELL:{
+            has1DOr2DElements=true;
         }
-    }else{
-        if (configurationParameters.systusOptionAnalysis =="shell"){
-            systusOption = 3;
-            systusSubOption = 0;
-        }else if(configurationParameters.systusOptionAnalysis =="shell-multi"){
-            systusOption = 3;
-            systusSubOption = 3;
-        }else{
-            systusOption = 4;
-            systusSubOption = 0;
+
+        /*
+         * Those elements can be either with 3 or 6 DLLs, depending on the user
+         * use. We could check every one of them to know which is what but it
+         * seems a waste of time. For now, we suppose they are all 6DLLs
+         */
+        case ElementSet::STIFFNESS_MATRIX:
+        case ElementSet::MASS_MATRIX:
+        case ElementSet::DAMPING_MATRIX:
+        case ElementSet::SCALAR_SPRING:{
+            has1DOr2DElements= true;
+        }
+
+        // Those are solid elements: only 3DDLs needed.
+        case ElementSet::CONTINUUM:{
+            has3DElements=true;
+        }
+
+        // All these elements are available on both 3D and shell modes.
+        //   - Structural Segment are translated with 1602
+        //   - RBAR, RBE2 (RBE2 are viewed as an assembly of RBAR) and RBE3 are available on both 3D and Shell modes
+        case ElementSet::RBAR:
+        case ElementSet::RBE3:
+        case ElementSet::STRUCTURAL_SEGMENT:{
+            continue;
+        }
+
+        // Not translated as cells.
+        case ElementSet::DISCRETE_0D:
+        case ElementSet::DISCRETE_1D:
+        case ElementSet::NODAL_MASS:{
+            continue;
+        }
+
+        default: {
+            handleWritingWarning("Unknown type of ElementSet for "+to_str(*elementSet), "Automatic Option");}
+        }
+
+        // No need to test everything if we already know the needed informations.
+        if (has1DOr2DElements&&has3DElements){
+            break;
         }
     }
-    maxNumNodes = *max_element(numNodes, numNodes + 21);
-    nbNodes = systusModel.model->mesh->countNodes();
 
+    if (has1DOr2DElements){
+        autoSystusOption = SystusOption::SHELL;
+        autoSystusSubOption = has3DElements ? SystusSubOption::MULTI : SystusSubOption::NONE;
+    }else{
+        autoSystusOption = SystusOption::CONTINUOUS;
+        autoSystusSubOption = SystusSubOption::NONE;
+    }
+
+}
+
+
+void SystusWriter::getSystusInformations(const SystusModel& systusModel, const ConfigurationParameters& configurationParameters) {
+
+    // Compute automatic Options
+    SystusOption autoSystusOption;
+    SystusSubOption autoSystusSubOption;
+    getSystusAutomaticOption(systusModel, autoSystusOption, autoSystusSubOption);
+    if (configurationParameters.logLevel >= LogLevel::INFO){
+       cout << "Automatic option is "<<SystusOptionToString(autoSystusOption,autoSystusSubOption)<<endl;
+    }
+
+
+    // We choose between the automatic and user-defined option
+    if (configurationParameters.systusOptionAnalysis =="auto"){
+        systusOption = autoSystusOption;
+        systusSubOption = autoSystusSubOption;
+    }else if (configurationParameters.systusOptionAnalysis =="shell"){
+        systusOption = SystusOption::SHELL;
+        systusSubOption = SystusSubOption::NONE;
+    }else if(configurationParameters.systusOptionAnalysis =="shell-multi"){
+        systusOption = SystusOption::SHELL;
+        systusSubOption = SystusSubOption::MULTI;
+    }else if(configurationParameters.systusOptionAnalysis =="3D"){
+        systusOption = SystusOption::CONTINUOUS;
+        systusSubOption = SystusSubOption::NONE;
+    }else{
+        handleWritingError("Unknown option analysis: " +configurationParameters.systusOptionAnalysis, "SYSTUS Option");
+    }
+
+    // Warning message
+    if ((systusOption != autoSystusOption) && (configurationParameters.logLevel >= LogLevel::INFO)){
+        handleWritingWarning("User-defined SYSTUS option ("+SystusOptionToString(systusOption, systusSubOption)+
+                ") is different from the automatic one ("+SystusOptionToString(autoSystusOption, autoSystusSubOption)
+                +")", "SYSTUS Option");
+    }
+
+    // Define the available DOFs
+    switch (systusOption) {
+    case SystusOption::SHELL:
+        availableDOFS = DOFS::ALL_DOFS;
+        dofCode= static_cast<char>(availableDOFS);
+        nbDOFS= 6;
+        break;
+    case SystusOption::CONTINUOUS:
+        availableDOFS = DOFS::TRANSLATIONS;
+        dofCode= static_cast<char>(availableDOFS);
+        nbDOFS= 3;
+        break;
+    default:
+        availableDOFS = DOFS::NO_DOFS;
+        dofCode= static_cast<char>(availableDOFS);
+        nbDOFS= 0;
+        handleWritingError("systusOption not supported");
+        break;
+    }
 }
 
 double SystusWriter::generateRbarRigidity(const SystusModel& systusModel, const shared_ptr<Rbar> rbar){
@@ -635,7 +719,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
             const Node& master = mesh->findNode(masterPosition);
             int master_rot_id = 0;
 
-            if (systusOption == 4){
+            if (systusOption == SystusOption::CONTINUOUS){
                 int master_rot_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
                 master_rot_id = mesh->findNodeId(master_rot_position);
                 rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
@@ -653,7 +737,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
                     throw logic_error("Error: the first node of ElementSet::RBAR cells must be the master node.");
                 }
 
-                if (systusOption == 4)
+                if (systusOption == SystusOption::CONTINUOUS)
                     nodes.push_back(master_rot_id);
 
                 // With a Lagrangian formulation, we add a Lagrange node.
@@ -719,7 +803,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
             // Creating rotation nodes if needed
             int master_rot_id=0;
             int master_lagr_rot_id=0;
-            if (systusOption == 4){
+            if (systusOption == SystusOption::CONTINUOUS){
                 int master_rot_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
                 master_rot_id = mesh->findNodeId(master_rot_position);
                 rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
@@ -739,10 +823,10 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
                     throw logic_error("Error: the first node of ElementSet::RBE3 cells must be the master node.");
                 }
 
-                if (systusOption == 4)
+                if (systusOption == SystusOption::CONTINUOUS)
                     nodes.push_back(master_rot_id);
                 nodes.push_back(master_lagr_id);
-                if (systusOption == 4){
+                if (systusOption == SystusOption::CONTINUOUS){
                     nodes.push_back(master_lagr_rot_id);
                 }
 
@@ -1005,7 +1089,7 @@ void SystusWriter::writeNodalForce(const SystusModel& systusModel, shared_ptr<No
         vec.push_back(force.x()); normvec=max(normvec, abs(force.x()));
         vec.push_back(force.y()); normvec=max(normvec, abs(force.y()));
         vec.push_back(force.z()); normvec=max(normvec, abs(force.z()));
-        if (systusOption == 3){
+        if (systusOption == SystusOption::SHELL){
             vec.push_back(moment.x()); normvec=max(normvec, abs(moment.x()));
             vec.push_back(moment.y()); normvec=max(normvec, abs(moment.y()));
             vec.push_back(moment.z()); normvec=max(normvec, abs(moment.z()));
@@ -1017,7 +1101,7 @@ void SystusWriter::writeNodalForce(const SystusModel& systusModel, shared_ptr<No
         }
         // Rigid Body Element in option 3D.
         // We report the force from the master node to the master rotational node.
-        if (systusOption == 4){
+        if (systusOption == SystusOption::CONTINUOUS){
             const auto & it = rotationNodeIdByTranslationNodeId.find(nodeId);
             if (it != rotationNodeIdByTranslationNodeId.end()){
                 int rotNodePosition= systusModel.model->mesh->findNodePosition(it->second);
@@ -1200,20 +1284,11 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
                         vec.push_back(0);
                         vec.push_back(0);
                         DOFS spcDOFS = spc->getDOFSForNode(0);
-                        if (systusOption == 3){
-                            for (DOF dof : DOFS::ALL_DOFS){
-                                double value = (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0);
-                                normvec = max(normvec, abs(value));
-                                vec.push_back(value);
-                            }
-                        }else if (systusOption == 4) {
-                            for (DOF dof : DOFS::TRANSLATIONS){
-                                double value = (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0);
-                                normvec = max(normvec, abs(value));
-                                vec.push_back(value);
-                            }
-                        }else
-                            handleWritingError("systusOption not supported","Constraint vectors");
+                        for (DOF dof : availableDOFS){
+                            double value = (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0);
+                            normvec = max(normvec, abs(value));
+                            vec.push_back(value);
+                        }
 
                         if (!is_zero(normvec)){
                             vectors[vectorId]=vec;
@@ -1226,7 +1301,7 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
                         }
                         // Rigid Body Element in option 3D.
                         // We report the constraints from the master node to the master rotational node.
-                        if (systusOption==4){
+                        if (systusOption==SystusOption::CONTINUOUS){
 
                             // Rotation vector
                             vec.clear();
@@ -1390,21 +1465,6 @@ void SystusWriter::fillVectors(const SystusModel& systusModel, const int idSubca
 
 void SystusWriter::fillConstraintsNodes(const SystusModel& systusModel, const int idLoadcase){
 
-    // Available degrees of freedom
-    char dofCode;
-    switch (systusOption) {
-        case 3:
-            dofCode = static_cast<char>(DOFS::ALL_DOFS);
-            break;
-        case 4:
-            dofCode = static_cast<char>(DOFS::TRANSLATIONS);
-            break;
-        default:
-            handleWritingError("systusOption not supported");
-            dofCode = static_cast<char>(DOFS::NO_DOFS);
-            break;
-    }
-
     const shared_ptr<Mesh> mesh = systusModel.model->mesh;
 
 
@@ -1441,7 +1501,7 @@ void SystusWriter::fillConstraintsNodes(const SystusModel& systusModel, const in
 
                     // Rigid Body Element in option 3D.
                     // We report the constraints from the master node to the master rotational node.
-                    if (systusOption==4){
+                    if (systusOption==SystusOption::CONTINUOUS){
                         int nid =  mesh->findNodeId(nodePosition);
                         const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
                         if (it != rotationNodeIdByTranslationNodeId.end()){
@@ -1732,7 +1792,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             systus_ascid_t tId= tables.size()+1;
             SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
             for (DOFCoefs dofCoefs : lmpc->dofCoefs){
-                for (int i =0; i< numberOfDofBySystusOption[systusOption]; i++){
+                for (int i =0; i< nbDOFS; i++){
                     aTable.add(dofCoefs[i]);
                 }
             }
@@ -1814,7 +1874,6 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
     // and we don't know what the others will need.
     UNUSEDV(idSubcase);
 
-    int nbDOFS=numberOfDofBySystusOption[systusOption];
     dampingMatrices.nbDOFS=nbDOFS;
     massMatrices.nbDOFS=nbDOFS;
     stiffnessMatrices.nbDOFS=nbDOFS;
@@ -2123,10 +2182,9 @@ void SystusWriter::writeHeader(const SystusModel& systusModel, ostream& out) {
     int kppr = static_cast<int>(localLoadingListName.size()) ; // KPPR: Number of loads
     out << kppr << " ";
 
-    int numberOfDof = numberOfDofBySystusOption[systusOption];
-    out << numberOfDof << " " ;                               // KP: Number of degrees of freedom per node
-    out << 2*numberOfDof*std::max(1, kppr) << " " ; // KPC = 2*KP*max(1,KPPR) (for most cases)
-    out << "0 0" << endl;                                     // Two useless integers
+    out << nbDOFS << " " ;                     // KP: Number of degrees of freedom per node
+    out << 2*nbDOFS*std::max(1, kppr) << " " ; // KPC = 2*KP*max(1,KPPR) (for most cases)
+    out << "0 0" << endl;                      // Two useless integers
 
 }
 
@@ -2157,10 +2215,10 @@ void SystusWriter::writeInformations(const SystusModel &systusModel, int idSubca
 
     // NCODES
     int ncode[20]={0};
-    ncode[0]= systusOption; //IOPT: SYSTUS OPTION
+    ncode[0]= static_cast<int>(systusOption); //IOPT: SYSTUS OPTION
     ncode[3]= 2;  // NORM: Eigenvelue norm used (1: Maximum (def), 2: Mass (Nastran  default), 4: Elastic)
     ncode[11]= 1; // KMAT : New material structure. Always set to 1.
-    ncode[13]= systusSubOption; // MELANG : Mixed Options
+    ncode[13]= static_cast<int>(systusSubOption); // MELANG : Mixed Options
     for (int i = 0; i<20 ; i++){
       out <<" "<< ncode[i];
     }
@@ -2169,19 +2227,18 @@ void SystusWriter::writeInformations(const SystusModel &systusModel, int idSubca
     // LCODES : Most of these are not really needed, as Systus recomputes them after.
     // Nonetheless, it's cleaner this way.
     int lcode[40]={0};
-    int numberOfDof = numberOfDofBySystusOption[systusOption];
     lcode[0] = static_cast<int>(localLoadingListName.size()); // KPPR: Number of loads
     lcode[1] = systusModel.model->mesh->countNodes();     // NMAX: Number of nodes
     lcode[3] = systusModel.model->mesh->countCells();     // MMAXI: Number of elements
     lcode[5] = 0;                                         // JMAT: Number of material couples, will be computed in "nbmaterials" in the writeMaterials method
     lcode[6] = static_cast<int>(lists.size());            // JREP: Number of lists
     lcode[7] = static_cast<int>(vectors.size());          // JVEC: Number of vectors.
-    lcode[10]= numberOfDof;                               // KP: Number of dof per node
-    lcode[11]= numberOfDof;                               // KPMAX: Maximum Number of dof per node
-    lcode[12]= numberOfDof*numberOfDof;                   // KPM2 = KPMAX*KPMAX;
+    lcode[10]= nbDOFS;                                    // KP: Number of dof per node
+    lcode[11]= nbDOFS;                                    // KPMAX: Maximum Number of dof per node
+    lcode[12]= nbDOFS*nbDOFS;                             // KPM2 = KPMAX*KPMAX;
     lcode[13]= 3;                                         // NCOOR: Number of coordinates of a node (2 or 3)
-    lcode[17]= numberOfDof*numberOfDof;                   // KP2 = KP*KP;
-    lcode[22]= 2*numberOfDof*std::max(lcode[0],1);           // KPC = 2*KP*max(1,KPPR) (for most cases)
+    lcode[17]= nbDOFS*nbDOFS;                             // KP2 = KP*KP;
+    lcode[22]= 2*nbDOFS*std::max(lcode[0],1);             // KPC = 2*KP*max(1,KPPR) (for most cases)
     lcode[36]= 2;                                         // LCRP Data Type: 1:OLD, 2: NEW
     lcode[37]= 0;                                         // ICAL Computation Status 0: Not Done
     for (int i = 0; i<40 ; i++){
@@ -3249,8 +3306,8 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
     vector<shared_ptr<Assertion>> assertions = analysis->getAssertions();
     if (!assertions.empty()) {
         out << "LANGAGE" << endl;
-        out << "variable displacement[" << numberOfDofBySystusOption[systusOption] << "],"
-                "frequency, phase[" << numberOfDofBySystusOption[systusOption] << "];" << endl;
+        out << "variable displacement[" << nbDOFS << "],"
+                "frequency, phase[" << nbDOFS << "];" << endl;
         out << "iResu=open_file(\"" << systusModel.getName() << "_" << analysis->getId()
                                         << ".RESU\", \"write\");" << endl << endl;
 

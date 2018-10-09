@@ -90,14 +90,15 @@ static const int defaultNbDesiredRoots=100; /**< Default number of desired roots
 class SystusWriter final: public Writer {
 
 private:
-    int systusOption = 0;
-    int systusSubOption = 0;
-    int maxNumNodes = 0;
-    int nbNodes = 0;						 /**< Useless >**/
+    SystusOption systusOption;
+    SystusSubOption systusSubOption;
+    char dofCode;
+    DOFS availableDOFS;
+    int  nbDOFS;
     double maxYoungModulus = Globals::UNAVAILABLE_DOUBLE;
-    static int auto_part_id;                 /**< Next available numer for Systus Part ID **/
+    static int auto_part_id;                 /**< Next available number for Systus Part ID **/
     static const int DampingAccessId;        /**< Access Id for the Damping Matrices file (Element X9XX type 0)**/
-    static const int MassAccessId;			 /**< Access Id for the Mass Matrices file (Element X9XX type 0)**/
+    static const int MassAccessId;           /**< Access Id for the Mass Matrices file (Element X9XX type 0)**/
     static const int StiffnessAccessId;      /**< Access Id for the Stiffness Matrices file (Element X9XX type 0)**/
 
     std::map<int, std::vector<systus_ascid_t> > lists;
@@ -114,7 +115,7 @@ private:
     std::map<int, char> constraintByNodePosition;
     std::vector< std::vector<int> > systusSubcases;   /**< Ids of loadcases composing the subcase **/
     std::vector<SystusTable> tables;
-    SystusMatrices dampingMatrices;   	    /**< All needed damping matrices (element X9XX type 0). **/
+    SystusMatrices dampingMatrices;         /**< All needed damping matrices (element X9XX type 0). **/
     SystusMatrices massMatrices ;           /**< All needed mass matrices (element X9XX type 0). **/
     SystusMatrices stiffnessMatrices;       /**< All needed rigidity matrices (element X9XX type 0). **/
     std::map<int, systus_ascid_t> tableByElementSet;
@@ -297,6 +298,11 @@ private:
     void writeAsc(const SystusModel&, const ConfigurationParameters&, const int idSubcase, std::ostream&);
     void getSystusInformations(const SystusModel&, const ConfigurationParameters&);
 
+    /**
+     * Determines the best Systus Option fitting the model.
+     */
+    void getSystusAutomaticOption(const SystusModel&, SystusOption & autoSystusOption, SystusSubOption & autoSystusSubOption);
+    
     /**
      * Clear all maps, vectors, lists filled during a previous translation.
      */
