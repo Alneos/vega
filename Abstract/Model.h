@@ -111,7 +111,7 @@ public:
     std::string title;
     std::string description;
 
-    ModelConfiguration configuration;
+    const ModelConfiguration configuration;
     vega::ConfigurationParameters::TranslationMode translationMode;
     std::shared_ptr<Mesh> mesh; /**< Handles geometrical information */
 
@@ -121,7 +121,9 @@ public:
         LARGE_DISPLACEMENTS,
         LOWER_CUTOFF_FREQUENCY,
         UPPER_CUTOFF_FREQUENCY,
-        ELEMENT_QUALITY_CHECK
+        ELEMENT_QUALITY_CHECK,
+        STRUCTURAL_DAMPING,
+        FREQUENCY_OF_INTEREST_RADIANS
     };
     const LoadSet commonLoadSet;
     const ConstraintSet commonConstraintSet;

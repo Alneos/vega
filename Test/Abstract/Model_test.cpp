@@ -350,8 +350,8 @@ BOOST_AUTO_TEST_CASE( test_find_methods ) {
 BOOST_AUTO_TEST_CASE( combined_loadset1 ) {
     ModelConfiguration configuration;
     configuration.replaceCombinedLoadSets = true;
+    configuration.logLevel = LogLevel::DEBUG;
 	Model model("inputfile", "10.3", SolverName::NASTRAN, configuration);
-	model.configuration.logLevel = LogLevel::DEBUG;
 	LoadSet loadSet1(model, LoadSet::LOAD, 1);
 	LoadSet loadSet3(model, LoadSet::LOAD, 3);
 	model.mesh->addNode(1, 0.0, 0.0, 0.0);

@@ -48,6 +48,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "CBAR", &NastranParser::parseCBAR },
                 { "CBEAM", &NastranParser::parseCBEAM },
                 { "CBUSH", &NastranParser::parseCBUSH },
+                { "CDAMP1", &NastranParser::parseCDAMP1 },
                 { "CGAP", &NastranParser::parseCGAP },
                 { "CELAS1", &NastranParser::parseCELAS1 },
                 { "CELAS2", &NastranParser::parseCELAS2 },
@@ -101,6 +102,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "PBEAML", &NastranParser::parsePBEAML },
                 { "PBUSH", &NastranParser::parsePBUSH },
                 { "PCOMP", &NastranParser::parsePCOMP },
+                { "PDAMP", &NastranParser::parsePDAMP },
                 { "PELAS", &NastranParser::parsePELAS },
                 { "PGAP", &NastranParser::parsePGAP },
                 { "PLOAD", &NastranParser::parsePLOAD },
@@ -583,7 +585,35 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         }
         model->add(analysis);
 
-    } else if (analysis_str == "108" || analysis_str == "SEDFREQ" || analysis_str == "111" || analysis_str == "SEMFREQ") {
+    } else if (analysis_str == "108" || analysis_str == "SEDFREQ") {
+        int frequency_value_original_id = 0;
+        map<string, string>::iterator it;
+        for (it = context.begin(); it != context.end(); it++) {
+            if (it->first.find("FREQ") == 0)
+                frequency_value_original_id = stoi(it->second);
+        }
+        if (frequency_value_original_id == 0)
+            handleParsingError("FREQ not found for linear dynamic direct frequency analysis", tok, model);
+        LinearDynaDirectFreq analysis(*model, frequency_value_original_id, labelAnalysis, analysis_id);
+        it = context.find("SPC");
+        if (it != context.end()) {
+            int id = atoi(it->second.c_str());
+            Reference<ConstraintSet> constraintReference(ConstraintSet::SPC, id);
+            analysis.add(constraintReference);
+            if (!model->find(constraintReference)) { // constraintSet is added in the model if not found in the model
+                ConstraintSet constraintSet(*model, ConstraintSet::SPC, id);
+                model->add(constraintSet);
+            }
+        }
+        it = context.find("DLOAD");
+        if (it != context.end()) {
+            int id = atoi(it->second.c_str());
+            Reference<LoadSet> loadsetReference(LoadSet::DLOAD, id);
+            analysis.add(loadsetReference);
+        }
+
+        model->add(analysis);
+    } else if (analysis_str == "111" || analysis_str == "SEMFREQ") {
 
         int frequency_band_original_id = 0;
         int modal_damping_original_id = 0;
@@ -638,20 +668,11 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         if (it != context.end() && it->second == "YES")
             residual_vector = true;
 
-        if (analysis_str == "108" || analysis_str == "SEDFREQ") {
-            if (frequency_band_original_id == 0)
-                frequency_band_original_id = frequency_value_original_id; // in this case we can/should use excitation frequencies in the direct solver
-        } else {
-            if (frequency_band_original_id == 0)
-                handleParsingError("METHOD not found for linear dynamic modal frequency analysis", tok, model);
-        }
+        if (frequency_band_original_id == 0)
+            handleParsingError("METHOD not found for linear dynamic modal frequency analysis", tok, model);
 
         LinearDynaModalFreq analysis(*model, frequency_band_original_id, modal_damping_original_id,
                 frequency_value_original_id, residual_vector, labelAnalysis, analysis_id);
-
-        if (analysis_str == "108" || analysis_str == "SEDFREQ") {
-            analysis.use_direct_solver = true;
-        }
 
         it = context.find("SPC");
         if (it != context.end()) {
@@ -1752,12 +1773,6 @@ void NastranParser::parsePBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
             handleParsingWarning(string("unknown flag: ")+flag, tok, model);
         }
     }
-    // Ony K is supported yet
-    if (!is_equal(b1, 0) || !is_equal(b2, 0) || !is_equal(b3, 0) || !is_equal(b4, 0)
-            || !is_equal(b5, 0) || !is_equal(b6, 0) ) {
-        b1=0.0; b2=0.0; b3=0.0; b4=0.0; b5=0.0; b6=0.0;
-        handleParsingWarning(string("Force-Per-velocity Damping B not supported. Default (0.0) assumed."), tok, model);
-    }
     if (!is_equal(ge1, 0) || !is_equal(ge2, 0) || !is_equal(ge3, 0) || !is_equal(ge4, 0)
             || !is_equal(ge5, 0) || !is_equal(ge6, 0) ) {
         ge1=0.0; ge2=0.0; ge3=0.0; ge4=0.0; ge5=0.0; ge6=0.0;
@@ -1776,6 +1791,13 @@ void NastranParser::parsePBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
     structuralElement.addStiffness(DOF::RX, DOF::RX, k4);
     structuralElement.addStiffness(DOF::RY, DOF::RY, k5);
     structuralElement.addStiffness(DOF::RZ, DOF::RZ, k6);
+
+    structuralElement.addDamping(DOF::DX, DOF::DX, b1);
+    structuralElement.addDamping(DOF::DY, DOF::DY, b2);
+    structuralElement.addDamping(DOF::DZ, DOF::DZ, b3);
+    structuralElement.addDamping(DOF::RX, DOF::RX, b4);
+    structuralElement.addDamping(DOF::RY, DOF::RY, b5);
+    structuralElement.addDamping(DOF::RZ, DOF::RZ, b6);
 
     model->add(structuralElement);
 
@@ -1812,6 +1834,35 @@ void NastranParser::parsePCOMP(NastranTokenizer& tok, shared_ptr<Model> model) {
         composite.addLayer(layermatn->getId(), tn, thetan);
     }
     model->add(composite);
+}
+
+void NastranParser::parsePDAMP(NastranTokenizer& tok, shared_ptr<Model> model) {
+
+    int nbProperties=0;
+    // Up to four elastic damper properties can be defined on a single entry.
+    while ((tok.isNextInt())&&(nbProperties<4)){
+
+        const int pid = tok.nextInt();
+        const double b = tok.nextDouble(true, 0.0);
+
+        shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model, "PDAMP");
+        shared_ptr<ElementSet> elementSet = model->elementSets.find(pid);
+        if (elementSet == nullptr){
+            ScalarSpring scalarSpring(*model, pid, Globals::UNAVAILABLE_DOUBLE, b);
+            scalarSpring.assignCellGroup(cellGroup);
+            model->add(scalarSpring);
+        }else{
+            if (elementSet->type == ElementSet::SCALAR_SPRING){
+                shared_ptr<ScalarSpring> springElementSet = static_pointer_cast<ScalarSpring>(elementSet);
+                springElementSet->setDamping(b);
+                springElementSet->assignCellGroup(cellGroup);
+            }else{
+                string message = "The part of PID "+std::to_string(pid)+" already exists with the wrong NATURE.";
+                handleParsingError(message, tok, model);
+            }
+        }
+        nbProperties++;
+    }
 }
 
 void NastranParser::parsePELAS(NastranTokenizer& tok, shared_ptr<Model> model) {

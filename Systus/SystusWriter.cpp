@@ -459,6 +459,7 @@ void SystusWriter::getSystusAutomaticOption(const SystusModel& systusModel, Syst
         case ElementSet::RECTANGULAR_SECTION_BEAM:
         case ElementSet::SHELL:{
             has1DOr2DElements=true;
+            break; // -Wimplicit-fallthrough
         }
 
         /*
@@ -471,11 +472,13 @@ void SystusWriter::getSystusAutomaticOption(const SystusModel& systusModel, Syst
         case ElementSet::DAMPING_MATRIX:
         case ElementSet::SCALAR_SPRING:{
             has1DOr2DElements= true;
+            break; // -Wimplicit-fallthrough
         }
 
         // Those are solid elements: only 3DDLs needed.
         case ElementSet::CONTINUUM:{
             has3DElements=true;
+            break; // -Wimplicit-fallthrough
         }
 
         // All these elements are available on both 3D and shell modes.
@@ -496,7 +499,7 @@ void SystusWriter::getSystusAutomaticOption(const SystusModel& systusModel, Syst
 
         default: {
             handleWritingWarning("Unknown type of ElementSet for "+to_str(*elementSet), "Automatic Option");}
-        }
+        } /* switch */
 
         // No need to test everything if we already know the needed informations.
         if (has1DOr2DElements&&has3DElements){
@@ -2922,6 +2925,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
     // For TOPAZE, we comment a few lines.
     string comment="";
     if (configuration.systusOutputProduct=="topaze"){
+        out << "$$@comlev_initmodules" << endl;
         comment="###TOPAZE###";
     }
 
@@ -3336,6 +3340,10 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
 
         out << "close_file(iResu)" << endl;
         out << "end;" << endl;
+    }
+
+    if (configuration.systusOutputProduct=="topaze"){
+        out << "$$@comlev_finalize" << endl;
     }
 }
 

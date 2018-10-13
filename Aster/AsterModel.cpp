@@ -117,7 +117,7 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
     ModelType modelType = elementSet->getModelType();
     string result;
     switch (elementSet->type) {
-    case ElementSet::CONTINUUM:
+    case ElementSet::CONTINUUM: {
         if (modelType == ModelType::TRIDIMENSIONAL_SI) {
             result = "('3D', '3D_SI')";
         } else if (modelType == ModelType::PLANE_STRESS) {
@@ -128,13 +128,15 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
             result = "('3D',)";
         }
         break;
+    }
     case ElementSet::SHELL:
-    case ElementSet::COMPOSITE:
+    case ElementSet::COMPOSITE: {
         result = "('DKT',)";
         /*??
          coque_3D.modelisations = ("COQUE_3D",)
          */
         break;
+    }
     case ElementSet::CIRCULAR_SECTION_BEAM:
     case ElementSet::RECTANGULAR_SECTION_BEAM:
     case ElementSet::I_SECTION_BEAM:
@@ -154,12 +156,13 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
         } else {
             result = "('POU_D_T_GD',)";
         }
-    }
         break;
+    }
     case ElementSet::STRUCTURAL_SEGMENT:
+    case ElementSet::SCALAR_SPRING:
     case ElementSet::DISCRETE_0D:
     case ElementSet::DISCRETE_1D: {
-        shared_ptr<DiscretePoint> discret = (static_pointer_cast<DiscretePoint>(elementSet));
+        shared_ptr<Discrete> discret = (dynamic_pointer_cast<Discrete>(elementSet));
         if (discret->hasRotations()) {
             result = "('DIS_TR',)";
         } else {
@@ -168,6 +171,7 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
         break;
     }
     case ElementSet::NODAL_MASS: {
+        shared_ptr<NodalMass> mass = (dynamic_pointer_cast<NodalMass>(elementSet));
         result = "('DIS_TR',)";
         break;
     }

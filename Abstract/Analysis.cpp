@@ -42,6 +42,7 @@ const string Analysis::name = "Analysis";
 const map<Analysis::Type, string> Analysis::stringByType = {
         { LINEAR_MECA_STAT, "LINEAR_MECA_STAT" },
         { LINEAR_MODAL, "LINEAR_MODAL" },
+        { LINEAR_DYNA_DIRECT_FREQ, "LINEAR_DYNA_DIRECT_FREQ" },
         { LINEAR_DYNA_MODAL_FREQ, "LINEAR_DYNA_MODAL_FREQ" },
         { NONLINEAR_MECA_STAT, "NONLINEAR_MECA_STAT" },
         { UNKNOWN, "UNKNOWN" }
@@ -398,6 +399,33 @@ bool LinearDynaModalFreq::validate() const {
     if (getExcitationFrequencies() == nullptr) {
         if (model.configuration.logLevel >= LogLevel::INFO) {
             cout << "Modal analysis is not valid: cannot find frenquency excitation:" << frequencyExcitationRef << endl;
+        }
+        isValid = false;
+    }
+    return isValid;
+}
+
+LinearDynaDirectFreq::LinearDynaDirectFreq(Model& model,
+        const int frequency_value_original_id,
+        const string original_label, const int original_id) :
+        Analysis(model, Analysis::LINEAR_DYNA_DIRECT_FREQ, original_label, original_id),
+                frequencyExcitationRef(Objective::FREQUENCY_TARGET,
+                frequency_value_original_id) {
+}
+
+shared_ptr<FrequencyTarget> LinearDynaDirectFreq::getExcitationFrequencies() const {
+    return dynamic_pointer_cast<FrequencyTarget>(model.find(frequencyExcitationRef));
+}
+
+shared_ptr<Analysis> LinearDynaDirectFreq::clone() const {
+    return make_shared<LinearDynaDirectFreq>(*this);
+}
+
+bool LinearDynaDirectFreq::validate() const {
+    bool isValid = Analysis::validate();
+    if (getExcitationFrequencies() == nullptr) {
+        if (model.configuration.logLevel >= LogLevel::INFO) {
+            cout << "Direct analysis is not valid: cannot find frenquency excitation:" << frequencyExcitationRef << endl;
         }
         isValid = false;
     }

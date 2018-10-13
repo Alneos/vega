@@ -13,12 +13,16 @@ node('maven') {
       sh "whoami"
       sh "docker --version"
       sh "docker build -t ${image} -f Dockerfile_jenkins ."
-      sh "docker save ${image} | tar -xf -"
+      sh "docker save ${image} -o vegapp.tar"
+      sh "docker images -q"
+      sh "ls -l"
+      sh "tar -xf vegapp.tar --strip-components 1 --to-stdout `tar -tf vegapp.tar | grep layer.tar` | gzip > vegapp.tgz"
+      sh "ls -l"
       sh "docker push ${image}"
     }
     container('maven') {
       sh "mvn --version"
-      sh "mvn deploy:deploy-file -DgroupId=fr.systemx.top -DartifactId=vegapp -Dversion=1.0.0-SNAPSHOT -DgeneratePom=false -Dpackaging=pom -Dfile=/srv/data/vegapp"
+      sh "mvn deploy:deploy-file -Dclassifier=linux -DgroupId=fr.systemx.top -DartifactId=vegapp -Dversion=1.0.0-SNAPSHOT -DgeneratePom=false -Dfile=vegapp.tgz -Dpackaging=tgz -Durl=http://nexus.factory:8081/repository/maven-snapshots/ -DrepositoryId=smite-nexus"
     }
   }
 }

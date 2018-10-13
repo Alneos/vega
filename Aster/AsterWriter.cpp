@@ -124,6 +124,11 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 						<< ", NOM_PARA='FREQ', TOUT_CHAM='NON')," << endl;
 				break;
 			}
+			case (Analysis::LINEAR_DYNA_DIRECT_FREQ): {
+				out << "                _F(RESULTAT=RESU" << analysis.getId()
+						<< ", NOM_PARA='FREQ', TOUT_CHAM='NON')," << endl;
+				break;
+			}
 			case (Analysis::LINEAR_DYNA_MODAL_FREQ): {
 				break;
 			}
@@ -158,6 +163,11 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 						<< ", NOM_CHAM = 'DEPL',)," << endl;
 				break;
 			}
+			case (Analysis::LINEAR_DYNA_DIRECT_FREQ): {
+				out << "                _F(RESULTAT=RESU" << analysis.getId()
+						<< ", PARTIE='REEL')," << endl;
+				break;
+			}
 			case (Analysis::LINEAR_DYNA_MODAL_FREQ): {
 				out << "                _F(RESULTAT=MODES" << analysis.getId()
 						<< ", NOM_CHAM = 'DEPL',)," << endl;
@@ -190,6 +200,9 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 				out << "                _F(RESULTAT=RESU" << analysis.getId()
 						<< ",TOUT='OUI',NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
 				break;
+			}
+			case (Analysis::LINEAR_DYNA_DIRECT_FREQ): {
+			    break;
 			}
 			case (Analysis::LINEAR_DYNA_MODAL_FREQ): {
 				out << "                _F(RESULTAT=MODES" << analysis.getId()
@@ -335,7 +348,7 @@ void AsterWriter::writeComm(const AsterModel& asterModel, ostream& out) {
 	string asterVersion(asterModel.getAsterVersion());
 	out << "#Vega++ version " << VEGA_VERSION_MAJOR << "." << VEGA_VERSION_MINOR << endl;
 	out << "#Aster version " << asterModel.getAsterVersion() << endl;
-	out << "DEBUT(PAR_LOT='NON')" << endl;
+	out << "DEBUT(PAR_LOT='NON', IGNORE_ALARM=('SUPERVIS_1'))" << endl;
 
 	mail_name = "MAIL";
 	sigm_noeu = "SIGM_NOEU";
@@ -618,11 +631,13 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 				ElementSet::DISCRETE_1D);
 		vector<shared_ptr<ElementSet>> nodal_masses = asterModel.model.filterElements(
 				ElementSet::NODAL_MASS);
+		vector<shared_ptr<ElementSet>> scalar_springs = asterModel.model.filterElements(
+				ElementSet::SCALAR_SPRING);
 		vector<shared_ptr<ElementSet>> structural_segments = asterModel.model.filterElements(
 				ElementSet::STRUCTURAL_SEGMENT);
-		out << "                    # writing " << discrets_0d.size() + nodal_masses.size() + discrets_1d.size() + structural_segments.size()
-				<< " discrets" << endl;
-		if (discrets_0d.size() + nodal_masses.size() + discrets_1d.size() + structural_segments.size() > 0) {
+        auto numDiscrets = discrets_0d.size() + nodal_masses.size() + discrets_1d.size() + structural_segments.size() + scalar_springs.size();
+		out << "                    # writing " << numDiscrets << " discrets" << endl;
+		if (numDiscrets > 0) {
 			out << "                    DISCRET=(" << endl;
 			for (shared_ptr<ElementSet> discret : discrets_0d) {
 				if (discret->cellGroup != nullptr) {
@@ -633,7 +648,7 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 						out << "                                CARA='K_TR_D_N', VALE=(";
 					else
 						out << "                                CARA='K_T_D_N', VALE=(";
-					for (double rigi : discret_0d->asVector())
+					for (double rigi : discret_0d->asStiffnessVector())
 						out << rigi << ",";
 					out << "),)," << endl;
 				} else
@@ -650,7 +665,7 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 						out << "                                CARA='K_TR_L', VALE=(";
 					else
 						out << "                                CARA='K_T_L', VALE=(";
-					for (double rigi : discret_1d->asVector())
+					for (double rigi : discret_1d->asStiffnessVector())
 						out << rigi << ",";
 					out << "),)," << endl;
 				} else
@@ -660,16 +675,55 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 			}
 			for (shared_ptr<ElementSet> segment : structural_segments) {
 				if (segment->cellGroup != nullptr) {
-					out << "                             _F(GROUP_MA='"
-							<< segment->cellGroup->getName() << "'," << endl;
 					shared_ptr<StructuralSegment> segment_1d = static_pointer_cast<StructuralSegment>(segment);
+					out << "                             _F(GROUP_MA='"
+							<< segment_1d->cellGroup->getName() << "'," << endl;
 					if (segment_1d->hasRotations())
 						out << "                                CARA='K_TR_L', VALE=(";
 					else
 						out << "                                CARA='K_T_L', VALE=(";
-					for (double rigi : segment_1d->asVector())
+					for (double rigi : segment_1d->asStiffnessVector())
 						out << rigi << ",";
 					out << "),)," << endl;
+
+					out << "                             _F(GROUP_MA='"
+							<< segment_1d->cellGroup->getName() << "'," << endl;
+					if (segment_1d->hasRotations())
+						out << "                                CARA='A_TR_L', VALE=(";
+					else
+						out << "                                CARA='A_T_L', VALE=(";
+					for (double rigi : segment_1d->asDampingVector())
+						out << rigi << ",";
+					out << "),)," << endl;
+				} else
+					out
+							<< "                             # WARN Finite Element : DISCRETE_1D ignored because its GROUP_MA is empty."
+							<< endl;
+			}
+			for (shared_ptr<ElementSet> scalar_springset : scalar_springs) {
+				if (scalar_springset->cellGroup != nullptr) {
+					out << "                             _F(GROUP_MA='"
+							<< scalar_springset->cellGroup->getName() << "'," << endl;
+					shared_ptr<ScalarSpring> spring = static_pointer_cast<ScalarSpring>(scalar_springset);
+					if (spring->hasStiffness()) {
+                        if (spring->hasRotations())
+                            out << "                                CARA='K_TR_L', VALE=(";
+                        else
+                            out << "                                CARA='K_T_L', VALE=(";
+                        for (double rigi : spring->asStiffnessVector())
+                            out << rigi << ",";
+                        out << "),";
+                    }
+					if (spring->hasDamping()) {
+                        if (spring->hasRotations())
+                            out << "                                CARA='A_TR_L', VALE=(";
+                        else
+                            out << "                                CARA='A_T_L', VALE=(";
+                        for (double dampval : spring->asDampingVector())
+                            out << dampval << ",";
+                        out << "),";
+                    }
+					out << ")," << endl;
 				} else
 					out
 							<< "                             # WARN Finite Element : DISCRETE_1D ignored because its GROUP_MA is empty."
@@ -1416,6 +1470,62 @@ shared_ptr<NonLinearStrategy> AsterWriter::getNonLinearStrategy(
 	return nonLinearStrategy;
 }
 
+void AsterWriter::writeAssemblage(const AsterModel& asterModel, Analysis& analysis,
+		ostream& out) {
+    out << "ASSEMBLAGE(MODELE=MODMECA," << endl;
+    if (asterModel.model.materials.size() >= 1) {
+        out << "           CHAM_MATER=CHMAT," << endl;
+    }
+    out << "           CARA_ELEM=CAEL," << endl;
+    out << "           CHARGE=(" << endl;
+    for (shared_ptr<ConstraintSet> constraintSet : analysis.getConstraintSets()) {
+        out << "                   BL" << constraintSet->getId() << "," << endl;
+    }
+    out << "                   )," << endl;
+    out << "           NUME_DDL=CO('NUMDDL" << analysis.getId() << "')," << endl;
+    out << "           MATR_ASSE=(_F(OPTION='RIGI_MECA', MATRICE=CO('RIGI"
+            << analysis.getId() << "'),)," << endl;
+    out << "                      _F(OPTION='MASS_MECA', MATRICE=CO('MASS"
+            << analysis.getId() << "'),)," << endl;
+    out << "                      _F(OPTION='AMOR_MECA', MATRICE=CO('AMOR"
+            << analysis.getId() << "'),)," << endl;
+    out << "                      )," << endl;
+    out << "           );" << endl << endl;
+}
+
+void AsterWriter::writeDynamicExcitation(Analysis& analysis,
+		ostream& out) {
+    for (shared_ptr<LoadSet> loadSet : analysis.getLoadSets()) {
+        for (shared_ptr<Loading> loading : loadSet->getLoadings()) {
+            if (loading->type == Loading::DYNAMIC_EXCITATION) {
+                DynamicExcitation& dynamicExcitation =
+                        dynamic_cast<DynamicExcitation&>(*loading);
+                out << "FXL" << analysis.getId() << "_"
+                        << dynamicExcitation.getLoadSet()->getId()
+                        << "= CALC_VECT_ELEM(OPTION='CHAR_MECA'," << endl;
+                out << "                        CHARGE=(" << endl;
+                out << "                                CHMEC"
+                        << dynamicExcitation.getLoadSet()->getId() << "," << endl;
+                for (shared_ptr<ConstraintSet> constraintSet : analysis.getConstraintSets()) {
+                    out << "                                BL" << constraintSet->getId() << ","
+                            << endl;
+                }
+                out << "                                )," << endl;
+                out << "                        CARA_ELEM=CAEL," << endl;
+                out << "                        );" << endl << endl;
+
+                out << "FX" << analysis.getId() << "_"
+                        << dynamicExcitation.getLoadSet()->getId()
+                        << "= ASSE_VECTEUR(VECT_ELEM=FXL" << analysis.getId() << "_"
+                        << dynamicExcitation.getLoadSet()->getId() << "," << endl;
+                out << "                    NUME_DDL=NUMDDL" << analysis.getId()
+                        << endl;
+                out << "                    );" << endl << endl;
+            }
+        }
+    }
+}
+
 double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analysis,
 		ostream& out, double debut) {
 	if (analysis.isOriginal()) {
@@ -1469,7 +1579,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		}
 		out << "RESU" << nonLinAnalysis.getId() << "=STAT_NON_LINE(MODELE=MODMECA," << endl;
 		if (asterModel.model.materials.size() >= 1) {
-      out << "                    CHAM_MATER=CHMAT," << endl;
+            out << "                    CHAM_MATER=CHMAT," << endl;
 		}
 		out << "                    CARA_ELEM=CAEL," << endl;
 		out << "                    EXCIT=(" << endl;
@@ -1549,27 +1659,64 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		out << "                    );" << endl << endl;
 		break;
 	}
+	case Analysis::LINEAR_DYNA_DIRECT_FREQ: {
+        writeAssemblage(asterModel, analysis, out);
+        writeDynamicExcitation(analysis, out);
+        auto structural_damping = asterModel.model.parameters.find(Model::STRUCTURAL_DAMPING);
+        auto frequency_of_interest_radians = asterModel.model.parameters.find(Model::FREQUENCY_OF_INTEREST_RADIANS);
+        bool has_structural_damping = structural_damping != asterModel.model.parameters.end() and frequency_of_interest_radians != asterModel.model.parameters.end() and frequency_of_interest_radians->second > 0;
+		if (has_structural_damping) {
+            out << "AMST" << analysis.getId()
+                <<  " = COMB_MATR_ASSE(COMB_R = _F ( MATR_ASSE = RIGI"
+                << analysis.getId()
+                << ", COEF_R = " << structural_damping->second / frequency_of_interest_radians->second << "))" << endl;
+        }
+		LinearDynaDirectFreq& linearDirect = dynamic_cast<LinearDynaDirectFreq&>(analysis);
+        out << "RESU" << linearDirect.getId() << " = DYNA_VIBRA(" << endl;
+        out << "                   TYPE_CALCUL='HARM'," << endl;
+        out << "                   BASE_CALCUL='PHYS'," << endl;
+		out << "                   MATR_MASS  = MASS" << linearDirect.getId() << ","
+				<< endl;
+		out << "                   MATR_RIGI  = RIGI" << linearDirect.getId() << ","
+				<< endl;
+        if (has_structural_damping) {
+            out << "                   MATR_AMOR  = AMST" << linearDirect.getId() << ","
+				<< endl;
+        } else /* LD Maybe should combine these two cases ? */ {
+            out << "                   MATR_AMOR  = AMOR" << linearDirect.getId() << ","
+				<< endl;
+        }
+        out << "                   LIST_FREQ  = LST" << setfill('0') << setw(5)
+        << linearDirect.getExcitationFrequencies()->getValue()->getId() << "," << endl;
+		out << "                   EXCIT      = (" << endl;
+		for (shared_ptr<LoadSet> loadSet : linearDirect.getLoadSets()) {
+			for (shared_ptr<Loading> loading : loadSet->getLoadings()) {
+				if (loading->type == Loading::DYNAMIC_EXCITATION) {
+					DynamicExcitation& dynamicExcitation =
+							dynamic_cast<DynamicExcitation&>(*loading);
+					out << "                                 _F(" << endl;
+                    out << "                                    VECT_ASSE=FX"
+                            << linearDirect.getId() << "_"
+                            << dynamicExcitation.getLoadSet()->getId() << "," << endl;
+					out << "                                    FONC_MULT = FCT" << setfill('0')
+							<< setw(5) << dynamicExcitation.getFunctionTableB()->getId() << ","
+							<< endl;
+					out << "                                    PHAS_DEG = "
+							<< dynamicExcitation.getDynaPhase()->get() << ",)," << endl;
+				}
+			}
+		}
+		out << "                                 )," << endl;
+		out << "                   #SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS',NPREC=8)," << endl; // MUMPS: Error in function orderMinPriority no valid number of stages in multisector (#stages = 2)
+		out << "                   );" << endl << endl;
+	    break;
+	}
 	case Analysis::LINEAR_MODAL:
 	case Analysis::LINEAR_DYNA_MODAL_FREQ: {
-		LinearModal& linearModal = dynamic_cast<LinearModal&>(analysis);
+        writeAssemblage(asterModel, analysis, out);
+        writeDynamicExcitation(analysis, out);
 
-		out << "ASSEMBLAGE(MODELE=MODMECA," << endl;
-		if (asterModel.model.materials.size() >= 1) {
-      out << "           CHAM_MATER=CHMAT," << endl;
-		}
-		out << "           CARA_ELEM=CAEL," << endl;
-		out << "           CHARGE=(" << endl;
-		for (shared_ptr<ConstraintSet> constraintSet : linearModal.getConstraintSets()) {
-			out << "                   BL" << constraintSet->getId() << "," << endl;
-		}
-		out << "                   )," << endl;
-		out << "           NUME_DDL=CO('NUMDDL" << linearModal.getId() << "')," << endl;
-		out << "           MATR_ASSE=(_F(OPTION='RIGI_MECA', MATRICE=CO('RIGI"
-				<< linearModal.getId() << "'),)," << endl;
-		out << "                      _F(OPTION='MASS_MECA', MATRICE=CO('MASS"
-				<< linearModal.getId() << "'),)," << endl;
-		out << "                      )," << endl;
-		out << "           );" << endl << endl;
+		LinearModal& linearModal = dynamic_cast<LinearModal&>(analysis);
 
 		if (analysis.type == Analysis::LINEAR_MODAL)
 			out << "RESU";
@@ -1578,83 +1725,83 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		out << linearModal.getId() << "=CALC_MODES(MATR_RIGI=RIGI" << linearModal.getId()
 				<< "," << endl;
 		out << "                       MATR_MASS=MASS" << linearModal.getId() << "," << endl;
-		if (linearModal.use_direct_solver) {
-      out << "                       SOLVEUR_MODAL=_F(OPTION_INV='DIRECT')," << endl;
+		if (linearModal.use_power_iteration) {
+            out << "                       SOLVEUR_MODAL=_F(OPTION_INV='DIRECT')," << endl;
 		} else {
-      out << "                       SOLVEUR_MODAL=_F(METHODE='TRI_DIAG')," << endl;
+            out << "                       SOLVEUR_MODAL=_F(METHODE='TRI_DIAG')," << endl;
 		}
 		FrequencyTarget& frequencySearch = *(linearModal.getFrequencySearch());
 		switch(frequencySearch.frequencyType) {
-    case FrequencyTarget::BAND: {
-      BandRange band = dynamic_cast<BandRange&>(*frequencySearch.getValue());
-      if (linearModal.use_direct_solver) {
-          out << "                       OPTION='SEPARE'," << endl;
-      } else if (is_equal(band.end, Globals::UNAVAILABLE_DOUBLE)) {
-          out << "                       OPTION='CENTRE'," << endl; // LD : could be replaced by PLUS_PETITE + FILTRE
-      } else {
-          out << "                       OPTION='BANDE'," << endl;
-      }
-      out << "                       CALC_FREQ=_F(" << endl;
-      out << "                                    FREQ=(";
-      if (is_equal(band.start, Globals::UNAVAILABLE_DOUBLE)) {
-        auto lower_cutoff_frequency = asterModel.model.parameters.find(Model::LOWER_CUTOFF_FREQUENCY);
-        if (lower_cutoff_frequency != asterModel.model.parameters.end()) {
-            if (asterModel.model.configuration.logLevel >= LogLevel::TRACE) {
-                cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
+        case FrequencyTarget::BAND: {
+          BandRange band = dynamic_cast<BandRange&>(*frequencySearch.getValue());
+          if (linearModal.use_power_iteration) {
+              out << "                       OPTION='SEPARE'," << endl;
+          } else if (is_equal(band.end, Globals::UNAVAILABLE_DOUBLE)) {
+              out << "                       OPTION='CENTRE'," << endl; // LD : could be replaced by PLUS_PETITE + FILTRE
+          } else {
+              out << "                       OPTION='BANDE'," << endl;
+          }
+          out << "                       CALC_FREQ=_F(" << endl;
+          out << "                                    FREQ=(";
+          if (is_equal(band.start, Globals::UNAVAILABLE_DOUBLE)) {
+            auto lower_cutoff_frequency = asterModel.model.parameters.find(Model::LOWER_CUTOFF_FREQUENCY);
+            if (lower_cutoff_frequency != asterModel.model.parameters.end()) {
+                if (asterModel.model.configuration.logLevel >= LogLevel::TRACE) {
+                    cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
+                }
+                out << lower_cutoff_frequency->second;
+            } else {
+              out << 0.0;
             }
-            out << lower_cutoff_frequency->second;
-        } else {
-          out << 0.0;
+          } else {
+            out << band.start;
+          }
+          if (is_equal(band.end, Globals::UNAVAILABLE_DOUBLE)) {
+              out << ", " << ")," << endl;
+          } else {
+              out << ", " << band.end << ")," << endl;
+          }
+          if (not is_equal(band.maxsearch, Globals::UNAVAILABLE_DOUBLE)) {
+              out << "                                    NMAX_FREQ=" << band.maxsearch << endl;
+          }
+          out << "                                    )," << endl;
+          break;
         }
-      } else {
-        out << band.start;
-      }
-      if (is_equal(band.end, Globals::UNAVAILABLE_DOUBLE)) {
-          out << ", " << ")," << endl;
-      } else {
-          out << ", " << band.end << ")," << endl;
-      }
-      if (not is_equal(band.maxsearch, Globals::UNAVAILABLE_DOUBLE)) {
-          out << "                                    NMAX_FREQ=" << band.maxsearch << endl;
-      }
-      out << "                                    )," << endl;
-      break;
-    }
-    case FrequencyTarget::STEP: {
-      StepRange frequencyStep = dynamic_cast<StepRange&>(*frequencySearch.getValue());
-      if (linearModal.use_direct_solver) {
-        out << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
-      } else {
-        out << "                       OPTION='CENTRE'," << endl;
-      }
-      out << "                       CALC_FREQ=_F(" << endl;
-      out << "                                    FREQ=(";
-      for (double frequency = frequencyStep.start; frequency < frequencyStep.end; frequency += frequencyStep.step ) {
-        out << frequency << ",";
-      }
-      out << ")," << endl;
-      out << "                                    )," << endl;
-      break;
-    }
-    case FrequencyTarget::LIST: {
-      ListValue frequencyList = dynamic_cast<ListValue&>(*frequencySearch.getValue());
-      if (linearModal.use_direct_solver) {
-        out << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
-      } else {
-        out << "                       OPTION='CENTRE'," << endl;
-      }
-      out << "                       CALC_FREQ=_F(" << endl;
-      out << "                                    FREQ=(";
-      for (auto frequency : frequencyList.getList()) {
-        out << frequency << ",";
-      }
-      out << ")," << endl;
-      out << "                                    )," << endl;
-      break;
-    }
-    default:
-      handleWritingError(
-				"Frequency search " + to_string(frequencySearch.frequencyType) + " not (yet) implemented");
+        case FrequencyTarget::STEP: {
+          StepRange frequencyStep = dynamic_cast<StepRange&>(*frequencySearch.getValue());
+          if (linearModal.use_power_iteration) {
+            out << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
+          } else {
+            out << "                       OPTION='CENTRE'," << endl;
+          }
+          out << "                       CALC_FREQ=_F(" << endl;
+          out << "                                    FREQ=(";
+          for (double frequency = frequencyStep.start; frequency < frequencyStep.end; frequency += frequencyStep.step ) {
+            out << frequency << ",";
+          }
+          out << ")," << endl;
+          out << "                                    )," << endl;
+          break;
+        }
+        case FrequencyTarget::LIST: {
+          ListValue frequencyList = dynamic_cast<ListValue&>(*frequencySearch.getValue());
+          if (linearModal.use_power_iteration) {
+            out << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
+          } else {
+            out << "                       OPTION='CENTRE'," << endl;
+          }
+          out << "                       CALC_FREQ=_F(" << endl;
+          out << "                                    FREQ=(";
+          for (auto frequency : frequencyList.getList()) {
+            out << frequency << ",";
+          }
+          out << ")," << endl;
+          out << "                                    )," << endl;
+          break;
+        }
+        default:
+          handleWritingError(
+                    "Frequency search " + to_string(frequencySearch.frequencyType) + " not (yet) implemented");
 		}
 		out << "                       VERI_MODE=_F(STOP_ERREUR='NON',)," << endl;
 		out << "                       SOLVEUR=_F(METHODE='MUMPS'," << endl;
@@ -1726,66 +1873,42 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 
 			out << "modes" << linearDynaModalFreq.getId() << "=" << "RESVE"
 					<< linearDynaModalFreq.getId() << endl;
-		} else
+		} else {
 			out << "modes" << linearDynaModalFreq.getId() << "=" << "MODES"
 					<< linearDynaModalFreq.getId() << endl;
-
-		for (shared_ptr<LoadSet> loadSet : linearDynaModalFreq.getLoadSets()) {
-			for (shared_ptr<Loading> loading : loadSet->getLoadings()) {
-				if (loading->type == Loading::DYNAMIC_EXCITATION) {
-					DynamicExcitation& dynamicExcitation =
-							dynamic_cast<DynamicExcitation&>(*loading);
-					out << "FXL" << linearDynaModalFreq.getId() << "_"
-							<< dynamicExcitation.getLoadSet()->getId()
-							<< "= CALC_VECT_ELEM(OPTION='CHAR_MECA'," << endl;
-					out << "                        CHARGE=(" << endl;
-					out << "                                CHMEC"
-							<< dynamicExcitation.getLoadSet()->getId() << "," << endl;
-					for (shared_ptr<ConstraintSet> constraintSet : linearDynaModalFreq.getConstraintSets()) {
-						out << "                                BL" << constraintSet->getId() << ","
-								<< endl;
-					}
-					out << "                                )," << endl;
-					out << "                        CARA_ELEM=CAEL," << endl;
-					out << "                        );" << endl << endl;
-
-					out << "FX" << linearDynaModalFreq.getId() << "_"
-							<< dynamicExcitation.getLoadSet()->getId()
-							<< "= ASSE_VECTEUR(VECT_ELEM=FXL" << linearDynaModalFreq.getId() << "_"
-							<< dynamicExcitation.getLoadSet()->getId() << "," << endl;
-					out << "                    NUME_DDL=NUMDDL" << linearDynaModalFreq.getId()
-							<< endl;
-					out << "                    );" << endl << endl;
-				}
-			}
 		}
-		out << "PROJ_BASE(BASE=modes" << linearDynaModalFreq.getId() << "," << endl;
-		out << "          MATR_ASSE_GENE=(_F(MATRICE=CO('MASSG" << linearDynaModalFreq.getId()
-				<< "')," << endl;
-		out << "                             MATR_ASSE=MASS" << linearDynaModalFreq.getId() << ",),"
-				<< endl;
-		out << "                          _F(MATRICE=CO('RIGIG" << linearDynaModalFreq.getId()
-				<< "')," << endl;
-		out << "                             MATR_ASSE=RIGI" << linearDynaModalFreq.getId() << ",),"
-				<< endl;
-		out << "                          )," << endl;
-		out << "          VECT_ASSE_GENE=(" << endl;
-		for (shared_ptr<LoadSet> loadSet : linearDynaModalFreq.getLoadSets()) {
-			for (shared_ptr<Loading> loading : loadSet->getLoadings()) {
-				if (loading->type == Loading::DYNAMIC_EXCITATION) {
-					DynamicExcitation& dynamicExcitation =
-							dynamic_cast<DynamicExcitation&>(*loading);
-					out << "                          _F(VECTEUR=CO('VG"
-							<< linearDynaModalFreq.getId() << "_"
-							<< dynamicExcitation.getLoadSet()->getId() << "')," << endl;
-					out << "                             VECT_ASSE=FX"
-							<< linearDynaModalFreq.getId() << "_"
-							<< dynamicExcitation.getLoadSet()->getId() << ",)," << endl;
-				}
-			}
-		}
-		out << "                         )," << endl;
-		out << "          );" << endl << endl;
+
+        out << "PROJ_BASE(BASE=modes" << linearDynaModalFreq.getId() << "," << endl;
+        out << "          MATR_ASSE_GENE=(_F(MATRICE=CO('MASSG" << linearDynaModalFreq.getId()
+                << "')," << endl;
+        out << "                             MATR_ASSE=MASS" << linearDynaModalFreq.getId() << ",),"
+                << endl;
+        out << "                          _F(MATRICE=CO('RIGIG" << linearDynaModalFreq.getId()
+                << "')," << endl;
+        out << "                             MATR_ASSE=RIGI" << linearDynaModalFreq.getId() << ",),"
+                << endl;
+        out << "                          _F(MATRICE=CO('AMORG" << linearDynaModalFreq.getId()
+                << "')," << endl;
+        out << "                             MATR_ASSE=AMOR" << linearDynaModalFreq.getId() << ",),"
+                << endl;
+        out << "                          )," << endl;
+        out << "          VECT_ASSE_GENE=(" << endl;
+        for (shared_ptr<LoadSet> loadSet : linearDynaModalFreq.getLoadSets()) {
+            for (shared_ptr<Loading> loading : loadSet->getLoadings()) {
+                if (loading->type == Loading::DYNAMIC_EXCITATION) {
+                    DynamicExcitation& dynamicExcitation =
+                            dynamic_cast<DynamicExcitation&>(*loading);
+                    out << "                          _F(VECTEUR=CO('VG"
+                            << linearDynaModalFreq.getId() << "_"
+                            << dynamicExcitation.getLoadSet()->getId() << "')," << endl;
+                    out << "                             VECT_ASSE=FX"
+                            << linearDynaModalFreq.getId() << "_"
+                            << dynamicExcitation.getLoadSet()->getId() << ",)," << endl;
+                }
+            }
+        }
+        out << "                         )," << endl;
+        out << "          );" << endl << endl;
 
 		out << "LIMODE" << linearDynaModalFreq.getId() << "=RECU_TABLE(CO=MODES"
 				<< linearDynaModalFreq.getId() << "," << endl;
@@ -1795,36 +1918,34 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 				<< ".EXTR_TABLE().values()['FREQ']" << endl;
 
     if (linearDynaModalFreq.getModalDamping() != nullptr) {
-      out << "AMOR_I" << linearDynaModalFreq.getId() << "=CALC_FONC_INTERP(FONCTION = FCT"
+      out << "AMMO_I" << linearDynaModalFreq.getId() << "=CALC_FONC_INTERP(FONCTION = FCT"
           << setfill('0') << setw(5)
           << linearDynaModalFreq.getModalDamping()->getFunctionTable()->getId() << ","
           << endl;
       out << "                         VALE_PARA = pfreq" << linearDynaModalFreq.getId() << endl;
       out << "                         );" << endl << endl;
 
-      out << "AMOR_T" << linearDynaModalFreq.getId()
-          << "=CREA_TABLE(FONCTION=_F(FONCTION = AMOR_I" << linearDynaModalFreq.getId()
+      out << "AMMO_T" << linearDynaModalFreq.getId()
+          << "=CREA_TABLE(FONCTION=_F(FONCTION = AMMO_I" << linearDynaModalFreq.getId()
           << ")," << endl;
       out << "                   );" << endl << endl;
 
-      out << "AMOR" << linearDynaModalFreq.getId() << "=AMOR_T" << linearDynaModalFreq.getId()
+      out << "AMMO" << linearDynaModalFreq.getId() << "=AMMO_T" << linearDynaModalFreq.getId()
           << ".EXTR_TABLE().values()['TOUTRESU']" << endl;
     }
 
-		out << "GENE" << linearDynaModalFreq.getId() << " = DYNA_VIBRA(" << endl;
-//		if (asterModel.model.materials.size() >= 1) {
-//      out << "                   CHAM_MATER=CHMAT," << endl;
-//		}
-//		out << "                   CARA_ELEM=CAEL," << endl;
-		out << "                   TYPE_CALCUL='HARM'," << endl;
-		out << "                   BASE_CALCUL='GENE'," << endl;
-		out << "                   MATR_MASS  = MASSG" << linearDynaModalFreq.getId() << ","
-				<< endl;
-		out << "                   MATR_RIGI  = RIGIG" << linearDynaModalFreq.getId() << ","
-				<< endl;
+    out << "GENE" << linearDynaModalFreq.getId() << " = DYNA_VIBRA(" << endl;
+    out << "                   TYPE_CALCUL='HARM'," << endl;
+    out << "                   BASE_CALCUL='GENE'," << endl;
+    out << "                   MATR_MASS  = MASSG" << linearDynaModalFreq.getId() << ","
+            << endl;
+    out << "                   MATR_RIGI  = RIGIG" << linearDynaModalFreq.getId() << ","
+            << endl;
+    out << "                   MATR_AMOR  = AMORG" << linearDynaModalFreq.getId() << ","
+            << endl;
     if (linearDynaModalFreq.getModalDamping() != nullptr) {
-      out << "                   AMOR_MODAL = _F(AMOR_REDUIT = AMOR"
-          << linearDynaModalFreq.getId() << ",)," << endl;
+        out << "                   AMOR_MODAL = _F(AMOR_REDUIT = AMMO"
+            << linearDynaModalFreq.getId() << ",)," << endl;
     }
     out << "                   LIST_FREQ  = LST" << setfill('0') << setw(5)
         << linearDynaModalFreq.getExcitationFrequencies()->getValue()->getId() << "," << endl;
@@ -1834,10 +1955,10 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 				if (loading->type == Loading::DYNAMIC_EXCITATION) {
 					DynamicExcitation& dynamicExcitation =
 							dynamic_cast<DynamicExcitation&>(*loading);
-					out << "                                 _F(VECT_ASSE_GENE = VG"
-							<< linearDynaModalFreq.getId() << "_"
-							<< dynamicExcitation.getLoadSet()->getId() << "," << endl;
-
+					out << "                                 _F(" << endl;
+                    out << "                                    VECT_ASSE_GENE = VG"
+                            << linearDynaModalFreq.getId() << "_"
+                            << dynamicExcitation.getLoadSet()->getId() << "," << endl;
 					out << "                                    FONC_MULT = FCT" << setfill('0')
 							<< setw(5) << dynamicExcitation.getFunctionTableB()->getId() << ","
 							<< endl;
@@ -1850,11 +1971,11 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		out << "                   #SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS',NPREC=8)," << endl; // MUMPS: Error in function orderMinPriority no valid number of stages in multisector (#stages = 2)
 		out << "                   );" << endl << endl;
 
-		out << "RESU" << linearDynaModalFreq.getId() << " = REST_GENE_PHYS(RESU_GENE = GENE"
-				<< linearDynaModalFreq.getId() << "," << endl;
-		out << "                       TOUT_ORDRE = 'OUI'," << endl;
-		out << "                       NOM_CHAM = 'DEPL'," << endl;
-		out << "                       );" << endl << endl;
+        out << "RESU" << linearDynaModalFreq.getId() << " = REST_GENE_PHYS(RESU_GENE = GENE"
+                << linearDynaModalFreq.getId() << "," << endl;
+        out << "                       TOUT_ORDRE = 'OUI'," << endl;
+        out << "                       NOM_CHAM = 'DEPL'," << endl;
+        out << "                       );" << endl << endl;
 
 		break;
 	}

@@ -55,6 +55,7 @@ public:
     enum Type {
         LINEAR_MECA_STAT,
         LINEAR_MODAL,
+        LINEAR_DYNA_DIRECT_FREQ,
         LINEAR_DYNA_MODAL_FREQ,
         NONLINEAR_MECA_STAT,
         UNKNOWN,
@@ -148,10 +149,17 @@ public:
             const int original_id = NO_ORIGINAL_ID, const Type type = Type::LINEAR_MODAL);
     std::shared_ptr<FrequencyTarget> getFrequencySearch() const;
     std::shared_ptr<Analysis> clone() const;
-    bool use_direct_solver = false;
+    bool use_power_iteration = false;
     bool validate() const override;
 };
 
+/**
+ * Modal frequency response analysis is an alternate method to compute frequency response.
+ * This method uses the mode shapes of the structure to uncouple the equations of motion
+ * (when no damping or only modal damping is used) and, depending on the number of modes computed and retained,
+ * reduce the problem size.
+ * Because modal frequency response analysis uses the mode shapes of a structure, modal frequency response analysis is a natural extension of normal modes analysis.
+ */
 class LinearDynaModalFreq: public LinearModal {
 protected:
     Reference<Objective> modal_damping_reference;
@@ -163,6 +171,22 @@ public:
             const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     const bool residual_vector;
     std::shared_ptr<ModalDamping> getModalDamping() const;
+    std::shared_ptr<FrequencyTarget> getExcitationFrequencies() const;
+    std::shared_ptr<Analysis> clone() const;
+    bool validate() const override;
+};
+
+/**
+ * The direct frequency response method solves the coupled equations of motion in terms of forcing frequency.
+ * In direct frequency response analysis, structural response is computed at discrete excitation frequencies by solving a set of coupled matrix equations using complex algebra.
+ */
+class LinearDynaDirectFreq: public Analysis {
+protected:
+    Reference<Objective> frequencyExcitationRef;
+public:
+    LinearDynaDirectFreq(Model& model,
+            const int frequency_value_original_id,
+            const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     std::shared_ptr<FrequencyTarget> getExcitationFrequencies() const;
     std::shared_ptr<Analysis> clone() const;
     bool validate() const override;

@@ -188,6 +188,11 @@ private:
     void parseCBUSH(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
 
     /**
+     * Parse the CDAMP keyword (page 1187 of MDN Nastran 2006 Quick Reference Guide.)
+     */
+    void parseCDAMP1(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+
+    /**
      * Parse the CELAS1 keyword (page 1199 of MDN Nastran 2006 Quick Reference Guide.)
      */
     void parseCELAS1(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
@@ -376,14 +381,32 @@ private:
     void parseParamHFREQ(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
-     * PARAM HFREQ
+     * PARAM K6ROT
      */
     void parseParamK6ROT(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * PARAM G
+     * Specifies the uniform structural damping coefficient
+     * in the formulation of global damping matrix in direct transient solutions.
+     * To obtain the value for the model parameter G, multiply the critical damping ratio,
+     * C/C0, by 2.0. Note that PARAM, W3 must be greater than zero or PARAM, G will be ignored.
+     */
+    void parseParamG(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * PARAM W3
+     * Frequency of interest for structural damping
+     * The units of W3 are radians per unit time.
+     */
+    void parseParamW3(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     void parseInclude(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * PARAM LFREQ
+     * Default = 0.0
+     * PARAM,LFREQ gives the lower limit on the frequency range of retained modes.
      */
     void parseParamLFREQ(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
@@ -490,6 +513,11 @@ private:
      * Parse the PCOMP keyword
      */
     void parsePCOMP(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * Parse the PDAMP keyword (page 2197 of MDN Nastran 2006 Quick Reference Guide.)
+     */
+    void parsePDAMP(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * Parse the PELAS keyword (page 2202 of MDN Nastran 2006 Quick Reference Guide.)

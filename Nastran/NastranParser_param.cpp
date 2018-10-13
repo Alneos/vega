@@ -37,14 +37,17 @@ namespace nastran {
 const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARSEPARAM_FUNCTION_BY_KEYWORD =
         {
                 { "AUTOSPC", &NastranParser::parseParamAUTOSPC },
+                { "G", &NastranParser::parseParamG },
                 { "GRDPNT", &NastranParser::parseParamGRDPNT },
                 { "HFREQ", &NastranParser::parseParamHFREQ },
+                { "K6ROT", &NastranParser::parseParamK6ROT },
                 { "K6ROT", &NastranParser::parseParamK6ROT },
                 { "LFREQ", &NastranParser::parseParamLFREQ },
                 { "LGDISP", &NastranParser::parseParamLGDISP },
                 { "NOCOMPS", &NastranParser::parseParamNOCOMPS },
                 { "PATVER", &NastranParser::parseParamPATVER },
                 { "PRTMAXIM", &NastranParser::parseParamPRTMAXIM },
+                { "W3", &NastranParser::parseParamW3 },
                 { "WTMASS", &NastranParser::parseParamWTMASS },
         };
 
@@ -138,12 +141,23 @@ void NastranParser::parseParamK6ROT(NastranTokenizer& tok, shared_ptr<Model> mod
 }
 
 void NastranParser::parseParamLFREQ(NastranTokenizer& tok, shared_ptr<Model> model) {
-    /* Default = 0.0
-     PARAM,LFREQ gives the lower limit on the frequency range of retained modes.
-     */
     double val = tok.nextDouble(true, 0.0);
     if (!is_equal(val, 0.0)) {
         model->parameters[Model::LOWER_CUTOFF_FREQUENCY] = val;
+    }
+}
+
+void NastranParser::parseParamG(NastranTokenizer& tok, shared_ptr<Model> model) {
+    double val = tok.nextDouble(true, 0.0);
+    if (!is_equal(val, 0.0)) {
+        model->parameters[Model::STRUCTURAL_DAMPING] = val;
+    }
+}
+
+void NastranParser::parseParamW3(NastranTokenizer& tok, shared_ptr<Model> model) {
+    double val = tok.nextDouble(true, 0.0);
+    if (!is_equal(val, 0.0)) {
+        model->parameters[Model::FREQUENCY_OF_INTEREST_RADIANS] = val;
     }
 }
 

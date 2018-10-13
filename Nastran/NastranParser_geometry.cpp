@@ -300,6 +300,49 @@ void NastranParser::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
     addProperty(pid, eid, model);
 }
 
+
+void NastranParser::parseCDAMP1(NastranTokenizer& tok, shared_ptr<Model> model) {
+    // Defines a scalar mass element without reference to a property entry.
+    int eid = tok.nextInt();
+    int pid = tok.nextInt();
+    int g1 = tok.nextInt();
+    int c1 = parseDOF(tok,model);
+    int g2 = tok.nextInt();
+    int c2 = parseDOF(tok,model,true);
+
+    // Creates cell
+    // If G2 is undefined, it is considered a fictitious grounded point, and c2=c1
+    vector<int> connectivity;
+    connectivity += g1;
+    CellType cellType =  CellType::POINT1;
+    if (g2 == Globals::UNAVAILABLE_INT){
+        c2= c1;
+    }else{
+        connectivity += g2;
+        cellType = CellType::SEG2;
+    }
+    int cellPosition= model->mesh->addCell(eid, cellType, connectivity);
+    shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model);
+    cellGroup->addCellId(model->mesh->findCell(cellPosition).id);
+
+    // Creates or update the ElementSet defined by the PELAS key.
+    std::shared_ptr<ElementSet> elementSet = model->elementSets.find(pid);
+    if (elementSet == nullptr){
+        ScalarSpring scalarSpring(*model, pid);
+        scalarSpring.assignCellGroup(cellGroup);
+        scalarSpring.addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
+        model->add(scalarSpring);
+    }else{
+        if (elementSet->type == ElementSet::SCALAR_SPRING){
+            std::shared_ptr<ScalarSpring> springElementSet = static_pointer_cast<ScalarSpring>(elementSet);
+            springElementSet->addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
+        }else{
+            string message = "The part of PID "+std::to_string(pid)+" already exists with the wrong NATURE.";
+            handleParsingError(message, tok, model);
+        }
+    }
+}
+
 void NastranParser::parseCELAS1(NastranTokenizer& tok, shared_ptr<Model> model) {
     // Defines a scalar spring element.
     int eid = tok.nextInt();

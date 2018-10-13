@@ -334,6 +334,7 @@ public:
 	virtual bool hasTranslations() const = 0;
 	virtual bool hasRotations() const = 0;
 	const DOFS getDOFSForNode(const int nodePosition) const override final;
+	virtual const std::vector<double> asStiffnessVector(bool) const = 0;
 	virtual ~Discrete() {
 	}
 };
@@ -353,7 +354,7 @@ public:
 	void addStiffness(DOF rowcode, DOF colcode,	double value);
 	double findStiffness(DOF rowcode, DOF colcode) const;
 	void addComponent(DOF, double value);
-	std::vector<double> asVector(bool addRotationsIfNotPresent = false);
+	const std::vector<double> asStiffnessVector(bool addRotationsIfNotPresent = false) const override final;
 	std::shared_ptr<ElementSet> clone() const override;
 };
 
@@ -369,7 +370,7 @@ public:
 	void addStiffness(int rowindex, int colindex, DOF rowdof, DOF coldof,
 			double value);
 	double findStiffness(int rowindex, int colindex, DOF rowdof, DOF coldof) const;
-	std::vector<double> asVector(bool addRotationsIfNotPresent = false);
+	const std::vector<double> asStiffnessVector(bool addRotationsIfNotPresent = false) const override final;
 	std::shared_ptr<ElementSet> clone() const override;
 };
 
@@ -393,7 +394,9 @@ public:
 	void addMass(DOF rowdof, DOF coldof, double value);
 	void addDamping(DOF rowdof, DOF coldof, double value);
 	double findStiffness(DOF rowdof, DOF coldof) const;
-	std::vector<double> asVector(bool addRotationsIfNotPresent = false);
+	double findDamping(DOF rowdof, DOF coldof) const;
+	const std::vector<double> asStiffnessVector(bool addRotationsIfNotPresent = false) const override final;
+	const std::vector<double> asDampingVector(bool addRotationsIfNotPresent = false) const;
 	std::shared_ptr<ElementSet> clone() const override;
 };
 
@@ -531,18 +534,18 @@ public:
 
 
 /**
- * ScalarSpring elemenset represent springs between two DOF of two nodes.
+ * ScalarSpring elemenset represent springs between two nodes.
  * All springs in this elementSet have the same stiffness and damping, but various
  * "directions" of spring can be collected.
+ * TODO LD : is this really needed or we could use DiscreteSegment ?
  **/
-//TODO: Factorize ScalarSpring, DiscreteElement, StructuralSegment ?
-class ScalarSpring : public ElementSet {
+class ScalarSpring : public Discrete {
 private:
     std::map<std::pair<DOF, DOF>, std::vector<int>> cellpositionByDOFS;
     double stiffness;
     double damping;
 public:
-    ScalarSpring(Model&, int original_id = NO_ORIGINAL_ID, double stiffness = Nature::UNAVAILABLE_DOUBLE, double damping= Nature::UNAVAILABLE_DOUBLE);
+    ScalarSpring(Model&, int original_id = NO_ORIGINAL_ID, double stiffness = Globals::UNAVAILABLE_DOUBLE, double damping= Globals::UNAVAILABLE_DOUBLE);
     double getStiffness() const;
     double getDamping() const;
     const std::map<std::pair<DOF, DOF>, std::vector<int>> getCellPositionByDOFS() const;
@@ -550,6 +553,8 @@ public:
     void setDamping (const double damping);
     bool hasStiffness() const;
     bool hasDamping() const;
+	bool hasTranslations() const override;
+	bool hasRotations() const override;
     std::vector<std::pair<DOF, DOF>> getDOFSSpring() const;
     int getNbDOFSSpring() const;
 
@@ -558,8 +563,8 @@ public:
      *  and the two impacted DOF.
      */
     void addSpring(int cellPosition, DOF dofNodeA, DOF dofNodeB);
-
-    const DOFS getDOFSForNode(const int nodePosition) const override final;
+    const std::vector<double> asStiffnessVector(bool addRotationsIfNotPresent = false) const override final;
+    const std::vector<double> asDampingVector(bool addRotationsIfNotPresent = false);
     virtual bool validate() const {
         return true;
     }

@@ -357,8 +357,7 @@ void DiscretePoint::addComponent(DOF code, double value) {
 	stiffness.addComponent(code, code, value);
 }
 
-vector<double> DiscretePoint::asVector(bool addRotationsIfNotPresent) {
-	// LD TODO : at least rename this method (it only does stiffness!!)
+const vector<double> DiscretePoint::asStiffnessVector(bool addRotationsIfNotPresent) const {
 	vector<double> result;
 	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
 	for (int i = 0; i < ncomp; i++) {
@@ -425,7 +424,7 @@ shared_ptr<ElementSet> DiscreteSegment::clone() const {
 bool DiscreteSegment::hasTranslations() const {
 	bool hasTranslations = false;
 	for (int i = 0; i < 2; ++i) {
-		for (int j = 0; i < 2; ++i) {
+		for (int j = 0; j < 2; ++j) {
 			if (stiffness[i][j].hasTranslations() or mass[i][j].hasTranslations()
 					or damping[i][j].hasTranslations()) {
 				hasTranslations = true;
@@ -439,7 +438,7 @@ bool DiscreteSegment::hasTranslations() const {
 bool DiscreteSegment::hasRotations() const {
 	bool hasRotations = false;
 	for (int i = 0; i < 2; ++i) {
-		for (int j = 0; i < 2; ++i) {
+		for (int j = 0; j < 2; ++j) {
 			if (stiffness[i][j].hasRotations() or mass[i][j].hasRotations()
 					or damping[i][j].hasRotations()) {
 				hasRotations = true;
@@ -477,7 +476,7 @@ void DiscreteSegment::addStiffness(int rowindex, int colindex, DOF rowdof, DOF c
 	matrix->componentByDofs[make_pair(rowdof, coldof)] = value;
 }
 
-vector<double> DiscreteSegment::asVector(bool addRotationsIfNotPresent) {
+const vector<double> DiscreteSegment::asStiffnessVector(bool addRotationsIfNotPresent) const {
 	// LD TODO : at least rename this method (it only does stiffness and with aster convention!!)
 	vector<double> result;
 	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
@@ -557,8 +556,23 @@ double StructuralSegment::findStiffness(DOF rowdof, DOF coldof) const{
 	return result;
 }
 
-vector<double> StructuralSegment::asVector(bool addRotationsIfNotPresent) {
-	// LD TODO : at least rename this method (it only does stiffness and with aster convention!!)
+double StructuralSegment::findDamping(DOF rowdof, DOF coldof) const{
+	double result=0.0;
+	auto itFind = damping.componentByDofs.find(make_pair(rowdof, coldof));
+	if (itFind != damping.componentByDofs.end()) {
+		result = itFind->second;
+	}else{
+		if (symmetric){
+			itFind = damping.componentByDofs.find(make_pair(coldof, rowdof));
+			if (itFind != damping.componentByDofs.end()) {
+				result = itFind->second;
+			}
+		}
+	}
+	return result;
+}
+
+const vector<double> StructuralSegment::asStiffnessVector(bool addRotationsIfNotPresent) const {
 	vector<double> result;
 	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
 	int max_row_element_index = 0;
@@ -575,6 +589,31 @@ vector<double> StructuralSegment::asVector(bool addRotationsIfNotPresent) {
 					}
 					DOF rowcode = DOF::findByPosition(rowdof);
 					double value = findStiffness(rowcode, colcode);
+					result.push_back(value);
+				}
+			}
+		}
+	}
+	return result;
+}
+
+const vector<double> StructuralSegment::asDampingVector(bool addRotationsIfNotPresent) const {
+	vector<double> result;
+	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
+	int max_row_element_index = 0;
+	for (int colindex = 0; colindex < 2; ++colindex) {
+		for (int coldof = 0; coldof < ncomp; coldof++) {
+			DOF colcode = DOF::findByPosition(coldof);
+			max_row_element_index++;
+			int row_element_index = 0;
+			for (int rowindex = 0; rowindex < 2; ++rowindex) {
+				for (int rowdof = 0; rowdof < ncomp; rowdof++) {
+					row_element_index++;
+					if (row_element_index > max_row_element_index) {
+						break;
+					}
+					DOF rowcode = DOF::findByPosition(rowdof);
+					double value = findDamping(rowcode, colcode);
 					result.push_back(value);
 				}
 			}
@@ -852,7 +891,7 @@ void Lmpc::assignDofCoefs(std::vector<DOFCoefs> dofCoefs) {
 
 // ScalarSpring Methods
 ScalarSpring::ScalarSpring(Model& model, int original_id, double stiffness, double damping) :
-                ElementSet(model, SCALAR_SPRING, nullptr, original_id), stiffness(stiffness),
+                Discrete(model, ElementSet::SCALAR_SPRING, true, original_id), stiffness(stiffness),
                 damping(damping){
 }
 
@@ -873,15 +912,12 @@ void ScalarSpring::setDamping (const double damping){
     this->damping=damping;
 }
 bool ScalarSpring::hasStiffness() const {
-    return !(is_zero(this->stiffness) || is_equal(this->stiffness, Nature::UNAVAILABLE_DOUBLE));
+    return !(is_zero(this->stiffness) || is_equal(this->stiffness, Globals::UNAVAILABLE_DOUBLE));
 }
 bool ScalarSpring::hasDamping() const {
-    return !(is_zero(this->damping) || is_equal(this->damping, Nature::UNAVAILABLE_DOUBLE));
+    return !(is_zero(this->damping) || is_equal(this->damping, Globals::UNAVAILABLE_DOUBLE));
 }
-const DOFS ScalarSpring::getDOFSForNode(const int nodePosition) const {
-    UNUSEDV(nodePosition);
-    return DOFS::ALL_DOFS;
-}
+
 shared_ptr<ElementSet> ScalarSpring::clone() const {
     return make_shared<ScalarSpring>(*this);
 }
@@ -900,6 +936,92 @@ std::vector<std::pair<DOF, DOF>> ScalarSpring::getDOFSSpring() const {
 
 int ScalarSpring::getNbDOFSSpring() const{
     return static_cast<int>(this->cellpositionByDOFS.size());
+}
+
+bool ScalarSpring::hasTranslations() const {
+	for (int i = 0; i < 2; ++i) {
+        DOF code1 = DOF::findByPosition(i);
+		for (int j = 0; j < 2; ++j) {
+		    DOF code2 = DOF::findByPosition(j);
+            auto codeIter = this->cellpositionByDOFS.find(make_pair(code1, code2));
+            if (codeIter != this->cellpositionByDOFS.end()) {
+				return true;
+            }
+		}
+	}
+	return false;
+}
+
+bool ScalarSpring::hasRotations() const {
+	for (int i = 3; i < 5; ++i) {
+        DOF code1 = DOF::findByPosition(i);
+		for (int j = 3; j < 5; ++j) {
+		    DOF code2 = DOF::findByPosition(j);
+            auto codeIter = this->cellpositionByDOFS.find(make_pair(code1, code2));
+            if (codeIter != this->cellpositionByDOFS.end()) {
+				return true;
+            }
+		}
+	}
+	return false;
+}
+
+const vector<double> ScalarSpring::asStiffnessVector(bool addRotationsIfNotPresent) const {
+	vector<double> result;
+	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
+	int max_row_element_index = 0;
+	for (int colindex = 0; colindex < 2; ++colindex) {
+		for (int coldof = 0; coldof < ncomp; coldof++) {
+			DOF colcode = DOF::findByPosition(coldof);
+			max_row_element_index++;
+			int row_element_index = 0;
+			for (int rowindex = 0; rowindex < 2; ++rowindex) {
+				for (int rowdof = 0; rowdof < ncomp; rowdof++) {
+					row_element_index++;
+					if (row_element_index > max_row_element_index) {
+						break;
+					}
+					DOF rowcode = DOF::findByPosition(rowdof);
+                    auto codeIter = this->cellpositionByDOFS.find(make_pair(rowcode, colcode));
+                    if (codeIter != this->cellpositionByDOFS.end() and colindex == 1 and row_element_index <= 2) {
+                        result.push_back(stiffness);
+                    } else {
+                        result.push_back(0.0);
+                    }
+				}
+			}
+		}
+	}
+	return result;
+}
+
+const vector<double> ScalarSpring::asDampingVector(bool addRotationsIfNotPresent) {
+	vector<double> result;
+	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
+	int max_row_element_index = 0;
+	for (int colindex = 0; colindex < 2; ++colindex) {
+		for (int coldof = 0; coldof < ncomp; coldof++) {
+			DOF colcode = DOF::findByPosition(coldof);
+			max_row_element_index++;
+			int row_element_index = 0;
+			for (int rowindex = 0; rowindex < 2; ++rowindex) {
+				for (int rowdof = 0; rowdof < ncomp; rowdof++) {
+					row_element_index++;
+					if (row_element_index > max_row_element_index) {
+						break;
+					}
+					DOF rowcode = DOF::findByPosition(rowdof);
+                    auto codeIter = this->cellpositionByDOFS.find(make_pair(rowcode, colcode));
+                    if (codeIter != this->cellpositionByDOFS.end() and colindex == 1 and row_element_index <= 2) {
+                        result.push_back(damping);
+                    } else {
+                        result.push_back(0.0);
+                    }
+				}
+			}
+		}
+	}
+	return result;
 }
 
 } /* namespace vega */
