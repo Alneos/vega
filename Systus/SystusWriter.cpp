@@ -467,6 +467,7 @@ void SystusWriter::getSystusAutomaticOption(const SystusModel& systusModel, Syst
          * use. We could check every one of them to know which is what but it
          * seems a waste of time. For now, we suppose they are all 6DLLs
          */
+        case ElementSet::LMPC:
         case ElementSet::STIFFNESS_MATRIX:
         case ElementSet::MASS_MATRIX:
         case ElementSet::DAMPING_MATRIX:
