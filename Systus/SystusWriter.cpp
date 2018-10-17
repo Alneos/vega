@@ -2926,7 +2926,6 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
     // For TOPAZE, we comment a few lines.
     string comment="";
     if (configuration.systusOutputProduct=="topaze"){
-        out << "$$@comlev_initmodules" << endl;
         comment="###TOPAZE###";
     }
 
@@ -3103,7 +3102,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             case NamedValue::STEP_RANGE: {
                 const StepRange& freqValueSteps = dynamic_cast<StepRange&>(*freqValue);
                 oFrequency << "INITIAL "  << (freqValueSteps.start - freqValueSteps.step) << endl;
-                oFrequency << " " << (freqValueSteps.end - freqValueSteps.step) << " STEP " << freqValueSteps.step;
+                oFrequency << " " << freqValueSteps.end << " STEP " << freqValueSteps.step;
                 break;
             }
             default:{
@@ -3341,10 +3340,6 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
 
         out << "close_file(iResu)" << endl;
         out << "end;" << endl;
-    }
-
-    if (configuration.systusOutputProduct=="topaze"){
-        out << "$$@comlev_finalize" << endl;
     }
 }
 
