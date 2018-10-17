@@ -291,6 +291,10 @@ const std::set<int> NodeGroup::nodePositions() const {
 	return _nodePositions;
 }
 
+bool NodeGroup::empty() const {
+	return _nodePositions.size() == 0;
+}
+
 const set<int> NodeGroup::getNodeIds() const {
 	set<int> nodeIds;
 	for (int position : _nodePositions) {
@@ -341,6 +345,10 @@ const set<int> CellGroup::nodePositions() const {
 		result.insert(cell.nodePositions.begin(), cell.nodePositions.end());
 	}
 	return result;
+}
+
+bool CellGroup::empty() const {
+	return cellIds.size() == 0;
 }
 
 CellGroup::~CellGroup() {

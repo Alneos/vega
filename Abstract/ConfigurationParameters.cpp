@@ -51,6 +51,7 @@ const ModelConfiguration ConfigurationParameters::getModelConfiguration() const 
         configuration.replaceDirectMatrices = true;
         configuration.removeRedundantSpcs = true;
         configuration.addVirtualMaterial = true;
+        configuration.makeBoundarySegments = true;
     } else if (this->outputSolver.getSolverName() == SYSTUS) {
         configuration.createSkin = true;
         configuration.emulateAdditionalMass = true;

@@ -46,6 +46,7 @@ class Model;
 class Value {
 public:
     enum Type {
+        FLOAT,
         BAND_RANGE,
         STEP_RANGE,
         SPREAD_RANGE,
@@ -155,9 +156,18 @@ class ListValue: public NamedValue {
 public:
     ListValue(const Model&, std::list<double> values, int original_id = NO_ORIGINAL_ID);
     const std::list<double> getList() const;
-    std::shared_ptr<NamedValue> clone() const;
-    virtual void scale(double factor);
-    virtual bool iszero() const;
+    std::shared_ptr<NamedValue> clone() const override;
+    virtual void scale(double factor) override;
+    virtual bool iszero() const override;
+};
+
+class FloatValue: public NamedValue {
+public:
+    FloatValue(const Model&, double number, int original_id = NO_ORIGINAL_ID);
+    double number;
+    std::shared_ptr<NamedValue> clone() const override;
+    void scale(double factor) override;
+    bool iszero() const override;
 };
 
 class ValueRange: public NamedValue {
@@ -177,9 +187,9 @@ public:
 public:
     BandRange(const Model& model, double start, int searchcount, double end, int original_id =
             NO_ORIGINAL_ID);
-    std::shared_ptr<NamedValue> clone() const;
-    virtual void scale(double factor);
-    virtual bool iszero() const;
+    std::shared_ptr<NamedValue> clone() const override;
+    void scale(double factor) override;
+    bool iszero() const override;
 };
 
 class StepRange: public ValueRange {
@@ -195,9 +205,9 @@ public:
             NO_ORIGINAL_ID);
     StepRange(const Model& model, double start, double step, int count, int original_id =
             NO_ORIGINAL_ID);
-    std::shared_ptr<NamedValue> clone() const;
-    virtual void scale(double factor);
-    virtual bool iszero() const;
+    std::shared_ptr<NamedValue> clone() const override;
+    void scale(double factor) override;
+    bool iszero() const override;
 };
 
 /**
@@ -213,9 +223,9 @@ public:
 public:
     SpreadRange(const Model& model, double start, int count, double end, double spread, int original_id =
             NO_ORIGINAL_ID);
-    std::shared_ptr<NamedValue> clone() const;
-    virtual void scale(double factor);
-    virtual bool iszero() const;
+    std::shared_ptr<NamedValue> clone() const override;
+    void scale(double factor) override;
+    bool iszero() const override;
 };
 
 class Function: public NamedValue {
@@ -250,9 +260,9 @@ public:
     void setXY(const double X, const double Y);
     const std::vector<std::pair<double, double> >::const_iterator getBeginValuesXY() const;
     const std::vector<std::pair<double, double> >::const_iterator getEndValuesXY() const;
-    std::shared_ptr<NamedValue> clone() const;
-    virtual bool iszero() const;
-    virtual void scale(double factor);
+    std::shared_ptr<NamedValue> clone() const override;
+    bool iszero() const override;
+    void scale(double factor) override;
 };
 
 class ConstantValue: public NamedValue {
@@ -263,10 +273,10 @@ public:
     virtual double get() {
         return value;
     }
-    virtual bool iszero() const {
+    bool iszero() const override {
         return is_zero(value);
     }
-    virtual void scale(double factor) {
+    void scale(double factor) override {
         value *= factor;
     }
 };
@@ -274,7 +284,7 @@ public:
 class DynaPhase: public ConstantValue {
 public:
     DynaPhase(const Model&, double value, int original_id = NO_ORIGINAL_ID);
-    std::shared_ptr<NamedValue> clone() const {
+    std::shared_ptr<NamedValue> clone() const override {
         return std::make_shared<DynaPhase>(*this);
     }
 
@@ -306,11 +316,11 @@ class VectorialValue final : public Value {//: public TriValue {
 		}
 
 		VectorialValue normalized() const;
-		void scale(double factor);
+		void scale(double factor) override;
 		VectorialValue scaled(double factor) const;
 		double dot(const VectorialValue &v) const;
 		double norm() const;
-		bool iszero() const;
+		bool iszero() const override;
 		/**
 		 *  Cross product with another VectorialValue. Result is ("this" x "other")
 		 **/
@@ -335,8 +345,8 @@ class VectorialValue final : public Value {//: public TriValue {
 	};
 
 /**
- * Tri-state class: it can represent a double value, a reference or an empty value.
- * It can be used in every place where a solver can put
+ * Adapter class: it can represent a double value, a reference or an empty value.
+ * It can be used in every place where a solver can put a number or a function, list etc.
  */
 class ValueOrReference
     final {
@@ -370,9 +380,9 @@ public:
     inline Function& x() const { return _fx;};
     inline Function& y() const { return _fy;};
     inline Function& z() const { return _fz;};
-    void scale(double factor);
-    bool iszero() const;
-    std::shared_ptr<NamedValue> clone() const {
+    void scale(double factor) override;
+    bool iszero() const override;
+    std::shared_ptr<NamedValue> clone() const override {
         return std::make_shared<VectorialFunction>(*this);
     }
 };

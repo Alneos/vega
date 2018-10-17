@@ -45,6 +45,9 @@ using boost::to_upper;
 
 const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARSE_FUNCTION_BY_KEYWORD =
         {
+                { "BCONP", &NastranParser::parseBCONP },
+                { "BFRIC", &NastranParser::parseBFRIC },
+                { "BLSEG", &NastranParser::parseBLSEG },
                 { "CBAR", &NastranParser::parseCBAR },
                 { "CBEAM", &NastranParser::parseCBEAM },
                 { "CBUSH", &NastranParser::parseCBUSH },
@@ -697,6 +700,49 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         string message = "Analysis " + analysis_str + " Not implemented";
         handleParsingError(message, tok, model);
     }
+}
+
+void NastranParser::parseBLSEG(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int id = tok.nextInt();
+    std::shared_ptr<NodeGroup> group = model->mesh->findOrCreateNodeGroup("BLSEG_" + to_string(id), id);
+    for(int nodeId : tok.nextInts()) {
+        group->addNodeId(nodeId);
+    }
+}
+
+void NastranParser::parseBFRIC(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int fid = tok.nextInt();
+    tok.skip(2);
+    double fstif = tok.nextDouble();
+    if (not tok.isEmptyUntilNextKeyword()) {
+        handleParsingError("BFRIC optional fields not yet handled", tok, model);
+    }
+    FloatValue friction(*model, fstif, fid);
+
+    model->add(friction);
+}
+
+void NastranParser::parseBCONP(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int id = tok.nextInt();
+    int slaveId = tok.nextInt();
+    int masterId = tok.nextInt();
+    tok.skip(1);
+    double sfact = tok.nextDouble(true, 1.0);
+    UNUSEDV(sfact);
+    int fricid = tok.nextInt();
+    int ptype = tok.nextInt(true, 1);
+    UNUSEDV(ptype);
+    int cid = tok.nextInt();
+    UNUSEDV(cid);
+
+    if (not tok.isEmptyUntilNextKeyword()) {
+        handleParsingError("BCONP optional fields not yet handled", tok, model);
+    }
+    SlideContact slide(*model, id);
+    slide.slaveNodeGroupId = slaveId;
+    slide.masterNodeGroupId = masterId;
+    slide.friction = ValueOrReference(Reference<NamedValue>(Value::FLOAT, fricid));
+    model->add(slide);
 }
 
 void NastranParser::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> model) {

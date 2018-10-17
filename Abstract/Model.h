@@ -97,6 +97,10 @@ private:
      */
     void splitElementsByDOFS();
     /**
+     * Explicitely creating cell elements defined by nodes (see Nastran BLSEG)
+     */
+    void makeBoundarySegments();
+    /**
      * Get a non rigid material (virtual)
      */
     std::shared_ptr<Material> getVirtualMaterial();

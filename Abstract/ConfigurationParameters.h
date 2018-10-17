@@ -129,6 +129,10 @@ public:
      * so a virtual material should be added. This must not be done in Systus instead.
      */
     bool addVirtualMaterial = false;
+    /**
+     * Explicitely creating cell elements defined by nodes (see Nastran BLSEG)
+     */
+    bool makeBoundarySegments = false;
 
 };
 // TODO: THe Configuration Parameters should be much more generalized. With this,

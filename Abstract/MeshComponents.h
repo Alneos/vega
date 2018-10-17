@@ -233,6 +233,7 @@ public:
     const std::string& getName() const;
     const std::string& getComment() const;
     virtual const std::set<int> nodePositions() const = 0;
+    virtual bool empty() const = 0;
     virtual ~Group();
     Group(const Group& that) = delete;
 };
@@ -291,6 +292,7 @@ public:
     void addNodeByPosition(int nodePosition);
     void removeNodeByPosition(int nodePosition);
     const std::set<int> nodePositions() const override;
+    bool empty() const override;
     const std::set<int> getNodeIds() const;
     const std::vector<Node> getNodes() const;
     NodeGroup(const NodeGroup& that) = delete;
@@ -368,6 +370,7 @@ public:
     const std::vector<Cell> getCells();
     const std::vector<int> cellPositions();
     const std::set<int> nodePositions() const override;
+    bool empty() const override;
     virtual ~CellGroup();
     CellGroup(const CellGroup& that) = delete;
 };

@@ -54,6 +54,22 @@ shared_ptr<NamedValue> ValuePlaceHolder::clone() const {
     return make_shared<ValuePlaceHolder>(*this);
 }
 
+FloatValue::FloatValue(const Model& model, double number, int original_id) :
+        NamedValue(model, FloatValue::FLOAT, original_id), number(number) {
+}
+
+shared_ptr<NamedValue> FloatValue::clone() const {
+    return make_shared<FloatValue>(*this);
+}
+
+bool FloatValue::iszero() const {
+    return is_zero(number);
+}
+
+void FloatValue::scale(double factor) {
+    number *= factor;
+}
+
 ValueRange::ValueRange(const Model& model, Type type, int original_id) :
         NamedValue(model, type, original_id) {
 }

@@ -593,4 +593,39 @@ const DOFS GapNodeDirection::getDOFSForNode(int nodePosition) const {
     return dofs;
 }
 
+SlideContact::SlideContact(Model& model, int original_id) :
+    Constraint(model, Constraint::SLIDE, original_id) {
+}
+
+shared_ptr<Constraint> SlideContact::clone() const {
+    return make_shared<SlideContact>(*this);
+}
+
+set<int> SlideContact::nodePositions() const {
+    set<int> result;
+    shared_ptr<Group> masterGroup = model.mesh->findGroup(masterNodeGroupId);
+    result.insert(masterGroup->nodePositions().begin(), masterGroup->nodePositions().end());
+    shared_ptr<Group> slaveGroup = model.mesh->findGroup(slaveNodeGroupId);
+    result.insert(slaveGroup->nodePositions().begin(), slaveGroup->nodePositions().end());
+    return result;
+}
+
+void SlideContact::removeNode(int nodePosition) {
+    shared_ptr<NodeGroup> masterGroup = dynamic_pointer_cast<NodeGroup>(model.mesh->findGroup(masterNodeGroupId));
+    masterGroup->removeNodeByPosition(nodePosition);
+    shared_ptr<NodeGroup> slaveGroup = dynamic_pointer_cast<NodeGroup>(model.mesh->findGroup(slaveNodeGroupId));
+    slaveGroup->removeNodeByPosition(nodePosition);
+}
+
+bool SlideContact::ineffective() const {
+    shared_ptr<NodeGroup> masterGroup = dynamic_pointer_cast<NodeGroup>(model.mesh->findGroup(masterNodeGroupId));
+    shared_ptr<NodeGroup> slaveGroup = dynamic_pointer_cast<NodeGroup>(model.mesh->findGroup(slaveNodeGroupId));
+    return masterGroup->empty() or slaveGroup->empty();
+}
+
+const DOFS SlideContact::getDOFSForNode(int nodePosition) const {
+    UNUSEDV(nodePosition);
+    return DOFS::TRANSLATIONS;
+}
+
 } // namespace vega

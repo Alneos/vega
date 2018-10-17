@@ -207,39 +207,39 @@ void Model::add(const ElementSet& elementSet) {
     elementSets.add(elementSet);
 }
 
-std::shared_ptr<Analysis> Model::getAnalysis(int id) const {
+shared_ptr<Analysis> Model::getAnalysis(int id) const {
 	return analyses.get(id);
 }
 
-std::shared_ptr<Loading> Model::getLoading(int id) const {
+shared_ptr<Loading> Model::getLoading(int id) const {
     return loadings.get(id);
 }
 
-std::shared_ptr<LoadSet> Model::getLoadSet(int id)  const {
+shared_ptr<LoadSet> Model::getLoadSet(int id)  const {
     return loadSets.get(id);
 }
 
-std::shared_ptr<Constraint> Model::getConstraint(int id) const {
+shared_ptr<Constraint> Model::getConstraint(int id) const {
     return constraints.get(id);
 }
 
-std::shared_ptr<ConstraintSet> Model::getConstraintSet(int id) const {
+shared_ptr<ConstraintSet> Model::getConstraintSet(int id) const {
     return constraintSets.get(id);
 }
 
-std::shared_ptr<Objective> Model::getObjective(int id) const {
+shared_ptr<Objective> Model::getObjective(int id) const {
     return objectives.get(id);
 }
 
-std::shared_ptr<NamedValue> Model::getValue(int id) const {
+shared_ptr<NamedValue> Model::getValue(int id) const {
     return values.get(id);
 }
 
-std::shared_ptr<ElementSet> Model::getElementSet(int id) const {
+shared_ptr<ElementSet> Model::getElementSet(int id) const {
     return elementSets.get(id);
 }
 
-std::shared_ptr<Material> Model::getMaterial(int id) const {
+shared_ptr<Material> Model::getMaterial(int id) const {
     return materials.get(id);
 }
 
@@ -620,9 +620,9 @@ const set<shared_ptr<LoadSet>> Model::getUncommonLoadSets() const {
 void Model::generateDiscrets() {
 
     //rigid constraints
-    std::shared_ptr<CellGroup> virtualDiscretTRGroup = nullptr;
+    shared_ptr<CellGroup> virtualDiscretTRGroup = nullptr;
 
-    std::shared_ptr<CellGroup> virtualDiscretTGroup = nullptr;
+    shared_ptr<CellGroup> virtualDiscretTGroup = nullptr;
 
     for (const Node& node : this->mesh->nodes) {
         DOFS missingDOFS;
@@ -772,7 +772,7 @@ void Model::generateSkin() {
                     if (faceIds.size() > 0) {
                         vega::Cell cell = generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
                         // LD : Workaround for MED name problems, adding single cell groups
-                        std::shared_ptr<CellGroup> mappl = this->mesh->createCellGroup(
+                        shared_ptr<CellGroup> mappl = this->mesh->createCellGroup(
                                 "C" + boost::lexical_cast<string>(cell.id));
                         mappl->addCellId(cell.id);
                         forceSurface->clear();
@@ -1351,7 +1351,7 @@ void Model::replaceDirectMatrices()
 void Model::removeRedundantSpcs()
 {
     for (auto analysis : this->analyses) {
-        std::unordered_map<std::pair<int, DOF>, double, boost::hash<std::pair<int, int> > > spcvalueByNodeAndDof;
+        unordered_map<pair<int, DOF>, double, boost::hash<pair<int, int> > > spcvalueByNodeAndDof;
         for (const auto& constraintSet : analysis->getConstraintSets()) {
             const set<shared_ptr<Constraint> > spcs = constraintSet->getConstraintsByType(
                     Constraint::SPC);
@@ -1575,7 +1575,7 @@ void Model::makeCellsFromLMPC(){
 
             set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::LMPC);
             for (const auto& constraint : constraints) {
-                const std::shared_ptr<LinearMultiplePointConstraint> lmpc = std::static_pointer_cast<LinearMultiplePointConstraint>(constraint);
+                const shared_ptr<LinearMultiplePointConstraint> lmpc = static_pointer_cast<LinearMultiplePointConstraint>(constraint);
 
                 // We sort the Coeffs in order to fuse various LMPC into the same ElementSet/CellGroup
                 vector<int> sortedNodesPosition= lmpc->sortNodePositionByCoefs();
@@ -1596,7 +1596,7 @@ void Model::makeCellsFromLMPC(){
                         materialLMPC->addNature(RigidNature(*this, 1));
                         this->add(materialLMPC);
                     }
-                    group = mesh->createCellGroup("MPC_"+std::to_string(analysis->bestId())+"_"+std::to_string(constraint->bestId()), CellGroup::NO_ORIGINAL_ID, "MPC");
+                    group = mesh->createCellGroup("MPC_"+to_string(analysis->bestId())+"_"+to_string(constraint->bestId()), CellGroup::NO_ORIGINAL_ID, "MPC");
                     Lmpc elementsetLMPC(*this, analysis->getId());
                     elementsetLMPC.assignCellGroup(group);
                     elementsetLMPC.assignMaterial(materialLMPC);
@@ -1653,14 +1653,14 @@ void Model::makeCellsFromRBE(){
         set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::RIGID);
         vector<shared_ptr<Constraint>> toBeRemoved;
         for (const auto& constraint : constraints) {
-            const std::shared_ptr<RigidConstraint> rbe2 = std::static_pointer_cast<RigidConstraint>(constraint);
+            const shared_ptr<RigidConstraint> rbe2 = static_pointer_cast<RigidConstraint>(constraint);
 
             // Creating an elementset, a CellGroup and a dummy rigid material
             shared_ptr<Material> materialRBE2 = make_shared<Material>(this);
             materialRBE2->addNature(RigidNature(*this, 1));
             this->add(materialRBE2);
 
-            shared_ptr<CellGroup> group = mesh->createCellGroup("RBE2_"+std::to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBE2");
+            shared_ptr<CellGroup> group = mesh->createCellGroup("RBE2_"+to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBE2");
             Rbar elementsetRbe2(*this, mesh->findNodeId(rbe2->getMaster()));
             elementsetRbe2.assignCellGroup(group);
             elementsetRbe2.assignMaterial(materialRBE2);
@@ -1684,10 +1684,10 @@ void Model::makeCellsFromRBE(){
 
         constraints = constraintSet->getConstraintsByType(Constraint::QUASI_RIGID);
         for (const auto& constraint : constraints) {
-            std::shared_ptr<QuasiRigidConstraint> rbar = std::static_pointer_cast<QuasiRigidConstraint>(constraint);
+            shared_ptr<QuasiRigidConstraint> rbar = static_pointer_cast<QuasiRigidConstraint>(constraint);
 
             if (!(rbar->isCompletelyRigid())){
-                cerr << "QUASI_RIGID constraint not available yet. Constraint "+std::to_string(constraint->bestId())+ " translated as rigid constraint."<<endl;
+                cerr << "QUASI_RIGID constraint not available yet. Constraint "+to_string(constraint->bestId())+ " translated as rigid constraint."<<endl;
             }
             if (rbar->getSlaves().size()!=2){
                throw logic_error("QUASI_RIGID constraint must have exactly two slaves.");
@@ -1701,7 +1701,7 @@ void Model::makeCellsFromRBE(){
             // Master Node : first one. Slave Node : second and last one
             const int masterNodeId = mesh->findNodeId(*rbar->getSlaves().begin());
             const int slaveNodeId = mesh->findNodeId(*rbar->getSlaves().rbegin());
-            shared_ptr<CellGroup> group = mesh->createCellGroup("RBAR_"+std::to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBAR");
+            shared_ptr<CellGroup> group = mesh->createCellGroup("RBAR_"+to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBAR");
 
             Rbar elementsetRBAR(*this, masterNodeId);
             elementsetRBAR.assignCellGroup(group);
@@ -1728,7 +1728,7 @@ void Model::makeCellsFromRBE(){
         constraints = constraintSet->getConstraintsByType(Constraint::RBE3);
         for (const auto& constraint : constraints) {
 
-            const std::shared_ptr<RBE3>& rbe3 = std::static_pointer_cast<RBE3>(constraint);
+            const shared_ptr<RBE3>& rbe3 = static_pointer_cast<RBE3>(constraint);
             const int masterId = mesh->findNodeId(rbe3->getMaster());
             const DOFS& mDOFS = rbe3->getDOFS();
 
@@ -1787,8 +1787,8 @@ void Model::makeCellsFromRBE(){
 
 void Model::splitElementsByDOFS(){
 
-    std::vector<ScalarSpring> elementSetsToAdd;
-    std::vector<shared_ptr<ElementSet>> elementSetsToRemove;
+    vector<ScalarSpring> elementSetsToAdd;
+    vector<shared_ptr<ElementSet>> elementSetsToRemove;
 
     for (auto & elementSet : elementSets) {
 
@@ -1825,7 +1825,7 @@ void Model::splitElementsByDOFS(){
                     cout<< *elementSet << " spring must be split."<<endl;
                 for (const auto & it : ss->getCellPositionByDOFS()){
                     ScalarSpring scalarSpring(*this, Identifiable<ElementSet>::NO_ORIGINAL_ID, stiffness, damping);
-                    shared_ptr<CellGroup> cellGroup = this->mesh->createCellGroup(name+"_"+std::to_string(i), Group::NO_ORIGINAL_ID, comment);
+                    shared_ptr<CellGroup> cellGroup = this->mesh->createCellGroup(name+"_"+to_string(i), Group::NO_ORIGINAL_ID, comment);
                     scalarSpring.assignCellGroup(cellGroup);
                     for (const int cellPosition : it.second){
                         scalarSpring.addSpring(cellPosition, it.first.first, it.first.second);
@@ -1851,6 +1851,39 @@ void Model::splitElementsByDOFS(){
     }
     for (auto & elementSet : elementSetsToAdd){
         this->add(elementSet);
+    }
+}
+
+void Model::makeBoundarySegments() {
+    for (auto analysis : this->analyses) {
+        for (const auto& constraintSet : analysis->getConstraintSets()) {
+            auto constraints = constraintSet->getConstraintsByType(Constraint::SLIDE);
+            for (const auto& constraint : constraints) {
+                shared_ptr<SlideContact> slide = static_pointer_cast<SlideContact>(constraint);
+                shared_ptr<CellGroup> masterCellGroup = mesh->createCellGroup("SLIDE_M_"+to_string(slide->getOriginalId()));
+                shared_ptr<CellGroup> slaveCellGroup = mesh->createCellGroup("SLIDE_S_"+to_string(slide->getOriginalId()));
+                shared_ptr<NodeGroup> masterNodeGroup = dynamic_pointer_cast<NodeGroup>(mesh->findGroup(slide->masterNodeGroupId));
+                const set<int>& masterNodeIds = masterNodeGroup ->getNodeIds();
+                auto it = masterNodeIds.begin();
+                for(unsigned int i = 0; i < masterNodeIds.size() - 1;++i) {
+                    int nodeId1 = *(++it);
+                    int nodeId2 = *(++it);
+                    vector<int> connectivity = {nodeId1, nodeId2};
+                    int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, connectivity, true);
+                    masterCellGroup->addCellId(mesh->findCell(cellPosition).id);
+                }
+                shared_ptr<NodeGroup> slaveNodeGroup = dynamic_pointer_cast<NodeGroup>(mesh->findGroup(slide->slaveNodeGroupId));
+                const set<int>& slaveNodeIds = slaveNodeGroup->getNodeIds();
+                auto it2 = slaveNodeIds.begin();
+                for(unsigned int i = 0; i < slaveNodeIds.size() - 1;++i) {
+                    int nodeId1 = *(++it2);
+                    int nodeId2 = *(++it2);
+                    vector<int> connectivity = {nodeId1, nodeId2};
+                    int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, connectivity, true);
+                    slaveCellGroup->addCellId(mesh->findCell(cellPosition).id);
+                }
+            }
+        }
     }
 }
 
@@ -1929,6 +1962,10 @@ void Model::finish() {
 
     if (this->configuration.makeCellsFromRBE){
         makeCellsFromRBE();
+    }
+
+    if (this->configuration.makeBoundarySegments) {
+        makeBoundarySegments();
     }
 
     if (this->configuration.splitElementsByDOFS){

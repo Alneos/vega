@@ -11,10 +11,13 @@
 #ifndef CONSTRAINT_H_
 #define CONSTRAINT_H_
 
+#include "MeshComponents.h"
 #include "Object.h"
 #include "BoundaryCondition.h"
 #include "Dof.h"
 #include "Reference.h"
+#include "CoordinateSystem.h"
+#include "Value.h"
 #include <map>
 #include <list>
 
@@ -36,6 +39,7 @@ public:
 		SPC,
 		LMPC,
 		GAP,
+		SLIDE
 	};
 
 protected:
@@ -239,6 +243,24 @@ public:
 	void removeNode(int nodePosition) override;
 	bool ineffective() const override;
 };
+
+/**
+ * see Nastran BCONP
+ */
+class SlideContact: public Constraint {
+public:
+	SlideContact(Model& model, int original_id = NO_ORIGINAL_ID);
+    int masterNodeGroupId = Globals::UNAVAILABLE_INT;
+    int slaveNodeGroupId = Globals::UNAVAILABLE_INT;
+    ValueOrReference friction = ValueOrReference::EMPTY_VALUE;
+    int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
+	std::shared_ptr<Constraint> clone() const override;
+	std::set<int> nodePositions() const override;
+	const DOFS getDOFSForNode(int nodePosition) const override;
+	void removeNode(int nodePosition) override;
+	bool ineffective() const override;
+};
+
 } /* namespace vega */
 
 #endif /* CONSTRAINT_H_ */

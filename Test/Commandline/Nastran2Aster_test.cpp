@@ -78,11 +78,11 @@ BOOST_AUTO_TEST_CASE( probA ) {
 }
 
 BOOST_AUTO_TEST_CASE( cbush1 ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/cbush1/cbush1.bdf", TESTS_EXEC_SOLVER, true, 0.02);
+	CommandLineUtils::nastranStudy2Aster("/irt/cbush1/cbush1.bdf", TESTS_EXEC_SOLVER, true, 0.00001);
 }
 
 BOOST_AUTO_TEST_CASE( cbush1b ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/cbush1b/cbush1b.bdf", TESTS_EXEC_SOLVER, true, 0.02);
+	CommandLineUtils::nastranStudy2Aster("/irt/cbush1b/cbush1b.bdf", TESTS_EXEC_SOLVER, true, 0.00001);
 }
 
 BOOST_AUTO_TEST_CASE( prob5 ) {
@@ -90,8 +90,12 @@ BOOST_AUTO_TEST_CASE( prob5 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/prob5/prob5.bdf", TESTS_EXEC_SOLVER, true, 0.05);
 }
 
+BOOST_AUTO_TEST_CASE( prob9 ) {
+	CommandLineUtils::nastranStudy2Aster("/caw/prob9/prob9.dat", false, false, 0.02);
+}
+
 /*BOOST_AUTO_TEST_CASE( test_2dof108 ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/2dof108/2dof108.bdf", TESTS_EXEC_SOLVER, true, 0.05);
+	CommandLineUtils::nastranStudy2Aster("/irt/2dof108/2dof108.bdf", false, false, 0.05);
 }*/
 
 } /* namespace test */

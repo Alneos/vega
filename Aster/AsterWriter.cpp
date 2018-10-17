@@ -444,12 +444,6 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
 		break;
 	}
 	case NamedValue::SPREAD_RANGE: {
-//		LSF00001 = DEFI_LIST_FREQ(DEBUT=20.0,
-//		                         INTERVALLE=_F(JUSQU_A=1000.0,
-//		                                       NOMBRE=49),
-//		                         RAFFINEMENT=_F(LIST_RAFFINE=pfreq1,
-//		                                        CRITERE='RELATIF',
-//		                                        DISPERSION=0.03),);
 			SpreadRange& spreadRange = dynamic_cast<SpreadRange&>(value);
 			ostringstream list_concept_ss;
 			list_concept_ss << "LST" << setfill('0') << setw(5) << spreadRange.getId();
@@ -501,11 +495,12 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
 		out << "                       );" << "# Original id:" << functionTable.getOriginalId() << endl << endl;
 		break;
 	}
+	case NamedValue::FLOAT:
 	case NamedValue::BAND_RANGE:
 	case NamedValue::DYNA_PHASE:
 		break;
 	default:
-		handleWritingError(string("Not implemented"));
+		handleWritingError(string("NamedValue not yet implemented"));
 	}
 	asternameByValue[value.getReference()] = concept_name;
 
