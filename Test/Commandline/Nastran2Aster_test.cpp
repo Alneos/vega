@@ -94,9 +94,13 @@ BOOST_AUTO_TEST_CASE( prob9 ) {
 	CommandLineUtils::nastranStudy2Aster("/caw/prob9/prob9.dat", false, false, 0.02);
 }
 
-/*BOOST_AUTO_TEST_CASE( test_2dof108 ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/2dof108/2dof108.bdf", false, false, 0.05);
-}*/
+//BOOST_AUTO_TEST_CASE( prob24 ) {
+//	CommandLineUtils::nastranStudy2Aster("/caw/prob24/prob24.dat", TESTS_EXEC_SOLVER, true, 0.05);
+//}
+
+//BOOST_AUTO_TEST_CASE( test_2dof108 ) {
+//	CommandLineUtils::nastranStudy2Aster("/irt/2dof108/2dof108.bdf", false, false, 0.05);
+//}
 
 } /* namespace test */
 } /* namespace vega */

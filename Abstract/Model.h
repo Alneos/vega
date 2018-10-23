@@ -101,6 +101,10 @@ private:
      */
     void makeBoundarySegments();
     /**
+     * Automatically add the analysis when missing
+     */
+    void addAutoAnalysis();
+    /**
      * Get a non rigid material (virtual)
      */
     std::shared_ptr<Material> getVirtualMaterial();
@@ -188,6 +192,7 @@ private:
         std::shared_ptr<T> find(const Reference<T>&) const;
         std::shared_ptr<T> find(int) const; /**< Find an object by its Original Id **/
         std::shared_ptr<T> get(int) const; /**< Return an object by its Vega Id **/
+        const std::vector<std::shared_ptr<T>> filter(const typename T::Type) const; /**< Choose objects based on their type */
         bool validate(){
             bool isValid = true;
             std::vector<std::shared_ptr<T>> toBeRemoved;
@@ -360,8 +365,6 @@ private:
          * Retrieve all the ConstraintSet of the model that are active but not common to all analysis
          */
         const std::set<std::shared_ptr<LoadSet>> getUncommonLoadSets() const;
-
-        const std::vector<std::shared_ptr<ElementSet>> filterElements(ElementSet::Type type) const;
 
         const std::vector<std::shared_ptr<Beam>> getBeams() const;
 

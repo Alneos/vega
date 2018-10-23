@@ -555,7 +555,7 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 		out << "                 );" << "# Original id:" << material->getOriginalId() << endl << endl;
 	}
 
-	vector<shared_ptr<ElementSet>> composites = asterModel.model.filterElements(ElementSet::COMPOSITE);
+	vector<shared_ptr<ElementSet>> composites = asterModel.model.elementSets.filter(ElementSet::COMPOSITE);
     out << "                    # writing " << composites.size() << " composites" << endl;
     for (shared_ptr<ElementSet> c : composites) {
         shared_ptr<Composite> composite = dynamic_pointer_cast<Composite>(c);
@@ -620,15 +620,15 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 	if (asterModel.model.elementSets.size() > 0) {
 		out << "CAEL=AFFE_CARA_ELEM(MODELE=MODMECA," << endl;
 
-		vector<shared_ptr<ElementSet>> discrets_0d = asterModel.model.filterElements(
+		vector<shared_ptr<ElementSet>> discrets_0d = asterModel.model.elementSets.filter(
 				ElementSet::DISCRETE_0D);
-		vector<shared_ptr<ElementSet>> discrets_1d = asterModel.model.filterElements(
+		vector<shared_ptr<ElementSet>> discrets_1d = asterModel.model.elementSets.filter(
 				ElementSet::DISCRETE_1D);
-		vector<shared_ptr<ElementSet>> nodal_masses = asterModel.model.filterElements(
+		vector<shared_ptr<ElementSet>> nodal_masses = asterModel.model.elementSets.filter(
 				ElementSet::NODAL_MASS);
-		vector<shared_ptr<ElementSet>> scalar_springs = asterModel.model.filterElements(
+		vector<shared_ptr<ElementSet>> scalar_springs = asterModel.model.elementSets.filter(
 				ElementSet::SCALAR_SPRING);
-		vector<shared_ptr<ElementSet>> structural_segments = asterModel.model.filterElements(
+		vector<shared_ptr<ElementSet>> structural_segments = asterModel.model.elementSets.filter(
 				ElementSet::STRUCTURAL_SEGMENT);
         auto numDiscrets = discrets_0d.size() + nodal_masses.size() + discrets_1d.size() + structural_segments.size() + scalar_springs.size();
 		out << "                    # writing " << numDiscrets << " discrets" << endl;
@@ -752,8 +752,8 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 			}
 			out << "                            )," << endl;
 		}
-		vector<shared_ptr<ElementSet>> shells = asterModel.model.filterElements(ElementSet::SHELL);
-		vector<shared_ptr<ElementSet>> composites = asterModel.model.filterElements(ElementSet::COMPOSITE);
+		vector<shared_ptr<ElementSet>> shells = asterModel.model.elementSets.filter(ElementSet::SHELL);
+		vector<shared_ptr<ElementSet>> composites = asterModel.model.elementSets.filter(ElementSet::COMPOSITE);
 		out << "                    # writing " << shells.size()+composites.size() << " shells (ou composites)" << endl;
 		if (shells.size() + +composites.size() > 0) {
 			calc_sigm = true;
@@ -787,7 +787,7 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 			}
 			out << "                           )," << endl;
 		}
-		vector<shared_ptr<ElementSet>> solids = asterModel.model.filterElements(
+		vector<shared_ptr<ElementSet>> solids = asterModel.model.elementSets.filter(
 				ElementSet::CONTINUUM);
 		out << "                    # writing " << solids.size() << " solids" << endl;
 		if (solids.size() > 0) {
@@ -942,23 +942,23 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
             writeRotation(loadSet, out);
             out << "                      );" << endl << endl;
 		}
-
 	}
 }
 
 void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 	for (auto it : asterModel.model.constraintSets) {
 		ConstraintSet& constraintSet = *it;
-		const set<shared_ptr<Constraint>> gaps = constraintSet.getConstraintsByType(
-				Constraint::GAP);
 		if (constraintSet.getConstraints().size() == 0) {
 			// LD filter empty constraintSet
 			continue;
 		}
-		if (constraintSet.getConstraints().size() != gaps.size()) {
-			// LD primitive way to handle contacts, add isContact() methods instead
+		if (not constraintSet.hasContacts()) {
 			continue;
 		}
+		const set<shared_ptr<Constraint>> gaps = constraintSet.getConstraintsByType(
+				Constraint::GAP);
+        const set<shared_ptr<Constraint>> slides = constraintSet.getConstraintsByType(
+				Constraint::SLIDE);
 		for (shared_ptr<Constraint> constraint : gaps) {
 			shared_ptr<const Gap> gap = static_pointer_cast<const Gap>(constraint);
 			int gapCount = 0;
@@ -986,7 +986,12 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 		string asterName = string("CN") + to_string(constraintSet.getId());
 		asternameByConstraintSet[constraintSet.getReference()] = asterName;
 		out << asterName << "=DEFI_CONTACT(MODELE=MODMECA," << endl;
-		out << "                   FORMULATION='LIAISON_UNIL'," << endl;
+		if (gaps.size() >= 1) {
+            out << "                   FORMULATION='LIAISON_UNIL'," << endl;
+		} else if (slides.size() >= 1) {
+		    out << "                   FORMULATION='CONTINUE'," << endl;
+		    out << "                   FROTTEMENT='COULOMB'," << endl;
+		}
 		out << "                   ZONE=(" << endl;
 		for (shared_ptr<Constraint> constraint : gaps) {
 			shared_ptr<const Gap> gap = static_pointer_cast<const Gap>(constraint);
@@ -1023,6 +1028,18 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 				out << "),";
 				out << ")," << endl;
 			}
+		}
+		for (shared_ptr<Constraint> constraint : slides) {
+		    shared_ptr<const SlideContact> slide = static_pointer_cast<const SlideContact>(constraint);
+                out << "                             _F(";
+				out << "GROUP_MA_MAIT='"
+						<< slide->masterCellGroup->getName()
+						<< "',";
+				out << "GROUP_MA_ESCL='"
+						<< slide->slaveCellGroup->getName()
+						<< "',";
+                out << "COULOMB=" << slide->getFriction() << ",";
+				out << ")," << endl;
 		}
 		out << "                             )," << endl;
 		out << "                   );" << endl << endl;
@@ -1589,27 +1606,22 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 					<< ",FONC_MULT=RAMP" << nonLinAnalysis.getId() << ")," << endl;
 		}
 		for (shared_ptr<ConstraintSet> constraintSet : nonLinAnalysis.getConstraintSets()) {
-			if (constraintSet->getConstraints().size()
-					== constraintSet->getConstraintsByType(Constraint::GAP).size()) {
-				// LD primitive way to handle contacts, add isContact() methods instead
+			if (constraintSet->hasContacts()) {
 				continue;
 			}
 			//GC: dirty fix for #801, a deeper analysis must be done
-			if (constraintSet->getConstraints().size() > 0) {
+			if (constraintSet->getConstraints().size() >= 1) {
 				out << "                           _F(CHARGE=" << asternameByConstraintSet[constraintSet->getReference()] << "),"
 						<< endl;
 			}
 		}
 		out << "                           )," << endl;
 		for (shared_ptr<ConstraintSet> constraintSet : asterModel.model.constraintSets) {
-			const set<shared_ptr<Constraint>> gaps = constraintSet->getConstraintsByType(
-					Constraint::GAP);
 			if (constraintSet->getConstraints().size() == 0) {
 				// LD filter empty constraintSet
 				continue;
 			}
-			if (constraintSet->getConstraints().size() != gaps.size()) {
-				// LD primitive way to handle contacts, add isContact() methods instead
+			if (not constraintSet->hasContacts()) {
 				continue;
 			}
 			out << "                    CONTACT=" << asternameByConstraintSet[constraintSet->getReference()] << "," << endl;

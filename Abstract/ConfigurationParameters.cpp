@@ -52,6 +52,7 @@ const ModelConfiguration ConfigurationParameters::getModelConfiguration() const 
         configuration.removeRedundantSpcs = true;
         configuration.addVirtualMaterial = true;
         configuration.makeBoundarySegments = true;
+        configuration.autoDetectAnalysis = true;
     } else if (this->outputSolver.getSolverName() == SYSTUS) {
         configuration.createSkin = true;
         configuration.emulateAdditionalMass = true;
@@ -64,10 +65,12 @@ const ModelConfiguration ConfigurationParameters::getModelConfiguration() const 
         configuration.makeCellsFromLMPC = true;
         configuration.makeCellsFromRBE = true;
         configuration.splitElementsByDOFS = true;
+        configuration.autoDetectAnalysis = true;
     } else if (this->outputSolver.getSolverName() == NASTRAN) {
         // default should be always false
+        configuration.autoDetectAnalysis = true;
     } else {
-        throw logic_error(" solver not implemented");
+        throw logic_error(" solver not yet implemented");
     }
     return configuration;
 }

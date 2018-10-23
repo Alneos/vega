@@ -738,11 +738,11 @@ void NastranParser::parseBCONP(NastranTokenizer& tok, shared_ptr<Model> model) {
     if (not tok.isEmptyUntilNextKeyword()) {
         handleParsingError("BCONP optional fields not yet handled", tok, model);
     }
-    SlideContact slide(*model, id);
+    SlideContact slide(*model, Reference<NamedValue>(Value::FLOAT, fricid), id);
     slide.slaveNodeGroupId = slaveId;
     slide.masterNodeGroupId = masterId;
-    slide.friction = ValueOrReference(Reference<NamedValue>(Value::FLOAT, fricid));
     model->add(slide);
+    model->addConstraintIntoConstraintSet(slide, model->commonConstraintSet);
 }
 
 void NastranParser::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -2878,7 +2878,7 @@ void NastranParser::parseTABLED1(NastranTokenizer& tok, shared_ptr<Model> model)
         }else{
             sField=tok.nextString();
             if (sField=="ENDT"){
-                continue;
+                break;
             }
             if (sField=="SKIP"){ // SKIP means the pair (x,y) is skipped
                 tok.skip(1);
@@ -2892,10 +2892,13 @@ void NastranParser::parseTABLED1(NastranTokenizer& tok, shared_ptr<Model> model)
             y = tok.nextDouble();
         }else{
             string sField2=tok.nextString(); //Code_Aster convention : Nastran is coherent with factor 2 for sdamping : not so sure
+            if (sField2=="ENDT"){
+                break;
+            }
             if (sField2=="SKIP"){
                 continue;
             }else{
-                handleParsingWarning("Invalid key ("+sField2+") should be SKIP or a real.", tok, model);
+                handleParsingWarning("Invalid key ("+sField2+") should be ENDT, SKIP or a real.", tok, model);
                 break;
             }
         }

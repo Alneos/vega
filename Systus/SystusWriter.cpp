@@ -2871,7 +2871,7 @@ void SystusWriter::writeVectors(ostream& out) {
 
 void SystusWriter::writeMasses(const SystusModel &systusModel, ostream& out) {
     // TODO : attention, la doc parle de dynamique. Prise en compte dans le poids en statique ???
-    vector<shared_ptr<ElementSet>> masses = systusModel.model->filterElements(
+    vector<shared_ptr<ElementSet>> masses = systusModel.model->elementSets.filter(
             ElementSet::NODAL_MASS);
     out << "BEGIN_MASSES " << masses.size() << endl;
     if (masses.size() > 0) {

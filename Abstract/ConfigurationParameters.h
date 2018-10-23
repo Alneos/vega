@@ -133,6 +133,10 @@ public:
      * Explicitely creating cell elements defined by nodes (see Nastran BLSEG)
      */
     bool makeBoundarySegments = false;
+    /**
+     * Select automatically the analysis (when missing) based on features in the model
+     */
+    bool autoDetectAnalysis = false;
 
 };
 // TODO: THe Configuration Parameters should be much more generalized. With this,

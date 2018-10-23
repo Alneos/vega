@@ -367,13 +367,13 @@ void NastranWriter::writeElements(const shared_ptr<vega::Model>& model, ofstream
 		pbeam.add(beam->getTorsionalConstant());
 		out << pbeam;
 	}
-	for (shared_ptr<ElementSet> shell : model->filterElements(ElementSet::SHELL)) {
+	for (shared_ptr<ElementSet> shell : model->elementSets.filter(ElementSet::SHELL)) {
 		Line pshell("PSHELL");
 		pshell.add(shell->bestId());
 		pshell.add(shell->material->bestId());
 		out << pshell;
 	}
-	for (shared_ptr<ElementSet> continuum : model->filterElements(ElementSet::CONTINUUM)) {
+	for (shared_ptr<ElementSet> continuum : model->elementSets.filter(ElementSet::CONTINUUM)) {
 		Line psolid("PSOLID");
 		psolid.add(continuum->bestId());
 		psolid.add(continuum->material->bestId());

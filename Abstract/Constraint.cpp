@@ -100,6 +100,15 @@ bool ConstraintSet::hasFunctions() const {
 	return false;
 }
 
+bool ConstraintSet::hasContacts() const {
+    for (shared_ptr<Constraint> constraint : getConstraints()) {
+		if (constraint->isContact()) {
+			return true;
+		}
+	}
+	return false;
+}
+
 ostream &operator<<(ostream &out, const ConstraintSet& constraintSet) {
     out << to_str(constraintSet);
     return out;
@@ -470,8 +479,12 @@ std::vector<int> LinearMultiplePointConstraint::sortNodePositionByCoefs() const{
     return indices;
 }
 
+Contact::Contact(const Model& model, Type type, int original_id) :
+        Constraint(model, type, original_id) {
+}
+
 Gap::Gap(Model& model, int original_id) :
-        Constraint(model, Constraint::GAP, original_id) {
+        Contact(model, Constraint::GAP, original_id) {
 }
 
 GapTwoNodes::GapTwoNodes(Model& model, int original_id) :
@@ -593,8 +606,26 @@ const DOFS GapNodeDirection::getDOFSForNode(int nodePosition) const {
     return dofs;
 }
 
-SlideContact::SlideContact(Model& model, int original_id) :
-    Constraint(model, Constraint::SLIDE, original_id) {
+SlideContact::SlideContact(Model& model, double friction, int original_id) :
+    Contact(model, Constraint::SLIDE, original_id), friction{friction} {
+}
+
+SlideContact::SlideContact(Model& model, Reference<NamedValue> friction, int original_id) :
+    Contact(model, Constraint::SLIDE, original_id), friction{friction} {
+}
+
+double SlideContact::getFriction() const {
+    if (friction != ValueOrReference::EMPTY_VALUE) {
+        if (friction.isReference()) {
+            const auto val = dynamic_pointer_cast<const FloatValue>(model.find(friction.getReference()));
+            return val->number;
+
+        } else {
+            return friction.getValue();
+        }
+    } else {
+        return 0.0;
+    }
 }
 
 shared_ptr<Constraint> SlideContact::clone() const {
@@ -604,9 +635,11 @@ shared_ptr<Constraint> SlideContact::clone() const {
 set<int> SlideContact::nodePositions() const {
     set<int> result;
     shared_ptr<Group> masterGroup = model.mesh->findGroup(masterNodeGroupId);
-    result.insert(masterGroup->nodePositions().begin(), masterGroup->nodePositions().end());
+    set<int> masterNodePositions = masterGroup->nodePositions();
+    result.insert(masterNodePositions.begin(), masterNodePositions.end());
     shared_ptr<Group> slaveGroup = model.mesh->findGroup(slaveNodeGroupId);
-    result.insert(slaveGroup->nodePositions().begin(), slaveGroup->nodePositions().end());
+    set<int> slaveNodePositions = slaveGroup->nodePositions();
+    result.insert(slaveNodePositions.begin(), slaveNodePositions.end());
     return result;
 }
 

@@ -51,6 +51,9 @@ public:
 	static const std::map<Type, std::string> stringByType;
 	const std::string to_str() const;
 	virtual std::shared_ptr<Constraint> clone() const = 0;
+	virtual bool isContact() const {
+	    return false;
+	}
 	virtual void removeNode(int nodePosition) = 0;
 };
 
@@ -77,6 +80,7 @@ public:
 	int size() const;
 	std::shared_ptr<ConstraintSet> clone() const;
 	bool hasFunctions() const;
+	bool hasContacts() const;
 	virtual ~ConstraintSet();
 };
 
@@ -200,7 +204,16 @@ public:
     bool ineffective() const override;
 };
 
-class Gap: public Constraint {
+class Contact: public Constraint {
+protected:
+    Contact(const Model&, Type, int original_id = NO_ORIGINAL_ID);
+public:
+    bool isContact() const override final {
+	    return true;
+	};
+};
+
+class Gap: public Contact {
 public:
 	class GapParticipation {
 	public:
@@ -225,7 +238,7 @@ public:
 	std::set<int> nodePositions() const override;
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	std::vector<std::shared_ptr<GapParticipation>> getGaps() const override;
-	void removeNode(int nodePosition) override;
+	void removeNode(int nodePosithasFunctionsion) override;
 	bool ineffective() const override;
 };
 
@@ -247,12 +260,16 @@ public:
 /**
  * see Nastran BCONP
  */
-class SlideContact: public Constraint {
+class SlideContact: public Contact {
+    ValueOrReference friction = ValueOrReference::EMPTY_VALUE;
 public:
-	SlideContact(Model& model, int original_id = NO_ORIGINAL_ID);
+	SlideContact(Model& model, double friction, int original_id = NO_ORIGINAL_ID);
+	SlideContact(Model& model, Reference<NamedValue> friction, int original_id = NO_ORIGINAL_ID);
     int masterNodeGroupId = Globals::UNAVAILABLE_INT;
     int slaveNodeGroupId = Globals::UNAVAILABLE_INT;
-    ValueOrReference friction = ValueOrReference::EMPTY_VALUE;
+    double getFriction() const;
+    std::shared_ptr<CellGroup> masterCellGroup = nullptr;
+    std::shared_ptr<CellGroup> slaveCellGroup = nullptr;
     int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
 	std::shared_ptr<Constraint> clone() const override;
 	std::set<int> nodePositions() const override;

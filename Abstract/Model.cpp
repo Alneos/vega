@@ -62,6 +62,17 @@ void Model::Container<T>::erase(const Reference<T> ref) {
         by_original_ids_by_type[ref.type].erase(ref.original_id);
 }
 
+template<class T>
+const vector<shared_ptr<T>> Model::Container<T>::filter(const typename T::Type type) const {
+    vector<shared_ptr<T>> result;
+    for (const auto& id_obj_pair: by_id) {
+        if (id_obj_pair.second->type == type) {
+            result.push_back(id_obj_pair.second);
+        }
+    }
+    return result;
+}
+
 /*
  * Redefining method add for Value to take into account placeHolder
  */
@@ -736,15 +747,6 @@ shared_ptr<Material> Model::getVirtualMaterial() {
     return virtualMaterial;
 }
 
-const vector<shared_ptr<ElementSet>> Model::filterElements(ElementSet::Type type) const {
-    vector<shared_ptr<ElementSet>> result;
-    for (auto elementSet : elementSets) {
-        if (elementSet->type == type && elementSet->validate())
-            result.push_back(elementSet);
-    }
-    return result;
-}
-
 const vector<shared_ptr<Beam>> Model::getBeams() const {
     vector<shared_ptr<Beam>> result;
     for (auto elementSet : elementSets) {
@@ -1081,7 +1083,7 @@ void Model::replaceCombinedLoadSets() {
         for (auto& kv : loadSet->embedded_loadsets) {
             shared_ptr<LoadSet> otherloadSet = this->find(kv.first);
             if (!otherloadSet) {
-                cerr << "Missing loadSet " << to_string(kv.first.id) << endl;
+                cerr << "CombinedLoadSet: missing loadSet " << to_string(kv.first.id) << endl;
             }
             double coefficient = kv.second;
             for (shared_ptr<Loading> loading : otherloadSet->getLoadings()) {
@@ -1855,35 +1857,60 @@ void Model::splitElementsByDOFS(){
 }
 
 void Model::makeBoundarySegments() {
-    for (auto analysis : this->analyses) {
-        for (const auto& constraintSet : analysis->getConstraintSets()) {
-            auto constraints = constraintSet->getConstraintsByType(Constraint::SLIDE);
-            for (const auto& constraint : constraints) {
-                shared_ptr<SlideContact> slide = static_pointer_cast<SlideContact>(constraint);
-                shared_ptr<CellGroup> masterCellGroup = mesh->createCellGroup("SLIDE_M_"+to_string(slide->getOriginalId()));
-                shared_ptr<CellGroup> slaveCellGroup = mesh->createCellGroup("SLIDE_S_"+to_string(slide->getOriginalId()));
-                shared_ptr<NodeGroup> masterNodeGroup = dynamic_pointer_cast<NodeGroup>(mesh->findGroup(slide->masterNodeGroupId));
-                const set<int>& masterNodeIds = masterNodeGroup ->getNodeIds();
-                auto it = masterNodeIds.begin();
-                for(unsigned int i = 0; i < masterNodeIds.size() - 1;++i) {
-                    int nodeId1 = *(++it);
-                    int nodeId2 = *(++it);
-                    vector<int> connectivity = {nodeId1, nodeId2};
-                    int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, connectivity, true);
-                    masterCellGroup->addCellId(mesh->findCell(cellPosition).id);
-                }
-                shared_ptr<NodeGroup> slaveNodeGroup = dynamic_pointer_cast<NodeGroup>(mesh->findGroup(slide->slaveNodeGroupId));
-                const set<int>& slaveNodeIds = slaveNodeGroup->getNodeIds();
-                auto it2 = slaveNodeIds.begin();
-                for(unsigned int i = 0; i < slaveNodeIds.size() - 1;++i) {
-                    int nodeId1 = *(++it2);
-                    int nodeId2 = *(++it2);
-                    vector<int> connectivity = {nodeId1, nodeId2};
-                    int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, connectivity, true);
-                    slaveCellGroup->addCellId(mesh->findCell(cellPosition).id);
-                }
+    for (const auto& constraintSet : this->getCommonConstraintSets()) {
+        auto constraints = constraintSet->getConstraintsByType(Constraint::SLIDE);
+        for (const auto& constraint : constraints) {
+            shared_ptr<SlideContact> slide = static_pointer_cast<SlideContact>(constraint);
+            shared_ptr<CellGroup> masterCellGroup = mesh->createCellGroup("SLIDE_M_"+to_string(slide->getOriginalId()));
+            shared_ptr<CellGroup> slaveCellGroup = mesh->createCellGroup("SLIDE_S_"+to_string(slide->getOriginalId()));
+            shared_ptr<NodeGroup> masterNodeGroup = dynamic_pointer_cast<NodeGroup>(mesh->findGroup(slide->masterNodeGroupId));
+            const set<int>& masterNodeIds = masterNodeGroup ->getNodeIds();
+            auto it = masterNodeIds.begin();
+            for(unsigned int i = 0; i < masterNodeIds.size() - 1;++i) {
+                int nodeId1 = *it;
+                int nodeId2 = *(++it);
+                vector<int> connectivity = {nodeId1, nodeId2};
+                int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, connectivity, true);
+                masterCellGroup->addCellId(mesh->findCell(cellPosition).id);
             }
+            slide->masterCellGroup = masterCellGroup;
+            shared_ptr<NodeGroup> slaveNodeGroup = dynamic_pointer_cast<NodeGroup>(mesh->findGroup(slide->slaveNodeGroupId));
+            const set<int>& slaveNodeIds = slaveNodeGroup->getNodeIds();
+            auto it2 = slaveNodeIds.begin();
+            for(unsigned int i = 0; i < slaveNodeIds.size() - 1;++i) {
+                int nodeId1 = *it2;
+                int nodeId2 = *(++it2);
+                vector<int> connectivity = {nodeId1, nodeId2};
+                int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, connectivity, true);
+                slaveCellGroup->addCellId(mesh->findCell(cellPosition).id);
+            }
+            slide->slaveCellGroup = slaveCellGroup;
         }
+    }
+}
+
+void Model::addAutoAnalysis() {
+    auto& nonLinearStrategies = objectives.filter(Objective::NONLINEAR_STRATEGY);
+    bool linearStatic = true;
+    // LD very basic implementation of analysis detection. Should also look for non linear materials etc ?
+    if (nonLinearStrategies.size() >= 1) {
+        for(auto& nonLinearStrategy : nonLinearStrategies) {
+            NonLinearMecaStat analysis(*this, nonLinearStrategy->getOriginalId());
+            this->add(analysis);
+            linearStatic = false;
+        }
+    }
+    auto& modalStrategies = objectives.filter(Objective::FREQUENCY_TARGET);
+    if (modalStrategies.size() >= 1) {
+        for(auto& modalStrategy : modalStrategies) {
+            LinearModal analysis(*this, modalStrategy->getOriginalId());
+            this->add(analysis);
+            linearStatic = false;
+        }
+    }
+    if (linearStatic) {
+        LinearMecaStat analysis(*this);
+        this->add(analysis);
     }
 }
 
@@ -1902,6 +1929,11 @@ void Model::finish() {
             mesh->allowDOFS(nodePosition,elementSet->getDOFSForNode(nodePosition));
         }
     }
+
+    if (this->configuration.autoDetectAnalysis and analyses.size() == 0) {
+        addAutoAnalysis();
+    }
+
     for (shared_ptr<Analysis> analysis : analyses) {
         for (const auto& boundaryCondition : analysis->getBoundaryConditions()) {
             for(int nodePosition: boundaryCondition->nodePositions()) {
@@ -2025,10 +2057,10 @@ bool Model::validate() {
 }
 
 void Model::assignVirtualMaterial() {
-    for (shared_ptr<ElementSet> element : filterElements(ElementSet::STRUCTURAL_SEGMENT)) {
+    for (shared_ptr<ElementSet> element : elementSets.filter(ElementSet::STRUCTURAL_SEGMENT)) {
         element->assignMaterial(getVirtualMaterial());
     }
-    for (shared_ptr<ElementSet> element : filterElements(ElementSet::NODAL_MASS)) {
+    for (shared_ptr<ElementSet> element : elementSets.filter(ElementSet::NODAL_MASS)) {
         element->assignMaterial(getVirtualMaterial());
     }
 }

@@ -134,12 +134,12 @@ BOOST_AUTO_TEST_CASE( test_Elements ) {
 	cout << "NODES:" << model.mesh->countNodes() << endl;
 	model.finish();
 	BOOST_CHECK(model.validate());
-	const vector<shared_ptr<ElementSet>> beams = model.filterElements(ElementSet::RECTANGULAR_SECTION_BEAM);
+	const vector<shared_ptr<ElementSet>> beams = model.elementSets.filter(ElementSet::RECTANGULAR_SECTION_BEAM);
 	BOOST_CHECK_EQUAL(static_cast<size_t>(1), beams.size());
 
 //no virtual elements
 
-	const vector<shared_ptr<ElementSet>> discrets = model.filterElements(ElementSet::DISCRETE_0D);
+	const vector<shared_ptr<ElementSet>> discrets = model.elementSets.filter(ElementSet::DISCRETE_0D);
 	BOOST_CHECK_EQUAL(static_cast<size_t>(0), discrets.size());
 	CellContainer assignment = model.getOrCreateMaterial(1)->getAssignment();
 
@@ -213,7 +213,7 @@ shared_ptr<Model> createModelWith1HEXA8() {
      BOOST_CHECK(model->validate());
 
      //two virtual elements
-     auto& discrets = model->filterElements(ElementSet::DISCRETE_0D);
+     auto& discrets = model->elementSets.filter(ElementSet::DISCRETE_0D);
      BOOST_CHECK_EQUAL(1, discrets.size());
 
      const Node& node51 = model->mesh->findNode(model->mesh->findNodePosition(51));
