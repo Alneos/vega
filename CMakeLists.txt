@@ -6,6 +6,9 @@
 
 cmake_minimum_required(VERSION 2.8.2 FATAL_ERROR)
 
+# Compatibily option with Cygwin
+set(CMAKE_LEGACY_CYGWIN_WIN32 0)
+
 ########################################################################
 # Provide add_compile_options() when not available
 ########################################################################
