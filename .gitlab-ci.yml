@@ -24,6 +24,7 @@ building:
     - which docker
     - ls /srv
     - docker info
+    - export PATH=$PATH:/opt/TOP/ESI/sysworld/v2018.0/GB/
   script:
     - docker pull ldallolio/vegaci
     - docker build -t $TEST_IMAGE -f Dockerfile_gitlab .
