@@ -54,6 +54,10 @@ if(CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING_EMULATOR ${WINE_EXECUTABLE})
 endif(CMAKE_CROSSCOMPILING)
 
+find_program(SYSTUS_EXEC NAMES systus systus.exe)
+set(RUN_SYSTUS SYSTUS_EXEC CACHE BOOL "Run tests using Systus executable")
+mark_as_advanced(RUN_SYSTUS)
+
 # Debug and Release are reserved words for cmake see https://cmake.org/cmake/help/v3.0/variable/CMAKE_BUILD_TYPE.html
 IF(CMAKE_BUILD_TYPE MATCHES "^[Dd][Ee][Bb][Uu][Gg]")
     message(STATUS "Debug mode selected")
@@ -105,7 +109,6 @@ if(MSVC)
         ADD_DEFINITIONS(-DBOOST_ALL_DYN_LINK)
         #set(CMAKE_EXE_LINKER_FLAGS "-pthread -shared-libgcc -rdynamic -pipe" CACHE INTERNAL "Linker flags")
     endif(STATIC_LINKING)
-    set(RUN_SYSTUS 0)
 else(MSVC)
 
     if(EXISTS "/etc/issue")
@@ -173,9 +176,6 @@ else(MSVC)
        SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
     endif(CCACHE_FOUND)
 
-    # Systus run cannot be enabled by default, since there is no systus runner in continous integration (tests would fail)
-    # It can be enabled on a given machine by changing the build_properties.h file
-    set(RUN_SYSTUS 0)
 endif(MSVC)
 
 #set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>:_DEBUG>)
@@ -400,6 +400,7 @@ if(DOXYGEN_FOUND)
     )
 endif(DOXYGEN_FOUND)
 
+
 message("")
 message(STATUS "Vega ${VEGA_VERSION} has been configured for ${VEGA_OS} with the "  "following options:" ${VEGA_CONFIG_OPTIONS})
 message(STATUS "C compiler: " ${CMAKE_C_COMPILER})
@@ -435,8 +436,7 @@ else(${STATIC_LINKING})
 endif(${STATIC_LINKING})
 #message("")
 #message("Run 'ccmake ${CMAKE_CURRENT_SOURCE_DIR}' to fine-tune the configuration.")
-
-
+message(STATUS "Run Sytus: " ${RUN_SYSTUS})
 
 #
 # FILES TO INSTALL
