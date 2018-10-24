@@ -15,5 +15,5 @@
 #define TESTS_NIGHTLY_BUILD "@TESTS_NIGHTLY_BUILD@"
 #define BUILD_TYPE "@CMAKE_BUILD_TYPE@"
 
-#cmakedefine01 RUN_SYSTUS @RUN_SYSTUS@
+#cmakedefine01 RUN_SYSTUS
 #endif
