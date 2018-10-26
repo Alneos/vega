@@ -90,9 +90,9 @@ shbuilding:
   script:
     - mkdir build
     - cd build
-    - cmake -DCMAKE_BUILD_TYPE=SDebug -DRUN_SYSTUS=ON ..
+    - cmake -D RUN_SYSTUS=ON -DHDF5_LIBRARIES=/opt/aster/public/hdf5-1.8.14/lib/libhdf5.a -DHDF5_INCLUDE_DIRS=/opt/aster/public/hdf5-1.8.14/include -DMEDFILE_C_LIBRARIES=/opt/aster/public/med-3.3.1/lib/libmedC.a -DMEDFILE_INCLUDE_DIRS=/opt/aster/public/med-3.3.1/include  ..
     - make -j
-    - ctest -VV .
+    - LC_ALL="en_US.UTF-8" ctest -VV .
   artifacts:
     name: "$CI_JOB_NAME"
     paths:
