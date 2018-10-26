@@ -95,7 +95,7 @@ shbuilding:
   artifacts:
     name: "$CI_JOB_NAME"
     paths:
-    - vegapp
+    - ./bin/vegapp
     expire_in: 1 day
 
 nightly:
