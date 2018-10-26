@@ -24,7 +24,6 @@ building:
     - which docker
     - ls /srv
     - docker info
-    - export PATH=$PATH:/opt/TOP/ESI/sysworld/v2018.0/GB/
     - which systus
   script:
     - docker pull ldallolio/vegaci
@@ -73,6 +72,31 @@ xbuilding:
     name: "$CI_JOB_NAME"
     paths:
     - vegapp.exe
+    expire_in: 1 day
+
+shbuilding:
+  stage: build
+  tags:
+    - shell
+    - irt
+    - linux
+  before_script:
+    - cat /etc/issue
+    - whoami
+    - pwd
+    - hostname
+    - which systus
+    - export PATH=$PATH:/opt/TOP/ESI/sysworld/v2018.0/GB/
+  script:
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_BUILD_TYPE=SDebug -DRUN_SYSTUS=ON ..
+    - make -j
+    - ctest -VV .
+  artifacts:
+    name: "$CI_JOB_NAME"
+    paths:
+    - vegapp
     expire_in: 1 day
 
 nightly:
