@@ -24,7 +24,6 @@ building:
     - which docker
     - ls /srv
     - docker info
-    - which systus
   script:
     - docker pull ldallolio/vegaci
     - docker build -t $TEST_IMAGE -f Dockerfile_gitlab .
@@ -85,8 +84,8 @@ shbuilding:
     - whoami
     - pwd
     - hostname
-    - which systus
     - export PATH=$PATH:/opt/TOP/ESI/sysworld/v2018.0/GB/
+    - which systus
   script:
     - mkdir build
     - cd build
