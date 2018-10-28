@@ -34,5 +34,13 @@ BOOST_AUTO_TEST_CASE( rod1freeforce ) {
 	CommandLineUtils::nastranStudy2Systus("/alneos/rod1freeforce/rod1freeforce.dat", RUN_SYSTUS, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( prob19 ) {
+	CommandLineUtils::nastranStudy2Systus("/caw/prob19/prob19.dat", RUN_SYSTUS, true, 0.001);
+}
+
+BOOST_AUTO_TEST_CASE( fixedcircularplate ) {
+	CommandLineUtils::nastranStudy2Systus("/irt/fixed_circular_plate/fixed_circular_plate.dat", RUN_SYSTUS, true, 0.1);
+}
+
 } /* namespace test */
 } /* namespace vega */

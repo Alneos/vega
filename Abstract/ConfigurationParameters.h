@@ -132,7 +132,7 @@ public:
     /**
      * Explicitely creating cell elements defined by nodes (see Nastran BLSEG)
      */
-    bool makeBoundarySegments = false;
+    bool makeBoundaryCells = false;
     /**
      * Select automatically the analysis (when missing) based on features in the model
      */

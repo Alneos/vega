@@ -183,6 +183,16 @@ private:
     void parseBLSEG(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
+     * BSCONP
+     */
+    void parseBSCONP(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * BSSEG
+     */
+    void parseBSSEG(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
      * Parse the CBAR keyword (page 1154 of MDN Nastran 2006 Quick Reference Guide.)
      * Pin flags (PA, PB) and offset vectors (OFFT, WA, WB) are not supported.
      */

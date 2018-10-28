@@ -375,6 +375,32 @@ BOOST_AUTO_TEST_CASE( combined_loadset1 ) {
 	BOOST_CHECK_EQUAL(model.getLoadingsByLoadSet(combination).size(), static_cast<size_t>(3));
 }
 
+BOOST_AUTO_TEST_CASE(auto_analysis_linst) {
+    ModelConfiguration configuration;
+    configuration.autoDetectAnalysis = true;
+    configuration.logLevel = LogLevel::DEBUG;
+	Model model("inputfile", "10.3", SolverName::NASTRAN, configuration);
+	model.finish();
+	BOOST_CHECK(model.validate());
+	BOOST_CHECK_EQUAL(model.analyses.size(), 1);
+	const auto& analysis = *model.analyses.begin();
+	BOOST_CHECK_EQUAL(analysis->type, Analysis::LINEAR_MECA_STAT);
+}
+
+BOOST_AUTO_TEST_CASE(auto_analysis_nonlin) {
+    ModelConfiguration configuration;
+    configuration.autoDetectAnalysis = true;
+    configuration.logLevel = LogLevel::DEBUG;
+	Model model("inputfile", "10.3", SolverName::NASTRAN, configuration);
+    NonLinearStrategy nls(model, 1);
+	model.add(nls);
+	model.finish();
+	BOOST_CHECK(model.validate());
+	BOOST_CHECK_EQUAL(model.analyses.size(), 1);
+	const auto& analysis = *model.analyses.begin();
+	BOOST_CHECK_EQUAL(analysis->type, Analysis::NONLINEAR_MECA_STAT);
+}
+
 BOOST_AUTO_TEST_CASE( reference_compare ) {
 	Reference<LoadSet> rauto1(LoadSet::LOAD, Reference<LoadSet>::NO_ID, 1);
 	BOOST_CHECK(rauto1 == rauto1);

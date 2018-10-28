@@ -48,6 +48,8 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "BCONP", &NastranParser::parseBCONP },
                 { "BFRIC", &NastranParser::parseBFRIC },
                 { "BLSEG", &NastranParser::parseBLSEG },
+                { "BSCONP", &NastranParser::parseBSCONP },
+                { "BSSEG", &NastranParser::parseBSSEG },
                 { "CBAR", &NastranParser::parseCBAR },
                 { "CBEAM", &NastranParser::parseCBEAM },
                 { "CBUSH", &NastranParser::parseCBUSH },
@@ -704,7 +706,15 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
 
 void NastranParser::parseBLSEG(NastranTokenizer& tok, shared_ptr<Model> model) {
     int id = tok.nextInt();
-    std::shared_ptr<NodeGroup> group = model->mesh->findOrCreateNodeGroup("BLSEG_" + to_string(id), id);
+    std::shared_ptr<NodeGroup> group = model->mesh->findOrCreateNodeGroup("BLSEG_" + to_string(id), id, "BLSEG_" + to_string(id));
+    for(int nodeId : tok.nextInts()) {
+        group->addNodeId(nodeId);
+    }
+}
+
+void NastranParser::parseBSSEG(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int id = tok.nextInt();
+    std::shared_ptr<NodeGroup> group = model->mesh->createNodeGroup("BSSEG_" + to_string(id), id, "BSSEG_" + to_string(id));
     for(int nodeId : tok.nextInts()) {
         group->addNodeId(nodeId);
     }
@@ -743,6 +753,21 @@ void NastranParser::parseBCONP(NastranTokenizer& tok, shared_ptr<Model> model) {
     slide.masterNodeGroupId = masterId;
     model->add(slide);
     model->addConstraintIntoConstraintSet(slide, model->commonConstraintSet);
+}
+
+void NastranParser::parseBSCONP(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int id = tok.nextInt();
+    int slaveId = tok.nextInt();
+    int masterId = tok.nextInt();
+
+    if (not tok.isEmptyUntilNextKeyword()) {
+        handleParsingError("BCONP optional fields not yet handled", tok, model);
+    }
+    SurfaceContact surface(*model, id);
+    surface.slaveNodeGroupId = slaveId;
+    surface.masterNodeGroupId = masterId;
+    model->add(surface);
+    model->addConstraintIntoConstraintSet(surface, model->commonConstraintSet);
 }
 
 void NastranParser::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> model) {

@@ -1869,7 +1869,7 @@ void Model::makeBoundarySegments() {
             for(unsigned int i = 0; i < masterNodeIds.size() - 1;++i) {
                 int nodeId1 = *it;
                 int nodeId2 = *(++it);
-                vector<int> connectivity = {nodeId1, nodeId2};
+                vector<int> connectivity {nodeId1, nodeId2};
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, connectivity, true);
                 masterCellGroup->addCellId(mesh->findCell(cellPosition).id);
             }
@@ -1885,6 +1885,53 @@ void Model::makeBoundarySegments() {
                 slaveCellGroup->addCellId(mesh->findCell(cellPosition).id);
             }
             slide->slaveCellGroup = slaveCellGroup;
+        }
+    }
+}
+
+void Model::makeBoundarySurfaces() {
+    for (const auto& constraintSet : this->getCommonConstraintSets()) {
+        auto constraints = constraintSet->getConstraintsByType(Constraint::SURFACE_CONTACT);
+        for (const auto& constraint : constraints) {
+            shared_ptr<SurfaceContact> surface = static_pointer_cast<SurfaceContact>(constraint);
+            shared_ptr<CellGroup> masterCellGroup = mesh->createCellGroup("SURFCONT_M_"+to_string(surface->getOriginalId()));
+            shared_ptr<CellGroup> slaveCellGroup = mesh->createCellGroup("SURFCONT_S_"+to_string(surface->getOriginalId()));
+            shared_ptr<NodeGroup> masterNodeGroup = dynamic_pointer_cast<NodeGroup>(mesh->findGroup(surface->masterNodeGroupId));
+            const set<int>& masterNodeIds = masterNodeGroup ->getNodeIds();
+            auto it = masterNodeIds.begin();
+            for(unsigned int i = 0; i < masterNodeIds.size() / 4;i+=4) {
+                int nodeId1 = *it;
+                int nodeId2 = *(++it);
+                int nodeId3 = *(++it);
+                int nodeId4 = *(++it);
+                vector<int> connectivity {nodeId1, nodeId2, nodeId3};
+                CellType cellType {CellType::TRI3};
+                if (nodeId4 != 0) {
+                    connectivity.push_back(nodeId4);
+                    cellType = CellType::QUAD4;
+                }
+                int cellPosition = mesh->addCell(Cell::AUTO_ID, cellType, connectivity, true);
+                masterCellGroup->addCellId(mesh->findCell(cellPosition).id);
+            }
+            surface->masterCellGroup = masterCellGroup;
+            shared_ptr<NodeGroup> slaveNodeGroup = dynamic_pointer_cast<NodeGroup>(mesh->findGroup(surface->slaveNodeGroupId));
+            const set<int>& slaveNodeIds = slaveNodeGroup->getNodeIds();
+            auto it2 = slaveNodeIds.begin();
+            for(unsigned int i = 0; i < slaveNodeIds.size() / 4;i+=4) {
+                int nodeId1 = *it2;
+                int nodeId2 = *(++it2);
+                int nodeId3 = *(++it2);
+                int nodeId4 = *(++it2);
+                vector<int> connectivity {nodeId1, nodeId2, nodeId3};
+                CellType cellType {CellType::TRI3};
+                if (nodeId4 != 0) {
+                    connectivity.push_back(nodeId4);
+                    cellType = CellType::QUAD4;
+                }
+                int cellPosition = mesh->addCell(Cell::AUTO_ID, cellType, connectivity, true);
+                slaveCellGroup->addCellId(mesh->findCell(cellPosition).id);
+            }
+            surface->slaveCellGroup = slaveCellGroup;
         }
     }
 }
@@ -1996,8 +2043,9 @@ void Model::finish() {
         makeCellsFromRBE();
     }
 
-    if (this->configuration.makeBoundarySegments) {
+    if (this->configuration.makeBoundaryCells) {
         makeBoundarySegments();
+        makeBoundarySurfaces();
     }
 
     if (this->configuration.splitElementsByDOFS){

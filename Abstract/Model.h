@@ -101,6 +101,10 @@ private:
      */
     void makeBoundarySegments();
     /**
+     * Explicitely creating cell elements defined by nodes (see Nastran BSSEG)
+     */
+    void makeBoundarySurfaces();
+    /**
      * Automatically add the analysis when missing
      */
     void addAutoAnalysis();

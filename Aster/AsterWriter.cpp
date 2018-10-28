@@ -880,9 +880,14 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
 			//maybe it should be fixed elsewhere
 			continue;
 		}
-		if (constraintSet.getConstraints().size()
-				== constraintSet.getConstraintsByType(Constraint::GAP).size()) {
-			// TODO LD primitive way to handle contacts, add isContact() methods instead
+		bool contactOnly = true;
+		for(auto& constraint : constraintSet.getConstraints()) {
+		    if (not constraint->isContact()) {
+		        contactOnly = false;
+                break;
+		    }
+		}
+		if (contactOnly) {
 			continue;
 		}
 		if (constraintSet.isOriginal()) {
@@ -913,8 +918,8 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
 		if (loadSet.type == LoadSet::DLOAD) {
 			continue;
 		}
-		if (loadSet.isOriginal()) {
-			out << "# LoadSet original id : " << loadSet.getOriginalId() << endl;
+		if (loadSet.getLoadings().size() == 0) {
+			continue;
 		}
 		if (loadSet.getLoadings().size()
 				== loadSet.getLoadingsByType(Loading::INITIAL_TEMPERATURE).size()) {
@@ -959,6 +964,8 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 				Constraint::GAP);
         const set<shared_ptr<Constraint>> slides = constraintSet.getConstraintsByType(
 				Constraint::SLIDE);
+        const set<shared_ptr<Constraint>> surfaces = constraintSet.getConstraintsByType(
+				Constraint::SURFACE_CONTACT);
 		for (shared_ptr<Constraint> constraint : gaps) {
 			shared_ptr<const Gap> gap = static_pointer_cast<const Gap>(constraint);
 			int gapCount = 0;
@@ -991,6 +998,8 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 		} else if (slides.size() >= 1) {
 		    out << "                   FORMULATION='CONTINUE'," << endl;
 		    out << "                   FROTTEMENT='COULOMB'," << endl;
+		} else if (surfaces.size() >= 1) {
+		    out << "                   FORMULATION='CONTINUE'," << endl;
 		}
 		out << "                   ZONE=(" << endl;
 		for (shared_ptr<Constraint> constraint : gaps) {
@@ -1039,6 +1048,17 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 						<< slide->slaveCellGroup->getName()
 						<< "',";
                 out << "COULOMB=" << slide->getFriction() << ",";
+				out << ")," << endl;
+		}
+		for (shared_ptr<Constraint> constraint : surfaces) {
+		    shared_ptr<const SurfaceContact> surface = static_pointer_cast<const SurfaceContact>(constraint);
+                out << "                             _F(";
+				out << "GROUP_MA_MAIT='"
+						<< surface->masterCellGroup->getName()
+						<< "',";
+				out << "GROUP_MA_ESCL='"
+						<< surface->slaveCellGroup->getName()
+						<< "',";
 				out << ")," << endl;
 		}
 		out << "                             )," << endl;

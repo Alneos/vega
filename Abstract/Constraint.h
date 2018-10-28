@@ -39,7 +39,8 @@ public:
 		SPC,
 		LMPC,
 		GAP,
-		SLIDE
+		SLIDE,
+		SURFACE_CONTACT
 	};
 
 protected:
@@ -271,6 +272,23 @@ public:
     std::shared_ptr<CellGroup> masterCellGroup = nullptr;
     std::shared_ptr<CellGroup> slaveCellGroup = nullptr;
     int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
+	std::shared_ptr<Constraint> clone() const override;
+	std::set<int> nodePositions() const override;
+	const DOFS getDOFSForNode(int nodePosition) const override;
+	void removeNode(int nodePosition) override;
+	bool ineffective() const override;
+};
+
+/**
+ * see Nastran BSCONP
+ */
+class SurfaceContact: public Contact {
+public:
+	SurfaceContact(Model& model, int original_id = NO_ORIGINAL_ID);
+    int masterNodeGroupId = Globals::UNAVAILABLE_INT;
+    int slaveNodeGroupId = Globals::UNAVAILABLE_INT;
+    std::shared_ptr<CellGroup> masterCellGroup = nullptr;
+    std::shared_ptr<CellGroup> slaveCellGroup = nullptr;
 	std::shared_ptr<Constraint> clone() const override;
 	std::set<int> nodePositions() const override;
 	const DOFS getDOFSForNode(int nodePosition) const override;

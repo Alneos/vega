@@ -661,4 +661,41 @@ const DOFS SlideContact::getDOFSForNode(int nodePosition) const {
     return DOFS::TRANSLATIONS;
 }
 
+SurfaceContact::SurfaceContact(Model& model, int original_id) :
+    Contact(model, Constraint::SURFACE_CONTACT, original_id) {
+}
+
+shared_ptr<Constraint> SurfaceContact::clone() const {
+    return make_shared<SurfaceContact>(*this);
+}
+
+set<int> SurfaceContact::nodePositions() const {
+    set<int> result;
+    shared_ptr<Group> masterGroup = model.mesh->findGroup(masterNodeGroupId);
+    set<int> masterNodePositions = masterGroup->nodePositions();
+    result.insert(masterNodePositions.begin(), masterNodePositions.end());
+    shared_ptr<Group> slaveGroup = model.mesh->findGroup(slaveNodeGroupId);
+    set<int> slaveNodePositions = slaveGroup->nodePositions();
+    result.insert(slaveNodePositions.begin(), slaveNodePositions.end());
+    return result;
+}
+
+void SurfaceContact::removeNode(int nodePosition) {
+    shared_ptr<NodeGroup> masterGroup = dynamic_pointer_cast<NodeGroup>(model.mesh->findGroup(masterNodeGroupId));
+    masterGroup->removeNodeByPosition(nodePosition);
+    shared_ptr<NodeGroup> slaveGroup = dynamic_pointer_cast<NodeGroup>(model.mesh->findGroup(slaveNodeGroupId));
+    slaveGroup->removeNodeByPosition(nodePosition);
+}
+
+bool SurfaceContact::ineffective() const {
+    shared_ptr<NodeGroup> masterGroup = dynamic_pointer_cast<NodeGroup>(model.mesh->findGroup(masterNodeGroupId));
+    shared_ptr<NodeGroup> slaveGroup = dynamic_pointer_cast<NodeGroup>(model.mesh->findGroup(slaveNodeGroupId));
+    return masterGroup->empty() or slaveGroup->empty();
+}
+
+const DOFS SurfaceContact::getDOFSForNode(int nodePosition) const {
+    UNUSEDV(nodePosition);
+    return DOFS::TRANSLATIONS;
+}
+
 } // namespace vega
