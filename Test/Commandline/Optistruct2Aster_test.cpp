@@ -21,22 +21,17 @@
 
 //____________________________________________________________________________//
 
-// TEST_EXEC_SOLVER is "false" on development pc and "true" on node0
-// Code Aster launched only on node0, to launch it in the local machine
-// either replace "TESTS_EXEC_SOLVER" with true or run
-// cmake -DTESTS_EXEC_SOLVER=1 ../..
-
 namespace vega {
 namespace tests {
 
 using namespace std;
 
 BOOST_AUTO_TEST_CASE( prob6 ) {
-	CommandLineUtils::optistructStudy2Aster("/caw/prob6/prob6.dat", TESTS_EXEC_SOLVER, true, 0.02);
+	CommandLineUtils::optistructStudy2Aster("/caw/prob6/prob6.dat", RUN_ASTER, true, 0.02);
 }
 
 /*BOOST_AUTO_TEST_CASE( ploads ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/t01331/t01331a.inp", TESTS_EXEC_SOLVER, true, 0.00001);
+	CommandLineUtils::nastranStudy2Aster("/irt/t01331/t01331a.inp", RUN_ASTER, true, 0.00001);
 }*/
 
 } /* namespace test */

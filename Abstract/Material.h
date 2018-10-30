@@ -42,7 +42,7 @@ class Nature {
 protected:
     const Model& model;
 public:
-    enum NatureType {
+    enum class NatureType {
         NATURE_ELASTIC = 0,
         NATURE_VISCOELASTIC = 2,
         NATURE_BILINEAR_ELASTIC,
@@ -171,10 +171,10 @@ class Material: public Identifiable<Material> {
 public:
     friend std::ostream &operator<<(std::ostream&, const Material&);    //output
     //dummy type to fit in a container class
-    enum Type {
+    enum class Type {
         MATERIAL
     };
-    const Type type = MATERIAL;
+    const Type type = Type::MATERIAL;
     static const std::string name;
     static const std::map<Type, std::string> stringByType;
     Material(Model* model, int material_id = NO_ORIGINAL_ID);

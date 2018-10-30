@@ -42,21 +42,21 @@ namespace vega {
 
 namespace nastran {
 
-const unordered_map<CellType::Code, vector<int>, hash<int>> NastranParser::nastran2medNodeConnectByCellType =
+const unordered_map<CellType::Code, vector<int>, EnumClassHash> NastranParser::nastran2medNodeConnectByCellType =
         {
-                { CellType::TRI3_CODE, { 0, 2, 1 } },
-                { CellType::TRI6_CODE, { 0, 2, 1, 5, 4, 3 } },
-                { CellType::QUAD4_CODE, { 0, 3, 2, 1 } },
-                { CellType::QUAD8_CODE, { 0, 3, 2, 1, 7, 6, 5, 4 } },
-                { CellType::QUAD9_CODE, { 0, 3, 2, 1, 7, 6, 5, 4, 8 } },
-                { CellType::TETRA4_CODE, { 0, 2, 1, 3 } },
-                { CellType::TETRA10_CODE, { 0, 2, 1, 3, 6, 5, 4, 7, 9, 8 } },
-                { CellType::PYRA5_CODE, { 0, 3, 2, 1, 4 } },
-                { CellType::PYRA13_CODE, { 0, 3, 2, 1, 4, 8, 7, 6, 5, 9, 12, 11, 10 } },
-                { CellType::PENTA6_CODE, { 0, 2, 1, 3, 5, 4 } },
-                { CellType::PENTA15_CODE, { 0, 2, 1, 3, 5, 4, 8, 7, 6, 12, 14, 13, 11, 10, 9 } },
-                { CellType::HEXA8_CODE, { 0, 3, 2, 1, 4, 7, 6, 5 } },
-                { CellType::HEXA20_CODE, { 0, 3, 2, 1, 4, 7, 6, 5, 11, 10, 9, 8, 16, 19, 18, 17, 15,
+                { CellType::Code::TRI3_CODE, { 0, 2, 1 } },
+                { CellType::Code::TRI6_CODE, { 0, 2, 1, 5, 4, 3 } },
+                { CellType::Code::QUAD4_CODE, { 0, 3, 2, 1 } },
+                { CellType::Code::QUAD8_CODE, { 0, 3, 2, 1, 7, 6, 5, 4 } },
+                { CellType::Code::QUAD9_CODE, { 0, 3, 2, 1, 7, 6, 5, 4, 8 } },
+                { CellType::Code::TETRA4_CODE, { 0, 2, 1, 3 } },
+                { CellType::Code::TETRA10_CODE, { 0, 2, 1, 3, 6, 5, 4, 7, 9, 8 } },
+                { CellType::Code::PYRA5_CODE, { 0, 3, 2, 1, 4 } },
+                { CellType::Code::PYRA13_CODE, { 0, 3, 2, 1, 4, 8, 7, 6, 5, 9, 12, 11, 10 } },
+                { CellType::Code::PENTA6_CODE, { 0, 2, 1, 3, 5, 4 } },
+                { CellType::Code::PENTA15_CODE, { 0, 2, 1, 3, 5, 4, 8, 7, 6, 12, 14, 13, 11, 10, 9 } },
+                { CellType::Code::HEXA8_CODE, { 0, 3, 2, 1, 4, 7, 6, 5 } },
+                { CellType::Code::HEXA20_CODE, { 0, 3, 2, 1, 4, 7, 6, 5, 11, 10, 9, 8, 16, 19, 18, 17, 15,
                         14, 13, 12 } }
         };
 
@@ -333,8 +333,8 @@ void NastranParser::parseCDAMP1(NastranTokenizer& tok, shared_ptr<Model> model) 
         scalarSpring.addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
         model->add(scalarSpring);
     }else{
-        if (elementSet->type == ElementSet::SCALAR_SPRING){
-            std::shared_ptr<ScalarSpring> springElementSet = static_pointer_cast<ScalarSpring>(elementSet);
+        if (elementSet->type == ElementSet::Type::SCALAR_SPRING){
+            std::shared_ptr<ScalarSpring> springElementSet = dynamic_pointer_cast<ScalarSpring>(elementSet);
             springElementSet->addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
         }else{
             string message = "The part of PID "+std::to_string(pid)+" already exists with the wrong NATURE.";
@@ -375,8 +375,8 @@ void NastranParser::parseCELAS1(NastranTokenizer& tok, shared_ptr<Model> model) 
         scalarSpring.addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
         model->add(scalarSpring);
     }else{
-        if (elementSet->type == ElementSet::SCALAR_SPRING){
-            std::shared_ptr<ScalarSpring> springElementSet = static_pointer_cast<ScalarSpring>(elementSet);
+        if (elementSet->type == ElementSet::Type::SCALAR_SPRING){
+            std::shared_ptr<ScalarSpring> springElementSet = dynamic_pointer_cast<ScalarSpring>(elementSet);
             springElementSet->addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
         }else{
             string message = "The part of PID "+std::to_string(pid)+" already exists with the wrong NATURE.";
@@ -481,14 +481,14 @@ void NastranParser::parseCGAP(NastranTokenizer& tok, shared_ptr<Model> model) {
         handleParsingWarning(string("CID not supported and dismissed."), tok, model);
     }
 
-    shared_ptr<Constraint> gapPtr = model->find(Reference<Constraint>(Constraint::GAP, pid));
+    shared_ptr<Constraint> gapPtr = model->find(Reference<Constraint>(Constraint::Type::GAP, pid));
     if (!gapPtr) {
         GapTwoNodes gapConstraint(*model, pid);
         gapConstraint.addGapNodes(ga, gb);
         model->add(gapConstraint);
         model->addConstraintIntoConstraintSet(gapConstraint, model->commonConstraintSet);
     } else {
-        shared_ptr<GapTwoNodes> gapConstraint = static_pointer_cast<GapTwoNodes>(gapPtr);
+        shared_ptr<GapTwoNodes> gapConstraint = dynamic_pointer_cast<GapTwoNodes>(gapPtr);
         gapConstraint->addGapNodes(ga, gb);
     }
 }
@@ -576,7 +576,7 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> mode
 
     CellType::Code code = cellType.code;
     switch (code) {
-    case CellType::TRI3_CODE:
+    case CellType::Code::TRI3_CODE:
         for (int i=0; i < 3; i++)
             nodeIds.push_back(tok.nextInt());
         thetaOrMCID = tok.nextDouble(true,0.0);
@@ -591,7 +591,7 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> mode
         }
         break;
 
-    case CellType::QUAD4_CODE:
+    case CellType::Code::QUAD4_CODE:
         for (int i=0; i < 4; i++)
             nodeIds.push_back(tok.nextInt());
         thetaOrMCID = tok.nextDouble(true,0.0);
@@ -606,7 +606,7 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> mode
         }
         break;
 
-    case CellType::TRI6_CODE:
+    case CellType::Code::TRI6_CODE:
         for (int i=0; i < 6; i++)
             nodeIds.push_back(tok.nextInt());
         thetaOrMCID = tok.nextDouble(true,0.0);
@@ -619,7 +619,7 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> mode
         tflag = tok.nextInt(true,0);
         break;
 
-    case CellType::QUAD8_CODE:
+    case CellType::Code::QUAD8_CODE:
         for (int i=0; i < 8; i++)
             nodeIds.push_back(tok.nextInt());
         for (int i=0; i < 4; i++){
@@ -633,7 +633,7 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> mode
         break;
 
     default:
-        const string msg = "Unrecognized shell element: "+to_string(code);
+        const string msg = "Unrecognized shell element: "+to_string(static_cast<int>(code));
         handleParsingError(msg, tok, model);
     }
 

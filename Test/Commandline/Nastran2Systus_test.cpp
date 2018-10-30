@@ -42,5 +42,10 @@ BOOST_AUTO_TEST_CASE( fixedcircularplate ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/fixed_circular_plate/fixed_circular_plate.dat", RUN_SYSTUS, true, 0.1);
 }
 
+BOOST_AUTO_TEST_CASE( prob2 ) {
+	CommandLineUtils::nastranStudy2Systus("/irt/prob2/prob2.dat", RUN_SYSTUS, true, 0.15);
+}
+
+
 } /* namespace test */
 } /* namespace vega */

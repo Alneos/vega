@@ -47,7 +47,7 @@ Runner::ExitCode SystusRunner::execSolver(const ConfigurationParameters &configu
     fs::path outputFsPath(configuration.outputPath);
     cout << configuration.outputPath << endl;
     if (!fs::is_directory(outputFsPath))
-        return SOLVER_NOT_FOUND;
+        return Runner::ExitCode::SOLVER_NOT_FOUND;
     if (configuration.outputPath != ".")
         command = "cd " + configuration.outputPath + " && " + command;
 
@@ -85,12 +85,12 @@ Runner::ExitCode SystusRunner::execSolver(const ConfigurationParameters &configu
         lineNumber += 1;
         if (line.find("ERROR") != string::npos && line.find("NO ERROR") == string::npos){
             cerr << "Error found : line " << lineNumber << " file: " << outputFileStr << endl;
-            exitCode = SOLVER_EXIT_NOT_ZERO;
+            exitCode = Runner::ExitCode::SOLVER_EXIT_NOT_ZERO;
         }
     }
 
     // test if result files exist
-    if (exitCode == OK) {
+    if (exitCode == Runner::ExitCode::OK) {
         for (fs::directory_iterator it(outputFsPath); it != fs::directory_iterator(); it++) {
             if (fs::is_regular_file(it->status())) {
                 string filename = it->path().filename().string();
@@ -103,7 +103,7 @@ Runner::ExitCode SystusRunner::execSolver(const ConfigurationParameters &configu
                             filename.substr(fname.size() + 1, filename.size() - (fname.size() + 1) - 4) + ".RESU";
                     if (!(fs::exists(outputFsPath / fs::path(titFilename)) &&
                             fs::exists(outputFsPath / fs::path(fdbFilename)) ))
-                        return SOLVER_RESULT_NOT_FOUND;
+                        return Runner::ExitCode::SOLVER_RESULT_NOT_FOUND;
                     if (fs::exists(outputFsPath / fs::path(resuFilename))){
                         //check if it contains nook
                         string resuFileStr = (outputFsPath / fs::path(resuFilename)).string();
@@ -114,7 +114,7 @@ Runner::ExitCode SystusRunner::execSolver(const ConfigurationParameters &configu
                             lineNumber2 += 1;
                             if (line2.find("NOOK") != string::npos) {
                                 cerr << "Test fail: line " << lineNumber2 << " file: " << resuFilename << endl;
-                                exitCode = TEST_FAIL;
+                                exitCode = Runner::ExitCode::TEST_FAIL;
                             }
                         }
 

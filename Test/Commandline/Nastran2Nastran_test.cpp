@@ -21,11 +21,6 @@
 
 //____________________________________________________________________________//
 
-// TEST_EXEC_SOLVER is "false" on development pc and "true" on node0
-// Code Aster launched only on node0, to launch it in the local machine
-// either replace "TESTS_EXEC_SOLVER" with true or run
-// cmake -TESTS_EXEC_SOLVER=1 ../..
-
 namespace vega {
 namespace tests {
 

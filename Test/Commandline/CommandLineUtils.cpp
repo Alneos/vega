@@ -33,10 +33,10 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
         bool runSolver, bool strict, double tolerance) {
     string inputSolverString;
     switch (inputSolver) {
-    case NASTRAN:
+    case SolverName::NASTRAN:
         inputSolverString = "NASTRAN";
         break;
-    case OPTISTRUCT:
+    case SolverName::OPTISTRUCT:
         inputSolverString = "OPTISTRUCT";
         break;
     default:
@@ -44,13 +44,13 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
     }
     string outputSolverString;
     switch (outputSolver) {
-    case CODE_ASTER:
+    case SolverName::CODE_ASTER:
         outputSolverString = "ASTER";
         break;
-    case SYSTUS:
+    case SolverName::SYSTUS:
         outputSolverString = "SYSTUS";
         break;
-    case NASTRAN:
+    case SolverName::NASTRAN:
         outputSolverString = "NASTRAN";
         break;
     default:
@@ -75,7 +75,7 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
     //tests
     bool hasTests;
     string test_file;
-    if (inputSolver == NASTRAN) {
+    if (inputSolver == SolverName::NASTRAN) {
         fs::path nastranTests = sourceFname.parent_path() / (stem.string() + ".f06");
         fs::path csvTests = sourceFname.parent_path() / (stem.string() + ".csv");
         hasTests = fs::exists(nastranTests) || fs::exists(csvTests);
@@ -125,12 +125,12 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
     // cleaning
     if (fs::exists(outputPath)) {
         switch (outputSolver) {
-        case CODE_ASTER:
+        case SolverName::CODE_ASTER:
             fs::remove(outputPath / (stem.string() + ".export"));
             fs::remove(outputPath / (stem.string() + ".comm"));
             fs::remove(outputPath / (stem.string() + ".med"));
             break;
-        case SYSTUS:
+        case SolverName::SYSTUS:
             for (fs::directory_iterator it(outputPath); it != fs::directory_iterator(); it++) {
                 if (fs::is_regular_file(it->status())) {
                     string filename = it->path().filename().string();
@@ -140,7 +140,7 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
             }
             fs::remove(outputPath / (stem.string() + "_DATA1.ASC"));
             break;
-        case NASTRAN:
+        case SolverName::NASTRAN:
             fs::remove(outputPath / (stem.string() + ".dat"));
             fs::remove(outputPath / (stem.string() + ".f04"));
             fs::remove(outputPath / (stem.string() + ".f06"));
@@ -161,17 +161,17 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
         VegaCommandLine vcl;
         result = vcl.process(static_cast<int>(argv1.size() - 1), &argv1[0]);
     } catch (exception &e) {
-        result = VegaCommandLine::GENERIC_EXCEPTION;
+        result = VegaCommandLine::ExitCode::GENERIC_EXCEPTION;
         BOOST_FAIL(string("Exception threw ") + e.what() + " " + sourceFname.string());
     }
     BOOST_TEST_CHECKPOINT(
             message + " Vega++ terminated with code: " + VegaCommandLine::exitCodeToString(result));
-    BOOST_CHECK_MESSAGE(result == VegaCommandLine::OK, VegaCommandLine::exitCodeToString(result));
+    BOOST_CHECK_MESSAGE(result == VegaCommandLine::ExitCode::OK, VegaCommandLine::exitCodeToString(result));
 
-    if (result == VegaCommandLine::OK) {
+    if (result == VegaCommandLine::ExitCode::OK) {
         // check results
         switch (outputSolver) {
-        case CODE_ASTER: {
+        case SolverName::CODE_ASTER: {
             BOOST_CHECK(fs::exists(outputPath / (stem.string() + ".export")));
             BOOST_CHECK(fs::exists(outputPath / (stem.string() + ".comm")));
             BOOST_CHECK(fs::exists(outputPath / (stem.string() + ".med")));
@@ -199,7 +199,7 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
             }
             break;
         }
-        case SYSTUS:
+        case SolverName::SYSTUS:
             BOOST_CHECK(fs::exists(outputPath / (stem.string() + "_ALL.DAT")));
             BOOST_CHECK(fs::exists(outputPath / (stem.string() + "_SC1_DATA1.ASC")));
             if (hasTests) {
@@ -213,7 +213,7 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
                 }
             }
             break;
-        case NASTRAN:
+        case SolverName::NASTRAN:
             BOOST_CHECK(fs::exists(outputPath / (stem.string() + ".dat")));
             if (hasTests) {
             }
@@ -226,22 +226,22 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
 
 void CommandLineUtils::nastranStudy2Aster(string fname, bool runSolver, bool strict,
         double tolerance) {
-    run(fname, NASTRAN, CODE_ASTER, runSolver, strict, tolerance);
+    run(fname, SolverName::NASTRAN, SolverName::CODE_ASTER, runSolver, strict, tolerance);
 }
 
 void CommandLineUtils::nastranStudy2Systus(string fname, bool runSystus, bool strict,
         double tolerance) {
-    run(fname, NASTRAN, SYSTUS, runSystus, strict, tolerance);
+    run(fname, SolverName::NASTRAN, SolverName::SYSTUS, runSystus, strict, tolerance);
 }
 
 void CommandLineUtils::nastranStudy2Nastran(string fname, bool runSolver, bool strict,
         double tolerance) {
-    run(fname, NASTRAN, NASTRAN, runSolver, strict, tolerance);
+    run(fname, SolverName::NASTRAN, SolverName::NASTRAN, runSolver, strict, tolerance);
 }
 
 void CommandLineUtils::optistructStudy2Aster(string fname, bool runSolver, bool strict,
         double tolerance) {
-    run(fname, OPTISTRUCT, CODE_ASTER, runSolver, strict, tolerance);
+    run(fname, SolverName::OPTISTRUCT, SolverName::CODE_ASTER, runSolver, strict, tolerance);
 }
 
 vector<bool> CommandLineUtils::containWords(const string &fname, const vector<string> &words) {

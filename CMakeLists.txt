@@ -58,6 +58,10 @@ find_program(SYSTUS_EXEC NAMES systus systus.exe)
 set(RUN_SYSTUS SYSTUS_EXEC CACHE BOOL "Run tests using Systus executable")
 mark_as_advanced(RUN_SYSTUS)
 
+find_program(ASTER_EXEC NAMES as_run as_run.sh as_run.exe as_run.bat)
+set(RUN_ASTER ASTER_EXEC CACHE BOOL "Run tests using Aster executable")
+mark_as_advanced(RUN_ASTER)
+
 # Debug and Release are reserved words for cmake see https://cmake.org/cmake/help/v3.0/variable/CMAKE_BUILD_TYPE.html
 IF(CMAKE_BUILD_TYPE MATCHES "^[Dd][Ee][Bb][Uu][Gg]")
     message(STATUS "Debug mode selected")
@@ -330,7 +334,6 @@ ENDIF(BUILD_TESTING)
 IF(NIGHTLY_BUILD MATCHES "TRUE")
    set_config_option(HAVE_LONG_TESTS "LongTests")
 ENDIF(NIGHTLY_BUILD MATCHES "TRUE")
-OPTION(TESTS_EXEC_SOLVER "Exec solver" ON)
 
 if(ENABLE_ASTER)
   set_config_option(HAVE_ASTER "Aster")

@@ -53,15 +53,15 @@ class SpaceDimension final {
 
 public:
 
-    enum Code {
+    enum class Code {
         DIMENSION0D_CODE = 0,
         DIMENSION1D_CODE = 1,
         DIMENSION2D_CODE = 2,
         DIMENSION3D_CODE = 3
     };
 
-    // Enum value DECLARATIONS - they are defined later
-    static std::unordered_map<SpaceDimension::Code, SpaceDimension*, std::hash<int>> dimensionByCode;
+    // enum class value DECLARATIONS - they are defined later
+    static std::unordered_map<SpaceDimension::Code, SpaceDimension*, EnumClassHash> dimensionByCode;
     static const SpaceDimension DIMENSION_0D;
     static const SpaceDimension DIMENSION_1D;
     static const SpaceDimension DIMENSION_2D;
@@ -71,8 +71,8 @@ private:
 
     SpaceDimension(Code code, int medcouplingRelativeMeshDimension);
 
-    static std::unordered_map<SpaceDimension::Code, SpaceDimension*, std::hash<int>> init_map() {
-        return std::unordered_map<SpaceDimension::Code, SpaceDimension*, std::hash<int>>();
+    static std::unordered_map<SpaceDimension::Code, SpaceDimension*, EnumClassHash> init_map() {
+        return std::unordered_map<SpaceDimension::Code, SpaceDimension*, EnumClassHash>();
     }
 
 public:
@@ -89,7 +89,7 @@ class CellType final {
 
 public:
 
-    enum Code {
+    enum class Code {
         //codes used here are the same in Med
         POINT1_CODE = MED_POINT1,
         SEG2_CODE = MED_SEG2,
@@ -141,8 +141,8 @@ public:
         RESERVED = -1
     };
 
-    // Enum value DECLARATIONS - they are defined later
-    static std::unordered_map<CellType::Code, CellType*, std::hash<int>> typeByCode;
+    // enum class value DECLARATIONS - they are defined later
+    static std::unordered_map<CellType::Code, CellType*, EnumClassHash> typeByCode;
     static const CellType POINT1;
     static const CellType SEG2;
     static const CellType SEG3;
@@ -214,7 +214,7 @@ class CellStorage;
 
 class Group: public Identifiable<Group> {
 public:
-    enum Type {
+    enum class Type {
         NODE = 0,
         CELL = 1,
         NODEGROUP = 2,
@@ -309,8 +309,8 @@ private:
     /**
      * Every face is identified by the nodes that belongs to that face
      */
-    static const std::unordered_map<CellType::Code, std::vector<std::vector<int>>, std::hash<int> > FACE_BY_CELLTYPE;
-    static std::unordered_map<CellType::Code, std::vector<std::vector<int>>, std::hash<int> > init_faceByCelltype();
+    static const std::unordered_map<CellType::Code, std::vector<std::vector<int>>, EnumClassHash > FACE_BY_CELLTYPE;
+    static std::unordered_map<CellType::Code, std::vector<std::vector<int>>, EnumClassHash > init_faceByCelltype();
     static int auto_cell_id;
     Cell(int id, const CellType &type, const std::vector<int> &nodeIds, const std::vector<int> &nodePositions, bool isvirtual,
             int cid, int elementId, int cellTypePosition, std::shared_ptr<OrientationCoordinateSystem> orientation = nullptr);
@@ -365,7 +365,7 @@ private:
     friend Mesh;
     CellGroup(Mesh& mesh, const std::string & name, int id = NO_ORIGINAL_ID, const std::string & comment = "");
 public:
-    std::unordered_set<int> cellIds;
+    std::set<int> cellIds;
     void addCellId(int cellId);
     const std::vector<Cell> getCells();
     const std::vector<int> cellPositions();
@@ -522,13 +522,13 @@ public:
 class CellGroup2Families final {
 private:
     std::vector<Family> families;
-    std::unordered_map<CellType::Code, std::shared_ptr<std::vector<int>>, std::hash<int>> cellFamiliesByType;
+    std::unordered_map<CellType::Code, std::shared_ptr<std::vector<int>>, EnumClassHash> cellFamiliesByType;
     const Mesh& mesh;
 public:
-    CellGroup2Families(const Mesh& mesh, std::unordered_map<CellType::Code, int, std::hash<int>> cellCountByType,
+    CellGroup2Families(const Mesh& mesh, std::unordered_map<CellType::Code, int, EnumClassHash> cellCountByType,
             const std::vector<std::shared_ptr<CellGroup>>& cellGroups);
     const std::vector<Family>& getFamilies() const;
-    const std::unordered_map<CellType::Code, std::shared_ptr<std::vector<int>>, std::hash<int>>& getFamilyOnCells() const;
+    const std::unordered_map<CellType::Code, std::shared_ptr<std::vector<int>>, EnumClassHash>& getFamilyOnCells() const;
 };
 
 } /* namespace vega */
@@ -538,21 +538,21 @@ namespace std {
 template<>
 struct hash<vega::SpaceDimension> {
     size_t operator()(const vega::SpaceDimension& spaceDimension) const {
-        return hash<int>()(spaceDimension.code);
+        return hash<std::size_t>()(static_cast<std::size_t>(spaceDimension.code));
     }
 };
 
 template<>
 struct hash<vega::CellType> {
     size_t operator()(const vega::CellType& cellType) const {
-        return hash<int>()(cellType.code);
+        return hash<std::size_t>()(static_cast<std::size_t>(cellType.code));
     }
 };
 
 template<>
 struct hash<vega::Node> {
     size_t operator()(const vega::Node& node) const {
-        return hash<int>()(node.position);
+        return hash<std::size_t>()(static_cast<std::size_t>(node.position));
     }
 };
 

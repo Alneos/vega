@@ -23,7 +23,7 @@ class DOF {
 private:
 	friend std::ostream &operator<<(std::ostream &out, const DOF& node);
 public:
-	enum Code {
+	enum class Code {
 		DX_CODE = 1,
 		DY_CODE = 2,
 		DZ_CODE = 4,
@@ -32,8 +32,8 @@ public:
 		RZ_CODE = 32
 	};
 
-	// Enum value DECLARATIONS - they are defined later
-	static std::unordered_map<DOF::Code, DOF*, std::hash<int>> dofByCode;
+	// enum class value DECLARATIONS - they are defined later
+	static std::unordered_map<DOF::Code, DOF*, EnumClassHash> dofByCode;
 	static std::unordered_map<int, DOF*> dofByPosition;
 
 	static const DOF DX;
@@ -55,12 +55,13 @@ public:
 	static DOF findByPosition(int position);
 	bool operator<(const DOF& other) const;
 	bool operator==(const DOF& other) const;
+	char operator|(const DOF& other) const;
 	operator char() const;
 };
 
 class DOFS {
 private:
-	static const boost::bimap<int, char> DOF_BY_NASTRANCODE;
+	static const boost::bimap<int, DOF::Code> DOF_BY_NASTRANCODE;
 
 	friend DOFS operator+(const DOFS lhs, const DOFS& rhs);
 	friend DOFS operator-(const DOFS lhs, const DOFS& rhs);
@@ -82,7 +83,7 @@ public:
 	static DOFS combineCodes(bool dx, bool dy, bool dz, bool rx, bool ry, bool rz);
 
 	DOFS(char dofsCode);
-	DOFS(DOF dof);
+	DOFS(const DOF dof);
 	DOFS(bool dx = false, bool dy = false, bool dz = false, bool rx = false, bool ry = false,
 			bool rz = false);
 

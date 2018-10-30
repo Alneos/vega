@@ -40,12 +40,12 @@ Analysis::Analysis(Model& model, const Type Type, const string original_label, i
 const string Analysis::name = "Analysis";
 
 const map<Analysis::Type, string> Analysis::stringByType = {
-        { LINEAR_MECA_STAT, "LINEAR_MECA_STAT" },
-        { LINEAR_MODAL, "LINEAR_MODAL" },
-        { LINEAR_DYNA_DIRECT_FREQ, "LINEAR_DYNA_DIRECT_FREQ" },
-        { LINEAR_DYNA_MODAL_FREQ, "LINEAR_DYNA_MODAL_FREQ" },
-        { NONLINEAR_MECA_STAT, "NONLINEAR_MECA_STAT" },
-        { UNKNOWN, "UNKNOWN" }
+        { Analysis::Type::LINEAR_MECA_STAT, "LINEAR_MECA_STAT" },
+        { Analysis::Type::LINEAR_MODAL, "LINEAR_MODAL" },
+        { Analysis::Type::LINEAR_DYNA_DIRECT_FREQ, "LINEAR_DYNA_DIRECT_FREQ" },
+        { Analysis::Type::LINEAR_DYNA_MODAL_FREQ, "LINEAR_DYNA_MODAL_FREQ" },
+        { Analysis::Type::NONLINEAR_MECA_STAT, "NONLINEAR_MECA_STAT" },
+        { Analysis::Type::UNKNOWN, "UNKNOWN" }
 };
 
 map<string,string> Analysis::to_map() const {
@@ -199,9 +199,9 @@ bool Analysis::hasSPC() const{
         switch(cs->type){
 
         // All those types are SPC of one form or another
-        case (ConstraintSet::SPC):
-        case (ConstraintSet::SPCD):
-        case (ConstraintSet::MPC):{
+        case (ConstraintSet::Type::SPC):
+        case (ConstraintSet::Type::SPCD):
+        case (ConstraintSet::Type::MPC):{
             return true;
             break;
         }
@@ -209,8 +209,8 @@ bool Analysis::hasSPC() const{
         default:{
             for (const auto & co : cs->getConstraints()){
                 switch(co->type){
-                case (Constraint::SPC):
-                case (Constraint::LMPC):{
+                case (Constraint::Type::SPC):
+                case (Constraint::Type::LMPC):{
                     return true;
                     break;
                 }
@@ -270,7 +270,7 @@ void Analysis::removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition,  
         }
     }
     if (model.analyses.size() >= 2) {
-        ConstraintSet otherAnalysesCS(model, ConstraintSet::SPC);
+        ConstraintSet otherAnalysesCS(model, ConstraintSet::Type::SPC);
         model.add(otherAnalysesCS);
         SinglePointConstraint otherAnalysesSpc(this->model);
         otherAnalysesSpc.addNodeId(nodeId);
@@ -325,7 +325,7 @@ Analysis::~Analysis() {
 }
 
 LinearMecaStat::LinearMecaStat(Model& model, const string original_label, const int original_id) :
-        Analysis(model, Analysis::LINEAR_MECA_STAT, original_label, original_id) {
+        Analysis(model, Analysis::Type::LINEAR_MECA_STAT, original_label, original_id) {
 
 }
 
@@ -335,8 +335,8 @@ shared_ptr<Analysis> LinearMecaStat::clone() const {
 
 NonLinearMecaStat::NonLinearMecaStat(Model& model, const int strategy_id,
         const string original_label, const int original_id) :
-        Analysis(model, Analysis::NONLINEAR_MECA_STAT, original_label, original_id), strategy_reference(
-                Objective::NONLINEAR_STRATEGY, strategy_id) {
+        Analysis(model, Analysis::Type::NONLINEAR_MECA_STAT, original_label, original_id), strategy_reference(
+                Objective::Type::NONLINEAR_STRATEGY, strategy_id) {
 
 }
 
@@ -350,7 +350,7 @@ bool NonLinearMecaStat::validate() const {
 
 LinearModal::LinearModal(Model& model, const int frequency_band_original_id,
         const string original_label, const int original_id, const Type type) :
-        Analysis(model, type, original_label, original_id), frequencySearchRef(Objective::FREQUENCY_TARGET,
+        Analysis(model, type, original_label, original_id), frequencySearchRef(Objective::Type::FREQUENCY_TARGET,
                 frequency_band_original_id) {
 }
 
@@ -377,8 +377,8 @@ LinearDynaModalFreq::LinearDynaModalFreq(Model& model, const int frequency_band_
         const int modal_damping_original_id, const int frequency_value_original_id,
         const bool residual_vector, const string original_label, const int original_id) :
         LinearModal(model, frequency_band_original_id, original_label, original_id,
-                Analysis::LINEAR_DYNA_MODAL_FREQ), modal_damping_reference(Objective::MODAL_DAMPING,
-                modal_damping_original_id), frequencyExcitationRef(Objective::FREQUENCY_TARGET,
+                Analysis::Type::LINEAR_DYNA_MODAL_FREQ), modal_damping_reference(Objective::Type::MODAL_DAMPING,
+                modal_damping_original_id), frequencyExcitationRef(Objective::Type::FREQUENCY_TARGET,
                 frequency_value_original_id), residual_vector(residual_vector) {
 }
 
@@ -408,8 +408,8 @@ bool LinearDynaModalFreq::validate() const {
 LinearDynaDirectFreq::LinearDynaDirectFreq(Model& model,
         const int frequency_value_original_id,
         const string original_label, const int original_id) :
-        Analysis(model, Analysis::LINEAR_DYNA_DIRECT_FREQ, original_label, original_id),
-                frequencyExcitationRef(Objective::FREQUENCY_TARGET,
+        Analysis(model, Analysis::Type::LINEAR_DYNA_DIRECT_FREQ, original_label, original_id),
+                frequencyExcitationRef(Objective::Type::FREQUENCY_TARGET,
                 frequency_value_original_id) {
 }
 

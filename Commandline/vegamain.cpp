@@ -35,22 +35,22 @@ int main(int ac, const char* av[]) {
             return WEXITSTATUS(status);
         } else {
             cerr << "The child did not provide an exit code. It probably crashed?" << endl;
-            return VegaCommandLine::CHILD_CRASHED;
+            return static_cast<int>(VegaCommandLine::ExitCode::CHILD_CRASHED);
         }
     } else if (child_pid == 0) {
 #endif
         VegaCommandLine vcl = VegaCommandLine();
         VegaCommandLine::ExitCode exitCode = vcl.process(ac, av);
-        if (exitCode != VegaCommandLine::OK) {
+        if (exitCode != VegaCommandLine::ExitCode::OK) {
             cerr << VegaCommandLine::exitCodeToString(exitCode) << endl;
-            cerr << "Exitcode:" << exitCode << endl;
+            cerr << "Exitcode:" << static_cast<int>(exitCode) << endl;
         }
-        return exitCode;
+        return static_cast<int>(exitCode);
 #if defined(unix)
     } else {
         //child pid <0
         cerr << "fork failed " << child_pid << endl << " exiting " << endl;
-        return VegaCommandLine::FORK_FAILED;
+        return static_cast<int>(VegaCommandLine::ExitCode::FORK_FAILED);
     }
 #endif
 }

@@ -29,11 +29,11 @@ namespace vega {
 namespace systus {
 
 /**
- *  This enum regroups all physical caracteristics stocked in Systus Materials.
+ *  This enum class regroups all physical caracteristics stocked in Systus Materials.
  *  The order is important, as it follows the Systus order, thus allowing us
  *  to write materials with good keys. (See SNOMAT.FMT in Systus Code Source)
  */
-enum SMF {
+enum class SMF {
     ID,
     PSI, THETA, PHI, RHO, E, NU, G, LX, LY, LZ,
     S, AY, AZ, IX, IY, IZ, LOCAL, XX, YY, ZZ,
@@ -294,7 +294,7 @@ private:
     /** Find an available Part Id for a Cell Group.
      * If possible, try to use the suffix (_NN) of the Group Name. **/
     int getPartId(const std::string partName, std::set<int> & usedPartId);
-    static const std::unordered_map<CellType::Code, std::vector<int>, std::hash<int>> systus2medNodeConnectByCellType;
+    static const std::unordered_map<CellType::Code, std::vector<int>, EnumClassHash> systus2medNodeConnectByCellType;
     void writeAsc(const SystusModel&, const ConfigurationParameters&, const int idSubcase, std::ostream&);
     void getSystusInformations(const SystusModel&, const ConfigurationParameters&);
 
@@ -302,7 +302,7 @@ private:
      * Determines the best Systus Option fitting the model.
      */
     void getSystusAutomaticOption(const SystusModel&, SystusOption & autoSystusOption, SystusSubOption & autoSystusSubOption);
-    
+
     /**
      * Clear all maps, vectors, lists filled during a previous translation.
      */

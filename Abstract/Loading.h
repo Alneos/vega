@@ -31,7 +31,7 @@ class Loading: public Identifiable<Loading>, public BoundaryCondition {
 private:
 	friend std::ostream &operator<<(std::ostream&, const Loading&);    //output
 public:
-	enum Type {
+	enum class Type {
 		DYNAMIC_EXCITATION,
 		FORCE_SURFACE,
 		GRAVITY,
@@ -42,7 +42,7 @@ public:
 		COMBINED_LOADING,
 		INITIAL_TEMPERATURE
 	};
-	enum ApplicationType {
+	enum class ApplicationType {
 		NODE,
 		ELEMENT,
 		NONE
@@ -77,13 +77,13 @@ private:
 	const Model& model;
 	friend std::ostream &operator<<(std::ostream&, const LoadSet&);
 public:
-	enum Type {
+	enum class Type {
 		LOAD,
 		DLOAD,
 		EXCITEID,
 		ALL
 	};
-	LoadSet(const Model&, Type type = LOAD, int original_id = NO_ORIGINAL_ID);
+	LoadSet(const Model&, Type type = Type::LOAD, int original_id = NO_ORIGINAL_ID);
 	static constexpr int COMMON_SET_ID = 0;
 	std::vector<std::pair<Reference<LoadSet>, double>> embedded_loadsets;
 	const Type type;

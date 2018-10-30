@@ -33,8 +33,8 @@ Value::Value(Value::Type type) : type(type) {
 
 const string NamedValue::name = "NamedValue";
 
-const map<Value::Type, string> Value::stringByType = { { STEP_RANGE, "STEP_RANGE" }, { SPREAD_RANGE, "SPREAD_RANGE" }, {
-        FUNCTION_TABLE, "FUNCTION_TABLE" }, { DYNA_PHASE, "DYNA_PHASE" }, { LIST, "LIST" }};
+const map<Value::Type, string> Value::stringByType = { { Value::Type::STEP_RANGE, "STEP_RANGE" }, { Value::Type::SPREAD_RANGE, "SPREAD_RANGE" }, {
+        Value::Type::FUNCTION_TABLE, "FUNCTION_TABLE" }, { Value::Type::DYNA_PHASE, "DYNA_PHASE" }, { Value::Type::LIST, "LIST" }};
 
 ostream &operator<<(ostream &out, const NamedValue& value) {
     out << to_str(value);
@@ -54,28 +54,12 @@ shared_ptr<NamedValue> ValuePlaceHolder::clone() const {
     return make_shared<ValuePlaceHolder>(*this);
 }
 
-FloatValue::FloatValue(const Model& model, double number, int original_id) :
-        NamedValue(model, FloatValue::FLOAT, original_id), number(number) {
-}
-
-shared_ptr<NamedValue> FloatValue::clone() const {
-    return make_shared<FloatValue>(*this);
-}
-
-bool FloatValue::iszero() const {
-    return is_zero(number);
-}
-
-void FloatValue::scale(double factor) {
-    number *= factor;
-}
-
 ValueRange::ValueRange(const Model& model, Type type, int original_id) :
         NamedValue(model, type, original_id) {
 }
 
 BandRange::BandRange(const Model& model, double start, int maxsearch, double end, int original_id) :
-        ValueRange(model, BAND_RANGE, original_id), start(start), maxsearch(maxsearch), end(end) {
+        ValueRange(model, Value::Type::BAND_RANGE, original_id), start(start), maxsearch(maxsearch), end(end) {
 }
 
 shared_ptr<NamedValue> BandRange::clone() const {
@@ -92,20 +76,20 @@ void BandRange::scale(double factor) {
 }
 
 StepRange::StepRange(const Model& model, double start, double step, double end, int original_id) :
-        ValueRange(model, STEP_RANGE, original_id), start(start), step(step), end(end) {
+        ValueRange(model, Value::Type::STEP_RANGE, original_id), start(start), step(step), end(end) {
     assert(step > 0);
     count = int((end - start) / step);
 }
 
 StepRange::StepRange(const Model& model, double start, int count, double end, int original_id) :
-        ValueRange(model, STEP_RANGE, original_id), start(start), count(count), end(end) {
+        ValueRange(model, Value::Type::STEP_RANGE, original_id), start(start), count(count), end(end) {
     if (count <= 0) {
         throw logic_error("Count should be positive in steprange");
     }
     step = (end - start) / count;
 }
 StepRange::StepRange(const Model& model, double start, double step, int count, int original_id) :
-        ValueRange(model, STEP_RANGE, original_id), start(start), step(step), count(count) {
+        ValueRange(model, Value::Type::STEP_RANGE, original_id), start(start), step(step), count(count) {
     end = start + step * count;
 }
 
@@ -122,28 +106,8 @@ void StepRange::scale(double factor) {
     throw logic_error("Should not try to scale stepranges");
 }
 
-ListValue::ListValue(const Model& model, list<double> alist, int original_id) :
-        NamedValue(model, LIST, original_id), alist(alist) {
-}
-
-const std::list<double> ListValue::getList() const {
-  return alist;
-}
-
-shared_ptr<NamedValue> ListValue::clone() const {
-    return make_shared<ListValue>(*this);
-}
-
-bool ListValue::iszero() const {
-    return alist.empty();
-}
-
-void ListValue::scale(double factor) {
-    std::transform(alist.begin(), alist.end(), alist.begin(), [factor](double d) -> double { return d * factor; });
-}
-
 SpreadRange::SpreadRange(const Model& model, double start, int count, double end, double spread, int original_id) :
-		ValueRange(model, SPREAD_RANGE, original_id), start(start), count(count), end(end), spread(spread) {
+		ValueRange(model, Value::Type::SPREAD_RANGE, original_id), start(start), count(count), end(end), spread(spread) {
     assert(end > start);
 }
 
@@ -166,7 +130,7 @@ Function::Function(const Model& model, Type type, int original_id) :
 
 FunctionTable::FunctionTable(const Model& model, Interpolation parameter, Interpolation value,
         Interpolation left, Interpolation right, int original_id) :
-        Function(model, FUNCTION_TABLE, original_id), parameter(parameter), value(value), left(
+        Function(model, Value::Type::FUNCTION_TABLE, original_id), parameter(parameter), value(value), left(
                 left), right(right) {
 }
 
@@ -201,27 +165,27 @@ ConstantValue::ConstantValue(const Model&, Type type, double value, int original
 }
 
 DynaPhase::DynaPhase(const Model&, double value, int original_id) :
-        ConstantValue(model, DYNA_PHASE, value, original_id) {
+        ConstantValue(model, Value::Type::DYNA_PHASE, value, original_id) {
 }
 
 VectorialValue::VectorialValue(double x, double y, double z) :
-		Value(Value::VECTOR), value(ublas::vector<double>(3)) {
+		Value(Value::Type::VECTOR), value(ublas::vector<double>(3)) {
 	value[0] = x;
 	value[1] = y;
 	value[2] = z;
 }
 
 VectorialValue::VectorialValue(ublas::vector<double>& value) :
-		Value(Value::VECTOR), value(value) {
+		Value(Value::Type::VECTOR), value(value) {
 }
 
 VectorialValue::VectorialValue(initializer_list<double> init_list):
-				Value(Value::VECTOR), value(ublas::vector<double>(3)) {
+				Value(Value::Type::VECTOR), value(ublas::vector<double>(3)) {
 	copy_n(init_list.begin(),min(static_cast<int>(init_list.size()),3), value.begin());
 }
 
 VectorialValue::VectorialValue() :
-		Value(Value::VECTOR), value(ublas::vector<double>(3)) {
+		Value(Value::Type::VECTOR), value(ublas::vector<double>(3)) {
 }
 
 double VectorialValue::norm() const {
@@ -324,7 +288,7 @@ ostream& operator<<(ostream &out, const ValueOrReference& valueOrReference) {
 }
 
 const ValueOrReference ValueOrReference::EMPTY_VALUE(
-		Reference<NamedValue>(NamedValue::STEP_RANGE, Reference<NamedValue>::NO_ID, Reference<NamedValue>::NO_ID));
+		Reference<NamedValue>(Value::Type::STEP_RANGE, Reference<NamedValue>::NO_ID, Reference<NamedValue>::NO_ID));
 
 ValueOrReference::ValueOrReference(const boost::variant<double, Reference<NamedValue>>& _value) :
 		storage(_value) {
@@ -379,7 +343,7 @@ bool ValueOrReference::operator<(const ValueOrReference& rhs) const {
 }
 
 VectorialFunction::VectorialFunction(const Model& model, Function& fx, Function& fy, Function& fz, int original_id) :
-        NamedValue(model, Value::VECTORFUNCTION, original_id), _fx(fx), _fy(fy), _fz(fz) {
+        NamedValue(model, Value::Type::VECTORFUNCTION, original_id), _fx(fx), _fy(fy), _fz(fz) {
 }
 
 void VectorialFunction::scale(double factor) {

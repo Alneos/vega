@@ -50,7 +50,7 @@ Runner::ExitCode NastranRunner::execSolver(const ConfigurationParameters &config
     fs::path outputFsPath(configuration.outputPath);
     cout << configuration.outputPath << endl;
     if (!fs::is_directory(outputFsPath))
-        return SOLVER_NOT_FOUND;
+        return Runner::ExitCode::SOLVER_NOT_FOUND;
     if (configuration.outputPath != ".")
         command = "cd " + configuration.outputPath + " && " + command;
 

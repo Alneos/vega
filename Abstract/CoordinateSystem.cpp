@@ -42,11 +42,11 @@ CoordinateSystem::CoordinateSystem(const Mesh& mesh, Type type, const VectorialV
 const string CoordinateSystem::name = "CoordinateSystem";
 
 const map<CoordinateSystem::Type, string> CoordinateSystem::stringByType = {
-        { CARTESIAN, "CARTESIAN" },
-        { CYLINDRICAL, "CYLINDRICAL"},
-        { ORIENTATION, "ORIENTATION"},
-        { SPHERICAL, "SPHERICAL" },
-        { UNKNOWN, "UNKNOWN" }
+        { CoordinateSystem::Type::CARTESIAN, "CARTESIAN" },
+        { CoordinateSystem::Type::CYLINDRICAL, "CYLINDRICAL"},
+        { CoordinateSystem::Type::ORIENTATION, "ORIENTATION"},
+        { CoordinateSystem::Type::SPHERICAL, "SPHERICAL" },
+        { CoordinateSystem::Type::UNKNOWN, "UNKNOWN" }
 };
 
 ostream &operator<<(ostream &out, const CoordinateSystem& coordinateSystem) {
@@ -89,11 +89,11 @@ const VectorialValue CoordinateSystem::getEulerAnglesIntrinsicZYX(const Coordina
 CartesianCoordinateSystem::CartesianCoordinateSystem(const Mesh& mesh,
         const VectorialValue& origin, const VectorialValue& ex, const VectorialValue& ey, const int rcs,
         int _original_id) :
-        CoordinateSystem(mesh, CARTESIAN, origin, ex, ey, rcs, _original_id) {
+        CoordinateSystem(mesh, CoordinateSystem::Type::CARTESIAN, origin, ex, ey, rcs, _original_id) {
 }
 CartesianCoordinateSystem::CartesianCoordinateSystem(const Mesh& mesh,
         int nO, int nZ, int nXZ, const int rcs, int _original_id) :
-        CoordinateSystem(mesh, CARTESIAN, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcs, _original_id){
+        CoordinateSystem(mesh, CoordinateSystem::Type::CARTESIAN, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcs, _original_id){
     nodesId.push_back(nO);
     nodesId.push_back(nZ);
     nodesId.push_back(nXZ);
@@ -178,7 +178,7 @@ void CartesianCoordinateSystem::build(){
 CylindricalCoordinateSystem::CylindricalCoordinateSystem(const Mesh& mesh,
         const VectorialValue origin, const VectorialValue ex, const VectorialValue ey, const int rcs,
         int original_id) :
-        CoordinateSystem(mesh, CYLINDRICAL, origin, ex, ey, rcs, original_id), ur(this->ex), utheta(
+        CoordinateSystem(mesh, CoordinateSystem::Type::CYLINDRICAL, origin, ex, ey, rcs, original_id), ur(this->ex), utheta(
                 this->ey) {
 }
 
@@ -241,7 +241,7 @@ const VectorialValue CylindricalCoordinateSystem::getLocalEulerAnglesIntrinsicZY
 
 OrientationCoordinateSystem::OrientationCoordinateSystem(const Mesh& mesh, const int nO, const int nX,
         const int nV, const int rcs, int original_id) :
-        CoordinateSystem(mesh, ORIENTATION, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcs, original_id){
+        CoordinateSystem(mesh, CoordinateSystem::Type::ORIENTATION, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcs, original_id){
     nodesId.push_back(nO);
     nodesId.push_back(nX);
     nodesId.push_back(nV);
@@ -250,7 +250,7 @@ OrientationCoordinateSystem::OrientationCoordinateSystem(const Mesh& mesh, const
 
 OrientationCoordinateSystem::OrientationCoordinateSystem(const Mesh& mesh, const int nO, const int nX,
         const  VectorialValue v, const int rcs, int original_id) :
-        CoordinateSystem(mesh, ORIENTATION, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcs, original_id),
+        CoordinateSystem(mesh, CoordinateSystem::Type::ORIENTATION, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcs, original_id),
         v(v.normalized()){
     nodesId.push_back(nO);
     nodesId.push_back(nX);

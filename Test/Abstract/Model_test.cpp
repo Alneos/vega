@@ -126,7 +126,7 @@ BOOST_AUTO_TEST_CASE( test_Elements ) {
 	cn1->addCellId(1);
 	cn1->addCellId(2);
 	BOOST_TEST_CHECKPOINT("after addcells");
-	RectangularSectionBeam rectangularSectionBeam(model, 100.0, 110.0, Beam::EULER, 1);
+	RectangularSectionBeam rectangularSectionBeam(model, 100.0, 110.0, Beam::BeamModel::EULER, 1);
 	rectangularSectionBeam.assignCellGroup(cn1);
 	rectangularSectionBeam.assignMaterial(1);
 	model.add(rectangularSectionBeam);
@@ -134,12 +134,12 @@ BOOST_AUTO_TEST_CASE( test_Elements ) {
 	cout << "NODES:" << model.mesh->countNodes() << endl;
 	model.finish();
 	BOOST_CHECK(model.validate());
-	const vector<shared_ptr<ElementSet>> beams = model.elementSets.filter(ElementSet::RECTANGULAR_SECTION_BEAM);
+	const vector<shared_ptr<ElementSet>> beams = model.elementSets.filter(ElementSet::Type::RECTANGULAR_SECTION_BEAM);
 	BOOST_CHECK_EQUAL(static_cast<size_t>(1), beams.size());
 
 //no virtual elements
 
-	const vector<shared_ptr<ElementSet>> discrets = model.elementSets.filter(ElementSet::DISCRETE_0D);
+	const vector<shared_ptr<ElementSet>> discrets = model.elementSets.filter(ElementSet::Type::DISCRETE_0D);
 	BOOST_CHECK_EQUAL(static_cast<size_t>(0), discrets.size());
 	CellContainer assignment = model.getOrCreateMaterial(1)->getAssignment();
 
@@ -191,7 +191,7 @@ shared_ptr<Model> createModelWith1HEXA8() {
 
  BOOST_AUTO_TEST_CASE( test_VirtualElements ) {
      shared_ptr<Model> model = createModelWith1HEXA8();
-     LoadSet loadSet1(*model, LoadSet::LOAD, 1);
+     LoadSet loadSet1(*model, LoadSet::Type::LOAD, 1);
      //moment on x axis on node 51
      NodalForce f1(*model, 0, 0, 0, 1.0, 0, 0);
      f1.addNodeId(51);
@@ -213,7 +213,7 @@ shared_ptr<Model> createModelWith1HEXA8() {
      BOOST_CHECK(model->validate());
 
      //two virtual elements
-     auto& discrets = model->elementSets.filter(ElementSet::DISCRETE_0D);
+     auto& discrets = model->elementSets.filter(ElementSet::Type::DISCRETE_0D);
      BOOST_CHECK_EQUAL(1, discrets.size());
 
      const Node& node51 = model->mesh->findNode(model->mesh->findNodePosition(51));
@@ -225,7 +225,7 @@ shared_ptr<Model> createModelWith1HEXA8() {
 
      BOOST_CHECK_EQUAL(2, model->constraintSets.size());
      //auto cset = model->constraintSets.next();
-     //auto& spcs = cset->getConstraintsByType(Constraint::SPC);
+     //auto& spcs = cset->getConstraintsByType(Constraint::Type::SPC);
      //BOOST_CHECK_EQUAL(5, spcs.size());
  }
 
@@ -267,7 +267,7 @@ BOOST_AUTO_TEST_CASE(test_Analysis) {
 
 	LinearMecaStat analysis(model);
 
-	LoadSet loadSet1(model, LoadSet::LOAD, 1);
+	LoadSet loadSet1(model, LoadSet::Type::LOAD, 1);
 	model.add(loadSet1);
 	Reference<LoadSet> loadSetRef = Reference<LoadSet>(loadSet1);
 	cout << loadSetRef << endl;
@@ -276,7 +276,7 @@ BOOST_AUTO_TEST_CASE(test_Analysis) {
 	//CHECK getReference constructor and == operator
 	BOOST_CHECK(loadSetRef == loadSet1.getReference());
 
-	LoadSet loadSet2(model, LoadSet::LOAD, 2);
+	LoadSet loadSet2(model, LoadSet::Type::LOAD, 2);
 	//model.add(loadSet2);
 	analysis.add(loadSet2);
 
@@ -352,8 +352,8 @@ BOOST_AUTO_TEST_CASE( combined_loadset1 ) {
     configuration.replaceCombinedLoadSets = true;
     configuration.logLevel = LogLevel::DEBUG;
 	Model model("inputfile", "10.3", SolverName::NASTRAN, configuration);
-	LoadSet loadSet1(model, LoadSet::LOAD, 1);
-	LoadSet loadSet3(model, LoadSet::LOAD, 3);
+	LoadSet loadSet1(model, LoadSet::Type::LOAD, 1);
+	LoadSet loadSet3(model, LoadSet::Type::LOAD, 3);
 	model.mesh->addNode(1, 0.0, 0.0, 0.0);
 	NodalForce force1 = NodalForce(model, 1, 1.0);
 	model.add(force1);
@@ -364,7 +364,7 @@ BOOST_AUTO_TEST_CASE( combined_loadset1 ) {
 	NodalForce force2 = NodalForce(model, 1, 2.0);
 	model.add(force2);
 	model.addLoadingIntoLoadSet(force2, loadSet3);
-	LoadSet combination(model, LoadSet::LOAD, 10);
+	LoadSet combination(model, LoadSet::Type::LOAD, 10);
 	combination.embedded_loadsets.push_back(
 			pair<Reference<LoadSet>, double>(loadSet1.getReference(), 5.0));
 	combination.embedded_loadsets.push_back(
@@ -384,7 +384,7 @@ BOOST_AUTO_TEST_CASE(auto_analysis_linst) {
 	BOOST_CHECK(model.validate());
 	BOOST_CHECK_EQUAL(model.analyses.size(), 1);
 	const auto& analysis = *model.analyses.begin();
-	BOOST_CHECK_EQUAL(analysis->type, Analysis::LINEAR_MECA_STAT);
+	BOOST_CHECK(analysis->type == Analysis::Type::LINEAR_MECA_STAT);
 }
 
 BOOST_AUTO_TEST_CASE(auto_analysis_nonlin) {
@@ -398,46 +398,59 @@ BOOST_AUTO_TEST_CASE(auto_analysis_nonlin) {
 	BOOST_CHECK(model.validate());
 	BOOST_CHECK_EQUAL(model.analyses.size(), 1);
 	const auto& analysis = *model.analyses.begin();
-	BOOST_CHECK_EQUAL(analysis->type, Analysis::NONLINEAR_MECA_STAT);
+	BOOST_CHECK(analysis->type == Analysis::Type::NONLINEAR_MECA_STAT);
 }
 
 BOOST_AUTO_TEST_CASE( reference_compare ) {
-	Reference<LoadSet> rauto1(LoadSet::LOAD, Reference<LoadSet>::NO_ID, 1);
+	Reference<LoadSet> rauto1(LoadSet::Type::LOAD, Reference<LoadSet>::NO_ID, 1);
 	BOOST_CHECK(rauto1 == rauto1);
 	BOOST_CHECK(!(rauto1 < rauto1));
 	BOOST_CHECK(rauto1 == *rauto1.clone());
-	Reference<LoadSet> rauto2(LoadSet::LOAD, Reference<LoadSet>::NO_ID, 2);
-	Reference<LoadSet> r1(LoadSet::LOAD, 1);
+	Reference<LoadSet> rauto2(LoadSet::Type::LOAD, Reference<LoadSet>::NO_ID, 2);
+	Reference<LoadSet> r1(LoadSet::Type::LOAD, 1);
 	BOOST_CHECK(r1 == r1);
 	BOOST_CHECK(!(r1 < r1));
 	BOOST_CHECK(r1 == *r1.clone());
-	Reference<LoadSet> r1bis(LoadSet::LOAD, 1);
+	Reference<LoadSet> r1bis(LoadSet::Type::LOAD, 1);
 	BOOST_CHECK(r1 == r1bis);
 	BOOST_CHECK(!(r1 < r1bis));
-	Reference<LoadSet> r2(LoadSet::LOAD, 2);
+	Reference<LoadSet> r2(LoadSet::Type::LOAD, 2);
 	BOOST_CHECK(!(r1 == r2));
 	BOOST_CHECK(r1 < r2);
-	Reference<LoadSet> rd1(LoadSet::DLOAD, 1);
+	Reference<LoadSet> rd1(LoadSet::Type::DLOAD, 1);
 	BOOST_CHECK(!(r1 == rd1));
 	BOOST_CHECK(r1 < rauto1);
 }
 
 BOOST_AUTO_TEST_CASE( reference_hash ) {
-	Reference<LoadSet> rauto1(LoadSet::LOAD, Reference<LoadSet>::NO_ID, 1);
+	Reference<LoadSet> rauto1(LoadSet::Type::LOAD, Reference<LoadSet>::NO_ID, 1);
 	BOOST_CHECK_EQUAL(hash<Reference<LoadSet>>()(rauto1), hash<Reference<LoadSet>>()(rauto1));
-	Reference<LoadSet> rauto2(LoadSet::LOAD, Reference<LoadSet>::NO_ID, 2);
+	Reference<LoadSet> rauto2(LoadSet::Type::LOAD, Reference<LoadSet>::NO_ID, 2);
 	BOOST_CHECK_NE(rauto1.id, rauto2.id);
 	BOOST_CHECK_NE(hash<Reference<LoadSet>>()(rauto1), hash<Reference<LoadSet>>()(rauto2));
-	Reference<LoadSet> r1(LoadSet::LOAD, 1);
+	Reference<LoadSet> r1(LoadSet::Type::LOAD, 1);
 	BOOST_CHECK_EQUAL(hash<Reference<LoadSet>>()(r1), hash<Reference<LoadSet>>()(r1));
-	Reference<LoadSet> r1bis(LoadSet::LOAD, 1);
+	Reference<LoadSet> r1bis(LoadSet::Type::LOAD, 1);
 	BOOST_CHECK_EQUAL(hash<Reference<LoadSet>>()(r1), hash<Reference<LoadSet>>()(r1bis));
-	Reference<LoadSet> r2(LoadSet::LOAD, 2);
+	Reference<LoadSet> r2(LoadSet::Type::LOAD, 2);
 	BOOST_CHECK_NE(hash<Reference<LoadSet>>()(r1), hash<Reference<LoadSet>>()(r2));
-	Reference<LoadSet> rd1(LoadSet::DLOAD, 1);
+	Reference<LoadSet> rd1(LoadSet::Type::DLOAD, 1);
 	BOOST_CHECK_NE(hash<Reference<LoadSet>>()(r1), hash<Reference<LoadSet>>()(rd1));
-	Reference<ConstraintSet> rc1(ConstraintSet::SPC, 1);
+	Reference<ConstraintSet> rc1(ConstraintSet::Type::SPC, 1);
 	BOOST_CHECK_NE(hash<Reference<LoadSet>>()(r1), hash<Reference<ConstraintSet>>()(rc1));
+}
+
+BOOST_AUTO_TEST_CASE( reference_str ) {
+	Reference<LoadSet> rauto1(LoadSet::Type::LOAD, Reference<LoadSet>::NO_ID, 1);
+	std::ostringstream oss;
+    oss << rauto1;
+    std::string refstr = oss.str();
+    BOOST_CHECK(refstr.size() >= 1);
+    std::string refstr2 = to_str(rauto1);
+    BOOST_CHECK(refstr2.size() >= 1);
+    BOOST_CHECK_EQUAL(refstr, refstr2);
+    Reference<NamedValue> rauto2(Value::Type::LIST, 1);
+    BOOST_CHECK(to_str(rauto2).size() >= 1);
 }
 
 BOOST_AUTO_TEST_CASE(test_ineffective_assertions_removed) {

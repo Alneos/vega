@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE( nastran_med_write ) {
 	nastran::NastranParser parser;
     try {
         const shared_ptr<Model> model = parser.parse(
-                ConfigurationParameters(testLocation, CODE_ASTER, string("1")));
+                ConfigurationParameters(testLocation, SolverName::CODE_ASTER, string("1")));
         model->mesh->writeMED(*model, outFile.c_str());
 
         BOOST_CHECK(boost::filesystem::exists(outFile));
@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE( test_model_read ) {
 	nastran::NastranParser parser;
 	try {
 		const shared_ptr<Model> model = parser.parse(
-				ConfigurationParameters(testLocation, CODE_ASTER, "", ""));
+				ConfigurationParameters(testLocation, SolverName::CODE_ASTER, "", ""));
 		int num_materials = model->materials.size();
 		BOOST_CHECK_EQUAL(1, num_materials);
 #if defined VDEBUG && defined __GNUC_
@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE( test_model_read ) {
 		//expected 1 material elastic
 		if (num_materials == 1) {
 			shared_ptr<Material> mat = *(model->materials.begin());
-			BOOST_CHECK(mat->findNature(Nature::NATURE_ELASTIC));
+			BOOST_CHECK(mat->findNature(Nature::NatureType::NATURE_ELASTIC));
 		}
 		//BOOST_CHECK_EQUAL(1, model->analyses.size());
 	} catch (exception& e) {
@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_CASE( test_include ) {
 	nastran::NastranParser parser;
 	try {
 		const shared_ptr<Model> model = parser.parse(
-				ConfigurationParameters(testLocation, CODE_ASTER, "", ""));
+				ConfigurationParameters(testLocation, SolverName::CODE_ASTER, "", ""));
 		int num_materials = model->materials.size();
 		BOOST_CHECK_EQUAL(2, num_materials);
 	} catch (exception& e) {
@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(test_comments_in_the_end) {
 	nastran::NastranParser parser;
 	try {
 		const shared_ptr<Model> model = parser.parse(
-			ConfigurationParameters(testLocation, CODE_ASTER, "", ""));
+			ConfigurationParameters(testLocation, SolverName::CODE_ASTER, "", ""));
 	}
 	catch (exception& e) {
 		cerr << e.what() << endl;
@@ -105,7 +105,7 @@ BOOST_AUTO_TEST_CASE(nastran_github_issue15) {
 	nastran::NastranParser parser;
 	try {
 		const shared_ptr<Model> model = parser.parse(
-			ConfigurationParameters(testLocation, CODE_ASTER, "", ""));
+			ConfigurationParameters(testLocation, SolverName::CODE_ASTER, "", ""));
     BOOST_CHECK_EQUAL(model->analyses.size(), 0);
 	}
 	catch (exception& e) {

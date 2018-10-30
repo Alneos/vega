@@ -19,6 +19,20 @@ class Assertion;
 
 namespace result {
 
+enum LineItems {
+	UNUSED,
+	RESULT_NAME,
+	NODE,
+	NUM_ORD,
+	TIME,
+	DX,
+	DY,
+	DZ,
+	DRX,
+	DRY,
+	DRZ
+};
+
 class CSVResultReader: public vega::ResultReader {
 public:
 	CSVResultReader();

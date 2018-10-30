@@ -146,19 +146,19 @@ BOOST_AUTO_TEST_CASE( test_CellGroup2Families )
     shared_ptr<CellGroup> gn2 = mesh.createCellGroup("GMA2");
     gn2->addCellId(1);
     cellGroups.push_back(gn2);
-    unordered_map<CellType::Code, int,hash<int>> cellCountByType;
-    cellCountByType[CellType::SEG2_CODE] = 3;
-    cellCountByType[CellType::TRI3_CODE] = 3;
+    unordered_map<CellType::Code, int, EnumClassHash> cellCountByType;
+    cellCountByType[CellType::Code::SEG2_CODE] = 3;
+    cellCountByType[CellType::Code::TRI3_CODE] = 3;
     CellGroup2Families cg2fam(mesh, cellCountByType, cellGroups);
     auto& result = cg2fam.getFamilyOnCells();
 
     int expectedTri3[] = { -2, -1, 0 };
-    auto& tri3 = result.find(CellType::TRI3_CODE)->second;
+    auto& tri3 = result.find(CellType::Code::TRI3_CODE)->second;
     BOOST_CHECK_EQUAL_COLLECTIONS(tri3->begin(), tri3->end(), expectedTri3,
                                   expectedTri3 + 3);
 
     int expectedSeg2[] = { -1, 0, 0 };
-    auto& seg2 = result.find(CellType::SEG2_CODE)->second;
+    auto& seg2 = result.find(CellType::Code::SEG2_CODE)->second;
     BOOST_CHECK_EQUAL_COLLECTIONS(seg2->begin(), seg2->end(), expectedSeg2,
                                   expectedSeg2 + 3);
 

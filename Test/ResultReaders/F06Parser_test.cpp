@@ -26,11 +26,11 @@ BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 
 	string testLocation(
 	PROJECT_BASE_DIR "/testdata/nastran/alneos/rbar1mod/rbar1mod.f06");
-	ConfigurationParameters confParams("inputFile", vega::CODE_ASTER, "..", "vega", ".",
-			LogLevel::DEBUG, ConfigurationParameters::BEST_EFFORT, testLocation, 0.0003);
+	ConfigurationParameters confParams("inputFile", SolverName::CODE_ASTER, "..", "vega", ".",
+			LogLevel::DEBUG, ConfigurationParameters::TranslationMode::BEST_EFFORT, testLocation, 0.0003);
 	F06Parser f06parser;
 
-	shared_ptr<Model> model = make_shared<Model>("mname", "unknown", NASTRAN);
+	shared_ptr<Model> model = make_shared<Model>("mname", "unknown", SolverName::NASTRAN);
 	model->mesh->addNode(1, 2, 3, 4);
 	model->mesh->addNode(2, 2, 3, 4);
 	model->mesh->addNode(3, 2, 3, 4);
@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 	BOOST_TEST_CHECKPOINT("Before Parse");
 	f06parser.add_assertions(confParams, model);
 	shared_ptr<LinearMecaStat> linearMecaStat1 = dynamic_pointer_cast<LinearMecaStat>(
-			model->find(Reference<Analysis>(Analysis::LINEAR_MECA_STAT, 1)));
+			model->find(Reference<Analysis>(Analysis::Type::LINEAR_MECA_STAT, 1)));
 	BOOST_ASSERT(linearMecaStat1!=nullptr);
 	vector<shared_ptr<Assertion>> assertions = linearMecaStat1->getAssertions();
 	BOOST_CHECK_EQUAL(assertions.size(), static_cast<size_t>(24));
@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 	bool found = false;
 	for (auto assertion : assertions) {
 
-		BOOST_CHECK_EQUAL(assertion->type, Assertion::NODAL_DISPLACEMENT_ASSERTION);
+		BOOST_CHECK(assertion->type == Objective::Type::NODAL_DISPLACEMENT_ASSERTION);
 		NodalDisplacementAssertion & nodalDispAssertion =
 				dynamic_cast<NodalDisplacementAssertion&>(*assertion);
 		int nodeId = model->mesh->findNodeId(nodalDispAssertion.nodePosition);
@@ -81,11 +81,11 @@ BOOST_AUTO_TEST_CASE(node_not_in_elements) {
 
 	string testLocation(
 	PROJECT_BASE_DIR "/testdata/nastran/caw/prob6/prob6.f06");
-	ConfigurationParameters confParams("inputFile", vega::CODE_ASTER, "..", "vega", ".",
-			LogLevel::INFO, ConfigurationParameters::BEST_EFFORT, testLocation, 0.0003);
+	ConfigurationParameters confParams("inputFile", SolverName::CODE_ASTER, "..", "vega", ".",
+			LogLevel::INFO, ConfigurationParameters::TranslationMode::BEST_EFFORT, testLocation, 0.0003);
 	F06Parser f06parser;
 
-	shared_ptr<Model> model = make_shared<Model>("mname", "unknown", NASTRAN);
+	shared_ptr<Model> model = make_shared<Model>("mname", "unknown", SolverName::NASTRAN);
 	model->mesh->addNode(1, 2, 3, 4);
 	model->mesh->addNode(2, 2.2, 3.2, 4.2);
 	model->mesh->addNode(3, 2.3, 3.3, 4.3);
@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE(node_not_in_elements) {
 	model->finish();
 
 	shared_ptr<LinearMecaStat> linearMecaStat1 = dynamic_pointer_cast<LinearMecaStat>(
-			model->find(Reference<Analysis>(Analysis::LINEAR_MECA_STAT, 1)));
+			model->find(Reference<Analysis>(Analysis::Type::LINEAR_MECA_STAT, 1)));
 	BOOST_ASSERT(linearMecaStat1!=nullptr);
 
 	//assertion skipped because nodes are not in elements
@@ -116,10 +116,10 @@ BOOST_AUTO_TEST_CASE(test_4a) {
 
 	string testLocation(
 	PROJECT_BASE_DIR "/testdata/nastran/alneos/test4a/test4a.f06");
-	ConfigurationParameters confParams("inputFile", vega::CODE_ASTER, "..", "vega", ".",
-			LogLevel::INFO, ConfigurationParameters::BEST_EFFORT, testLocation, 0.0003);
+	ConfigurationParameters confParams("inputFile", SolverName::CODE_ASTER, "..", "vega", ".",
+			LogLevel::INFO, ConfigurationParameters::TranslationMode::BEST_EFFORT, testLocation, 0.0003);
 
-	shared_ptr<Model> model = make_shared<Model>("mname", "unknown", NASTRAN);
+	shared_ptr<Model> model = make_shared<Model>("mname", "unknown", SolverName::NASTRAN);
 	model->mesh->addNode(1, 2, 3, 4);
 	model->mesh->addNode(2, 2.2, 3.2, 4.2);
 	model->mesh->addNode(3, 2.3, 3.3, 4.3);
@@ -148,7 +148,7 @@ BOOST_AUTO_TEST_CASE(test_4a) {
 	f06parser.add_assertions(confParams, model);
 
 	shared_ptr<LinearMecaStat> linearMecaStat1 = dynamic_pointer_cast<LinearMecaStat>(
-			model->find(Reference<Analysis>(Analysis::LINEAR_MECA_STAT, 1)));
+			model->find(Reference<Analysis>(Analysis::Type::LINEAR_MECA_STAT, 1)));
 	BOOST_ASSERT(linearMecaStat1!=nullptr);
 	//before finish() in the model are present all the assertion found in the f06 file
 	vector<shared_ptr<Assertion>> all_assertions = linearMecaStat1->getAssertions();

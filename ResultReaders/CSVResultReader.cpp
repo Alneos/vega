@@ -49,20 +49,6 @@ namespace phx = boost::phoenix;
 
 using namespace vega;
 
-enum LineItems {
-	UNUSED,
-	RESULT_NAME,
-	NODE,
-	NUM_ORD,
-	TIME,
-	DX,
-	DY,
-	DZ,
-	DRX,
-	DRY,
-	DRZ
-};
-
 typedef spirit::line_pos_iterator<spirit::istream_iterator> stream_iterator_type;
 
 namespace vega {
@@ -106,7 +92,7 @@ struct CsvGrammar: qi::grammar<stream_iterator_type, void(), qi::locals<vector<L
 		double time = 0;
 		for (LineItems position : positions) {
 			switch (position) {
-			case RESULT_NAME:
+			case LineItems::RESULT_NAME:
 				result_name = columns[i];
 				if (result_name.find("RESU") == 0) {
 					result_number = atoi(result_name.substr(4).c_str());
@@ -115,14 +101,14 @@ struct CsvGrammar: qi::grammar<stream_iterator_type, void(), qi::locals<vector<L
 					return;
 				}
 				break;
-			case NODE:
+			case LineItems::NODE:
 				node_name = columns[i];
 				nodeId = atoi(node_name.substr(1).c_str());
 				break;
-			case NUM_ORD:
+			case LineItems::NUM_ORD:
 				num_step = atoi(columns[i].c_str());
 				break;
-			case TIME:
+			case LineItems::TIME:
 				time = atof(columns[i].c_str());
 				break;
 			default:
@@ -162,7 +148,7 @@ struct CsvGrammar: qi::grammar<stream_iterator_type, void(), qi::locals<vector<L
 	shared_ptr<Model> model;
 	const ConfigurationParameters configuration;
 	//visual studio 2013 refuses to compile initializer list
-	unordered_map<LineItems, int, hash<int>> dofPosition_by_lineItemEnum =
+	unordered_map<LineItems, int, std::hash<int>> dofPosition_by_lineItemEnum =
 			boost::assign::map_list_of(LineItems::DX, 0)(LineItems::DY, 1)(
 					LineItems::DZ, 2)(LineItems::DRX, 3)(LineItems::DRY,
 					4)(LineItems::DRZ, 5);

@@ -36,12 +36,14 @@ Constraint::Constraint(const Model& model, Type type, int original_id) :
 const string Constraint::name = "Constraint";
 
 const map<Constraint::Type, string> Constraint::stringByType = {
-        { QUASI_RIGID, "QUASI_RIGID" },
-        { RIGID, "RIGID" },
-        { SPC, "SPC" },
-        { RBE3, "RBE3" },
-        { GAP, "GAP" },
-        { LMPC, "LMPC" }
+        { Constraint::Type::QUASI_RIGID, "QUASI_RIGID" },
+        { Constraint::Type::RIGID, "RIGID" },
+        { Constraint::Type::SPC, "SPC" },
+        { Constraint::Type::RBE3, "RBE3" },
+        { Constraint::Type::GAP, "GAP" },
+        { Constraint::Type::LMPC, "LMPC" },
+        { Constraint::Type::SLIDE, "SLIDE_CONTACT" },
+        { Constraint::Type::SURFACE_CONTACT, "SURFACE_CONTACT" },
 };
 
 ostream &operator<<(ostream &out, const Constraint& constraint) {
@@ -50,7 +52,11 @@ ostream &operator<<(ostream &out, const Constraint& constraint) {
 }
 
 const string Constraint::to_str() const{
-    return stringByType.at(type);
+    const auto& typePair = stringByType.find(type);
+    if (typePair == stringByType.end())
+        return "Unknown constraint";
+    else
+        return typePair->second;
 }
 
 ConstraintSet::ConstraintSet(const Model& model, Type type, int original_id) :
@@ -88,8 +94,8 @@ int ConstraintSet::size() const {
 
 const string ConstraintSet::name = "ConstraintSet";
 
-const map<ConstraintSet::Type, string> ConstraintSet::stringByType = { { SPC, "SPC" },
-        { MPC, "MPC" }, { SPCD, "SPCD" }, { ALL, "ALL" } };
+const map<ConstraintSet::Type, string> ConstraintSet::stringByType = { { ConstraintSet::Type::SPC, "SPC" },
+        { ConstraintSet::Type::MPC, "MPC" }, { ConstraintSet::Type::SPCD, "SPCD" }, { ConstraintSet::Type::ALL, "ALL" } };
 
 bool ConstraintSet::hasFunctions() const {
     for (shared_ptr<Constraint> constraint : getConstraints()) {
@@ -197,7 +203,7 @@ HomogeneousConstraint::~HomogeneousConstraint() {
 
 QuasiRigidConstraint::QuasiRigidConstraint(Model& model, const DOFS& dofs, int masterId,
         int constraintGroup, const set<int>& slaveIds) :
-        HomogeneousConstraint(model, QUASI_RIGID, dofs, masterId, constraintGroup, slaveIds) {
+        HomogeneousConstraint(model, Constraint::Type::QUASI_RIGID, dofs, masterId, constraintGroup, slaveIds) {
 
 }
 shared_ptr<Constraint> QuasiRigidConstraint::clone() const {
@@ -212,7 +218,7 @@ set<int> QuasiRigidConstraint::getSlaves() const {
 
 RigidConstraint::RigidConstraint(Model& model, int masterId, int constraintGroup,
         const set<int>& slaveIds) :
-        HomogeneousConstraint(model, RIGID, DOFS::ALL_DOFS, masterId, constraintGroup, slaveIds) {
+        HomogeneousConstraint(model, Constraint::Type::RIGID, DOFS::ALL_DOFS, masterId, constraintGroup, slaveIds) {
 }
 
 shared_ptr<Constraint> RigidConstraint::clone() const {
@@ -220,7 +226,7 @@ shared_ptr<Constraint> RigidConstraint::clone() const {
 }
 
 RBE3::RBE3(Model& model, int masterId, const DOFS dofs, int original_id) :
-        HomogeneousConstraint(model, Constraint::RBE3, dofs, masterId, original_id) {
+        HomogeneousConstraint(model, Constraint::Type::RBE3, dofs, masterId, original_id) {
 }
 
 void RBE3::addSlave(int slaveId, DOFS slaveDOFS, double slaveCoef) {
@@ -263,19 +269,19 @@ const ValueOrReference& SinglePointConstraint::NO_SPC = ValueOrReference::EMPTY_
 
 SinglePointConstraint::SinglePointConstraint(const Model& _model,
         const array<ValueOrReference, 6>& _spcs, shared_ptr<Group> _group, int original_id) :
-        Constraint(_model, SPC, original_id), spcs(_spcs), group(_group) {
+        Constraint(_model, Constraint::Type::SPC, original_id), spcs(_spcs), group(_group) {
 }
 
 SinglePointConstraint::SinglePointConstraint(const Model& _model,
         const array<ValueOrReference, 3>& _spcs, shared_ptr<Group> _group, int original_id) :
-        Constraint(_model, SPC, original_id), spcs( { { NO_SPC, NO_SPC, NO_SPC, NO_SPC, NO_SPC,
+        Constraint(_model, Constraint::Type::SPC, original_id), spcs( { { NO_SPC, NO_SPC, NO_SPC, NO_SPC, NO_SPC,
                 NO_SPC } }), group(_group) {
     copy_n(_spcs.begin(), 3, spcs.begin());
 }
 
 SinglePointConstraint::SinglePointConstraint(const Model& _model, DOFS dofs, double value, shared_ptr<Group> _group,
         int original_id) :
-        Constraint(_model, SPC, original_id), spcs( { { NO_SPC, NO_SPC, NO_SPC, NO_SPC, NO_SPC,
+        Constraint(_model, Constraint::Type::SPC, original_id), spcs( { { NO_SPC, NO_SPC, NO_SPC, NO_SPC, NO_SPC,
                 NO_SPC } }), group(_group) {
     for (DOF dof : dofs) {
         setDOF(dof, value);
@@ -283,7 +289,7 @@ SinglePointConstraint::SinglePointConstraint(const Model& _model, DOFS dofs, dou
 }
 
 SinglePointConstraint::SinglePointConstraint(const Model& _model, shared_ptr<Group> _group, int original_id) :
-        Constraint(_model, SPC, original_id), group(_group) {
+        Constraint(_model, Constraint::Type::SPC, original_id), group(_group) {
 }
 
 void SinglePointConstraint::setDOF(const DOF& dof, const ValueOrReference& value) {
@@ -301,7 +307,7 @@ void SinglePointConstraint::addNodeId(int nodeId) {
     if (group == nullptr) {
         _nodePositions.insert(nodePosition);
     } else {
-        if (group->type == Group::NODEGROUP) {
+        if (group->type == Group::Type::NODEGROUP) {
             shared_ptr<NodeGroup> const ngroup = dynamic_pointer_cast<NodeGroup>(group);
             ngroup->addNodeByPosition(nodePosition);
         } else {
@@ -319,7 +325,7 @@ set<int> SinglePointConstraint::nodePositions() const {
     set<int> result;
     result.insert(_nodePositions.begin(), _nodePositions.end());
     if (group != nullptr) {
-        if (this->group->type == Group::NODEGROUP) {
+        if (this->group->type == Group::Type::NODEGROUP) {
             shared_ptr<NodeGroup> const ngroup = dynamic_pointer_cast<NodeGroup>(group);
             set<int> nodePositions = ngroup->nodePositions();
             result.insert(nodePositions.begin(), nodePositions.end());
@@ -335,7 +341,7 @@ void SinglePointConstraint::removeNode(int nodePosition) {
         _nodePositions.erase(nodePosition);
     }
     if (group != nullptr) {
-        if (group->type == Group::NODEGROUP) {
+        if (group->type == Group::Type::NODEGROUP) {
             shared_ptr<NodeGroup> const ngroup = dynamic_pointer_cast<NodeGroup>(group);
             ngroup->removeNodeByPosition(nodePosition);
         } else {
@@ -400,7 +406,7 @@ shared_ptr<Value> SinglePointConstraint::getReferenceForDOF(const DOF& dof) cons
 
 LinearMultiplePointConstraint::LinearMultiplePointConstraint(Model& model, double coef_impo,
         int original_id) :
-        Constraint(model, Constraint::LMPC, original_id), coef_impo(coef_impo) {
+        Constraint(model, Constraint::Type::LMPC, original_id), coef_impo(coef_impo) {
 }
 
 shared_ptr<Constraint> LinearMultiplePointConstraint::clone() const {
@@ -484,7 +490,7 @@ Contact::Contact(const Model& model, Type type, int original_id) :
 }
 
 Gap::Gap(Model& model, int original_id) :
-        Contact(model, Constraint::GAP, original_id) {
+        Contact(model, Constraint::Type::GAP, original_id) {
 }
 
 GapTwoNodes::GapTwoNodes(Model& model, int original_id) :
@@ -607,17 +613,17 @@ const DOFS GapNodeDirection::getDOFSForNode(int nodePosition) const {
 }
 
 SlideContact::SlideContact(Model& model, double friction, int original_id) :
-    Contact(model, Constraint::SLIDE, original_id), friction{friction} {
+    Contact(model, Constraint::Type::SLIDE, original_id), friction{friction} {
 }
 
 SlideContact::SlideContact(Model& model, Reference<NamedValue> friction, int original_id) :
-    Contact(model, Constraint::SLIDE, original_id), friction{friction} {
+    Contact(model, Constraint::Type::SLIDE, original_id), friction{friction} {
 }
 
 double SlideContact::getFriction() const {
     if (friction != ValueOrReference::EMPTY_VALUE) {
         if (friction.isReference()) {
-            const auto val = dynamic_pointer_cast<const FloatValue>(model.find(friction.getReference()));
+            const auto val = dynamic_pointer_cast<const ScalarValue<double>>(model.find(friction.getReference()));
             return val->number;
 
         } else {
@@ -661,8 +667,8 @@ const DOFS SlideContact::getDOFSForNode(int nodePosition) const {
     return DOFS::TRANSLATIONS;
 }
 
-SurfaceContact::SurfaceContact(Model& model, int original_id) :
-    Contact(model, Constraint::SURFACE_CONTACT, original_id) {
+SurfaceContact::SurfaceContact(Model& model, Reference<NamedValue> masterNodeIds, Reference<NamedValue> slaveNodeIds, int original_id) :
+    Contact(model, Constraint::Type::SURFACE_CONTACT, original_id), masterNodeIds(masterNodeIds), slaveNodeIds(slaveNodeIds) {
 }
 
 shared_ptr<Constraint> SurfaceContact::clone() const {
@@ -671,26 +677,32 @@ shared_ptr<Constraint> SurfaceContact::clone() const {
 
 set<int> SurfaceContact::nodePositions() const {
     set<int> result;
-    shared_ptr<Group> masterGroup = model.mesh->findGroup(masterNodeGroupId);
-    set<int> masterNodePositions = masterGroup->nodePositions();
-    result.insert(masterNodePositions.begin(), masterNodePositions.end());
-    shared_ptr<Group> slaveGroup = model.mesh->findGroup(slaveNodeGroupId);
-    set<int> slaveNodePositions = slaveGroup->nodePositions();
-    result.insert(slaveNodePositions.begin(), slaveNodePositions.end());
+    const auto& masterNodesList = dynamic_pointer_cast<ListValue<int>>(model.find(masterNodeIds));
+    if (masterNodesList== nullptr) {
+        throw logic_error("Cannot find master node list");
+    }
+    for (int nodeId : masterNodesList->getList()) {
+        result.insert(model.mesh->findNodePosition(nodeId));
+    }
+    const auto& slaveNodesList = dynamic_pointer_cast<ListValue<int>>(model.find(slaveNodeIds));
+    if (slaveNodesList== nullptr) {
+        throw logic_error("Cannot find slave node list");
+    }
+    for (int nodeId : slaveNodesList->getList()) {
+        result.insert(model.mesh->findNodePosition(nodeId));
+    }
     return result;
 }
 
 void SurfaceContact::removeNode(int nodePosition) {
-    shared_ptr<NodeGroup> masterGroup = dynamic_pointer_cast<NodeGroup>(model.mesh->findGroup(masterNodeGroupId));
-    masterGroup->removeNodeByPosition(nodePosition);
-    shared_ptr<NodeGroup> slaveGroup = dynamic_pointer_cast<NodeGroup>(model.mesh->findGroup(slaveNodeGroupId));
-    slaveGroup->removeNodeByPosition(nodePosition);
+    UNUSEDV(nodePosition);
+    throw logic_error("Not yet implemented");
 }
 
 bool SurfaceContact::ineffective() const {
-    shared_ptr<NodeGroup> masterGroup = dynamic_pointer_cast<NodeGroup>(model.mesh->findGroup(masterNodeGroupId));
-    shared_ptr<NodeGroup> slaveGroup = dynamic_pointer_cast<NodeGroup>(model.mesh->findGroup(slaveNodeGroupId));
-    return masterGroup->empty() or slaveGroup->empty();
+    const auto& masterNodesList = dynamic_pointer_cast<ListValue<int>>(model.find(masterNodeIds));
+    const auto& slaveNodesList = dynamic_pointer_cast<ListValue<int>>(model.find(slaveNodeIds));
+    return masterNodesList->empty() or slaveNodesList->empty();
 }
 
 const DOFS SurfaceContact::getDOFSForNode(int nodePosition) const {

@@ -40,7 +40,7 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
     friend std::ostream& operator<<(std::ostream&, const CoordinateSystem&);
     public:
     static constexpr int GLOBAL_COORDINATE_SYSTEM_ID = 0;
-    enum Type {
+    enum class Type {
         CARTESIAN,
         CYLINDRICAL,
         ORIENTATION,

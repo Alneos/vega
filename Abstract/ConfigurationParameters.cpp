@@ -41,7 +41,7 @@ ConfigurationParameters::ConfigurationParameters(string inputFile, Solver output
 const ModelConfiguration ConfigurationParameters::getModelConfiguration() const {
     ModelConfiguration configuration;
     configuration.logLevel = this->logLevel;
-    if (this->outputSolver.getSolverName() == CODE_ASTER) {
+    if (this->outputSolver.getSolverName() == SolverName::CODE_ASTER) {
         configuration.virtualDiscrets = true;
         configuration.createSkin = true;
         configuration.emulateLocalDisplacement = true;
@@ -53,7 +53,7 @@ const ModelConfiguration ConfigurationParameters::getModelConfiguration() const 
         configuration.addVirtualMaterial = true;
         configuration.makeBoundaryCells = true;
         configuration.autoDetectAnalysis = true;
-    } else if (this->outputSolver.getSolverName() == SYSTUS) {
+    } else if (this->outputSolver.getSolverName() == SolverName::SYSTUS) {
         configuration.createSkin = true;
         configuration.emulateAdditionalMass = true;
         configuration.replaceCombinedLoadSets = true;
@@ -66,7 +66,7 @@ const ModelConfiguration ConfigurationParameters::getModelConfiguration() const 
         configuration.makeCellsFromRBE = true;
         configuration.splitElementsByDOFS = true;
         configuration.autoDetectAnalysis = true;
-    } else if (this->outputSolver.getSolverName() == NASTRAN) {
+    } else if (this->outputSolver.getSolverName() == SolverName::NASTRAN) {
         // default should be always false
         configuration.autoDetectAnalysis = true;
     } else {
@@ -79,8 +79,8 @@ ConfigurationParameters::~ConfigurationParameters() {
 }
 
 const boost::bimap<SolverName, string> Solver::SOLVERNAME_BY_SOLVER = assign::list_of<
-        boost::bimap<SolverName, string>::relation>(NASTRAN, string("NASTRAN"))(CODE_ASTER,
-        string("ASTER"))(SYSTUS, string("SYSTUS"))(OPTISTRUCT, string("OPTISTRUCT"));
+        boost::bimap<SolverName, string>::relation>(SolverName::NASTRAN, string("NASTRAN"))(SolverName::CODE_ASTER,
+        string("ASTER"))(SolverName::SYSTUS, string("SYSTUS"))(SolverName::OPTISTRUCT, string("OPTISTRUCT"));
 
 ostream &operator<<(ostream &out, const Solver& solver) {
     out << Solver::SOLVERNAME_BY_SOLVER.left.find(solver.solverName)->second;

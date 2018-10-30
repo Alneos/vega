@@ -45,8 +45,8 @@ class Model;
  */
 class Value {
 public:
-    enum Type {
-        FLOAT,
+    enum class Type {
+        SCALAR,
         BAND_RANGE,
         STEP_RANGE,
         SPREAD_RANGE,
@@ -79,7 +79,7 @@ public:
  */
 class NamedValue: public Value, public Identifiable<NamedValue> {
 public:
-    enum ParaName {
+    enum class ParaName {
         NO_PARA_NAME,
         FREQ,
         INST,
@@ -96,8 +96,8 @@ public:
 protected:
     ParaName paraX;
     ParaName paraY;
-    NamedValue(const Model&, Type, int original_id = NO_ORIGINAL_ID, ParaName paraX = NO_PARA_NAME,
-            ParaName paraY = NO_PARA_NAME);
+    NamedValue(const Model&, Type, int original_id = NO_ORIGINAL_ID, ParaName paraX = ParaName::NO_PARA_NAME,
+            ParaName paraY = ParaName::NO_PARA_NAME);
 public:
     void setParaX(ParaName para) {
         paraX = para;
@@ -108,10 +108,10 @@ public:
     }
 
     bool hasParaX() const {
-        return paraX != NO_PARA_NAME;
+        return paraX != ParaName::NO_PARA_NAME;
     }
     bool hasParaY() const {
-        return paraY != NO_PARA_NAME;
+        return paraY != ParaName::NO_PARA_NAME;
     }
 
     ParaName getParaX() const {
@@ -136,7 +136,7 @@ public:
 class ValuePlaceHolder: public NamedValue {
 public:
     ValuePlaceHolder(const Model&, Type, int original_id, ParaName paraX, ParaName paraY =
-            NO_PARA_NAME);
+            ParaName::NO_PARA_NAME);
     bool isPlaceHolder() const {
         return true;
     }
@@ -151,23 +151,56 @@ public:
     }
 };
 
-class ListValue: public NamedValue {
-    std::list<double> alist;
+class ListValueBase: public NamedValue {
 public:
-    ListValue(const Model&, std::list<double> values, int original_id = NO_ORIGINAL_ID);
-    const std::list<double> getList() const;
-    std::shared_ptr<NamedValue> clone() const override;
-    virtual void scale(double factor) override;
-    virtual bool iszero() const override;
+    ListValueBase(const Model&, int original_id = NO_ORIGINAL_ID):
+        NamedValue(model, Value::Type::LIST, original_id) {
+    }
+    virtual bool isintegral() const = 0;
 };
 
-class FloatValue: public NamedValue {
+
+template<class T> class ListValue: public ListValueBase {
+    std::list<T> alist;
 public:
-    FloatValue(const Model&, double number, int original_id = NO_ORIGINAL_ID);
-    double number;
-    std::shared_ptr<NamedValue> clone() const override;
-    void scale(double factor) override;
-    bool iszero() const override;
+    ListValue(const Model&, std::list<T> values, int original_id = NO_ORIGINAL_ID):
+        ListValueBase(model, original_id), alist(values) {
+    }
+    const std::list<T> getList() const {
+        return alist;
+    }
+    bool empty() const {
+        return alist.size() == 0;
+    }
+    std::shared_ptr<NamedValue> clone() const override {
+        return std::make_shared<ListValue<T>>(*this);
+    }
+    void scale(double factor) override {
+        std::transform(alist.begin(), alist.end(), alist.begin(), [factor](T d) -> T { return static_cast<T>(d * factor); });
+    }
+    bool iszero() const override {
+        return alist.empty();
+    }
+    bool isintegral() const override {
+        return std::is_integral<T>::value;
+    }
+};
+
+template<class T> class ScalarValue: public NamedValue {
+public:
+    ScalarValue(const Model&, T number, int original_id = NO_ORIGINAL_ID) :
+        NamedValue(model, Value::Type::SCALAR, original_id), number(number) {
+    }
+    T number;
+    std::shared_ptr<NamedValue> clone() const override{
+        return std::make_shared<ScalarValue<T>>(*this);
+    }
+    void scale(T factor) override {
+        number *= factor;
+    }
+    bool iszero() const override {
+        return is_zero(number);
+    }
 };
 
 class ValueRange: public NamedValue {
@@ -241,7 +274,7 @@ class FunctionTable: public Function {
 protected:
     std::vector<std::pair<double, double> > valuesXY;
     public:
-    enum Interpolation {
+    enum class Interpolation {
         LINEAR,
         LOGARITHMIC,
         CONSTANT,
@@ -254,8 +287,8 @@ protected:
     const Interpolation right;
 
 public:
-    FunctionTable(const Model&, Interpolation parameter = LINEAR, Interpolation value = LINEAR,
-            Interpolation left = NONE, Interpolation right = NONE,
+    FunctionTable(const Model&, Interpolation parameter = Interpolation::LINEAR, Interpolation value = Interpolation::LINEAR,
+            Interpolation left = Interpolation::NONE, Interpolation right = Interpolation::NONE,
             int original_id = NO_ORIGINAL_ID);
     void setXY(const double X, const double Y);
     const std::vector<std::pair<double, double> >::const_iterator getBeginValuesXY() const;

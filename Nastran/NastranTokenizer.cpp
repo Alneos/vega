@@ -35,8 +35,8 @@ namespace nastran {
 NastranTokenizer::NastranTokenizer(istream& stream, vega::LogLevel logLevel, const string fileName,
 		const vega::ConfigurationParameters::TranslationMode translationMode) :
 		Tokenizer(stream, logLevel, fileName, translationMode),
-		currentField(0), currentSection(SECTION_EXECUTIVE) {
-	this->nextSymbolType = NastranTokenizer::SYMBOL_KEYWORD;
+		currentField(0), currentSection(SectionType::SECTION_EXECUTIVE) {
+	this->nextSymbolType = SymbolType::SYMBOL_KEYWORD;
 }
 
 NastranTokenizer::~NastranTokenizer() {
@@ -46,12 +46,12 @@ NastranTokenizer::LineType NastranTokenizer::getLineType(const string& line) {
 	const string beginning = line.substr(0, 8);
 	if (beginning.find(",") == string::npos) {
 		if (beginning.find("*") == string::npos) {
-			return SHORT_FORMAT;
+			return LineType::SHORT_FORMAT;
 		} else {
-			return LONG_FORMAT;
+			return LineType::LONG_FORMAT;
 		}
 	} else {
-		return FREE_FORMAT;
+		return LineType::FREE_FORMAT;
 	}
 }
 
@@ -83,18 +83,18 @@ void NastranTokenizer::replaceTabs(string& line, bool longFormat) {
 string NastranTokenizer::nextSymbolString() {
 
     if (this->currentField >= this->currentLineVector.size()){
-        this->nextSymbolType = SYMBOL_KEYWORD;
+        this->nextSymbolType = SymbolType::SYMBOL_KEYWORD;
         return "";
     }
 
     string result = boost::trim_right_copy(currentLineVector[currentField]);
-    if (this->nextSymbolType == SYMBOL_KEYWORD) {
+    if (this->nextSymbolType == SymbolType::SYMBOL_KEYWORD) {
         boost::to_upper(result);
     }
-    this->nextSymbolType = SYMBOL_FIELD;
+    this->nextSymbolType = SymbolType::SYMBOL_FIELD;
     this->currentField++;
     if (this->currentField >= this->currentLineVector.size()){
-        this->nextSymbolType = SYMBOL_KEYWORD;
+        this->nextSymbolType = SymbolType::SYMBOL_KEYWORD;
     }
 
     return result;
@@ -151,13 +151,13 @@ void NastranTokenizer::splitFreeFormat(string line, bool firstLine) {
 void NastranTokenizer::parseBulkSectionLine(string line) {
 	LineType lineType = getLineType(line);
 	switch (lineType) {
-	case LONG_FORMAT:
+	case LineType::LONG_FORMAT:
 		splitFixedFormat(line, true, true);
 		break;
-	case SHORT_FORMAT:
+	case LineType::SHORT_FORMAT:
 		splitFixedFormat(line, false, true);
 		break;
-	case FREE_FORMAT:
+	case LineType::FREE_FORMAT:
 		splitFreeFormat(line, true);
 		break;
 	default:
@@ -167,19 +167,19 @@ void NastranTokenizer::parseBulkSectionLine(string line) {
 }
 
 void NastranTokenizer::executiveControlSection() {
-	this->currentSection = SECTION_EXECUTIVE;
+	this->currentSection = SectionType::SECTION_EXECUTIVE;
 }
 
 
 void NastranTokenizer::bulkSection() {
-	this->currentSection = SECTION_BULK;
+	this->currentSection = SectionType::SECTION_BULK;
 //if not first line, read again the current line
 	if (currentLineVector.size() != 0) {
 		currentLineVector.clear();
 		//enough in 99% of lines
 		currentLineVector.reserve(64);
 		currentField = 0;
-		this->nextSymbolType = SYMBOL_KEYWORD;
+		this->nextSymbolType = SymbolType::SYMBOL_KEYWORD;
 		parseBulkSectionLine(this->currentLine);
 	}
 }
@@ -189,7 +189,7 @@ void NastranTokenizer::parseParameters() {
 }
 
 bool NastranTokenizer::isNextInt() {
-	if (nextSymbolType != NastranTokenizer::SYMBOL_FIELD) {
+	if (nextSymbolType != SymbolType::SYMBOL_FIELD) {
 		return false;
 	}
 	string curField = trim_copy(currentLineVector[currentField]);
@@ -197,7 +197,7 @@ bool NastranTokenizer::isNextInt() {
 }
 
 bool NastranTokenizer::isNextTHRU() {
-	if (nextSymbolType != NastranTokenizer::SYMBOL_FIELD) {
+	if (nextSymbolType != SymbolType::SYMBOL_FIELD) {
 		return false;
 	}
 	string curField = trim_copy(currentLineVector[currentField]);
@@ -206,7 +206,7 @@ bool NastranTokenizer::isNextTHRU() {
 }
 
 bool NastranTokenizer::isNextDouble() {
-	if (nextSymbolType != NastranTokenizer::SYMBOL_FIELD) {
+	if (nextSymbolType != SymbolType::SYMBOL_FIELD) {
 		return false;
 	}
 	string curField = trim_copy(currentLineVector[currentField]);
@@ -217,7 +217,7 @@ bool NastranTokenizer::isNextDouble() {
 bool NastranTokenizer::isNextEmpty(int n) {
     bool result = true;
     for(int i = 0; i < n; i++) {
-        if (nextSymbolType != NastranTokenizer::SYMBOL_FIELD) {
+        if (nextSymbolType != SymbolType::SYMBOL_FIELD) {
             result = false;
             break;
         }
@@ -228,9 +228,9 @@ bool NastranTokenizer::isNextEmpty(int n) {
 }
 
 bool NastranTokenizer::isEmptyUntilNextKeyword() {
-	if (nextSymbolType == NastranTokenizer::SYMBOL_KEYWORD) {
+	if (nextSymbolType == SymbolType::SYMBOL_KEYWORD) {
 		return true;
-	} else if (nextSymbolType == NastranTokenizer::SYMBOL_EOF) {
+	} else if (nextSymbolType == SymbolType::SYMBOL_EOF) {
 		return true;
 	}
 	bool result = true;
@@ -242,9 +242,9 @@ bool NastranTokenizer::isEmptyUntilNextKeyword() {
 }
 
 string NastranTokenizer::remainingTextUntilNextKeyword() {
-	if (nextSymbolType == NastranTokenizer::SYMBOL_KEYWORD) {
+	if (nextSymbolType == SymbolType::SYMBOL_KEYWORD) {
 		return "";
-	} else if (nextSymbolType == NastranTokenizer::SYMBOL_EOF) {
+	} else if (nextSymbolType == SymbolType::SYMBOL_EOF) {
 		return "";
 	}
     ostringstream oss;
@@ -267,19 +267,19 @@ void NastranTokenizer::nextLine() {
 	bool iseof = readLineSkipComment(this->currentLine);
 	if (!iseof) {
 		switch (currentSection) {
-		case SECTION_EXECUTIVE:
+		case SectionType::SECTION_EXECUTIVE:
 			boost::algorithm::trim(this->currentLine);
 			split(currentLineVector, this->currentLine, boost::is_any_of("\t\\= "), boost::algorithm::token_compress_on);
 			break;
-		case SECTION_BULK:
+		case SectionType::SECTION_BULK:
 			parseBulkSectionLine(this->currentLine);
 			break;
 		default:
             throw logic_error("Section type not (yet) handled");
 		}
-		this->nextSymbolType = SYMBOL_KEYWORD;
+		this->nextSymbolType = SymbolType::SYMBOL_KEYWORD;
 	} else {
-		this->nextSymbolType = SYMBOL_EOF;
+		this->nextSymbolType = SymbolType::SYMBOL_EOF;
 	}
 }
 
@@ -364,7 +364,7 @@ string NastranTokenizer::nextString(bool returnDefaultIfNotFoundOrBlank, string 
 }
 
 void NastranTokenizer::skip(int fields) {
-	if (this->nextSymbolType == SYMBOL_EOF) {
+	if (this->nextSymbolType == SymbolType::SYMBOL_EOF) {
 		throw "Attempt to read past the end of file. Line:" + this->lineNumber;
 	}
 
@@ -372,9 +372,9 @@ void NastranTokenizer::skip(int fields) {
 			this->currentField + fields);
 
 	if (this->currentField == this->currentLineVector.size()) {
-		this->nextSymbolType = SYMBOL_KEYWORD;
+		this->nextSymbolType = SymbolType::SYMBOL_KEYWORD;
 	} else {
-		this->nextSymbolType = SYMBOL_FIELD;
+		this->nextSymbolType = SymbolType::SYMBOL_FIELD;
 	}
 }
 
@@ -385,7 +385,7 @@ void NastranTokenizer::skipToNotEmpty() {
 
 void NastranTokenizer::skipToNextKeyword() {
     this->currentField= static_cast<int>(this->currentLineVector.size());
-    this->nextSymbolType = SYMBOL_KEYWORD;
+    this->nextSymbolType = SymbolType::SYMBOL_KEYWORD;
 }
 
 

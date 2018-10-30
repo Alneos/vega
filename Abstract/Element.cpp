@@ -38,25 +38,25 @@ ElementSet::ElementSet(Model& model, Type type, const ModelType* modelType, int 
 const string ElementSet::name = "ElementSet";
 
 const map<ElementSet::Type, string> ElementSet::stringByType = {
-        { DISCRETE_0D, "DISCRETE_0D" },
-        { DISCRETE_1D, "DISCRETE_1D" },
-        { NODAL_MASS, "NODAL_MASS" },
-        { CIRCULAR_SECTION_BEAM, "CIRCULAR_SECTION_BEAM" },
-        { RECTANGULAR_SECTION_BEAM, "RECTANGULAR_SECTION_BEAM" },
-        { I_SECTION_BEAM, "I_SECTION_BEAM" },
-        { GENERIC_SECTION_BEAM, "GENERIC_SECTION_BEAM" },
-        { STRUCTURAL_SEGMENT, "STRUCTURAL_SEGMENT" },
-        { SHELL, "SHELL" },
-        { COMPOSITE, "COMPOSITE" },
-        { CONTINUUM, "CONTINUUM" },
-        { STIFFNESS_MATRIX, "STIFFNESS_MATRIX" },
-        { MASS_MATRIX, "MASS_MATRIX" },
-        { DAMPING_MATRIX, "DAMPING_MATRIX" },
-        { RBAR, "RBAR"},
-        { RBE3, "RBE3"},
-        { LMPC, "LMPC"},
-        { SCALAR_SPRING, "SCALAR_SPRING"},
-        { UNKNOWN, "UNKNOWN" },
+        { ElementSet::Type::DISCRETE_0D, "DISCRETE_0D" },
+        { ElementSet::Type::DISCRETE_1D, "DISCRETE_1D" },
+        { ElementSet::Type::NODAL_MASS, "NODAL_MASS" },
+        { ElementSet::Type::CIRCULAR_SECTION_BEAM, "CIRCULAR_SECTION_BEAM" },
+        { ElementSet::Type::RECTANGULAR_SECTION_BEAM, "RECTANGULAR_SECTION_BEAM" },
+        { ElementSet::Type::I_SECTION_BEAM, "I_SECTION_BEAM" },
+        { ElementSet::Type::GENERIC_SECTION_BEAM, "GENERIC_SECTION_BEAM" },
+        { ElementSet::Type::STRUCTURAL_SEGMENT, "STRUCTURAL_SEGMENT" },
+        { ElementSet::Type::SHELL, "SHELL" },
+        { ElementSet::Type::COMPOSITE, "COMPOSITE" },
+        { ElementSet::Type::CONTINUUM, "CONTINUUM" },
+        { ElementSet::Type::STIFFNESS_MATRIX, "STIFFNESS_MATRIX" },
+        { ElementSet::Type::MASS_MATRIX, "MASS_MATRIX" },
+        { ElementSet::Type::DAMPING_MATRIX, "DAMPING_MATRIX" },
+        { ElementSet::Type::RBAR, "RBAR"},
+        { ElementSet::Type::RBE3, "RBE3"},
+        { ElementSet::Type::LMPC, "LMPC"},
+        { ElementSet::Type::SCALAR_SPRING, "SCALAR_SPRING"},
+        { ElementSet::Type::UNKNOWN, "UNKNOWN" },
 };
 
 ostream &operator<<(ostream &out, const ElementSet& elementSet) {
@@ -93,7 +93,7 @@ bool ElementSet::validate() const {
 }
 
 Continuum::Continuum(Model& model, const ModelType* modelType, int original_id) :
-		ElementSet(model, CONTINUUM, modelType, original_id) {
+		ElementSet(model, ElementSet::Type::CONTINUUM, modelType, original_id) {
 
 }
 
@@ -141,7 +141,7 @@ const VectorialValue RecoveryPoint::getGlobalCoords(const int cellId) const {
 
 CircularSectionBeam::CircularSectionBeam(Model& model, double _radius, BeamModel beamModel,
 		double additional_mass, int original_id) :
-		Beam(model, CIRCULAR_SECTION_BEAM, nullptr, beamModel, additional_mass, original_id), radius(
+		Beam(model, ElementSet::Type::CIRCULAR_SECTION_BEAM, nullptr, beamModel, additional_mass, original_id), radius(
 				_radius) {
 }
 
@@ -176,7 +176,7 @@ double CircularSectionBeam::getShearAreaFactorZ() const {
 
 RectangularSectionBeam::RectangularSectionBeam(Model& model, double _width, double _height,
 		BeamModel beamModel, double additional_mass, int original_id) :
-		Beam(model, RECTANGULAR_SECTION_BEAM, nullptr, beamModel, additional_mass, original_id), width(_width), height(
+		Beam(model, ElementSet::Type::RECTANGULAR_SECTION_BEAM, nullptr, beamModel, additional_mass, original_id), width(_width), height(
 				_height) {
 
 }
@@ -220,7 +220,7 @@ GenericSectionBeam::GenericSectionBeam(Model& model, double area_cross_section,
 		double moment_of_inertia_Y, double moment_of_inertia_Z, double torsional_constant,
 		double shear_area_factor_Y, double shear_area_factor_Z, BeamModel beamModel,
 		double additional_mass, int original_id) :
-		Beam(model, GENERIC_SECTION_BEAM, nullptr, beamModel, additional_mass, original_id), area_cross_section(
+		Beam(model, ElementSet::Type::GENERIC_SECTION_BEAM, nullptr, beamModel, additional_mass, original_id), area_cross_section(
 				area_cross_section), moment_of_inertia_Y(moment_of_inertia_Y), moment_of_inertia_Z(
 				moment_of_inertia_Z), torsional_constant(torsional_constant), shear_area_factor_Y(
 				shear_area_factor_Y), shear_area_factor_Z(shear_area_factor_Z) {
@@ -259,7 +259,7 @@ double GenericSectionBeam::getInvShearAreaFactorZ() const {
 
 
 Shell::Shell(Model& model, double thickness, double additional_mass, int original_id) :
-		ElementSet(model, ElementSet::SHELL, nullptr, original_id), thickness(thickness), additional_mass(
+		ElementSet(model, ElementSet::Type::SHELL, nullptr, original_id), thickness(thickness), additional_mass(
 				additional_mass) {
 }
 
@@ -273,7 +273,7 @@ CompositeLayer::CompositeLayer(int materialId, double thickness, double orientat
 }
 
 Composite::Composite(Model& model, int original_id) :
-		ElementSet(model, ElementSet::COMPOSITE, nullptr, original_id) {
+		ElementSet(model, ElementSet::Type::COMPOSITE, nullptr, original_id) {
 }
 
 void Composite::addLayer(int materialId, double thickness, double orientation) {
@@ -313,7 +313,7 @@ const DOFS Discrete::getDOFSForNode(const int nodePosition) const {
 
 DiscretePoint::DiscretePoint(Model& model, vector<double> coefficients, bool symmetric,
 		int original_id) :
-		Discrete(model, ElementSet::DISCRETE_0D, symmetric, original_id), stiffness(
+		Discrete(model, ElementSet::Type::DISCRETE_0D, symmetric, original_id), stiffness(
 				symmetric), mass(symmetric), damping(symmetric) {
 	// LD TODO : remove this vector parameter
 	for (int i = 0; i < 6 && i < static_cast<int>(coefficients.size()); i++) {
@@ -324,7 +324,7 @@ DiscretePoint::DiscretePoint(Model& model, vector<double> coefficients, bool sym
 DiscretePoint::DiscretePoint(Model& model, double x, double y, double z, double rx, double ry,
 		double rz, bool symmetric,
 		int original_id) :
-		Discrete(model, ElementSet::DISCRETE_0D, symmetric, original_id), stiffness(
+		Discrete(model, ElementSet::Type::DISCRETE_0D, symmetric, original_id), stiffness(
 				symmetric), mass(
 				symmetric), damping(symmetric) {
 	// LD TODO : remove this method
@@ -407,7 +407,7 @@ void DiscretePoint::addStiffness(DOF rowdof, DOF coldof, double value) {
 }
 
 DiscreteSegment::DiscreteSegment(Model& model, bool symmetric, int original_id) :
-		Discrete(model, ElementSet::DISCRETE_1D, symmetric, original_id) {
+		Discrete(model, ElementSet::Type::DISCRETE_1D, symmetric, original_id) {
 	for (int i = 0; i < 2; i++){
 		for (int j = 0; j < 2; j++){
 			stiffness[i][j] = symmetric;
@@ -504,7 +504,7 @@ const vector<double> DiscreteSegment::asStiffnessVector(bool addRotationsIfNotPr
 
 
 StructuralSegment::StructuralSegment(Model& model, bool symmetric, int original_id) :
-				Discrete(model, ElementSet::STRUCTURAL_SEGMENT, symmetric, original_id) {
+				Discrete(model, ElementSet::Type::STRUCTURAL_SEGMENT, symmetric, original_id) {
 	this->stiffness = symmetric;
 	this->mass = symmetric;
 	this->damping = symmetric;
@@ -633,13 +633,13 @@ std::shared_ptr<ElementSet> StructuralSegment::clone() const{
 
 NodalMass::NodalMass(Model& model, double m, double ixx, double iyy, double izz, double ixy,
 		double iyz, double ixz, double ex, double ey, double ez, int original_id) :
-		ElementSet(model, NODAL_MASS, nullptr, original_id), m(m), ixx(ixx), iyy(iyy), izz(izz), ixy(
+		ElementSet(model, ElementSet::Type::NODAL_MASS, nullptr, original_id), m(m), ixx(ixx), iyy(iyy), izz(izz), ixy(
 				ixy), iyz(iyz), ixz(ixz), ex(ex), ey(ey), ez(ez) {
 }
 
 double NodalMass::getMass() const {
 	double mass_multiplier = 1;
-	auto it = model.parameters.find(Model::MASS_OVER_FORCE_MULTIPLIER);
+	auto it = model.parameters.find(Model::Parameter::MASS_OVER_FORCE_MULTIPLIER);
 	if (it != model.parameters.end()) {
 		mass_multiplier = it->second;
 		assert(!is_zero(it->second));
@@ -662,7 +662,7 @@ NodalMass::~NodalMass() {
 ISectionBeam::ISectionBeam(Model& model, double upper_flange_width_p, double lower_flange_width,
 		double upper_flange_thickness_p, double lower_flange_thickness, double beam_height,
 		double web_thickness, BeamModel beamModel, double additional_mass, int original_id) :
-		Beam(model, I_SECTION_BEAM, nullptr, beamModel, additional_mass, original_id), upper_flange_width(
+		Beam(model, ElementSet::Type::I_SECTION_BEAM, nullptr, beamModel, additional_mass, original_id), upper_flange_width(
 				upper_flange_width_p), lower_flange_width(lower_flange_width), upper_flange_thickness(
 				upper_flange_thickness_p), lower_flange_thickness(lower_flange_thickness), beam_height(
 				beam_height), web_thickness(web_thickness) {
@@ -823,7 +823,7 @@ const std::set<std::pair<int, int>> MatrixElement::findInPairs(int nodePosition)
 }
 
 StiffnessMatrix::StiffnessMatrix(Model& model, int original_id) :
-		MatrixElement(model, STIFFNESS_MATRIX, true, original_id) {
+		MatrixElement(model, ElementSet::Type::STIFFNESS_MATRIX, true, original_id) {
 }
 
 void StiffnessMatrix::addStiffness(const int nodeid1, const DOF dof1, const int nodeid2,
@@ -834,11 +834,11 @@ void StiffnessMatrix::addStiffness(const int nodeid1, const DOF dof1, const int 
 }
 
 MassMatrix::MassMatrix(Model& model, int original_id) :
-		MatrixElement(model, MASS_MATRIX, true, original_id) {
+		MatrixElement(model, ElementSet::Type::MASS_MATRIX, true, original_id) {
 }
 
 DampingMatrix::DampingMatrix(Model& model, int original_id) :
-		MatrixElement(model, DAMPING_MATRIX, true, original_id) {
+		MatrixElement(model, ElementSet::Type::DAMPING_MATRIX, true, original_id) {
 }
 
 void DampingMatrix::addDamping(const int nodeid1, const DOF dof1, const int nodeid2,
@@ -860,7 +860,7 @@ const DOFS RigidSet::getDOFSForNode(const int nodePosition) const {
 }
 
 Rbar::Rbar(Model& model, int master_id, int original_id) :
-                RigidSet(model, RBAR, master_id, original_id){
+                RigidSet(model, ElementSet::Type::RBAR, master_id, original_id){
 }
 
 shared_ptr<ElementSet> Rbar::clone() const {
@@ -868,7 +868,7 @@ shared_ptr<ElementSet> Rbar::clone() const {
 }
 
 Rbe3::Rbe3(Model& model, int master_id, DOFS mdofs, DOFS sdofs, int original_id) :
-                RigidSet(model, RBE3, master_id, original_id),
+                RigidSet(model, ElementSet::Type::RBE3, master_id, original_id),
                 mdofs(mdofs), sdofs(sdofs){
 }
 
@@ -877,7 +877,7 @@ shared_ptr<ElementSet> Rbe3::clone() const {
 }
 
 Lmpc::Lmpc(Model& model, int analysisId, int original_id) :
-                RigidSet(model, LMPC, Globals::UNAVAILABLE_INT, original_id),
+                RigidSet(model, ElementSet::Type::LMPC, Globals::UNAVAILABLE_INT, original_id),
 analysisId(analysisId){
 }
 
@@ -891,7 +891,7 @@ void Lmpc::assignDofCoefs(std::vector<DOFCoefs> dofCoefs) {
 
 // ScalarSpring Methods
 ScalarSpring::ScalarSpring(Model& model, int original_id, double stiffness, double damping) :
-                Discrete(model, ElementSet::SCALAR_SPRING, true, original_id), stiffness(stiffness),
+                Discrete(model, ElementSet::Type::SCALAR_SPRING, true, original_id), stiffness(stiffness),
                 damping(damping){
 }
 

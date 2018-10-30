@@ -148,22 +148,22 @@ void NastranWriter::writeSOL(const shared_ptr<vega::Model>& model, ofstream& out
 		{
 	auto& firstAnalysis = *model->analyses.begin();
 	switch (firstAnalysis->type) {
-	case (Analysis::LINEAR_MECA_STAT):
+	case (Analysis::Type::LINEAR_MECA_STAT):
 		{
 		out << "SOL 101" << endl;
 		break;
 	}
-	case (Analysis::LINEAR_MODAL):
+	case (Analysis::Type::LINEAR_MODAL):
 		{
 		out << "SOL 103" << endl;
 		break;
 	}
-	case (Analysis::LINEAR_DYNA_MODAL_FREQ):
+	case (Analysis::Type::LINEAR_DYNA_MODAL_FREQ):
 		{
 		out << "SOL 111" << endl;
 		break;
 	}
-	case (Analysis::NONLINEAR_MECA_STAT):
+	case (Analysis::Type::NONLINEAR_MECA_STAT):
 		{
 		out << "SOL 106" << endl;
 		break;
@@ -187,30 +187,30 @@ void NastranWriter::writeCells(const shared_ptr<vega::Model>& model, ofstream& o
 			} else
 			if (elementSet->isShell()) {
 				switch (cell.type.code) {
-				case CellType::TRI3_CODE:
+				case CellType::Code::TRI3_CODE:
 					keyword = "CTRIA3";
 					break;
-				case CellType::TRI6_CODE:
+				case CellType::Code::TRI6_CODE:
 					keyword = "CTRIA6";
 					break;
-				case CellType::QUAD4_CODE:
+				case CellType::Code::QUAD4_CODE:
 					keyword = "CQUAD4";
 					break;
-				case CellType::QUAD8_CODE:
+				case CellType::Code::QUAD8_CODE:
 					keyword = "CQUAD8";
 					break;
 				default:
 					throw logic_error("Unimplemented type");
 				}
 			} else
-			if (elementSet->type == ElementSet::CONTINUUM) {
+			if (elementSet->type == ElementSet::Type::CONTINUUM) {
 				switch (cell.type.code) {
-				case CellType::HEXA8_CODE:
-					case CellType::HEXA20_CODE:
+				case CellType::Code::HEXA8_CODE:
+                case CellType::Code::HEXA20_CODE:
 					keyword = "CHEXA";
 					break;
-				case CellType::TETRA4_CODE:
-					case CellType::TETRA10_CODE:
+				case CellType::Code::TETRA4_CODE:
+                case CellType::Code::TETRA10_CODE:
 					keyword = "CTETRA";
 					break;
 				default:
@@ -239,7 +239,7 @@ void NastranWriter::writeMaterials(const shared_ptr<vega::Model>& model, ofstrea
 	for (const auto& material : model->materials) {
 		Line mat1("MAT1");
 		mat1.add(material->bestId());
-		const shared_ptr<Nature> enature = material->findNature(Nature::NATURE_ELASTIC);
+		const shared_ptr<Nature> enature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
 		if (enature) {
 			const ElasticNature& elasticNature = dynamic_cast<ElasticNature&>(*enature);
 			mat1.add(elasticNature.getE());
@@ -258,10 +258,10 @@ void NastranWriter::writeConstraints(const shared_ptr<vega::Model>& model, ofstr
 		{
 	for (const auto& constraintSet : model->constraintSets) {
 		const set<shared_ptr<Constraint> >& spcs = constraintSet->getConstraintsByType(
-				Constraint::SPC);
+				Constraint::Type::SPC);
 		if (spcs.size() > 0) {
 			for (shared_ptr<Constraint> constraint : spcs) {
-				shared_ptr<const SinglePointConstraint> spc = static_pointer_cast<
+				shared_ptr<const SinglePointConstraint> spc = dynamic_pointer_cast<
 						const SinglePointConstraint>(constraint);
 				for (int nodePosition : spc->nodePositions()) {
 					const int nodeId = model->mesh->findNodeId(nodePosition);
@@ -272,11 +272,11 @@ void NastranWriter::writeConstraints(const shared_ptr<vega::Model>& model, ofstr
 			}
 		}
 		const set<shared_ptr<Constraint> >& rigidConstraints = constraintSet->getConstraintsByType(
-				Constraint::RIGID);
+				Constraint::Type::RIGID);
 		if (rigidConstraints.size() > 0) {
 			for (shared_ptr<Constraint> constraint : rigidConstraints) {
 				shared_ptr<const RigidConstraint> rigid =
-						static_pointer_cast<const RigidConstraint>(constraint);
+						dynamic_pointer_cast<const RigidConstraint>(constraint);
 				Line rbe2("RBE2");
 				rbe2.add(constraintSet->bestId());
 				const int masterId = model->mesh->findNodeId(rigid->getMaster());
@@ -295,10 +295,10 @@ void NastranWriter::writeConstraints(const shared_ptr<vega::Model>& model, ofstr
 void NastranWriter::writeLoadings(const shared_ptr<vega::Model>& model, ofstream& out) const
 		{
 	for (const auto& loadingSet : model->loadSets) {
-		const set<shared_ptr<Loading> > gravities = loadingSet->getLoadingsByType(Loading::GRAVITY);
+		const set<shared_ptr<Loading> > gravities = loadingSet->getLoadingsByType(Loading::Type::GRAVITY);
 		if (gravities.size() > 0) {
 			for (shared_ptr<Loading> loading : gravities) {
-				shared_ptr<const Gravity> gravity = static_pointer_cast<const Gravity>(loading);
+				shared_ptr<const Gravity> gravity = dynamic_pointer_cast<const Gravity>(loading);
 				Line grav("GRAV");
 				grav.add(loadingSet->bestId());
 				if (gravity->hasCoordinateSystem()) {
@@ -313,10 +313,10 @@ void NastranWriter::writeLoadings(const shared_ptr<vega::Model>& model, ofstream
 		}
 
 		const set<shared_ptr<Loading> > forceSurfaces = loadingSet->getLoadingsByType(
-				Loading::FORCE_SURFACE);
+				Loading::Type::FORCE_SURFACE);
 		if (forceSurfaces.size() > 0) {
 			for (shared_ptr<Loading> loading : forceSurfaces) {
-				shared_ptr<ForceSurface> forceSurface = static_pointer_cast<ForceSurface>(loading);
+				shared_ptr<ForceSurface> forceSurface = dynamic_pointer_cast<ForceSurface>(loading);
 				Line pload4("PLOAD4");
 				pload4.add(loadingSet->bestId());
 				vector<Cell> cells = forceSurface->getCells();
@@ -367,13 +367,13 @@ void NastranWriter::writeElements(const shared_ptr<vega::Model>& model, ofstream
 		pbeam.add(beam->getTorsionalConstant());
 		out << pbeam;
 	}
-	for (shared_ptr<ElementSet> shell : model->elementSets.filter(ElementSet::SHELL)) {
+	for (shared_ptr<ElementSet> shell : model->elementSets.filter(ElementSet::Type::SHELL)) {
 		Line pshell("PSHELL");
 		pshell.add(shell->bestId());
 		pshell.add(shell->material->bestId());
 		out << pshell;
 	}
-	for (shared_ptr<ElementSet> continuum : model->elementSets.filter(ElementSet::CONTINUUM)) {
+	for (shared_ptr<ElementSet> continuum : model->elementSets.filter(ElementSet::Type::CONTINUUM)) {
 		Line psolid("PSOLID");
 		psolid.add(continuum->bestId());
 		psolid.add(continuum->material->bestId());
@@ -420,19 +420,19 @@ string NastranWriter::writeModel(const shared_ptr<vega::Model> model,
 	for (auto& coordinateSystemEntry : model->mesh->coordinateSystemStorage.coordinateSystemById) {
     shared_ptr<CoordinateSystem> coordinateSystem = coordinateSystemEntry.second;
 		switch (coordinateSystem->type) {
-			case CoordinateSystem::CARTESIAN:
+			case CoordinateSystem::Type::CARTESIAN:
 				// TODO LD complete
 				out << Line("CORD2R").add(coordinateSystem->bestId()).add(coordinateSystem->getOrigin());
 				break;
-			case CoordinateSystem::SPHERICAL:
+			case CoordinateSystem::Type::SPHERICAL:
 				// TODO LD complete
 				out << Line("CORD2S").add(coordinateSystem->bestId()).add(coordinateSystem->getOrigin());
 				break;
-			case CoordinateSystem::CYLINDRICAL:
+			case CoordinateSystem::Type::CYLINDRICAL:
 				// TODO LD complete
 				out << Line("CORD2C").add(coordinateSystem->bestId()).add(coordinateSystem->getOrigin());
 				break;
-			case CoordinateSystem::ORIENTATION:
+			case CoordinateSystem::Type::ORIENTATION:
 				// Nothing to do here: it will be handled by CBEAM, CBAR etc.
 				break;
 			default:

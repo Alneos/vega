@@ -35,11 +35,11 @@ Objective::Objective(const Model& model, Objective::Type type, int original_id) 
 const string Objective::name = "Objective";
 
 const map<Objective::Type, string> Objective::stringByType = {
-        { NODAL_DISPLACEMENT_ASSERTION, "NODAL_DISPLACEMENT_ASSERTION" },
-        { FREQUENCY_ASSERTION, "FREQUENCY_ASSERTION" },
-        { FREQUENCY_TARGET, "FREQUENCY_TARGET" },
-        { MODAL_DAMPING, "MODAL_DAMPING" },
-        { NONLINEAR_STRATEGY, "NONLINEAR_STRATEGY" }
+        { Objective::Type::NODAL_DISPLACEMENT_ASSERTION, "NODAL_DISPLACEMENT_ASSERTION" },
+        { Objective::Type::FREQUENCY_ASSERTION, "FREQUENCY_ASSERTION" },
+        { Objective::Type::FREQUENCY_TARGET, "FREQUENCY_TARGET" },
+        { Objective::Type::MODAL_DAMPING, "MODAL_DAMPING" },
+        { Objective::Type::NONLINEAR_STRATEGY, "NONLINEAR_STRATEGY" }
 };
 
 ostream &operator<<(ostream &out, const Objective& objective) {
@@ -68,7 +68,7 @@ set<int> NodalAssertion::nodePositions() const {
 
 NodalDisplacementAssertion::NodalDisplacementAssertion(const Model& model, double tolerance,
         int nodeId, DOF dof, double value, double instant, int original_id) :
-        NodalAssertion(model, NODAL_DISPLACEMENT_ASSERTION, tolerance, nodeId, dof,
+        NodalAssertion(model, Objective::Type::NODAL_DISPLACEMENT_ASSERTION, tolerance, nodeId, dof,
                 original_id), value(value), instant(instant) {
 }
 
@@ -81,7 +81,7 @@ ostream &operator<<(ostream &out, const NodalDisplacementAssertion& objective) {
 NodalComplexDisplacementAssertion::NodalComplexDisplacementAssertion(const Model& model,
         double tolerance, int nodeId, DOF dof, complex<double> value, double frequency,
         int original_id) :
-        NodalAssertion(model, NODAL_COMPLEX_DISPLACEMENT_ASSERTION, tolerance, nodeId, dof,
+        NodalAssertion(model, Objective::Type::NODAL_COMPLEX_DISPLACEMENT_ASSERTION, tolerance, nodeId, dof,
                 original_id), value(value), frequency(frequency) {
 }
 
@@ -93,7 +93,7 @@ ostream &operator<<(ostream &out, const NodalComplexDisplacementAssertion& objec
 
 FrequencyAssertion::FrequencyAssertion(const Model& model, int number, double value,
         double tolerance, int original_id) :
-        Assertion(model, FREQUENCY_ASSERTION, tolerance, original_id), number(number), value(value) {
+        Assertion(model, Objective::Type::FREQUENCY_ASSERTION, tolerance, original_id), number(number), value(value) {
 }
 
 const DOFS FrequencyAssertion::getDOFSForNode(const int nodePosition) const {
@@ -113,7 +113,7 @@ AnalysisParameter::AnalysisParameter(const Model& model, Type type, int original
 }
 
 FrequencyTarget::FrequencyTarget(const Model& model, const FrequencyType frequencyType, const NamedValue& namedValue, NormType norm, int original_id) :
-        AnalysisParameter(model, FREQUENCY_TARGET, original_id), namedValue(namedValue), frequencyType(frequencyType), norm(norm) {
+        AnalysisParameter(model, Objective::Type::FREQUENCY_TARGET, original_id), namedValue(namedValue), frequencyType(frequencyType), norm(norm) {
 }
 
 const shared_ptr<NamedValue> FrequencyTarget::getValue() const {
@@ -121,7 +121,7 @@ const shared_ptr<NamedValue> FrequencyTarget::getValue() const {
 }
 
 const ValuePlaceHolder FrequencyTarget::getValueRangePlaceHolder() const {
-    return ValuePlaceHolder(model, namedValue.type, namedValue.original_id, NamedValue::FREQ);
+    return ValuePlaceHolder(model, namedValue.type, namedValue.original_id, NamedValue::ParaName::FREQ);
 }
 
 shared_ptr<Objective> FrequencyTarget::clone() const {
@@ -129,12 +129,12 @@ shared_ptr<Objective> FrequencyTarget::clone() const {
 }
 
 ModalDamping::ModalDamping(const Model& model, const FunctionTable& function_table, int original_id) :
-        AnalysisParameter(model, MODAL_DAMPING, original_id), function_table(NamedValue::FUNCTION_TABLE,
+        AnalysisParameter(model, Objective::Type::MODAL_DAMPING, original_id), function_table(Value::Type::FUNCTION_TABLE,
                 Reference<NamedValue>::NO_ID, function_table.getId()) {
 }
 
 ModalDamping::ModalDamping(const Model& model, int function_table_original_id, int original_id) :
-        AnalysisParameter(model, MODAL_DAMPING, original_id), function_table(NamedValue::FUNCTION_TABLE,
+        AnalysisParameter(model, Objective::Type::MODAL_DAMPING, original_id), function_table(Value::Type::FUNCTION_TABLE,
                 function_table_original_id) {
 }
 
@@ -143,7 +143,7 @@ const shared_ptr<FunctionTable> ModalDamping::getFunctionTable() const {
 }
 
 const ValuePlaceHolder ModalDamping::getFunctionTablePlaceHolder() const {
-    return ValuePlaceHolder(model, function_table.type, function_table.original_id, NamedValue::FREQ);
+    return ValuePlaceHolder(model, function_table.type, function_table.original_id, NamedValue::ParaName::FREQ);
 }
 
 shared_ptr<Objective> ModalDamping::clone() const {
@@ -151,7 +151,7 @@ shared_ptr<Objective> ModalDamping::clone() const {
 }
 
 NonLinearStrategy::NonLinearStrategy(const Model& model, int number_of_increments, int original_id) :
-        AnalysisParameter(model, NONLINEAR_STRATEGY, original_id), number_of_increments(
+        AnalysisParameter(model, Objective::Type::NONLINEAR_STRATEGY, original_id), number_of_increments(
                 number_of_increments) {
 }
 

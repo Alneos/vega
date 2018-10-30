@@ -50,7 +50,7 @@ class Tokenizer {
 protected:
 	Tokenizer(std::istream& stream, vega::LogLevel logLevel = vega::LogLevel::INFO,
 			const std::string fileName = "UNKNOWN",
-			const vega::ConfigurationParameters::TranslationMode translationMode = vega::ConfigurationParameters::BEST_EFFORT);
+			const vega::ConfigurationParameters::TranslationMode translationMode = vega::ConfigurationParameters::TranslationMode::BEST_EFFORT);
 	std::istream& instrream;
 	vega::LogLevel logLevel;
 	std::string fileName;    /**< Current fileName: only used for printout and error managment. **/
@@ -137,7 +137,7 @@ private:
 	 */
 	virtual const std::string toString() const = 0;
 public:
-	ConfigurationParameters::TranslationMode translationMode = ConfigurationParameters::BEST_EFFORT;
+	ConfigurationParameters::TranslationMode translationMode = ConfigurationParameters::TranslationMode::BEST_EFFORT;
 	/**
 	 * Write a model to the disk.
 	 *
@@ -165,7 +165,7 @@ public:
 
 class Runner {
 public:
-	enum ExitCode {
+	enum class ExitCode {
 		OK = 0,
 		SOLVER_NOT_FOUND = 100,
 		TRANSLATION_SYNTAX_ERROR = 101,

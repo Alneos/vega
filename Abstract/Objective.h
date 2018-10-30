@@ -41,7 +41,7 @@ class Objective: public Identifiable<Objective> {
 private:
     friend std::ostream &operator<<(std::ostream &out, const Objective&);    //output
 public:
-    enum Type {
+    enum class Type {
         NODAL_DISPLACEMENT_ASSERTION,
         NODAL_COMPLEX_DISPLACEMENT_ASSERTION,
         FREQUENCY_ASSERTION,
@@ -136,14 +136,14 @@ protected:
     Reference<NamedValue> namedValue;
 public:
 
-    enum FrequencyType {
+    enum class FrequencyType {
         BAND,
         STEP,
         LIST,
         SPREAD
     };
 
-    enum NormType {
+    enum class NormType {
         MASS,
         MAX
     };

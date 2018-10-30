@@ -63,46 +63,46 @@ SystusWriter::SystusWriter() {
 SystusWriter::~SystusWriter() {
 }
 
-const unordered_map<CellType::Code, vector<int>, hash<int>> SystusWriter::systus2medNodeConnectByCellType =
+const unordered_map<CellType::Code, vector<int>, EnumClassHash> SystusWriter::systus2medNodeConnectByCellType =
 {
-        { CellType::POINT1_CODE, { 0 } },
-        { CellType::SEG2_CODE, { 0, 1 } },
-        { CellType::SEG3_CODE, { 0, 2, 1 } },
-        { CellType::TRI3_CODE, { 0, 2, 1 } },
-        { CellType::TRI6_CODE, { 0, 5, 2, 4, 1, 3 } },
-        { CellType::QUAD4_CODE, { 0, 3, 2, 1 } },
-        { CellType::QUAD8_CODE, { 0, 7, 3, 6, 2, 5, 1, 4 } },
-        { CellType::TETRA4_CODE, { 0, 2, 1, 3 } },
-        { CellType::TETRA10_CODE, { 0, 6, 2, 5, 1, 4, 7, 9, 8, 3 } },
-        { CellType::PENTA6_CODE, { 0, 2, 1, 3, 5, 4 } },
-        { CellType::PENTA15_CODE, { 0, 8, 2, 7, 1, 6, 12, 14, 13, 3, 11, 5, 10, 4, 9 } },
-        { CellType::HEXA8_CODE, { 0, 3, 2, 1, 4, 7, 6, 5 } },
-        { CellType::HEXA20_CODE, { 0, 11, 3, 10, 2, 9, 1, 8, 16, 19, 18, 17, 4, 15, 7, 14,
+        { CellType::Code::POINT1_CODE, { 0 } },
+        { CellType::Code::SEG2_CODE, { 0, 1 } },
+        { CellType::Code::SEG3_CODE, { 0, 2, 1 } },
+        { CellType::Code::TRI3_CODE, { 0, 2, 1 } },
+        { CellType::Code::TRI6_CODE, { 0, 5, 2, 4, 1, 3 } },
+        { CellType::Code::QUAD4_CODE, { 0, 3, 2, 1 } },
+        { CellType::Code::QUAD8_CODE, { 0, 7, 3, 6, 2, 5, 1, 4 } },
+        { CellType::Code::TETRA4_CODE, { 0, 2, 1, 3 } },
+        { CellType::Code::TETRA10_CODE, { 0, 6, 2, 5, 1, 4, 7, 9, 8, 3 } },
+        { CellType::Code::PENTA6_CODE, { 0, 2, 1, 3, 5, 4 } },
+        { CellType::Code::PENTA15_CODE, { 0, 8, 2, 7, 1, 6, 12, 14, 13, 3, 11, 5, 10, 4, 9 } },
+        { CellType::Code::HEXA8_CODE, { 0, 3, 2, 1, 4, 7, 6, 5 } },
+        { CellType::Code::HEXA20_CODE, { 0, 11, 3, 10, 2, 9, 1, 8, 16, 19, 18, 17, 4, 15, 7, 14,
                 6, 13, 5, 12 } },
-        { CellType::POLY3_CODE, { 0, 1, 2 } },
-        { CellType::POLY4_CODE, { 0, 1, 2, 3 } },
-        { CellType::POLY5_CODE, { 0, 1, 2, 3, 4 } },
-        { CellType::POLY6_CODE, { 0, 1, 2, 3, 4, 5 } },
-        { CellType::POLY7_CODE, { 0, 1, 2, 3, 4, 5, 6 } },
-        { CellType::POLY8_CODE, { 0, 1, 2, 3, 4, 5, 6, 7 } },
-        { CellType::POLY9_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8 } },
-        { CellType::POLY10_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } },
-        { CellType::POLY11_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 } },
-        { CellType::POLY12_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 } },
-        { CellType::POLY13_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 } },
-        { CellType::POLY14_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 } },
-        { CellType::POLY15_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 } },
-        { CellType::POLY16_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } },
-        { CellType::POLY17_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 } },
-        { CellType::POLY18_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 } },
-        { CellType::POLY19_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 } },
-        { CellType::POLY20_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 } }
+        { CellType::Code::POLY3_CODE, { 0, 1, 2 } },
+        { CellType::Code::POLY4_CODE, { 0, 1, 2, 3 } },
+        { CellType::Code::POLY5_CODE, { 0, 1, 2, 3, 4 } },
+        { CellType::Code::POLY6_CODE, { 0, 1, 2, 3, 4, 5 } },
+        { CellType::Code::POLY7_CODE, { 0, 1, 2, 3, 4, 5, 6 } },
+        { CellType::Code::POLY8_CODE, { 0, 1, 2, 3, 4, 5, 6, 7 } },
+        { CellType::Code::POLY9_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8 } },
+        { CellType::Code::POLY10_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } },
+        { CellType::Code::POLY11_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 } },
+        { CellType::Code::POLY12_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 } },
+        { CellType::Code::POLY13_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 } },
+        { CellType::Code::POLY14_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 } },
+        { CellType::Code::POLY15_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 } },
+        { CellType::Code::POLY16_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 } },
+        { CellType::Code::POLY17_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 } },
+        { CellType::Code::POLY18_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 } },
+        { CellType::Code::POLY19_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 } },
+        { CellType::Code::POLY20_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 } }
 
 };
 
-const int SystusWriter::DampingAccessId=41;
-const int SystusWriter::MassAccessId=42;
-const int SystusWriter::StiffnessAccessId=43;
+constexpr int SystusWriter::DampingAccessId=41;
+constexpr int SystusWriter::MassAccessId=42;
+constexpr int SystusWriter::StiffnessAccessId=43;
 
 /** Converts a vega node Id in its ASC counterpart (i.e add one!) **/
 int SystusWriter::getAscNodeId(const int vega_id) const {
@@ -307,33 +307,33 @@ int SystusWriter::getPartId(const string partName, set<int> & usedPartId) {
 
 void SystusWriter::writeMaterialField(const SMF key, const double value, int& nbfields, ostream& out) const{
     switch(key){
-    case(RHO):
-    case(E):
-    case(NU):{
+    case(SMF::RHO):
+    case(SMF::E):
+    case(SMF::NU):{
         if (value>0.0){
-            out << " " << key << " "<<value;
+            out << " " << static_cast<int>(key) << " "<<value;
             nbfields++;
         }
         break;
     }
-    case(S):
-    case(IX):
-    case(IY):
-    case(IZ):
-    case(H):
-    case(KX):
-    case(KY):
-    case(KZ):
-    case(COEF):{
-        out << " " << key << " "<<value;
+    case(SMF::S):
+    case(SMF::IX):
+    case(SMF::IY):
+    case(SMF::IZ):
+    case(SMF::H):
+    case(SMF::KX):
+    case(SMF::KY):
+    case(SMF::KZ):
+    case(SMF::COEF):{
+        out << " " << static_cast<int>(key) << " "<<value;
         nbfields++;
         break;
     }
-    case(ALPHA):
-    case(AY):
-    case(AZ):{
+    case(SMF::ALPHA):
+    case(SMF::AY):
+    case(SMF::AZ):{
         if (!is_equal(value, vega::Globals::UNAVAILABLE_DOUBLE)){
-            out << " " << key << " " << value;
+            out << " " << static_cast<int>(key) << " " << value;
             nbfields++;
         }
         break;
@@ -347,17 +347,17 @@ void SystusWriter::writeMaterialField(const SMF key, const double value, int& nb
 void SystusWriter::writeMaterialField(const SMF key, const int value, int& nbfields, ostream& out) const{
 
     switch(key){
-    case(ID):{  //ID is the very beginning of the line. Its format is "N 0"
+    case(SMF::ID):{  //ID is the very beginning of the line. Its format is "N 0"
         out << value<<" 0";
         break;
     }
-    case(TABLE):
-    case(SHAPE):
-    case(MID):
-    case(DEPEND):
-    case(LEVEL):
-    case(TYPE):{
-        out << " " << key << " "<<value;
+    case(SMF::TABLE):
+    case(SMF::SHAPE):
+    case(SMF::MID):
+    case(SMF::DEPEND):
+    case(SMF::LEVEL):
+    case(SMF::TYPE):{
+        out << " " << static_cast<int>(key) << " "<<value;
         nbfields++;
         break;
     }
@@ -453,11 +453,11 @@ void SystusWriter::getSystusAutomaticOption(const SystusModel& systusModel, Syst
         switch (elementSet->type) {
 
         // Those elements need 6 DDL
-        case ElementSet::CIRCULAR_SECTION_BEAM:
-        case ElementSet::GENERIC_SECTION_BEAM:
-        case ElementSet::I_SECTION_BEAM:
-        case ElementSet::RECTANGULAR_SECTION_BEAM:
-        case ElementSet::SHELL:{
+        case ElementSet::Type::CIRCULAR_SECTION_BEAM:
+        case ElementSet::Type::GENERIC_SECTION_BEAM:
+        case ElementSet::Type::I_SECTION_BEAM:
+        case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
+        case ElementSet::Type::SHELL:{
             has1DOr2DElements=true;
             break; // -Wimplicit-fallthrough
         }
@@ -467,17 +467,17 @@ void SystusWriter::getSystusAutomaticOption(const SystusModel& systusModel, Syst
          * use. We could check every one of them to know which is what but it
          * seems a waste of time. For now, we suppose they are all 6DLLs
          */
-        case ElementSet::LMPC:
-        case ElementSet::STIFFNESS_MATRIX:
-        case ElementSet::MASS_MATRIX:
-        case ElementSet::DAMPING_MATRIX:
-        case ElementSet::SCALAR_SPRING:{
+        case ElementSet::Type::LMPC:
+        case ElementSet::Type::STIFFNESS_MATRIX:
+        case ElementSet::Type::MASS_MATRIX:
+        case ElementSet::Type::DAMPING_MATRIX:
+        case ElementSet::Type::SCALAR_SPRING:{
             has1DOr2DElements= true;
             break; // -Wimplicit-fallthrough
         }
 
         // Those are solid elements: only 3DDLs needed.
-        case ElementSet::CONTINUUM:{
+        case ElementSet::Type::CONTINUUM:{
             has3DElements=true;
             break; // -Wimplicit-fallthrough
         }
@@ -485,16 +485,16 @@ void SystusWriter::getSystusAutomaticOption(const SystusModel& systusModel, Syst
         // All these elements are available on both 3D and shell modes.
         //   - Structural Segment are translated with 1602
         //   - RBAR, RBE2 (RBE2 are viewed as an assembly of RBAR) and RBE3 are available on both 3D and Shell modes
-        case ElementSet::RBAR:
-        case ElementSet::RBE3:
-        case ElementSet::STRUCTURAL_SEGMENT:{
+        case ElementSet::Type::RBAR:
+        case ElementSet::Type::RBE3:
+        case ElementSet::Type::STRUCTURAL_SEGMENT:{
             continue;
         }
 
         // Not translated as cells.
-        case ElementSet::DISCRETE_0D:
-        case ElementSet::DISCRETE_1D:
-        case ElementSet::NODAL_MASS:{
+        case ElementSet::Type::DISCRETE_0D:
+        case ElementSet::Type::DISCRETE_1D:
+        case ElementSet::Type::NODAL_MASS:{
             continue;
         }
 
@@ -585,7 +585,7 @@ double SystusWriter::generateRbarRigidity(const SystusModel& systusModel, const 
         for (const auto& elementSet : systusModel.model->elementSets) {
             const auto& material = elementSet->material;
             if ((elementSet->cellGroup != nullptr)&&(material != nullptr)){
-                const shared_ptr<Nature> nature = material->findNature(Nature::NATURE_ELASTIC);
+                const shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
                 if (nature) {
                     const ElasticNature& elasticNature = dynamic_cast<ElasticNature&>(*nature);
                     maxYoungModulus= max(maxYoungModulus, elasticNature.getE());
@@ -627,7 +627,7 @@ double SystusWriter::generateLmpcRigidity(const SystusModel& systusModel, const 
         for (const auto& elementSet : systusModel.model->elementSets) {
             const auto& material = elementSet->material;
             if ((elementSet->cellGroup != nullptr)&&(material != nullptr)){
-                const shared_ptr<Nature> nature = material->findNature(Nature::NATURE_ELASTIC);
+                const shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
                 if (nature) {
                     const ElasticNature& elasticNature = dynamic_cast<ElasticNature&>(*nature);
                     maxYoungModulus= max(maxYoungModulus, elasticNature.getE());
@@ -669,34 +669,34 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 
         switch (elementSet->type) {
         // None of these element Set are RBE
-        case ElementSet::CIRCULAR_SECTION_BEAM:
-        case ElementSet::GENERIC_SECTION_BEAM:
-        case ElementSet::I_SECTION_BEAM:
-        case ElementSet::RECTANGULAR_SECTION_BEAM:
-        case ElementSet::STRUCTURAL_SEGMENT:
-        case ElementSet::SHELL:
-        case ElementSet::CONTINUUM:
-        case ElementSet::NODAL_MASS:
-        case ElementSet::DISCRETE_0D:
-        case ElementSet::DISCRETE_1D:
-        case ElementSet::STIFFNESS_MATRIX:
-        case ElementSet::MASS_MATRIX:
-        case ElementSet::DAMPING_MATRIX:
-        case ElementSet::SCALAR_SPRING:{
+        case ElementSet::Type::CIRCULAR_SECTION_BEAM:
+        case ElementSet::Type::GENERIC_SECTION_BEAM:
+        case ElementSet::Type::I_SECTION_BEAM:
+        case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
+        case ElementSet::Type::STRUCTURAL_SEGMENT:
+        case ElementSet::Type::SHELL:
+        case ElementSet::Type::CONTINUUM:
+        case ElementSet::Type::NODAL_MASS:
+        case ElementSet::Type::DISCRETE_0D:
+        case ElementSet::Type::DISCRETE_1D:
+        case ElementSet::Type::STIFFNESS_MATRIX:
+        case ElementSet::Type::MASS_MATRIX:
+        case ElementSet::Type::DAMPING_MATRIX:
+        case ElementSet::Type::SCALAR_SPRING:{
             continue;
         }
 
         // Translation of RBAR and RBE2 (RBE2 are viewed as an assembly of RBAR)
         // See Systus Reference Analysis Manual: RIGID BODY Element (page 498)
         // Here we add the needed lagrangian and/or 3D nodes, and compute the material properties
-        case ElementSet::RBAR: {
-            shared_ptr<Rbar> rbars = static_pointer_cast<Rbar>(elementSet);
+        case ElementSet::Type::RBAR: {
+            shared_ptr<Rbar> rbars = dynamic_pointer_cast<Rbar>(elementSet);
 
             auto& material = elementSet->material;
             if (material == nullptr){
                 throw logic_error("Error: ElementSet::RBAR have no material.");
             }
-            shared_ptr<Nature> nature = material->findNature(Nature::NATURE_RIGID);
+            shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_RIGID);
             if (!nature) {
                 throw logic_error("Error: ElementSet::RBAR have no RIGID nature.");
             }
@@ -778,14 +778,14 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
          * See Systus Reference Analysis Manual, Section 8.8 "Special Elements",
          * Subsection "Use of Averaging Type Solid Elements", p500.
         */
-        case ElementSet::RBE3: {
-            shared_ptr<Rbe3> rbe3 = static_pointer_cast<Rbe3>(elementSet);
+        case ElementSet::Type::RBE3: {
+            shared_ptr<Rbe3> rbe3 = dynamic_pointer_cast<Rbe3>(elementSet);
 
             auto& material = elementSet->material;
             if (material == nullptr){
                 throw logic_error("Error: ElementSet::RBE3 have no material.");
             }
-            shared_ptr<Nature> nature = material->findNature(Nature::NATURE_RIGID);
+            shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_RIGID);
             if (!nature) {
                 throw logic_error("Error: ElementSet::RBE3 have no RIGID nature.");
             }
@@ -853,14 +853,14 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
         // Translation of LMPC elements has X9XX Level 0 elements
         // See Systus Reference Analysis Manual: RIGID BODY Element (page 498)
         // Here we compute the material properties and, if needed, add a lagrangian node
-        case ElementSet::LMPC: {
-            shared_ptr<Lmpc> lmpc = static_pointer_cast<Lmpc>(elementSet);
+        case ElementSet::Type::LMPC: {
+            shared_ptr<Lmpc> lmpc = dynamic_pointer_cast<Lmpc>(elementSet);
 
             auto& material = elementSet->material;
             if (material == nullptr){
                 throw logic_error("Error: ElementSet::Lmpc have no material.");
             }
-            shared_ptr<Nature> nature = material->findNature(Nature::NATURE_RIGID);
+            shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_RIGID);
             if (!nature) {
                 throw logic_error("Error: ElementSet::Lmpc have no RIGID nature.");
             }
@@ -917,7 +917,7 @@ void SystusWriter::generateSubcases(const SystusModel& systusModel,
 
             // We create a vector with the characteristic of the Analysis
             vector<systus_ascid_t> cAna;
-            cAna.push_back(analysis.type); //Analysis type
+            cAna.push_back(static_cast<int>(analysis.type)); //Analysis type
 
             const vector<shared_ptr<ConstraintSet>> constraintSets = analysis.getConstraintSets();
             cAna.push_back(static_cast<int>(constraintSets.size()));
@@ -1157,14 +1157,14 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
             for (const auto& loading : loadset->getLoadings()) {
 
                 switch (loading->type) {
-                case Loading::NODAL_FORCE: {
-                    shared_ptr<NodalForce> nodalForce = static_pointer_cast<NodalForce>(loading);
+                case Loading::Type::NODAL_FORCE: {
+                    shared_ptr<NodalForce> nodalForce = dynamic_pointer_cast<NodalForce>(loading);
                     writeNodalForce(systusModel, nodalForce, idLoadCase, vectorId);
                     break;
                 }
 
-                case Loading::GRAVITY: {
-                    shared_ptr<Gravity> gravity = static_pointer_cast<Gravity>(loading);
+                case Loading::Type::GRAVITY: {
+                    shared_ptr<Gravity> gravity = dynamic_pointer_cast<Gravity>(loading);
                     VectorialValue acceleration = gravity->getAccelerationVector();
                     vector<double> vec;
                     double normvec = 0.0;
@@ -1191,10 +1191,10 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                     break;
                 }
 
-                case Loading::DYNAMIC_EXCITATION:{
-                    shared_ptr<DynamicExcitation> dE = static_pointer_cast<DynamicExcitation>(loading);
+                case Loading::Type::DYNAMIC_EXCITATION:{
+                    shared_ptr<DynamicExcitation> dE = dynamic_pointer_cast<DynamicExcitation>(loading);
                     shared_ptr<LoadSet> dEL = dE->getLoadSet();
-                    if (dEL->type != LoadSet::EXCITEID){
+                    if (dEL->type != LoadSet::Type::EXCITEID){
                         handleWritingWarning("Dynamic loading must refer an EXCITED Loadset. Dismissing load "+ to_string(dE->bestId()));
                         break;
                     }
@@ -1228,12 +1228,12 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
 
                     for (const auto& dLoading : dEL->getLoadings()) {
 
-                        if (dLoading->type!=Loading::NODAL_FORCE){
+                        if (dLoading->type!=Loading::Type::NODAL_FORCE){
                             handleWritingWarning("Dynamic loading must refer Nodal excitation. Dismissing load "+to_string(dLoading->bestId())+", part of load "+ to_string(dE->bestId()));
                             continue;
                         }
 
-                        shared_ptr<NodalForce> nodalForce = static_pointer_cast<NodalForce>(dLoading);
+                        shared_ptr<NodalForce> nodalForce = dynamic_pointer_cast<NodalForce>(dLoading);
                         writeNodalForce(systusModel, nodalForce, idLoadCase, vectorId);
                     }
 
@@ -1275,8 +1275,8 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
                 vector<double> vec;
                 double normvec=0.0;
                 switch (constraint->type) {
-                case Constraint::SPC: {
-                    std::shared_ptr<SinglePointConstraint> spc = std::static_pointer_cast<SinglePointConstraint>(constraint);
+                case Constraint::Type::SPC: {
+                    std::shared_ptr<SinglePointConstraint> spc = std::dynamic_pointer_cast<SinglePointConstraint>(constraint);
                     //TODO: Null vectors should be overlooked
                     if (spc->hasReferences()) {
                         handleWritingWarning(to_str(*constraint) + " with reference to functions not supported", "Constraint vectors");
@@ -1344,10 +1344,10 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
                     }
                     break;
                 }
-                case Constraint::RIGID:
-                case Constraint::RBE3:
-                case Constraint::QUASI_RIGID:
-                case Constraint::LMPC:{
+                case Constraint::Type::RIGID:
+                case Constraint::Type::RBE3:
+                case Constraint::Type::QUASI_RIGID:
+                case Constraint::Type::LMPC:{
                     // Nothing to be done here
                     break;
                 }
@@ -1385,7 +1385,7 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
             auto cs = systusModel.model->mesh->getCoordinateSystemByPosition(node.displacementCS);
             vector<double> vec;
             switch (cs->type){
-            case CoordinateSystem::CARTESIAN:{
+            case CoordinateSystem::Type::CARTESIAN:{
                 VectorialValue angles = cs->getEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
                 vec.push_back(0);
                 vec.push_back(0);
@@ -1400,7 +1400,7 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
                 break;
             }
             // Element orientation : it depends of the kind of elements.
-            case CoordinateSystem::ORIENTATION:{
+            case CoordinateSystem::Type::ORIENTATION:{
                 handleWritingWarning("Local coordinate system are forbidden for nodes.");
                 handleWritingWarning("We will fill a null vector for the node "+ to_string(mesh->findNodeId(node.position)));
                 vec.push_back(0);
@@ -1416,9 +1416,9 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
             }
 
             // Cylyndrical orientation : we create a vector by point
-            case CoordinateSystem::CYLINDRICAL:{
+            case CoordinateSystem::Type::CYLINDRICAL:{
                 const Node& nNode = mesh->findNode(node.position);
-                shared_ptr<CylindricalCoordinateSystem> ccs = static_pointer_cast<CylindricalCoordinateSystem>(cs);
+                shared_ptr<CylindricalCoordinateSystem> ccs = dynamic_pointer_cast<CylindricalCoordinateSystem>(cs);
                 ccs->updateLocalBase(VectorialValue(nNode.x, nNode.y, nNode.z));
                 const VectorialValue& angles = ccs->getLocalEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
                 vec.push_back(0);
@@ -1489,8 +1489,8 @@ void SystusWriter::fillConstraintsNodes(const SystusModel& systusModel, const in
         for (const auto& constraint : constraintSet->getConstraints()) {
 
             switch (constraint->type) {
-            case Constraint::SPC: {
-                std::shared_ptr<SinglePointConstraint> spc = std::static_pointer_cast<
+            case Constraint::Type::SPC: {
+                std::shared_ptr<SinglePointConstraint> spc = std::dynamic_pointer_cast<
                         SinglePointConstraint>(constraint);
                 for (int nodePosition : constraint->nodePositions()) {
 
@@ -1522,9 +1522,9 @@ void SystusWriter::fillConstraintsNodes(const SystusModel& systusModel, const in
                 }
                 break;
             }
-            case Constraint::RIGID:
-            case Constraint::RBE3:
-            case Constraint::QUASI_RIGID:{
+            case Constraint::Type::RIGID:
+            case Constraint::Type::RBE3:
+            case Constraint::Type::QUASI_RIGID:{
                 // Nothing to be done here
                 break;
             }
@@ -1588,28 +1588,28 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
 
             switch (elementSet->type) {
             // None of these elements needs this kind of tables
-            case ElementSet::CIRCULAR_SECTION_BEAM:
-            case ElementSet::GENERIC_SECTION_BEAM:
-            case ElementSet::I_SECTION_BEAM:
-            case ElementSet::RECTANGULAR_SECTION_BEAM:
-            case ElementSet::STRUCTURAL_SEGMENT:
-            case ElementSet::SHELL:
-            case ElementSet::CONTINUUM:
-            case ElementSet::NODAL_MASS:
-            case ElementSet::RBAR:
-            case ElementSet::RBE3:
-            case ElementSet::LMPC:{
+            case ElementSet::Type::CIRCULAR_SECTION_BEAM:
+            case ElementSet::Type::GENERIC_SECTION_BEAM:
+            case ElementSet::Type::I_SECTION_BEAM:
+            case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
+            case ElementSet::Type::STRUCTURAL_SEGMENT:
+            case ElementSet::Type::SHELL:
+            case ElementSet::Type::CONTINUUM:
+            case ElementSet::Type::NODAL_MASS:
+            case ElementSet::Type::RBAR:
+            case ElementSet::Type::RBE3:
+            case ElementSet::Type::LMPC:{
                 continue;
             }
 
             // Those elements are not supported yet
-            case ElementSet::DISCRETE_0D:
-            case ElementSet::DISCRETE_1D:{
+            case ElementSet::Type::DISCRETE_0D:
+            case ElementSet::Type::DISCRETE_1D:{
                 continue;
             }
 
-            case ElementSet::SCALAR_SPRING:{
-                shared_ptr<ScalarSpring> ss = static_pointer_cast<ScalarSpring>(elementSet);
+            case ElementSet::Type::SCALAR_SPRING:{
+                shared_ptr<ScalarSpring> ss = dynamic_pointer_cast<ScalarSpring>(elementSet);
                 const std::vector<std::pair<DOF, DOF>> dofsSpring = ss->getDOFSSpring();
                 if (dofsSpring.size()!=1){
                     handleWritingWarning(to_str(*elementSet) + " spring directions after the first one will be dismissed.", "FillTable");
@@ -1670,8 +1670,8 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             //   - Stiffness: 0000XX
             //   - Mass     : 00XX00
             //   - Damping  : XX0000
-            case ElementSet::STIFFNESS_MATRIX:{
-                shared_ptr<StiffnessMatrix> sm = static_pointer_cast<StiffnessMatrix>(elementSet);
+            case ElementSet::Type::STIFFNESS_MATRIX:{
+                shared_ptr<StiffnessMatrix> sm = dynamic_pointer_cast<StiffnessMatrix>(elementSet);
                 systus_ascid_t tId= tables.size()+1;
                 SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
 
@@ -1697,8 +1697,8 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
                 tableByElementSet[elementSet->getId()]=tId;
                 break;
             }
-            case ElementSet::MASS_MATRIX:{
-                shared_ptr<MassMatrix> mm = static_pointer_cast<MassMatrix>(elementSet);
+            case ElementSet::Type::MASS_MATRIX:{
+                shared_ptr<MassMatrix> mm = dynamic_pointer_cast<MassMatrix>(elementSet);
                 systus_ascid_t tId= tables.size()+1;
                 SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
 
@@ -1724,8 +1724,8 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
                 tableByElementSet[elementSet->getId()]=tId*100;
                 break;
             }
-            case ElementSet::DAMPING_MATRIX:{
-                shared_ptr<DampingMatrix> dm = static_pointer_cast<DampingMatrix>(elementSet);
+            case ElementSet::Type::DAMPING_MATRIX:{
+                shared_ptr<DampingMatrix> dm = dynamic_pointer_cast<DampingMatrix>(elementSet);
                 systus_ascid_t tId= tables.size()+1;
                 SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
 
@@ -1765,29 +1765,29 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
         switch (elementSet->type) {
         // None of these elements are LMPC
         //HELP: We keep the list to raise warnings for unknown ElementSet
-        case ElementSet::CIRCULAR_SECTION_BEAM:
-        case ElementSet::GENERIC_SECTION_BEAM:
-        case ElementSet::I_SECTION_BEAM:
-        case ElementSet::RECTANGULAR_SECTION_BEAM:
-        case ElementSet::STRUCTURAL_SEGMENT:
-        case ElementSet::SHELL:
-        case ElementSet::CONTINUUM:
-        case ElementSet::NODAL_MASS:
-        case ElementSet::RBAR:
-        case ElementSet::RBE3:
-        case ElementSet::DISCRETE_0D:
-        case ElementSet::DISCRETE_1D:
-        case ElementSet::SCALAR_SPRING:
-        case ElementSet::STIFFNESS_MATRIX:
-        case ElementSet::MASS_MATRIX:
-        case ElementSet::DAMPING_MATRIX:{
+        case ElementSet::Type::CIRCULAR_SECTION_BEAM:
+        case ElementSet::Type::GENERIC_SECTION_BEAM:
+        case ElementSet::Type::I_SECTION_BEAM:
+        case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
+        case ElementSet::Type::STRUCTURAL_SEGMENT:
+        case ElementSet::Type::SHELL:
+        case ElementSet::Type::CONTINUUM:
+        case ElementSet::Type::NODAL_MASS:
+        case ElementSet::Type::RBAR:
+        case ElementSet::Type::RBE3:
+        case ElementSet::Type::DISCRETE_0D:
+        case ElementSet::Type::DISCRETE_1D:
+        case ElementSet::Type::SCALAR_SPRING:
+        case ElementSet::Type::STIFFNESS_MATRIX:
+        case ElementSet::Type::MASS_MATRIX:
+        case ElementSet::Type::DAMPING_MATRIX:{
             continue;
         }
 
-        case ElementSet::LMPC:{
+        case ElementSet::Type::LMPC:{
 
             // If the LMPC is not relevant to the current subcase, we skip it
-            shared_ptr<Lmpc> lmpc = static_pointer_cast<Lmpc>(elementSet);
+            shared_ptr<Lmpc> lmpc = dynamic_pointer_cast<Lmpc>(elementSet);
             vector<int> analysisOfSubcase =  systusSubcases[idSubcase];
             if (std::find(analysisOfSubcase.begin(), analysisOfSubcase.end(), lmpc->analysisId) == analysisOfSubcase.end()){
                 continue;
@@ -1831,16 +1831,16 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
                     switch (loading->type){
 
                     // Nothing to do
-                    case Loading::NODAL_FORCE:
-                    case Loading::GRAVITY:{
+                    case Loading::Type::NODAL_FORCE:
+                    case Loading::Type::GRAVITY:{
                         break;
                     }
 
                     // Here we stock the amplitude
-                    case Loading::DYNAMIC_EXCITATION:{
-                        shared_ptr<DynamicExcitation> dE = static_pointer_cast<DynamicExcitation>(loading);
+                    case Loading::Type::DYNAMIC_EXCITATION:{
+                        shared_ptr<DynamicExcitation> dE = dynamic_pointer_cast<DynamicExcitation>(loading);
                         shared_ptr<LoadSet> dEL = dE->getLoadSet();
-                        if (dEL->type != LoadSet::EXCITEID){
+                        if (dEL->type != LoadSet::Type::EXCITEID){
                             handleWritingWarning("Dynamic loading must refer an EXCITED Loadset. Dismissing load "+ to_string(dE->bestId()), "Table");
                             break;
                         }
@@ -1888,28 +1888,28 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
 
             switch (elementSet->type) {
             // None of these elements needs to output matrices
-            case ElementSet::CIRCULAR_SECTION_BEAM:
-            case ElementSet::GENERIC_SECTION_BEAM:
-            case ElementSet::I_SECTION_BEAM:
-            case ElementSet::RECTANGULAR_SECTION_BEAM:
-            case ElementSet::STRUCTURAL_SEGMENT:
-            case ElementSet::SHELL:
-            case ElementSet::CONTINUUM:
-            case ElementSet::LMPC:
-            case ElementSet::NODAL_MASS:
-            case ElementSet::RBAR:
-            case ElementSet::RBE3:{
+            case ElementSet::Type::CIRCULAR_SECTION_BEAM:
+            case ElementSet::Type::GENERIC_SECTION_BEAM:
+            case ElementSet::Type::I_SECTION_BEAM:
+            case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
+            case ElementSet::Type::STRUCTURAL_SEGMENT:
+            case ElementSet::Type::SHELL:
+            case ElementSet::Type::CONTINUUM:
+            case ElementSet::Type::LMPC:
+            case ElementSet::Type::NODAL_MASS:
+            case ElementSet::Type::RBAR:
+            case ElementSet::Type::RBE3:{
                 continue;
             }
 
             // Those elements are not supported yet
-            case ElementSet::DISCRETE_0D:
-            case ElementSet::DISCRETE_1D:{
+            case ElementSet::Type::DISCRETE_0D:
+            case ElementSet::Type::DISCRETE_1D:{
                 continue;
             }
 
-            case ElementSet::SCALAR_SPRING:{
-                shared_ptr<ScalarSpring> ss = static_pointer_cast<ScalarSpring>(elementSet);
+            case ElementSet::Type::SCALAR_SPRING:{
+                shared_ptr<ScalarSpring> ss = dynamic_pointer_cast<ScalarSpring>(elementSet);
                 const std::vector<std::pair<DOF, DOF>> dofsSpring = ss->getDOFSSpring();
                 if (dofsSpring.size()!=1){
                     handleWritingWarning(to_str(*elementSet) + " spring directions after the first one will be dismissed.", "FillMatrices");
@@ -1960,8 +1960,8 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
             //   - Stiffness: -0000XX
             //   - Mass     : -00XX00
             //   - Damping  : -XX0000
-            case ElementSet::DAMPING_MATRIX:{
-                shared_ptr<DampingMatrix> dam = static_pointer_cast<DampingMatrix>(elementSet);
+            case ElementSet::Type::DAMPING_MATRIX:{
+                shared_ptr<DampingMatrix> dam = dynamic_pointer_cast<DampingMatrix>(elementSet);
                 systus_ascid_t seId= dampingMatrices.size()+1;
 
                 // Numbering the node internally to the element
@@ -1992,8 +1992,8 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
                 break;
             }
 
-            case ElementSet::MASS_MATRIX:{
-                shared_ptr<MassMatrix> mm = static_pointer_cast<MassMatrix>(elementSet);
+            case ElementSet::Type::MASS_MATRIX:{
+                shared_ptr<MassMatrix> mm = dynamic_pointer_cast<MassMatrix>(elementSet);
                 systus_ascid_t seId= massMatrices.size()+1;
 
                 // Numbering the node internally to the element
@@ -2024,8 +2024,8 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
                 break;
             }
 
-            case ElementSet::STIFFNESS_MATRIX:{
-                shared_ptr<StiffnessMatrix> sm = static_pointer_cast<StiffnessMatrix>(elementSet);
+            case ElementSet::Type::STIFFNESS_MATRIX:{
+                shared_ptr<StiffnessMatrix> sm = dynamic_pointer_cast<StiffnessMatrix>(elementSet);
                 systus_ascid_t seId= stiffnessMatrices.size()+1;
 
                 // Numbering the node internally to the element
@@ -2303,9 +2303,9 @@ void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel,
         return;
     }
 
-    if ((cs->type!=CoordinateSystem::CARTESIAN) and (cs->type!=CoordinateSystem::ORIENTATION)){
+    if ((cs->type!=CoordinateSystem::Type::CARTESIAN) and (cs->type!=CoordinateSystem::Type::ORIENTATION)){
         out << " 0";
-        handleWritingWarning("Coordinate System "+ to_string(cs->type) + " is not supported. Referentiel dismissed.", "Angle Elements");
+        handleWritingWarning("Coordinate System "+ to_string(static_cast<int>(cs->type)) + " is not supported. Referentiel dismissed.", "Angle Elements");
         return;
     }
 
@@ -2316,7 +2316,7 @@ void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel,
 
     // Orientation are not allowed for 0d elements.
     case 0: {
-        if (cs->type==CoordinateSystem::ORIENTATION){
+        if (cs->type==CoordinateSystem::Type::ORIENTATION){
             out << " 0";
             handleWritingWarning("Local orientation are not defined for 0D elements.",  "Angle Elements");
         }else{
@@ -2380,26 +2380,26 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
 
 
         switch (elementSet->type) {
-        case ElementSet::CIRCULAR_SECTION_BEAM:
-        case ElementSet::GENERIC_SECTION_BEAM:
-        case ElementSet::I_SECTION_BEAM:
-        case ElementSet::RECTANGULAR_SECTION_BEAM: {
+        case ElementSet::Type::CIRCULAR_SECTION_BEAM:
+        case ElementSet::Type::GENERIC_SECTION_BEAM:
+        case ElementSet::Type::I_SECTION_BEAM:
+        case ElementSet::Type::RECTANGULAR_SECTION_BEAM: {
             dim = 1;
             break;
         }
-        case ElementSet::STRUCTURAL_SEGMENT:{
+        case ElementSet::Type::STRUCTURAL_SEGMENT:{
             typecell=6;
             // We treat only Stiffness matrixes for now, with 1602 and 0601 Elements
-            shared_ptr<StructuralSegment> se = static_pointer_cast<StructuralSegment>(elementSet);
+            shared_ptr<StructuralSegment> se = dynamic_pointer_cast<StructuralSegment>(elementSet);
             if ((se->hasMass()) or (se->hasDamping())){
                 handleWritingWarning(to_str(*elementSet) + " mass and damping are not supported and will be dismissed.", "Elements");
             }
             break;
         }
 
-        case ElementSet::SCALAR_SPRING:{
+        case ElementSet::Type::SCALAR_SPRING:{
             dim = 1;
-            shared_ptr<ScalarSpring> ss = static_pointer_cast<ScalarSpring>(elementSet);
+            shared_ptr<ScalarSpring> ss = dynamic_pointer_cast<ScalarSpring>(elementSet);
             const std::vector<std::pair<DOF, DOF>> dofsSpring = ss->getDOFSSpring();
             if (dofsSpring.size()!=1){
                 handleWritingWarning(to_str(*elementSet) + " spring directions after the first one will be dismissed.", "Elements");
@@ -2414,39 +2414,39 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
             }
             break;
         }
-        case ElementSet::SHELL: {
+        case ElementSet::Type::SHELL: {
             dim = 2;
             typecell=4;
             break;
         }
-        case ElementSet::CONTINUUM: {
+        case ElementSet::Type::CONTINUUM: {
             dim = 3;
             break;
         }
-        case ElementSet::NODAL_MASS:{
+        case ElementSet::Type::NODAL_MASS:{
             continue;
         }
-        case ElementSet::DISCRETE_0D:
-        case ElementSet::DISCRETE_1D:{
+        case ElementSet::Type::DISCRETE_0D:
+        case ElementSet::Type::DISCRETE_1D:{
             continue;
         }
-        case ElementSet::STIFFNESS_MATRIX:
-        case ElementSet::MASS_MATRIX:
-        case ElementSet::DAMPING_MATRIX:{
+        case ElementSet::Type::STIFFNESS_MATRIX:
+        case ElementSet::Type::MASS_MATRIX:
+        case ElementSet::Type::DAMPING_MATRIX:{
             dim= 3;
             typecell = 9;
             break;
         }
-        case ElementSet::RBAR:
-        case ElementSet::RBE3:{
+        case ElementSet::Type::RBAR:
+        case ElementSet::Type::RBE3:{
             dim = 1;
             typecell = 9;
             break;
         }
 
-        case ElementSet::LMPC:{
+        case ElementSet::Type::LMPC:{
             // If the LMPC is not relevant to the current subcase, we skip it
-            shared_ptr<Lmpc> lmpc = static_pointer_cast<Lmpc>(elementSet);
+            shared_ptr<Lmpc> lmpc = dynamic_pointer_cast<Lmpc>(elementSet);
             vector<int> analysisOfSubcase =  systusSubcases[idSubcase];
             if (std::find(analysisOfSubcase.begin(), analysisOfSubcase.end(), lmpc->analysisId) == analysisOfSubcase.end()){
                 continue;
@@ -2479,7 +2479,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
             for (unsigned int i = 0; i < cell.type.numNodes; i++)
                 systusConnect.push_back(medConnect[systus2medNodeConnect[i]]);
 
-            if (elementSet->type==ElementSet::STRUCTURAL_SEGMENT){
+            if (elementSet->type==ElementSet::Type::STRUCTURAL_SEGMENT){
                 dim = (cell.nodeIds.size()==2) ? 1 : 0 ;
             }
 
@@ -2575,7 +2575,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
             bool isValid=true;
             // Elements with VEGA material
             if (material != nullptr){
-                const shared_ptr<Nature> nature = material->findNature(Nature::NATURE_ELASTIC);
+                const shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
                 if (nature) {
                     const ElasticNature& elasticNature = dynamic_cast<ElasticNature&>(*nature);
 
@@ -2587,8 +2587,8 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                     writeMaterialField(SMF::ALPHA, 2*elasticNature.getGE(), nbElementsMaterial, omat);
 
                     switch (elementSet->type) {
-                    case (ElementSet::GENERIC_SECTION_BEAM): {
-                        shared_ptr<const GenericSectionBeam> genericBeam = static_pointer_cast<
+                    case (ElementSet::Type::GENERIC_SECTION_BEAM): {
+                        shared_ptr<const GenericSectionBeam> genericBeam = dynamic_pointer_cast<
                                 const GenericSectionBeam>(elementSet);
                         const double S= genericBeam->getAreaCrossSection();
                         writeMaterialField(SMF::S, S, nbElementsMaterial, omat);
@@ -2602,8 +2602,8 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                         writeMaterialField(SMF::IZ, genericBeam->getMomentOfInertiaZ(), nbElementsMaterial, omat);
                         break;
                     }
-                    case (ElementSet::CIRCULAR_SECTION_BEAM): {
-                        shared_ptr<const CircularSectionBeam> circularBeam = static_pointer_cast<
+                    case (ElementSet::Type::CIRCULAR_SECTION_BEAM): {
+                        shared_ptr<const CircularSectionBeam> circularBeam = dynamic_pointer_cast<
                                 const CircularSectionBeam>(elementSet);
                         const double S= circularBeam->getAreaCrossSection();
 
@@ -2616,8 +2616,8 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                         writeMaterialField(SMF::IZ, circularBeam->getMomentOfInertiaZ(), nbElementsMaterial, omat);
                         break;
                     }
-                    case (ElementSet::RECTANGULAR_SECTION_BEAM): {
-                        shared_ptr<const RectangularSectionBeam> rectangularBeam = static_pointer_cast<
+                    case (ElementSet::Type::RECTANGULAR_SECTION_BEAM): {
+                        shared_ptr<const RectangularSectionBeam> rectangularBeam = dynamic_pointer_cast<
                                 const RectangularSectionBeam>(elementSet);
                         const double S= rectangularBeam->getAreaCrossSection();
 
@@ -2631,12 +2631,12 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                         break;
                     }
 
-                    case (ElementSet::SHELL): {
-                        shared_ptr<const Shell> shell = static_pointer_cast<const Shell>(elementSet);
+                    case (ElementSet::Type::SHELL): {
+                        shared_ptr<const Shell> shell = dynamic_pointer_cast<const Shell>(elementSet);
                         writeMaterialField(SMF::H, shell->thickness, nbElementsMaterial, omat);
                         break;
                     }
-                    case (ElementSet::CONTINUUM): {
+                    case (ElementSet::Type::CONTINUUM): {
                         break;
                     }
 
@@ -2647,7 +2647,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                     }
                 }else{
 
-                    const shared_ptr<Nature> nature2 = material->findNature(Nature::NATURE_RIGID);
+                    const shared_ptr<Nature> nature2 = material->findNature(Nature::NatureType::NATURE_RIGID);
                     if (nature2) {
                         const RigidNature& rigidNature = dynamic_cast<RigidNature&>(*nature2);
                         writeMaterialField(SMF::ID, elementSet->getId(), nbElementsMaterial, omat);
@@ -2655,7 +2655,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 
                         switch (elementSet->type) {
                         // RBAR are Systus Rigid Body Element
-                        case (ElementSet::RBAR):{
+                        case (ElementSet::Type::RBAR):{
                             writeMaterialField(SMF::LEVEL, 1, nbElementsMaterial, omat);
                             writeMaterialField(SMF::TYPE, 9, nbElementsMaterial, omat);
                             if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
@@ -2669,8 +2669,8 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                         }
 
                         // RBE3 are Special Elements (Averaging Type Solid Elements)
-                        case (ElementSet::RBE3):{
-                            const std::shared_ptr<Rbe3> rbe3 = static_pointer_cast<Rbe3>(elementSet);
+                        case (ElementSet::Type::RBE3):{
+                            const std::shared_ptr<Rbe3> rbe3 = dynamic_pointer_cast<Rbe3>(elementSet);
                             writeMaterialField(SMF::SHAPE, 19, nbElementsMaterial, omat);
                             writeMaterialField(SMF::LEVEL, 3, nbElementsMaterial, omat);
                             int nbFieldDOFS = DOFSToMaterial(rbe3->mdofs, omat); // KX KY KZ IX IY IZ
@@ -2680,9 +2680,9 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                             break;
                         }
 
-                        case ElementSet::LMPC:{
+                        case ElementSet::Type::LMPC:{
                             // If the LMPC is not relevant to the current subcase, we skip it
-                            const shared_ptr<Lmpc> lmpc = static_pointer_cast<Lmpc>(elementSet);
+                            const shared_ptr<Lmpc> lmpc = dynamic_pointer_cast<Lmpc>(elementSet);
                             vector<int> analysisOfSubcase =  systusSubcases[idSubcase];
                             if (std::find(analysisOfSubcase.begin(), analysisOfSubcase.end(), lmpc->analysisId) == analysisOfSubcase.end()){
                                 continue;
@@ -2719,10 +2719,10 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                 writeMaterialField(SMF::ID, elementSet->getId(), nbElementsMaterial, omat);
                 writeMaterialField(SMF::MID, elementSet->getId(), nbElementsMaterial, omat);
                 switch (elementSet->type){
-                case (ElementSet::STRUCTURAL_SEGMENT):{
+                case (ElementSet::Type::STRUCTURAL_SEGMENT):{
 
 
-                    shared_ptr<const StructuralSegment> sS = static_pointer_cast<const StructuralSegment>(elementSet);
+                    shared_ptr<const StructuralSegment> sS = dynamic_pointer_cast<const StructuralSegment>(elementSet);
                     // K Matrix
                     writeMaterialField(SMF::IX, sS->findStiffness(DOF::RX, DOF::RX), nbElementsMaterial, omat);
                     writeMaterialField(SMF::IY, sS->findStiffness(DOF::RY, DOF::RY), nbElementsMaterial, omat);
@@ -2742,8 +2742,8 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                     break;
                 }
 
-                case ElementSet::SCALAR_SPRING:{
-                    shared_ptr<ScalarSpring> ss = static_pointer_cast<ScalarSpring>(elementSet);
+                case ElementSet::Type::SCALAR_SPRING:{
+                    shared_ptr<ScalarSpring> ss = dynamic_pointer_cast<ScalarSpring>(elementSet);
                     const std::vector<std::pair<DOF, DOF>> dofsSpring = ss->getDOFSSpring();
                     if (dofsSpring.size()!=1){
                         handleWritingWarning(to_str(*elementSet) + " spring directions after the first one will be dismissed.", "Material");
@@ -2776,9 +2776,9 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                 }
 
                 // For matrix elements, material is only a "pointer" to a table.
-                case ElementSet::STIFFNESS_MATRIX:
-                case ElementSet::MASS_MATRIX:
-                case ElementSet::DAMPING_MATRIX:{
+                case ElementSet::Type::STIFFNESS_MATRIX:
+                case ElementSet::Type::MASS_MATRIX:
+                case ElementSet::Type::DAMPING_MATRIX:{
                     auto it = tableByElementSet.find(elementSet->getId());
                     if (it == tableByElementSet.end()){
                         handleWritingWarning(to_str(*elementSet)+" has no table.","Material");
@@ -2797,7 +2797,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                 }
 
                 // Nodal Masses are not material in Systus
-                case (ElementSet::NODAL_MASS): {
+                case (ElementSet::Type::NODAL_MASS): {
                     isValid=false;
                     break;
                 }
@@ -2872,12 +2872,12 @@ void SystusWriter::writeVectors(ostream& out) {
 void SystusWriter::writeMasses(const SystusModel &systusModel, ostream& out) {
     // TODO : attention, la doc parle de dynamique. Prise en compte dans le poids en statique ???
     vector<shared_ptr<ElementSet>> masses = systusModel.model->elementSets.filter(
-            ElementSet::NODAL_MASS);
+            ElementSet::Type::NODAL_MASS);
     out << "BEGIN_MASSES " << masses.size() << endl;
     if (masses.size() > 0) {
         for (const auto& mass : masses) {
             if (mass->cellGroup != nullptr) {
-                shared_ptr<NodalMass> nodalMass = static_pointer_cast<NodalMass>(mass);
+                shared_ptr<NodalMass> nodalMass = dynamic_pointer_cast<NodalMass>(mass);
                 //  VALUES NBR VAL(NBR) NODEi
                 //  NBR:            Number of values [INTEGER]
                 //  VAL(NBR):   Masses values [DOUBLE[NBR]]
@@ -2970,13 +2970,13 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
     string sClean= "";
 
     switch (analysis->type) {
-    case Analysis::LINEAR_MECA_STAT: {
+    case Analysis::Type::LINEAR_MECA_STAT: {
 
         out << "SOLVE METHOD OPTIMISED" << endl;
         sSolver = "RESU";
         break;
     }
-    case Analysis::LINEAR_MODAL:{
+    case Analysis::Type::LINEAR_MODAL:{
 
         out << "# SOLVE FILE TO USE THE DYNAMIC SOLVER" << endl;
         out << "# USE FOR EIGEN FREQUENCY CRITERION" << endl;
@@ -2997,12 +2997,12 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         double lowerF;
         int nmodes;
         switch(frequencySearch.frequencyType) {
-        case FrequencyTarget::BAND: {
+        case FrequencyTarget::FrequencyType::BAND: {
           BandRange band = dynamic_cast<BandRange&>(*frequencySearch.getValue());
           upperF = band.end;
           lowerF = band.start;
           if (is_equal(lowerF, Globals::UNAVAILABLE_DOUBLE)) {
-            auto lower_cutoff_frequency = systusModel.model->parameters.find(Model::LOWER_CUTOFF_FREQUENCY);
+            auto lower_cutoff_frequency = systusModel.model->parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY);
             if (lower_cutoff_frequency != systusModel.model->parameters.end()) {
                 if (systusModel.model->configuration.logLevel >= LogLevel::TRACE) {
                     cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
@@ -3015,7 +3015,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         }
         default:
           handleWritingError(
-            "Frequency search " + to_string(frequencySearch.frequencyType) + " not (yet) implemented");
+            "Frequency search " + to_string(static_cast<int>(frequencySearch.frequencyType)) + " not (yet) implemented");
         }
 
         // We can't treat the case where only lowerF is defined
@@ -3058,11 +3058,11 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         // Choice of norm
         string sNorm;
         switch (frequencySearch.norm) {
-          case(FrequencyTarget::MASS): {
+          case(FrequencyTarget::NormType::MASS): {
             sNorm=" NORM MASS";
             break;
           }
-          case(FrequencyTarget::MAX): {
+          case(FrequencyTarget::NormType::MAX): {
             sNorm="";
             break;
           }
@@ -3091,7 +3091,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
     }
 
     // Modal Dynamic Analysis
-    case Analysis::LINEAR_DYNA_MODAL_FREQ: {
+    case Analysis::Type::LINEAR_DYNA_MODAL_FREQ: {
         sSolver = "TRAN";
         const LinearDynaModalFreq& linearDynaModalFreq = static_cast<const LinearDynaModalFreq&>(*analysis);
 
@@ -3099,22 +3099,22 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         ostringstream oFrequency;
         shared_ptr<NamedValue> freqValue = linearDynaModalFreq.getExcitationFrequencies()->getValue();
         switch (freqValue->type) {
-            case NamedValue::STEP_RANGE: {
+            case Value::Type::STEP_RANGE: {
                 const StepRange& freqValueSteps = dynamic_cast<StepRange&>(*freqValue);
                 oFrequency << "INITIAL "  << (freqValueSteps.start - freqValueSteps.step) << endl;
                 oFrequency << " " << freqValueSteps.end << " STEP " << freqValueSteps.step;
                 break;
             }
             default:{
-                handleWritingWarning("Frequency range of type "+ to_string(freqValue->type)+" not available yet.", "Analysis file");
+                handleWritingWarning("Frequency range of type "+ to_string(static_cast<int>(freqValue->type))+" not available yet.", "Analysis file");
             }
         }
 
         // Damping
         shared_ptr<FunctionTable> modalDampingTable = linearDynaModalFreq.getModalDamping()->getFunctionTable();
         ostringstream oDamping;
-        if ((modalDampingTable->getParaX()!=NamedValue::FREQ)||(modalDampingTable->getParaY()!=NamedValue::AMOR)){
-            handleWritingWarning("Dismissing damping table with wrong units ("+to_string(modalDampingTable->getParaY())+"/"+to_string(modalDampingTable->getParaX())+")", "Analysis file");
+        if ((modalDampingTable->getParaX()!=NamedValue::ParaName::FREQ)||(modalDampingTable->getParaY()!=NamedValue::ParaName::AMOR)){
+            handleWritingWarning("Dismissing damping table with wrong units ("+to_string(static_cast<int>(modalDampingTable->getParaY()))+"/"+to_string(static_cast<int>(modalDampingTable->getParaX()))+")", "Analysis file");
         }else{
             double firstDamping = modalDampingTable->getBeginValuesXY()->second;
             oDamping << "GAMMA "<< firstDamping;
@@ -3155,7 +3155,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             out << endl;
 
             // Then, we need to run a Modal analysis, to get the eigenvalues
-            // It's a limited version of what is done in Analysis::LINEAR_MODAL, because we need to know
+            // It's a limited version of what is done in Analysis::Type::LINEAR_MODAL, because we need to know
             // exactly the numbers of modes for the next part (so no STURM)
             // However, we keep the same syntax, for future development.
             FrequencyTarget& frequencySearch = *(linearDynaModalFreq.getFrequencySearch());
@@ -3163,12 +3163,12 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             double lowerF;
             int nModes;
             switch(frequencySearch.frequencyType) {
-            case FrequencyTarget::BAND: {
+            case FrequencyTarget::FrequencyType::BAND: {
               BandRange band = dynamic_cast<BandRange&>(*frequencySearch.getValue());
               upperF = band.end;
               lowerF = band.start;
               if (is_equal(lowerF, Globals::UNAVAILABLE_DOUBLE)) {
-                auto lower_cutoff_frequency = systusModel.model->parameters.find(Model::LOWER_CUTOFF_FREQUENCY);
+                auto lower_cutoff_frequency = systusModel.model->parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY);
                 if (lower_cutoff_frequency != systusModel.model->parameters.end()) {
                     if (systusModel.model->configuration.logLevel >= LogLevel::TRACE) {
                         cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
@@ -3181,7 +3181,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             }
             default:
               handleWritingError(
-                "Frequency search " + to_string(frequencySearch.frequencyType) + " not (yet) implemented");
+                "Frequency search " + to_string(static_cast<int>(frequencySearch.frequencyType)) + " not (yet) implemented");
             }
             if ((!is_equal(upperF, vega::Globals::UNAVAILABLE_DOUBLE))||(!is_equal(upperF, vega::Globals::UNAVAILABLE_DOUBLE))){
                 handleWritingWarning("Modal analysis with bound frequency not supported yet. Will search for "+to_string(nModes)+" Eigenmodes instead.", "Analysis file");
@@ -3192,11 +3192,11 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             // Choice of norm
             string sNorm;
             switch (frequencySearch.norm) {
-              case(FrequencyTarget::MASS): {
+              case(FrequencyTarget::NormType::MASS): {
                 sNorm=" NORM MASS";
                 break;
               }
-              case(FrequencyTarget::MAX): {
+              case(FrequencyTarget::NormType::MAX): {
                 sNorm="";
                 break;
               }
@@ -3321,15 +3321,15 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
 
         for (const auto& assertion : assertions) {
             switch (assertion->type) {
-            case Assertion::NODAL_DISPLACEMENT_ASSERTION:
+            case Objective::Type::NODAL_DISPLACEMENT_ASSERTION:
                 writeNodalDisplacementAssertion(*assertion, out);
                 break;
-            case Assertion::FREQUENCY_ASSERTION:
-                if (analysis->type == Analysis::LINEAR_DYNA_MODAL_FREQ)
+            case Objective::Type::FREQUENCY_ASSERTION:
+                if (analysis->type == Analysis::Type::LINEAR_DYNA_MODAL_FREQ)
                     break;
                 writeFrequencyAssertion(*assertion, out);
                 break;
-            case Assertion::NODAL_COMPLEX_DISPLACEMENT_ASSERTION:
+            case Objective::Type::NODAL_COMPLEX_DISPLACEMENT_ASSERTION:
                 writeNodalComplexDisplacementAssertion(*assertion, out);
                 break;
             default:

@@ -37,14 +37,14 @@ namespace vega {
 
 namespace fs = boost::filesystem;
 
-enum SolverName {
+enum class SolverName {
     CODE_ASTER = 2,
     NASTRAN = 3,
     OPTISTRUCT = 4,
     SYSTUS = 5
 };
 
-enum LogLevel {
+enum class LogLevel {
     ERROR,
     WARN,
     INFO,
@@ -143,7 +143,7 @@ public:
 // it's a pain in the keyboard to add options!!
 class ConfigurationParameters {
 public:
-    enum TranslationMode {
+    enum class TranslationMode {
         BEST_EFFORT = 0, //
         MESH_AT_LEAST = 1, //
         MODE_STRICT = 2 //
@@ -151,7 +151,7 @@ public:
 
     ConfigurationParameters(std::string inputFile, Solver outputSolver, std::string solverVersion =
             "", std::string outputFile = "vega", std::string outputPath = ".", LogLevel logLevel =
-            LogLevel::INFO, TranslationMode translationMode = BEST_EFFORT, fs::path resultFile = "",
+            LogLevel::INFO, TranslationMode translationMode = TranslationMode::BEST_EFFORT, fs::path resultFile = "",
             double testTolerance = 0.02, bool runSolver = false, std::string solverServer = "",
             std::string solverCommand = "",
             std::string systusRBE2TranslationMode = "lagrangian", double systusRBE2Rigidity= 0.0,

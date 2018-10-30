@@ -447,7 +447,7 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 			}
 		}
 		int result = MEDmeshElementConnectivityWr(fid, meshname, MED_NO_DT,
-		MED_NO_IT, 0.0, MED_CELL, type.code, MED_NODAL, MED_FULL_INTERLACE,
+		MED_NO_IT, 0.0, MED_CELL, static_cast<int>(type.code), MED_NODAL, MED_FULL_INTERLACE,
 				static_cast<med_int>(numCells),
 				connectivity.data());
 		if (result < 0) {
@@ -494,7 +494,7 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 	}
 	vector<shared_ptr<CellGroup>> cellGroups = this->getCellGroups();
 	if (cellGroups.size() > 0) {
-		unordered_map<CellType::Code, int, hash<int>> cellCountByType;
+		unordered_map<CellType::Code, int, EnumClassHash> cellCountByType;
 		for (auto typeAndCodePair : CellType::typeByCode) {
 			int cellNum = this->countCells(*typeAndCodePair.second);
 			if (cellNum > 0) {
@@ -506,7 +506,7 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 		for (auto cellCodeFamilyVectorPair : cellGroup2Family.getFamilyOnCells()) {
 			int ncells = static_cast<int>(cellCodeFamilyVectorPair.second->size());
 			if (MEDmeshEntityFamilyNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_CELL,
-					cellCodeFamilyVectorPair.first, ncells, cellCodeFamilyVectorPair.second->data())
+					static_cast<int>(cellCodeFamilyVectorPair.first), ncells, cellCodeFamilyVectorPair.second->data())
 					< 0) {
 				throw logic_error("ERROR : writing family on cells ...");
 			}
@@ -583,7 +583,7 @@ int Mesh::findOrientation(const OrientationCoordinateSystem & ocs) const{
 	for (auto& coordinateSystemEntry : this->coordinateSystemStorage.coordinateSystemById) {
     shared_ptr<CoordinateSystem> coordinateSystem = coordinateSystemEntry.second;
 		if (coordinateSystem->type==CoordinateSystem::Type::ORIENTATION){
-			std::shared_ptr<OrientationCoordinateSystem> mocs = std::static_pointer_cast<OrientationCoordinateSystem>(coordinateSystem);
+			std::shared_ptr<OrientationCoordinateSystem> mocs = std::dynamic_pointer_cast<OrientationCoordinateSystem>(coordinateSystem);
 			if (ocs == *mocs){
 				posOrientation = coordinateSystemStorage.findPositionById(mocs->getId());
 				break;
@@ -663,7 +663,7 @@ shared_ptr<NodeGroup> Mesh::findOrCreateNodeGroup(const string& name, int group_
 	if (group==nullptr){
 		return this->createNodeGroup(name, group_id, comment);
 	}else{
-		if (group->type != Group::NODEGROUP) {
+		if (group->type != Group::Type::NODEGROUP) {
 			throw invalid_argument("Group " + name + " is not a nodeGroup.");
 		}
 		return group;
@@ -741,7 +741,7 @@ vector<shared_ptr<NodeGroup>> Mesh::getNodeGroups() const {
 	vector<shared_ptr<NodeGroup>> groups;
 	for (const auto& it : groupByName) {
 		shared_ptr<Group> group = it.second;
-		if (group->type != Group::NODEGROUP) {
+		if (group->type != Group::Type::NODEGROUP) {
 			continue;
 		}
 		groups.push_back(dynamic_pointer_cast<NodeGroup>(group));
@@ -753,7 +753,7 @@ vector<shared_ptr<CellGroup>> Mesh::getCellGroups() const {
 	vector<shared_ptr<CellGroup>> groups;
 	for (const auto& it : groupByName) {
 		shared_ptr<Group> group = it.second;
-		if (group->type != Group::CELLGROUP) {
+		if (group->type != Group::Type::CELLGROUP) {
 			continue;
 		}
 		groups.push_back(dynamic_pointer_cast<CellGroup>(group));

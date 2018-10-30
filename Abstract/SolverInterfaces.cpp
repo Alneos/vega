@@ -137,23 +137,23 @@ Tokenizer::Tokenizer(istream& stream, vega::LogLevel logLevel,  string fileName,
 void Tokenizer::handleParsingError(const string& message) {
 
     switch (translationMode) {
-    case ConfigurationParameters::MODE_STRICT:
+    case ConfigurationParameters::TranslationMode::MODE_STRICT:
         // Problem on static over Alpine
         //throw ParsingException(message, fileName, lineNumber, currentKeyword);
         cerr << ParsingException(message, fileName, lineNumber, currentKeyword);
         vega::stacktrace();
         exit(2);
-    case ConfigurationParameters::MESH_AT_LEAST:
+    case ConfigurationParameters::TranslationMode::MESH_AT_LEAST:
         //model->onlyMesh = true;
         cerr << ParsingMessageException(message, fileName, lineNumber, currentKeyword) << endl;
         throw std::string("skipCommand");
         break;
-    case ConfigurationParameters::BEST_EFFORT:
+    case ConfigurationParameters::TranslationMode::BEST_EFFORT:
         cerr << ParsingMessageException(message, fileName, lineNumber, currentKeyword) << endl;
         throw std::string("skipCommand");
         break;
     default:
-        cerr << "Unknown enum in Translation mode, assuming MODE_STRICT" << endl;
+        cerr << "Unknown enum class in Translation mode, assuming MODE_STRICT" << endl;
         throw ParsingException(message, fileName, lineNumber, currentKeyword);
     }
 }
@@ -165,26 +165,26 @@ void Tokenizer::handleParsingWarning(const string& message) {
 
 
 Parser::Parser(){
-    this->translationMode= ConfigurationParameters::BEST_EFFORT;
+    this->translationMode= ConfigurationParameters::TranslationMode::BEST_EFFORT;
 }
 
 void Parser::handleParsingError(const string& message, Tokenizer& tok,
         shared_ptr<Model> model) {
 
     switch (translationMode) {
-    case ConfigurationParameters::MODE_STRICT:
+    case ConfigurationParameters::TranslationMode::MODE_STRICT:
         throw ParsingException(message, tok.fileName, tok.lineNumber, tok.currentKeyword);
-    case ConfigurationParameters::MESH_AT_LEAST:
+    case ConfigurationParameters::TranslationMode::MESH_AT_LEAST:
         model->onlyMesh = true;
         cerr << ParsingMessageException(message, tok.fileName, tok.lineNumber, tok.currentKeyword) << endl;
         throw std::string("skipCommand");
         break;
-    case ConfigurationParameters::BEST_EFFORT:
+    case ConfigurationParameters::TranslationMode::BEST_EFFORT:
         cerr << ParsingMessageException(message, tok.fileName, tok.lineNumber, tok.currentKeyword) << endl;
         throw std::string("skipCommand");
         break;
     default:
-        cerr << "Unknown enum in Translation mode, assuming MODE_STRICT" << endl;
+        cerr << "Unknown enum class in Translation mode, assuming MODE_STRICT" << endl;
         throw ParsingException(message, tok.fileName, tok.lineNumber, tok.currentKeyword);
     }
 }
@@ -197,15 +197,15 @@ void Parser::handleParsingWarning(const string& message, Tokenizer& tok,
 
 void Writer::handleWritingError(const string& message, const string& keyword, const string& file) {
     switch (translationMode) {
-    case ConfigurationParameters::MODE_STRICT:
+    case ConfigurationParameters::TranslationMode::MODE_STRICT:
         throw WritingException(message, keyword, file);
-    case ConfigurationParameters::MESH_AT_LEAST:
-    case ConfigurationParameters::BEST_EFFORT:
+    case ConfigurationParameters::TranslationMode::MESH_AT_LEAST:
+    case ConfigurationParameters::TranslationMode::BEST_EFFORT:
         cerr << WritingMessageException(message, keyword, file) << endl;
         //throw std::string("skipCommand");
         break;
     default:
-        cerr << "Unknown enum in Translation mode, assuming MODE_STRICT" << endl;
+        cerr << "Unknown enum class in Translation mode, assuming MODE_STRICT" << endl;
         throw WritingException(message, keyword, file);
     }
 }
@@ -247,19 +247,19 @@ void Runner::deletePreviousResultFiles(string currentModel, const vector<string>
 
 Runner::ExitCode Runner::convertExecResult(const int exitCode) const {
     if (exitCode == 0) {
-        return OK;
+        return ExitCode::OK;
     }
-    ExitCode result = SOLVER_EXIT_NOT_ZERO;
+    ExitCode result = ExitCode::SOLVER_EXIT_NOT_ZERO;
 #ifdef __GNUC__
     //bash exit codes http://tldp.org/LDP/abs/html/exitcodes.html
     //int lowByte = 0x00FF & exitCode;
     int highByte = (exitCode & 0xFF00) >> 8;
     if (highByte == 127) {
-        result = SOLVER_NOT_FOUND;
+        result = ExitCode::SOLVER_NOT_FOUND;
     } else if (highByte > 128 && highByte <= 165) {
-        result = SOLVER_KILLED;
+        result = ExitCode::SOLVER_KILLED;
     } else if (exitCode == -1) {
-        result = SOLVER_NOT_FOUND;
+        result = ExitCode::SOLVER_NOT_FOUND;
     }
 #else
 

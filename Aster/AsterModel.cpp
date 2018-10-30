@@ -34,24 +34,24 @@ namespace fs = boost::filesystem;
 using namespace std;
 
 const map<NamedValue::ParaName, string> AsterModel::NomParaByParaName = {
-        { NamedValue::NO_PARA_NAME, "'NO_PARA_NAME'" },
-        { NamedValue::FREQ, "'FREQ'" },
-        { NamedValue::AMOR, "'AMOR'" },
-        { NamedValue::PARAX, "'X'" }
+        { NamedValue::ParaName::NO_PARA_NAME, "'NO_PARA_NAME'" },
+        { NamedValue::ParaName::FREQ, "'FREQ'" },
+        { NamedValue::ParaName::AMOR, "'AMOR'" },
+        { NamedValue::ParaName::PARAX, "'X'" }
 };
 
 const map<FunctionTable::Interpolation, string> AsterModel::InterpolationByInterpolation = {
-        { FunctionTable::LINEAR, "'LIN'" },
-        { FunctionTable::LOGARITHMIC, "'LOG'" },
-        { FunctionTable::CONSTANT, "''" },
-        { FunctionTable::NONE, "'NON'" },
+        { FunctionTable::Interpolation::LINEAR, "'LIN'" },
+        { FunctionTable::Interpolation::LOGARITHMIC, "'LOG'" },
+        { FunctionTable::Interpolation::CONSTANT, "''" },
+        { FunctionTable::Interpolation::NONE, "'NON'" },
 };
 
 const map<FunctionTable::Interpolation, string> AsterModel::ProlongementByInterpolation = {
-        { FunctionTable::LINEAR, "'LINEAIRE'" },
-        { FunctionTable::LOGARITHMIC, "''" },
-        { FunctionTable::CONSTANT, "'CONSTANT'" },
-        { FunctionTable::NONE, "'EXCLU'" },
+        { FunctionTable::Interpolation::LINEAR, "'LINEAIRE'" },
+        { FunctionTable::Interpolation::LOGARITHMIC, "''" },
+        { FunctionTable::Interpolation::CONSTANT, "'CONSTANT'" },
+        { FunctionTable::Interpolation::NONE, "'EXCLU'" },
 };
 
 const vector<string> AsterModel::DofByPosition = {
@@ -117,7 +117,7 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
     ModelType modelType = elementSet->getModelType();
     string result;
     switch (elementSet->type) {
-    case ElementSet::CONTINUUM: {
+    case ElementSet::Type::CONTINUUM: {
         if (modelType == ModelType::TRIDIMENSIONAL_SI) {
             result = "('3D', '3D_SI')";
         } else if (modelType == ModelType::PLANE_STRESS) {
@@ -129,26 +129,26 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
         }
         break;
     }
-    case ElementSet::SHELL:
-    case ElementSet::COMPOSITE: {
+    case ElementSet::Type::SHELL:
+    case ElementSet::Type::COMPOSITE: {
         result = "('DKT',)";
         /*??
          coque_3D.modelisations = ("COQUE_3D",)
          */
         break;
     }
-    case ElementSet::CIRCULAR_SECTION_BEAM:
-    case ElementSet::RECTANGULAR_SECTION_BEAM:
-    case ElementSet::I_SECTION_BEAM:
-    case ElementSet::GENERIC_SECTION_BEAM: {
-        Beam::BeamModel beamModel = (static_pointer_cast<Beam>(elementSet))->beamModel;
+    case ElementSet::Type::CIRCULAR_SECTION_BEAM:
+    case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
+    case ElementSet::Type::I_SECTION_BEAM:
+    case ElementSet::Type::GENERIC_SECTION_BEAM: {
+        Beam::BeamModel beamModel = (dynamic_pointer_cast<Beam>(elementSet))->beamModel;
         double largeDisp = 0;
-        auto it = model.parameters.find(Model::LARGE_DISPLACEMENTS);
+        auto it = model.parameters.find(Model::Parameter::LARGE_DISPLACEMENTS);
         if (it != model.parameters.end()) {
             largeDisp = it->second;
         }
         if (is_zero(largeDisp)) {
-            if (beamModel == Beam::EULER) {
+            if (beamModel == Beam::BeamModel::EULER) {
                 result = "('POU_D_E',)";
             } else {
                 result = "('POU_D_T',)";
@@ -158,10 +158,10 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
         }
         break;
     }
-    case ElementSet::STRUCTURAL_SEGMENT:
-    case ElementSet::SCALAR_SPRING:
-    case ElementSet::DISCRETE_0D:
-    case ElementSet::DISCRETE_1D: {
+    case ElementSet::Type::STRUCTURAL_SEGMENT:
+    case ElementSet::Type::SCALAR_SPRING:
+    case ElementSet::Type::DISCRETE_0D:
+    case ElementSet::Type::DISCRETE_1D: {
         shared_ptr<Discrete> discret = (dynamic_pointer_cast<Discrete>(elementSet));
         if (discret->hasRotations()) {
             result = "('DIS_TR',)";
@@ -170,7 +170,7 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
         }
         break;
     }
-    case ElementSet::NODAL_MASS: {
+    case ElementSet::Type::NODAL_MASS: {
         shared_ptr<NodalMass> mass = (dynamic_pointer_cast<NodalMass>(elementSet));
         result = "('DIS_TR',)";
         break;

@@ -43,32 +43,32 @@ ostream& operator<<(ostream& os, const vector<T>& v) {
 
 namespace vega {
 
-unordered_map<VegaCommandLine::ExitCode, string, hash<int>> VegaCommandLine::failureReason_by_ExitCode = {
-        {OK, "OK"},
-        {GENERIC_EXCEPTION, "An unexpected exception was thrown during translation."},
-		{PARSING_EXCEPTION, "While reading the input file, VEGA encountered an error and quit."},
-		{WRITING_EXCEPTION, "While writing the output file, VEGA encountered an error and quit."},
-        {NO_INPUT_FILE, "No input file was specified."},
-        {OUTPUT_DIR_NOT_CREATED, "Output dir can't be created."},
-        {INVALID_COMMAND_LINE, "Invalid command line argument."},
-        {MODEL_VALIDATION_ERROR, "Validation of model failed."},
-        {SOLVER_NOT_FOUND, "Problem launching the solver (solver not found?)."},
-        {SOLVER_KILLED, "Solver got a signal (killed?)."},
-        {SOLVER_EXIT_NOT_ZERO, "Generic Solver problem {exit code !=0}."},
-        {SOLVER_RESULT_NOT_FOUND, "Solver did not produce the expected result file."},
-        {SOLVER_SYNTAX_ERROR, "Solver found a syntax error in vega++ translated file."},
-        {SOLVER_TEST_FAIL, "internal solver test fail (TEST_RESU)."}
+unordered_map<VegaCommandLine::ExitCode, string, EnumClassHash> VegaCommandLine::failureReason_by_ExitCode = {
+        {ExitCode::OK, "OK"},
+        {ExitCode::GENERIC_EXCEPTION, "An unexpected exception was thrown during translation."},
+		{ExitCode::PARSING_EXCEPTION, "While reading the input file, VEGA encountered an error and quit."},
+		{ExitCode::WRITING_EXCEPTION, "While writing the output file, VEGA encountered an error and quit."},
+        {ExitCode::NO_INPUT_FILE, "No input file was specified."},
+        {ExitCode::OUTPUT_DIR_NOT_CREATED, "Output dir can't be created."},
+        {ExitCode::INVALID_COMMAND_LINE, "Invalid command line argument."},
+        {ExitCode::MODEL_VALIDATION_ERROR, "Validation of model failed."},
+        {ExitCode::SOLVER_NOT_FOUND, "Problem launching the solver (solver not found?)."},
+        {ExitCode::SOLVER_KILLED, "Solver got a signal (killed?)."},
+        {ExitCode::SOLVER_EXIT_NOT_ZERO, "Generic Solver problem {exit code !=0}."},
+        {ExitCode::SOLVER_RESULT_NOT_FOUND, "Solver did not produce the expected result file."},
+        {ExitCode::SOLVER_SYNTAX_ERROR, "Solver found a syntax error in vega++ translated file."},
+        {ExitCode::SOLVER_TEST_FAIL, "internal solver test fail (TEST_RESU)."}
 };
 
 VegaCommandLine::VegaCommandLine() {
-    parserBySolverName[NASTRAN] = make_shared<nastran::NastranParser>();
-    parserBySolverName[OPTISTRUCT] = make_shared<optistruct::OptistructParser>();
-    writersBySolverName[CODE_ASTER] = make_shared<aster::AsterWriter>();
-    writersBySolverName[NASTRAN] = make_shared<nastran::NastranWriter>();
-    writersBySolverName[SYSTUS] = make_shared<systus::SystusWriter>();
-    runnerBySolverType[CODE_ASTER] = make_shared<aster::AsterRunner>();
-    runnerBySolverType[NASTRAN] = make_shared<nastran::NastranRunner>();
-    runnerBySolverType[SYSTUS] = make_shared<systus::SystusRunner>();
+    parserBySolverName[SolverName::NASTRAN] = make_shared<nastran::NastranParser>();
+    parserBySolverName[SolverName::OPTISTRUCT] = make_shared<optistruct::OptistructParser>();
+    writersBySolverName[SolverName::CODE_ASTER] = make_shared<aster::AsterWriter>();
+    writersBySolverName[SolverName::NASTRAN] = make_shared<nastran::NastranWriter>();
+    writersBySolverName[SolverName::SYSTUS] = make_shared<systus::SystusWriter>();
+    runnerBySolverType[SolverName::CODE_ASTER] = make_shared<aster::AsterRunner>();
+    runnerBySolverType[SolverName::NASTRAN] = make_shared<nastran::NastranRunner>();
+    runnerBySolverType[SolverName::SYSTUS] = make_shared<systus::SystusRunner>();
 }
 
 VegaCommandLine::ExitCode VegaCommandLine::convertStudy(
@@ -79,14 +79,14 @@ VegaCommandLine::ExitCode VegaCommandLine::convertStudy(
     const auto& writerIterator = writersBySolverName.find(outputSolver);
     if (writerIterator == writersBySolverName.end()) {
         cerr << "Output format " << configuration.outputSolver << "not supported." << endl;
-        return INVALID_COMMAND_LINE;
+        return ExitCode::INVALID_COMMAND_LINE;
     }
     shared_ptr<Writer> writer = writerIterator->second;
 
     const auto& parserIterator = parserBySolverName.find(inputSolver.getSolverName());
     if (parserIterator == parserBySolverName.end()) {
         cerr << "Input format " << inputSolver << "not supported." << endl;
-        return INVALID_COMMAND_LINE;
+        return ExitCode::INVALID_COMMAND_LINE;
     }
 
     if (configuration.logLevel >= LogLevel::TRACE) {
@@ -107,14 +107,14 @@ VegaCommandLine::ExitCode VegaCommandLine::convertStudy(
     model->finish();
     bool validationResult = model->validate();
     if (!validationResult
-            && configuration.translationMode == ConfigurationParameters::MODE_STRICT) {
+            && configuration.translationMode == ConfigurationParameters::TranslationMode::MODE_STRICT) {
         cerr << "Errors validating model. EXIT" << endl;
-        return MODEL_VALIDATION_ERROR;
+        return ExitCode::MODEL_VALIDATION_ERROR;
     }
 
     string modelFile = writer->writeModel(model, configuration);
     modelFileOut.append(modelFile);
-    return OK;
+    return ExitCode::OK;
 }
 
 fs::path VegaCommandLine::normalize_path(string strpath) {
@@ -166,7 +166,7 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     } else {
         tolerance = 0.02;
     }
-    ConfigurationParameters::TranslationMode translationMode = ConfigurationParameters::BEST_EFFORT;
+    ConfigurationParameters::TranslationMode translationMode = ConfigurationParameters::TranslationMode::BEST_EFFORT;
     bool hasParamBestEffort = false;
     if (vm.count("best-effort")) {
         hasParamBestEffort = true;
@@ -177,19 +177,19 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
             throw invalid_argument("only one between mesh-at-least or best-effort "
                     " parameter can be specified at once.");
         }
-        translationMode = ConfigurationParameters::MESH_AT_LEAST;
+        translationMode = ConfigurationParameters::TranslationMode::MESH_AT_LEAST;
     }
     if (vm.count("strict")) {
         if (hasParamBestEffort || hasParamMeshAtLeast) {
             throw invalid_argument("only one between mesh-at-least, best-effort or strict"
                     " parameter can be specified at once.");
         }
-        translationMode = ConfigurationParameters::MODE_STRICT;
+        translationMode = ConfigurationParameters::TranslationMode::MODE_STRICT;
     }
 
 
     // Choice of output solver, and options related to it
-    Solver solver(CODE_ASTER);
+    Solver solver(SolverName::CODE_ASTER);
     if (vm.count("output-format")) {
         string outputSolver = vm["output-format"].as<string>();
         solver = Solver::fromString(outputSolver);
@@ -333,7 +333,7 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     if (vm.count("listOptions")){
         cout << "VEGA options for this translation are: "<< endl;
         cout << "\t Output directory: "<< outputDir << endl;
-        cout << "\t Verbosity: "<< logLevel << endl;
+        cout << "\t Verbosity: "<< static_cast<int>(logLevel) << endl;
         cout << "\t Systus RBE2 Translation Mode: "<< systusRBE2TranslationMode << endl;
         cout << "\t Systus RBE2 Rigidity (for penalty mode only): " << (is_equal(systusRBE2Rigidity, Globals::UNAVAILABLE_DOUBLE) ? "auto" : to_string(systusRBE2Rigidity)) << endl;
         cout << "\t Systus RBE Lagrangian (for RBE2 lagrangian mode and RBE3): " << systusRBELagrangian << endl;
@@ -401,7 +401,7 @@ string VegaCommandLine::expand_user(string path) {
 }
 
 VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
-    ExitCode result = VegaCommandLine::OK;
+    ExitCode result = ExitCode::OK;
 #if Backtrace_FOUND
     signal(SIGSEGV, handler);
 #endif
@@ -503,13 +503,13 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
         // If we asked for version, nothing to do anymore.
         if (vm.count("version")) {
             //printHeader();
-            return OK;
+            return ExitCode::OK;
         }
 
         // Print help message and quit.
         if (vm.count("help")) {
             printHelp(visible);
-            return OK;
+            return ExitCode::OK;
         }
 
         // Read the Config File.
@@ -531,7 +531,7 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
         if (vm.count("input-file") == 0) {
             cout << "No input files specified." << endl << endl;
             printHelp(visible);
-            return NO_INPUT_FILE;
+            return ExitCode::NO_INPUT_FILE;
         }
 
 
@@ -540,12 +540,12 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
         if (configuration.resultFile.string().size() >= 1) {
             if (!fs::exists(configuration.resultFile)) {
                 cerr << "Test file specified " << configuration.resultFile << " can't be found. " << endl;
-                return NO_INPUT_FILE;
+                return ExitCode::NO_INPUT_FILE;
             }
         }
         if (!fs::exists(configuration.inputFile)) {
             cout << "Input file" << configuration.inputFile << " not found." << endl << endl;
-            return NO_INPUT_FILE;
+            return ExitCode::NO_INPUT_FILE;
         }
 
         if (!fs::exists(configuration.outputPath)) {
@@ -553,18 +553,18 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
             if (!create) {
                 cerr << "Output Directory " + configuration.outputPath + " can't be created."
                         << endl;
-                return OUTPUT_DIR_NOT_CREATED;
+                return ExitCode::OUTPUT_DIR_NOT_CREATED;
             }
         }
 
-        Solver inputFormat(NASTRAN);
+        Solver inputFormat(SolverName::NASTRAN);
         if (vm.count("input-format")) {
             string inputSolverString = vm["input-format"].as<string>();
             inputFormat = Solver::fromString(inputSolverString);
         }
         string modelFile;
         result = convertStudy(configuration, modelFile, inputFormat);
-        if (result == OK && configuration.runSolver) {
+        if (result == ExitCode::OK && configuration.runSolver) {
             result = runSolver(configuration, modelFile);
         }
     } catch (invalid_argument &e) {
@@ -572,31 +572,31 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
             throw;
         } else
             cerr  << endl << "Invalid argument: " << e.what()  << endl;
-        return INVALID_COMMAND_LINE;
+        return ExitCode::INVALID_COMMAND_LINE;
     } catch (ParsingException & e) {   // A parsing error occurred.
         if (logLevel >= LogLevel::DEBUG) {
             throw;
         } else
             cerr << endl << e.what() << endl;
-    	return PARSING_EXCEPTION;
+    	return ExitCode::PARSING_EXCEPTION;
     } catch (WritingException & e) {   // An error occurred in the Writer.
         if (logLevel >= LogLevel::DEBUG) {
             throw;
         } else
             cerr << endl << e.what() << endl;
-    	return WRITING_EXCEPTION;
+    	return ExitCode::WRITING_EXCEPTION;
     } catch (logic_error& e) {
         if (logLevel >= LogLevel::DEBUG) {
             throw;
         } else
             cerr << endl << "Logic error: " << e.what() << endl;
-        return GENERIC_EXCEPTION;
+        return ExitCode::GENERIC_EXCEPTION;
     } catch (exception& e) {
         if (logLevel >= LogLevel::DEBUG) {
             throw;
         } else
             cerr << endl << "Exception: " << e.what() << endl;
-        return GENERIC_EXCEPTION;
+        return ExitCode::GENERIC_EXCEPTION;
     }
     return result;
 }

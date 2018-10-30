@@ -27,8 +27,8 @@ Model::Model(string name, string inputSolverVersion, SolverName inputSolver,
         inputSolver(inputSolver), //
         modelType(ModelType::TRIDIMENSIONAL_SI), //
         configuration(configuration), translationMode(translationMode), //
-        commonLoadSet(*this, LoadSet::ALL, LoadSet::COMMON_SET_ID), //
-		commonConstraintSet(*this, ConstraintSet::ALL, ConstraintSet::COMMON_SET_ID) {
+        commonLoadSet(*this, LoadSet::Type::ALL, LoadSet::COMMON_SET_ID), //
+		commonConstraintSet(*this, ConstraintSet::Type::ALL, ConstraintSet::COMMON_SET_ID) {
     this->mesh = make_shared<Mesh>(configuration.logLevel, name);
     this->finished = false;
     this->onlyMesh = false;
@@ -416,7 +416,7 @@ const shared_ptr<ConstraintSet> Model::find(const Reference<ConstraintSet> refer
 template<>
 const shared_ptr<Analysis> Model::find(const Reference<Analysis> reference) const {
     shared_ptr<Analysis> analysis;
-    if (reference.type == Analysis::UNKNOWN && reference.id == Reference<Analysis>::NO_ID)
+    if (reference.type == Analysis::Type::UNKNOWN && reference.id == Reference<Analysis>::NO_ID)
         // retrieve by original_id
         analysis = analyses.find(reference.original_id);
     else
@@ -427,7 +427,7 @@ const shared_ptr<Analysis> Model::find(const Reference<Analysis> reference) cons
 template<>
 const shared_ptr<ElementSet> Model::find(const Reference<ElementSet> reference) const {
     shared_ptr<ElementSet> elementSet;
-    if (reference.type == ElementSet::UNKNOWN && reference.id == Reference<ElementSet>::NO_ID)
+    if (reference.type == ElementSet::Type::UNKNOWN && reference.id == Reference<ElementSet>::NO_ID)
         // retrieve by original_id
         elementSet = elementSets.find(reference.original_id);
     else
@@ -590,7 +590,7 @@ const vector<shared_ptr<LoadSet>> Model::getCommonLoadSets() const {
     for (auto loadSet : loadSets) {
         auto it = map.find(loadSet);
         // DLOAD is never common
-        if (it != map.end() && it->second == analyses.size() && loadSet->type != LoadSet::DLOAD)
+        if (it != map.end() && it->second == analyses.size() && loadSet->type != LoadSet::Type::DLOAD)
             result.push_back(loadSet);
     }
     return result;
@@ -622,7 +622,7 @@ const set<shared_ptr<LoadSet>> Model::getUncommonLoadSets() const {
     }
     for (auto loadSet : loadSets) {
         auto it = map.find(loadSet);
-        if ((it != map.end() && it->second < analyses.size()) && loadSet->type != LoadSet::DLOAD)
+        if ((it != map.end() && it->second < analyses.size()) && loadSet->type != LoadSet::Type::DLOAD)
             result.insert(loadSet);
     }
     return result;
@@ -693,7 +693,7 @@ void Model::generateDiscrets() {
 
                 if (extraDOFS != DOFS::NO_DOFS) {
                     if (spcSet == nullptr) {
-                        spcSet = new ConstraintSet(*this, ConstraintSet::SPC);
+                        spcSet = new ConstraintSet(*this, ConstraintSet::Type::SPC);
                         add(*spcSet);
                     }
                     SinglePointConstraint spc = SinglePointConstraint(*this, extraDOFS);
@@ -751,7 +751,7 @@ const vector<shared_ptr<Beam>> Model::getBeams() const {
     vector<shared_ptr<Beam>> result;
     for (auto elementSet : elementSets) {
         if (elementSet->isBeam()) {
-            shared_ptr<Beam> beam = static_pointer_cast<Beam>(elementSet);
+            shared_ptr<Beam> beam = dynamic_pointer_cast<Beam>(elementSet);
             result.push_back(beam);
         }
     }
@@ -762,13 +762,13 @@ const vector<shared_ptr<Beam>> Model::getBeams() const {
 void Model::generateSkin() {
     for (Container<Loading>::iterator it = loadings.begin(); it != loadings.end(); it++) {
         shared_ptr<Loading> loadingPtr = *it;
-        if (loadingPtr->applicationType == Loading::ELEMENT) {
-            shared_ptr<ElementLoading> elementLoading = static_pointer_cast<ElementLoading>(
+        if (loadingPtr->applicationType == Loading::ApplicationType::ELEMENT) {
+            shared_ptr<ElementLoading> elementLoading = dynamic_pointer_cast<ElementLoading>(
                     loadingPtr);
             if (elementLoading->cellDimensionGreatherThan(elementLoading->getLoadingDimension())) {
                 switch (loadingPtr->type) {
-                case Loading::FORCE_SURFACE: {
-                    shared_ptr<ForceSurface> forceSurface = static_pointer_cast<ForceSurface>(
+                case Loading::Type::FORCE_SURFACE: {
+                    shared_ptr<ForceSurface> forceSurface = dynamic_pointer_cast<ForceSurface>(
                             loadingPtr);
                     vector<int> faceIds = forceSurface->getApplicationFace();
                     if (faceIds.size() > 0) {
@@ -821,8 +821,8 @@ void Model::emulateLocalDisplacementConstraint() {
     // first pass : create LinearMultiplePoint constraints for each constraint that need it
     for (auto it = constraints.begin(); it != constraints.end(); it++) {
         const shared_ptr<Constraint>& constraint = *it;
-        if (constraint->type == Constraint::SPC) {
-            shared_ptr<SinglePointConstraint> spc = static_pointer_cast<SinglePointConstraint>(
+        if (constraint->type == Constraint::Type::SPC) {
+            shared_ptr<SinglePointConstraint> spc = dynamic_pointer_cast<SinglePointConstraint>(
                     constraint);
             for (int nodePosition : spc->nodePositions()) {
                 const Node& node = mesh->findNode(nodePosition);
@@ -917,9 +917,9 @@ void Model::generateBeamsToDisplayHomogeneousConstraint() {
         set<shared_ptr<Constraint>> constraints = constraintSet->getConstraints();
         for (auto constraint : constraints) {
             switch (constraint->type) {
-            case Constraint::RIGID: {
+            case Constraint::Type::RIGID: {
                 if (!virtualGroupRigid) {
-                    CircularSectionBeam virtualBeam(*this, 0.001, Beam::EULER, 0.0);
+                    CircularSectionBeam virtualBeam(*this, 0.001, Beam::BeamModel::EULER, 0.0);
                     if (this->configuration.addVirtualMaterial) {
                         virtualBeam.assignMaterial(getVirtualMaterial());
                     }
@@ -927,7 +927,7 @@ void Model::generateBeamsToDisplayHomogeneousConstraint() {
                     virtualBeam.assignCellGroup(virtualGroupRigid);
                     this->add(virtualBeam);
                 }
-                shared_ptr<RigidConstraint> rigid = static_pointer_cast<RigidConstraint>(
+                shared_ptr<RigidConstraint> rigid = dynamic_pointer_cast<RigidConstraint>(
                         constraint);
                 vector<int> nodes = { 0, 0 };
                 nodes[0] = mesh->findNodeId(rigid->getMaster());
@@ -940,9 +940,9 @@ void Model::generateBeamsToDisplayHomogeneousConstraint() {
                 }
                 break;
             }
-            case Constraint::RBE3: {
+            case Constraint::Type::RBE3: {
                 if (!virtualGroupRBE3) {
-                    CircularSectionBeam virtualBeam(*this, 0.001, Beam::EULER, 0.0);
+                    CircularSectionBeam virtualBeam(*this, 0.001, Beam::BeamModel::EULER, 0.0);
                     if (configuration.addVirtualMaterial) {
                         virtualBeam.assignMaterial(getVirtualMaterial());
                     }
@@ -950,7 +950,7 @@ void Model::generateBeamsToDisplayHomogeneousConstraint() {
                     virtualBeam.assignCellGroup(virtualGroupRBE3);
                     this->add(virtualBeam);
                 }
-                shared_ptr<RBE3> rbe3 = static_pointer_cast<RBE3>(constraint);
+                shared_ptr<RBE3> rbe3 = dynamic_pointer_cast<RBE3>(constraint);
                 vector<int> nodes = { 0, 0 };
                 nodes[0] = mesh->findNodeId(rbe3->getMaster());
                 mesh->allowDOFS(rbe3->getMaster(), DOFS::ALL_DOFS);
@@ -1150,7 +1150,7 @@ void Model::replaceDirectMatrices()
         if (!elementSetM->isMatrixElement()) {
             continue;
         }
-        shared_ptr<MatrixElement> matrix = static_pointer_cast<MatrixElement>(elementSetM);
+        shared_ptr<MatrixElement> matrix = dynamic_pointer_cast<MatrixElement>(elementSetM);
         for (int nodePosition : matrix->nodePositions()) {
             requiredDofsByNode[nodePosition] = DOFS();
             const int nodeId = mesh->findNodeId(nodePosition);
@@ -1191,7 +1191,7 @@ void Model::replaceDirectMatrices()
                     const vega::DOF& dof2 = kv.first.second;
                     if (!is_equal(value, 0)) {
                         switch (matrix->type) {
-                        case ElementSet::STIFFNESS_MATRIX:
+                        case ElementSet::Type::STIFFNESS_MATRIX:
                             discrete.addStiffness(dof1, dof2, value);
                             break;
                         default:
@@ -1276,7 +1276,7 @@ void Model::replaceDirectMatrices()
                             const DOF& colDof = kv.first.second;
                             if (!is_equal(value, 0)) {
                                 switch (matrix->type) {
-                                case ElementSet::STIFFNESS_MATRIX:
+                                case ElementSet::Type::STIFFNESS_MATRIX:
                                     discrete.addStiffness(row_index, col_index, rowDof, colDof,
                                             value);
                                     break;
@@ -1356,12 +1356,12 @@ void Model::removeRedundantSpcs()
         unordered_map<pair<int, DOF>, double, boost::hash<pair<int, int> > > spcvalueByNodeAndDof;
         for (const auto& constraintSet : analysis->getConstraintSets()) {
             const set<shared_ptr<Constraint> > spcs = constraintSet->getConstraintsByType(
-                    Constraint::SPC);
+                    Constraint::Type::SPC);
             if (spcs.size() == 0) {
                 continue;
             }
             for (shared_ptr<Constraint> constraint : spcs) {
-                shared_ptr<SinglePointConstraint> spc = static_pointer_cast<SinglePointConstraint>(
+                shared_ptr<SinglePointConstraint> spc = dynamic_pointer_cast<SinglePointConstraint>(
                         constraint);
                 for (int nodePosition : spc->nodePositions()) {
                     DOFS dofsToRemove;
@@ -1415,7 +1415,7 @@ void Model::splitDirectMatrices(const unsigned int sizeMax){
             continue;
         }
 
-        shared_ptr<MatrixElement> matrix = static_pointer_cast<MatrixElement>(elementSetM);
+        shared_ptr<MatrixElement> matrix = dynamic_pointer_cast<MatrixElement>(elementSetM);
 
         // If matrix is small enough, we do nothing
         if (matrix->nodePositions().size()<=sizeMax){
@@ -1432,7 +1432,7 @@ void Model::splitDirectMatrices(const unsigned int sizeMax){
 
         // Dummy ElementSet for the splitting
         shared_ptr<ElementSet> dummyElement = elementSetM->clone();
-        shared_ptr<MatrixElement> dummyMatrix = static_pointer_cast<MatrixElement>(dummyElement);
+        shared_ptr<MatrixElement> dummyMatrix = dynamic_pointer_cast<MatrixElement>(dummyElement);
         dummyMatrix->clear();
 
 
@@ -1489,7 +1489,7 @@ void Model::splitDirectMatrices(const unsigned int sizeMax){
             }
 
             // We copy the values
-            shared_ptr<MatrixElement> nM = static_pointer_cast<MatrixElement>(newElementSet);
+            shared_ptr<MatrixElement> nM = dynamic_pointer_cast<MatrixElement>(newElementSet);
             shared_ptr<DOFMatrix> dM = matrix->findSubmatrix(np.first, np.second);
             for (const auto dof: dM->componentByDofs){
                 nM->addComponent(nodeIdOfElement[np.first], dof.first.first, nodeIdOfElement[np.second], dof.first.second, dof.second);
@@ -1534,7 +1534,7 @@ void Model::makeCellsFromDirectMatrices(){
             continue;
         }
 
-        shared_ptr<MatrixElement> matrix = static_pointer_cast<MatrixElement>(elementSetM);
+        shared_ptr<MatrixElement> matrix = dynamic_pointer_cast<MatrixElement>(elementSetM);
 
         // If matrix is void, we do nothing (should not happen)
         if (matrix->nodePositions().size()==0){
@@ -1575,9 +1575,9 @@ void Model::makeCellsFromLMPC(){
         map< vector<DOFCoefs>, shared_ptr<CellGroup>> groupBySetOfCoefs;
         for (const auto& constraintSet : analysis->getConstraintSets()) {
 
-            set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::LMPC);
+            set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::Type::LMPC);
             for (const auto& constraint : constraints) {
-                const shared_ptr<LinearMultiplePointConstraint> lmpc = static_pointer_cast<LinearMultiplePointConstraint>(constraint);
+                const shared_ptr<LinearMultiplePointConstraint> lmpc = dynamic_pointer_cast<LinearMultiplePointConstraint>(constraint);
 
                 // We sort the Coeffs in order to fuse various LMPC into the same ElementSet/CellGroup
                 vector<int> sortedNodesPosition= lmpc->sortNodePositionByCoefs();
@@ -1630,7 +1630,7 @@ void Model::makeCellsFromLMPC(){
             const int idConstraintSet = constraintSet->getId();
             const int originalIdConstraintSet = constraintSet->getOriginalId();
             const ConstraintSet::Type natConstraintSet = constraintSet->type;
-            set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::LMPC);
+            set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::Type::LMPC);
             for (const auto& constraint : constraints) {
                 remove(constraint->getReference(), idConstraintSet, originalIdConstraintSet, natConstraintSet);
             }
@@ -1652,10 +1652,10 @@ void Model::makeCellsFromRBE(){
 
         // Translation of RBAR and RBE2 (RBE2 are viewed as an assembly of RBAR)
         // See Systus Reference Analysis Manual: RIGID BODY Element (page 498)
-        set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::RIGID);
+        set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::Type::RIGID);
         vector<shared_ptr<Constraint>> toBeRemoved;
         for (const auto& constraint : constraints) {
-            const shared_ptr<RigidConstraint> rbe2 = static_pointer_cast<RigidConstraint>(constraint);
+            const shared_ptr<RigidConstraint> rbe2 = dynamic_pointer_cast<RigidConstraint>(constraint);
 
             // Creating an elementset, a CellGroup and a dummy rigid material
             shared_ptr<Material> materialRBE2 = make_shared<Material>(this);
@@ -1684,9 +1684,9 @@ void Model::makeCellsFromRBE(){
             }
         }
 
-        constraints = constraintSet->getConstraintsByType(Constraint::QUASI_RIGID);
+        constraints = constraintSet->getConstraintsByType(Constraint::Type::QUASI_RIGID);
         for (const auto& constraint : constraints) {
-            shared_ptr<QuasiRigidConstraint> rbar = static_pointer_cast<QuasiRigidConstraint>(constraint);
+            shared_ptr<QuasiRigidConstraint> rbar = dynamic_pointer_cast<QuasiRigidConstraint>(constraint);
 
             if (!(rbar->isCompletelyRigid())){
                 cerr << "QUASI_RIGID constraint not available yet. Constraint "+to_string(constraint->bestId())+ " translated as rigid constraint."<<endl;
@@ -1727,10 +1727,10 @@ void Model::makeCellsFromRBE(){
          * See Systus Reference Analysis Manual, Section 8.8 "Special Elements",
          * Subsection "Use of Averaging Type Solid Elements", p500.
          */
-        constraints = constraintSet->getConstraintsByType(Constraint::RBE3);
+        constraints = constraintSet->getConstraintsByType(Constraint::Type::RBE3);
         for (const auto& constraint : constraints) {
 
-            const shared_ptr<RBE3>& rbe3 = static_pointer_cast<RBE3>(constraint);
+            const shared_ptr<RBE3>& rbe3 = dynamic_pointer_cast<RBE3>(constraint);
             const int masterId = mesh->findNodeId(rbe3->getMaster());
             const DOFS& mDOFS = rbe3->getDOFS();
 
@@ -1795,28 +1795,28 @@ void Model::splitElementsByDOFS(){
     for (auto & elementSet : elementSets) {
 
         switch (elementSet->type){
-        case ElementSet::DISCRETE_0D:
-        case ElementSet::DISCRETE_1D:
-        case ElementSet::NODAL_MASS:
-        case ElementSet::CIRCULAR_SECTION_BEAM:
-        case ElementSet::RECTANGULAR_SECTION_BEAM:
-        case ElementSet::I_SECTION_BEAM:
-        case ElementSet::GENERIC_SECTION_BEAM:
-        case ElementSet::STRUCTURAL_SEGMENT:
-        case ElementSet::SHELL:
-        case ElementSet::CONTINUUM:
-        case ElementSet::STIFFNESS_MATRIX:
-        case ElementSet::MASS_MATRIX:
-        case ElementSet::DAMPING_MATRIX:
-        case ElementSet::RIGIDSET:
-        case ElementSet::RBAR:
-        case ElementSet::RBE3:
-        case ElementSet::LMPC:{
+        case ElementSet::Type::DISCRETE_0D:
+        case ElementSet::Type::DISCRETE_1D:
+        case ElementSet::Type::NODAL_MASS:
+        case ElementSet::Type::CIRCULAR_SECTION_BEAM:
+        case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
+        case ElementSet::Type::I_SECTION_BEAM:
+        case ElementSet::Type::GENERIC_SECTION_BEAM:
+        case ElementSet::Type::STRUCTURAL_SEGMENT:
+        case ElementSet::Type::SHELL:
+        case ElementSet::Type::CONTINUUM:
+        case ElementSet::Type::STIFFNESS_MATRIX:
+        case ElementSet::Type::MASS_MATRIX:
+        case ElementSet::Type::DAMPING_MATRIX:
+        case ElementSet::Type::RIGIDSET:
+        case ElementSet::Type::RBAR:
+        case ElementSet::Type::RBE3:
+        case ElementSet::Type::LMPC:{
             continue;
         }
 
-        case ElementSet::SCALAR_SPRING:{
-            shared_ptr<ScalarSpring> ss = static_pointer_cast<ScalarSpring>(elementSet);
+        case ElementSet::Type::SCALAR_SPRING:{
+            shared_ptr<ScalarSpring> ss = dynamic_pointer_cast<ScalarSpring>(elementSet);
             if (ss->getNbDOFSSpring()>1){
                 int i =1;
                 const double stiffness = ss->getStiffness();
@@ -1858,9 +1858,9 @@ void Model::splitElementsByDOFS(){
 
 void Model::makeBoundarySegments() {
     for (const auto& constraintSet : this->getCommonConstraintSets()) {
-        auto constraints = constraintSet->getConstraintsByType(Constraint::SLIDE);
+        auto constraints = constraintSet->getConstraintsByType(Constraint::Type::SLIDE);
         for (const auto& constraint : constraints) {
-            shared_ptr<SlideContact> slide = static_pointer_cast<SlideContact>(constraint);
+            shared_ptr<SlideContact> slide = dynamic_pointer_cast<SlideContact>(constraint);
             shared_ptr<CellGroup> masterCellGroup = mesh->createCellGroup("SLIDE_M_"+to_string(slide->getOriginalId()));
             shared_ptr<CellGroup> slaveCellGroup = mesh->createCellGroup("SLIDE_S_"+to_string(slide->getOriginalId()));
             shared_ptr<NodeGroup> masterNodeGroup = dynamic_pointer_cast<NodeGroup>(mesh->findGroup(slide->masterNodeGroupId));
@@ -1891,37 +1891,22 @@ void Model::makeBoundarySegments() {
 
 void Model::makeBoundarySurfaces() {
     for (const auto& constraintSet : this->getCommonConstraintSets()) {
-        auto constraints = constraintSet->getConstraintsByType(Constraint::SURFACE_CONTACT);
+        auto constraints = constraintSet->getConstraintsByType(Constraint::Type::SURFACE_CONTACT);
         for (const auto& constraint : constraints) {
-            shared_ptr<SurfaceContact> surface = static_pointer_cast<SurfaceContact>(constraint);
+            shared_ptr<SurfaceContact> surface = dynamic_pointer_cast<SurfaceContact>(constraint);
             shared_ptr<CellGroup> masterCellGroup = mesh->createCellGroup("SURFCONT_M_"+to_string(surface->getOriginalId()));
             shared_ptr<CellGroup> slaveCellGroup = mesh->createCellGroup("SURFCONT_S_"+to_string(surface->getOriginalId()));
-            shared_ptr<NodeGroup> masterNodeGroup = dynamic_pointer_cast<NodeGroup>(mesh->findGroup(surface->masterNodeGroupId));
-            const set<int>& masterNodeIds = masterNodeGroup ->getNodeIds();
-            auto it = masterNodeIds.begin();
-            for(unsigned int i = 0; i < masterNodeIds.size() / 4;i+=4) {
-                int nodeId1 = *it;
-                int nodeId2 = *(++it);
-                int nodeId3 = *(++it);
-                int nodeId4 = *(++it);
-                vector<int> connectivity {nodeId1, nodeId2, nodeId3};
-                CellType cellType {CellType::TRI3};
-                if (nodeId4 != 0) {
-                    connectivity.push_back(nodeId4);
-                    cellType = CellType::QUAD4;
-                }
-                int cellPosition = mesh->addCell(Cell::AUTO_ID, cellType, connectivity, true);
-                masterCellGroup->addCellId(mesh->findCell(cellPosition).id);
+            const auto& slaveNodesList = dynamic_pointer_cast<ListValue<int>>(this->find(surface->slaveNodeIds));
+            if (slaveNodesList == nullptr) {
+                throw logic_error("Cannot find master node list");
             }
-            surface->masterCellGroup = masterCellGroup;
-            shared_ptr<NodeGroup> slaveNodeGroup = dynamic_pointer_cast<NodeGroup>(mesh->findGroup(surface->slaveNodeGroupId));
-            const set<int>& slaveNodeIds = slaveNodeGroup->getNodeIds();
+            const list<int>& slaveNodeIds = slaveNodesList->getList();
             auto it2 = slaveNodeIds.begin();
             for(unsigned int i = 0; i < slaveNodeIds.size() / 4;i+=4) {
-                int nodeId1 = *it2;
-                int nodeId2 = *(++it2);
-                int nodeId3 = *(++it2);
-                int nodeId4 = *(++it2);
+                int nodeId1 = *(it2++);
+                int nodeId2 = *(it2++);
+                int nodeId3 = *(it2++);
+                int nodeId4 = *(it2++);
                 vector<int> connectivity {nodeId1, nodeId2, nodeId3};
                 CellType cellType {CellType::TRI3};
                 if (nodeId4 != 0) {
@@ -1932,12 +1917,33 @@ void Model::makeBoundarySurfaces() {
                 slaveCellGroup->addCellId(mesh->findCell(cellPosition).id);
             }
             surface->slaveCellGroup = slaveCellGroup;
+            const auto& masterNodesList = dynamic_pointer_cast<ListValue<int>>(this->find(surface->masterNodeIds));
+            if (masterNodesList == nullptr) {
+                throw logic_error("Cannot find master node list");
+            }
+            const list<int>& masterNodeIds = masterNodesList->getList();
+            auto it = masterNodeIds.begin();
+            for(unsigned int i = 0; i < masterNodeIds.size() / 4;i+=4) {
+                int nodeId1 = *(it++);
+                int nodeId2 = *(it++);
+                int nodeId3 = *(it++);
+                int nodeId4 = *(it++);
+                vector<int> connectivity {nodeId1, nodeId2, nodeId3};
+                CellType cellType {CellType::TRI3};
+                if (nodeId4 != 0) {
+                    connectivity.push_back(nodeId4);
+                    cellType = CellType::QUAD4;
+                }
+                int cellPosition = mesh->addCell(Cell::AUTO_ID, cellType, connectivity, true);
+                masterCellGroup->addCellId(mesh->findCell(cellPosition).id);
+            }
+            surface->masterCellGroup = masterCellGroup;
         }
     }
 }
 
 void Model::addAutoAnalysis() {
-    auto& nonLinearStrategies = objectives.filter(Objective::NONLINEAR_STRATEGY);
+    auto& nonLinearStrategies = objectives.filter(Objective::Type::NONLINEAR_STRATEGY);
     bool linearStatic = true;
     // LD very basic implementation of analysis detection. Should also look for non linear materials etc ?
     if (nonLinearStrategies.size() >= 1) {
@@ -1947,7 +1953,7 @@ void Model::addAutoAnalysis() {
             linearStatic = false;
         }
     }
-    auto& modalStrategies = objectives.filter(Objective::FREQUENCY_TARGET);
+    auto& modalStrategies = objectives.filter(Objective::Type::FREQUENCY_TARGET);
     if (modalStrategies.size() >= 1) {
         for(auto& modalStrategy : modalStrategies) {
             LinearModal analysis(*this, modalStrategy->getOriginalId());
@@ -1991,6 +1997,11 @@ void Model::finish() {
     }
 
     removeAssertionsMissingDOFS();
+
+    if (this->configuration.makeBoundaryCells) {
+        makeBoundarySegments();
+        makeBoundarySurfaces();
+    }
 
     if (this->configuration.emulateLocalDisplacement) {
         emulateLocalDisplacementConstraint();
@@ -2041,11 +2052,6 @@ void Model::finish() {
 
     if (this->configuration.makeCellsFromRBE){
         makeCellsFromRBE();
-    }
-
-    if (this->configuration.makeBoundaryCells) {
-        makeBoundarySegments();
-        makeBoundarySurfaces();
     }
 
     if (this->configuration.splitElementsByDOFS){
@@ -2105,10 +2111,10 @@ bool Model::validate() {
 }
 
 void Model::assignVirtualMaterial() {
-    for (shared_ptr<ElementSet> element : elementSets.filter(ElementSet::STRUCTURAL_SEGMENT)) {
+    for (shared_ptr<ElementSet> element : elementSets.filter(ElementSet::Type::STRUCTURAL_SEGMENT)) {
         element->assignMaterial(getVirtualMaterial());
     }
-    for (shared_ptr<ElementSet> element : elementSets.filter(ElementSet::NODAL_MASS)) {
+    for (shared_ptr<ElementSet> element : elementSets.filter(ElementSet::Type::NODAL_MASS)) {
         element->assignMaterial(getVirtualMaterial());
     }
 }

@@ -20,7 +20,7 @@ namespace vega {
 
 const string Material::name = "Material";
 const map<Material::Type, string> Material::stringByType = {
-        { MATERIAL, "MATERIAL" }
+        { Material::Type::MATERIAL, "MATERIAL" }
 };
 
 
@@ -53,7 +53,7 @@ bool Material::validate() const {
 
 void Material::addNature(const Nature &nature) {
 	if (findNature(nature.type)) {
-		string message = "Nature already in use " + nature.type;
+		string message = "Nature already in use " + static_cast<size_t>(nature.type);
 		throw invalid_argument(message);
 	}
 	nature_by_type[nature.type] = nature.clone();
@@ -76,12 +76,12 @@ const double Nature::UNAVAILABLE_DOUBLE = -DBL_MAX;
 
 const string Nature::name = "NATURE";
 const map<Nature::NatureType, string> Nature::stringByType = {
-         {NATURE_ELASTIC , "NATURE ELASTIC"}
-        ,{NATURE_VISCOELASTIC , "NATURE VISCOELASTIC"}
-        ,{NATURE_BILINEAR_ELASTIC, "NATURE BILINEAR ELASTIC"}
-        ,{NATURE_NONLINEAR_ELASTIC, "NATURE NONLINEAR ELASTIC"}
-        ,{NATURE_RIGID, "NATURE RIGID"}
-        ,{NATURE_ORTHOTROPIC, "NATURE ORTHOTROPIC"}
+         {Nature::NatureType::NATURE_ELASTIC , "NATURE ELASTIC"}
+        ,{Nature::NatureType::NATURE_VISCOELASTIC , "NATURE VISCOELASTIC"}
+        ,{Nature::NatureType::NATURE_BILINEAR_ELASTIC, "NATURE BILINEAR ELASTIC"}
+        ,{Nature::NatureType::NATURE_NONLINEAR_ELASTIC, "NATURE NONLINEAR ELASTIC"}
+        ,{Nature::NatureType::NATURE_RIGID, "NATURE RIGID"}
+        ,{Nature::NatureType::NATURE_ORTHOTROPIC, "NATURE ORTHOTROPIC"}
 };
 
 ostream &operator<<(ostream &out, const Nature& nature) {
@@ -108,7 +108,7 @@ shared_ptr<Nature> ElasticNature::clone() const {
 
 ElasticNature::ElasticNature(const Model& model, const double e, const double nu, const double g,
 		const double rho, const double alpha, const double tref, const double ge) :
-		Nature(model, NATURE_ELASTIC), e(e), nu(nu), g(g), rho(rho), alpha(alpha), tref(tref), ge(ge) {
+		Nature(model, Nature::NatureType::NATURE_ELASTIC), e(e), nu(nu), g(g), rho(rho), alpha(alpha), tref(tref), ge(ge) {
 
 	if (is_equal(e, UNAVAILABLE_DOUBLE) && is_equal(g, UNAVAILABLE_DOUBLE))
 		throw invalid_argument("E and G may not both be blank.");
@@ -141,7 +141,7 @@ double ElasticNature::getG() const {
 
 double ElasticNature::getRho() const {
 	double mass_multiplier = 1;
-	auto it = model.parameters.find(Model::MASS_OVER_FORCE_MULTIPLIER);
+	auto it = model.parameters.find(Model::Parameter::MASS_OVER_FORCE_MULTIPLIER);
 	if (it != model.parameters.end()) {
 		mass_multiplier = it->second;
 		assert(!is_zero(it->second));
@@ -172,7 +172,7 @@ shared_ptr<Nature> OrthotropicNature::clone() const {
 OrthotropicNature::OrthotropicNature(const Model& model, const double e_longitudinal, const double e_transverse,
                                      const double nu_longitudinal_transverse, const double g_longitudinal_transverse,
                                      const double g_transverse_normal, const double g_longitudinal_normal) :
-		Nature(model, NATURE_ORTHOTROPIC), _e_longitudinal(e_longitudinal), _e_transverse(e_transverse),
+		Nature(model, Nature::NatureType::NATURE_ORTHOTROPIC), _e_longitudinal(e_longitudinal), _e_transverse(e_transverse),
 		_nu_longitudinal_transverse(nu_longitudinal_transverse),
 		_g_longitudinal_transverse(g_longitudinal_transverse), _g_transverse_normal(g_transverse_normal),
 		_g_longitudinal_normal(g_longitudinal_normal) {
@@ -208,12 +208,12 @@ shared_ptr<Nature> BilinearElasticNature::clone() const {
 
 BilinearElasticNature::BilinearElasticNature(const Model& model, const double elastic_limit,
 		const double secondary_slope) :
-		Nature(model, NATURE_BILINEAR_ELASTIC), elastic_limit(elastic_limit), secondary_slope(
+		Nature(model, Nature::NatureType::NATURE_BILINEAR_ELASTIC), elastic_limit(elastic_limit), secondary_slope(
 				secondary_slope) {
 }
 
 BilinearElasticNature::BilinearElasticNature(const Model& model) :
-		Nature(model, NATURE_BILINEAR_ELASTIC) {
+		Nature(model, Nature::NatureType::NATURE_BILINEAR_ELASTIC) {
 }
 
 shared_ptr<Nature> NonLinearElasticNature::clone() const {
@@ -222,13 +222,13 @@ shared_ptr<Nature> NonLinearElasticNature::clone() const {
 
 NonLinearElasticNature::NonLinearElasticNature(const Model& model,
 		const int stress_strain_function_id) :
-		Nature(model, NATURE_NONLINEAR_ELASTIC), stress_strain_function_ref(NamedValue::FUNCTION_TABLE,
+		Nature(model, Nature::NatureType::NATURE_NONLINEAR_ELASTIC), stress_strain_function_ref(Value::Type::FUNCTION_TABLE,
 				stress_strain_function_id) {
 }
 
 NonLinearElasticNature::NonLinearElasticNature(const Model& model,
 		const FunctionTable& stress_strain_function) :
-		Nature(model, NATURE_NONLINEAR_ELASTIC), stress_strain_function_ref(stress_strain_function) {
+		Nature(model, Nature::NatureType::NATURE_NONLINEAR_ELASTIC), stress_strain_function_ref(stress_strain_function) {
 }
 
 shared_ptr<FunctionTable> NonLinearElasticNature::getStressStrainFunction() const {
@@ -241,8 +241,8 @@ shared_ptr<Nature> RigidNature::clone() const {
 }
 
 RigidNature::RigidNature(const Model&, const double rigidity, const double lagrangian) :
-        Nature(model, NATURE_RIGID), rigidity(rigidity), lagrangian(lagrangian) {
-    if (is_equal(rigidity, UNAVAILABLE_DOUBLE) && is_equal(lagrangian, UNAVAILABLE_DOUBLE))
+        Nature(model, Nature::NatureType::NATURE_RIGID), rigidity(rigidity), lagrangian(lagrangian) {
+    if (is_equal(rigidity, Globals::UNAVAILABLE_DOUBLE) && is_equal(lagrangian, Globals::UNAVAILABLE_DOUBLE))
         throw invalid_argument("Rigidity and Lagrangian may not both be blank.");
 }
 

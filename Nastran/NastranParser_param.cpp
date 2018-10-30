@@ -124,7 +124,7 @@ void NastranParser::parseParamHFREQ(NastranTokenizer& tok, shared_ptr<Model> mod
      */
     double val = tok.nextDouble(true, 1e30);
     if (!is_equal(val, 1e30)) {
-        model->parameters[Model::UPPER_CUTOFF_FREQUENCY] = val;
+        model->parameters[Model::Parameter::UPPER_CUTOFF_FREQUENCY] = val;
     }
 }
 
@@ -143,21 +143,21 @@ void NastranParser::parseParamK6ROT(NastranTokenizer& tok, shared_ptr<Model> mod
 void NastranParser::parseParamLFREQ(NastranTokenizer& tok, shared_ptr<Model> model) {
     double val = tok.nextDouble(true, 0.0);
     if (!is_equal(val, 0.0)) {
-        model->parameters[Model::LOWER_CUTOFF_FREQUENCY] = val;
+        model->parameters[Model::Parameter::LOWER_CUTOFF_FREQUENCY] = val;
     }
 }
 
 void NastranParser::parseParamG(NastranTokenizer& tok, shared_ptr<Model> model) {
     double val = tok.nextDouble(true, 0.0);
     if (!is_equal(val, 0.0)) {
-        model->parameters[Model::STRUCTURAL_DAMPING] = val;
+        model->parameters[Model::Parameter::STRUCTURAL_DAMPING] = val;
     }
 }
 
 void NastranParser::parseParamW3(NastranTokenizer& tok, shared_ptr<Model> model) {
     double val = tok.nextDouble(true, 0.0);
     if (!is_equal(val, 0.0)) {
-        model->parameters[Model::FREQUENCY_OF_INTEREST_RADIANS] = val;
+        model->parameters[Model::Parameter::FREQUENCY_OF_INTEREST_RADIANS] = val;
     }
 }
 
@@ -177,7 +177,7 @@ void NastranParser::parseParamLGDISP(NastranTokenizer& tok, shared_ptr<Model> mo
      */
     double val = tok.nextDouble(true, -1);
     if (!is_equal(val, -1)) {
-        model->parameters[Model::LARGE_DISPLACEMENTS] = val;
+        model->parameters[Model::Parameter::LARGE_DISPLACEMENTS] = val;
     }
 }
 
@@ -221,13 +221,13 @@ void NastranParser::parseParamPRTMAXIM(NastranTokenizer& tok, shared_ptr<Model> 
      */
     string value = tok.nextString(true, "NO");
     if (value == "YES") {
-        model->parameters[Model::PRINT_MAXIM] = 1.0;
+        model->parameters[Model::Parameter::PRINT_MAXIM] = 1.0;
     }
 }
 
 void NastranParser::parseParamWTMASS(NastranTokenizer& tok, shared_ptr<Model> model) {
     double value = tok.nextDouble(true, 1);
-    model->parameters[Model::MASS_OVER_FORCE_MULTIPLIER] = value;
+    model->parameters[Model::Parameter::MASS_OVER_FORCE_MULTIPLIER] = value;
 }
 
 NastranParser::parseElementFPtr NastranParser::findParamParser(const string keyword) const {

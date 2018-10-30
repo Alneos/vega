@@ -1888,6 +1888,8 @@
 		<Unit filename="testdata/nastran/irt/probA/probA.bdf" />
 		<Unit filename="testdata/nastran/irt/probA/probA.f06" />
 		<Unit filename="testdata/nastran/irt/probA/readme.txt" />
+		<Unit filename="testdata/nastran/irt/ssnv129a/readme.txt" />
+		<Unit filename="testdata/nastran/irt/ssnv129a/ssnv129a.bdf" />
 		<Unit filename="testdata/nastran/irt/t01331/readme.txt" />
 		<Unit filename="testdata/nastran/irt/t01331/t01331a.f06" />
 		<Unit filename="testdata/nastran/irt/t01331/t01331a.inp" />

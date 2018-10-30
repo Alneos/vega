@@ -160,7 +160,7 @@ private:
      *        3-----11----0                  1-----8-----0\endcode
      *
      */
-    static const std::unordered_map<CellType::Code, std::vector<int>, std::hash<int>> nastran2medNodeConnectByCellType;
+    static const std::unordered_map<CellType::Code, std::vector<int>, EnumClassHash> nastran2medNodeConnectByCellType;
 
     /**
      * PARAM AUTOSPC

@@ -26,13 +26,13 @@ Loading::Loading(const Model& model, Loading::Type type, Loading::ApplicationTyp
 const string Loading::name = "Loading";
 
 const map<Loading::Type, string> Loading::stringByType = {
-		{ NODAL_FORCE, "NODAL_FORCE" },
-		{ GRAVITY, "GRAVITY" },
-		{ ROTATION, "ROTATION" },
-		{ NORMAL_PRESSION_FACE, "NORMAL_PRESSION_FACE" },
-		{ FORCE_LINE, "FORCE_LINE" },
-		{ FORCE_SURFACE, "FORCE_SURFACE" },
-		{ DYNAMIC_EXCITATION, "DYNAMIC_EXCITATION" }
+		{ Loading::Type::NODAL_FORCE, "NODAL_FORCE" },
+		{ Loading::Type::GRAVITY, "GRAVITY" },
+		{ Loading::Type::ROTATION, "ROTATION" },
+		{ Loading::Type::NORMAL_PRESSION_FACE, "NORMAL_PRESSION_FACE" },
+		{ Loading::Type::FORCE_LINE, "FORCE_LINE" },
+		{ Loading::Type::FORCE_SURFACE, "FORCE_SURFACE" },
+		{ Loading::Type::DYNAMIC_EXCITATION, "DYNAMIC_EXCITATION" }
 };
 
 ostream &operator<<(ostream &out, const Loading& loading) {
@@ -60,8 +60,8 @@ LoadSet::LoadSet(const Model& model, Type type, int original_id) :
 
 const string LoadSet::name = "LoadSet";
 
-const map<LoadSet::Type, string> LoadSet::stringByType = { { LOAD, "LOAD" }, { DLOAD, "DLOAD" }, {
-		EXCITEID, "EXCITEID" }, { ALL, "ALL" } };
+const map<LoadSet::Type, string> LoadSet::stringByType = { { LoadSet::Type::LOAD, "LOAD" }, { LoadSet::Type::DLOAD, "DLOAD" }, {
+		LoadSet::Type::EXCITEID, "EXCITEID" }, { LoadSet::Type::ALL, "ALL" } };
 
 ostream &operator<<(ostream &out, const LoadSet& loadset) {
 	out << to_str(loadset);
@@ -121,7 +121,7 @@ shared_ptr<LoadSet> LoadSet::clone() const {
 
 NodeLoading::NodeLoading(const Model& model, Loading::Type type, int original_id,
 		int coordinateSystemId) :
-		Loading(model, type, Loading::NODE, original_id, coordinateSystemId), NodeContainer(*(model.mesh)) {
+		Loading(model, type, Loading::ApplicationType::NODE, original_id, coordinateSystemId), NodeContainer(*(model.mesh)) {
 }
 
 set<int> NodeLoading::nodePositions() const {
@@ -130,7 +130,7 @@ set<int> NodeLoading::nodePositions() const {
 
 Gravity::Gravity(const Model& model, double acceleration, const VectorialValue& direction,
 		const int original_id) :
-		Loading(model, GRAVITY, NONE, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID), acceleration(
+		Loading(model, Loading::Type::GRAVITY, Loading::ApplicationType::NONE, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID), acceleration(
 				acceleration), direction(direction) {
 }
 
@@ -152,7 +152,7 @@ const VectorialValue Gravity::getAccelerationVector() const {
 
 double Gravity::getAcceleration() const {
 	double mass_multiplier = 1;
-	auto it = model.parameters.find(Model::MASS_OVER_FORCE_MULTIPLIER);
+	auto it = model.parameters.find(Model::Parameter::MASS_OVER_FORCE_MULTIPLIER);
 	if (it != model.parameters.end()) {
 		mass_multiplier = it->second;
 		assert(!is_zero(it->second));
@@ -177,7 +177,7 @@ bool Gravity::ineffective() const {
 }
 
 Rotation::Rotation(const Model& model, const int original_id) :
-		Loading(model, ROTATION, NONE, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+		Loading(model, Loading::Type::ROTATION, Loading::ApplicationType::NONE, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
 }
 
 const DOFS Rotation::getDOFSForNode(const int nodePosition) const {
@@ -254,12 +254,12 @@ void RotationNode::scale(const double factor) {
 
 NodalForce::NodalForce(const Model& model, const VectorialValue& force,
 		const VectorialValue& moment, const int original_id, int coordinate_system_id) :
-		NodeLoading(model, NODAL_FORCE, original_id, coordinate_system_id), force(force), moment(moment) {
+		NodeLoading(model, Loading::Type::NODAL_FORCE, original_id, coordinate_system_id), force(force), moment(moment) {
 }
 
 NodalForce::NodalForce(const Model& model, double fx, double fy, double fz, double mx,
 		double my, double mz, const int original_id, int coordinate_system_id) :
-		NodeLoading(model, NODAL_FORCE, original_id, coordinate_system_id), force(fx, fy, fz), moment(mx, my, mz) {
+		NodeLoading(model, Loading::Type::NODAL_FORCE, original_id, coordinate_system_id), force(fx, fy, fz), moment(mx, my, mz) {
 }
 
 const VectorialValue NodalForce::localToGlobal(int nodePosition, const VectorialValue& vectorialValue) const {
@@ -472,7 +472,7 @@ bool StaticPressure::ineffective() const {
 
 ElementLoading::ElementLoading(const Model& model, Loading::Type type, int original_id,
 		int coordinateSystemId) :
-		Loading(model, type, Loading::ELEMENT, original_id, coordinateSystemId), CellContainer(*(model.mesh)) {
+		Loading(model, type, Loading::ApplicationType::ELEMENT, original_id, coordinateSystemId), CellContainer(*(model.mesh)) {
 }
 
 set<int> ElementLoading::nodePositions() const {
@@ -499,7 +499,7 @@ bool ElementLoading::appliedToGeometry() {
 		int element_id = cell.elementId;
 		if (element_id != Cell::UNAVAILABLE_CELL) {
 			shared_ptr<ElementSet> element = model.find(
-					Reference<ElementSet>(ElementSet::UNKNOWN, Reference<ElementSet>::NO_ID,
+					Reference<ElementSet>(ElementSet::Type::UNKNOWN, Reference<ElementSet>::NO_ID,
 							element_id));
 			if (element) {
 				if (element->isBeam()) {
@@ -529,7 +529,7 @@ bool ElementLoading::appliedToGeometry() {
 
 ForceSurface::ForceSurface(const Model& model, const VectorialValue& force,
 		const VectorialValue& moment, const int original_id) :
-		ElementLoading(model, Loading::FORCE_SURFACE, original_id,
+		ElementLoading(model, Loading::Type::FORCE_SURFACE, original_id,
 				CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID), force(force), moment(moment) {
 }
 
@@ -598,7 +598,7 @@ vector<int> PressionFaceTwoNodes::getApplicationFace() const {
 
 ForceLine::ForceLine(const Model& model, const shared_ptr<NamedValue> force, DOF dof,
 			const int original_id) :
-		ElementLoading(model, FORCE_LINE, original_id), force(force), dof(dof) {
+		ElementLoading(model, Loading::Type::FORCE_LINE, original_id), force(force), dof(dof) {
 
 }
 
@@ -633,7 +633,7 @@ shared_ptr<Loading> PressionFaceTwoNodes::clone() const {
 }
 
 NormalPressionFace::NormalPressionFace(const Model& model, double intensity, const int original_id) :
-		ElementLoading(model, NORMAL_PRESSION_FACE, original_id,
+		ElementLoading(model, Loading::Type::NORMAL_PRESSION_FACE, original_id,
 				CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID), intensity(intensity) {
 }
 
@@ -666,7 +666,7 @@ bool NormalPressionFace::validate() const {
 DynamicExcitation::DynamicExcitation(const Model& model, const Reference<NamedValue> dynaDelay, const Reference<NamedValue> dynaPhase,
         const Reference<NamedValue> functionTableB, const Reference<NamedValue> functionTableP, const Reference<LoadSet> loadSet,
         const int original_id) :
-                Loading(model, DYNAMIC_EXCITATION, NONE, original_id), dynaDelay(dynaDelay), dynaPhase(dynaPhase),
+                Loading(model, Loading::Type::DYNAMIC_EXCITATION, Loading::ApplicationType::NONE, original_id), dynaDelay(dynaDelay), dynaPhase(dynaPhase),
                 functionTableB(functionTableB), functionTableP(functionTableP), loadSet(loadSet) {
 }
 
@@ -692,11 +692,11 @@ shared_ptr<LoadSet> DynamicExcitation::getLoadSet() const {
 }
 
 const ValuePlaceHolder DynamicExcitation::getFunctionTableBPlaceHolder() const {
-    return ValuePlaceHolder(model, functionTableB.type, functionTableB.original_id, NamedValue::FREQ);
+    return ValuePlaceHolder(model, functionTableB.type, functionTableB.original_id, NamedValue::ParaName::FREQ);
 }
 
 const ValuePlaceHolder DynamicExcitation::getFunctionTablePPlaceHolder() const {
-    return ValuePlaceHolder(model, functionTableP.type, functionTableP.original_id, NamedValue::FREQ);
+    return ValuePlaceHolder(model, functionTableP.type, functionTableP.original_id, NamedValue::ParaName::FREQ);
 }
 
 set<int> DynamicExcitation::nodePositions() const {
@@ -722,7 +722,7 @@ bool DynamicExcitation::ineffective() const {
 }
 
 InitialTemperature::InitialTemperature(const Model& model, const double temperature, const int original_id) :
-                NodeLoading(model, INITIAL_TEMPERATURE, original_id), temperature(temperature) {
+                NodeLoading(model, Loading::Type::INITIAL_TEMPERATURE, original_id), temperature(temperature) {
 }
 
 shared_ptr<Loading> InitialTemperature::clone() const {

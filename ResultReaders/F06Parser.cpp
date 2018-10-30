@@ -109,7 +109,7 @@ int F06Parser::readDisplacementSection(const Model& model,
 		message += " Line number " + lexical_cast<string>(currentLine);
 		message += " Line: " + currentLine;
 		cerr << message << endl;
-		if (ConfigurationParameters::MODE_STRICT == configuration.translationMode) {
+		if (ConfigurationParameters::TranslationMode::MODE_STRICT == configuration.translationMode) {
 			throw e;
 		} else {
 			//cerr << "Conditions not added, parsing next section" << endl;
@@ -160,7 +160,7 @@ void F06Parser::readEigenvalueSection(const Model& model,
 		message += " Line number " + lexical_cast<string>(currentLine);
 		message += " Line: " + currentLine;
 		cerr << message << endl;
-		if (ConfigurationParameters::MODE_STRICT == configuration.translationMode) {
+		if (ConfigurationParameters::TranslationMode::MODE_STRICT == configuration.translationMode) {
 			throw e;
 		} else {
 			//cerr << "Conditions not added, parsing next section" << endl;
@@ -227,7 +227,7 @@ int F06Parser::readComplexDisplacementSection(const Model& model,
 		message += " Line number " + lexical_cast<string>(currentLine);
 		message += " Line: " + currentLine;
 		cerr << message << endl;
-		if (ConfigurationParameters::MODE_STRICT == configuration.translationMode) {
+		if (ConfigurationParameters::TranslationMode::MODE_STRICT == configuration.translationMode) {
 			throw e;
 		} else {
 			//cerr << "Conditions not added, parsing next section" << endl;

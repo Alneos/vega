@@ -88,7 +88,7 @@ Runner::ExitCode AsterRunner::execSolver(const ConfigurationParameters &configur
 
     ExitCode exitCode = convertExecResult(i);
 
-    if (exitCode == OK) {
+    if (exitCode == ExitCode::OK) {
         //check if resu file exist
         string resuFileStr = stripExtension(modelFile) + ".resu";
         ifstream resuFile(resuFileStr);
@@ -96,7 +96,7 @@ Runner::ExitCode AsterRunner::execSolver(const ConfigurationParameters &configur
             ostringstream str;
             str << "Error executing Code Aster: " << resuFileStr << " not found.";
             perror(str.str().c_str());
-            exitCode = SOLVER_RESULT_NOT_FOUND;
+            exitCode = ExitCode::SOLVER_RESULT_NOT_FOUND;
         } else {
             //check if it contains nook
             string line;
@@ -105,16 +105,16 @@ Runner::ExitCode AsterRunner::execSolver(const ConfigurationParameters &configur
                 lineNumber += 1;
                 if (line.find("NOOK") != string::npos) {
                     cerr << "Test fail: line " << lineNumber << " file: " << resuFileStr << endl;
-                    exitCode = TEST_FAIL;
+                    exitCode = ExitCode::TEST_FAIL;
                 }
             }
-            if (exitCode == OK && configuration.logLevel >= LogLevel::DEBUG
+            if (exitCode == ExitCode::OK && configuration.logLevel >= LogLevel::DEBUG
                     && !configuration.resultFile.empty()) {
                 cout << "Tests OK." << endl;
             }
         }
     } else if (i == 4) { //handle the case of code_aster exit code 4
-        exitCode = TRANSLATION_SYNTAX_ERROR;
+        exitCode = ExitCode::TRANSLATION_SYNTAX_ERROR;
     }
     return exitCode;
 }

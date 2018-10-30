@@ -68,5 +68,17 @@ bool InvertMatrix(const ublas::matrix<double>& input, ublas::matrix<double>& inv
 void stacktrace();
 void handler(int sig);
 
+/**
+ * https://stackoverflow.com/questions/18837857/cant-use-enum-class-as-unordered-map-key
+ */
+struct EnumClassHash
+{
+    template <typename T>
+    std::size_t operator()(T t) const
+    {
+        return static_cast<std::size_t>(t); // you don't need to provide a specialization of std::hash, the template argument deduction does the job
+    }
+};
+
 } /* namespace vega */
 #endif /* UTILITY_H_ */

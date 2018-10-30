@@ -29,7 +29,7 @@ public:
      *
      * Remember to update failureReason_by_ExitCode if you add an entry here
      */
-    enum ExitCode {
+    enum class ExitCode {
         OK = 0, //
         GENERIC_EXCEPTION = 1, //An unexpected exception was thrown
         NO_INPUT_FILE = 2, //No input file was specified
@@ -40,16 +40,16 @@ public:
 		WRITING_EXCEPTION = 7, // Error in the Writer.
 		CHILD_CRASHED = 8, // Child not providing status
 		FORK_FAILED = 9, // Fork in main could not be done by the system
-        SOLVER_NOT_FOUND = Runner::SOLVER_NOT_FOUND, //solver was not found
-        SOLVER_KILLED = Runner::SOLVER_KILLED,
-        SOLVER_EXIT_NOT_ZERO = Runner::SOLVER_EXIT_NOT_ZERO,
-        SOLVER_RESULT_NOT_FOUND = Runner::SOLVER_RESULT_NOT_FOUND,
-        SOLVER_SYNTAX_ERROR = Runner::TRANSLATION_SYNTAX_ERROR,
-        SOLVER_TEST_FAIL = Runner::TEST_FAIL //internal solver test fail (TEST_RESU)
+        SOLVER_NOT_FOUND = static_cast<int>(Runner::ExitCode::SOLVER_NOT_FOUND), //solver was not found
+        SOLVER_KILLED = static_cast<int>(Runner::ExitCode::SOLVER_KILLED),
+        SOLVER_EXIT_NOT_ZERO = static_cast<int>(Runner::ExitCode::SOLVER_EXIT_NOT_ZERO),
+        SOLVER_RESULT_NOT_FOUND = static_cast<int>(Runner::ExitCode::SOLVER_RESULT_NOT_FOUND),
+        SOLVER_SYNTAX_ERROR = static_cast<int>(Runner::ExitCode::TRANSLATION_SYNTAX_ERROR),
+        SOLVER_TEST_FAIL = static_cast<int>(Runner::ExitCode::TEST_FAIL) //internal solver test fail (TEST_RESU)
     };
 
 private:
-    static std::unordered_map<ExitCode, std::string, std::hash<int>> failureReason_by_ExitCode;
+    static std::unordered_map<ExitCode, std::string, EnumClassHash> failureReason_by_ExitCode;
 
     ConfigurationParameters readCommandLineParameters(const po::variables_map& vm);
     ExitCode convertStudy(const ConfigurationParameters& configuration, std::string& modelFileOut,
@@ -59,9 +59,9 @@ private:
     static void printHeader();
     std::string expand_user(std::string path);
     static fs::path normalize_path(std::string path);
-    std::unordered_map<SolverName, std::shared_ptr<Parser>, std::hash<int>> parserBySolverName;
-    std::unordered_map<SolverName, std::shared_ptr<Writer>, std::hash<int>> writersBySolverName;
-    std::unordered_map<SolverName, std::shared_ptr<Runner>, std::hash<int>> runnerBySolverType;
+    std::unordered_map<SolverName, std::shared_ptr<Parser>, EnumClassHash> parserBySolverName;
+    std::unordered_map<SolverName, std::shared_ptr<Writer>, EnumClassHash> writersBySolverName;
+    std::unordered_map<SolverName, std::shared_ptr<Runner>, EnumClassHash> runnerBySolverType;
 public:
     VegaCommandLine();
     ExitCode process(int ac, const char* av[]);

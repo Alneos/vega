@@ -52,7 +52,7 @@ private:
     std::map<int, char> boundaryDOFSByNodePosition;
     const std::string label;         /**< User defined label for this instance of Analysis. **/
 public:
-    enum Type {
+    enum class Type {
         LINEAR_MECA_STAT,
         LINEAR_MODAL,
         LINEAR_DYNA_DIRECT_FREQ,

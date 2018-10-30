@@ -127,7 +127,7 @@ public:
     vega::ConfigurationParameters::TranslationMode translationMode;
     std::shared_ptr<Mesh> mesh; /**< Handles geometrical information */
 
-    enum Parameter {
+    enum class Parameter {
         MASS_OVER_FORCE_MULTIPLIER,
         PRINT_MAXIM,
         LARGE_DISPLACEMENTS,
@@ -141,13 +141,13 @@ public:
     const ConstraintSet commonConstraintSet;
 
 private:
-    std::unordered_map<LoadSet::Type, std::map<int, std::set<std::shared_ptr<Reference<Loading>>> > ,std::hash<int>>
+    std::unordered_map<LoadSet::Type, std::map<int, std::set<std::shared_ptr<Reference<Loading>>> > ,EnumClassHash>
     loadingReferences_by_loadSet_original_ids_by_loadSet_type;
     std::unordered_map<int, std::set<std::shared_ptr<Reference<Loading>>> >
     loadingReferences_by_loadSet_ids;
 
     std::unordered_map< ConstraintSet::Type,
-    std::map<int, std::set<std::shared_ptr<Reference<Constraint>>>>,std::hash<int>>
+    std::map<int, std::set<std::shared_ptr<Reference<Constraint>>>>,EnumClassHash>
     constraintReferences_by_constraintSet_original_ids_by_constraintSet_type;
     std::map< int, std::set<std::shared_ptr<Reference<Constraint>>>>
     constraintReferences_by_constraintSet_ids;
@@ -155,7 +155,7 @@ private:
     template<class T> class Container final {
         std::map<int, std::shared_ptr<T>> by_id;
         std::unordered_map< typename T::Type, std::map<int, std::shared_ptr<T>>,
-        std::hash<int>> by_original_ids_by_type;
+        EnumClassHash> by_original_ids_by_type;
     private:
         Model& model;
     public:
@@ -207,15 +207,15 @@ private:
                     std::cerr << *t << " is not valid" << std::endl;
 
                     switch (model.translationMode) {
-                    case vega::ConfigurationParameters::MODE_STRICT:
+                    case vega::ConfigurationParameters::TranslationMode::MODE_STRICT:
                         // Shouldn't do any cleanup in STRICT mode
                         break;
-                    case vega::ConfigurationParameters::MESH_AT_LEAST:
-                    case vega::ConfigurationParameters::BEST_EFFORT:
+                    case vega::ConfigurationParameters::TranslationMode::MESH_AT_LEAST:
+                    case vega::ConfigurationParameters::TranslationMode::BEST_EFFORT:
                         toBeRemoved.push_back(t);
                         break;
                     default:
-                        throw std::logic_error("Unknown enum in Translation mode");
+                        throw std::logic_error("Unknown enum class in Translation mode");
                     }
                 }
             }
@@ -241,9 +241,9 @@ private:
         bool onlyMesh;
 
         Model(std::string name, std::string inputSolverVersion = std::string("UNKNOWN"),
-                SolverName inputSolver = NASTRAN,
+                SolverName inputSolver = SolverName::NASTRAN,
                 const ModelConfiguration configuration = ModelConfiguration(),
-                const vega::ConfigurationParameters::TranslationMode translationMode = vega::ConfigurationParameters::BEST_EFFORT);
+                const vega::ConfigurationParameters::TranslationMode translationMode = vega::ConfigurationParameters::TranslationMode::BEST_EFFORT);
         Model(const Model& that) = delete; /** bad bad things happens if you ever try to copy a Model (back references to model are not up to date). */
         virtual ~Model();
 

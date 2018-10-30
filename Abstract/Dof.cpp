@@ -18,7 +18,7 @@
 namespace vega {
 using namespace std;
 
-unordered_map<DOF::Code, DOF*, hash<int>> DOF::dofByCode;
+unordered_map<DOF::Code, DOF*, EnumClassHash> DOF::dofByCode;
 unordered_map<int, DOF*> DOF::dofByPosition;
 
 DOF::DOF(Code _code, bool _isTranslation, bool _isRotation, const string _label, int _position) :
@@ -36,12 +36,16 @@ bool DOF::operator==(const DOF& other) const {
 	return this->code == other.code;
 }
 
-const DOF DOF::DX(DX_CODE, true, false, "DX", 0);
-const DOF DOF::DY(DY_CODE, true, false, "DY", 1);
-const DOF DOF::DZ(DZ_CODE, true, false, "DZ", 2);
-const DOF DOF::RX(RX_CODE, false, true, "RX", 3);
-const DOF DOF::RY(RY_CODE, false, true, "RY", 4);
-const DOF DOF::RZ(RZ_CODE, false, true, "RZ", 5);
+char DOF::operator|(const DOF& other) const {
+	return static_cast<char>(this->code) | static_cast<char>(other.code);
+}
+
+const DOF DOF::DX(DOF::Code::DX_CODE, true, false, "DX", 0);
+const DOF DOF::DY(DOF::Code::DY_CODE, true, false, "DY", 1);
+const DOF DOF::DZ(DOF::Code::DZ_CODE, true, false, "DZ", 2);
+const DOF DOF::RX(DOF::Code::RX_CODE, false, true, "RX", 3);
+const DOF DOF::RY(DOF::Code::RY_CODE, false, true, "RY", 4);
+const DOF DOF::RZ(DOF::Code::RZ_CODE, false, true, "RZ", 5);
 
 DOF DOF::findByPosition(int position) {
 	if (position < 0 || position > 5) {
@@ -65,26 +69,26 @@ ostream &operator<<(ostream &out, const DOF& dof) {
 
 const double DOFS::FREE_DOF = -DBL_MAX;
 
-const boost::bimap<int, char> DOFS::DOF_BY_NASTRANCODE = boost::assign::list_of<
-		boost::bimap<int, char>::relation>
-		( 1, DOF::DX_CODE )
-		( 2, DOF::DY_CODE )
-		( 3, DOF::DZ_CODE )
-		( 4, DOF::RX_CODE )
-		( 5, DOF::RY_CODE )
-		( 6, DOF::RZ_CODE );
+const boost::bimap<int, DOF::Code> DOFS::DOF_BY_NASTRANCODE = boost::assign::list_of<
+		boost::bimap<int, DOF::Code>::relation>
+		( 1, DOF::Code::DX_CODE )
+		( 2, DOF::Code::DY_CODE )
+		( 3, DOF::Code::DZ_CODE )
+		( 4, DOF::Code::RX_CODE )
+		( 5, DOF::Code::RY_CODE )
+		( 6, DOF::Code::RZ_CODE );
 
 const DOFS DOFS::NO_DOFS(static_cast<char>(0));
-const DOFS DOFS::ONE(static_cast<char>(DOF::DX_CODE));
-const DOFS DOFS::TRANSLATIONS(static_cast<char>(DOF::DX_CODE | DOF::DY_CODE | DOF::DZ_CODE));
-const DOFS DOFS::ROTATIONS(static_cast<char>(DOF::RX_CODE | DOF::RY_CODE | DOF::RZ_CODE));
+const DOFS DOFS::ONE(static_cast<char>(DOF::Code::DX_CODE));
+const DOFS DOFS::TRANSLATIONS(static_cast<char>(static_cast<char>(DOF::Code::DX_CODE) | static_cast<char>(DOF::Code::DY_CODE) | static_cast<char>(DOF::Code::DZ_CODE)));
+const DOFS DOFS::ROTATIONS(static_cast<char>(static_cast<char>(DOF::Code::RX_CODE) | static_cast<char>(DOF::Code::RY_CODE) | static_cast<char>(DOF::Code::RZ_CODE)));
 const DOFS DOFS::ALL_DOFS = TRANSLATIONS + ROTATIONS;
 
 DOFS::DOFS(char _dofsCode) :
 		dofsCode(_dofsCode) {
 }
 
-DOFS::DOFS(DOF dof) :
+DOFS::DOFS(const DOF dof) :
 		dofsCode(static_cast<char>(dof.code)) {
 }
 
@@ -115,7 +119,7 @@ bool DOFS::containsAnyOf(DOFS dofs) const {
 }
 
 bool DOFS::contains(DOF dof) const {
-	return (dofsCode & dof.code) != 0;
+	return (dofsCode & static_cast<char>(dof.code)) != 0;
 }
 
 DOFS::operator char() const {
@@ -127,7 +131,7 @@ bool DOFS::operator ==(const DOFS& other) const {
 }
 
 bool DOFS::operator ==(const DOF& other) const {
-	return this->dofsCode == other.code;
+	return this->dofsCode == static_cast<char>(other.code);
 }
 
 bool DOFS::operator ==(const char other) const {
@@ -186,22 +190,22 @@ DOFS DOFS::nastranCodeToDOFS(int nastranCode) {
 			throw invalid_argument(
 					string("Invalid Nastran code: " + nastranCode));
 		}
-		DOFS internalDOFCode = codeiter->second;
+		DOFS internalDOFCode {static_cast<char>(codeiter->second)};
 		dofs = dofs + internalDOFCode;
 	}
 	return dofs;
 }
 
 DOFS operator +(const DOFS lhs, const DOF& rhs) {
-	return DOFS(static_cast<char>(lhs.dofsCode | rhs.code));
+	return DOFS(static_cast<char>(lhs.dofsCode | static_cast<char>(rhs.code)));
 }
 
 DOFS operator -(const DOFS lhs, const DOF& rhs) {
-	return DOFS(static_cast<char>(lhs.dofsCode & ~rhs.code));
+	return DOFS(static_cast<char>(lhs.dofsCode & ~static_cast<char>(rhs.code)));
 }
 
 DOFS operator+(const DOFS lhs, const DOFS& rhs) {
-	return DOFS(static_cast<char>(lhs.dofsCode | rhs.dofsCode));
+	return DOFS(static_cast<char>(lhs.dofsCode | static_cast<char>(rhs.dofsCode)));
 }
 DOFS operator-(const DOFS lhs, const DOFS& rhs) {
 	return DOFS(static_cast<char>(lhs.dofsCode & (~rhs.dofsCode)));

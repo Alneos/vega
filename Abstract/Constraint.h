@@ -32,7 +32,7 @@ class Group;
 class Constraint: public Identifiable<Constraint>, public BoundaryCondition {
 	friend std::ostream &operator<<(std::ostream&, const Constraint&);    //output
 public:
-	enum Type {
+	enum class Type {
 		QUASI_RIGID,
 		RIGID,
 		RBE3,
@@ -67,10 +67,10 @@ private:
 	std::vector<Reference<ConstraintSet>> constraintSetReferences;
 	friend std::ostream &operator<<(std::ostream&, const ConstraintSet&);
 public:
-	enum Type {
+	enum class Type {
 		SPC, SPCD, MPC, ALL
 	};
-	ConstraintSet(const Model&, Type type = SPC, int original_id = NO_ORIGINAL_ID);
+	ConstraintSet(const Model&, Type type = Type::SPC, int original_id = NO_ORIGINAL_ID);
 	static constexpr int COMMON_SET_ID = 0;
 	const Type type;
 	static const std::string name;
@@ -284,9 +284,9 @@ public:
  */
 class SurfaceContact: public Contact {
 public:
-	SurfaceContact(Model& model, int original_id = NO_ORIGINAL_ID);
-    int masterNodeGroupId = Globals::UNAVAILABLE_INT;
-    int slaveNodeGroupId = Globals::UNAVAILABLE_INT;
+	SurfaceContact(Model& model, Reference<NamedValue> masterNodeIds, Reference<NamedValue> slaveNodeIds, int original_id = NO_ORIGINAL_ID);
+    Reference<NamedValue> masterNodeIds;
+    Reference<NamedValue> slaveNodeIds;
     std::shared_ptr<CellGroup> masterCellGroup = nullptr;
     std::shared_ptr<CellGroup> slaveCellGroup = nullptr;
 	std::shared_ptr<Constraint> clone() const override;

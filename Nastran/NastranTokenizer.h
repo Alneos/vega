@@ -39,7 +39,7 @@ namespace nastran {
 //TODO implements iterator
 class NastranTokenizer : public vega::Tokenizer {
 public:
-    enum LineType {
+    enum class LineType {
         FREE_FORMAT,
         SHORT_FORMAT,
         LONG_FORMAT
@@ -70,12 +70,12 @@ private:
     std::string nextSymbolString();
 
 public:
-    enum SymbolType {
+    enum class SymbolType {
         SYMBOL_KEYWORD = 0,
         SYMBOL_FIELD = 1,
         SYMBOL_EOF = 2
     };
-    enum SectionType {
+    enum class SectionType {
         SECTION_EXECUTIVE,
         SECTION_BULK
     };
@@ -86,7 +86,7 @@ public:
 
     NastranTokenizer(std::istream& stream, vega::LogLevel logLevel = vega::LogLevel::INFO,
             const std::string fileName = "UNKNOWN",
-            const vega::ConfigurationParameters::TranslationMode translationMode = vega::ConfigurationParameters::BEST_EFFORT);
+            const vega::ConfigurationParameters::TranslationMode translationMode = vega::ConfigurationParameters::TranslationMode::BEST_EFFORT);
     virtual ~NastranTokenizer();
 
     /**

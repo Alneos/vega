@@ -13,17 +13,17 @@
 #include <string>
 
 using namespace std;
-namespace fs = boost::filesystem;
+using namespace vega;
 
 BOOST_AUTO_TEST_CASE(read_tut_01_csv) {
 	string testLocation(PROJECT_BASE_DIR "/testdata/unitTest/resultReaders/tut01.csv");
-	fs::path resultPath = fs::path(testLocation).make_preferred();
+	boost::filesystem::path resultPath = fs::path(testLocation).make_preferred();
 
-	vega::ConfigurationParameters params(string(""), vega::CODE_ASTER, string(""), string(""),
-			string("."), vega::LogLevel::INFO,
-			vega::ConfigurationParameters::TranslationMode::BEST_EFFORT, resultPath);
-	vega::result::CSVResultReader reader;
-	shared_ptr<vega::Model> model = make_shared<vega::Model>("tut_01", "", vega::SolverName::CODE_ASTER,
+	ConfigurationParameters params(string(""), SolverName::CODE_ASTER, string(""), string(""),
+			string("."), LogLevel::INFO,
+			ConfigurationParameters::TranslationMode::BEST_EFFORT, resultPath);
+	result::CSVResultReader reader;
+	shared_ptr<Model> model = make_shared<Model>("tut_01", "", SolverName::CODE_ASTER,
 					params.getModelConfiguration());
 	reader.add_assertions(params, model);
 	BOOST_CHECK_EQUAL(model->objectives.size(), 126);

@@ -9,11 +9,11 @@
 
 #define PROJECT_BASE_DIR "@PROJECT_SOURCE_DIR@"
 #define PROJECT_BINARY_DIR "@PROJECT_BINARY_DIR@"
-#cmakedefine01 TESTS_EXEC_SOLVER
 #cmakedefine01 Backtrace_FOUND
 #cmakedefine01 LIBUNWIND_FOUND
 #define TESTS_NIGHTLY_BUILD "@TESTS_NIGHTLY_BUILD@"
 #define BUILD_TYPE "@CMAKE_BUILD_TYPE@"
 
+#cmakedefine01 RUN_ASTER
 #cmakedefine01 RUN_SYSTUS
 #endif

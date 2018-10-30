@@ -46,7 +46,7 @@ private:
 class ElementSet: public Identifiable<ElementSet> {
     friend std::ostream &operator<<(std::ostream&, const ElementSet&);    //output
 public:
-    enum Type {
+    enum class Type {
         DISCRETE_0D,
         DISCRETE_1D,
         NODAL_MASS,
@@ -126,14 +126,14 @@ public:
 
 class Beam: public ElementSet {
 public:
-	enum BeamModel {
+	enum class BeamModel {
 		EULER,
 		TIMOSHENKO
 	};
 	BeamModel beamModel;
 	protected:
 	double additional_mass;
-	Beam(Model&, Type type, ModelType* modelType = nullptr, BeamModel beamModel = EULER,
+	Beam(Model&, Type type, ModelType* modelType = nullptr, BeamModel beamModel = BeamModel::EULER,
 			double additionalMass = 0.0, int original_id = NO_ORIGINAL_ID);
 	public:
     std::vector<RecoveryPoint> recoveryPoints;
@@ -159,7 +159,7 @@ class CircularSectionBeam: public Beam {
 
 public:
 	const double radius;
-	CircularSectionBeam(Model&, double _radius, BeamModel beamModel = EULER,
+	CircularSectionBeam(Model&, double _radius, BeamModel beamModel = BeamModel::EULER,
 			double additional_mass = 0, int original_id = NO_ORIGINAL_ID);
 	std::shared_ptr<ElementSet> clone() const override;
 	double getAreaCrossSection() const override;
@@ -181,7 +181,7 @@ private:
 public:
 	GenericSectionBeam(Model& model, double area_cross_section, double moment_of_inertia_Y,
 			double moment_of_inertia_Z, double torsional_constant, double shear_area_factor_Y,
-			double shear_area_factor_Z, BeamModel beamModel = EULER, double additional_mass = 0,
+			double shear_area_factor_Z, BeamModel beamModel = BeamModel::EULER, double additional_mass = 0,
 			int original_id = NO_ORIGINAL_ID);
 	/* dans AFFE_CARA_ELEM les coefficients de cisaillement
 	 AY et AZ ne doivent pas etre entres comme le font
@@ -202,7 +202,7 @@ class RectangularSectionBeam: public Beam {
 public:
 	const double width;
 	const double height;
-	RectangularSectionBeam(Model&, double width, double height, BeamModel beamModel = EULER,
+	RectangularSectionBeam(Model&, double width, double height, BeamModel beamModel = BeamModel::EULER,
 			double additional_mass = 0, int original_id = NO_ORIGINAL_ID);
 	std::shared_ptr<ElementSet> clone() const override;
 	double getAreaCrossSection() const override;
@@ -233,7 +233,7 @@ public:
 
 	ISectionBeam(Model& model, double upper_flange_width, double lower_flange_width,
 			double upper_flange_thickness, double lower_flange_thickness, double beam_height,
-			double web_thickness, BeamModel beamModel = EULER, double additional_mass = 0,
+			double web_thickness, BeamModel beamModel = BeamModel::EULER, double additional_mass = 0,
 			int original_id = NO_ORIGINAL_ID);
 
 	std::shared_ptr<ElementSet> clone() const override {
