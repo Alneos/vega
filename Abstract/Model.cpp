@@ -1902,7 +1902,7 @@ void Model::makeBoundarySurfaces() {
             }
             const list<int>& slaveNodeIds = slaveNodesList->getList();
             auto it2 = slaveNodeIds.begin();
-            for(unsigned int i = 0; i < slaveNodeIds.size() / 4;i+=4) {
+            for(unsigned int i = 0; i < slaveNodeIds.size();i+=4) {
                 int nodeId1 = *(it2++);
                 int nodeId2 = *(it2++);
                 int nodeId3 = *(it2++);
@@ -1923,7 +1923,7 @@ void Model::makeBoundarySurfaces() {
             }
             const list<int>& masterNodeIds = masterNodesList->getList();
             auto it = masterNodeIds.begin();
-            for(unsigned int i = 0; i < masterNodeIds.size() / 4;i+=4) {
+            for(unsigned int i = 0; i < masterNodeIds.size();i+=4) {
                 int nodeId1 = *(it++);
                 int nodeId2 = *(it++);
                 int nodeId3 = *(it++);
