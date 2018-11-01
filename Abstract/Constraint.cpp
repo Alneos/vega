@@ -612,12 +612,12 @@ const DOFS GapNodeDirection::getDOFSForNode(int nodePosition) const {
     return dofs;
 }
 
-SlideContact::SlideContact(Model& model, double friction, int original_id) :
-    Contact(model, Constraint::Type::SLIDE, original_id), friction{friction} {
+SlideContact::SlideContact(Model& model, double friction, Reference<Target> master, Reference<Target> slave, int original_id) :
+    Contact(model, Constraint::Type::SLIDE, original_id), friction{friction}, master{master}, slave{slave} {
 }
 
-SlideContact::SlideContact(Model& model, Reference<NamedValue> friction, int original_id) :
-    Contact(model, Constraint::Type::SLIDE, original_id), friction{friction} {
+SlideContact::SlideContact(Model& model, Reference<NamedValue> friction, Reference<Target> master, Reference<Target> slave, int original_id) :
+    Contact(model, Constraint::Type::SLIDE, original_id), friction{friction}, master{master}, slave{slave} {
 }
 
 double SlideContact::getFriction() const {
@@ -640,26 +640,32 @@ shared_ptr<Constraint> SlideContact::clone() const {
 
 set<int> SlideContact::nodePositions() const {
     set<int> result;
-    shared_ptr<Group> masterGroup = model.mesh->findGroup(masterNodeGroupId);
-    set<int> masterNodePositions = masterGroup->nodePositions();
-    result.insert(masterNodePositions.begin(), masterNodePositions.end());
-    shared_ptr<Group> slaveGroup = model.mesh->findGroup(slaveNodeGroupId);
-    set<int> slaveNodePositions = slaveGroup->nodePositions();
-    result.insert(slaveNodePositions.begin(), slaveNodePositions.end());
+    const auto& masterLine = dynamic_pointer_cast<BoundaryNodeLine>(model.find(master));
+    if (masterLine== nullptr) {
+        throw logic_error("Cannot find master node list");
+    }
+    for (int nodeId : masterLine->nodeids) {
+        result.insert(model.mesh->findNodePosition(nodeId));
+    }
+    const auto& slaveLine = dynamic_pointer_cast<BoundaryNodeLine>(model.find(slave));
+    if (slaveLine== nullptr) {
+        throw logic_error("Cannot find slave node list");
+    }
+    for (int nodeId : slaveLine->nodeids) {
+        result.insert(model.mesh->findNodePosition(nodeId));
+    }
     return result;
 }
 
 void SlideContact::removeNode(int nodePosition) {
-    shared_ptr<NodeGroup> masterGroup = dynamic_pointer_cast<NodeGroup>(model.mesh->findGroup(masterNodeGroupId));
-    masterGroup->removeNodeByPosition(nodePosition);
-    shared_ptr<NodeGroup> slaveGroup = dynamic_pointer_cast<NodeGroup>(model.mesh->findGroup(slaveNodeGroupId));
-    slaveGroup->removeNodeByPosition(nodePosition);
+    UNUSEDV(nodePosition);
+    throw logic_error("Not yet implemented");
 }
 
 bool SlideContact::ineffective() const {
-    shared_ptr<NodeGroup> masterGroup = dynamic_pointer_cast<NodeGroup>(model.mesh->findGroup(masterNodeGroupId));
-    shared_ptr<NodeGroup> slaveGroup = dynamic_pointer_cast<NodeGroup>(model.mesh->findGroup(slaveNodeGroupId));
-    return masterGroup->empty() or slaveGroup->empty();
+    const auto& masterLine = dynamic_pointer_cast<BoundaryNodeLine>(model.find(master));
+    const auto& slaveLine = dynamic_pointer_cast<BoundaryNodeLine>(model.find(slave));
+    return masterLine->nodeids.size() == 0 or slaveLine->nodeids.size() == 0;
 }
 
 const DOFS SlideContact::getDOFSForNode(int nodePosition) const {
@@ -667,8 +673,8 @@ const DOFS SlideContact::getDOFSForNode(int nodePosition) const {
     return DOFS::TRANSLATIONS;
 }
 
-SurfaceContact::SurfaceContact(Model& model, Reference<NamedValue> masterNodeIds, Reference<NamedValue> slaveNodeIds, int original_id) :
-    Contact(model, Constraint::Type::SURFACE_CONTACT, original_id), masterNodeIds(masterNodeIds), slaveNodeIds(slaveNodeIds) {
+SurfaceContact::SurfaceContact(Model& model, Reference<Target> master, Reference<Target> slave, int original_id) :
+    Contact(model, Constraint::Type::SURFACE_CONTACT, original_id), master(master), slave(slave) {
 }
 
 shared_ptr<Constraint> SurfaceContact::clone() const {
@@ -677,18 +683,18 @@ shared_ptr<Constraint> SurfaceContact::clone() const {
 
 set<int> SurfaceContact::nodePositions() const {
     set<int> result;
-    const auto& masterNodesList = dynamic_pointer_cast<ListValue<int>>(model.find(masterNodeIds));
-    if (masterNodesList== nullptr) {
+    const auto& masterSurface = dynamic_pointer_cast<BoundaryNodeSurface>(model.find(master));
+    if (masterSurface== nullptr) {
         throw logic_error("Cannot find master node list");
     }
-    for (int nodeId : masterNodesList->getList()) {
+    for (int nodeId : masterSurface->nodeids) {
         result.insert(model.mesh->findNodePosition(nodeId));
     }
-    const auto& slaveNodesList = dynamic_pointer_cast<ListValue<int>>(model.find(slaveNodeIds));
-    if (slaveNodesList== nullptr) {
+    const auto& slaveSurface = dynamic_pointer_cast<BoundaryNodeSurface>(model.find(slave));
+    if (slaveSurface== nullptr) {
         throw logic_error("Cannot find slave node list");
     }
-    for (int nodeId : slaveNodesList->getList()) {
+    for (int nodeId : slaveSurface->nodeids) {
         result.insert(model.mesh->findNodePosition(nodeId));
     }
     return result;
@@ -700,9 +706,9 @@ void SurfaceContact::removeNode(int nodePosition) {
 }
 
 bool SurfaceContact::ineffective() const {
-    const auto& masterNodesList = dynamic_pointer_cast<ListValue<int>>(model.find(masterNodeIds));
-    const auto& slaveNodesList = dynamic_pointer_cast<ListValue<int>>(model.find(slaveNodeIds));
-    return masterNodesList->empty() or slaveNodesList->empty();
+    const auto& masterSurface = dynamic_pointer_cast<BoundaryNodeSurface>(model.find(master));
+    const auto& slaveSurface = dynamic_pointer_cast<BoundaryNodeSurface>(model.find(slave));
+    return masterSurface->nodeids.size() == 0 or slaveSurface->nodeids.size() == 0;
 }
 
 const DOFS SurfaceContact::getDOFSForNode(int nodePosition) const {

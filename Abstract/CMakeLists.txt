@@ -7,7 +7,7 @@ configure_file (
 ADD_LIBRARY( abstract STATIC
        Analysis.cpp BoundaryCondition.cpp ConfigurationParameters.cpp CoordinateSystem.cpp
        Element.cpp Loading.cpp Material.cpp Model.cpp Mesh.cpp MeshComponents.cpp Objective.cpp
-       SolverInterfaces.cpp Utility.cpp Value.cpp Constraint.cpp Dof.cpp
+       SolverInterfaces.cpp Utility.cpp Value.cpp Constraint.cpp Dof.cpp Target.cpp
 )
        
 target_link_libraries(abstract ${EXTERNAL_LIBRARIES})

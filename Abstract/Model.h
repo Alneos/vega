@@ -22,6 +22,7 @@
 #include "Value.h"
 #include "Objective.h"
 #include "Reference.h"
+#include "Target.h"
 #include <string>
 
 namespace vega {
@@ -237,6 +238,7 @@ private:
         Container<ConstraintSet> constraintSets{*this};
         Container<ElementSet> elementSets{*this};
         Container<Material> materials{*this};
+        Container<Target> targets{*this};
         std::map<Parameter, double> parameters;
         bool onlyMesh;
 
@@ -260,6 +262,7 @@ private:
         void add(const Objective&);
         void add(const NamedValue&);
         void add(const ElementSet&);
+        void add(const Target&);
         void add(const std::shared_ptr<Material>);
 
         // Get functions : get object by their VEGA Id.
@@ -273,6 +276,7 @@ private:
         std::shared_ptr<NamedValue> getValue(int id) const; /**< Return a Value by its Vega Id **/
         std::shared_ptr<ElementSet> getElementSet(int id) const; /**< Return an ElementSet by its Vega Id **/
         std::shared_ptr<Material> getMaterial(int id) const; /**< Return a Material by its Vega Id **/
+        std::shared_ptr<Target> getTarget(int id) const; /**< Return a Material by its Vega Id **/
 
         /* Get the Id of all elements belonging to set */
         //TODO: make a template, general function?

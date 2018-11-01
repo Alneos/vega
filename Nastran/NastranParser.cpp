@@ -706,16 +706,14 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
 
 void NastranParser::parseBLSEG(NastranTokenizer& tok, shared_ptr<Model> model) {
     int id = tok.nextInt();
-    std::shared_ptr<NodeGroup> group = model->mesh->findOrCreateNodeGroup("BLSEG_" + to_string(id), id, "BLSEG_" + to_string(id));
-    for(int nodeId : tok.nextInts()) {
-        group->addNodeId(nodeId);
-    }
+    BoundaryNodeLine nodeline(*model, tok.nextInts(), id);
+    model->add(nodeline);
 }
 
 void NastranParser::parseBSSEG(NastranTokenizer& tok, shared_ptr<Model> model) {
     int id = tok.nextInt();
-    ListValue<int> listValue{*model, tok.nextInts(), id};
-    model->add(listValue);
+    BoundaryNodeSurface surface{*model, tok.nextInts(), id};
+    model->add(surface);
 }
 
 void NastranParser::parseBFRIC(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -746,9 +744,9 @@ void NastranParser::parseBCONP(NastranTokenizer& tok, shared_ptr<Model> model) {
     if (not tok.isEmptyUntilNextKeyword()) {
         handleParsingError("BCONP optional fields not yet handled", tok, model);
     }
-    SlideContact slide(*model, Reference<NamedValue>(Value::Type::SCALAR, fricid), id);
-    slide.slaveNodeGroupId = slaveId;
-    slide.masterNodeGroupId = masterId;
+    SlideContact slide(*model, Reference<NamedValue>(Value::Type::SCALAR, fricid),
+                       Reference<Target>(Target::Type::BOUNDARY_NODELINE, masterId),
+                       Reference<Target>(Target::Type::BOUNDARY_NODELINE, slaveId), id);
     model->add(slide);
     model->addConstraintIntoConstraintSet(slide, model->commonConstraintSet);
 }
@@ -761,7 +759,9 @@ void NastranParser::parseBSCONP(NastranTokenizer& tok, shared_ptr<Model> model) 
     if (not tok.isEmptyUntilNextKeyword()) {
         handleParsingError("BCONP optional fields not yet handled", tok, model);
     }
-    SurfaceContact surface(*model, Reference<NamedValue>(Value::Type::LIST, masterId), Reference<NamedValue>(Value::Type::LIST, slaveId), id);
+    SurfaceContact surface(*model,Reference<Target>(Target::Type::BOUNDARY_NODESURFACE, masterId),
+                           Reference<Target>(Target::Type::BOUNDARY_NODESURFACE, slaveId),
+                           id);
     model->add(surface);
     model->addConstraintIntoConstraintSet(surface, model->commonConstraintSet);
 }

@@ -218,6 +218,13 @@ void Model::add(const ElementSet& elementSet) {
     elementSets.add(elementSet);
 }
 
+void Model::add(const Target& target) {
+    if (configuration.logLevel >= LogLevel::DEBUG) {
+        cout << "Adding " << target << endl;
+    }
+    targets.add(target);
+}
+
 shared_ptr<Analysis> Model::getAnalysis(int id) const {
 	return analyses.get(id);
 }
@@ -252,6 +259,10 @@ shared_ptr<ElementSet> Model::getElementSet(int id) const {
 
 shared_ptr<Material> Model::getMaterial(int id) const {
     return materials.get(id);
+}
+
+shared_ptr<Target> Model::getTarget(int id) const {
+    return targets.get(id);
 }
 
 const vector<int> Model::getMaterialsId() const{
@@ -433,6 +444,17 @@ const shared_ptr<ElementSet> Model::find(const Reference<ElementSet> reference) 
     else
         elementSet = elementSets.find(reference);
     return elementSet;
+}
+
+template<>
+const shared_ptr<Target> Model::find(const Reference<Target> reference) const {
+    shared_ptr<Target> target;
+    if (reference.id == Reference<Target>::NO_ID)
+        // retrieve by original_id
+        target = targets.find(reference.original_id);
+    else
+        target = targets.find(reference);
+    return target;
 }
 
 void Model::addLoadingIntoLoadSet(const Reference<Loading>& loadingReference,
@@ -1863,8 +1885,8 @@ void Model::makeBoundarySegments() {
             shared_ptr<SlideContact> slide = dynamic_pointer_cast<SlideContact>(constraint);
             shared_ptr<CellGroup> masterCellGroup = mesh->createCellGroup("SLIDE_M_"+to_string(slide->getOriginalId()));
             shared_ptr<CellGroup> slaveCellGroup = mesh->createCellGroup("SLIDE_S_"+to_string(slide->getOriginalId()));
-            shared_ptr<NodeGroup> masterNodeGroup = dynamic_pointer_cast<NodeGroup>(mesh->findGroup(slide->masterNodeGroupId));
-            const set<int>& masterNodeIds = masterNodeGroup ->getNodeIds();
+            shared_ptr<BoundaryNodeLine> masterNodeLine = dynamic_pointer_cast<BoundaryNodeLine>(this->find(slide->master));
+            const list<int>& masterNodeIds = masterNodeLine ->nodeids;
             auto it = masterNodeIds.begin();
             for(unsigned int i = 0; i < masterNodeIds.size() - 1;++i) {
                 int nodeId1 = *it;
@@ -1874,8 +1896,8 @@ void Model::makeBoundarySegments() {
                 masterCellGroup->addCellId(mesh->findCell(cellPosition).id);
             }
             slide->masterCellGroup = masterCellGroup;
-            shared_ptr<NodeGroup> slaveNodeGroup = dynamic_pointer_cast<NodeGroup>(mesh->findGroup(slide->slaveNodeGroupId));
-            const set<int>& slaveNodeIds = slaveNodeGroup->getNodeIds();
+            shared_ptr<BoundaryNodeLine> slaveNodeLine = dynamic_pointer_cast<BoundaryNodeLine>(this->find(slide->slave));
+            const list<int>& slaveNodeIds = slaveNodeLine->nodeids;
             auto it2 = slaveNodeIds.begin();
             for(unsigned int i = 0; i < slaveNodeIds.size() - 1;++i) {
                 int nodeId1 = *it2;
@@ -1896,11 +1918,11 @@ void Model::makeBoundarySurfaces() {
             shared_ptr<SurfaceContact> surface = dynamic_pointer_cast<SurfaceContact>(constraint);
             shared_ptr<CellGroup> masterCellGroup = mesh->createCellGroup("SURFCONT_M_"+to_string(surface->getOriginalId()));
             shared_ptr<CellGroup> slaveCellGroup = mesh->createCellGroup("SURFCONT_S_"+to_string(surface->getOriginalId()));
-            const auto& slaveNodesList = dynamic_pointer_cast<ListValue<int>>(this->find(surface->slaveNodeIds));
-            if (slaveNodesList == nullptr) {
+            shared_ptr<BoundaryNodeSurface> slaveNodeSurface = dynamic_pointer_cast<BoundaryNodeSurface>(this->find(surface->slave));
+            if (slaveNodeSurface == nullptr) {
                 throw logic_error("Cannot find master node list");
             }
-            const list<int>& slaveNodeIds = slaveNodesList->getList();
+            const list<int>& slaveNodeIds = slaveNodeSurface->nodeids;
             auto it2 = slaveNodeIds.begin();
             for(unsigned int i = 0; i < slaveNodeIds.size();i+=4) {
                 int nodeId1 = *(it2++);
@@ -1917,11 +1939,11 @@ void Model::makeBoundarySurfaces() {
                 slaveCellGroup->addCellId(mesh->findCell(cellPosition).id);
             }
             surface->slaveCellGroup = slaveCellGroup;
-            const auto& masterNodesList = dynamic_pointer_cast<ListValue<int>>(this->find(surface->masterNodeIds));
-            if (masterNodesList == nullptr) {
+            shared_ptr<BoundaryNodeSurface> masterNodeSurface = dynamic_pointer_cast<BoundaryNodeSurface>(this->find(surface->master));
+            if (masterNodeSurface == nullptr) {
                 throw logic_error("Cannot find master node list");
             }
-            const list<int>& masterNodeIds = masterNodesList->getList();
+            const list<int>& masterNodeIds = masterNodeSurface->nodeids;
             auto it = masterNodeIds.begin();
             for(unsigned int i = 0; i < masterNodeIds.size();i+=4) {
                 int nodeId1 = *(it++);

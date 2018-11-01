@@ -440,6 +440,7 @@ endif(${STATIC_LINKING})
 #message("")
 #message("Run 'ccmake ${CMAKE_CURRENT_SOURCE_DIR}' to fine-tune the configuration.")
 message(STATUS "Run Sytus: " ${RUN_SYSTUS})
+message(STATUS "Run Aster: " ${RUN_ASTER})
 
 #
 # FILES TO INSTALL

@@ -18,6 +18,7 @@
 #include "Reference.h"
 #include "CoordinateSystem.h"
 #include "Value.h"
+#include "Target.h"
 #include <map>
 #include <list>
 
@@ -264,10 +265,10 @@ public:
 class SlideContact: public Contact {
     ValueOrReference friction = ValueOrReference::EMPTY_VALUE;
 public:
-	SlideContact(Model& model, double friction, int original_id = NO_ORIGINAL_ID);
-	SlideContact(Model& model, Reference<NamedValue> friction, int original_id = NO_ORIGINAL_ID);
-    int masterNodeGroupId = Globals::UNAVAILABLE_INT;
-    int slaveNodeGroupId = Globals::UNAVAILABLE_INT;
+	SlideContact(Model& model, double friction, Reference<Target> master, Reference<Target> slave, int original_id = NO_ORIGINAL_ID);
+	SlideContact(Model& model, Reference<NamedValue> friction, Reference<Target> master, Reference<Target> slave, int original_id = NO_ORIGINAL_ID);
+    const Reference<Target> master;
+    const Reference<Target> slave;
     double getFriction() const;
     std::shared_ptr<CellGroup> masterCellGroup = nullptr;
     std::shared_ptr<CellGroup> slaveCellGroup = nullptr;
@@ -284,9 +285,9 @@ public:
  */
 class SurfaceContact: public Contact {
 public:
-	SurfaceContact(Model& model, Reference<NamedValue> masterNodeIds, Reference<NamedValue> slaveNodeIds, int original_id = NO_ORIGINAL_ID);
-    Reference<NamedValue> masterNodeIds;
-    Reference<NamedValue> slaveNodeIds;
+	SurfaceContact(Model& model, Reference<Target> master, Reference<Target> slave, int original_id = NO_ORIGINAL_ID);
+    const Reference<Target> master;
+    const Reference<Target> slave;
     std::shared_ptr<CellGroup> masterCellGroup = nullptr;
     std::shared_ptr<CellGroup> slaveCellGroup = nullptr;
 	std::shared_ptr<Constraint> clone() const override;
