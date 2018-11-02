@@ -451,6 +451,14 @@ BOOST_AUTO_TEST_CASE( reference_str ) {
     BOOST_CHECK_EQUAL(refstr, refstr2);
     Reference<NamedValue> rauto2(Value::Type::LIST, 1);
     BOOST_CHECK(to_str(rauto2).size() >= 1);
+    Reference<Target> rtarget(Target::Type::CONTACT_BODY, 1);
+    std::ostringstream oss2;
+    oss2 << rtarget;
+    std::string refstr3 = oss2.str();
+    BOOST_CHECK(refstr3.size() >= 1);
+    std::string refstr4 = to_str(rtarget);
+    BOOST_CHECK(refstr4.size() >= 1);
+    BOOST_CHECK_EQUAL(refstr3, refstr4);
 }
 
 BOOST_AUTO_TEST_CASE(test_ineffective_assertions_removed) {

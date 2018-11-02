@@ -168,9 +168,24 @@ private:
     void parseParamAUTOSPC(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
+     * BCBODY
+     */
+    void parseBCBODY(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * BCGRID
+     */
+    void parseBCGRID(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
      * BCONP
      */
     void parseBCONP(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * BCTABLE
+     */
+    void parseBCTABLE(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * BFRIC
@@ -191,6 +206,11 @@ private:
      * BSSEG
      */
     void parseBSSEG(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * BSURF
+     */
+    void parseBSURF(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * Parse the CBAR keyword (page 1154 of MDN Nastran 2006 Quick Reference Guide.)

@@ -975,6 +975,8 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 				Constraint::Type::SLIDE);
         const set<shared_ptr<Constraint>> surfaces = constraintSet.getConstraintsByType(
 				Constraint::Type::SURFACE_CONTACT);
+        const set<shared_ptr<Constraint>> zones = constraintSet.getConstraintsByType(
+				Constraint::Type::ZONE_CONTACT);
 		for (shared_ptr<Constraint> constraint : gaps) {
 			shared_ptr<const Gap> gap = dynamic_pointer_cast<const Gap>(constraint);
 			int gapCount = 0;
@@ -1069,6 +1071,21 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 						<< surface->slaveCellGroup->getName()
 						<< "',";
 				out << ")," << endl;
+		}
+		for (shared_ptr<Constraint> constraint : zones) {
+		    shared_ptr<const ZoneContact> zone = dynamic_pointer_cast<const ZoneContact>(constraint);
+		    shared_ptr<const ContactBody> master = dynamic_pointer_cast<const ContactBody>(asterModel.model.find(zone->master));
+		    shared_ptr<const BoundarySurface> masterSurface = dynamic_pointer_cast<const BoundarySurface>(asterModel.model.find(master->boundary));
+		    shared_ptr<const ContactBody> slave = dynamic_pointer_cast<const ContactBody>(asterModel.model.find(zone->slave));
+		    shared_ptr<const BoundarySurface> slaveSurface = dynamic_pointer_cast<const BoundarySurface>(asterModel.model.find(slave->boundary));
+            out << "                             _F(";
+            out << "GROUP_MA_MAIT='"
+                    << masterSurface->cellGroup->getName()
+                    << "',";
+            out << "GROUP_MA_ESCL='"
+                    << slaveSurface->cellGroup->getName()
+                    << "',";
+            out << ")," << endl;
 		}
 		out << "                             )," << endl;
 		out << "                   );" << endl << endl;

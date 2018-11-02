@@ -38,11 +38,29 @@ const string Target::name = "Target";
 const map<Target::Type, string> Target::stringByType = {
         { Target::Type::BOUNDARY_NODELINE, "BOUNDARY_NODELINE" },
         { Target::Type::BOUNDARY_NODESURFACE, "BOUNDARY_NODESURFACE" },
+        { Target::Type::BOUNDARY_SURFACE, "BOUNDARY_SURFACE" },
+        { Target::Type::CONTACT_BODY, "CONTACT_BODY" },
 };
 
-ostream &operator<<(ostream &out, const Target& objective) {
-    out << to_str(objective);
+ostream &operator<<(ostream &out, const Target& target) {
+    out << to_str(target);
     return out;
+}
+
+const string Target::to_str() const{
+    const auto& typePair = stringByType.find(type);
+    if (typePair == stringByType.end())
+        return "Unknown constraint";
+    else
+        return typePair->second;
+}
+
+BoundaryNodeCloud::BoundaryNodeCloud(const Model& model, list<int> nodeids, int original_id) :
+        Target(model, Target::Type::BOUNDARY_NODECLOUD, original_id), nodeids{nodeids} {
+}
+
+shared_ptr<Target> BoundaryNodeCloud::clone() const {
+    return make_shared<BoundaryNodeCloud>(*this);
 }
 
 BoundaryNodeLine::BoundaryNodeLine(const Model& model, list<int> nodeids, int original_id) :
@@ -59,6 +77,22 @@ BoundaryNodeSurface::BoundaryNodeSurface(const Model& model, list<int> nodeids, 
 
 shared_ptr<Target> BoundaryNodeSurface::clone() const {
     return make_shared<BoundaryNodeSurface>(*this);
+}
+
+BoundarySurface::BoundarySurface(const Model& model, shared_ptr<CellGroup> cellGroup, int original_id) :
+        Target(model, Target::Type::BOUNDARY_SURFACE, original_id), cellGroup{cellGroup} {
+}
+
+shared_ptr<Target> BoundarySurface::clone() const {
+    return make_shared<BoundarySurface>(*this);
+}
+
+ContactBody::ContactBody(const Model& model, Reference<Target> boundary, int original_id) :
+        Target(model, Target::Type::CONTACT_BODY, original_id), boundary{boundary} {
+}
+
+shared_ptr<Target> ContactBody::clone() const {
+    return make_shared<ContactBody>(*this);
 }
 
 }

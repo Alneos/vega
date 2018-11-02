@@ -325,6 +325,49 @@ BOOST_AUTO_TEST_CASE(nastran_THRU_symbol) {
     tokenizer.nextLine();
 }
 
+BOOST_AUTO_TEST_CASE(nastran_THRU_symbol_back) {
+    string nastranLine = "SPC1    20      246     7       THRU    2                                       ";
+    istringstream istr(nastranLine);
+    NastranTokenizer tokenizer(istr);
+    tokenizer.bulkSection();
+    tokenizer.nextLine();
+    BOOST_CHECK(tokenizer.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_KEYWORD);
+    BOOST_CHECK_EQUAL("SPC1", tokenizer.nextString());
+    BOOST_CHECK(tokenizer.isNextInt());
+    BOOST_CHECK_EQUAL(20, tokenizer.nextInt());
+    BOOST_CHECK(tokenizer.isNextInt());
+    BOOST_CHECK_EQUAL(246, tokenizer.nextInt());
+    BOOST_CHECK(tokenizer.isNextInt());
+    list<int> ids = tokenizer.nextInts();
+    BOOST_CHECK_EQUAL(6, ids.size());
+    BOOST_CHECK_EQUAL(2, ids.front());
+    BOOST_CHECK_EQUAL(7, ids.back());
+    //end
+    tokenizer.nextLine();
+}
+
+BOOST_AUTO_TEST_CASE(nastran_THRU_BY_symbol) {
+    //                    1234567812345678123456781234567812345678123456781234567812345678
+    string nastranLine = "SPC1    20      246     2       THRU    7       BY       2                      ";
+    istringstream istr(nastranLine);
+    NastranTokenizer tokenizer(istr);
+    tokenizer.bulkSection();
+    tokenizer.nextLine();
+    BOOST_CHECK(tokenizer.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_KEYWORD);
+    BOOST_CHECK_EQUAL("SPC1", tokenizer.nextString());
+    BOOST_CHECK(tokenizer.isNextInt());
+    BOOST_CHECK_EQUAL(20, tokenizer.nextInt());
+    BOOST_CHECK(tokenizer.isNextInt());
+    BOOST_CHECK_EQUAL(246, tokenizer.nextInt());
+    BOOST_CHECK(tokenizer.isNextInt());
+    list<int> ids = tokenizer.nextInts();
+    BOOST_CHECK_EQUAL(4, ids.size());
+    BOOST_CHECK_EQUAL(2, ids.front());
+    BOOST_CHECK_EQUAL(7, ids.back());
+    //end
+    tokenizer.nextLine();
+}
+
 /*void countGridElems(NastranTokenizer& tok) {
     int symcount = 0;
     while (tok.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_FIELD) {

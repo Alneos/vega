@@ -46,10 +46,13 @@ using boost::to_upper;
 const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARSE_FUNCTION_BY_KEYWORD =
         {
                 { "BCONP", &NastranParser::parseBCONP },
+                { "BCTABLE", &NastranParser::parseBCTABLE },
+                { "BCBODY", &NastranParser::parseBCBODY },
                 { "BFRIC", &NastranParser::parseBFRIC },
                 { "BLSEG", &NastranParser::parseBLSEG },
                 { "BSCONP", &NastranParser::parseBSCONP },
                 { "BSSEG", &NastranParser::parseBSSEG },
+                { "BSURF", &NastranParser::parseBSURF },
                 { "CBAR", &NastranParser::parseCBAR },
                 { "CBEAM", &NastranParser::parseCBEAM },
                 { "CBUSH", &NastranParser::parseCBUSH },
@@ -65,7 +68,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "CORD2C", &NastranParser::parseCORD2C },
                 { "CORD2R", &NastranParser::parseCORD2R },
                 { "CPENTA", &NastranParser::parseCPENTA },
-                { "CPYRAMID", &NastranParser::parseCPYRAM },
+                { "CPYRAM", &NastranParser::parseCPYRAM },
                 { "CQUAD", &NastranParser::parseCQUAD },
                 { "CQUAD4", &NastranParser::parseCQUAD4 },
                 { "CQUAD8", &NastranParser::parseCQUAD8 },
@@ -567,6 +570,13 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
             } else if (!key.compare(0, 4, "LOAD")) {
                 Reference<LoadSet> loadsetReference(LoadSet::Type::LOAD, id);
                 analysis.add(loadsetReference);
+            } else if (!key.compare(0, 4, "BCONTACT")) {
+                Reference<ConstraintSet> constraintReference(ConstraintSet::Type::CONTACT, id);
+                analysis.add(constraintReference);
+                if (!model->find(constraintReference)) { // constraintSet is added in the model if not found in the model
+                    ConstraintSet constraintSet(*model, ConstraintSet::Type::CONTACT, id);
+                    model->add(constraintSet);
+                }
             }
         }
         /*
@@ -704,6 +714,28 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
     }
 }
 
+void NastranParser::parseBCBODY(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int bid = tok.nextInt();
+    string dim = tok.nextString(true,"3D");
+    if (dim != "3D")
+        handleParsingError("BCBODY dim only implemented in 3D case (yet)", tok, model);
+    string behav = tok.nextString(true,"DEFORM");
+    if (behav != "DEFORM")
+        handleParsingError("BCBODY behav only implemented in DEFORM case (yet)", tok, model);
+    int bsid = tok.nextInt();
+    if (not tok.isEmptyUntilNextKeyword()) {
+        handleParsingError("BCBODY optional fields not yet handled", tok, model);
+    }
+    ContactBody body(*model, Reference<Target>(Target::Type::BOUNDARY_SURFACE, bsid), bid);
+    model->add(body);
+}
+
+void NastranParser::parseBCGRID(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int id = tok.nextInt();
+    BoundaryNodeCloud nodecloud(*model, tok.nextInts(), id);
+    model->add(nodecloud);
+}
+
 void NastranParser::parseBLSEG(NastranTokenizer& tok, shared_ptr<Model> model) {
     int id = tok.nextInt();
     BoundaryNodeLine nodeline(*model, tok.nextInts(), id);
@@ -713,6 +745,16 @@ void NastranParser::parseBLSEG(NastranTokenizer& tok, shared_ptr<Model> model) {
 void NastranParser::parseBSSEG(NastranTokenizer& tok, shared_ptr<Model> model) {
     int id = tok.nextInt();
     BoundaryNodeSurface surface{*model, tok.nextInts(), id};
+    model->add(surface);
+}
+
+void NastranParser::parseBSURF(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int id = tok.nextInt();
+    string gname = string("BSURF_") + to_string(id);
+    auto gsurf = model->mesh->createCellGroup(gname, CellGroup::NO_ORIGINAL_ID, "BSURF");
+    const auto& cellids = tok.nextInts();
+    gsurf->cellIds.insert(cellids.begin(), cellids.end());
+    BoundarySurface surface{*model, gsurf, id};
     model->add(surface);
 }
 
@@ -726,6 +768,22 @@ void NastranParser::parseBFRIC(NastranTokenizer& tok, shared_ptr<Model> model) {
     ScalarValue<double> friction(*model, fstif, fid);
 
     model->add(friction);
+}
+
+void NastranParser::parseBCTABLE(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int id = tok.nextInt();
+    int idslave = tok.nextInt(true,0);
+    if (idslave == 0)
+        handleParsingError("BCTABLE only implemented with a single slave (for now)", tok, model);
+    int idmaster = tok.nextInt(true,0);
+    if (idmaster == 0)
+        handleParsingError("BCTABLE only implemented with a single master (for now)", tok, model);
+    if (not tok.isEmptyUntilNextKeyword()) {
+        handleParsingError("BCBODY optional fields not yet handled", tok, model);
+    }
+    ZoneContact table(*model, Reference<Target>(Target::Type::BOUNDARY_SURFACE, idmaster), Reference<Target>(Target::Type::BOUNDARY_SURFACE, idslave), id);
+    model->add(table);
+    model->addConstraintIntoConstraintSet(table, model->commonConstraintSet);
 }
 
 void NastranParser::parseBCONP(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -798,7 +856,7 @@ void NastranParser::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> model) {
     NodalMass nodalMass(*model, mass, i11, i22, i33, -i21, -i31, -i32, x1, x2, x3, elemId);
 
     int cellPosition = model->mesh->addCell(elemId, CellType::POINT1, { g });
-    string mn = string("CONM2_") + lexical_cast<string>(elemId);
+    string mn = string("CONM2_") + to_string(elemId);
     auto mnodale = model->mesh->createCellGroup(mn, CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
     mnodale->addCellId(model->mesh->findCell(cellPosition).id);
     nodalMass.assignCellGroup(mnodale);

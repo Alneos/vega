@@ -24,6 +24,7 @@
 #include "Constraint.h"
 #include "Model.h"
 #include <ciso646>
+#include <string>
 
 namespace vega {
 
@@ -715,5 +716,69 @@ const DOFS SurfaceContact::getDOFSForNode(int nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::TRANSLATIONS;
 }
+
+ZoneContact::ZoneContact(Model& model, Reference<Target> master, Reference<Target> slave, int original_id) :
+    Contact(model, Constraint::Type::ZONE_CONTACT, original_id), master(master), slave(slave) {
+}
+
+shared_ptr<Constraint> ZoneContact::clone() const {
+    return make_shared<ZoneContact>(*this);
+}
+
+set<int> ZoneContact::nodePositions() const {
+    set<int> result;
+    const auto& masterBody = dynamic_pointer_cast<ContactBody>(model.find(master));
+    if (masterBody == nullptr) {
+        throw logic_error("Cannot find master body");
+    }
+    const auto& masterBoundary = dynamic_pointer_cast<BoundarySurface>(model.find(masterBody->boundary));
+    if (masterBoundary == nullptr) {
+        throw logic_error("Cannot find master body boundary");
+    }
+    const auto& masterNodePositions = masterBoundary->cellGroup->nodePositions();
+    result.insert(masterNodePositions.begin(), masterNodePositions.end());
+    const auto& slaveBody = dynamic_pointer_cast<ContactBody>(model.find(slave));
+    if (slaveBody == nullptr) {
+        throw logic_error("Cannot find slave body");
+    }
+    const auto& slaveBoundary = dynamic_pointer_cast<BoundarySurface>(model.find(slaveBody->boundary));
+    if (slaveBoundary == nullptr) {
+        throw logic_error("Cannot find slave body boundary");
+    }
+    const auto& slaveNodePositions = slaveBoundary->cellGroup->nodePositions();
+    result.insert(slaveNodePositions.begin(), slaveNodePositions.end());
+    return result;
+}
+
+void ZoneContact::removeNode(int nodePosition) {
+    UNUSEDV(nodePosition);
+    throw logic_error("Not yet implemented");
+}
+
+bool ZoneContact::ineffective() const {
+    const auto& masterBody = dynamic_pointer_cast<ContactBody>(model.find(master));
+    if (masterBody == nullptr) {
+        throw logic_error("Cannot find master body");
+    }
+    const auto& masterBoundary = dynamic_pointer_cast<BoundarySurface>(model.find(masterBody->boundary));
+    if (masterBoundary == nullptr) {
+        throw logic_error("Cannot find master body boundary");
+    }
+    const auto& slaveBody = dynamic_pointer_cast<ContactBody>(model.find(slave));
+    if (slaveBody == nullptr) {
+        throw logic_error("Cannot find slave body");
+    }
+    const auto& slaveBoundary = dynamic_pointer_cast<BoundarySurface>(model.find(slaveBody->boundary));
+    if (slaveBoundary == nullptr) {
+        throw logic_error("Cannot find slave body boundary");
+    }
+    return masterBoundary->cellGroup->empty() or slaveBoundary->cellGroup->empty();
+}
+
+const DOFS ZoneContact::getDOFSForNode(int nodePosition) const {
+    UNUSEDV(nodePosition);
+    return DOFS::TRANSLATIONS;
+}
+
 
 } // namespace vega

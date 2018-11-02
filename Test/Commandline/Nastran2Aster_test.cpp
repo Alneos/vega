@@ -93,6 +93,10 @@ BOOST_AUTO_TEST_CASE( ssnv129a ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/ssnv129a/ssnv129a.bdf", RUN_ASTER, true, 0.01);
 }
 
+BOOST_AUTO_TEST_CASE( ssnv104i ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/ssnv104i/ssnv104i.bdf", false, true, 0.01);
+}
+
 //BOOST_AUTO_TEST_CASE( prob24 ) {
 //	CommandLineUtils::nastranStudy2Aster("/caw/prob24/prob24.dat", RUN_ASTER, true, 0.05);
 //}

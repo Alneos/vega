@@ -116,6 +116,7 @@ public:
     const std::list<double> nextDoubles();
     bool isNextInt();
     bool isNextTHRU();
+    bool isNextBY();
     bool isNextDouble();
     bool isNextEmpty(int n = 1);
     bool isEmptyUntilNextKeyword();

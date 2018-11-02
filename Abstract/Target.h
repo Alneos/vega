@@ -8,6 +8,7 @@
 #include "Value.h"
 #include "Object.h"
 #include "Reference.h"
+#include "MeshComponents.h"
 #include "Dof.h"
 
 namespace vega {
@@ -19,8 +20,11 @@ private:
     friend std::ostream &operator<<(std::ostream &out, const Target&);    //output
 public:
     enum class Type {
+        BOUNDARY_NODECLOUD,
         BOUNDARY_NODELINE,
         BOUNDARY_NODESURFACE,
+        BOUNDARY_SURFACE,
+        CONTACT_BODY,
     };
 protected:
     const Model & model;
@@ -33,6 +37,18 @@ protected:
     Target(const Model&, Target::Type, int original_id = NO_ORIGINAL_ID);
 public:
     virtual std::shared_ptr<Target> clone() const=0;
+    const std::string to_str() const;
+};
+
+/**
+ * Defines a could of node ids to be used in contact problems, see Nastran BCGRID
+ */
+class BoundaryNodeCloud: public Target {
+public:
+    BoundaryNodeCloud(const Model& model, std::list<int> nodeids, int original_id =
+            NO_ORIGINAL_ID);
+    std::list<int> nodeids;
+    std::shared_ptr<Target> clone() const;
 };
 
 /**
@@ -47,13 +63,35 @@ public:
 };
 
 /**
- * Defines a surface by four node ids (last one may be zero), see Nastran BSSURF
+ * Defines a surface by four node ids (last one may be zero in triangles), see Nastran BSSEG
  */
 class BoundaryNodeSurface: public Target {
 public:
     BoundaryNodeSurface(const Model& model, std::list<int> nodeids, int original_id =
             NO_ORIGINAL_ID);
     std::list<int> nodeids;
+    std::shared_ptr<Target> clone() const;
+};
+
+/**
+ * Defines a surface by element ids, see Nastran BSURF
+ */
+class BoundarySurface: public Target {
+public:
+    BoundarySurface(const Model& model, std::shared_ptr<CellGroup> cellGroup, int original_id =
+            NO_ORIGINAL_ID);
+    std::shared_ptr<CellGroup> cellGroup;
+    std::shared_ptr<Target> clone() const;
+};
+
+/**
+ * Defines a contact body, see Nastran BCBODY
+ */
+class ContactBody: public Target {
+public:
+    ContactBody(const Model& model, Reference<Target> boundary, int original_id =
+            NO_ORIGINAL_ID);
+    Reference<Target> boundary;
     std::shared_ptr<Target> clone() const;
 };
 

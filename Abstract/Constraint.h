@@ -41,7 +41,8 @@ public:
 		LMPC,
 		GAP,
 		SLIDE,
-		SURFACE_CONTACT
+		SURFACE_CONTACT,
+		ZONE_CONTACT
 	};
 
 protected:
@@ -69,7 +70,7 @@ private:
 	friend std::ostream &operator<<(std::ostream&, const ConstraintSet&);
 public:
 	enum class Type {
-		SPC, SPCD, MPC, ALL
+		SPC, SPCD, MPC, ALL, CONTACT
 	};
 	ConstraintSet(const Model&, Type type = Type::SPC, int original_id = NO_ORIGINAL_ID);
 	static constexpr int COMMON_SET_ID = 0;
@@ -290,6 +291,21 @@ public:
     const Reference<Target> slave;
     std::shared_ptr<CellGroup> masterCellGroup = nullptr;
     std::shared_ptr<CellGroup> slaveCellGroup = nullptr;
+	std::shared_ptr<Constraint> clone() const override;
+	std::set<int> nodePositions() const override;
+	const DOFS getDOFSForNode(int nodePosition) const override;
+	void removeNode(int nodePosition) override;
+	bool ineffective() const override;
+};
+
+/**
+ * see Nastran BCTABLE
+ */
+class ZoneContact: public Contact {
+public:
+	ZoneContact(Model& model, Reference<Target> master, Reference<Target> slave, int original_id = NO_ORIGINAL_ID);
+    const Reference<Target> master;
+    const Reference<Target> slave;
 	std::shared_ptr<Constraint> clone() const override;
 	std::set<int> nodePositions() const override;
 	const DOFS getDOFSForNode(int nodePosition) const override;

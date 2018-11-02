@@ -205,6 +205,15 @@ bool NastranTokenizer::isNextTHRU() {
 	return curField == "THRU";
 }
 
+bool NastranTokenizer::isNextBY() {
+	if (nextSymbolType != SymbolType::SYMBOL_FIELD) {
+		return false;
+	}
+	string curField = trim_copy(currentLineVector[currentField]);
+	boost::to_upper(curField);
+	return curField == "BY";
+}
+
 bool NastranTokenizer::isNextDouble() {
 	if (nextSymbolType != SymbolType::SYMBOL_FIELD) {
 		return false;
@@ -421,7 +430,17 @@ const list<int> NastranTokenizer::nextInts() {
             skip(1);
             int start = result.back();
             int endint = nextInt();
-            for(int i=start+1;i<=endint;i++) {
+            int step = 1;
+            if (start > endint) {
+                result.pop_back();
+                result.push_back(endint);
+                swap(start, endint);
+            }
+            if (isNextBY()) {
+                skip(1);
+                step = nextInt();
+            }
+            for(int i=start+1;i<=endint;i+=step) {
                 result.push_back(i);
             }
         }

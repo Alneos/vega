@@ -1529,107 +1529,45 @@
 		</Build>
 		<Unit filename=".gitlab-ci.yml" />
 		<Unit filename=".travis.yml" />
-		<Unit filename="Abstract/Analysis.cpp">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/Analysis.h">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/BoundaryCondition.cpp">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/BoundaryCondition.h">
-			<Option target="abstract" />
-		</Unit>
+		<Unit filename="Abstract/Analysis.cpp" />
+		<Unit filename="Abstract/Analysis.h" />
+		<Unit filename="Abstract/BoundaryCondition.cpp" />
+		<Unit filename="Abstract/BoundaryCondition.h" />
 		<Unit filename="Abstract/CMakeLists.txt">
 			<Option virtualFolder="CMake Files/Abstract/" />
 		</Unit>
-		<Unit filename="Abstract/ConfigurationParameters.cpp">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/ConfigurationParameters.h">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/Constraint.cpp">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/Constraint.h">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/CoordinateSystem.cpp">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/CoordinateSystem.h">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/Dof.cpp">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/Dof.h">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/Element.cpp">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/Element.h">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/Loading.cpp">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/Loading.h">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/Material.cpp">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/Material.h">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/Mesh.cpp">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/Mesh.h">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/MeshComponents.cpp">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/MeshComponents.h">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/Model.cpp">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/Model.h">
-			<Option target="abstract" />
-		</Unit>
+		<Unit filename="Abstract/ConfigurationParameters.cpp" />
+		<Unit filename="Abstract/ConfigurationParameters.h" />
+		<Unit filename="Abstract/Constraint.cpp" />
+		<Unit filename="Abstract/Constraint.h" />
+		<Unit filename="Abstract/CoordinateSystem.cpp" />
+		<Unit filename="Abstract/CoordinateSystem.h" />
+		<Unit filename="Abstract/Dof.cpp" />
+		<Unit filename="Abstract/Dof.h" />
+		<Unit filename="Abstract/Element.cpp" />
+		<Unit filename="Abstract/Element.h" />
+		<Unit filename="Abstract/Loading.cpp" />
+		<Unit filename="Abstract/Loading.h" />
+		<Unit filename="Abstract/Material.cpp" />
+		<Unit filename="Abstract/Material.h" />
+		<Unit filename="Abstract/Mesh.cpp" />
+		<Unit filename="Abstract/Mesh.h" />
+		<Unit filename="Abstract/MeshComponents.cpp" />
+		<Unit filename="Abstract/MeshComponents.h" />
+		<Unit filename="Abstract/Model.cpp" />
+		<Unit filename="Abstract/Model.h" />
 		<Unit filename="Abstract/Object.h" />
-		<Unit filename="Abstract/Objective.cpp">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/Objective.h">
-			<Option target="abstract" />
-		</Unit>
+		<Unit filename="Abstract/Objective.cpp" />
+		<Unit filename="Abstract/Objective.h" />
 		<Unit filename="Abstract/Reference.h" />
-		<Unit filename="Abstract/SolverInterfaces.cpp">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/SolverInterfaces.h">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/Utility.cpp">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/Utility.h">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/Value.cpp">
-			<Option target="abstract" />
-		</Unit>
-		<Unit filename="Abstract/Value.h">
-			<Option target="abstract" />
-		</Unit>
+		<Unit filename="Abstract/SolverInterfaces.cpp" />
+		<Unit filename="Abstract/SolverInterfaces.h" />
+		<Unit filename="Abstract/Target.cpp" />
+		<Unit filename="Abstract/Target.h" />
+		<Unit filename="Abstract/Utility.cpp" />
+		<Unit filename="Abstract/Utility.h" />
+		<Unit filename="Abstract/Value.cpp" />
+		<Unit filename="Abstract/Value.h" />
 		<Unit filename="Abstract/build_properties.h.in">
 			<Option virtualFolder="CMake Files/Abstract/" />
 		</Unit>
@@ -1673,6 +1611,7 @@
 			<Option target="vegapp" />
 		</Unit>
 		<Unit filename="Dockerfile" />
+		<Unit filename="Dockerfile_centos7" />
 		<Unit filename="Dockerfile_gitlab" />
 		<Unit filename="Dockerfile_jenkins" />
 		<Unit filename="Dockerfile_xcompile" />
@@ -1685,6 +1624,7 @@
 			<Option virtualFolder="CMake Files/ResultReaders/" />
 		</Unit>
 		<Unit filename="Nastran/NastranParser.cpp">
+			<Option virtualFolder="CMake Files/Abstract/" />
 			<Option target="nastran" />
 		</Unit>
 		<Unit filename="Nastran/NastranParser.h">
@@ -1792,21 +1732,12 @@
 		<Unit filename="Test/Commandline/CMakeLists.txt">
 			<Option virtualFolder="CMake Files/Test/Commandline/" />
 		</Unit>
-		<Unit filename="Test/Commandline/CommandLineUtils.cpp">
-			<Option target="command_line_test_utils" />
-		</Unit>
-		<Unit filename="Test/Commandline/CommandLineUtils.h">
-			<Option target="command_line_test_utils" />
-		</Unit>
-		<Unit filename="Test/Commandline/Nastran2Aster_test.cpp">
-			<Option target="Nastran2Aster_test" />
-		</Unit>
-		<Unit filename="Test/Commandline/Nastran2Nastran_test.cpp">
-			<Option target="Nastran2Nastran_test" />
-		</Unit>
-		<Unit filename="Test/Commandline/Nastran2Systus_test.cpp">
-			<Option target="Nastran2Systus_test" />
-		</Unit>
+		<Unit filename="Test/Commandline/CommandLineUtils.cpp" />
+		<Unit filename="Test/Commandline/CommandLineUtils.h" />
+		<Unit filename="Test/Commandline/Nastran2Aster_test.cpp" />
+		<Unit filename="Test/Commandline/Nastran2Nastran_test.cpp" />
+		<Unit filename="Test/Commandline/Nastran2Systus_test.cpp" />
+		<Unit filename="Test/Commandline/Optistruct2Aster_test.cpp" />
 		<Unit filename="Test/Nastran/CMakeLists.txt">
 			<Option virtualFolder="CMake Files/Test/Nastran/" />
 		</Unit>
@@ -1879,6 +1810,8 @@
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/fixed_circular_plate.dat" />
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/fixed_circular_plate.f06" />
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/readme.txt" />
+		<Unit filename="testdata/nastran/irt/perf005/perf005a.bdf" />
+		<Unit filename="testdata/nastran/irt/perf005/readme.txt" />
 		<Unit filename="testdata/nastran/irt/prob2/prob2.dat" />
 		<Unit filename="testdata/nastran/irt/prob2/prob2.f06" />
 		<Unit filename="testdata/nastran/irt/prob2/readme.txt" />
@@ -1890,6 +1823,7 @@
 		<Unit filename="testdata/nastran/irt/probA/readme.txt" />
 		<Unit filename="testdata/nastran/irt/ssnv129a/readme.txt" />
 		<Unit filename="testdata/nastran/irt/ssnv129a/ssnv129a.bdf" />
+		<Unit filename="testdata/nastran/irt/ssnv129a/ssnv129a.f06" />
 		<Unit filename="testdata/nastran/irt/t01331/readme.txt" />
 		<Unit filename="testdata/nastran/irt/t01331/t01331a.f06" />
 		<Unit filename="testdata/nastran/irt/t01331/t01331a.inp" />
