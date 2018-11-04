@@ -386,6 +386,42 @@ void AsterWriter::writeLireMaillage(const AsterModel& asterModel, ostream& out) 
 		out << "VERI_MAIL=_F(VERIF='NON',),";
 	}
 	out << ");" << endl << endl;
+
+    for (auto it : asterModel.model.constraintSets) {
+		ConstraintSet& constraintSet = *it;
+		if (not constraintSet.hasContacts()) {
+			continue;
+		}
+        const set<shared_ptr<Constraint>> zones = constraintSet.getConstraintsByType(
+				Constraint::Type::ZONE_CONTACT);
+        if (zones.empty()) {
+            continue;
+        }
+        out << mail_name << "=MODI_MAILLAGE(reuse="<< mail_name << ",";
+        out << "MAILLAGE=" << mail_name << "," << endl;
+        // TODO LD should find a better solution
+        int firstNodePosition = *((*zones.begin())->nodePositions().begin());
+        if (asterModel.model.mesh->findNode(firstNodePosition).dofs == DOFS::ALL_DOFS) {
+            out << "         ORIE_PEAU_2D=(" << endl;
+        } else {
+            out << "         ORIE_PEAU_3D=(" << endl;
+        }
+		for (shared_ptr<Constraint> constraint : zones) {
+		    shared_ptr<const ZoneContact> zone = dynamic_pointer_cast<const ZoneContact>(constraint);
+		    shared_ptr<const ContactBody> master = dynamic_pointer_cast<const ContactBody>(asterModel.model.find(zone->master));
+		    shared_ptr<const BoundarySurface> masterSurface = dynamic_pointer_cast<const BoundarySurface>(asterModel.model.find(master->boundary));
+		    shared_ptr<const ContactBody> slave = dynamic_pointer_cast<const ContactBody>(asterModel.model.find(zone->slave));
+		    shared_ptr<const BoundarySurface> slaveSurface = dynamic_pointer_cast<const BoundarySurface>(asterModel.model.find(slave->boundary));
+            out << "                             _F(";
+            out << "GROUP_MA=('"
+                    << masterSurface->cellGroup->getName() << "', '"
+                    << slaveSurface->cellGroup->getName()
+                    << "'),";
+            out << ")," << endl;
+		}
+		out << "                             )," << endl;
+		out << "                   )" << endl << endl;
+	}
 }
 
 void AsterWriter::writeAffeModele(const AsterModel& asterModel, ostream& out) {

@@ -1409,7 +1409,7 @@ void Model::removeRedundantSpcs()
                     if (dofsToRemove.size() >= 1) {
                         analysis->removeSPCNodeDofs(*spc, nodePosition, dofsToRemove);
                         if (configuration.logLevel >= LogLevel::DEBUG) {
-                            cout << "Removed redundant node position : " << nodePosition
+                            cout << "Removed redundant node id : " << this->mesh->findNodeId(nodePosition)
                                     << " from spc : " << *spc << " for analysis : " << *analysis << endl;
                         }
                     }

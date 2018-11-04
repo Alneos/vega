@@ -1810,8 +1810,6 @@
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/fixed_circular_plate.dat" />
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/fixed_circular_plate.f06" />
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/readme.txt" />
-		<Unit filename="testdata/nastran/irt/perf005/perf005a.bdf" />
-		<Unit filename="testdata/nastran/irt/perf005/readme.txt" />
 		<Unit filename="testdata/nastran/irt/prob2/prob2.dat" />
 		<Unit filename="testdata/nastran/irt/prob2/prob2.f06" />
 		<Unit filename="testdata/nastran/irt/prob2/readme.txt" />
@@ -1821,6 +1819,8 @@
 		<Unit filename="testdata/nastran/irt/probA/probA.bdf" />
 		<Unit filename="testdata/nastran/irt/probA/probA.f06" />
 		<Unit filename="testdata/nastran/irt/probA/readme.txt" />
+		<Unit filename="testdata/nastran/irt/ssnv104i/readme.txt" />
+		<Unit filename="testdata/nastran/irt/ssnv104i/ssnv104i.bdf" />
 		<Unit filename="testdata/nastran/irt/ssnv129a/readme.txt" />
 		<Unit filename="testdata/nastran/irt/ssnv129a/ssnv129a.bdf" />
 		<Unit filename="testdata/nastran/irt/ssnv129a/ssnv129a.f06" />

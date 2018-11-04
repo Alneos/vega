@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE( ssnv129a ) {
 }
 
 BOOST_AUTO_TEST_CASE( ssnv104i ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/ssnv104i/ssnv104i.bdf", false, true, 0.01);
+	CommandLineUtils::nastranStudy2Aster("/irt/ssnv104i/ssnv104i.bdf", RUN_ASTER, true, 0.03);
 }
 
 //BOOST_AUTO_TEST_CASE( prob24 ) {

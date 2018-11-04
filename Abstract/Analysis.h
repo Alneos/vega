@@ -115,6 +115,9 @@ public:
     const std::set<int> boundaryNodePositions() const;
 
     virtual std::shared_ptr<Analysis> clone() const =0;
+    virtual bool isStatic() const {
+        return false;
+    }
     bool validate() const override;
     std::map<std::string, std::string> to_map() const;
 
@@ -125,6 +128,9 @@ public:
 class LinearMecaStat: public Analysis {
 public:
     LinearMecaStat(Model& model, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
+    bool isStatic() const override {
+        return true;
+    }
     std::shared_ptr<Analysis> clone() const;
 };
 
@@ -135,6 +141,9 @@ public:
             const int original_id = NO_ORIGINAL_ID);
     NonLinearMecaStat(Model& model, const int strategy_original_id, const std::string original_label = "",
             const int original_id = NO_ORIGINAL_ID);
+    bool isStatic() const override {
+        return true;
+    }
     std::shared_ptr<Analysis> clone() const;
     bool validate() const override;
 };

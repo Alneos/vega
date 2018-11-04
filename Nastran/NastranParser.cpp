@@ -497,6 +497,10 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
             } else if (!key.compare(0, 4, "LOAD")) {
                 Reference<LoadSet> loadsetReference(LoadSet::Type::LOAD, id);
                 analysis.add(loadsetReference);
+                if (!model->find(loadsetReference)) { // constraintSet is added in the model if not found in the model
+                    LoadSet loadSet(*model, LoadSet::Type::LOAD, id);
+                    model->add(loadSet);
+                }
             }
         }
 
@@ -2798,15 +2802,18 @@ void NastranParser::parseSPCD(NastranTokenizer& tok, shared_ptr<Model> model) {
         model->add(constraintSet);
     }
     for (shared_ptr<Analysis> analysis : model->analyses) {
-        if (analysis->contains(constraintSetReference)
-                || analysis->type != Analysis::Type::LINEAR_MECA_STAT) {
+        if (analysis->contains(constraintSetReference)) {
             continue;
         }
-        for (shared_ptr<LoadSet> loadSetPtr : analysis->getLoadSets()) {
-            if (loadSetPtr->type == LoadSet::Type::LOAD && loadSetPtr->getOriginalId() == set_id) {
-                // In the static solution sequences, the set ID of the SPCD entry (SID) is selected
-                //  by the LOAD Case Control command.
-                analysis->add(constraintSetReference);
+        if (analysis->isStatic()) {
+            analysis->add(constraintSetReference);
+        } else {
+            for (shared_ptr<LoadSet> loadSetPtr : analysis->getLoadSets()) {
+                if (loadSetPtr != nullptr and loadSetPtr->type == LoadSet::Type::LOAD) {
+                    // In the static solution sequences, the set ID of the SPCD entry (SID) is selected
+                    //  by the LOAD Case Control command.
+                    analysis->add(constraintSetReference);
+                }
             }
         }
     }
@@ -2863,7 +2870,7 @@ void NastranParser::parseSPCD(NastranTokenizer& tok, shared_ptr<Model> model) {
     spc.addNodeId(g1);
     model->add(spc);
     model->addConstraintIntoConstraintSet(spc, constraintSetReference);
-    if (g2 != -1 and c2 != -1 and not is_equal(d2,-1)) {
+    if (g2 != -1 and c2 != -1) {
         SinglePointConstraint spc2 = SinglePointConstraint(*model, DOFS::nastranCodeToDOFS(c2), d2);
         spc.addNodeId(g2);
         model->add(spc2);
