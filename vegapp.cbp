@@ -1624,7 +1624,6 @@
 			<Option virtualFolder="CMake Files/ResultReaders/" />
 		</Unit>
 		<Unit filename="Nastran/NastranParser.cpp">
-			<Option virtualFolder="CMake Files/Abstract/" />
 			<Option target="nastran" />
 		</Unit>
 		<Unit filename="Nastran/NastranParser.h">
@@ -1821,6 +1820,7 @@
 		<Unit filename="testdata/nastran/irt/probA/readme.txt" />
 		<Unit filename="testdata/nastran/irt/ssnv104i/readme.txt" />
 		<Unit filename="testdata/nastran/irt/ssnv104i/ssnv104i.bdf" />
+		<Unit filename="testdata/nastran/irt/ssnv104i/ssnv104i.f06" />
 		<Unit filename="testdata/nastran/irt/ssnv129a/readme.txt" />
 		<Unit filename="testdata/nastran/irt/ssnv129a/ssnv129a.bdf" />
 		<Unit filename="testdata/nastran/irt/ssnv129a/ssnv129a.f06" />

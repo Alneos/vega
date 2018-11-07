@@ -2,7 +2,7 @@
 
 FROM ubuntu:trusty
 
-MAINTAINER Alter Ego Engineering <contact@aego.ai>
+MAINTAINER Alter Ego Engineering <luca.dallolio@aego.ai>
 
 # http://mxe.cc/#requirements + med requirements
 # https://github.com/mxe/mxe/issues/593 and http://mxe.cc/#requirements-debian

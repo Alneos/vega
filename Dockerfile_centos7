@@ -2,7 +2,7 @@
 
 FROM centos:7
 
-MAINTAINER Alter Ego Engineering <contact@aego.ai>
+MAINTAINER Alter Ego Engineering <luca.dallolio@aego.ai>
 
 RUN yum install -y curl gcc make
 

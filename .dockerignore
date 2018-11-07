@@ -44,3 +44,5 @@ ValgrindOut.xml
 # Code::Blocks generated files
 vegapp.layout
 
+# Some Dockerfiles
+Dockerfile_xcentos7
