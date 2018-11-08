@@ -63,6 +63,16 @@ xbuilding:
     - vegapp.exe
     expire_in: 1 day
 
+esiqual:
+  stage: test
+  tags:
+    - shell
+    - irt
+    - linux
+  script:
+    - /srv/data/BDTest_VEGA/QUALIF_VEGA.csh
+    - grep -V Erreur /srv/data/BDTest_VEGA/BASE_DETESTS/REPORT/rapport_ang_linux86_64_all_all-new.txt > /dev/null
+
 nightly:
   stage: test
   tags:

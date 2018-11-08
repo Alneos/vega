@@ -3,7 +3,8 @@ $ translator ( MSC.Patran 13.1.116 ) on August    04, 2005 at 11:49:40.
 $ Direct Text Input for Nastran System Cell Section
 $ Direct Text Input for File Management Section
 $ Implicit Nonlinear Analysis
-SOL 600,NLSTATIC STOP=1
+$SOL 600,NLSTATIC STOP=1
+SOL NLSTATIC
 $ Direct Text Input for Executive Control
 CEND
 TITLE = MSC.Nastran job created on 04-Aug-05 at 11:32:08
@@ -19,10 +20,10 @@ $ Subcase name : Default
 $ Direct Text Input for this Subcase
 BEGIN BULK
 PARAM   PRTMAXIM YES
-BCPARA   0       NBODIES 4       MAXENT  1710    MAXNOD  1712
+$BCPARA   0       NBODIES 4       MAXENT  1710    MAXNOD  1712
 PARAM    LGDISP  1
-PARAM   MARCSLHT 5
-MARCOUT          E241    E242    E321    E341    N1      N5      N38
+$PARAM   MARCSLHT 5
+$MARCOUT          E241    E242    E321    E341    N1      N5      N38
 NLPARM   1                       AUTO    1       25      P       YES
 BCTABLE  0                       5
          SLAVE   10      0.      0.      0.      0.      0       0.
