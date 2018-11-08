@@ -70,7 +70,8 @@ esiqual:
     - irt
     - linux
   script:
-    - /srv/data/BDTest_VEGA/QUALIF_VEGA.csh
+    - cd /srv/data/BDTest_VEGA
+    - ./QUALIF_VEGA.csh
     - grep -V Erreur /srv/data/BDTest_VEGA/BASE_DETESTS/REPORT/rapport_ang_linux86_64_all_all-new.txt > /dev/null
 
 nightly:
