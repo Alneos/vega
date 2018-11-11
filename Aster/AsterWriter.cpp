@@ -422,6 +422,34 @@ void AsterWriter::writeLireMaillage(const AsterModel& asterModel, ostream& out) 
 		out << "                             )," << endl;
 		out << "                   )" << endl << endl;
 	}
+
+	for (auto it : asterModel.model.constraintSets) {
+		ConstraintSet& constraintSet = *it;
+		if (not constraintSet.hasContacts()) {
+			continue;
+		}
+        const set<shared_ptr<Constraint>> surfaces = constraintSet.getConstraintsByType(
+				Constraint::Type::SURFACE_SLIDE_CONTACT);
+        if (surfaces.empty()) {
+            continue;
+        }
+        out << mail_name << "=MODI_MAILLAGE(reuse="<< mail_name << ",";
+        out << "MAILLAGE=" << mail_name << "," << endl;
+        out << "         ORIE_PEAU_3D=(" << endl;
+		for (shared_ptr<Constraint> constraint : surfaces) {
+		    shared_ptr<const SurfaceSlideContact> surface = dynamic_pointer_cast<const SurfaceSlideContact>(constraint);
+		    shared_ptr<const BoundaryElementFace> masterSurface = dynamic_pointer_cast<const BoundaryElementFace>(asterModel.model.find(surface->master));
+		    shared_ptr<const BoundaryElementFace> slaveSurface = dynamic_pointer_cast<const BoundaryElementFace>(asterModel.model.find(surface->slave));
+            out << "                             _F(";
+            out << "GROUP_MA=('"
+                    << masterSurface->cellGroup->getName() << "', '"
+                    << slaveSurface->cellGroup->getName()
+                    << "'),";
+            out << ")," << endl;
+		}
+		out << "                             )," << endl;
+		out << "                   )" << endl << endl;
+	}
 }
 
 void AsterWriter::writeAffeModele(const AsterModel& asterModel, ostream& out) {

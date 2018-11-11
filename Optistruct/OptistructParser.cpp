@@ -40,7 +40,9 @@ using namespace std;
 
 const unordered_map<string, OptistructParser::parseOptistructElementFPtr> OptistructParser::OPTISTRUCT_PARSE_FUNCTION_BY_KEYWORD =
         {
+                { "CONTACT", &OptistructParser::parseCONTACT },
                 { "SET", &OptistructParser::parseSET },
+                { "SURF", &OptistructParser::parseSURF },
         };
 
 const unordered_map<string, OptistructParser::parseOptistructElementFPtr> OptistructParser::OPTISTRUCT_PARSEPARAM_FUNCTION_BY_KEYWORD =
@@ -79,6 +81,23 @@ nastran::NastranParser::parseElementFPtr OptistructParser::findParamParser(const
 
 string OptistructParser::defaultAnalysis() const {
     return "200";
+}
+
+void OptistructParser::parseCONTACT(nastran::NastranTokenizer& tok, shared_ptr<Model> model) {
+    // https://www.sharcnet.ca/Software/Hyperworks/help/hwsolvers/contact_bulk.htm
+    int ctid = tok.nextInt();
+    string type = tok.nextString();
+    int ssid = tok.nextInt();
+    int msid = tok.nextInt();
+
+    Reference<ConstraintSet> constraintSetReference(ConstraintSet::Type::CONTACT, ctid);
+    if (!model->find(constraintSetReference)) {
+        ConstraintSet constraintSet(*model, ConstraintSet::Type::CONTACT, ctid);
+        model->add(constraintSet);
+    }
+    SurfaceSlideContact table(*model, Reference<Target>(Target::Type::BOUNDARY_ELEMENTFACE, msid), Reference<Target>(Target::Type::BOUNDARY_ELEMENTFACE, ssid));
+    model->add(table);
+    model->addConstraintIntoConstraintSet(table, constraintSetReference);
 }
 
 void OptistructParser::parseSET(nastran::NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -128,6 +147,26 @@ void OptistructParser::parseSET(nastran::NastranTokenizer& tok, shared_ptr<Model
         throw logic_error("Unsupported TYPE value in SET");
     }
 
+}
+
+void OptistructParser::parseSURF(nastran::NastranTokenizer& tok, shared_ptr<Model> model) {
+    // https://www.sharcnet.ca/Software/Hyperworks/help/hwsolvers/hwsolvers.htm?surf.htm
+    int sid = tok.nextInt();
+    if (not tok.isNextInt()) {
+        tok.skip(1); // To avoid strange ELFACE text found in one case
+    }
+    list<BoundaryElementFace::ElementFaceByTwoNodes> faceInfos;
+    while (! tok.isEmptyUntilNextKeyword()){
+        tok.skipToNotEmpty();
+        int eid = tok.nextInt();
+        int ga1 = tok.nextInt(true, Globals::UNAVAILABLE_INT);
+        int ga2 = tok.nextInt(true, Globals::UNAVAILABLE_INT);
+        bool swapNormal = tok.nextInt(true, 0) == 1;
+        BoundaryElementFace::ElementFaceByTwoNodes faceInfo(eid, ga1, ga2, swapNormal);
+        faceInfos.push_back(faceInfo);
+    }
+    BoundaryElementFace bef(*model, faceInfos, sid);
+    model->add(bef);
 }
 
 } //namespace optistruct

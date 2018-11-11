@@ -82,6 +82,8 @@ public:
     enum class ParaName {
         NO_PARA_NAME,
         FREQ,
+        STRESS,
+        STRAIN,
         INST,
         AMOR,
         PARAX

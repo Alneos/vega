@@ -38,9 +38,20 @@ private:
     typedef void (OptistructParser::*parseOptistructElementFPtr)(nastran::NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
+     * Parse the CONTACT keyword
+     */
+    void parseCONTACT(nastran::NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
      * Parse the SET keyword
      */
     void parseSET(nastran::NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+      * Defines a face of a 2-D or 3-D element as part of a surface.
+      * https://www.sharcnet.ca/Software/Hyperworks/help/hwsolvers/hwsolvers.htm?surf.htm
+      */
+    void parseSURF(nastran::NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     const std::set<std::string> OPTISTRUCT_IGNORED_KEYWORDS = {
         //optistruct optimization variable

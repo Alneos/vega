@@ -46,6 +46,9 @@ BOOST_AUTO_TEST_CASE( prob2 ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/prob2/prob2.dat", RUN_SYSTUS, true, 0.15);
 }
 
+BOOST_AUTO_TEST_CASE( cbush ) {
+	CommandLineUtils::nastranStudy2Systus("/irt/probA/probA.bdf", RUN_SYSTUS, true, 0.05);
+}
 
 } /* namespace test */
 } /* namespace vega */

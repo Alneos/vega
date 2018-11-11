@@ -40,6 +40,7 @@ const map<Target::Type, string> Target::stringByType = {
         { Target::Type::BOUNDARY_NODESURFACE, "BOUNDARY_NODESURFACE" },
         { Target::Type::BOUNDARY_SURFACE, "BOUNDARY_SURFACE" },
         { Target::Type::CONTACT_BODY, "CONTACT_BODY" },
+        { Target::Type::BOUNDARY_ELEMENTFACE, "BOUNDARY_ELEMENTFACE" },
 };
 
 ostream &operator<<(ostream &out, const Target& target) {
@@ -95,4 +96,17 @@ shared_ptr<Target> ContactBody::clone() const {
     return make_shared<ContactBody>(*this);
 }
 
+BoundaryElementFace::ElementFaceByTwoNodes::ElementFaceByTwoNodes(int cellId, int nodeid1, int nodeid2, bool swapNormal):
+    cellId(cellId), nodeid1(nodeid1), nodeid2(nodeid2), swapNormal(swapNormal) {
 }
+
+BoundaryElementFace::BoundaryElementFace(const Model& model, list<ElementFaceByTwoNodes> faceInfos, int original_id):
+    Target(model, Target::Type::BOUNDARY_ELEMENTFACE, original_id), faceInfos(faceInfos) {
+
+}
+
+shared_ptr<Target> BoundaryElementFace::clone() const {
+    return make_shared<BoundaryElementFace>(*this);
+}
+
+} // namespace vega

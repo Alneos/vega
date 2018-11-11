@@ -719,8 +719,19 @@ private:
     /**
      * Parse the keyword TABLED1 (page 2518 of MDN Nastran 2006 Quick Reference Guide.)
      * Full support.
+     * Defines a tabular function for use in generating frequency-dependent and
+     * time-dependent dynamic loads.
      */
     void parseTABLED1(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * Parse the keyword TABLES1 (page 2518 of MDN Nastran 2006 Quick Reference Guide.)
+     * Full support.
+     * Defines a tabular function for stress-dependent material properties such as the
+     * stress-strain curve (MATS1 entry), creep parameters (CREEP entry) and hyperelastic
+     * material parameters (MATHP entry).
+     */
+    void parseTABLES1(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * Parse the keyword TEMP (page 2572 of MDN Nastran 2006 Quick Reference Guide.)

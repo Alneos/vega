@@ -25,6 +25,7 @@ public:
         BOUNDARY_NODESURFACE,
         BOUNDARY_SURFACE,
         CONTACT_BODY,
+        BOUNDARY_ELEMENTFACE,
     };
 protected:
     const Model & model;
@@ -92,6 +93,26 @@ public:
     ContactBody(const Model& model, Reference<Target> boundary, int original_id =
             NO_ORIGINAL_ID);
     Reference<Target> boundary;
+    std::shared_ptr<Target> clone() const;
+};
+
+/**
+ * Defines a surface by an element and a couple of node ids, see Optistruct SURF
+ */
+class BoundaryElementFace: public Target {
+public:
+    class ElementFaceByTwoNodes final {
+    public:
+        ElementFaceByTwoNodes(int cellId, int nodeid1 = Globals::UNAVAILABLE_INT, int nodeid2 = Globals::UNAVAILABLE_INT, bool swapNormal = false);
+        const int cellId;
+        const int nodeid1;
+        const int nodeid2;
+        const bool swapNormal;
+    };
+    BoundaryElementFace(const Model& model, std::list<ElementFaceByTwoNodes> faceInfos, int original_id =
+            NO_ORIGINAL_ID);
+    std::shared_ptr<CellGroup> cellGroup;
+    std::list<ElementFaceByTwoNodes> faceInfos;
     std::shared_ptr<Target> clone() const;
 };
 

@@ -136,6 +136,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "SPOINT", &NastranParser::parseSPOINT },
                 { "TABDMP1", &NastranParser::parseTABDMP1 },
                 { "TABLED1", &NastranParser::parseTABLED1 },
+                { "TABLES1", &NastranParser::parseTABLES1 },
                 { "TEMP", &NastranParser::parseTEMP },
                 { "GRDSET", &NastranParser::parseGRDSET }
         };
@@ -775,19 +776,41 @@ void NastranParser::parseBFRIC(NastranTokenizer& tok, shared_ptr<Model> model) {
 }
 
 void NastranParser::parseBCTABLE(NastranTokenizer& tok, shared_ptr<Model> model) {
-    int id = tok.nextInt();
+    int set_id = tok.nextInt();
+    Reference<ConstraintSet> constraintSetReference(ConstraintSet::Type::CONTACT, set_id);
+    if (!model->find(constraintSetReference)) {
+        ConstraintSet constraintSet(*model, ConstraintSet::Type::CONTACT, set_id);
+        model->add(constraintSet);
+    }
     int idslave = tok.nextInt(true,0);
-    if (idslave == 0)
-        handleParsingError("BCTABLE only implemented with a single slave (for now)", tok, model);
     int idmaster = tok.nextInt(true,0);
-    if (idmaster == 0)
-        handleParsingError("BCTABLE only implemented with a single master (for now)", tok, model);
+    if (idslave != 0 and idmaster != 0) {
+        ZoneContact table(*model, Reference<Target>(Target::Type::BOUNDARY_SURFACE, idmaster), Reference<Target>(Target::Type::BOUNDARY_SURFACE, idslave));
+        model->add(table);
+        model->addConstraintIntoConstraintSet(table, constraintSetReference);
+    }
+    int ngroup = tok.nextInt(true, 0);
+    for (int igroup = 0; igroup < ngroup; igroup++) {
+        tok.skipToNotEmpty();
+        if (boost::to_upper_copy(tok.nextString()) != "SLAVE") {
+            handleParsingError("BCTABLE unknown field before SLAVE line", tok, model);
+        }
+        int idslave2 = tok.nextInt(true,0);
+        tok.skipToNotEmpty();
+        if (boost::to_upper_copy(tok.nextString()) != "MASTERS") {
+            handleParsingError("BCTABLE unknown field before MASTERS line", tok, model);
+        }
+        int idmaster2 = tok.nextInt(true,0);
+        if (not (tok.isNextEmpty() or tok.isEmptyUntilNextKeyword())) {
+            handleParsingError("BCTABLE with more than one master on MASTERS line", tok, model);
+        }
+        ZoneContact table(*model, Reference<Target>(Target::Type::BOUNDARY_SURFACE, idmaster2), Reference<Target>(Target::Type::BOUNDARY_SURFACE, idslave2));
+        model->add(table);
+        model->addConstraintIntoConstraintSet(table, constraintSetReference);
+    }
     if (not tok.isEmptyUntilNextKeyword()) {
         handleParsingError("BCBODY optional fields not yet handled", tok, model);
     }
-    ZoneContact table(*model, Reference<Target>(Target::Type::BOUNDARY_SURFACE, idmaster), Reference<Target>(Target::Type::BOUNDARY_SURFACE, idslave), id);
-    model->add(table);
-    model->addConstraintIntoConstraintSet(table, model->commonConstraintSet);
 }
 
 void NastranParser::parseBCONP(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -2955,6 +2978,55 @@ void NastranParser::parseTABLED1(NastranTokenizer& tok, shared_ptr<Model> model)
         handleParsingWarning("FLAT field is dismissed (OPTISTRUCT syntax)", tok, model);
     }
     tok.skip(4);
+
+    double x,y;
+    string sField="";
+    while (sField != "ENDT") {
+        if (tok.isNextDouble()){
+            x = tok.nextDouble();
+        }else{
+            sField=tok.nextString();
+            if (sField=="ENDT"){
+                break;
+            }
+            if (sField=="SKIP"){ // SKIP means the pair (x,y) is skipped
+                tok.skip(1);
+                continue;
+            }else{
+                handleParsingWarning("Invalid key ("+sField+") should be ENDT, SKIP or a real.", tok, model);
+                break;
+            }
+        }
+        if (tok.isNextDouble()){
+            y = tok.nextDouble();
+        }else{
+            string sField2=tok.nextString(); //Code_Aster convention : Nastran is coherent with factor 2 for sdamping : not so sure
+            if (sField2=="ENDT"){
+                break;
+            }
+            if (sField2=="SKIP"){
+                continue;
+            }else{
+                handleParsingWarning("Invalid key ("+sField2+") should be ENDT, SKIP or a real.", tok, model);
+                break;
+            }
+        }
+        functionTable.setXY(x, y);
+    }
+
+    model->add(functionTable);
+
+}
+
+void NastranParser::parseTABLES1(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int original_id = tok.nextInt();
+
+    FunctionTable functionTable(*model, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::LINEAR,
+            FunctionTable::Interpolation::LINEAR, original_id);
+    functionTable.setParaX(NamedValue::ParaName::STRAIN);
+    functionTable.setParaY(NamedValue::ParaName::STRESS);
+
+    tok.skip(7); // The next 7 fields are empty.
 
     double x,y;
     string sField="";

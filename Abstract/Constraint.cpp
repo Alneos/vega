@@ -43,8 +43,10 @@ const map<Constraint::Type, string> Constraint::stringByType = {
         { Constraint::Type::RBE3, "RBE3" },
         { Constraint::Type::GAP, "GAP" },
         { Constraint::Type::LMPC, "LMPC" },
-        { Constraint::Type::SLIDE, "SLIDE_CONTACT" },
+        { Constraint::Type::SLIDE, "SLIDE" },
         { Constraint::Type::SURFACE_CONTACT, "SURFACE_CONTACT" },
+        { Constraint::Type::ZONE_CONTACT, "ZONE_CONTACT" },
+        { Constraint::Type::SURFACE_SLIDE_CONTACT, "SURFACE_SLIDE_CONTACT" },
 };
 
 ostream &operator<<(ostream &out, const Constraint& constraint) {
@@ -95,8 +97,13 @@ int ConstraintSet::size() const {
 
 const string ConstraintSet::name = "ConstraintSet";
 
-const map<ConstraintSet::Type, string> ConstraintSet::stringByType = { { ConstraintSet::Type::SPC, "SPC" },
-        { ConstraintSet::Type::MPC, "MPC" }, { ConstraintSet::Type::SPCD, "SPCD" }, { ConstraintSet::Type::ALL, "ALL" } };
+const map<ConstraintSet::Type, string> ConstraintSet::stringByType = {
+    { ConstraintSet::Type::SPC, "SPC" },
+    { ConstraintSet::Type::MPC, "MPC" },
+    { ConstraintSet::Type::SPCD, "SPCD" },
+    { ConstraintSet::Type::CONTACT, "CONTACT" },
+    { ConstraintSet::Type::ALL, "ALL" }
+    };
 
 bool ConstraintSet::hasFunctions() const {
     for (shared_ptr<Constraint> constraint : getConstraints()) {
@@ -780,5 +787,51 @@ const DOFS ZoneContact::getDOFSForNode(int nodePosition) const {
     return DOFS::TRANSLATIONS;
 }
 
+SurfaceSlideContact::SurfaceSlideContact(Model& model, Reference<Target> master, Reference<Target> slave, int original_id) :
+    Contact(model, Constraint::Type::SURFACE_SLIDE_CONTACT, original_id), master(master), slave(slave) {
+}
+
+shared_ptr<Constraint> SurfaceSlideContact::clone() const {
+    return make_shared<SurfaceSlideContact>(*this);
+}
+
+set<int> SurfaceSlideContact::nodePositions() const {
+    set<int> result;
+    const auto& masterBoundary = dynamic_pointer_cast<BoundaryElementFace>(model.find(master));
+    if (masterBoundary == nullptr) {
+        throw logic_error("Cannot find master body boundary");
+    }
+    const auto& masterNodePositions = masterBoundary->cellGroup->nodePositions();
+    result.insert(masterNodePositions.begin(), masterNodePositions.end());
+    const auto& slaveBoundary = dynamic_pointer_cast<BoundaryElementFace>(model.find(slave));
+    if (slaveBoundary == nullptr) {
+        throw logic_error("Cannot find slave body boundary");
+    }
+    const auto& slaveNodePositions = slaveBoundary->cellGroup->nodePositions();
+    result.insert(slaveNodePositions.begin(), slaveNodePositions.end());
+    return result;
+}
+
+void SurfaceSlideContact::removeNode(int nodePosition) {
+    UNUSEDV(nodePosition);
+    throw logic_error("Not yet implemented");
+}
+
+bool SurfaceSlideContact::ineffective() const {
+    const auto& masterBoundary = dynamic_pointer_cast<BoundaryElementFace>(model.find(master));
+    if (masterBoundary == nullptr) {
+        throw logic_error("Cannot find master body boundary (or unexpected type)");
+    }
+    const auto& slaveBoundary = dynamic_pointer_cast<BoundaryElementFace>(model.find(slave));
+    if (slaveBoundary == nullptr) {
+        throw logic_error("Cannot find slave body boundary (or unexpected type)");
+    }
+    return masterBoundary->faceInfos.size() == 0 or slaveBoundary->faceInfos.size() == 0;
+}
+
+const DOFS SurfaceSlideContact::getDOFSForNode(int nodePosition) const {
+    UNUSEDV(nodePosition);
+    return DOFS::TRANSLATIONS;
+}
 
 } // namespace vega

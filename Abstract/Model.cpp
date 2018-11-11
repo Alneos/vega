@@ -782,7 +782,7 @@ const vector<shared_ptr<Beam>> Model::getBeams() const {
 
 
 void Model::generateSkin() {
-    for (Container<Loading>::iterator it = loadings.begin(); it != loadings.end(); it++) {
+    for (auto it = loadings.begin(); it != loadings.end(); it++) {
         shared_ptr<Loading> loadingPtr = *it;
         if (loadingPtr->applicationType == Loading::ApplicationType::ELEMENT) {
             shared_ptr<ElementLoading> elementLoading = dynamic_pointer_cast<ElementLoading>(
@@ -812,6 +812,32 @@ void Model::generateSkin() {
                     break;
                 default:
                     throw logic_error("generate skin implemented only for pression face");
+                }
+            }
+        }
+    }
+
+    for (auto it = targets.begin(); it != targets.end(); it++) {
+        shared_ptr<Target> target = *it;
+        if (target->type == Target::Type::BOUNDARY_ELEMENTFACE) {
+            shared_ptr<BoundaryElementFace> elementFace = dynamic_pointer_cast<BoundaryElementFace>(
+                    target);
+            for(auto& faceInfo: elementFace->faceInfos) {
+                Cell cell0 = this->mesh->findCell(this->mesh->findCellPosition(faceInfo.cellId));
+                const vector<int>& faceIds = cell0.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
+                if (faceIds.size() > 0) {
+                    vega::Cell cell = generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
+                    // LD : Workaround for MED name problems, adding single cell groups
+                    shared_ptr<CellGroup> mappl = this->mesh->createCellGroup(
+                            "C" + boost::lexical_cast<string>(cell.id));
+                    mappl->addCellId(cell.id);
+                    elementFace->cellGroup = mappl;
+                    // LD : Workaround for Aster problem : MODELISA6_96
+                    //  les 1 mailles imprimées ci-dessus n'appartiennent pas au modèle et pourtant elles ont été affectées dans le mot-clé facteur : !
+                    //   ! FORCE_FACE
+                    Continuum continuum(*this, &ModelType::TRIDIMENSIONAL_SI);
+                    continuum.assignCellGroup(mappl);
+                    this->add(continuum);
                 }
             }
         }

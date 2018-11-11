@@ -42,7 +42,8 @@ public:
 		GAP,
 		SLIDE,
 		SURFACE_CONTACT,
-		ZONE_CONTACT
+		ZONE_CONTACT,
+		SURFACE_SLIDE_CONTACT,
 	};
 
 protected:
@@ -304,6 +305,21 @@ public:
 class ZoneContact: public Contact {
 public:
 	ZoneContact(Model& model, Reference<Target> master, Reference<Target> slave, int original_id = NO_ORIGINAL_ID);
+    const Reference<Target> master;
+    const Reference<Target> slave;
+	std::shared_ptr<Constraint> clone() const override;
+	std::set<int> nodePositions() const override;
+	const DOFS getDOFSForNode(int nodePosition) const override;
+	void removeNode(int nodePosition) override;
+	bool ineffective() const override;
+};
+
+/**
+ * see Optistruct CONTACT option SLIDE
+ */
+class SurfaceSlideContact: public Contact {
+public:
+	SurfaceSlideContact(Model& model, Reference<Target> master, Reference<Target> slave, int original_id = NO_ORIGINAL_ID);
     const Reference<Target> master;
     const Reference<Target> slave;
 	std::shared_ptr<Constraint> clone() const override;

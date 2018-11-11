@@ -1130,6 +1130,39 @@
 					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
+			<Target title="Optistruct2Aster_test">
+				<Option output="build/bin/Optistruct2Aster_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="build" />
+					<Add directory="include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 Optistruct2Aster_test' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
 			<Target title="command_line_test_utils">
 				<Option output="lib/libcommand_line_test_utils.a" prefix_auto="0" extension_auto="0" />
 				<Option working_dir="" />
@@ -1295,6 +1328,39 @@
 					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
+			<Target title="OptistructParser_test">
+				<Option output="build/bin/OptistructParser_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="build" />
+					<Add directory="include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Optistruct/Makefile&quot;  VERBOSE=1 OptistructParser_test' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Optistruct/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Optistruct/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Optistruct/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>            
 			<Target title="NastranParser_test/fast">
 				<Option output="build/bin/NastranParser_tests" prefix_auto="0" extension_auto="0" />
 				<Option working_dir="bin" />
@@ -1749,6 +1815,8 @@
 		<Unit filename="Test/NightlyTests/CMakeLists.txt">
 			<Option virtualFolder="CMake Files/Test/NightlyTests/" />
 		</Unit>
+		<Unit filename="Test/Optistruct/CMakeLists.txt" />
+		<Unit filename="Test/Optistruct/OptistructParser_test.cpp" />
 		<Unit filename="Test/ResultReaders/CMakeLists.txt">
 			<Option virtualFolder="CMake Files/Test/ResultReaders/" />
 		</Unit>
@@ -1809,6 +1877,8 @@
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/fixed_circular_plate.dat" />
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/fixed_circular_plate.f06" />
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/readme.txt" />
+		<Unit filename="testdata/nastran/irt/gasket/gasket.bdf" />
+		<Unit filename="testdata/nastran/irt/gasket/readme.txt" />
 		<Unit filename="testdata/nastran/irt/prob2/prob2.dat" />
 		<Unit filename="testdata/nastran/irt/prob2/prob2.f06" />
 		<Unit filename="testdata/nastran/irt/prob2/readme.txt" />

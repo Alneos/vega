@@ -30,9 +30,13 @@ BOOST_AUTO_TEST_CASE( prob6 ) {
 	CommandLineUtils::optistructStudy2Aster("/caw/prob6/prob6.dat", RUN_ASTER, true, 0.02);
 }
 
-/*BOOST_AUTO_TEST_CASE( ploads ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/t01331/t01331a.inp", RUN_ASTER, true, 0.00001);
-}*/
+//BOOST_AUTO_TEST_CASE( Safran_AB_RadiusBlock_v1 ) {
+//	CommandLineUtils::optistructStudy2Aster("/../../../../../local/tmp/bigtest.fem", RUN_ASTER, true, 0.03);
+//}
+
+//BOOST_AUTO_TEST_CASE( ploads ) {
+//	CommandLineUtils::nastranStudy2Aster("/irt/t01331/t01331a.inp", RUN_ASTER, true, 0.00001);
+//}
 
 } /* namespace test */
 } /* namespace vega */
