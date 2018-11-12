@@ -1,0 +1,1 @@
+Testing SPC1 and RBE2 on the same GRID

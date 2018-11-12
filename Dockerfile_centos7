@@ -1,0 +1,40 @@
+# Copyright IRT-Systemx 2018
+
+FROM centos:7
+
+MAINTAINER Alter Ego Engineering <luca.dallolio@aego.ai>
+
+RUN yum install -y curl gcc make
+
+#RUN curl -SL http://download.savannah.nongnu.org/releases/libunwind/libunwind-1.2.1.tar.gz | tar -xzC /root
+#ENV LIBUNWIND_INSTALL=/opt/libunwind
+#WORKDIR /root/libunwind-1.2.1
+#RUN ./configure --prefix=$LIBUNWIND_INSTALL && make -j && make install
+
+RUN yum install -y gcc-c++ gcc-gfortran gettext python-devel zlib-devel bison flex swig lapack-devel curl xterm vim ca-certificates tk boost-devel bash python-pip
+RUN yum install -y epel-release
+RUN yum update -y && yum install -y python-pip
+RUN pip install numpy==1.9
+
+RUN curl -SLk https://cmake.org/files/v3.11/cmake-3.11.4.tar.gz | tar -xzC /root
+WORKDIR /root/cmake-3.11.4
+RUN ./bootstrap --prefix=/usr/local && make -j && make install && cmake --version
+
+RUN curl -SLk https://www.code-aster.org/FICHIERS/aster-full-src-13.4.0-3.noarch.tar.gz | tar -xzC /root
+ENV ASTER_BUILD=/root/aster-full-src-13.4.0
+ENV ASTER_INSTALL=/opt/aster
+WORKDIR $ASTER_BUILD
+RUN python setup.py install --prefix=$ASTER_INSTALL --noprompt && rm -Rf /opt/aster/13.4/share/aster/tests
+ENV MFRONT_INSTALL=$ASTER_INSTALL/mfront-3.0.0
+ENV MFRONT=$MFRONT_INSTALL/bin/mfront
+ENV TFEL_CONFIG=$MFRONT_INSTALL/bin/tfel-config
+ENV PATH=$PATH:$MFRONT_INSTALL/bin
+
+RUN echo "vers : STABLE:/opt/aster/13.4/share/aster" >> $ASTER_INSTALL/etc/codeaster/aster
+
+FROM centos:7
+
+COPY --from=0 /opt/aster .
+COPY --from=0 /usr/local .
+
+# TODO LD: work in progress

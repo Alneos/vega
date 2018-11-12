@@ -1,0 +1,35 @@
+0
+      FREQUENCY =  9.000000E-01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+0           11      G      0.0            0.0            0.0            0.0            0.0            0.0
+                           0.0            0.0            0.0            0.0            0.0            0.0
+0           12      G      2.652446E+00   0.0            0.0            0.0            0.0            0.0
+                          -3.947168E+00   0.0            0.0            0.0            0.0            0.0
+1    VERIFICATION PROBLEM, FREQ. DEP. IMPEDANCE      BUSHVER                OCTOBER  13, 2018  MSC.NASTRAN  7/ 6/12   PAGE     8
+      SINGLE DOF, CRITICAL DAMPING, 3 EXCITATION FREQUENCIES
+0
+      FREQUENCY =  1.000000E+00
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+0           11      G      0.0            0.0            0.0            0.0            0.0            0.0
+                           0.0            0.0            0.0            0.0            0.0            0.0
+0           12      G     -4.242665E-06   0.0            0.0            0.0            0.0            0.0
+                          -6.366198E+00   0.0            0.0            0.0            0.0            0.0
+1    VERIFICATION PROBLEM, FREQ. DEP. IMPEDANCE      BUSHVER                OCTOBER  13, 2018  MSC.NASTRAN  7/ 6/12   PAGE     9
+      SINGLE DOF, CRITICAL DAMPING, 3 EXCITATION FREQUENCIES
+0
+      FREQUENCY =  1.100000E+00
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+0           11      G      0.0            0.0            0.0            0.0            0.0            0.0
+                           0.0            0.0            0.0            0.0            0.0            0.0
+0           12      G     -3.107836E+00   0.0            0.0            0.0            0.0            0.0
+                          -5.114237E+00   0.0            0.0            0.0            0.0            0.0
+
