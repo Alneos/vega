@@ -100,9 +100,9 @@ const unordered_map<CellType::Code, vector<int>, EnumClassHash> SystusWriter::sy
 
 };
 
-constexpr int SystusWriter::DampingAccessId=41;
-constexpr int SystusWriter::MassAccessId=42;
-constexpr int SystusWriter::StiffnessAccessId=43;
+const int SystusWriter::DampingAccessId=41;
+const int SystusWriter::MassAccessId=42;
+const int SystusWriter::StiffnessAccessId=43;
 
 /** Converts a vega node Id in its ASC counterpart (i.e add one!) **/
 int SystusWriter::getAscNodeId(const int vega_id) const {
