@@ -46,6 +46,7 @@ class Model;
 class Value {
 public:
     enum class Type {
+        KEYWORD,
         SCALAR,
         BAND_RANGE,
         STEP_RANGE,
@@ -75,20 +76,32 @@ public:
 };
 
 /**
+ * Placeholder for special values
+ */
+class KeywordValue: public Value {
+    public:
+    enum class Keyword {
+        RIGID //< The keyword RIGID may be used in place of a stiffness value. When RIGID is defined, a very high relative stiffness (relative to the surrounding structure) is selected for that degree-of-freedom simulating a rigid connection.
+    };
+
+private:
+    friend std::ostream &operator<<(std::ostream&, const KeywordValue&);    //output
+protected:
+    const Model& model;
+public:
+    static const std::map<Keyword, std::string> stringByType;
+protected:
+    KeywordValue(const Model&, Keyword keyword);
+public:
+    const Keyword keyword;
+
+    virtual std::shared_ptr<KeywordValue> clone() const =0;
+};
+
+/**
  * The generic vega::Value class is useful to store information on simple values such as a table or a function
  */
 class NamedValue: public Value, public Identifiable<NamedValue> {
-public:
-    enum class ParaName {
-        NO_PARA_NAME,
-        FREQ,
-        STRESS,
-        STRAIN,
-        INST,
-        AMOR,
-        PARAX
-    };
-
 private:
     friend std::ostream &operator<<(std::ostream&, const NamedValue&);    //output
 protected:
@@ -96,61 +109,9 @@ protected:
 public:
     static const std::string name;
 protected:
-    ParaName paraX;
-    ParaName paraY;
-    NamedValue(const Model&, Type, int original_id = NO_ORIGINAL_ID, ParaName paraX = ParaName::NO_PARA_NAME,
-            ParaName paraY = ParaName::NO_PARA_NAME);
+    NamedValue(const Model&, Type, int original_id = NO_ORIGINAL_ID);
 public:
-    void setParaX(ParaName para) {
-        paraX = para;
-    }
-
-    void setParaY(ParaName para) {
-        paraY = para;
-    }
-
-    bool hasParaX() const {
-        return paraX != ParaName::NO_PARA_NAME;
-    }
-    bool hasParaY() const {
-        return paraY != ParaName::NO_PARA_NAME;
-    }
-
-    ParaName getParaX() const {
-        return paraX;
-    }
-
-    ParaName getParaY() const {
-        return paraY;
-    }
-
-    virtual bool isPlaceHolder() const {
-        return false;
-    }
-
     virtual std::shared_ptr<NamedValue> clone() const =0;
-};
-
-/**
- * Hold parameter names of a Value
- * TODO LD: understand why this is not a Reference ??
- */
-class ValuePlaceHolder: public NamedValue {
-public:
-    ValuePlaceHolder(const Model&, Type, int original_id, ParaName paraX, ParaName paraY =
-            ParaName::NO_PARA_NAME);
-    bool isPlaceHolder() const {
-        return true;
-    }
-    ;
-    std::shared_ptr<NamedValue> clone() const;
-    virtual bool iszero() const {
-        throw std::logic_error("Should not check placeholders for being zero");
-    }
-    virtual void scale(double factor) {
-        UNUSEDV(factor);
-        throw std::logic_error("Should not try to scale placeholders");
-    }
 };
 
 class ListValueBase: public NamedValue {
@@ -264,11 +225,66 @@ public:
 };
 
 class Function: public NamedValue {
-protected:
-    Function(const Model&, Type, int original_id = NO_ORIGINAL_ID);
 public:
+    enum class ParaName {
+        NO_PARA_NAME,
+        FREQ,
+        STRESS,
+        STRAIN,
+        INST,
+        AMOR,
+        PARAX
+    };
+protected:
+    ParaName paraX;
+    ParaName paraY;
+    Function(const Model&, Type, int original_id = NO_ORIGINAL_ID, ParaName paraX = ParaName::NO_PARA_NAME, ParaName paraY =
+            ParaName::NO_PARA_NAME);
+public:
+    void setParaX(ParaName para) {
+        paraX = para;
+    }
+
+    void setParaY(ParaName para) {
+        paraY = para;
+    }
+
+    bool hasParaX() const {
+        return paraX != ParaName::NO_PARA_NAME;
+    }
+    bool hasParaY() const {
+        return paraY != ParaName::NO_PARA_NAME;
+    }
+
+    ParaName getParaX() const {
+        return paraX;
+    }
+
+    ParaName getParaY() const {
+        return paraY;
+    }
     bool isfunction() const override {
         return true;
+    }
+};
+
+/**
+ * Hold parameter names of a Function (when the Function itself has not been defined yet)
+ */
+class FunctionPlaceHolder: public Function {
+public:
+    FunctionPlaceHolder(const Model&, Type, int original_id, ParaName paraX, ParaName paraY =
+            ParaName::NO_PARA_NAME);
+    bool isPlaceHolder() const {
+        return true;
+    };
+    std::shared_ptr<NamedValue> clone() const;
+    virtual bool iszero() const {
+        throw std::logic_error("Should not check placeholders for being zero");
+    }
+    virtual void scale(double factor) {
+        UNUSEDV(factor);
+        throw std::logic_error("Should not try to scale placeholders");
     }
 };
 

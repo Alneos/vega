@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE( prob6 ) {
 	CommandLineUtils::optistructStudy2Aster("/caw/prob6/prob6.dat", RUN_ASTER, true, 0.02);
 }
 
-//BOOST_AUTO_TEST_CASE( Safran_AB_RadiusBlock_v1 ) {
+//BOOST_AUTO_TEST_CASE( bigtest ) {
 //	CommandLineUtils::optistructStudy2Aster("/../../../../../local/tmp/bigtest.fem", RUN_ASTER, true, 0.03);
 //}
 

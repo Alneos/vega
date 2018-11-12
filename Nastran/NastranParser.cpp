@@ -1158,7 +1158,7 @@ void NastranParser::parseEIGR(NastranTokenizer& tok, shared_ptr<Model> model) {
     }
 
     BandRange bandRange(*model, lower, nd, upper);
-    bandRange.setParaX(NamedValue::ParaName::FREQ);
+    //bandRange.setParaX(Function::ParaName::FREQ);
     FrequencyTarget frequencyTarget(*model, FrequencyTarget::FrequencyType::BAND, bandRange, norm, original_id);
 
     model->add(bandRange);
@@ -1202,7 +1202,7 @@ void NastranParser::parseEIGRL(NastranTokenizer& tok, shared_ptr<Model> model) {
         norm = FrequencyTarget::NormType::MAX;
     }
     BandRange bandRange(*model, lower, nd, upper);
-    bandRange.setParaX(NamedValue::ParaName::FREQ);
+    //bandRange.setParaX(Function::ParaName::FREQ);
     FrequencyTarget frequencyTarget(*model, FrequencyTarget::FrequencyType::BAND, bandRange, norm, original_id);
 
     model->add(bandRange);
@@ -1291,7 +1291,7 @@ void NastranParser::parseFREQ1(NastranTokenizer& tok, shared_ptr<Model> model) {
     int count = tok.nextInt(true, 1);
 
     vega::StepRange stepRange(*model, start, step, count);
-    stepRange.setParaX(NamedValue::ParaName::FREQ);
+    //stepRange.setParaX(Function::ParaName::FREQ);
     FrequencyTarget frequencyTarget(*model, FrequencyTarget::FrequencyType::STEP, stepRange, FrequencyTarget::NormType::MASS, original_id);
 
     model->add(stepRange);
@@ -1306,7 +1306,7 @@ void NastranParser::parseFREQ4(NastranTokenizer& tok, shared_ptr<Model> model) {
     int count = tok.nextInt(true, 1);
 
     vega::SpreadRange spreadRange(*model, f1, count, f2, spread);
-    spreadRange.setParaX(NamedValue::ParaName::FREQ);
+    //spreadRange.setParaX(Function::ParaName::FREQ);
     FrequencyTarget frequencyTarget(*model, FrequencyTarget::FrequencyType::SPREAD, spreadRange, FrequencyTarget::NormType::MASS, original_id);
 
     model->add(spreadRange);
@@ -2951,8 +2951,8 @@ void NastranParser::parseTABDMP1(NastranTokenizer& tok, shared_ptr<Model> model)
         functionTable.setXY(x, y);
     }
 
-    functionTable.setParaX(NamedValue::ParaName::FREQ);
-    functionTable.setParaY(NamedValue::ParaName::AMOR);
+    functionTable.setParaX(Function::ParaName::FREQ);
+    functionTable.setParaY(Function::ParaName::AMOR);
     vega::ModalDamping modalDamping(*model, functionTable, original_id);
 
     model->add(functionTable);
@@ -3023,8 +3023,8 @@ void NastranParser::parseTABLES1(NastranTokenizer& tok, shared_ptr<Model> model)
 
     FunctionTable functionTable(*model, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::LINEAR,
             FunctionTable::Interpolation::LINEAR, original_id);
-    functionTable.setParaX(NamedValue::ParaName::STRAIN);
-    functionTable.setParaY(NamedValue::ParaName::STRESS);
+    functionTable.setParaX(Function::ParaName::STRAIN);
+    functionTable.setParaY(Function::ParaName::STRESS);
 
     tok.skip(7); // The next 7 fields are empty.
 

@@ -120,8 +120,8 @@ const shared_ptr<NamedValue> FrequencyTarget::getValue() const {
     return dynamic_pointer_cast<NamedValue>(model.find(namedValue));
 }
 
-const ValuePlaceHolder FrequencyTarget::getValueRangePlaceHolder() const {
-    return ValuePlaceHolder(model, namedValue.type, namedValue.original_id, NamedValue::ParaName::FREQ);
+const FunctionPlaceHolder FrequencyTarget::getValueRangePlaceHolder() const {
+    return FunctionPlaceHolder(model, namedValue.type, namedValue.original_id, Function::ParaName::FREQ);
 }
 
 shared_ptr<Objective> FrequencyTarget::clone() const {
@@ -142,8 +142,8 @@ const shared_ptr<FunctionTable> ModalDamping::getFunctionTable() const {
     return dynamic_pointer_cast<FunctionTable>(model.find(function_table));
 }
 
-const ValuePlaceHolder ModalDamping::getFunctionTablePlaceHolder() const {
-    return ValuePlaceHolder(model, function_table.type, function_table.original_id, NamedValue::ParaName::FREQ);
+const FunctionPlaceHolder ModalDamping::getFunctionTablePlaceHolder() const {
+    return FunctionPlaceHolder(model, function_table.type, function_table.original_id, Function::ParaName::FREQ);
 }
 
 shared_ptr<Objective> ModalDamping::clone() const {

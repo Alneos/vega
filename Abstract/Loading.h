@@ -390,8 +390,8 @@ public:
     std::shared_ptr<FunctionTable> getFunctionTableB() const;
     std::shared_ptr<FunctionTable> getFunctionTableP() const;
     std::shared_ptr<LoadSet> getLoadSet() const;
-    const ValuePlaceHolder getFunctionTableBPlaceHolder() const;
-    const ValuePlaceHolder getFunctionTablePPlaceHolder() const;
+    const FunctionPlaceHolder getFunctionTableBPlaceHolder() const;
+    const FunctionPlaceHolder getFunctionTablePPlaceHolder() const;
     std::set<int> nodePositions() const override;
     const DOFS getDOFSForNode(const int nodePosition) const override;
     std::shared_ptr<Loading> clone() const override;

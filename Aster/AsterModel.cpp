@@ -33,11 +33,11 @@ namespace aster {
 namespace fs = boost::filesystem;
 using namespace std;
 
-const map<NamedValue::ParaName, string> AsterModel::NomParaByParaName = {
-        { NamedValue::ParaName::NO_PARA_NAME, "'NO_PARA_NAME'" },
-        { NamedValue::ParaName::FREQ, "'FREQ'" },
-        { NamedValue::ParaName::AMOR, "'AMOR'" },
-        { NamedValue::ParaName::PARAX, "'X'" }
+const map<Function::ParaName, string> AsterModel::NomParaByParaName = {
+        { Function::ParaName::NO_PARA_NAME, "'NO_PARA_NAME'" },
+        { Function::ParaName::FREQ, "'FREQ'" },
+        { Function::ParaName::AMOR, "'AMOR'" },
+        { Function::ParaName::PARAX, "'X'" }
 };
 
 const map<FunctionTable::Interpolation, string> AsterModel::InterpolationByInterpolation = {

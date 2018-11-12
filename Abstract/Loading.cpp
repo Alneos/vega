@@ -691,12 +691,12 @@ shared_ptr<LoadSet> DynamicExcitation::getLoadSet() const {
     return model.find(loadSet);
 }
 
-const ValuePlaceHolder DynamicExcitation::getFunctionTableBPlaceHolder() const {
-    return ValuePlaceHolder(model, functionTableB.type, functionTableB.original_id, NamedValue::ParaName::FREQ);
+const FunctionPlaceHolder DynamicExcitation::getFunctionTableBPlaceHolder() const {
+    return FunctionPlaceHolder(model, functionTableB.type, functionTableB.original_id, Function::ParaName::FREQ);
 }
 
-const ValuePlaceHolder DynamicExcitation::getFunctionTablePPlaceHolder() const {
-    return ValuePlaceHolder(model, functionTableP.type, functionTableP.original_id, NamedValue::ParaName::FREQ);
+const FunctionPlaceHolder DynamicExcitation::getFunctionTablePPlaceHolder() const {
+    return FunctionPlaceHolder(model, functionTableP.type, functionTableP.original_id, Function::ParaName::FREQ);
 }
 
 set<int> DynamicExcitation::nodePositions() const {

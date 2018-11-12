@@ -31,27 +31,46 @@ namespace vega {
 Value::Value(Value::Type type) : type(type) {
 }
 
-const string NamedValue::name = "NamedValue";
+const map<Value::Type, string> Value::stringByType = {
+    { Value::Type::KEYWORD, "KEYWORD" },
+    { Value::Type::BAND_RANGE, "BAND_RANGE" },
+    { Value::Type::STEP_RANGE, "STEP_RANGE" },
+    { Value::Type::SPREAD_RANGE, "SPREAD_RANGE" },
+    { Value::Type::FUNCTION_TABLE, "FUNCTION_TABLE" },
+    { Value::Type::DYNA_PHASE, "DYNA_PHASE" },
+    { Value::Type::LIST, "LIST" },
+    { Value::Type::VECTOR, "VECTOR" },
+    { Value::Type::VECTORFUNCTION, "VECTORFUNCTION" },
+};
 
-const map<Value::Type, string> Value::stringByType = { { Value::Type::STEP_RANGE, "STEP_RANGE" }, { Value::Type::SPREAD_RANGE, "SPREAD_RANGE" }, {
-        Value::Type::FUNCTION_TABLE, "FUNCTION_TABLE" }, { Value::Type::DYNA_PHASE, "DYNA_PHASE" }, { Value::Type::LIST, "LIST" }};
+KeywordValue::KeywordValue(const Model& model, KeywordValue::Keyword keyword) :
+        Value(Value::Type::KEYWORD), model(model), keyword(keyword) {
+}
+
+const map<KeywordValue::Keyword, string> KeywordValue::stringByType = {
+    { KeywordValue::Keyword::RIGID, "RIGID" },
+};
+
+ostream &operator<<(ostream &out, const KeywordValue& value) {
+    string keywordstr;
+    auto it = KeywordValue::stringByType.find(value.keyword);
+    if (it != KeywordValue::stringByType.end())
+        keywordstr = "type=" + it->second;
+    else
+        keywordstr = "keyword " + std::to_string(static_cast<int>(value.keyword)) + " not yet mapped in stringByType";
+    out << keywordstr;
+    return out;
+}
+
+const string NamedValue::name = "NamedValue";
 
 ostream &operator<<(ostream &out, const NamedValue& value) {
     out << to_str(value);
     return out;
 }
 
-NamedValue::NamedValue(const Model& model, Type type, int original_id, ParaName paraX, ParaName paraY) :
-        Value(type), Identifiable(original_id), model(model), paraX(paraX), paraY(paraY) {
-}
-
-ValuePlaceHolder::ValuePlaceHolder(const Model& model, Type type, int original_id, ParaName paraX,
-        ParaName paraY) :
-        NamedValue(model, type, original_id, paraX, paraY) {
-}
-
-shared_ptr<NamedValue> ValuePlaceHolder::clone() const {
-    return make_shared<ValuePlaceHolder>(*this);
+NamedValue::NamedValue(const Model& model, Type type, int original_id) :
+        Value(type), Identifiable(original_id), model(model) {
 }
 
 ValueRange::ValueRange(const Model& model, Type type, int original_id) :
@@ -124,8 +143,16 @@ void SpreadRange::scale(double factor) {
     throw logic_error("Should not try to scale spreadranges");
 }
 
-Function::Function(const Model& model, Type type, int original_id) :
-        NamedValue(model, type, original_id) {
+Function::Function(const Model& model, Type type, int original_id, ParaName paraX, ParaName paraY) :
+        NamedValue(model, type, original_id), paraX(paraX), paraY(paraY) {
+}
+
+FunctionPlaceHolder::FunctionPlaceHolder(const Model& model, Type type, int original_id, ParaName paraX, ParaName paraY) :
+        Function(model, type, original_id, paraX, paraY) {
+}
+
+shared_ptr<NamedValue> FunctionPlaceHolder::clone() const {
+    return make_shared<FunctionPlaceHolder>(*this);
 }
 
 FunctionTable::FunctionTable(const Model& model, Interpolation parameter, Interpolation value,

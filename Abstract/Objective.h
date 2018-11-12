@@ -151,7 +151,7 @@ public:
     const FrequencyType frequencyType;
     const NormType norm;  /**< Method for normalizing eigenvectors: MASS or MAX **/
     const std::shared_ptr<NamedValue> getValue() const;
-    const ValuePlaceHolder getValueRangePlaceHolder() const;
+    const FunctionPlaceHolder getValueRangePlaceHolder() const;
     std::shared_ptr<Objective> clone() const;
 };
 
@@ -164,7 +164,7 @@ public:
             NO_ORIGINAL_ID);
     ModalDamping(const Model& model, int function_table_id, int original_id = NO_ORIGINAL_ID);
     const std::shared_ptr<FunctionTable> getFunctionTable() const;
-    const ValuePlaceHolder getFunctionTablePlaceHolder() const;
+    const FunctionPlaceHolder getFunctionTablePlaceHolder() const;
     std::shared_ptr<Objective> clone() const;
 };
 

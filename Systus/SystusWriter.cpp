@@ -3113,7 +3113,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         // Damping
         shared_ptr<FunctionTable> modalDampingTable = linearDynaModalFreq.getModalDamping()->getFunctionTable();
         ostringstream oDamping;
-        if ((modalDampingTable->getParaX()!=NamedValue::ParaName::FREQ)||(modalDampingTable->getParaY()!=NamedValue::ParaName::AMOR)){
+        if ((modalDampingTable->getParaX()!=Function::ParaName::FREQ)||(modalDampingTable->getParaY()!=Function::ParaName::AMOR)){
             handleWritingWarning("Dismissing damping table with wrong units ("+to_string(static_cast<int>(modalDampingTable->getParaY()))+"/"+to_string(static_cast<int>(modalDampingTable->getParaX()))+")", "Analysis file");
         }else{
             double firstDamping = modalDampingTable->getBeginValuesXY()->second;

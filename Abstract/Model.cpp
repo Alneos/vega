@@ -81,16 +81,20 @@ void Model::Container<NamedValue>::add(const NamedValue& t) {
     shared_ptr<NamedValue> ptr = t.clone();
     if (shared_ptr<NamedValue> ptr_old = find(t)) {
         if (ptr->isPlaceHolder()) { // TODO : make a merge function for placeHolder
-            if (ptr->hasParaX())
-                ptr_old->setParaX(ptr->getParaX());
-            if (ptr_old->hasParaY())
-                ptr_old->setParaY(ptr->getParaY());
+            shared_ptr<Function> funPtr = dynamic_pointer_cast<Function>(ptr);
+            shared_ptr<Function> funptr_old = dynamic_pointer_cast<Function>(ptr_old);
+            if (funPtr->hasParaX())
+                funptr_old->setParaX(funPtr->getParaX());
+            if (funPtr->hasParaY())
+                funptr_old->setParaY(funPtr->getParaY());
             ptr = ptr_old;
         } else if (ptr_old->isPlaceHolder()) {
-            if (ptr_old->hasParaX())
-                ptr->setParaX(ptr_old->getParaX());
-            if (ptr_old->hasParaY())
-                ptr->setParaY(ptr_old->getParaY());
+            shared_ptr<Function> funPtr = dynamic_pointer_cast<Function>(ptr);
+            shared_ptr<Function> funptr_old = dynamic_pointer_cast<Function>(ptr_old);
+            if (funptr_old->hasParaX())
+                funPtr->setParaX(funptr_old->getParaX());
+            if (funptr_old->hasParaY())
+                funPtr->setParaY(funptr_old->getParaY());
         } else {
             ostringstream oss;
             oss << t << " is already in the model";
