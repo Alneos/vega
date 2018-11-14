@@ -786,6 +786,17 @@ const vector<shared_ptr<Beam>> Model::getBeams() const {
 
 
 void Model::generateSkin() {
+    shared_ptr<CellGroup> mappl = this->mesh->createCellGroup("VEGASKIN");
+
+    if (this->configuration.addSkinToModel) {
+        // LD : Workaround for Aster problem : MODELISA6_96
+        //  les 1 mailles imprimées ci-dessus n'appartiennent pas au modèle et pourtant elles ont été affectées dans le mot-clé facteur : !
+        //   ! FORCE_FACE
+        Continuum continuum(*this, &ModelType::TRIDIMENSIONAL_SI);
+        continuum.assignCellGroup(mappl);
+        this->add(continuum);
+    }
+
     for (auto it = loadings.begin(); it != loadings.end(); it++) {
         shared_ptr<Loading> loadingPtr = *it;
         if (loadingPtr->applicationType == Loading::ApplicationType::ELEMENT) {
@@ -799,18 +810,10 @@ void Model::generateSkin() {
                     vector<int> faceIds = forceSurface->getApplicationFace();
                     if (faceIds.size() > 0) {
                         vega::Cell cell = generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
-                        // LD : Workaround for MED name problems, adding single cell groups
-                        shared_ptr<CellGroup> mappl = this->mesh->createCellGroup(
-                                "C" + boost::lexical_cast<string>(cell.id));
                         mappl->addCellId(cell.id);
-                        forceSurface->clear();
-                        forceSurface->add(*mappl);
-                        // LD : Workaround for Aster problem : MODELISA6_96
-                        //  les 1 mailles imprimées ci-dessus n'appartiennent pas au modèle et pourtant elles ont été affectées dans le mot-clé facteur : !
-                        //   ! FORCE_FACE
-                        Continuum continuum(*this, &ModelType::TRIDIMENSIONAL_SI);
-                        continuum.assignCellGroup(mappl);
-                        this->add(continuum);
+                        forceSurface->addCellId(cell.id);
+                        //forceSurface->clear();
+                        //forceSurface->add(*mappl);
                     }
                 }
                     break;
@@ -826,22 +829,15 @@ void Model::generateSkin() {
         if (target->type == Target::Type::BOUNDARY_ELEMENTFACE) {
             shared_ptr<BoundaryElementFace> elementFace = dynamic_pointer_cast<BoundaryElementFace>(
                     target);
+            shared_ptr<CellGroup> surfGrp = this->mesh->createCellGroup("SURF" + to_string(elementFace->bestId()));
             for(auto& faceInfo: elementFace->faceInfos) {
                 Cell cell0 = this->mesh->findCell(this->mesh->findCellPosition(faceInfo.cellId));
                 const vector<int>& faceIds = cell0.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
                 if (faceIds.size() > 0) {
                     vega::Cell cell = generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
-                    // LD : Workaround for MED name problems, adding single cell groups
-                    shared_ptr<CellGroup> mappl = this->mesh->createCellGroup(
-                            "C" + boost::lexical_cast<string>(cell.id));
                     mappl->addCellId(cell.id);
-                    elementFace->cellGroup = mappl;
-                    // LD : Workaround for Aster problem : MODELISA6_96
-                    //  les 1 mailles imprimées ci-dessus n'appartiennent pas au modèle et pourtant elles ont été affectées dans le mot-clé facteur : !
-                    //   ! FORCE_FACE
-                    Continuum continuum(*this, &ModelType::TRIDIMENSIONAL_SI);
-                    continuum.assignCellGroup(mappl);
-                    this->add(continuum);
+                    surfGrp->addCellId(cell.id);
+                    elementFace->cellGroup = surfGrp;
                 }
             }
         }
@@ -945,7 +941,7 @@ void Model::emulateAdditionalMass() {
             newElementSet->assignMaterial(newMaterial);
             // copy and assign new cellGroup
             shared_ptr<CellGroup> newCellGroup = mesh->createCellGroup(
-                    "VAM_" + boost::lexical_cast<string>(newElementSets.size()));
+                    "VAM_" + to_string(newElementSets.size()));
             newElementSet->assignCellGroup(newCellGroup);
             vector<Cell> cells = elementSet->cellGroup->getCells();
             for (auto cell : cells) {
@@ -1916,7 +1912,7 @@ void Model::makeBoundarySegments() {
             shared_ptr<CellGroup> masterCellGroup = mesh->createCellGroup("SLIDE_M_"+to_string(slide->getOriginalId()));
             shared_ptr<CellGroup> slaveCellGroup = mesh->createCellGroup("SLIDE_S_"+to_string(slide->getOriginalId()));
             shared_ptr<BoundaryNodeLine> masterNodeLine = dynamic_pointer_cast<BoundaryNodeLine>(this->find(slide->master));
-            const list<int>& masterNodeIds = masterNodeLine ->nodeids;
+            const list<int>& masterNodeIds = masterNodeLine->nodeids;
             auto it = masterNodeIds.begin();
             for(unsigned int i = 0; i < masterNodeIds.size() - 1;++i) {
                 int nodeId1 = *it;

@@ -44,6 +44,7 @@ const ModelConfiguration ConfigurationParameters::getModelConfiguration() const 
     if (this->outputSolver.getSolverName() == SolverName::CODE_ASTER) {
         configuration.virtualDiscrets = true;
         configuration.createSkin = true;
+        configuration.addSkinToModel = true;
         configuration.emulateLocalDisplacement = true;
         configuration.emulateAdditionalMass = true;
         configuration.replaceCombinedLoadSets = true;

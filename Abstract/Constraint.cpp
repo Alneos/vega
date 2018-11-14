@@ -742,7 +742,7 @@ set<int> ZoneContact::nodePositions() const {
     if (masterBoundary == nullptr) {
         throw logic_error("Cannot find master body boundary");
     }
-    const auto& masterNodePositions = masterBoundary->cellGroup->nodePositions();
+    const auto& masterNodePositions = masterBoundary->nodePositions();
     result.insert(masterNodePositions.begin(), masterNodePositions.end());
     const auto& slaveBody = dynamic_pointer_cast<ContactBody>(model.find(slave));
     if (slaveBody == nullptr) {
@@ -752,7 +752,7 @@ set<int> ZoneContact::nodePositions() const {
     if (slaveBoundary == nullptr) {
         throw logic_error("Cannot find slave body boundary");
     }
-    const auto& slaveNodePositions = slaveBoundary->cellGroup->nodePositions();
+    const auto& slaveNodePositions = slaveBoundary->nodePositions();
     result.insert(slaveNodePositions.begin(), slaveNodePositions.end());
     return result;
 }
@@ -779,7 +779,7 @@ bool ZoneContact::ineffective() const {
     if (slaveBoundary == nullptr) {
         throw logic_error("Cannot find slave body boundary");
     }
-    return masterBoundary->cellGroup->empty() or slaveBoundary->cellGroup->empty();
+    return masterBoundary->empty() or slaveBoundary->empty();
 }
 
 const DOFS ZoneContact::getDOFSForNode(int nodePosition) const {

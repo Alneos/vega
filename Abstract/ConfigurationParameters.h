@@ -75,6 +75,12 @@ public:
     bool virtualDiscrets = false;
     LogLevel logLevel = LogLevel::INFO;
     bool createSkin = false;
+    /**
+     * Some codes (like Code_Aster) need to include "skin" elements to model
+     * when the skin is used to apply pressures etc.
+     * while most others do not need this.
+     */
+    bool addSkinToModel = false;
     bool emulateLocalDisplacement = false;
     bool displayHomogeneousConstraint = false;
     bool emulateAdditionalMass = false;

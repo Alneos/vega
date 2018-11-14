@@ -80,8 +80,8 @@ shared_ptr<Target> BoundaryNodeSurface::clone() const {
     return make_shared<BoundaryNodeSurface>(*this);
 }
 
-BoundarySurface::BoundarySurface(const Model& model, shared_ptr<CellGroup> cellGroup, int original_id) :
-        Target(model, Target::Type::BOUNDARY_SURFACE, original_id), cellGroup{cellGroup} {
+BoundarySurface::BoundarySurface(const Model& model, int original_id) :
+        Target(model, Target::Type::BOUNDARY_SURFACE, original_id), CellContainer(*(model.mesh)) {
 }
 
 shared_ptr<Target> BoundarySurface::clone() const {

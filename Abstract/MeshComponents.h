@@ -470,7 +470,7 @@ public:
     /**
      * Adds a cellId to the current set
      */
-    void addCell(int cellId);
+    void addCellId(int cellId);
     void addCellGroup(const std::string& groupName);
     void add(const Cell& cell);
     void add(const CellGroup& cellGroup);

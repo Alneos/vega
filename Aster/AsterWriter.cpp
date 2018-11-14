@@ -413,11 +413,12 @@ void AsterWriter::writeLireMaillage(const AsterModel& asterModel, ostream& out) 
 		    shared_ptr<const ContactBody> slave = dynamic_pointer_cast<const ContactBody>(asterModel.model.find(zone->slave));
 		    shared_ptr<const BoundarySurface> slaveSurface = dynamic_pointer_cast<const BoundarySurface>(asterModel.model.find(slave->boundary));
             out << "                             _F(";
-            out << "GROUP_MA=('"
-                    << masterSurface->cellGroup->getName() << "', '"
-                    << slaveSurface->cellGroup->getName()
-                    << "'),";
+            writeCellContainer(*masterSurface, out);
             out << ")," << endl;
+            out << "                             _F(";
+            writeCellContainer(*slaveSurface, out);
+            out << ")," << endl;
+
 		}
 		out << "                             )," << endl;
 		out << "                   )" << endl << endl;
@@ -647,32 +648,8 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
     for (auto& material : asterModel.model.materials) {
       CellContainer cells = material->getAssignment();
       if (!cells.empty()) {
-        /*out << "                          _F(GROUP_MA='"
-         << elementSet->cellGroup->getName() << "'," << endl;*/
         out << "                          _F(MATER=M" << material->getId() << ",";
-        int celem = 0;
-        if (cells.hasCellGroups()) {
-          out << "GROUP_MA=(";
-          for (auto& cellGroup : cells.getCellGroups()) {
-            celem++;
-            out << "'" << cellGroup->getName() << "',";
-            if (celem % 6 == 0) {
-              out << endl << "                             ";
-            }
-          }
-          out << "),";
-        }
-        if (cells.hasCells()) {
-          out << "MAILLE=(";
-          for (Cell cell : cells.getCells()) {
-            celem++;
-            out << "'M" << cell.id << "',";
-            if (celem % 6 == 0) {
-              out << endl << "                             ";
-            }
-          }
-          out << "),";
-        }
+        writeCellContainer(cells, out);
         out << ")," << endl;
       } else {
         out << "# WARN Skipping material id " << material->getId() << " because no assignment"
@@ -1143,12 +1120,17 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 		    shared_ptr<const ContactBody> slave = dynamic_pointer_cast<const ContactBody>(asterModel.model.find(zone->slave));
 		    shared_ptr<const BoundarySurface> slaveSurface = dynamic_pointer_cast<const BoundarySurface>(asterModel.model.find(slave->boundary));
             out << "                             _F(";
-            out << "GROUP_MA_MAIT='"
-                    << masterSurface->cellGroup->getName()
-                    << "',";
-            out << "GROUP_MA_ESCL='"
-                    << slaveSurface->cellGroup->getName()
-                    << "',";
+
+            out << "GROUP_MA_MAIT=(";
+                for(auto& cellGroup : masterSurface->getCellGroups()) {
+                    out << "'" << cellGroup->getName() << "',";
+                }
+                out << "),";
+            out << "GROUP_MA_ESCL=(";
+                for(auto& cellGroup : slaveSurface->getCellGroups()) {
+                    out << "'" << cellGroup->getName() << "',";
+                }
+                out << "),";
             out << ")," << endl;
 		}
 		out << "                             )," << endl;
@@ -1556,20 +1538,29 @@ void AsterWriter::writeForceSurface(const LoadSet& loadSet, ostream&out) {
 }
 
 void AsterWriter::writeCellContainer(const CellContainer& cellContainer, ostream& out) {
-	if (cellContainer.hasCellGroups()) {
-		out << "GROUP_MA=(";
-		for (auto& cellGroup : cellContainer.getCellGroups()) {
-			out << "'" << cellGroup->getName() << "',";
-		}
-		out << "),";
-	}
-	if (cellContainer.hasCells()) {
-		out << "MAILLE=(";
-		for (int cellId : cellContainer.getCellIds()) {
-			out << "'" << Cell::MedName(cellId) << "',";
-		}
-		out << "),";
-	}
+    int celem = 0;
+    if (cellContainer.hasCellGroups()) {
+      out << "GROUP_MA=(";
+      for (auto& cellGroup : cellContainer.getCellGroups()) {
+        celem++;
+        out << "'" << cellGroup->getName() << "',";
+        if (celem % 6 == 0) {
+          out << endl << "                             ";
+        }
+      }
+      out << "),";
+    }
+    if (cellContainer.hasCells()) {
+      out << "MAILLE=(";
+      for (Cell cell : cellContainer.getCells()) {
+        celem++;
+        out << "'M" << cell.id << "',";
+        if (celem % 6 == 0) {
+          out << endl << "                             ";
+        }
+      }
+      out << "),";
+    }
 }
 
 shared_ptr<NonLinearStrategy> AsterWriter::getNonLinearStrategy(

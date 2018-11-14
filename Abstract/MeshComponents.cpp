@@ -672,7 +672,7 @@ CellContainer::CellContainer(const Mesh& mesh) :
 		mesh(mesh) {
 }
 
-void CellContainer::addCell(int cellId) {
+void CellContainer::addCellId(int cellId) {
 	cellIds.insert(cellId);
 }
 
@@ -685,7 +685,7 @@ void CellContainer::addCellGroup(const string& groupName) {
 }
 
 void CellContainer::add(const Cell& cell) {
-	addCell(cell.id);
+	addCellId(cell.id);
 }
 
 void CellContainer::add(const CellGroup& cellGroup) {

@@ -235,7 +235,7 @@ BOOST_AUTO_TEST_CASE( test_create_skin2d ) {
 	vega::PressionFaceTwoNodes pressionFaceTwoNodes = PressionFaceTwoNodes(*model, 50, 52,
 			VectorialValue(0, 0, 1.0), VectorialValue(0, 0, 0));
 
-	pressionFaceTwoNodes.addCell(1);
+	pressionFaceTwoNodes.addCellId(1);
 	vector<Cell> cells = pressionFaceTwoNodes.getCells();
 	BOOST_CHECK_EQUAL(cells.size(), static_cast<size_t>(1));
 	Cell hexa = cells[0];

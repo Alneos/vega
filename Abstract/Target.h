@@ -77,11 +77,10 @@ public:
 /**
  * Defines a surface by element ids, see Nastran BSURF
  */
-class BoundarySurface: public Target {
+class BoundarySurface: public Target, public CellContainer {
 public:
-    BoundarySurface(const Model& model, std::shared_ptr<CellGroup> cellGroup, int original_id =
+    BoundarySurface(const Model& model, int original_id =
             NO_ORIGINAL_ID);
-    std::shared_ptr<CellGroup> cellGroup;
     std::shared_ptr<Target> clone() const;
 };
 

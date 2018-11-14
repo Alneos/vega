@@ -759,7 +759,8 @@ void NastranParser::parseBSURF(NastranTokenizer& tok, shared_ptr<Model> model) {
     auto gsurf = model->mesh->createCellGroup(gname, CellGroup::NO_ORIGINAL_ID, "BSURF");
     const auto& cellids = tok.nextInts();
     gsurf->cellIds.insert(cellids.begin(), cellids.end());
-    BoundarySurface surface{*model, gsurf, id};
+    BoundarySurface surface{*model, id};
+    surface.add(*gsurf);
     model->add(surface);
 }
 
@@ -2185,7 +2186,7 @@ void NastranParser::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> model) 
     model->add(*force);
     Reference<LoadSet> loadSetReference(LoadSet::Type::LOAD, loadset_id);
     ForceLine forceLine(*model, force, dof);
-    forceLine.addCell(eid);
+    forceLine.addCellId(eid);
     model->add(forceLine);
     model->addLoadingIntoLoadSet(forceLine, loadSetReference);
     if (!model->find(loadSetReference)) {
@@ -2200,7 +2201,7 @@ void NastranParser::parsePLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) 
     Reference<LoadSet> loadSetReference(LoadSet::Type::LOAD, loadset_id);
     NormalPressionFace normalPressionFace(*model, p);
     for(int cellId : tok.nextInts()) {
-        normalPressionFace.addCell(cellId);
+        normalPressionFace.addCellId(cellId);
     }
     model->add(normalPressionFace);
     model->addLoadingIntoLoadSet(normalPressionFace, loadSetReference);
@@ -2262,7 +2263,7 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) 
             && g1 == Globals::UNAVAILABLE_INT) {
         NormalPressionFace normalPressionFace(*model, p1);
         for(int cellId = eid1; cellId < eid2; cellId++) {
-            normalPressionFace.addCell(cellId);
+            normalPressionFace.addCellId(cellId);
         }
 
         model->add(normalPressionFace);
@@ -2271,7 +2272,7 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) 
         PressionFaceTwoNodes pressionFaceTwoNodes(*model, g1, g3_or_4,
                 VectorialValue(n1 * p1, n2 * p1, n3 * p1), VectorialValue(0.0, 0.0, 0.0));
         for(int cellId = eid1; cellId < eid2; cellId++) {
-            pressionFaceTwoNodes.addCell(cellId);
+            pressionFaceTwoNodes.addCellId(cellId);
         }
 
         model->add(pressionFaceTwoNodes);
@@ -2280,7 +2281,7 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) 
         ForceSurface forceSurface(*model, VectorialValue(n1 * p1, n2 * p1, n3 * p1),
                 VectorialValue(0.0, 0.0, 0.0));
         for(int cellId = eid1; cellId < eid2; cellId++) {
-            forceSurface.addCell(cellId);
+            forceSurface.addCellId(cellId);
         }
 
         model->add(forceSurface);
