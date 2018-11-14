@@ -484,8 +484,8 @@ shared_ptr<LoadSet> Model::getOrCreateLoadSet(int loadset_id, LoadSet::Type load
     shared_ptr<LoadSet> loadSetPtr = this->find(loadSetReference);
     if (loadSetPtr==nullptr){
         LoadSet loadSet(*this, loadset_type, loadset_id);
-        this->add(loadSet);
         loadSetPtr= loadSet.clone();
+        this->loadSets.add(loadSetPtr);
     }
     return loadSetPtr;
 }
