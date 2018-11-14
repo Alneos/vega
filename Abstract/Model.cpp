@@ -477,6 +477,20 @@ void Model::addLoadingIntoLoadSet(const Reference<Loading>& loadingReference,
     }
 }
 
+
+shared_ptr<LoadSet> Model::getOrCreateLoadSet(int loadset_id, LoadSet::Type loadset_type){
+
+    Reference<LoadSet> loadSetReference(loadset_type, loadset_id);
+    shared_ptr<LoadSet> loadSetPtr = this->find(loadSetReference);
+    if (loadSetPtr==nullptr){
+        LoadSet loadSet(*this, loadset_type, loadset_id);
+        this->add(loadSet);
+        loadSetPtr= loadSet.clone();
+    }
+    return loadSetPtr;
+}
+
+
 const set<shared_ptr<Loading>> Model::getLoadingsByLoadSet(
         const Reference<LoadSet>& loadSetReference) const {
     set<shared_ptr<Loading>> result;

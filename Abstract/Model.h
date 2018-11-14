@@ -278,6 +278,9 @@ private:
         std::shared_ptr<Material> getMaterial(int id) const; /**< Return a Material by its Vega Id **/
         std::shared_ptr<Target> getTarget(int id) const; /**< Return a Material by its Vega Id **/
 
+        std::shared_ptr<LoadSet> getOrCreateLoadSet(int loadset_id, vega::LoadSet::Type loadset_type); /**< Return or create a LoadSet by its real Id **/
+
+
         /* Get the Id of all elements belonging to set */
         //TODO: make a template, general function?
         const std::vector<int> getMaterialsId() const;

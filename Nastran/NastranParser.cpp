@@ -1011,19 +1011,16 @@ void NastranParser::parseDELAY(NastranTokenizer& tok, shared_ptr<Model> model) {
 
 void NastranParser::parseDLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
     int loadset_id = tok.nextInt();
-    LoadSet loadSet(*model, LoadSet::Type::DLOAD, loadset_id);
+    shared_ptr<LoadSet> loadSetMaster = model->getOrCreateLoadSet(loadset_id, LoadSet::Type::DLOAD);
 
     double S = tok.nextDouble(true, 1);
-
-    //vega::FunctionTable functionTable(*model, FunctionTable::Interpolation::LINEAR);
     while (tok.isNextDouble()) {
         double scale = tok.nextDouble(true, 1);
         int rload2_id = tok.nextInt();
         Reference<LoadSet> loadSetReference(LoadSet::Type::LOAD, rload2_id);
-        loadSet.embedded_loadsets.push_back(
+        loadSetMaster->embedded_loadsets.push_back(
                             pair<Reference<LoadSet>, double>(loadSetReference, S * scale));
     }
-    model->add(loadSet);
 }
 
 void NastranParser::parseDMIG(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -1364,32 +1361,30 @@ void NastranParser::parseInclude(NastranTokenizer& tok, shared_ptr<Model> model)
 
 void NastranParser::parseLSEQ(NastranTokenizer& tok, shared_ptr<Model> model) {
     int set_id = tok.nextInt();
-    LoadSet loadSet(*model, LoadSet::Type::LOAD, set_id);
+    shared_ptr<LoadSet> loadSetMaster = model->getOrCreateLoadSet(set_id, LoadSet::Type::LOAD);
     int darea_id = tok.nextInt();
     // LD : not sure about this interpretation
     Reference<LoadSet> dareaReference(LoadSet::Type::LOAD, darea_id);
-    loadSet.embedded_loadsets.push_back(
+    loadSetMaster->embedded_loadsets.push_back(
                     pair<Reference<LoadSet>, double>(dareaReference, 1.0));
     int loadSet_id = tok.nextInt();
     Reference<LoadSet> loadSetReference(LoadSet::Type::LOAD, loadSet_id);
-    loadSet.embedded_loadsets.push_back(
+    loadSetMaster->embedded_loadsets.push_back(
             pair<Reference<LoadSet>, double>(loadSetReference, 1.0));
-    model->add(loadSet);
 
 }
 
 void NastranParser::parseLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
     int set_id = tok.nextInt();
-    LoadSet loadSet(*model, LoadSet::Type::LOAD, set_id);
+    shared_ptr<LoadSet> loadSetMaster = model->getOrCreateLoadSet(set_id, LoadSet::Type::LOAD);
     double S = tok.nextDouble(true, 1);
     while (tok.isNextDouble()) {
         double scale = tok.nextDouble(true, 1);
         int loadSet_id = tok.nextInt();
         Reference<LoadSet> loadSetReference(LoadSet::Type::LOAD, loadSet_id);
-        loadSet.embedded_loadsets.push_back(
+        loadSetMaster->embedded_loadsets.push_back(
                 pair<Reference<LoadSet>, double>(loadSetReference, S * scale));
     }
-    model->add(loadSet);
 }
 
 void NastranParser::parseMAT1(NastranTokenizer& tok, shared_ptr<Model> model) {
