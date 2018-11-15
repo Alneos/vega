@@ -2824,16 +2824,27 @@ void NastranParser::parseSPCD(NastranTokenizer& tok, shared_ptr<Model> model) {
         if (analysis->contains(constraintSetReference)) {
             continue;
         }
-        if (analysis->isStatic()) {
-            analysis->add(constraintSetReference);
-        } else {
-            for (shared_ptr<LoadSet> loadSetPtr : analysis->getLoadSets()) {
-                if (loadSetPtr != nullptr and loadSetPtr->type == LoadSet::Type::LOAD) {
-                    // In the static solution sequences, the set ID of the SPCD entry (SID) is selected
-                    //  by the LOAD Case Control command.
+
+        std::vector<std::shared_ptr<LoadSet>> loadSetsPtr= analysis->getLoadSets();
+        if (loadSetsPtr.size()==0){
+            continue;
+        }
+
+        switch(analysis->type){
+        // In the static solution sequences, the set ID of the SPCD entry (SID) is selected
+        //  by the LOAD Case Control command.
+        case(Analysis::Type::LINEAR_MECA_STAT):{
+            for (shared_ptr<LoadSet> loadSetPtr : loadSetsPtr) {
+                if ((loadSetPtr->type == LoadSet::Type::LOAD) && (loadSetPtr->getOriginalId() == set_id)) {
                     analysis->add(constraintSetReference);
+                    break;
                 }
             }
+            break;
+        }
+        default:{
+            continue;
+        }
         }
     }
 
