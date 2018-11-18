@@ -1619,7 +1619,7 @@ void NastranParser::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
         handleParsingWarning(message, tok, model);
     }
 
-    GenericSectionBeam genericSectionBeam(*model, area, i2, i1, j, invk2, invk1, Beam::BeamModel::EULER, nsm,
+    GenericSectionBeam genericSectionBeam(*model, area, i2, i1, j, invk2, invk1, Beam::BeamModel::TIMOSHENKO, nsm,
             elemId);
     genericSectionBeam.assignMaterial(material_id);
     genericSectionBeam.assignCellGroup(getOrCreateCellGroup(elemId, model, "PBAR"));
