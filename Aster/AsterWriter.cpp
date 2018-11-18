@@ -988,6 +988,7 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
             } else
                 continue;
             asternameByLoadSet[loadSet.getReference()] = asterName;
+            writeSPCD(asterModel, loadSet, out);
             writePression(loadSet, out);
             writeForceCoque(loadSet, out);
             writeNodalForce(asterModel, loadSet, out);
@@ -1140,7 +1141,7 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 
 void AsterWriter::writeSPC(const AsterModel& asterModel, const ConstraintSet& cset,
 		ostream&out) {
-  UNUSEDV(asterModel);
+    UNUSEDV(asterModel);
 	const set<shared_ptr<Constraint>> spcs = cset.getConstraintsByType(Constraint::Type::SPC);
 	if (spcs.size() > 0) {
 		out << "                   DDL_IMPO=(" << endl;
@@ -1188,6 +1189,39 @@ void AsterWriter::writeSPC(const AsterModel& asterModel, const ConstraintSet& cs
 		out << "                             )," << endl;
 	}
 }
+
+void AsterWriter::writeSPCD(const AsterModel& asterModel, const LoadSet& lset,
+		ostream&out) {
+    UNUSEDV(asterModel);
+	const set<shared_ptr<Loading>> spcds = lset.getLoadingsByType(Loading::Type::IMPOSED_DISPLACEMENT);
+	if (spcds.size() > 0) {
+		out << "                   DDL_IMPO=(" << endl;
+		for (shared_ptr<Loading> loading : spcds) {
+			shared_ptr<const ImposedDisplacement> spcd = dynamic_pointer_cast<
+					const ImposedDisplacement>(loading);
+            out << "                             _F(";
+            writeNodeContainer(*spcd, out);
+            for (const DOF dof : spcd->getDOFSForNode(0)) { // parameter 0 ignored
+                if (dof == DOF::DX)
+                    out << "DX";
+                if (dof == DOF::DY)
+                    out << "DY";
+                if (dof == DOF::DZ)
+                    out << "DZ";
+                if (dof == DOF::RX)
+                    out << "DRX";
+                if (dof == DOF::RY)
+                    out << "DRY";
+                if (dof == DOF::RZ)
+                    out << "DRZ";
+                out << "=" << spcd->getDoubleForDOF(dof) << ", ";
+            }
+            out << ")," << endl;
+		}
+		out << "                             )," << endl;
+	}
+}
+
 void AsterWriter::writeLIAISON_SOLIDE(const AsterModel& asterModel, const ConstraintSet& cset,
 		ostream& out) {
   UNUSEDV(asterModel);
@@ -1535,6 +1569,32 @@ void AsterWriter::writeForceSurface(const LoadSet& loadSet, ostream&out) {
 		}
 		out << "            )," << endl;
 	}
+}
+
+void AsterWriter::writeNodeContainer(const NodeContainer& nodeContainer, ostream& out) {
+    int cnode = 0;
+    if (nodeContainer.hasNodeGroups()) {
+      out << "GROUP_NO=(";
+      for (auto& nodeGroup : nodeContainer.getNodeGroups()) {
+        cnode++;
+        out << "'" << nodeGroup->getName() << "',";
+        if (cnode % 6 == 0) {
+          out << endl << "                             ";
+        }
+      }
+      out << "),";
+    }
+    if (nodeContainer.hasNodes()) {
+      out << "NOEUD=(";
+      for (int nodeId : nodeContainer.getNodeIds(false)) {
+        cnode++;
+        out << "'N" << nodeId << "',";
+        if (cnode % 6 == 0) {
+          out << endl << "                             ";
+        }
+      }
+      out << "),";
+    }
 }
 
 void AsterWriter::writeCellContainer(const CellContainer& cellContainer, ostream& out) {

@@ -263,6 +263,10 @@ shared_ptr<Loading> ImposedDisplacement::clone() const {
     return make_shared<ImposedDisplacement>(*this);
 }
 
+double ImposedDisplacement::getDoubleForDOF(const DOF& dof) const {
+    return displacements.getValue(dof);
+}
+
 void ImposedDisplacement::scale(const double factor) {
     for(DOF dof : DOFS::ALL_DOFS) {
         if (not is_equal(displacements[dof.position], Globals::UNAVAILABLE_DOUBLE))

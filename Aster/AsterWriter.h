@@ -44,6 +44,7 @@ class AsterWriter final : public Writer{
 	void writeAffeCharMeca(const AsterModel&, std::ostream&);
 	void writeDefiContact(const AsterModel&, std::ostream&);
 	void writeSPC(const AsterModel&, const ConstraintSet&, std::ostream&);
+	void writeSPCD(const AsterModel&, const LoadSet&, std::ostream&);
 	void writeLIAISON_SOLIDE(const AsterModel&, const ConstraintSet&, std::ostream&);
 	void writeRBE3(const AsterModel&, const ConstraintSet&, std::ostream&);
 	void writeLMPC(const AsterModel&, const ConstraintSet&, std::ostream&);
@@ -54,6 +55,7 @@ class AsterWriter final : public Writer{
 	void writeForceCoque(const LoadSet&, std::ostream&);
 	void writeForceLine(const LoadSet&, std::ostream&);
 	void writeForceSurface(const LoadSet&, std::ostream&);
+	void writeNodeContainer(const NodeContainer& nodeContainer, std::ostream&);
 	void writeCellContainer(const CellContainer& cellContainer, std::ostream&);
 	double writeAnalysis(const AsterModel&, Analysis& analysis, std::ostream&, double debut);
 	void writeAssemblage(const AsterModel&, Analysis& analysis, std::ostream&);

@@ -100,7 +100,6 @@ const string ConstraintSet::name = "ConstraintSet";
 const map<ConstraintSet::Type, string> ConstraintSet::stringByType = {
     { ConstraintSet::Type::SPC, "SPC" },
     { ConstraintSet::Type::MPC, "MPC" },
-    { ConstraintSet::Type::SPCD, "SPCD" },
     { ConstraintSet::Type::CONTACT, "CONTACT" },
     { ConstraintSet::Type::ALL, "ALL" }
     };

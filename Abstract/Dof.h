@@ -182,6 +182,7 @@ public:
     DOFCoefs(DOFS dofs, double val = 0);
     DOFS getDOFS() const;
     bool isEmpty() const;
+    double getValue(const DOF dof) const;
     DOFCoefs& operator+=(const DOFCoefs&);
     DOFCoefs& operator*=(const double factor);
     double operator[](const int);

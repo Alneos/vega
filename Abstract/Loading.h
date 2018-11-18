@@ -203,7 +203,6 @@ public:
 	ImposedDisplacement(const Model& model, DOFS dofs, double value, int original_id = NO_ORIGINAL_ID,
                      int coordinate_system_id = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
 	double getDoubleForDOF(const DOF& dof) const;
-	std::shared_ptr<Value> getReferenceForDOF(const DOF& dof) const;
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	bool ineffective() const override;
 	std::shared_ptr<Loading> clone() const override;

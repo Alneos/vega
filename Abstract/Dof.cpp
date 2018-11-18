@@ -384,6 +384,9 @@ bool DOFCoefs::isEmpty() const {
     return true;
 }
 
+double DOFCoefs::getValue(const DOF dof) const {
+    return coefs[dof.position];
+}
 
 DOFCoefs& DOFCoefs::operator+=(const DOFCoefs& rv) {
     for (int i = 0; i < 6; i++) {

@@ -71,7 +71,7 @@ private:
 	friend std::ostream &operator<<(std::ostream&, const ConstraintSet&);
 public:
 	enum class Type {
-		SPC, SPCD, MPC, ALL, CONTACT
+		SPC, MPC, ALL, CONTACT
 	};
 	ConstraintSet(const Model&, Type type = Type::SPC, int original_id = NO_ORIGINAL_ID);
 	static constexpr int COMMON_SET_ID = 0;

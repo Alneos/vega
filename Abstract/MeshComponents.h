@@ -433,15 +433,20 @@ protected:
     std::unordered_set<std::string> groupNames;
 public:
     NodeContainer(const Mesh& mesh);
-    // Adds a nodeId to the current set
+    /*
+     * Adds a nodeId to the current set
+     */
     void addNodeId(int nodeId);
     void addNodeGroup(const std::string& groupName);
     void add(const Node& node);
     void add(const NodeGroup& nodeGroup);
     void add(const NodeContainer& nodeContainer);
-    // Returns the nodeIds contained into the Container
-    // @param all: if true include also the nodes inside all the cellGroups
+    /**
+     * @return the nodeIds contained into the Container
+     * @param all: if true include also the nodes inside all the cellGroups
+     */
     const std::vector<int> getNodeIds(bool all = false) const;
+    const std::vector<std::shared_ptr<NodeGroup>> getNodeGroups() const;
 
     const std::set<int> nodePositions() const;
 

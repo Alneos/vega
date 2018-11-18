@@ -663,6 +663,18 @@ bool NodeContainer::hasNodeGroups() const {
 	return groupNames.size() > 0;
 }
 
+const vector<shared_ptr<NodeGroup>> NodeContainer::getNodeGroups() const {
+	vector<shared_ptr<NodeGroup>> nodeGroups;
+	nodeGroups.reserve(groupNames.size());
+	for (string groupName : groupNames) {
+		shared_ptr<NodeGroup> group = dynamic_pointer_cast<NodeGroup>(mesh.findGroup(groupName));
+		if (group == nullptr) {
+			throw invalid_argument("Cannot find group with name:" + groupName);
+		}
+		nodeGroups.push_back(group);
+	}
+	return nodeGroups;
+}
 
 /*******************
  * Cell container;

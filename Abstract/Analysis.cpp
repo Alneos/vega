@@ -200,7 +200,6 @@ bool Analysis::hasSPC() const{
 
         // All those types are SPC of one form or another
         case (ConstraintSet::Type::SPC):
-        case (ConstraintSet::Type::SPCD):
         case (ConstraintSet::Type::MPC):{
             return true;
             break;
@@ -222,6 +221,7 @@ bool Analysis::hasSPC() const{
         }
         }
     }
+
     return false;
 }
 
