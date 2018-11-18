@@ -324,8 +324,7 @@ void SinglePointConstraint::addNodeId(int nodeId) {
     }
 }
 
-shared_ptr<Constraint> SinglePointConstraint::clone()
-const {
+shared_ptr<Constraint> SinglePointConstraint::clone() const {
     return make_shared<SinglePointConstraint>(*this);
 }
 

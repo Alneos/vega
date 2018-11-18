@@ -246,11 +246,29 @@ void RotationNode::scale(const double factor) {
 	speed *= factor;
 }
 
-/*NodalForce::NodalForce(const Model& model, const int original_id,
-		int coordinate_system_id) :
-		NodeLoading(model, NODAL_FORCE, original_id, coordinate_system_id), force(VectorialValue(0, 0, 0)), moment(
-				VectorialValue(0, 0, 0)) {
-}*/
+ImposedDisplacement::ImposedDisplacement(const Model& model, DOFS dofs, double value, const int original_id, int coordinate_system_id) :
+    NodeLoading(model, Loading::Type::IMPOSED_DISPLACEMENT, original_id, coordinate_system_id), displacements(dofs, value) {
+}
+
+const DOFS ImposedDisplacement::getDOFSForNode(int nodePosition) const {
+    UNUSEDV(nodePosition);
+    return displacements.getDOFS();
+}
+
+bool ImposedDisplacement::ineffective() const {
+    return this->empty() or displacements.isEmpty();
+}
+
+shared_ptr<Loading> ImposedDisplacement::clone() const {
+    return make_shared<ImposedDisplacement>(*this);
+}
+
+void ImposedDisplacement::scale(const double factor) {
+    for(DOF dof : DOFS::ALL_DOFS) {
+        if (not is_equal(displacements[dof.position], Globals::UNAVAILABLE_DOUBLE))
+            displacements *= factor;
+    }
+}
 
 NodalForce::NodalForce(const Model& model, const VectorialValue& force,
 		const VectorialValue& moment, const int original_id, int coordinate_system_id) :

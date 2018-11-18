@@ -170,32 +170,21 @@ public:
 
 /**
  * This class regroups one coefficient by DOF.
- * It's basicallay a double[6] with a few extra security test.
+ * It's basically a double[6] with a few extra security test.
  */
 class DOFCoefs {
 private:
     double coefs[6];
 public:
     DOFCoefs(double dx = 0, double dy = 0, double dz = 0, double rx = 0, double ry = 0,
-            double rz = 0) {
-        coefs[0] = dx;
-        coefs[1] = dy;
-        coefs[2] = dz;
-        coefs[3] = rx;
-        coefs[4] = ry;
-        coefs[5] = rz;
-    }
-    DOFCoefs& operator+=(const DOFCoefs& rv) {
-        for (int i = 0; i < 6; i++) {
-            coefs[i] += rv.coefs[i];
-        }
-        return *this;
-    }
-    double operator[](const int i) {
-        if (i < 0 || i > 5)
-            return 0; // TODO LD: why this case ???
-        return coefs[i];
-    }
+            double rz = 0);
+
+    DOFCoefs(DOFS dofs, double val = 0);
+    DOFS getDOFS() const;
+    bool isEmpty() const;
+    DOFCoefs& operator+=(const DOFCoefs&);
+    DOFCoefs& operator*=(const double factor);
+    double operator[](const int);
     bool operator<(const DOFCoefs& other) const;
     bool operator==(const DOFCoefs& other) const;
 };

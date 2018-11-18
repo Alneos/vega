@@ -349,6 +349,68 @@ bool DOFMatrix::isEmpty() const {
 	return componentByDofs.empty();
 }
 
+DOFCoefs::DOFCoefs(double dx, double dy, double dz, double rx, double ry, double rz) {
+    coefs[0] = dx;
+    coefs[1] = dy;
+    coefs[2] = dz;
+    coefs[3] = rx;
+    coefs[4] = ry;
+    coefs[5] = rz;
+}
+
+DOFCoefs::DOFCoefs(DOFS dofs, double val) {
+    for(DOF dof : DOFS::ALL_DOFS) {
+        if (dofs.contains(dof))
+            coefs[dof.position] = val;
+        else
+            coefs[dof.position] = Globals::UNAVAILABLE_DOUBLE;
+    }
+}
+
+DOFS DOFCoefs::getDOFS() const {
+    DOFS dofs;
+    for(DOF dof : DOFS::ALL_DOFS) {
+        if (not is_equal(coefs[dof.position], Globals::UNAVAILABLE_DOUBLE))
+            dofs += dof;
+    }
+    return dofs;
+}
+
+bool DOFCoefs::isEmpty() const {
+    for(DOF dof : DOFS::ALL_DOFS) {
+        if (not is_equal(coefs[dof.position], Globals::UNAVAILABLE_DOUBLE))
+            return false;
+    }
+    return true;
+}
+
+
+DOFCoefs& DOFCoefs::operator+=(const DOFCoefs& rv) {
+    for (int i = 0; i < 6; i++) {
+        if (not is_equal(coefs[i], Globals::UNAVAILABLE_DOUBLE)) {
+            coefs[i] += rv.coefs[i];
+        } else {
+            coefs[i] = rv.coefs[i];
+        }
+    }
+    return *this;
+}
+
+DOFCoefs& DOFCoefs::operator*=(const double factor) {
+    for (int i = 0; i < 6; i++) {
+        if (not is_equal(coefs[i], Globals::UNAVAILABLE_DOUBLE)) {
+            coefs[i] *= factor;
+        }
+    }
+    return *this;
+}
+
+double DOFCoefs::operator[](const int i) {
+    if (i < 0 || i > 5)
+        return 0; // TODO LD: why this case ???
+    return coefs[i];
+}
+
 bool DOFCoefs::operator< (const DOFCoefs& other) const{
     for (int i=0; i<6; i++){
         if (is_equal(this->coefs[i],other.coefs[i])) continue;

@@ -2815,41 +2815,14 @@ void NastranParser::parseSPCD(NastranTokenizer& tok, shared_ptr<Model> model) {
         d2 = tok.nextDouble();
         g2pos = model->mesh->findNodePosition(g2);
     }
-    Reference<ConstraintSet> constraintSetReference(ConstraintSet::Type::SPCD, set_id);
-    if (!model->find(constraintSetReference)) {
-        ConstraintSet constraintSet(*model, ConstraintSet::Type::SPCD, set_id);
-        model->add(constraintSet);
-    }
-    for (shared_ptr<Analysis> analysis : model->analyses) {
-        if (analysis->contains(constraintSetReference)) {
-            continue;
-        }
-
-        std::vector<std::shared_ptr<LoadSet>> loadSetsPtr= analysis->getLoadSets();
-        if (loadSetsPtr.size()==0){
-            continue;
-        }
-
-        switch(analysis->type){
-        // In the static solution sequences, the set ID of the SPCD entry (SID) is selected
-        //  by the LOAD Case Control command.
-        case(Analysis::Type::LINEAR_MECA_STAT):{
-            for (shared_ptr<LoadSet> loadSetPtr : loadSetsPtr) {
-                if ((loadSetPtr->type == LoadSet::Type::LOAD) && (loadSetPtr->getOriginalId() == set_id)) {
-                    analysis->add(constraintSetReference);
-                    break;
-                }
-            }
-            break;
-        }
-        default:{
-            continue;
-        }
-        }
+    Reference<LoadSet> loadingSetReference(LoadSet::Type::LOAD, set_id);
+    if (!model->find(loadingSetReference)) {
+        LoadSet loadingSet(*model, LoadSet::Type::LOAD, set_id);
+        model->add(loadingSet);
     }
 
     for (auto analysis : model->analyses) {
-        if (!analysis->contains(constraintSetReference)) {
+        if (!analysis->contains(loadingSetReference)) {
             continue;
         }
 
@@ -2896,15 +2869,15 @@ void NastranParser::parseSPCD(NastranTokenizer& tok, shared_ptr<Model> model) {
         }
     }
 
-    SinglePointConstraint spc = SinglePointConstraint(*model, DOFS::nastranCodeToDOFS(c1), d1);
-    spc.addNodeId(g1);
-    model->add(spc);
-    model->addConstraintIntoConstraintSet(spc, constraintSetReference);
+    ImposedDisplacement spcd = ImposedDisplacement(*model, DOFS::nastranCodeToDOFS(c1), d1);
+    spcd.addNodeId(g1);
+    model->add(spcd);
+    model->addLoadingIntoLoadSet(spcd, loadingSetReference);
     if (g2 != -1 and c2 != -1) {
-        SinglePointConstraint spc2 = SinglePointConstraint(*model, DOFS::nastranCodeToDOFS(c2), d2);
-        spc.addNodeId(g2);
-        model->add(spc2);
-        model->addConstraintIntoConstraintSet(spc2, constraintSetReference);
+        ImposedDisplacement spcd2 = ImposedDisplacement(*model, DOFS::nastranCodeToDOFS(c2), d2);
+        spcd.addNodeId(g2);
+        model->add(spcd2);
+        model->addLoadingIntoLoadSet(spcd2, loadingSetReference);
     }
 }
 

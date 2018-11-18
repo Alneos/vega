@@ -7,7 +7,7 @@ TITLE=Vega Exported Model
 
 SUBCASE 1
 
-SPCD=2
+LOAD=2
 SPC=1
 NLPARM=42
 BCONTACT=2

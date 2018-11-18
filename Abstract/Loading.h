@@ -40,7 +40,8 @@ public:
 		NODAL_FORCE,
 		NORMAL_PRESSION_FACE,
 		COMBINED_LOADING,
-		INITIAL_TEMPERATURE
+		INITIAL_TEMPERATURE,
+		IMPOSED_DISPLACEMENT
 	};
 	enum class ApplicationType {
 		NODE,
@@ -189,6 +190,22 @@ public:
 	double getSpeed() const;
 	const VectorialValue getAxis() const;
 	const VectorialValue getCenter() const;
+	std::shared_ptr<Loading> clone() const override;
+	void scale(const double factor) override;
+};
+
+class ImposedDisplacement: public NodeLoading {
+	DOFCoefs displacements;
+public:
+	/**
+	 * The value is assigned to all the dof present in DOFS.
+	 */
+	ImposedDisplacement(const Model& model, DOFS dofs, double value, int original_id = NO_ORIGINAL_ID,
+                     int coordinate_system_id = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+	double getDoubleForDOF(const DOF& dof) const;
+	std::shared_ptr<Value> getReferenceForDOF(const DOF& dof) const;
+	const DOFS getDOFSForNode(int nodePosition) const override;
+	bool ineffective() const override;
 	std::shared_ptr<Loading> clone() const override;
 	void scale(const double factor) override;
 };
