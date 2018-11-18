@@ -70,13 +70,13 @@ public:
     };
 protected:
     Model& model;
-    ElementSet(Model&, Type, const ModelType* modelType = nullptr,
+    ElementSet(Model&, Type, const ModelType& modelType = ModelType::TRIDIMENSIONAL,
             int original_id = NO_ORIGINAL_ID);
 public:
     static const std::string name;
     static const std::map<Type, std::string> stringByType;
     const Type type;
-    const ModelType* modelType;
+    const ModelType& modelType;
     std::shared_ptr<CellGroup> cellGroup;
     std::shared_ptr<Material> material;
     virtual ~ElementSet() {
@@ -133,7 +133,7 @@ public:
 	BeamModel beamModel;
 	protected:
 	double additional_mass;
-	Beam(Model&, Type type, ModelType* modelType = nullptr, BeamModel beamModel = BeamModel::EULER,
+	Beam(Model&, Type type, const ModelType& modelType = ModelType::TRIDIMENSIONAL, BeamModel beamModel = BeamModel::EULER,
 			double additionalMass = 0.0, int original_id = NO_ORIGINAL_ID);
 	public:
     std::vector<RecoveryPoint> recoveryPoints;
@@ -314,7 +314,7 @@ class Composite: public ElementSet {
 class Continuum: public ElementSet {
 
 public:
-	Continuum(Model&, const ModelType* modelType, int original_id = NO_ORIGINAL_ID);
+	Continuum(Model&, const ModelType& modelType, int original_id = NO_ORIGINAL_ID);
 	std::shared_ptr<ElementSet> clone() const override {
 		return std::make_shared<Continuum>(*this);
 	}

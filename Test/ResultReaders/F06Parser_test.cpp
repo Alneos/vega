@@ -133,7 +133,7 @@ BOOST_AUTO_TEST_CASE(test_4a) {
 	model->mesh->addCell(2, CellType::POINT1, { 9 });
 	shared_ptr<CellGroup> cn1 = model->mesh->createCellGroup("GM1");
 	cn1->addCellId(1);
-	Continuum continuum(*model, &ModelType::TRIDIMENSIONAL_SI, 1);
+	Continuum continuum(*model, ModelType::TRIDIMENSIONAL_SI, 1);
 	continuum.assignCellGroup(cn1);
 	model->add(continuum);
 	shared_ptr<CellGroup> cn2 = model->mesh->createCellGroup("GM2");

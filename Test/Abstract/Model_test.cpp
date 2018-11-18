@@ -181,7 +181,7 @@ shared_ptr<Model> createModelWith1HEXA8() {
 	shared_ptr<vega::CellGroup> cn1 = model->mesh->createCellGroup("GM1");
 	cn1->addCellId(1);
 	BOOST_TEST_CHECKPOINT("after addcells");
-	Continuum continuum(*model, &ModelType::TRIDIMENSIONAL_SI, 1);
+	Continuum continuum(*model, ModelType::TRIDIMENSIONAL_SI, 1);
 	continuum.assignCellGroup(cn1);
 	continuum.assignMaterial(1);
 	model->add(continuum);

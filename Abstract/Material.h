@@ -48,7 +48,8 @@ public:
         NATURE_BILINEAR_ELASTIC,
         NATURE_NONLINEAR_ELASTIC,
         NATURE_RIGID,
-        NATURE_ORTHOTROPIC
+        NATURE_ORTHOTROPIC,
+        NATURE_HYPERELASTIC
     };
     static const std::map<NatureType, std::string> stringByType;
     static const std::string name;
@@ -131,6 +132,17 @@ public:
     virtual std::shared_ptr<Nature> clone() const;
 };
 
+class HyperElasticNature: public Nature {
+public:
+    double c10; //< See u4.43.01 ELAS_HYPER
+    double c01; //< See u4.43.01 ELAS_HYPER
+    double c20; //< See u4.43.01 ELAS_HYPER
+    double k; //< See u4.43.01 ELAS_HYPER
+    double rho;
+    HyperElasticNature(const Model&, double c10, double c01, double c20, double k, double rho = 0.0);
+    virtual std::shared_ptr<Nature> clone() const;
+};
+
 class NonLinearElasticNature: public Nature {
     Reference<NamedValue> stress_strain_function_ref;
 public:
@@ -138,8 +150,7 @@ public:
     NonLinearElasticNature(const Model&, const int stress_strain_function_id);
     std::shared_ptr<FunctionTable> getStressStrainFunction() const;
     virtual std::shared_ptr<Nature> clone() const;
-};
-
+ };
 
 /**
  *   Rigid nature is used by Rigid Element Set, like RBE2, RBAR, RBE3

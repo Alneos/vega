@@ -99,6 +99,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "LOAD", &NastranParser::parseLOAD },
                 { "MAT1", &NastranParser::parseMAT1 },
                 { "MAT8", &NastranParser::parseMAT8 },
+                { "MATHP", &NastranParser::parseMATHP },
                 { "MATS1", &NastranParser::parseMATS1 },
                 { "MOMENT", &NastranParser::parseMOMENT },
                 { "MPC", &NastranParser::parseMPC },
@@ -118,6 +119,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "PLOAD2", &NastranParser::parsePLOAD2 },
                 { "PLOAD4", &NastranParser::parsePLOAD4 },
                 { "PROD", &NastranParser::parsePROD },
+                { "PLSOLID", &NastranParser::parsePLSOLID },
                 { "PSHELL", &NastranParser::parsePSHELL },
                 { "PSOLID", &NastranParser::parsePSOLID },
                 { "RBAR", &NastranParser::parseRBAR },
@@ -1465,6 +1467,31 @@ void NastranParser::parseMAT8(NastranTokenizer& tok, shared_ptr<Model> model) {
     material->addNature(OrthotropicNature(*model, e1, e2, nu12, g12, g2Z, g1Z));
 }
 
+void NastranParser::parseMATHP(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int mid = tok.nextInt();
+    auto material = model->getOrCreateMaterial(mid);
+    double a10 = tok.nextDouble(true, 0.0);
+    double a01 = tok.nextDouble(true, 0.0);
+    double d1 = tok.nextDouble(true, 1000*(a10+a01));
+    double rho = tok.nextDouble(true, 0.0);
+    double av = tok.nextDouble(true, 0.0); UNUSEDV(av);
+    double tref = tok.nextDouble(true, 0.0); UNUSEDV(tref);
+    double ge = tok.nextDouble(true, 0.0); UNUSEDV(ge);
+    tok.skip(1);
+    double na = tok.nextInt(true, 1);
+    if (na > 3) {
+        handleParsingError("MATHP NA " + to_string(na) + " too big, not yet implemented.", tok,
+                model);
+    }
+    double nd = tok.nextInt(true, 1);
+    if (nd > 1) {
+        handleParsingError("MATHP ND " + to_string(nd) + " too big, not yet implemented.", tok,
+                model);
+    }
+    tok.skip(5);
+    double a20 = tok.nextDouble(true, 0.0);
+    material->addNature(HyperElasticNature(*model, a10, a01, a20, d1, rho));
+}
 
 void NastranParser::parseMATS1(NastranTokenizer& tok, shared_ptr<Model> model) {
     int mid = tok.nextInt();
@@ -2288,6 +2315,26 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) 
     }
 }
 
+void NastranParser::parsePLSOLID(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int pid = tok.nextInt();
+    int mid = tok.nextInt();
+    /*
+     * Location selection for stress output.
+     * Stress output may be requested at the Gauss points (STRESS = “GAUSS” or
+     * 1) of CHEXA and CPENTA elements with no midside nodes. Gauss point
+     * output is available for the CTETRA element with or without midside nodes.
+     *
+     */
+    string stress = tok.nextString(true, "GRID");
+    if (stress != "GRID") {
+        handleParsingWarning("STRESS field " + stress + " not supported", tok, model);
+    }
+    // TODO LD: add large strain and large rotation somewhere, to be used in COMPORTEMENT
+    Continuum continuum(*model, ModelType::TRIDIMENSIONAL, pid);
+    continuum.assignMaterial(mid);
+    continuum.assignCellGroup(getOrCreateCellGroup(pid, model, "PLSOLID"));
+    model->add(continuum);
+}
 
 void NastranParser::parsePROD(NastranTokenizer& tok, shared_ptr<Model> model) {
     int propId = tok.nextInt();
@@ -2382,7 +2429,7 @@ void NastranParser::parsePSOLID(NastranTokenizer& tok, shared_ptr<Model> model) 
     if (fctn != "SMECH") {
         handleParsingWarning("PSOLID fctn " + fctn + " Not implemented", tok, model);
     }
-    Continuum continuum(*model, modelType, elemId);
+    Continuum continuum(*model, *modelType, elemId);
     continuum.assignMaterial(material_id);
     continuum.assignCellGroup(getOrCreateCellGroup(elemId, model, "PSOLID"));
     model->add(continuum);

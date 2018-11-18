@@ -1,7 +1,7 @@
 stages:
   - build
-  - xbuild
   - test
+  - xbuild
 
 shbuilding:
   stage: build
@@ -40,7 +40,6 @@ xbuilding:
     XTEST_CONTAINER: xvegairt_oncommit
   before_script:
     - apk add --update --no-cache git
-    - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
     - env | grep ^DOCKER_
     - env | grep ^CI_
     - cat /etc/issue
@@ -51,7 +50,7 @@ xbuilding:
   script:
     - docker pull ldallolio/xvegaci
     - docker build -t $XTEST_IMAGE -f Dockerfile_xgitlab .
-    - export OUTDIR=$(git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
+    - export OUTDIR=$(GIT_SSL_NO_VERIFY=true git show -s --format="%cd_%h" --date=format:'%Y-%m-%d_%H%M' $CI_COMMIT_SHA)
     - mkdir -p /srv/data/$OUTDIR
     - docker run --rm -v /srv:/srv "$XTEST_IMAGE" sh -c "sudo cp ./bin/vegapp.exe /srv/data/$OUTDIR"
     - cp /srv/data/$OUTDIR/vegapp.exe /srv/data

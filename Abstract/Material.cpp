@@ -76,12 +76,13 @@ const double Nature::UNAVAILABLE_DOUBLE = -DBL_MAX;
 
 const string Nature::name = "NATURE";
 const map<Nature::NatureType, string> Nature::stringByType = {
-         {Nature::NatureType::NATURE_ELASTIC , "NATURE ELASTIC"}
-        ,{Nature::NatureType::NATURE_VISCOELASTIC , "NATURE VISCOELASTIC"}
-        ,{Nature::NatureType::NATURE_BILINEAR_ELASTIC, "NATURE BILINEAR ELASTIC"}
-        ,{Nature::NatureType::NATURE_NONLINEAR_ELASTIC, "NATURE NONLINEAR ELASTIC"}
-        ,{Nature::NatureType::NATURE_RIGID, "NATURE RIGID"}
-        ,{Nature::NatureType::NATURE_ORTHOTROPIC, "NATURE ORTHOTROPIC"}
+        {Nature::NatureType::NATURE_ELASTIC , "NATURE ELASTIC"},
+        {Nature::NatureType::NATURE_VISCOELASTIC , "NATURE VISCOELASTIC"},
+        {Nature::NatureType::NATURE_BILINEAR_ELASTIC, "NATURE BILINEAR ELASTIC"},
+        {Nature::NatureType::NATURE_NONLINEAR_ELASTIC, "NATURE NONLINEAR ELASTIC"},
+        {Nature::NatureType::NATURE_RIGID, "NATURE RIGID"},
+        {Nature::NatureType::NATURE_ORTHOTROPIC, "NATURE ORTHOTROPIC"},
+        {Nature::NatureType::NATURE_HYPERELASTIC, "NATURE HYPERELASTIC"},
 };
 
 ostream &operator<<(ostream &out, const Nature& nature) {
@@ -202,10 +203,6 @@ double OrthotropicNature::getG_longitudinal_normal() const {
 	return _g_longitudinal_normal;
 }
 
-shared_ptr<Nature> BilinearElasticNature::clone() const {
-	return make_shared<BilinearElasticNature>(*this);
-}
-
 BilinearElasticNature::BilinearElasticNature(const Model& model, const double elastic_limit,
 		const double secondary_slope) :
 		Nature(model, Nature::NatureType::NATURE_BILINEAR_ELASTIC), elastic_limit(elastic_limit), secondary_slope(
@@ -214,6 +211,18 @@ BilinearElasticNature::BilinearElasticNature(const Model& model, const double el
 
 BilinearElasticNature::BilinearElasticNature(const Model& model) :
 		Nature(model, Nature::NatureType::NATURE_BILINEAR_ELASTIC) {
+}
+
+shared_ptr<Nature> BilinearElasticNature::clone() const {
+	return make_shared<BilinearElasticNature>(*this);
+}
+
+HyperElasticNature::HyperElasticNature(const Model& model, double c10, double c01, double c20, double k, double rho) :
+		Nature(model, Nature::NatureType::NATURE_HYPERELASTIC), c10(c10), c01(c01), c20(c20), k(k), rho(rho) {
+}
+
+shared_ptr<Nature> HyperElasticNature::clone() const {
+	return make_shared<HyperElasticNature>(*this);
 }
 
 shared_ptr<Nature> NonLinearElasticNature::clone() const {

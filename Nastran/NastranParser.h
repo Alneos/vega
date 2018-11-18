@@ -491,6 +491,12 @@ private:
     void parseMATS1(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
+     * Parse the keyword MATHP (page 1917 of MDN Nastran 2006 Quick Reference Guide.)
+     * Unknown reliability.
+     */
+    void parseMATHP(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
      * Parse the keyword MOMENT (page 1984 of MDN Nastran 2006 Quick Reference Guide.)
      * Coordinate System (CID) not supported.
      */
@@ -607,6 +613,12 @@ private:
      * PARAM PRTMAXIM
      */
     void parseParamPRTMAXIM(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * Parse the PLSOLID keyword (page 2237 of MDN Nastran 2006 Quick Reference Guide.)
+     * Partial support.
+     */
+    void parsePLSOLID(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * Parse the PSHELL keyword (page 2250 of MDN Nastran 2006 Quick Reference Guide.)

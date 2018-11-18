@@ -600,6 +600,17 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
                 cerr <<"Warning in Material: no support for GE material properties yet.";
 			}
 		}
+		const shared_ptr<Nature> hynature = material->findNature(Nature::NatureType::NATURE_HYPERELASTIC);
+		if (hynature) {
+			const HyperElasticNature& hyperElasticNature = dynamic_cast<HyperElasticNature&>(*hynature);
+			out << "                 ELAS_HYPER=_F(" << endl;
+			out << "                         C10=" << hyperElasticNature.c10 << "," << endl;
+			out << "                         C01=" << hyperElasticNature.c01 << "," << endl;
+			out << "                         C20=" << hyperElasticNature.c20 << "," << endl;
+			out << "                         RHO=" << hyperElasticNature.rho << "," << endl;
+			out << "                         K=" << hyperElasticNature.k << "," << endl;
+			out << "                         )," << endl;
+		}
 		const shared_ptr<Nature> onature = material->findNature(Nature::NatureType::NATURE_ORTHOTROPIC);
 		if (onature) {
 			const OrthotropicNature& orthoNature = dynamic_cast<OrthotropicNature&>(*onature);
@@ -1794,6 +1805,8 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 				out << "# WARN Skipping material id " << *elementSet << " because no assignment"
 						<< endl;
 			}
+            const shared_ptr<Nature> hyelas = elementSet->material->findNature(
+					Nature::NatureType::NATURE_HYPERELASTIC);
 			const shared_ptr<Nature> binature = elementSet->material->findNature(
 					Nature::NatureType::NATURE_BILINEAR_ELASTIC);
 			const shared_ptr<Nature> nlelas = elementSet->material->findNature(
@@ -1802,6 +1815,9 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 				out << "RELATION='VMIS_ISOT_LINE',";
 			} else if (nlelas) {
 				out << "RELATION='ELAS_VMIS_LINE',";
+            } else if (hyelas) {
+                out << "RELATION='ELAS_HYPER',";
+                out << "DEFORMATION='GROT_GDEP',";
 			} else if (!is_equal(largeDisp, 0) && elementSet->isBeam()) {
 				out << "RELATION='ELAS_POUTRE_GR',";
 				out << "DEFORMATION='GROT_GDEP',";

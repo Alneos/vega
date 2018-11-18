@@ -94,11 +94,15 @@ BOOST_AUTO_TEST_CASE( ssnv129a ) {
 }
 
 BOOST_AUTO_TEST_CASE( ssnv104i ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/ssnv104i/ssnv104i.bdf", RUN_ASTER, true, 0.03);
+	CommandLineUtils::nastranStudy2Aster("/irt/ssnv104i/ssnv104i.bdf", RUN_ASTER, true, 0.04);
 }
 
 BOOST_AUTO_TEST_CASE( appd ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/appd/appd.nas", RUN_ASTER, true, 0.02);
+}
+
+BOOST_AUTO_TEST_CASE( nas103prob5 ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/nas103prob5/nas103prob5.nas", RUN_ASTER, true, 0.005);
 }
 
 //BOOST_AUTO_TEST_CASE( prob24 ) {
@@ -108,8 +112,6 @@ BOOST_AUTO_TEST_CASE( appd ) {
 //BOOST_AUTO_TEST_CASE( test_2dof108 ) {
 //	CommandLineUtils::nastranStudy2Aster("/irt/2dof108/2dof108.bdf", false, false, 0.05);
 //}
-
-
 
 } /* namespace test */
 } /* namespace vega */

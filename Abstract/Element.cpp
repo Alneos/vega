@@ -30,7 +30,7 @@ ModelType::ModelType(string name, const SpaceDimension dimension) :
 		name(name), dimension(dimension) {
 }
 
-ElementSet::ElementSet(Model& model, Type type, const ModelType* modelType, int original_id) :
+ElementSet::ElementSet(Model& model, Type type, const ModelType& modelType, int original_id) :
 		Identifiable(original_id), model(model), type(type), modelType(modelType), cellGroup(nullptr), material(
 		nullptr) {
 }
@@ -73,7 +73,7 @@ void ElementSet::assignCellGroup(shared_ptr<CellGroup> cellGroup) {
 }
 
 const ModelType ElementSet::getModelType() const {
-	return this->model.modelType;
+	return this->modelType;
 }
 
 bool ElementSet::validate() const {
@@ -92,12 +92,12 @@ bool ElementSet::validate() const {
 	return validElement;
 }
 
-Continuum::Continuum(Model& model, const ModelType* modelType, int original_id) :
+Continuum::Continuum(Model& model, const ModelType& modelType, int original_id) :
 		ElementSet(model, ElementSet::Type::CONTINUUM, modelType, original_id) {
 
 }
 
-Beam::Beam(Model& model, Type type, ModelType* modelType, BeamModel beamModel,
+Beam::Beam(Model& model, Type type, const ModelType& modelType, BeamModel beamModel,
 		double additional_mass, int original_id) :
 		ElementSet(model, type, modelType, original_id), beamModel(beamModel), additional_mass(
 				additional_mass) {
@@ -141,7 +141,7 @@ const VectorialValue RecoveryPoint::getGlobalCoords(const int cellId) const {
 
 CircularSectionBeam::CircularSectionBeam(Model& model, double _radius, BeamModel beamModel,
 		double additional_mass, int original_id) :
-		Beam(model, ElementSet::Type::CIRCULAR_SECTION_BEAM, nullptr, beamModel, additional_mass, original_id), radius(
+		Beam(model, ElementSet::Type::CIRCULAR_SECTION_BEAM, model.modelType, beamModel, additional_mass, original_id), radius(
 				_radius) {
 }
 
@@ -176,7 +176,7 @@ double CircularSectionBeam::getShearAreaFactorZ() const {
 
 RectangularSectionBeam::RectangularSectionBeam(Model& model, double _width, double _height,
 		BeamModel beamModel, double additional_mass, int original_id) :
-		Beam(model, ElementSet::Type::RECTANGULAR_SECTION_BEAM, nullptr, beamModel, additional_mass, original_id), width(_width), height(
+		Beam(model, ElementSet::Type::RECTANGULAR_SECTION_BEAM, model.modelType, beamModel, additional_mass, original_id), width(_width), height(
 				_height) {
 
 }
@@ -220,7 +220,7 @@ GenericSectionBeam::GenericSectionBeam(Model& model, double area_cross_section,
 		double moment_of_inertia_Y, double moment_of_inertia_Z, double torsional_constant,
 		double shear_area_factor_Y, double shear_area_factor_Z, BeamModel beamModel,
 		double additional_mass, int original_id) :
-		Beam(model, ElementSet::Type::GENERIC_SECTION_BEAM, nullptr, beamModel, additional_mass, original_id), area_cross_section(
+		Beam(model, ElementSet::Type::GENERIC_SECTION_BEAM, model.modelType, beamModel, additional_mass, original_id), area_cross_section(
 				area_cross_section), moment_of_inertia_Y(moment_of_inertia_Y), moment_of_inertia_Z(
 				moment_of_inertia_Z), torsional_constant(torsional_constant), shear_area_factor_Y(
 				shear_area_factor_Y), shear_area_factor_Z(shear_area_factor_Z) {
@@ -259,7 +259,7 @@ double GenericSectionBeam::getInvShearAreaFactorZ() const {
 
 
 Shell::Shell(Model& model, double thickness, double additional_mass, int original_id) :
-		ElementSet(model, ElementSet::Type::SHELL, nullptr, original_id), thickness(thickness), additional_mass(
+		ElementSet(model, ElementSet::Type::SHELL, model.modelType, original_id), thickness(thickness), additional_mass(
 				additional_mass) {
 }
 
@@ -273,7 +273,7 @@ CompositeLayer::CompositeLayer(int materialId, double thickness, double orientat
 }
 
 Composite::Composite(Model& model, int original_id) :
-		ElementSet(model, ElementSet::Type::COMPOSITE, nullptr, original_id) {
+		ElementSet(model, ElementSet::Type::COMPOSITE, model.modelType, original_id) {
 }
 
 void Composite::addLayer(int materialId, double thickness, double orientation) {
@@ -299,7 +299,7 @@ const DOFS Continuum::getDOFSForNode(const int nodePosition) const {
 }
 
 Discrete::Discrete(Model& model, ElementSet::Type type, bool symmetric, int original_id) :
-		ElementSet(model, type, nullptr, original_id), symmetric(symmetric) {
+		ElementSet(model, type, model.modelType, original_id), symmetric(symmetric) {
 }
 
 const double Discrete::NOT_BOUNDED = -DBL_MAX;
@@ -633,7 +633,7 @@ std::shared_ptr<ElementSet> StructuralSegment::clone() const{
 
 NodalMass::NodalMass(Model& model, double m, double ixx, double iyy, double izz, double ixy,
 		double iyz, double ixz, double ex, double ey, double ez, int original_id) :
-		ElementSet(model, ElementSet::Type::NODAL_MASS, nullptr, original_id), m(m), ixx(ixx), iyy(iyy), izz(izz), ixy(
+		ElementSet(model, ElementSet::Type::NODAL_MASS, model.modelType, original_id), m(m), ixx(ixx), iyy(iyy), izz(izz), ixy(
 				ixy), iyz(iyz), ixz(ixz), ex(ex), ey(ey), ez(ez) {
 }
 
@@ -662,7 +662,7 @@ NodalMass::~NodalMass() {
 ISectionBeam::ISectionBeam(Model& model, double upper_flange_width_p, double lower_flange_width,
 		double upper_flange_thickness_p, double lower_flange_thickness, double beam_height,
 		double web_thickness, BeamModel beamModel, double additional_mass, int original_id) :
-		Beam(model, ElementSet::Type::I_SECTION_BEAM, nullptr, beamModel, additional_mass, original_id), upper_flange_width(
+		Beam(model, ElementSet::Type::I_SECTION_BEAM, model.modelType, beamModel, additional_mass, original_id), upper_flange_width(
 				upper_flange_width_p), lower_flange_width(lower_flange_width), upper_flange_thickness(
 				upper_flange_thickness_p), lower_flange_thickness(lower_flange_thickness), beam_height(
 				beam_height), web_thickness(web_thickness) {
@@ -850,7 +850,7 @@ void DampingMatrix::addDamping(const int nodeid1, const DOF dof1, const int node
 
 
 RigidSet::RigidSet(Model& model, Type type, int master_id, int original_id) :
-                ElementSet(model, type, nullptr, original_id), masterId(master_id){
+                ElementSet(model, type, model.modelType, original_id), masterId(master_id){
 }
 
 

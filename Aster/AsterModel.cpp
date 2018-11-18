@@ -37,6 +37,8 @@ const map<Function::ParaName, string> AsterModel::NomParaByParaName = {
         { Function::ParaName::NO_PARA_NAME, "'NO_PARA_NAME'" },
         { Function::ParaName::FREQ, "'FREQ'" },
         { Function::ParaName::AMOR, "'AMOR'" },
+        { Function::ParaName::STRESS, "'SIGM'" },
+        { Function::ParaName::STRAIN, "'EPSI'" },
         { Function::ParaName::PARAX, "'X'" }
 };
 

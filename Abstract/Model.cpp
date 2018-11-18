@@ -806,7 +806,7 @@ void Model::generateSkin() {
         // LD : Workaround for Aster problem : MODELISA6_96
         //  les 1 mailles imprimées ci-dessus n'appartiennent pas au modèle et pourtant elles ont été affectées dans le mot-clé facteur : !
         //   ! FORCE_FACE
-        Continuum continuum(*this, &ModelType::TRIDIMENSIONAL_SI);
+        Continuum continuum(*this, this->modelType);
         continuum.assignCellGroup(mappl);
         this->add(continuum);
     }
