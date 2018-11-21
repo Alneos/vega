@@ -365,7 +365,7 @@ string NastranTokenizer::nextString(bool returnDefaultIfNotFoundOrBlank, string 
         if (returnDefaultIfNotFoundOrBlank){
             return defaultValue;
         }else{
-            string message = "Missing String value for Field Number " + lexical_cast<string>(currentField - 1);
+            string message = "Missing String value for Field Number " + to_string(currentField - 1);
             handleParsingError(message);
         }
     }
@@ -405,7 +405,7 @@ int NastranTokenizer::nextInt(bool returnDefaultIfNotFoundOrBlank, int defaultVa
 	    if (returnDefaultIfNotFoundOrBlank){
 	        return defaultValue;
 	    }else{
-	        string message = "Missing Integer value for Field Number " + lexical_cast<string>(currentField - 1);
+	        string message = "Missing Integer value for Field Number " + to_string(currentField - 1);
 	        handleParsingError(message);
 	    }
 	}
@@ -413,7 +413,7 @@ int NastranTokenizer::nextInt(bool returnDefaultIfNotFoundOrBlank, int defaultVa
 		result = lexical_cast<int>(value);
 	} catch (boost::bad_lexical_cast &) {
 		string currentFieldstr =
-				currentField == 0 ? string("LAST") : (lexical_cast<string>(currentField - 1));
+				currentField == 0 ? "LAST" : (lexical_cast<string>(currentField - 1));
 		string message = "Value [" + value + "] can't be converted to int. Field Num: "
 				+ currentFieldstr;
 		handleParsingError(message);

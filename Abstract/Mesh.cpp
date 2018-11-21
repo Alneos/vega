@@ -144,7 +144,7 @@ int Mesh::countNodes() const {
 const Node Mesh::findNode(const int nodePosition) const {
 	if (nodePosition == Node::UNAVAILABLE_NODE) {
 		throw invalid_argument(
-				string("Node position ") + lexical_cast<string>(nodePosition) + " not found.");
+				"Node position " + to_string(nodePosition) + " not found.");
 	}
 	const NodeData &nodeData = nodes.nodeDatas[nodePosition];
 	if (nodeData.cpPos == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
@@ -189,7 +189,7 @@ set<int> Mesh::findOrReserveNodes(const set<int>& nodeIds) {
 int Mesh::findNodeId(const int nodePosition) const {
 	if (nodePosition == Node::UNAVAILABLE_NODE) {
 		throw invalid_argument(
-				string("Node position ") + lexical_cast<string>(nodePosition) + " not found.");
+				"Node position " + to_string(nodePosition) + " not found.");
 	}
 	return nodes.nodeDatas[nodePosition].id;
 }
@@ -233,12 +233,12 @@ int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &node
 					ostream_iterator<int>(cerr, " "));
 			cerr << endl;
 			throw logic_error(
-					string("Duplicate node in connectivity cellId:")
-							+ lexical_cast<string>(cellId));
+					"Duplicate node in connectivity cellId:"
+							+ to_string(cellId));
 		}
 		if (cells.cellpositionById.find(cellId) != cells.cellpositionById.end()) {
 			throw logic_error(
-					string("CellId: ") + lexical_cast<string>(cellId) + " Already used.");
+					"CellId: " + to_string(cellId) + " Already used.");
 		}
 	}
 	if ((cellType.specificSize) && (cellType.numNodes != nodeIds.size())) {
@@ -291,8 +291,8 @@ int Mesh::updateCell(int id, const CellType &cellType, const std::vector<int> &n
             copy(nodeIds.begin(), nodeIds.end(), ostream_iterator<int>(cerr, " "));
             cerr << endl;
             throw logic_error(
-                    string("Duplicate node in connectivity cellId:")
-                            + lexical_cast<string>(id));
+                    "Duplicate node in connectivity cellId:"
+                            + to_string(id));
         }
     }
 
@@ -423,7 +423,7 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 	/*char* nodeNames = new char[nodes.countNodes()*MED_SNAME_SIZE+1]();
 
 	 for(int i=0; i<nodes.countNodes();i++){
-	 string medName=string("N") +lexical_cast<string>(i+1);
+	 string medName="N" +to_string(i+1);
 	 strncpy(nodeNames+(i*MED_SNAME_SIZE),medName.c_str(),MED_SNAME_SIZE);
 	 }
 	 MEDmeshEntityNameWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_NODE, MED_NONE,
@@ -536,14 +536,14 @@ shared_ptr<CellGroup> Mesh::getOrCreateCellGroupForCS(int cid){
 		result = dynamic_pointer_cast<CellGroup>(findGroup(cellGroupName));
 	} else {
 		string gmaName;
-		string id = lexical_cast<string>(cellGroupNameByCID.size() + 1);
+		string id = to_string(cellGroupNameByCID.size() + 1);
 		if (id.length() > 7) {
 			gmaName = string("C") + id.substr(id.length() - 7, 7);
 		} else {
 			gmaName = string("C") + id;
 		}
 		cellGroupNameByCID[cid] = gmaName;
-		result = createCellGroup(gmaName, CellGroup::NO_ORIGINAL_ID, string("Orientation"));
+		result = createCellGroup(gmaName, CellGroup::NO_ORIGINAL_ID, "Orientation of coordinate system: " + to_string(cid));
 	}
 	return result;
 }
@@ -605,7 +605,7 @@ CellStorage::CellStorage(Mesh& mesh, LogLevel logLevel) :
 CellIterator CellStorage::cells_begin(const CellType &type) const {
 	if (type.numNodes == 0) {
 		throw logic_error(
-				string("Iteration on ") + lexical_cast<string>(type) + " not implemented");
+				"Iteration on " + type.description + " not yet implemented");
 	}
 
 	return CellIterator(this, type, CellIterator::POSITION_BEGIN);
@@ -614,7 +614,7 @@ CellIterator CellStorage::cells_begin(const CellType &type) const {
 CellIterator CellStorage::cells_end(const CellType &type) const {
 	if (type.numNodes == 0) {
 		throw logic_error(
-				string("Iteration on ") + lexical_cast<string>(type) + " not implemented");
+				"Iteration on " + type.description + " not yet implemented");
 	}
 	return CellIterator(this, type, CellIterator::POSITION_END);
 }

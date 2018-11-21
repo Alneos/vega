@@ -2466,7 +2466,7 @@ void NastranParser::parseRBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
     }
     double alpha = tok.nextDouble(true);
     if (!is_equal(alpha, Globals::UNAVAILABLE_DOUBLE)) {
-        handleParsingWarning("ALPHA field: " + lexical_cast<string>(alpha) + " not supported",
+        handleParsingWarning("ALPHA field: " + to_string(alpha) + " not supported",
                 tok, model);
     }
 
@@ -2486,7 +2486,7 @@ void NastranParser::parseRBAR1(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     double alpha = tok.nextDouble(true);
     if (!is_equal(alpha, Globals::UNAVAILABLE_DOUBLE)) {
-        handleParsingError("RBAR1: ALPHA field: " + lexical_cast<string>(alpha) + " not supported",
+        handleParsingError("RBAR1: ALPHA field: " + to_string(alpha) + " not supported",
                 tok, model);
     }
 
@@ -2509,7 +2509,7 @@ void NastranParser::parseRBE2(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     double alpha = tok.nextDouble(true);
     if (!is_equal(alpha, Globals::UNAVAILABLE_DOUBLE)) {
-        handleParsingWarning("ALPHA field: " + lexical_cast<string>(alpha) + " not supported",
+        handleParsingWarning("ALPHA field: " + to_string(alpha) + " not supported",
                 tok, model);
     }
 }

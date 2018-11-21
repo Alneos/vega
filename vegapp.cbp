@@ -1912,6 +1912,8 @@
 		<Unit filename="testdata/unitTest/nastranparser/included.dat" />
 		<Unit filename="testdata/unitTest/nastranparser/included2.dat" />
 		<Unit filename="testdata/unitTest/nastranparser/test1.nas" />
+		<Unit filename="testdata/unitTest/optistructparser/contact.nas" />
+		<Unit filename="testdata/unitTest/optistructparser/contact2.nas" />
 		<Unit filename="testdata/unitTest/resultReaders/tut01.csv" />
 		<Extensions>
 			<envvars />

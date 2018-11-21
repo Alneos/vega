@@ -869,13 +869,14 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 	//orientations
 	bool orientationsPrinted = false;
 	for (auto it : asterModel.model.mesh->cellGroupNameByCID){
+        std::shared_ptr<vega::CoordinateSystem> cs= asterModel.model.mesh->getCoordinateSystemByPosition(it.first);
+		if (cs->type!=CoordinateSystem::Type::ORIENTATION){
+		   //handleWritingError("Coordinate System of Group "+ it.second+" is not an ORIENTATION.");
+		   continue;
+		}
 		if (!orientationsPrinted) {
 			out << "                    ORIENTATION=(" << endl;
 			orientationsPrinted = true;
-		}
-		std::shared_ptr<vega::CoordinateSystem> cs= asterModel.model.mesh->getCoordinateSystemByPosition(it.first);
-		if (cs->type!=CoordinateSystem::Type::ORIENTATION){
-		   handleWritingError("Coordinate System of Group "+ it.second+" is not an ORIENTATION.");
 		}
 		std::shared_ptr<OrientationCoordinateSystem> ocs = std::dynamic_pointer_cast<OrientationCoordinateSystem>(cs);
 
@@ -1028,6 +1029,8 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 				Constraint::Type::SLIDE);
         const set<shared_ptr<Constraint>> surfaces = constraintSet.getConstraintsByType(
 				Constraint::Type::SURFACE_CONTACT);
+        const set<shared_ptr<Constraint>> surfaceSlides = constraintSet.getConstraintsByType(
+				Constraint::Type::SURFACE_SLIDE_CONTACT);
         const set<shared_ptr<Constraint>> zones = constraintSet.getConstraintsByType(
 				Constraint::Type::ZONE_CONTACT);
 		for (shared_ptr<Constraint> constraint : gaps) {
@@ -1112,6 +1115,19 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 						<< slide->slaveCellGroup->getName()
 						<< "',";
                 out << "COULOMB=" << slide->getFriction() << ",";
+				out << ")," << endl;
+		}
+		for (shared_ptr<Constraint> constraint : surfaceSlides) {
+		    shared_ptr<const SurfaceSlideContact> surfaceSlide = dynamic_pointer_cast<const SurfaceSlideContact>(constraint);
+		    shared_ptr<const BoundaryElementFace> surfaceSlideMaster = dynamic_pointer_cast<const BoundaryElementFace>(asterModel.model.find(surfaceSlide->master));
+		    shared_ptr<const BoundaryElementFace> surfaceSlideSlave = dynamic_pointer_cast<const BoundaryElementFace>(asterModel.model.find(surfaceSlide->slave));
+                out << "                             _F(";
+				out << "GROUP_MA_MAIT='"
+						<< surfaceSlideMaster->cellGroup->getName()
+						<< "',";
+				out << "GROUP_MA_ESCL='"
+						<< surfaceSlideSlave->cellGroup->getName()
+						<< "',";
 				out << ")," << endl;
 		}
 		for (shared_ptr<Constraint> constraint : surfaces) {
@@ -1563,7 +1579,6 @@ void AsterWriter::writeForceSurface(const LoadSet& loadSet, ostream&out) {
 			VectorialValue moment = forceSurface->getMoment();
 			out << "                       _F(";
 			writeCellContainer(*forceSurface, out);
-			out << endl;
 			if (!is_equal(force.x(), 0))
 				out << "FX=" << force.x() << ",";
 			if (!is_equal(force.y(),0))
@@ -1576,7 +1591,7 @@ void AsterWriter::writeForceSurface(const LoadSet& loadSet, ostream&out) {
 				out << "MY=" << moment.y() << ",";
 			if (!is_equal(moment.z(), 0))
 				out << "MZ=" << moment.z() << ",";
-			out << "                           )," << endl;
+			out << ")," << endl;
 		}
 		out << "            )," << endl;
 	}

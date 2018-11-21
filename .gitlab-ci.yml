@@ -89,4 +89,4 @@ nightly:
     - mkdir -p /srv/data/$OUTDIR
     - ls /srv/data
   script:
-    - /srv/data/vegapp -s -o /srv/data/$OUTDIR --run-solver /srv/data/input/v02_K9Kgen6_simplif/original/v02_K9Kgen6_simplif.fem optistruct systus
+    - /srv/data/vegapp -s -o /srv/data/$OUTDIR /srv/data/input/v02_K9Kgen6_simplif/original/v02_K9Kgen6_simplif.fem optistruct systus

@@ -379,7 +379,7 @@ void NodeIterator::increment() {
 	position++;
 	if (position > endPosition) {
 		throw out_of_range(
-				string("Iterator on nodes in position ") + lexical_cast<string>(position)
+				"Iterator on nodes in position " + to_string(position)
 						+ " after end.");
 	}
 }
@@ -423,12 +423,13 @@ const Node NodeIterator::next() {
 ///////////////////////////////////////////////////////////////////////////////
 /*                             Cells                                         */
 ///////////////////////////////////////////////////////////////////////////////
-int Cell::auto_cell_id = 9999999;
+int Cell::auto_cell_id = 5999999;
 
 const unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::FACE_BY_CELLTYPE =
 		init_faceByCelltype();
 
 // http://www.code-aster.org/outils/med/html/connectivites.html
+// https://hammi.extra.cea.fr/static/MED/web_med/logiciels/medV2.1.4_doc_html/html/modele_de_donnees.html
 unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::init_faceByCelltype() {
 	vector<vector<int> > hexa8list = list_of<vector<int>>( //
 			list_of(1)(2)(3)(4)) //
@@ -442,10 +443,17 @@ unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::init_fa
 			(list_of(1)(4)(2)) //
 			(list_of(1)(4)(3)) //
 			(list_of(2)(3)(4)); //
+	vector<vector<int> > penta6list = list_of<vector<int>>( //
+			list_of(1)(2)(3)) //
+			(list_of(4)(5)(6)) //
+			(list_of(1)(2)(5)(4)) //
+			(list_of(1)(3)(6)(4)) //
+			(list_of(2)(3)(6)(5)); //
 
 	unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > result =
 			boost::assign::map_list_of(CellType::HEXA8.code, hexa8list) //Hexa8
-			(CellType::TETRA4.code, tetra4list); //Tetra4 end
+			(CellType::TETRA4.code, tetra4list) //Tetra4
+			(CellType::PENTA6.code, penta6list); //Penta6
 	return result;
 }
 
@@ -477,7 +485,10 @@ int Cell::findNodeIdPosition(int node_id2) const {
 
 vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
 	int node1connectivityPos = findNodeIdPosition(nodeId1);
-	int node2connectivityPos = findNodeIdPosition(nodeId2);
+    int node2connectivityPos = Globals::UNAVAILABLE_INT;
+	if (nodeId2 != Globals::UNAVAILABLE_INT) {
+        node2connectivityPos = findNodeIdPosition(nodeId2);
+	}
 
 	if (type.dimension == SpaceDimension::DIMENSION_2D) {
 		return vector<int>(nodeIds.begin(), nodeIds.end());
@@ -503,8 +514,28 @@ vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
 				break;
 			}
 		}
+    } else if (type.code == CellType::PENTA6.code) {
+        vector<vector<int> > faceids = FACE_BY_CELLTYPE.find(CellType::PENTA6.code)->second;
+        for (vector<int> faceid : faceids) {
+            if (find(faceid.begin(), faceid.end(), node1connectivityPos + 1) == faceid.end()) {
+                continue;
+            }
+			if (nodeId2 == Globals::UNAVAILABLE_INT) {
+                // nodePosition2 must be omitted for a **triangular** surface on a
+                // CPENTA element.
+                if (faceid.size() == 3) {
+                    nodePositions.assign(faceid.begin(), faceid.end());
+                    break;
+                }
+			} else {
+                if (find(faceid.begin(), faceid.end(), node2connectivityPos + 1) != faceid.end()) {
+                    nodePositions.assign(faceid.begin(), faceid.end());
+                    break;
+                }
+			}
+		}
 	} else {
-		throw logic_error("FaceidfromtwoNodes not implemented");
+		throw logic_error("FaceidfromtwoNodes not implemented for " + CellType::PENTA6.to_str() + " element type");
 	}
 	vector<int> faceConnectivity;
 	faceConnectivity.reserve(nodePositions.size());
@@ -544,7 +575,7 @@ void CellIterator::increment(int i) {
 	//cout << "currentPos " << position << "end " << endPosition << endl;
 	if (position > endPosition) {
 		throw out_of_range(
-				string("Iterator on cells in position ") + lexical_cast<string>(position)
+				"Iterator on cells in position " + to_string(position)
 						+ " after end.");
 	}
 }
@@ -819,7 +850,7 @@ NodeGroup2Families::NodeGroup2Families(int nnodes, const vector<shared_ptr<NodeG
 								oldFamily.groups.end());
 						fam.name = oldFamily.name + "_" + nodeGroup->getName();
 						if (fam.name.length() >= MED_LNAME_SIZE) {
-							fam.name = string("Family") + lexical_cast<string>(currentFamilyId);
+							fam.name = "Family" + to_string(currentFamilyId);
 						}
 					} else {
 						fam.name = nodeGroup->getName();
@@ -882,7 +913,7 @@ CellGroup2Families::CellGroup2Families(
 							oldFamily.groups.end());
 					fam.name = oldFamily.name + "_" + cellGroup->getName();
 					if (fam.name.length() >= MED_LNAME_SIZE) {
-						fam.name = string("CELLFamily") + lexical_cast<string>(-currentFamilyId);
+						fam.name = "CELLFamily" + to_string(-currentFamilyId);
 					}
 				} else {
 					fam.name = cellGroup->getName();

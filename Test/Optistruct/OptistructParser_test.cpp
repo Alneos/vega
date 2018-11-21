@@ -46,4 +46,23 @@ BOOST_AUTO_TEST_CASE(optistruct_contact) {
 	}
 }
 
+BOOST_AUTO_TEST_CASE(optistruct_contact_cpenta) {
+	string testLocation = fs::path(
+		PROJECT_BASE_DIR "/testdata/unitTest/optistructparser/contact2.nas").make_preferred().string();
+	optistruct::OptistructParser parser;
+	try {
+		const shared_ptr<Model> model = parser.parse(
+			ConfigurationParameters(testLocation, SolverName::CODE_ASTER, "", ""));
+        BOOST_CHECK_EQUAL(model->targets.size(), 2);
+        BOOST_CHECK_EQUAL(model->constraints.size(), 1);
+        model->finish();
+	}
+	catch (exception& e) {
+		cerr << e.what() << endl;
+		BOOST_TEST_MESSAGE(string("Application exception") + e.what());
+
+		BOOST_FAIL(string("Parse threw exception ") + e.what());
+	}
+}
+
 //____________________________________________________________________________//

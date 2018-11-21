@@ -45,7 +45,7 @@ string ParsingMessageException(string arg, string fname, int lineNum, string key
     msg.append(" (file ");
     msg.append(fname);
     msg.append(" line ");
-    msg.append((lexical_cast<string>(lineNum)));
+    msg.append((to_string(lineNum)));
     msg.append("): ");
     msg.append(arg);
     return msg;
@@ -58,7 +58,7 @@ string ParsingMessageWarning(string arg, string fname, int lineNum, string key){
     msg.append(" (file ");
     msg.append(fname);
     msg.append(" line ");
-    msg.append((lexical_cast<string>(lineNum)));
+    msg.append((to_string(lineNum)));
     msg.append("): ");
     msg.append(arg);
     return msg;

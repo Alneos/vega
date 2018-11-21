@@ -102,7 +102,7 @@ void NastranParser::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     int ps = tok.nextInt(true, grdSet.ps);
     if (ps) {
-        string spcName = string("SPC") + lexical_cast<string>(id);
+        string spcName = "SPC" + to_string(id);
         SinglePointConstraint spc = SinglePointConstraint(*model, DOFS::nastranCodeToDOFS(ps));
         spc.addNodeId(id);
         model->add(spc);
@@ -122,7 +122,7 @@ void NastranParser::addProperty(int property_id, int cell_id, shared_ptr<Model> 
 shared_ptr<CellGroup> NastranParser::getOrCreateCellGroup(int property_id, shared_ptr<Model> model, const string & command) {
     shared_ptr<CellGroup> cellGroup = dynamic_pointer_cast<CellGroup>(model->mesh->findGroup(property_id));
 
-    string cellGroupName= command + string("_") + lexical_cast<string>(property_id);
+    string cellGroupName= command + "_" + to_string(property_id);
     if (cellGroup == nullptr){
         cellGroup = model->mesh->createCellGroup(cellGroupName, property_id, command);
     }

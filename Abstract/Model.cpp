@@ -693,7 +693,9 @@ void Model::generateDiscrets() {
                 addedDOFS = DOFS::ALL_DOFS - node.dofs - missingDOFS;
                 if (virtualDiscretTRGroup == nullptr) {
                     DiscretePoint virtualDiscretTR(*this, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-                    virtualDiscretTRGroup = mesh->createCellGroup("VDiscrTR");
+                    ostringstream oss;
+                    oss << "created by generateDiscrets() because missing DOFs: " << missingDOFS << " and node: " << node;
+                    virtualDiscretTRGroup = mesh->createCellGroup("VDiscrTR", Group::NO_ORIGINAL_ID, oss.str());
                     virtualDiscretTR.assignCellGroup(virtualDiscretTRGroup);
                     if (this->configuration.addVirtualMaterial) {
                         virtualDiscretTR.assignMaterial(getVirtualMaterial());
@@ -710,7 +712,9 @@ void Model::generateDiscrets() {
                 addedDOFS = DOFS::TRANSLATIONS - node.dofs - missingDOFS;
                 if (virtualDiscretTGroup == nullptr) {
                     DiscretePoint virtualDiscretT(*this, 0.0, 0.0, 0.0);
-                    virtualDiscretTGroup = mesh->createCellGroup("VDiscrT");
+                    ostringstream oss;
+                    oss << "created by generateDiscrets() because missing DOFs: " << missingDOFS << " and node: " << node;
+                    virtualDiscretTGroup = mesh->createCellGroup("VDiscrT", Group::NO_ORIGINAL_ID, oss.str());
                     virtualDiscretT.assignCellGroup(virtualDiscretTGroup);
                     if (this->configuration.addVirtualMaterial) {
                         virtualDiscretT.assignMaterial(getVirtualMaterial());
@@ -800,7 +804,9 @@ const vector<shared_ptr<Beam>> Model::getBeams() const {
 
 
 void Model::generateSkin() {
-    shared_ptr<CellGroup> mappl = this->mesh->createCellGroup("VEGASKIN");
+    ostringstream oss;
+    oss << "created by generateSkin() because of FORCE_SURFACE or BOUNDARY_ELEMENTFACE or ...";
+    shared_ptr<CellGroup> mappl = mesh->createCellGroup("VEGASKIN", Group::NO_ORIGINAL_ID, oss.str());
 
     if (this->configuration.addSkinToModel) {
         // LD : Workaround for Aster problem : MODELISA6_96
@@ -825,8 +831,8 @@ void Model::generateSkin() {
                     if (faceIds.size() > 0) {
                         vega::Cell cell = generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
                         mappl->addCellId(cell.id);
+                        forceSurface->clear(); //< To remove the volumic cell and then add the skin at its place
                         forceSurface->addCellId(cell.id);
-                        //forceSurface->clear();
                         //forceSurface->add(*mappl);
                     }
                 }
@@ -843,7 +849,9 @@ void Model::generateSkin() {
         if (target->type == Target::Type::BOUNDARY_ELEMENTFACE) {
             shared_ptr<BoundaryElementFace> elementFace = dynamic_pointer_cast<BoundaryElementFace>(
                     target);
-            shared_ptr<CellGroup> surfGrp = this->mesh->createCellGroup("SURF" + to_string(elementFace->bestId()));
+            ostringstream oss2;
+            oss2 << "created by generateSkin() because of BOUNDARY_ELEMENTFACE";
+            shared_ptr<CellGroup> surfGrp = this->mesh->createCellGroup("SURF" + to_string(elementFace->bestId()), Group::NO_ORIGINAL_ID, oss2.str());
             for(auto& faceInfo: elementFace->faceInfos) {
                 Cell cell0 = this->mesh->findCell(this->mesh->findCellPosition(faceInfo.cellId));
                 const vector<int>& faceIds = cell0.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
@@ -871,8 +879,8 @@ Cell Model::generateSkinCell(const vector<int>& faceIds, const SpaceDimension& d
     vector<int> externalFaceIds;
     if (cellTypeFound == nullptr) {
         throw logic_error(
-                string("CellType not found connections:")
-                        + boost::lexical_cast<string>(faceIds.size()));
+                "CellType not found connections:"
+                        + to_string(faceIds.size()));
     }
     int cellPosition = mesh->addCell(Cell::AUTO_ID, *cellTypeFound, faceIds, true);
     return mesh->findCell(cellPosition);
@@ -954,8 +962,10 @@ void Model::emulateAdditionalMass() {
             materials.add(newMaterial);
             newElementSet->assignMaterial(newMaterial);
             // copy and assign new cellGroup
+            ostringstream oss;
+            oss << "created by emulateAdditionalMass() because of elementSet: " << elementSet << " additional rho:" << rho;
             shared_ptr<CellGroup> newCellGroup = mesh->createCellGroup(
-                    "VAM_" + to_string(newElementSets.size()));
+                    "VAM_" + to_string(newElementSets.size()), Group::NO_ORIGINAL_ID, oss.str());
             newElementSet->assignCellGroup(newCellGroup);
             vector<Cell> cells = elementSet->cellGroup->getCells();
             for (auto cell : cells) {
@@ -985,7 +995,9 @@ void Model::generateBeamsToDisplayHomogeneousConstraint() {
                     if (this->configuration.addVirtualMaterial) {
                         virtualBeam.assignMaterial(getVirtualMaterial());
                     }
-                    virtualGroupRigid = mesh->createCellGroup("VRigid");
+                    ostringstream oss;
+                    oss << "created by generateBeamsToDisplayHomogeneousConstraint() because of rigid constraint: " << constraint;
+                    virtualGroupRigid = mesh->createCellGroup("VRigid", Group::NO_ORIGINAL_ID, oss.str());
                     virtualBeam.assignCellGroup(virtualGroupRigid);
                     this->add(virtualBeam);
                 }
@@ -1008,7 +1020,9 @@ void Model::generateBeamsToDisplayHomogeneousConstraint() {
                     if (configuration.addVirtualMaterial) {
                         virtualBeam.assignMaterial(getVirtualMaterial());
                     }
-                    virtualGroupRBE3 = mesh->createCellGroup("VRBE3");
+                    ostringstream oss;
+                    oss << "created by generateBeamsToDisplayHomogeneousConstraint() because of rbe3 constraint: " << constraint;
+                    virtualGroupRBE3 = mesh->createCellGroup("VRBE3", Group::NO_ORIGINAL_ID, oss.str());
                     virtualBeam.assignCellGroup(virtualGroupRBE3);
                     this->add(virtualBeam);
                 }
@@ -1267,8 +1281,10 @@ void Model::replaceDirectMatrices()
                     discrete.assignMaterial(getVirtualMaterial());
                 }
                 matrix_count++;
+                ostringstream oss;
+                oss << "created by replaceDirectMatrices() because of matrix element on same node: " << matrix;
                 shared_ptr<CellGroup> matrixGroup = mesh->createCellGroup(
-                        "MTN" + to_string(matrix_count));
+                        "MTN" + to_string(matrix_count), Group::NO_ORIGINAL_ID, oss.str());
                 discrete.assignCellGroup(matrixGroup);
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, { nodeId }, true);
                 matrixGroup->addCellId(mesh->findCell(cellPosition).id);
@@ -1294,8 +1310,10 @@ void Model::replaceDirectMatrices()
                 DOFS requiredColDofs = requiredDofsByNode.find(colNodePosition)->second;
 
                 DiscreteSegment discrete(*this);
+                ostringstream oss;
+                oss << "created by replaceDirectMatrices() because of matrix element on node couple: " << matrix;
                 shared_ptr<CellGroup> matrixGroup = mesh->createCellGroup(
-                        "MTL" + to_string(matrix_count));
+                        "MTL" + to_string(matrix_count), Group::NO_ORIGINAL_ID, oss.str());
                 matrix_count++;
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, { rowNodeId,
                         colNodeId }, true);
@@ -1923,8 +1941,8 @@ void Model::makeBoundarySegments() {
         auto constraints = constraintSet->getConstraintsByType(Constraint::Type::SLIDE);
         for (const auto& constraint : constraints) {
             shared_ptr<SlideContact> slide = dynamic_pointer_cast<SlideContact>(constraint);
-            shared_ptr<CellGroup> masterCellGroup = mesh->createCellGroup("SLIDE_M_"+to_string(slide->getOriginalId()));
-            shared_ptr<CellGroup> slaveCellGroup = mesh->createCellGroup("SLIDE_S_"+to_string(slide->getOriginalId()));
+            shared_ptr<CellGroup> masterCellGroup = mesh->createCellGroup("SLIDE_M_"+to_string(slide->getOriginalId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySegments() for the master in a SLIDE contact");
+            shared_ptr<CellGroup> slaveCellGroup = mesh->createCellGroup("SLIDE_S_"+to_string(slide->getOriginalId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySegments() for the slave in a SLIDE contact");
             shared_ptr<BoundaryNodeLine> masterNodeLine = dynamic_pointer_cast<BoundaryNodeLine>(this->find(slide->master));
             const list<int>& masterNodeIds = masterNodeLine->nodeids;
             auto it = masterNodeIds.begin();
@@ -1956,8 +1974,8 @@ void Model::makeBoundarySurfaces() {
         auto constraints = constraintSet->getConstraintsByType(Constraint::Type::SURFACE_CONTACT);
         for (const auto& constraint : constraints) {
             shared_ptr<SurfaceContact> surface = dynamic_pointer_cast<SurfaceContact>(constraint);
-            shared_ptr<CellGroup> masterCellGroup = mesh->createCellGroup("SURFCONT_M_"+to_string(surface->getOriginalId()));
-            shared_ptr<CellGroup> slaveCellGroup = mesh->createCellGroup("SURFCONT_S_"+to_string(surface->getOriginalId()));
+            shared_ptr<CellGroup> masterCellGroup = mesh->createCellGroup("SURFCONT_M_"+to_string(surface->getOriginalId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySurfaces() for the master in a SURFACE_CONTACT");
+            shared_ptr<CellGroup> slaveCellGroup = mesh->createCellGroup("SURFCONT_S_"+to_string(surface->getOriginalId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySurfaces() for the master in a SURFACE_CONTACT");
             shared_ptr<BoundaryNodeSurface> slaveNodeSurface = dynamic_pointer_cast<BoundaryNodeSurface>(this->find(surface->slave));
             if (slaveNodeSurface == nullptr) {
                 throw logic_error("Cannot find master node list");

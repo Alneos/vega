@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE( prob6 ) {
 }
 
 //BOOST_AUTO_TEST_CASE( bigtest ) {
-//	CommandLineUtils::optistructStudy2Aster("/../../../../../local/tmp/bigtest.fem", RUN_ASTER, true, 0.03);
+//	CommandLineUtils::optistructStudy2Aster("/../../../../tmp/bigtest.fem", RUN_ASTER, true, 0.03);
 //}
 
 //BOOST_AUTO_TEST_CASE( ploads ) {

@@ -348,7 +348,7 @@ public:
      * different for each of the four faces of a CTETRA element. </p>
      */
 
-    std::vector<int> faceids_from_two_nodes(int nodeId1, int nodeId2 = INT_MIN) const;
+    std::vector<int> faceids_from_two_nodes(int nodeId1, int nodeId2 = Globals::UNAVAILABLE_INT) const;
 
     /**
      * Returns the name used in med file for this cell
