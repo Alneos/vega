@@ -82,6 +82,10 @@ public:
     bool contains(const Reference<ConstraintSet>) const;
     bool contains(const Reference<Objective>) const;
 
+    bool contains(const LoadSet::Type) const;
+    bool contains(const ConstraintSet::Type) const;
+    bool contains(const Objective::Type) const;
+
     void remove(const Reference<LoadSet>);
     void remove(const Reference<ConstraintSet>);
     void remove(const Reference<Objective>);
@@ -102,7 +106,6 @@ public:
     const std::vector<std::shared_ptr<BoundaryCondition>> getBoundaryConditions() const;
     const std::vector<std::shared_ptr<Assertion>> getAssertions() const;
 
-
     /**
      * Return true if the analysis has at least one SPC (or equivalent SPCD, MPCD, etc)
      * ConstraintSet or Constraint. Check both common and specific ConstraintSet.
@@ -118,6 +121,9 @@ public:
     virtual bool isStatic() const {
         return false;
     }
+    virtual bool isLinear() const {
+        return false;
+    }
     bool validate() const override;
     std::map<std::string, std::string> to_map() const;
 
@@ -129,6 +135,9 @@ class LinearMecaStat: public Analysis {
 public:
     LinearMecaStat(Model& model, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     bool isStatic() const override {
+        return true;
+    }
+    bool isLinear() const override {
         return true;
     }
     std::shared_ptr<Analysis> clone() const;
@@ -160,6 +169,9 @@ public:
     std::shared_ptr<Analysis> clone() const;
     bool use_power_iteration = false;
     bool validate() const override;
+    bool isLinear() const override {
+        return true;
+    }
 };
 
 /**

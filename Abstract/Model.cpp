@@ -73,6 +73,17 @@ const vector<shared_ptr<T>> Model::Container<T>::filter(const typename T::Type t
     return result;
 }
 
+template<class T>
+bool Model::Container<T>::contains(const typename T::Type type) const {
+    for (const auto& id_obj_pair: by_id) {
+        if (id_obj_pair.second->type == type) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
 /*
  * Redefining method add for Value to take into account placeHolder
  */
@@ -2032,6 +2043,12 @@ void Model::addAutoAnalysis() {
             this->add(analysis);
             linearStatic = false;
         }
+    } else if (constraintSets.contains(ConstraintSet::Type::CONTACT)) {
+        NonLinearStrategy nonLinearStrategy(*this, 1);
+        this->add(nonLinearStrategy);
+        NonLinearMecaStat analysis(*this, nonLinearStrategy.getOriginalId());
+        this->add(analysis);
+        linearStatic = false;
     }
     auto& modalStrategies = objectives.filter(Objective::Type::FREQUENCY_TARGET);
     if (modalStrategies.size() >= 1) {
@@ -2065,6 +2082,26 @@ void Model::finish() {
 
     if (this->configuration.autoDetectAnalysis and analyses.size() == 0) {
         addAutoAnalysis();
+    } else {
+        for (shared_ptr<Analysis> analysis : analyses) {
+            if (analysis->isLinear() and analysis->isStatic() and analysis->contains(ConstraintSet::Type::CONTACT)) {
+                NonLinearStrategy nonLinearStrategy(*this, 1);
+                this->add(nonLinearStrategy);
+                NonLinearMecaStat nonLinAnalysis(*this, nonLinearStrategy.getOriginalId());
+                for(const auto& loadSet : analysis->getLoadSets()) {
+                    nonLinAnalysis.add(loadSet->getReference());
+                }
+                for(const auto& constraintSet : analysis->getConstraintSets()) {
+                    nonLinAnalysis.add(constraintSet->getReference());
+                }
+                for(const auto& assertion : analysis->getAssertions()) {
+                    nonLinAnalysis.add(assertion->getReference());
+                }
+                this->add(nonLinAnalysis);
+
+                this->analyses.erase(analysis->getReference());
+            }
+        }
     }
 
     for (shared_ptr<Analysis> analysis : analyses) {

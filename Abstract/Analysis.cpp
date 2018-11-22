@@ -164,6 +164,34 @@ bool Analysis::contains(const Reference<Objective> reference) const {
     return false;
 }
 
+bool Analysis::contains(const LoadSet::Type type) const {
+    for (auto loadset_ref_ptr : loadSet_references) {
+        if (type == loadset_ref_ptr->type) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Analysis::contains(const ConstraintSet::Type type) const {
+    for (auto constraintset_ref_ptr : constraintSet_references) {
+        if (type == constraintset_ref_ptr->type) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Analysis::contains(const Objective::Type type) const {
+    for (auto assertion_ref_ptr : objectiveReferences) {
+        if (type == assertion_ref_ptr->type) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
 const vector<shared_ptr<ConstraintSet>> Analysis::getConstraintSets() const {
     vector<shared_ptr<ConstraintSet>> result;
     shared_ptr<ConstraintSet> commonConstraintSet = model.find(
