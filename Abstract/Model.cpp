@@ -137,7 +137,7 @@ shared_ptr<T> Model::Container<T>::find(const Reference<T>& reference) const {
             t = it->second;
         }
     } else {
-        assert(false);
+        throw logic_error("Reference is not valid:" + to_str(reference));
     }
 
     return t;
@@ -819,15 +819,6 @@ void Model::generateSkin() {
     oss << "created by generateSkin() because of FORCE_SURFACE or BOUNDARY_ELEMENTFACE or ...";
     shared_ptr<CellGroup> mappl = mesh->createCellGroup("VEGASKIN", Group::NO_ORIGINAL_ID, oss.str());
 
-    if (this->configuration.addSkinToModel) {
-        // LD : Workaround for Aster problem : MODELISA6_96
-        //  les 1 mailles imprimées ci-dessus n'appartiennent pas au modèle et pourtant elles ont été affectées dans le mot-clé facteur : !
-        //   ! FORCE_FACE
-        Continuum continuum(*this, this->modelType);
-        continuum.assignCellGroup(mappl);
-        this->add(continuum);
-    }
-
     for (auto it = loadings.begin(); it != loadings.end(); it++) {
         shared_ptr<Loading> loadingPtr = *it;
         if (loadingPtr->applicationType == Loading::ApplicationType::ELEMENT) {
@@ -874,6 +865,15 @@ void Model::generateSkin() {
                 }
             }
         }
+    }
+
+    if (this->configuration.addSkinToModel) {
+        // LD : Workaround for Aster problem : MODELISA6_96
+        //  les 1 mailles imprimées ci-dessus n'appartiennent pas au modèle et pourtant elles ont été affectées dans le mot-clé facteur : !
+        //   ! FORCE_FACE
+        Continuum continuum(*this, this->modelType);
+        continuum.assignCellGroup(mappl);
+        this->add(continuum);
     }
 
 }
@@ -2043,12 +2043,12 @@ void Model::addAutoAnalysis() {
             this->add(analysis);
             linearStatic = false;
         }
-    } else if (constraintSets.contains(ConstraintSet::Type::CONTACT)) {
+/*    } else if (constraintSets.contains(ConstraintSet::Type::CONTACT)) {
         NonLinearStrategy nonLinearStrategy(*this, 1);
         this->add(nonLinearStrategy);
         NonLinearMecaStat analysis(*this, nonLinearStrategy.getOriginalId());
         this->add(analysis);
-        linearStatic = false;
+        linearStatic = false;*/
     }
     auto& modalStrategies = objectives.filter(Objective::Type::FREQUENCY_TARGET);
     if (modalStrategies.size() >= 1) {
@@ -2083,9 +2083,10 @@ void Model::finish() {
     if (this->configuration.autoDetectAnalysis and analyses.size() == 0) {
         addAutoAnalysis();
     } else {
+        int i = 1;
         for (shared_ptr<Analysis> analysis : analyses) {
-            if (analysis->isLinear() and analysis->isStatic() and analysis->contains(ConstraintSet::Type::CONTACT)) {
-                NonLinearStrategy nonLinearStrategy(*this, 1);
+            if (analysis->isLinear() and analysis->isStatic() and constraintSets.contains(ConstraintSet::Type::CONTACT)) {
+                NonLinearStrategy nonLinearStrategy(*this, 1, i++);
                 this->add(nonLinearStrategy);
                 NonLinearMecaStat nonLinAnalysis(*this, nonLinearStrategy.getOriginalId());
                 for(const auto& loadSet : analysis->getLoadSets()) {

@@ -114,8 +114,8 @@ void NastranParser::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model) {
     }
 }
 
-void NastranParser::addProperty(int property_id, int cell_id, shared_ptr<Model> model) {
-    shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(property_id, model);
+void NastranParser::addProperty(int property_id, int cell_id, shared_ptr<Model> model, string command) {
+    shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(property_id, model, command);
     cellGroup->addCellId(cell_id);
 }
 
@@ -192,7 +192,7 @@ void NastranParser::parseCBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
     vector<int> connectivity;
     connectivity += point1, point2;
     model->mesh->addCell(cell_id, CellType::SEG2, connectivity, false, cpos);
-    addProperty(property_id, cell_id, model);
+    addProperty(property_id, cell_id, model, "CBAR");
 }
 
 void NastranParser::parseCBEAM(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -239,7 +239,7 @@ void NastranParser::parseCBEAM(NastranTokenizer& tok, shared_ptr<Model> model) {
     connectivity += point1, point2;
 
     model->mesh->addCell(cell_id, CellType::SEG2, connectivity, false, cpos);
-    addProperty(property_id, cell_id, model);
+    addProperty(property_id, cell_id, model, "CBEAM");
 }
 
 
@@ -297,7 +297,7 @@ void NastranParser::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
         connectivity += ga, gb;
         model->mesh->addCell(eid, CellType::SEG2, connectivity, false, cpos);
     }
-    addProperty(pid, eid, model);
+    addProperty(pid, eid, model, "CBUSH");
 }
 
 
@@ -322,7 +322,7 @@ void NastranParser::parseCDAMP1(NastranTokenizer& tok, shared_ptr<Model> model) 
         cellType = CellType::SEG2;
     }
     int cellPosition= model->mesh->addCell(eid, cellType, connectivity);
-    shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model);
+    shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model, "CDAMP1");
     cellGroup->addCellId(model->mesh->findCell(cellPosition).id);
 
     // Creates or update the ElementSet defined by the PELAS key.
@@ -364,7 +364,7 @@ void NastranParser::parseCELAS1(NastranTokenizer& tok, shared_ptr<Model> model) 
         cellType = CellType::SEG2;
     }
     int cellPosition= model->mesh->addCell(eid, cellType, connectivity);
-    shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model);
+    shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model, "CELAS1");
     cellGroup->addCellId(model->mesh->findCell(cellPosition).id);
 
     // Creates or update the ElementSet defined by the PELAS key.
@@ -466,7 +466,7 @@ void NastranParser::parseElem(NastranTokenizer& tok, shared_ptr<Model> model,
             medConnect[nastran2medNodeConnect[i2]] = nastranConnect[i2];
     }
     model->mesh->addCell(cell_id, cellType, medConnect);
-    addProperty(property_id, cell_id, model);
+    addProperty(property_id, cell_id, model, cellType.description);
 }
 
 void NastranParser::parseCGAP(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -543,7 +543,7 @@ void NastranParser::parseCROD(NastranTokenizer& tok, shared_ptr<Model> model) {
     vector<int> nodeIds;
     nodeIds += point1, point2;
     model->mesh->addCell(cell_id, cellType, nodeIds);
-    addProperty(property_id, cell_id, model);
+    addProperty(property_id, cell_id, model, "CROD");
 }
 
 void NastranParser::parseCTETRA(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -659,7 +659,7 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> mode
     }
 
     model->mesh->addCell(cell_id, cellType, nodeIds);
-    addProperty(property_id, cell_id, model);
+    addProperty(property_id, cell_id, model, cellType.description);
 
 }
 

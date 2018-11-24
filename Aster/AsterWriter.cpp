@@ -380,7 +380,7 @@ void AsterWriter::writeComm(const AsterModel& asterModel, ostream& out) {
 
 void AsterWriter::writeLireMaillage(const AsterModel& asterModel, ostream& out) {
 	out << mail_name << "=LIRE_MAILLAGE(FORMAT='MED',";
-	if (asterModel.configuration.logLevel >= LogLevel::DEBUG) {
+	if (asterModel.configuration.logLevel >= LogLevel::DEBUG and asterModel.model.mesh->countNodes() < 100) {
 		out << "INFO_MED=2,VERI_MAIL=_F(VERIF='OUI',),INFO=2";
 	} else {
 		out << "VERI_MAIL=_F(VERIF='NON',),";
@@ -1638,9 +1638,9 @@ void AsterWriter::writeCellContainer(const CellContainer& cellContainer, ostream
     }
     if (cellContainer.hasCells()) {
       out << "MAILLE=(";
-      for (Cell cell : cellContainer.getCells()) {
+      for (int cellId : cellContainer.getCellIds()) {
         celem++;
-        out << "'M" << cell.id << "',";
+        out << "'" << Cell::MedName(cellId) << "',";
         if (celem % 6 == 0) {
           out << endl << "                             ";
         }
@@ -1813,12 +1813,13 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		double largeDisp = 0;
 		out << "                    COMPORTEMENT=(" << endl;
 		for (auto elementSet : asterModel.model.elementSets) {
-			if (elementSet->material && elementSet->cellGroup != nullptr) {
+			if (elementSet->material != nullptr && elementSet->cellGroup != nullptr) {
 				out << "                          _F(GROUP_MA='" << elementSet->cellGroup->getName()
 						<< "',";
 			} else {
 				out << "# WARN Skipping material id " << *elementSet << " because no assignment"
 						<< endl;
+                continue;
 			}
             const shared_ptr<Nature> hyelas = elementSet->material->findNature(
 					Nature::NatureType::NATURE_HYPERELASTIC);

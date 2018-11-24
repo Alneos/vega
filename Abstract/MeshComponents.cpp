@@ -423,7 +423,7 @@ const Node NodeIterator::next() {
 ///////////////////////////////////////////////////////////////////////////////
 /*                             Cells                                         */
 ///////////////////////////////////////////////////////////////////////////////
-int Cell::auto_cell_id = 5999999;
+int Cell::auto_cell_id = 9999999;
 
 const unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::FACE_BY_CELLTYPE =
 		init_faceByCelltype();
@@ -457,11 +457,11 @@ unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::init_fa
 	return result;
 }
 
-Cell::Cell(int id, const CellType &type, const std::vector<int> &nodeIds,
+Cell::Cell(int id, const CellType &type, const std::vector<int> &nodeIds, int position,
 		const std::vector<int> &nodePositions, bool isvirtual,
 		int cid, int element_id, int cellTypePosition,
 		std::shared_ptr<OrientationCoordinateSystem> orientation) :
-		id(id), hasOrientation(cid!=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID), type(type),
+		id(id), position(position), hasOrientation(cid!=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID), type(type),
 				nodeIds(nodeIds), nodePositions(nodePositions), isvirtual(isvirtual), elementId(
 						element_id), cellTypePosition(cellTypePosition), cid(cid), orientation(orientation) {
 }
@@ -535,7 +535,7 @@ vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
 			}
 		}
 	} else {
-		throw logic_error("FaceidfromtwoNodes not implemented for " + CellType::PENTA6.to_str() + " element type");
+		throw logic_error("FaceidfromtwoNodes not implemented for " + type.to_str() + " element type");
 	}
 	vector<int> faceConnectivity;
 	faceConnectivity.reserve(nodePositions.size());

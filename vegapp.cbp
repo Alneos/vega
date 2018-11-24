@@ -1905,6 +1905,7 @@
 		<Unit filename="testdata/nastran/irt/t01331/t01331a.inp" />
 		<Unit filename="testdata/optistruct/caw/prob6/prob6.dat" />
 		<Unit filename="testdata/optistruct/caw/prob6/prob6.f06" />
+		<Unit filename="testdata/optistruct/irt/pload4/pload4.nas" />
 		<Unit filename="testdata/unitTest/nastranparser/README.TXT" />
 		<Unit filename="testdata/unitTest/nastranparser/bush.dat" />
 		<Unit filename="testdata/unitTest/nastranparser/comments.dat" />
@@ -1914,6 +1915,7 @@
 		<Unit filename="testdata/unitTest/nastranparser/test1.nas" />
 		<Unit filename="testdata/unitTest/optistructparser/contact.nas" />
 		<Unit filename="testdata/unitTest/optistructparser/contact2.nas" />
+		<Unit filename="testdata/unitTest/optistructparser/pload4.nas" />
 		<Unit filename="testdata/unitTest/resultReaders/tut01.csv" />
 		<Extensions>
 			<envvars />

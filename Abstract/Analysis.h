@@ -105,6 +105,7 @@ public:
     const std::vector<std::shared_ptr<LoadSet>> getLoadSets() const;
     const std::vector<std::shared_ptr<BoundaryCondition>> getBoundaryConditions() const;
     const std::vector<std::shared_ptr<Assertion>> getAssertions() const;
+    const std::vector<std::shared_ptr<Objective>> getObjectives() const;
 
     /**
      * Return true if the analysis has at least one SPC (or equivalent SPCD, MPCD, etc)

@@ -138,8 +138,8 @@ void Analysis::remove(const Reference<Objective> objectiveReference) {
 }
 
 bool Analysis::contains(const Reference<LoadSet> reference) const {
-    for (auto loadset_ref_ptr : loadSet_references) {
-        if (reference == *loadset_ref_ptr) {
+    for (auto loadset : getLoadSets()) {
+        if (reference == loadset->getReference()) {
             return true;
         }
     }
@@ -147,8 +147,8 @@ bool Analysis::contains(const Reference<LoadSet> reference) const {
 }
 
 bool Analysis::contains(const Reference<ConstraintSet> reference) const {
-    for (auto constraintset_ref_ptr : constraintSet_references) {
-        if (reference == *constraintset_ref_ptr) {
+    for (auto constraintset : getConstraintSets()) {
+        if (reference == constraintset->getReference()) {
             return true;
         }
     }
@@ -156,8 +156,8 @@ bool Analysis::contains(const Reference<ConstraintSet> reference) const {
 }
 
 bool Analysis::contains(const Reference<Objective> reference) const {
-    for (auto assertion_ref_ptr : objectiveReferences) {
-        if (reference == *assertion_ref_ptr) {
+    for (auto objective: getObjectives()) {
+        if (reference == objective->getReference()) {
             return true;
         }
     }
@@ -165,8 +165,8 @@ bool Analysis::contains(const Reference<Objective> reference) const {
 }
 
 bool Analysis::contains(const LoadSet::Type type) const {
-    for (auto loadset_ref_ptr : loadSet_references) {
-        if (type == loadset_ref_ptr->type) {
+    for (auto loadset : getLoadSets()) {
+        if (type == loadset->type) {
             return true;
         }
     }
@@ -174,8 +174,8 @@ bool Analysis::contains(const LoadSet::Type type) const {
 }
 
 bool Analysis::contains(const ConstraintSet::Type type) const {
-    for (auto constraintset_ref_ptr : constraintSet_references) {
-        if (type == constraintset_ref_ptr->type) {
+    for (auto constraintset : this->getConstraintSets()) {
+        if (type == constraintset->type) {
             return true;
         }
     }
@@ -183,8 +183,8 @@ bool Analysis::contains(const ConstraintSet::Type type) const {
 }
 
 bool Analysis::contains(const Objective::Type type) const {
-    for (auto assertion_ref_ptr : objectiveReferences) {
-        if (type == assertion_ref_ptr->type) {
+    for (auto objective : this->getObjectives()) {
+        if (type == objective->type) {
             return true;
         }
     }
@@ -217,6 +217,15 @@ const vector<shared_ptr<Assertion>> Analysis::getAssertions() const {
         assertions.push_back(dynamic_pointer_cast<Assertion>(objective));
     }
     return assertions;
+}
+
+const vector<shared_ptr<Objective>> Analysis::getObjectives() const {
+    vector<shared_ptr<Objective>> objectives;
+    for (auto objective_reference : objectiveReferences) {
+        shared_ptr<Objective> objective = model.find(*objective_reference);
+        objectives.push_back(objective);
+    }
+    return objectives;
 }
 
 bool Analysis::hasSPC() const{

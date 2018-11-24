@@ -223,6 +223,9 @@ public:
     int updateCell(int id, const CellType &type, const std::vector<int> &nodesIds,
             bool virtualCell = false, const int cpos=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int elementId = Cell::UNAVAILABLE_CELL);
     int findCellPosition(int cellId) const;
+    inline int findCellId(int cellPosition) const {
+        return cells.cellDatas[cellPosition].id;
+    };
 	const Cell findCell(int cellPosition) const;
 	bool hasCell(int cellId) const;
 

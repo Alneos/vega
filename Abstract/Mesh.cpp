@@ -350,7 +350,7 @@ const Cell Mesh::findCell(int cellPosition) const {
 		nodeIds[i] = nodeData.id;
 	}
 	// Should stay as a "return unnamed" so that compiler can avoid rvalue copy
-	return Cell(cellData.id, *type, nodeIds, nodePositions, false, cellData.csPos, cellData.elementId, cellData.cellTypePosition);
+	return Cell(cellData.id, *type, nodeIds, cellPosition, nodePositions, false, cellData.csPos, cellData.elementId, cellData.cellTypePosition);
 }
 
 
@@ -432,8 +432,9 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 
 	for (auto kv : cellPositionsByType) {
 		CellType type = kv.first;
+		int code = static_cast<int>(type.code);
 		vector<int> cellPositions = kv.second;
-		size_t numCells = cellPositions.size();
+		med_int numCells = static_cast<med_int>(cellPositions.size());
 		if (type.numNodes == 0 || numCells == 0) {
 			continue;
 		}
@@ -447,32 +448,32 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 			}
 		}
 		int result = MEDmeshElementConnectivityWr(fid, meshname, MED_NO_DT,
-		MED_NO_IT, 0.0, MED_CELL, static_cast<int>(type.code), MED_NODAL, MED_FULL_INTERLACE,
-				static_cast<med_int>(numCells),
+		MED_NO_IT, 0.0, MED_CELL, code, MED_NODAL, MED_FULL_INTERLACE,
+				numCells,
 				connectivity.data());
 		if (result < 0) {
 			throw logic_error("ERROR : writing cells ...");
 		}
 
-		/*		 char* cellNames = new char[numCells*MED_SNAME_SIZE+1]();
-		 //med_int* cellNum=new med_int[numCells];
-		 CellPositionInfo cpInfo(0,code);
-		 for(int i=0; i<numCells;i++){
-		 cpInfo.cellPosition = i;
-		 //FIXME:Utterly slow
-		 const vega::Cell cell = this->findCell(&cpInfo);
-		 strncpy(cellNames+(i*MED_SNAME_SIZE),cell.getMedName().c_str(),MED_SNAME_SIZE);
-		 }
-		 result = MEDmeshEntityNameWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_CELL, code,
-		 numCells, cellNames);
-		 result = MEDmeshEntityNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_CELL, code,
-		 numCells, cellNum);
+/*		char* cellNames = new char[numCells*MED_SNAME_SIZE+1]();
+		med_int* cellNum=new med_int[numCells];
+		int i = 0;
+        for (int cellPosition : cellPositions) {
+            int cellId = findCellId(cellPosition);
+            cellNum[i] = cellId;
+            strncpy(cellNames+(i*MED_SNAME_SIZE),Cell::MedName(cellId).c_str(),MED_SNAME_SIZE);
+            ++i;
+        }
+        result = MEDmeshEntityNameWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_CELL, code,
+        numCells, cellNames);
+        delete[](cellNames);
+        result = MEDmeshEntityNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_CELL, code,
+        numCells, cellNum);
+        delete[](cellNum);*/
 
-		 delete[](cellNames);
-
-		 if (result < 0) {
-		 throw logic_error("ERROR : writing cell names ...");
-		 }*/
+        if (result < 0) {
+        throw logic_error("ERROR : writing cell names ...");
+        }
 	}
 
 	if (MEDfamilyCr(fid, meshname, MED_NO_NAME, 0, 0, MED_NO_GROUP) < 0) {

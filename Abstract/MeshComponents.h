@@ -312,12 +312,13 @@ private:
     static const std::unordered_map<CellType::Code, std::vector<std::vector<int>>, EnumClassHash > FACE_BY_CELLTYPE;
     static std::unordered_map<CellType::Code, std::vector<std::vector<int>>, EnumClassHash > init_faceByCelltype();
     static int auto_cell_id;
-    Cell(int id, const CellType &type, const std::vector<int> &nodeIds, const std::vector<int> &nodePositions, bool isvirtual,
+    Cell(int id, const CellType &type, const std::vector<int> &nodeIds, int position, const std::vector<int> &nodePositions, bool isvirtual,
             int cid, int elementId, int cellTypePosition, std::shared_ptr<OrientationCoordinateSystem> orientation = nullptr);
 public:
     static const int AUTO_ID = INT_MIN;
     static const int UNAVAILABLE_CELL = INT_MIN;
     int id;
+    int position;
     int hasOrientation;
     CellType type;
     std::vector<int> nodeIds;

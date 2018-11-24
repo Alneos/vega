@@ -760,7 +760,7 @@ private:
     /**
      *  Add the Cell to the CellGroup corresponding to the property_id (use getOrCreateCellGroup)
      */
-    void addProperty(int property_id, int cell_id, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void addProperty(int property_id, int cell_id, std::shared_ptr<Model> model, std::string command);//in NastranParser_geometry.cpp
     /**
      *  Get the Cellgroup corresponding to the property_id. If this group does not exist, it is created.
      *  The name of the group is then "COMMAND_property_id".
