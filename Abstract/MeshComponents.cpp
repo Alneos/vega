@@ -423,7 +423,7 @@ const Node NodeIterator::next() {
 ///////////////////////////////////////////////////////////////////////////////
 /*                             Cells                                         */
 ///////////////////////////////////////////////////////////////////////////////
-int Cell::auto_cell_id = 9999999;
+int Cell::auto_cell_id = 2999999;
 
 const unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::FACE_BY_CELLTYPE =
 		init_faceByCelltype();
@@ -775,6 +775,23 @@ const vector<int> CellContainer::getCellIds(bool all) const {
 		}
 	}
 	return cells;
+}
+
+const vector<int> CellContainer::getCellPositions(bool all) const {
+	vector<int> cellPositions;
+	cellPositions.reserve(cellIds.size());
+	for (int cellId : cellIds) {
+        cellPositions.push_back(mesh.findCellPosition(cellId));
+	}
+	if (all) {
+		for (string groupName : groupNames) {
+			shared_ptr<CellGroup> group = dynamic_pointer_cast<CellGroup>(mesh.findGroup(groupName));
+			if (group != nullptr) {
+				cellPositions.insert(cellPositions.end(), group->cellPositions().begin(), group->cellPositions().end());
+			}
+		}
+	}
+	return cellPositions;
 }
 
 const set<int> CellContainer::nodePositions() const {

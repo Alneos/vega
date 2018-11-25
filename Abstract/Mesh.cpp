@@ -420,15 +420,15 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 		throw logic_error("ERROR : writing nodes ...");
 	}
 
-	/*char* nodeNames = new char[nodes.countNodes()*MED_SNAME_SIZE+1]();
+/*	int nodesnum = countNodes();
+	char* nodeNames = new char[nodesnum*MED_SNAME_SIZE+1]();
 
-	 for(int i=0; i<nodes.countNodes();i++){
-	 string medName="N" +to_string(i+1);
-	 strncpy(nodeNames+(i*MED_SNAME_SIZE),medName.c_str(),MED_SNAME_SIZE);
-	 }
-	 MEDmeshEntityNameWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_NODE, MED_NONE,
-	 nodes.countNodes(), nodeNames);
-	 delete[](nodeNames);*/
+    for(int i=0; i<nodesnum;i++){
+        strncpy(nodeNames+(i*MED_SNAME_SIZE),Node::MedName(i).c_str(),MED_SNAME_SIZE);
+    }
+    MEDmeshEntityNameWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_NODE, MED_NONE,
+    nodesnum, nodeNames);
+    delete[](nodeNames);*/
 
 	for (auto kv : cellPositionsByType) {
 		CellType type = kv.first;
@@ -455,20 +455,20 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 			throw logic_error("ERROR : writing cells ...");
 		}
 
-/*		char* cellNames = new char[numCells*MED_SNAME_SIZE+1]();
+		/*char* cellNames = new char[numCells*MED_SNAME_SIZE]();
 		med_int* cellNum=new med_int[numCells];
 		int i = 0;
         for (int cellPosition : cellPositions) {
-            int cellId = findCellId(cellPosition);
-            cellNum[i] = cellId;
-            strncpy(cellNames+(i*MED_SNAME_SIZE),Cell::MedName(cellId).c_str(),MED_SNAME_SIZE);
+            //int cellId = findCellId(cellPosition);
+            //cellNum[i] = cellId;
+            cellNum[i] = cellPosition;
+            strncpy(cellNames+(i*MED_SNAME_SIZE),Cell::MedName(cellPosition).c_str(),MED_SNAME_SIZE);
             ++i;
         }
         result = MEDmeshEntityNameWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_CELL, code,
         numCells, cellNames);
         delete[](cellNames);
-        result = MEDmeshEntityNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_CELL, code,
-        numCells, cellNum);
+        result = MEDmeshEntityNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_CELL, code, numCells, cellNum);
         delete[](cellNum);*/
 
         if (result < 0) {

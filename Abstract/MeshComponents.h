@@ -491,6 +491,8 @@ public:
      */
     const std::vector<int> getCellIds(bool all = false) const;
 
+    const std::vector<int> getCellPositions(bool all = false) const;
+
     const std::set<int> nodePositions() const;
 
     bool containsCells(const CellType& cellType, bool all = false);
