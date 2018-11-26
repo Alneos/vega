@@ -71,9 +71,9 @@ esiqual:
   script:
     - cd /srv/data/BDTest_VEGA
     - ./QUALIF_VEGAOK.csh
-    - grep "Nombre de fichiers passes avec erreur :   0" /srv/data/BDTest_VEGA/BASE_DETESTS/RES_ANG/RAP_ANG/ANG_linux86_64_VEGAOK_Sysworld_V19.0-new.RAPQ
+    - 'grep "Nombre de fichiers passes avec erreur :   0" /srv/data/BDTest_VEGA/BASE_DETESTS/RES_ANG/RAP_ANG/ANG_linux86_64_VEGAOK_Sysworld_V19.0-new.RAPQ'
     - ./QUALIF_VEGANOOK.csh
-    - grep "Nombre de fichiers passes avec succes :   0" /srv/data/BDTest_VEGA/BASE_DETESTS/RES_ANG/RAP_ANG/ANG_linux86_64_VEGANOOK_Sysworld_V19.0-new.RAPQ
+    - 'grep "Nombre de fichiers passes avec succes :   0" /srv/data/BDTest_VEGA/BASE_DETESTS/RES_ANG/RAP_ANG/ANG_linux86_64_VEGANOOK_Sysworld_V19.0-new.RAPQ'
 
 nightly:
   stage: test
