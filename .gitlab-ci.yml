@@ -70,8 +70,10 @@ esiqual:
     - linux
   script:
     - cd /srv/data/BDTest_VEGA
-    - ./QUALIF_VEGA.csh
-    - grep -Vi Erreur /srv/data/BDTest_VEGA/BASE_DETESTS/REPORT/rapport_ang_linux86_64_all_all-new.txt > /dev/null
+    - ./QUALIF_VEGAOK.csh
+    - grep "Nombre de fichiers passes avec erreur :   0" /srv/data/BDTest_VEGA/BASE_DETESTS/RES_ANG/RAP_ANG/ANG_linux86_64_VEGAOK_Sysworld_V19.0-new.RAPQ
+    - ./QUALIF_VEGANOOK.csh
+    - grep "Nombre de fichiers passes avec succes :   0" /srv/data/BDTest_VEGA/BASE_DETESTS/RES_ANG/RAP_ANG/ANG_linux86_64_VEGANOOK_Sysworld_V19.0-new.RAPQ
 
 nightly:
   stage: test
@@ -84,9 +86,10 @@ nightly:
   before_script:
     - whoami
     - pwd
-    - export OUTDIR=$(date +%Y-%m-%d_%H%M)
+    - export OUTDIR=$(date +%u) #$(date +%Y-%m-%d_%H%M)
     - export PATH=$PATH:/opt/TOP/ESI/sysworld/v2018.0/GB/
     - mkdir -p /srv/data/$OUTDIR
     - ls /srv/data
   script:
     - /srv/data/vegapp -s -o /srv/data/$OUTDIR /srv/data/input/v02_K9Kgen6_simplif/original/v02_K9Kgen6_simplif.fem optistruct systus
+    - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR /srv/data/input/v02_K9Kgen6_simplif/original/v02_K9Kgen6_simplif.fem optistruct aster
