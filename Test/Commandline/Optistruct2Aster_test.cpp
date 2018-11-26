@@ -34,9 +34,9 @@ BOOST_AUTO_TEST_CASE( pload4 ) {
 	CommandLineUtils::optistructStudy2Aster("/irt/pload4/pload4.nas", false, true, 0.00001);
 }
 
-//BOOST_AUTO_TEST_CASE( bigtest ) {
-//	CommandLineUtils::optistructStudy2Aster("/../../../../tmp/bigtest.fem", false, true, 0.03);
-//}
+/*BOOST_AUTO_TEST_CASE( bigtest ) {
+	CommandLineUtils::optistructStudy2Aster("/../../../../tmp/bigtest.fem", false, true, 0.03);
+}*/
 
 } /* namespace test */
 } /* namespace vega */

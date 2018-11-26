@@ -380,7 +380,7 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 	const med_int meshdim = 3;
 	const char axisname[3 * MED_SNAME_SIZE + 1] = "x               y               z               ";
 	const char unitname[3 * MED_SNAME_SIZE + 1] = "m               m               m               ";
-	const int nnodes = this->countNodes();
+	const med_int nnodes = this->countNodes();
 	if (this->logLevel >= LogLevel::DEBUG) {
 		med_int v[3];
 		MEDlibraryNumVersion(&v[0], &v[1], &v[2]);
@@ -420,29 +420,37 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 		throw logic_error("ERROR : writing nodes ...");
 	}
 
-/*	int nodesnum = countNodes();
-	char* nodeNames = new char[nodesnum*MED_SNAME_SIZE+1]();
+/*	char* nodeNames = new char[nnodes*MED_SNAME_SIZE]();
 
-    for(int i=0; i<nodesnum;i++){
+    for(int i=0; i<nnodes;i++){
         strncpy(nodeNames+(i*MED_SNAME_SIZE),Node::MedName(i).c_str(),MED_SNAME_SIZE);
     }
+    // Problem: Le nom  existe déjà dans le répertoire de noms MAIL    .NOMNOE.
     MEDmeshEntityNameWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_NODE, MED_NONE,
-    nodesnum, nodeNames);
+    nnodes, nodeNames);
     delete[](nodeNames);*/
+
+    vector<med_int> numnoe;
+    numnoe.reserve(nnodes);
+    for(med_int i=0; i<nnodes;i++){
+        numnoe.push_back(i+1);
+    }
+    MEDmeshEntityNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_NODE, MED_NONE,nnodes, numnoe.data());
+    numnoe.clear();
 
 	for (auto kv : cellPositionsByType) {
 		CellType type = kv.first;
-		int code = static_cast<int>(type.code);
-		vector<int> cellPositions = kv.second;
+		med_int code = static_cast<med_int>(type.code);
+		vector<med_int> cellPositions = kv.second;
 		med_int numCells = static_cast<med_int>(cellPositions.size());
 		if (type.numNodes == 0 || numCells == 0) {
 			continue;
 		}
 		vector<med_int> connectivity;
 		connectivity.reserve(numCells * type.numNodes);
-		for (int cellPosition : cellPositions) {
+		for (med_int cellPosition : cellPositions) {
 			const Cell&& cell = findCell(cellPosition);
-			for (int nodePosition : cell.nodePositions) {
+			for (med_int nodePosition : cell.nodePositions) {
 				// med nodes starts at node number 1.
 				connectivity.push_back(nodePosition + 1);
 			}
@@ -454,6 +462,7 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 		if (result < 0) {
 			throw logic_error("ERROR : writing cells ...");
 		}
+		connectivity.clear();
 
 		/*char* cellNames = new char[numCells*MED_SNAME_SIZE]();
 		med_int* cellNum=new med_int[numCells];
@@ -470,6 +479,14 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
         delete[](cellNames);
         result = MEDmeshEntityNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_CELL, code, numCells, cellNum);
         delete[](cellNum);*/
+
+        vector<med_int> cellnums;
+        cellnums.reserve(numCells);
+        for (int cellPosition : cellPositions) {
+            cellnums.push_back(cellPosition+1);
+        }
+        MEDmeshEntityNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_CELL, code, numCells, cellnums.data());
+        cellnums.clear();
 
         if (result < 0) {
         throw logic_error("ERROR : writing cell names ...");

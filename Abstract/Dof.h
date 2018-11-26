@@ -67,6 +67,7 @@ private:
 	friend DOFS operator-(const DOFS lhs, const DOFS& rhs);
 	friend DOFS operator+(const DOFS lhs, const DOF& rhs);
 	friend DOFS operator-(const DOFS lhs, const DOF& rhs);
+	friend DOFS operator&(const DOFS lhs, const DOFS& rhs);
 	friend std::ostream &operator<<(std::ostream &out, const DOFS& node);
 
 	char dofsCode;
@@ -90,6 +91,7 @@ public:
 	bool containsAll(DOFS dofs) const;
 	bool containsAnyOf(DOFS dofs) const;
 	bool contains(DOF dofs) const;
+	DOFS intersection(DOFS) const;
 	VectorialValue getTranslations();
 	VectorialValue getRotations();
 
@@ -146,6 +148,7 @@ DOFS operator+(const DOFS lhs, const DOFS& rhs);
 DOFS operator-(const DOFS lhs, const DOFS& rhs);
 DOFS operator+(const DOFS lhs, const DOF& rhs);
 DOFS operator-(const DOFS lhs, const DOF& rhs);
+DOFS operator&(const DOFS lhs, const DOF& rhs);
 
 std::ostream &operator<<(std::ostream &out, const DOFS& dofs);
 std::ostream &operator<<(std::ostream &out, const DOFS::iterator& dofs_iter);

@@ -54,6 +54,7 @@ const ModelConfiguration ConfigurationParameters::getModelConfiguration() const 
         configuration.addVirtualMaterial = true;
         configuration.makeBoundaryCells = true;
         configuration.autoDetectAnalysis = true;
+        configuration.removeConstrainedImposed = true;
     } else if (this->outputSolver.getSolverName() == SolverName::SYSTUS) {
         configuration.createSkin = true;
         configuration.emulateAdditionalMass = true;

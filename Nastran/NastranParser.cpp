@@ -2851,16 +2851,16 @@ void NastranParser::parseSPCD(NastranTokenizer& tok, shared_ptr<Model> model) {
     const int g1 = tok.nextInt();
     const int c1 = tok.nextInt();
     const double d1 = tok.nextDouble();
-    int g1pos = model->mesh->findNodePosition(g1);
+    //int g1pos = model->mesh->findNodePosition(g1);
     int g2 = -1;
     int c2 = -1;
     double d2 = -1;
-    int g2pos = -1;
+    //int g2pos = -1;
     if (tok.isNextInt()) {
         g2 = tok.nextInt();
         c2 = tok.nextInt();
         d2 = tok.nextDouble();
-        g2pos = model->mesh->findNodePosition(g2);
+        //g2pos = model->mesh->findNodePosition(g2);
     }
     Reference<LoadSet> loadingSetReference(LoadSet::Type::LOAD, set_id);
     if (!model->find(loadingSetReference)) {
@@ -2868,7 +2868,7 @@ void NastranParser::parseSPCD(NastranTokenizer& tok, shared_ptr<Model> model) {
         model->add(loadingSet);
     }
 
-    for (auto analysis : model->analyses) {
+    /*for (auto analysis : model->analyses) {
         if (!analysis->contains(loadingSetReference)) {
             continue;
         }
@@ -2914,7 +2914,7 @@ void NastranParser::parseSPCD(NastranTokenizer& tok, shared_ptr<Model> model) {
                 }
             }
         }
-    }
+    }*/
 
     ImposedDisplacement spcd = ImposedDisplacement(*model, DOFS::nastranCodeToDOFS(c1), d1);
     spcd.addNodeId(g1);

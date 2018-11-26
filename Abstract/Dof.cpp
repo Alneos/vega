@@ -122,6 +122,10 @@ bool DOFS::contains(DOF dof) const {
 	return (dofsCode & static_cast<char>(dof.code)) != 0;
 }
 
+DOFS DOFS::intersection(DOFS dofs) const {
+	return DOFS(static_cast<char>(dofsCode & dofs.dofsCode));
+}
+
 DOFS::operator char() const {
 	return this->dofsCode;
 }
@@ -209,6 +213,10 @@ DOFS operator+(const DOFS lhs, const DOFS& rhs) {
 }
 DOFS operator-(const DOFS lhs, const DOFS& rhs) {
 	return DOFS(static_cast<char>(lhs.dofsCode & (~rhs.dofsCode)));
+}
+
+DOFS operator&(const DOFS lhs, const DOFS& rhs) {
+	return DOFS(static_cast<char>(lhs.dofsCode & rhs.dofsCode));
 }
 
 DOFS DOFS::combineCodes(bool dx, bool dy, bool dz, bool rx, bool ry, bool rz) {

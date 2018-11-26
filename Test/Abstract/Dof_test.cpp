@@ -85,3 +85,12 @@ BOOST_AUTO_TEST_CASE( test_differentnodes ) {
 	BOOST_CHECK(is_equal(found, expected));
 	BOOST_CHECK(!matrix.isDiagonal());
 }
+
+BOOST_AUTO_TEST_CASE( dofs_intersection ) {
+    DOFS a = DOF::DX + DOF::RY + DOF::RZ;
+    DOFS b = DOF::DX + DOF::DY + DOF::RZ;
+    DOFS expected = DOF::DX + DOF::RZ;
+    DOFS found = a.intersection(b);
+	BOOST_CHECK(is_equal(found, expected));
+	BOOST_CHECK(is_equal(a & b, expected));
+}

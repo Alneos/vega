@@ -143,6 +143,12 @@ public:
      * Select automatically the analysis (when missing) based on features in the model
      */
     bool autoDetectAnalysis = false;
+    /**
+     * Remove constraint+imposed displacements
+     * see SPC1+SPCD, in Aster it would cause ASSEMBLA_26
+     * le noeud:  N## composante:  DX  est bloqué plusieurs fois.
+     */
+    bool removeConstrainedImposed = false;
 
 };
 // TODO: THe Configuration Parameters should be much more generalized. With this,

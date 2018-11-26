@@ -354,8 +354,8 @@ public:
     /**
      * Returns the name used in med file for this cell
      */
-    inline static const std::string MedName(const int id) {
-        return "M" + std::to_string(id);
+    inline static const std::string MedName(const int position) {
+        return "M" + std::to_string(position + 1);
     }
 
     virtual ~Cell();

@@ -1441,8 +1441,7 @@ void Model::replaceDirectMatrices()
     }
 }
 
-void Model::removeRedundantSpcs()
-{
+void Model::removeRedundantSpcs() {
     for (auto analysis : this->analyses) {
         unordered_map<pair<int, DOF>, double, boost::hash<pair<int, int> > > spcvalueByNodeAndDof;
         for (const auto& constraintSet : analysis->getConstraintSets()) {
@@ -1478,7 +1477,50 @@ void Model::removeRedundantSpcs()
                     if (dofsToRemove.size() >= 1) {
                         analysis->removeSPCNodeDofs(*spc, nodePosition, dofsToRemove);
                         if (configuration.logLevel >= LogLevel::DEBUG) {
-                            cout << "Removed redundant node id : " << this->mesh->findNodeId(nodePosition)
+                            cout << "Removed redundant dofs : " << dofsToRemove << " from node id : " << this->mesh->findNodeId(nodePosition)
+                                    << " from spc : " << *spc << " for analysis : " << *analysis << endl;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void Model::removeConstrainedImposed() {
+    for (auto analysis : this->analyses) {
+        unordered_map<int, DOFS> imposedDofsByNodeId;
+        for (const auto& loadSet : analysis->getLoadSets()) {
+            const set<shared_ptr<Loading> > loads = loadSet->getLoadingsByType(
+                    Loading::Type::IMPOSED_DISPLACEMENT);
+            if (loads.size() == 0) {
+                continue;
+            }
+            for (shared_ptr<Loading> load : loads) {
+                shared_ptr<ImposedDisplacement> impo = dynamic_pointer_cast<ImposedDisplacement>(
+                        load);
+                for (int nodePosition : impo->nodePositions()) {
+                    imposedDofsByNodeId[nodePosition] = impo->getDOFSForNode(nodePosition);
+                }
+            }
+        }
+        for (const auto& constraintSet : analysis->getConstraintSets()) {
+            const set<shared_ptr<Constraint> > spcs = constraintSet->getConstraintsByType(
+                    Constraint::Type::SPC);
+            if (spcs.size() == 0) {
+                continue;
+            }
+            for (shared_ptr<Constraint> constraint : spcs) {
+                shared_ptr<SinglePointConstraint> spc = dynamic_pointer_cast<SinglePointConstraint>(
+                        constraint);
+                for (int nodePosition : spc->nodePositions()) {
+                    DOFS imposedDofs = imposedDofsByNodeId[nodePosition];
+                    DOFS blockedDofs = spc->getDOFSForNode(nodePosition);
+                    DOFS dofsToRemove = imposedDofs.intersection(blockedDofs);
+                    if (dofsToRemove.size() >= 1) {
+                        analysis->removeSPCNodeDofs(*spc, nodePosition, dofsToRemove);
+                        if (configuration.logLevel >= LogLevel::DEBUG) {
+                            cout << "Removed imposed dofs : " << dofsToRemove << " from node id : " << this->mesh->findNodeId(nodePosition)
                                     << " from spc : " << *spc << " for analysis : " << *analysis << endl;
                         }
                     }
@@ -2043,12 +2085,6 @@ void Model::addAutoAnalysis() {
             this->add(analysis);
             linearStatic = false;
         }
-/*    } else if (constraintSets.contains(ConstraintSet::Type::CONTACT)) {
-        NonLinearStrategy nonLinearStrategy(*this, 1);
-        this->add(nonLinearStrategy);
-        NonLinearMecaStat analysis(*this, nonLinearStrategy.getOriginalId());
-        this->add(analysis);
-        linearStatic = false;*/
     }
     auto& modalStrategies = objectives.filter(Objective::Type::FREQUENCY_TARGET);
     if (modalStrategies.size() >= 1) {
@@ -2146,6 +2182,10 @@ void Model::finish() {
 
     if (this->configuration.removeRedundantSpcs) {
         removeRedundantSpcs();
+    }
+
+    if (this->configuration.removeConstrainedImposed) {
+        removeConstrainedImposed();
     }
 
     if (this->configuration.removeIneffectives) {

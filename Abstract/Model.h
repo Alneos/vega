@@ -109,6 +109,14 @@ private:
      * Automatically add the analysis when missing
      */
     void addAutoAnalysis();
+
+    /**
+     * Remove constraints if an imposed displacement is also present
+     * Nastran (and Systus): SPC1+SPCD, Aster ASSEMBLA_26
+     * "le noeud:  composante:  est bloqué plusieurs fois."
+     */
+    void removeConstrainedImposed();
+
     /**
      * Get a non rigid material (virtual)
      */
