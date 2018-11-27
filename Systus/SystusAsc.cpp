@@ -184,6 +184,18 @@ std::ostream& operator<<(std::ostream& os, const SystusSubOption & ssO){
     return os;
 }
 
+double initSystusAscConstraintVector(std::vector<double> & vec){
+
+    vec.clear();
+    vec.push_back(4);
+    vec.push_back(0);
+    vec.push_back(0);
+    vec.push_back(0);
+    vec.push_back(0);
+    vec.push_back(0);
+    return 0.0;
+}
+
 
 } //namespace systus
 } //namespace vega

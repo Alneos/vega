@@ -1240,9 +1240,12 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                     break;
                 }
 
+                // This loading is translated via a constraint vector.
+                case Loading::Type::IMPOSED_DISPLACEMENT:{
+                    break;
+                }
                 default: {
-                    //TODO : throw WriterException("Loading type not supported");
-                    cout << "WARNING: " << *loading << " not supported" << endl;
+                    handleWritingWarning(to_str(*loading) +" not supported.", "Loadings");
                 }
                 }
             }
@@ -1256,10 +1259,10 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
     // First available vector
     auto vectorId = vectors.size()+1;
 
-    // All analysis to do
+    // All analysis to parse
     const vector<int> analysisId = systusSubcases[idSubcase];
 
-    // Work, work
+    // We add constraints coming from ConstraintSets
     for (unsigned i = 0 ; i < analysisId.size(); i++) {
         const shared_ptr<Analysis> analysis = systusModel.model->getAnalysis(analysisId[i]);
 
@@ -1268,8 +1271,6 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
             break;
         }
 
-        // Add Loadcase Constraint Vectors
-        // TODO: Add Subcase Constraint Vectors
         for (const auto& constraintset : analysis->getConstraintSets()){
             for (const auto& constraint : constraintset->getConstraints()) {
                 vector<double> vec;
@@ -1277,16 +1278,10 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
                 switch (constraint->type) {
                 case Constraint::Type::SPC: {
                     std::shared_ptr<SinglePointConstraint> spc = std::dynamic_pointer_cast<SinglePointConstraint>(constraint);
-                    //TODO: Null vectors should be overlooked
                     if (spc->hasReferences()) {
                         handleWritingWarning(to_str(*constraint) + " with reference to functions not supported", "Constraint vectors");
                     } else {
-                        vec.push_back(4);
-                        vec.push_back(0);
-                        vec.push_back(0);
-                        vec.push_back(0);
-                        vec.push_back(0);
-                        vec.push_back(0);
+                        normvec= initSystusAscConstraintVector(vec);
                         DOFS spcDOFS = spc->getDOFSForNode(0);
                         for (DOF dof : availableDOFS){
                             double value = (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0);
@@ -1308,14 +1303,7 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
                         if (systusOption==SystusOption::CONTINUOUS){
 
                             // Rotation vector
-                            vec.clear();
-                            normvec=0.0;
-                            vec.push_back(4);
-                            vec.push_back(0);
-                            vec.push_back(0);
-                            vec.push_back(0);
-                            vec.push_back(0);
-                            vec.push_back(0);
+                            normvec=initSystusAscConstraintVector(vec);
                             for (DOF dof : DOFS::ROTATIONS){
                                 double value = (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0);
                                 normvec = max(normvec, abs(value));
@@ -1344,15 +1332,114 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
                     }
                     break;
                 }
+
+                // Nothing to be done here
                 case Constraint::Type::RIGID:
                 case Constraint::Type::RBE3:
                 case Constraint::Type::QUASI_RIGID:
                 case Constraint::Type::LMPC:{
-                    // Nothing to be done here
                     break;
                 }
                 default: {
                     handleWritingWarning(to_str(*constraint)+" not supported","Constraint vectors");
+                }
+                }
+            }
+        }
+    }
+
+
+    // Here, we compute the vectors needed for imposed displacement.
+    // We do this AFTER the constraintSet, because the imposed displacement supersedes the generic constraint vector.
+    for (unsigned i = 0 ; i < analysisId.size(); i++) {
+        const shared_ptr<Analysis> analysis = systusModel.model->getAnalysis(analysisId[i]);
+
+        if (analysis==nullptr){
+            handleWritingWarning("Wrong analysis number. Analysis dismissed", "Constraint vectors");
+            break;
+        }
+
+        // Add constraint Vectors
+        for (const auto& loadset : analysis->getLoadSets()){
+            for (const auto& loading : loadset->getLoadings()) {
+
+                switch (loading->type) {
+
+                // These loadings are translated via loading vectors
+                // Nothing to do here
+                case Loading::Type::NODAL_FORCE:
+                case Loading::Type::GRAVITY:
+                case Loading::Type::DYNAMIC_EXCITATION:{
+                    break;
+                }
+
+                // This loading is translated via a constraint vector.
+                case Loading::Type::IMPOSED_DISPLACEMENT:{
+                    shared_ptr<ImposedDisplacement> spc = dynamic_pointer_cast<ImposedDisplacement>(loading);
+                    vector<double> vec;
+                    double normvec = initSystusAscConstraintVector(vec);
+
+                    for (DOF dof : availableDOFS){
+                        double value = spc->getDoubleForDOF(dof);
+                        if (is_equal(value, Globals::UNAVAILABLE_DOUBLE)){
+                            value=0.0;
+                        }
+
+                        normvec = max(normvec, abs(value));
+                        vec.push_back(value);
+                    }
+
+                    if (!is_zero(normvec)){
+                        vectors[vectorId]=vec;
+                        for (const auto& it : localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]){
+                            for (int nodePosition : spc->nodePositions()){
+                                constraintVectorsIdByLocalLoadingByNodePosition[nodePosition][it.second].push_back(vectorId);
+                            }
+                        }
+                        vectorId++;
+                    }
+
+                    // Rigid Body Element in option 3D.
+                    // We report the constraints from the master node to the master rotational node.
+                    // Todo: factorize this part
+                    if (systusOption==SystusOption::CONTINUOUS){
+
+                        // Rotation vector
+                        normvec=initSystusAscConstraintVector(vec);
+                        for (DOF dof : DOFS::ROTATIONS){
+                            //double value = (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0);
+                            double value = spc->getDoubleForDOF(dof);
+                            if (is_equal(value, Globals::UNAVAILABLE_DOUBLE)){
+                                value=0.0;
+                            }
+                            normvec = max(normvec, abs(value));
+                            vec.push_back(value);
+                        }
+
+                        if (!is_zero(normvec)){
+                            bool firstTime=true;
+                            for (int nodePosition : spc->nodePositions()){
+                                int nid = systusModel.model->mesh->findNodeId(nodePosition);
+                                const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
+                                if (it!=rotationNodeIdByTranslationNodeId.end()){
+                                    int rotNodePosition= systusModel.model->mesh->findNodePosition(it->second);
+                                    for (const auto & it2 : localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]){
+                                        constraintVectorsIdByLocalLoadingByNodePosition[rotNodePosition][it2.second].push_back(vectorId);
+                                    }
+                                    if (firstTime){
+                                        vectors[vectorId]=vec;
+                                        vectorId++;
+                                        firstTime = false;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+
+                default: {
+                    handleWritingWarning(to_str(*loading) +" not supported.", "Constraint vectors");
                 }
                 }
             }

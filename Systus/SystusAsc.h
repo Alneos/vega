@@ -140,6 +140,15 @@ std::string SystusOptionToString(SystusOption sO, SystusSubOption ssO);
 std::ostream& operator<<(std::ostream& os, const SystusOption & sO);
 std::ostream& operator<<(std::ostream& os, const SystusSubOption & ssO);
 
+/**
+ * Initialize a vector with the header numbers that tells Systus ASC format
+ * it's a constraint vector.
+ * Return the norm of the vector, here 0.0
+ */
+double initSystusAscConstraintVector(std::vector<double> & vec);
+
+
+
 } // namespace systus
 } // namespace vega
 #endif /* SYSTUSASC_H_ */
