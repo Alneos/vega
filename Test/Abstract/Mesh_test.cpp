@@ -11,33 +11,6 @@
 using namespace std;
 using namespace vega;
 
-BOOST_AUTO_TEST_CASE( test_NodeGroup2Families )
-{
-    Mesh mesh(LogLevel::INFO, "test");
-    vector<shared_ptr<NodeGroup>> nodeGroups;
-    shared_ptr<NodeGroup> gn1 = mesh.findOrCreateNodeGroup("GN1");
-    gn1->addNodeByPosition(0);
-    gn1->addNodeByPosition(3);
-    gn1->addNodeByPosition(4);
-    nodeGroups.push_back(gn1);
-    shared_ptr<NodeGroup> gn2 = mesh.findOrCreateNodeGroup("GN2");
-    gn2->addNodeByPosition(0);
-    gn2->addNodeByPosition(1);
-    nodeGroups.push_back(gn2);
-    NodeGroup2Families ng(5, nodeGroups);
-    int expected[] = { 2, 3, 0, 1, 1, 0 };
-    vector<int> result = ng.getFamilyOnNodes();
-    BOOST_CHECK_EQUAL_COLLECTIONS(result.begin(), result.end(), expected, expected + 5);
-    vector<Family> families = ng.getFamilies();
-    BOOST_CHECK_EQUAL(static_cast<size_t>(3), families.size());
-    bool famGN1_GN2_found = false;
-    for (Family fam : families)
-    {
-        famGN1_GN2_found |= fam.name == "GN1_GN2";
-    }
-    BOOST_CHECK(famGN1_GN2_found);
-}
-
 BOOST_AUTO_TEST_CASE( test_faceIds )
 {
     vector<int> nodeIds = { 101, 102, 103, 104, 105, 106, 107, 108 };
@@ -129,46 +102,4 @@ BOOST_AUTO_TEST_CASE( test_node_iterator )
         cout << node2 << endl;
     }
     BOOST_CHECK_EQUAL(mesh.countNodes(), i);
-}
-
-BOOST_AUTO_TEST_CASE( test_CellGroup2Families )
-{
-    Mesh mesh(LogLevel::INFO, "test");
-    vector<shared_ptr<CellGroup>> cellGroups;
-    shared_ptr<CellGroup> gn1 = mesh.createCellGroup("GMA1");
-    mesh.addCell(1, CellType::TRI3, {1,2,3});
-    mesh.addCell(2, CellType::SEG2, {1,3});
-    mesh.addCell(3, CellType::TRI3, {3,4,5});
-    gn1->addCellId(1);
-    gn1->addCellId(2);
-    gn1->addCellId(3);
-    cellGroups.push_back(gn1);
-    shared_ptr<CellGroup> gn2 = mesh.createCellGroup("GMA2");
-    gn2->addCellId(1);
-    cellGroups.push_back(gn2);
-    unordered_map<CellType::Code, int, EnumClassHash> cellCountByType;
-    cellCountByType[CellType::Code::SEG2_CODE] = 3;
-    cellCountByType[CellType::Code::TRI3_CODE] = 3;
-    CellGroup2Families cg2fam(mesh, cellCountByType, cellGroups);
-    auto& result = cg2fam.getFamilyOnCells();
-
-    int expectedTri3[] = { -2, -1, 0 };
-    auto& tri3 = result.find(CellType::Code::TRI3_CODE)->second;
-    BOOST_CHECK_EQUAL_COLLECTIONS(tri3->begin(), tri3->end(), expectedTri3,
-                                  expectedTri3 + 3);
-
-    int expectedSeg2[] = { -1, 0, 0 };
-    auto& seg2 = result.find(CellType::Code::SEG2_CODE)->second;
-    BOOST_CHECK_EQUAL_COLLECTIONS(seg2->begin(), seg2->end(), expectedSeg2,
-                                  expectedSeg2 + 3);
-
-    vector<Family> families = cg2fam.getFamilies();
-    BOOST_CHECK_EQUAL(2, families.size());
-    bool famGMA1_GMA2_found = false;
-    for (Family fam : families)
-    {
-        famGMA1_GMA2_found |= fam.name == "GMA1_GMA2";
-    }
-    BOOST_CHECK(famGMA1_GMA2_found);
-
 }

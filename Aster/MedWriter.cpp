@@ -31,6 +31,128 @@ namespace aster {
 
 using namespace std;
 
+NodeGroup2Families::NodeGroup2Families(int nnodes, const vector<shared_ptr<NodeGroup>> nodeGroups) {
+	int currentFamilyId = 0;
+	unordered_map<int, int> newFamilyByOldfamily;
+	unordered_map<int, Family> familyByFamilyId;
+	if (nnodes > 0 && nodeGroups.size() > 0) {
+		this->nodes.resize(nnodes, 0);
+		for (auto& nodeGroup : nodeGroups) {
+			newFamilyByOldfamily.clear();
+			for (int nodePosition : nodeGroup->nodePositions()) {
+				int oldFamilyId = nodes[nodePosition];
+				auto newFamilyPair = newFamilyByOldfamily.find(oldFamilyId);
+				int newFamilyId;
+				if (newFamilyPair == newFamilyByOldfamily.end()) {
+					//family not found, create one
+					currentFamilyId++;
+					Family fam;
+					auto oldFamilyPair = familyByFamilyId.find(oldFamilyId);
+					if (oldFamilyPair != familyByFamilyId.end()) {
+						Family& oldFamily = oldFamilyPair->second;
+						fam.groups.insert(fam.groups.begin(), oldFamily.groups.begin(),
+								oldFamily.groups.end());
+						fam.name = oldFamily.name + "_" + nodeGroup->getName();
+						if (fam.name.length() >= MED_LNAME_SIZE) {
+							fam.name = "Family" + to_string(currentFamilyId);
+						}
+					} else {
+						fam.name = nodeGroup->getName();
+					}
+					newFamilyId = fam.num = currentFamilyId;
+					fam.groups.push_back(nodeGroup);
+					newFamilyByOldfamily.insert(make_pair(oldFamilyId, currentFamilyId));
+					familyByFamilyId.insert(make_pair(currentFamilyId, fam));
+				} else {
+					newFamilyId = newFamilyPair->second;
+				}
+				nodes[nodePosition] = newFamilyId;
+			}
+		}
+	}
+	set<int> familiesInUse(nodes.begin(), nodes.end());
+	for (int fam_id : familiesInUse) {
+		if (fam_id != 0) {
+			families.push_back(familyByFamilyId[fam_id]);
+		}
+	}
+}
+
+const vector<Family>& NodeGroup2Families::getFamilies() const {
+	return this->families;
+}
+
+const vector<int>& NodeGroup2Families::getFamilyOnNodes() const {
+	return this->nodes;
+}
+
+CellGroup2Families::CellGroup2Families(
+		const Mesh& mesh, unordered_map<CellType::Code, int, EnumClassHash> cellCountByType,
+		const vector<shared_ptr<CellGroup>>& cellGroups) : mesh(mesh) {
+	int currentFamilyId = 0;
+	unordered_map<int, int> newFamilyByOldfamily;
+	unordered_map<int, Family> familyByFamilyId;
+	for (auto& cellCountByTypePair : cellCountByType) {
+		shared_ptr<vector<int>> cells = make_shared<vector<int>>();
+		cells->resize(cellCountByTypePair.second, 0);
+		cellFamiliesByType[cellCountByTypePair.first] = cells;
+	}
+
+	for (auto& cellGroup : cellGroups) {
+		newFamilyByOldfamily.clear();
+		for (auto cellPosition : cellGroup->cellPositions()) {
+			const Cell&& cell = mesh.findCell(cellPosition);
+			shared_ptr<vector<int>> currentCellFamilies = cellFamiliesByType[cell.type.code];
+			int oldFamilyId = currentCellFamilies->at(cell.cellTypePosition);
+			auto newFamilyPair = newFamilyByOldfamily.find(oldFamilyId);
+			int newFamilyId;
+			if (newFamilyPair == newFamilyByOldfamily.end()) {
+				//family not found, create one
+				currentFamilyId--;
+				Family fam;
+				auto oldFamilyPair = familyByFamilyId.find(oldFamilyId);
+				if (oldFamilyPair != familyByFamilyId.end()) {
+					Family& oldFamily = oldFamilyPair->second;
+					fam.groups.insert(fam.groups.begin(), oldFamily.groups.begin(),
+							oldFamily.groups.end());
+					fam.name = oldFamily.name + "_" + cellGroup->getName();
+					if (fam.name.length() >= MED_LNAME_SIZE) {
+						fam.name = "CELLFamily" + to_string(-currentFamilyId);
+					}
+				} else {
+					fam.name = cellGroup->getName();
+				}
+				newFamilyId = fam.num = currentFamilyId;
+				fam.groups.push_back(cellGroup);
+				newFamilyByOldfamily[oldFamilyId] = currentFamilyId;
+				familyByFamilyId[currentFamilyId] = fam;
+			} else {
+				newFamilyId = newFamilyPair->second;
+			}
+			currentCellFamilies->at(cell.cellTypePosition) = newFamilyId;
+		}
+	}
+
+	set<int> familiesInUse;
+	for (auto cellFamilyAndTypePair : cellFamiliesByType) {
+		familiesInUse.insert(cellFamilyAndTypePair.second->begin(),
+				cellFamilyAndTypePair.second->end());
+	}
+	for (int fam_id : familiesInUse) {
+		if (fam_id != 0) {
+			families.push_back(familyByFamilyId[fam_id]);
+		}
+	}
+}
+
+const vector<Family>& CellGroup2Families::getFamilies() const {
+	return this->families;
+}
+
+const unordered_map<CellType::Code, shared_ptr<vector<int>>, EnumClassHash>& CellGroup2Families::getFamilyOnCells() const {
+	return this->cellFamiliesByType;
+}
+
 MedWriter::MedWriter() {
 
 }

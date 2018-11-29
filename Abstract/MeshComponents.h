@@ -37,15 +37,17 @@
 // Avoid tons of warnings with root code
 #pragma GCC system_header
 #endif
-#define MESGERR 1
-#include <med.h>
 
 // Add specific elements not already defined by MED
 // EVERY NUMBER MUST BE UNIQUE !
-typedef enum {MED_SEG5=105, MED_POLY3=1303, MED_POLY4=1304
-    , MED_POLY5=1305, MED_POLY6=1306, MED_POLY7=1307, MED_POLY8=1308, MED_POLY9=1309, MED_POLY10=1310
-    , MED_POLY11=1311, MED_POLY12=1312, MED_POLY13=1313, MED_POLY14=1314, MED_POLY15=1315, MED_POLY16=1316
-    , MED_POLY17=1317, MED_POLY18=1318, MED_POLY19=1319, MED_POLY20=1320} vega_med_geometrie_element;
+typedef enum {MED_POINT1=1, //
+              MED_SEG2 = 102, MED_SEG3 = 103, MED_SEG4 = 104, MED_SEG5=105, //
+              MED_TRIA3 = 203, MED_QUAD4 = 204, MED_TRIA6 = 206, MED_TRIA7 = 207, MED_QUAD8 = 208, MED_QUAD9 = 209, //
+              MED_TETRA4 = 304, MED_PYRA5 = 305, MED_PENTA6 = 306, MED_HEXA8 = 308, MED_TETRA10 = 310, MED_OCTA12 = 312, MED_PYRA13 = 313, MED_PENTA15 = 315, MED_HEXA20 = 320, MED_HEXA27 = 327, //
+              MED_POLYGON = 400, MED_POLYGON2 = 420, MED_POLYHEDRON = 500,//
+              MED_POLY3=1303, MED_POLY4=1304, MED_POLY5=1305, MED_POLY6=1306, MED_POLY7=1307, MED_POLY8=1308, MED_POLY9=1309,
+              MED_POLY10=1310, MED_POLY11=1311, MED_POLY12=1312, MED_POLY13=1313, MED_POLY14=1314, MED_POLY15=1315, MED_POLY16=1316,
+              MED_POLY17=1317, MED_POLY18=1318, MED_POLY19=1319, MED_POLY20=1320} vega_med_geometrie_element;
 
 namespace vega {
 
@@ -510,33 +512,6 @@ public:
     const std::vector<std::shared_ptr<CellGroup>> getCellGroups() const;
     virtual ~CellContainer() {
     }
-};
-
-struct Family final {
-    std::vector<std::shared_ptr<Group>> groups;
-    std::string name;
-    int num;
-};
-
-class NodeGroup2Families {
-    std::vector<Family> families;
-    std::vector<int> nodes;
-public:
-    NodeGroup2Families(int nnodes, const std::vector<std::shared_ptr<NodeGroup>> nodeGroups);
-    const std::vector<Family>& getFamilies() const;
-    const std::vector<int>& getFamilyOnNodes() const;
-};
-
-class CellGroup2Families final {
-private:
-    std::vector<Family> families;
-    std::unordered_map<CellType::Code, std::shared_ptr<std::vector<int>>, EnumClassHash> cellFamiliesByType;
-    const Mesh& mesh;
-public:
-    CellGroup2Families(const Mesh& mesh, std::unordered_map<CellType::Code, int, EnumClassHash> cellCountByType,
-            const std::vector<std::shared_ptr<CellGroup>>& cellGroups);
-    const std::vector<Family>& getFamilies() const;
-    const std::unordered_map<CellType::Code, std::shared_ptr<std::vector<int>>, EnumClassHash>& getFamilyOnCells() const;
 };
 
 } /* namespace vega */

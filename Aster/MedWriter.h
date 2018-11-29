@@ -26,7 +26,6 @@
 #define MEDWRITER_H_
 
 #include "../Abstract/ConfigurationParameters.h"
-#include "../Abstract/MeshComponents.h"
 #include "../Abstract/Mesh.h"
 #include <med.h>
 #define MESGERR 1
@@ -34,6 +33,34 @@
 namespace vega {
 
 namespace aster {
+
+struct Family final {
+    std::vector<std::shared_ptr<Group>> groups;
+    std::string name;
+    int num;
+};
+
+class NodeGroup2Families {
+    std::vector<Family> families;
+    std::vector<int> nodes;
+public:
+    NodeGroup2Families(int nnodes, const std::vector<std::shared_ptr<NodeGroup>> nodeGroups);
+    const std::vector<Family>& getFamilies() const;
+    const std::vector<int>& getFamilyOnNodes() const;
+};
+
+class CellGroup2Families final {
+private:
+    std::vector<Family> families;
+    std::unordered_map<CellType::Code, std::shared_ptr<std::vector<int>>, EnumClassHash> cellFamiliesByType;
+    const Mesh& mesh;
+public:
+    CellGroup2Families(const Mesh& mesh, std::unordered_map<CellType::Code, int, EnumClassHash> cellCountByType,
+            const std::vector<std::shared_ptr<CellGroup>>& cellGroups);
+    const std::vector<Family>& getFamilies() const;
+    const std::unordered_map<CellType::Code, std::shared_ptr<std::vector<int>>, EnumClassHash>& getFamilyOnCells() const;
+};
+
 
 class MedWriter {
 private:
