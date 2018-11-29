@@ -981,7 +981,7 @@ void Model::emulateAdditionalMass() {
             vector<Cell> cells = elementSet->cellGroup->getCells();
             for (auto cell : cells) {
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, cell.type, cell.nodeIds, cell.isvirtual,
-                        cell.cid, cell.elementId);
+                        cell.cspos, cell.elementId);
                 newCellGroup->addCellId(mesh->findCell(cellPosition).id);
             }
         }

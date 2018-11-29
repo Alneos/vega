@@ -105,6 +105,10 @@ BOOST_AUTO_TEST_CASE( nas103prob5 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/nas103prob5/nas103prob5.nas", RUN_ASTER, true, 0.005);
 }
 
+BOOST_AUTO_TEST_CASE( bugcoords ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/bug-coord/bug-coord.nas", RUN_ASTER, true, 0.00001);
+}
+
 //BOOST_AUTO_TEST_CASE( prob24 ) {
 //	CommandLineUtils::nastranStudy2Aster("/caw/prob24/prob24.dat", RUN_ASTER, true, 0.05);
 //}

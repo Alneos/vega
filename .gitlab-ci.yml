@@ -69,7 +69,7 @@ esiqual:
     - irt
     - linux
   script:
-    - source /opt/TOP/ESI/topazerc
+    - exec /opt/TOP/ESI/topazewrapper.csh
     - cd /srv/data/BDTest_VEGA
     - ./QUALIF_VEGAOK.csh
     - 'grep "Nombre de fichiers passes avec erreur :   0" /srv/data/BDTest_VEGA/BASE_DETESTS/RES_ANG/RAP_ANG/ANG_linux86_64_VEGAOK_Sysworld_V19.0-new.RAPQ'
@@ -93,4 +93,4 @@ nightly:
     - ls /srv/data
   script:
     - /srv/data/vegapp -s -o /srv/data/$OUTDIR/systus /srv/data/input/v02_K9Kgen6_simplif/original/v02_K9Kgen6_simplif.fem optistruct systus
-    - /srv/data/vegapp -s -o /srv/data/$OUTDIR/aster /srv/data/input/v02_K9Kgen6_simplif/original/v02_K9Kgen6_simplif.fem optistruct aster
+    - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/aster /srv/data/input/v02_K9Kgen6_simplif/original/v02_K9Kgen6_simplif.fem optistruct aster

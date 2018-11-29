@@ -302,7 +302,7 @@ void NastranWriter::writeLoadings(const shared_ptr<vega::Model>& model, ofstream
 				Line grav("GRAV");
 				grav.add(loadingSet->bestId());
 				if (gravity->hasCoordinateSystem()) {
-					grav.add(gravity->coordinate_system_id);
+					throw logic_error("Coordinate System ID writing not yet implemented");
 				} else {
 					grav.add(0);
 				}
@@ -336,7 +336,7 @@ void NastranWriter::writeLoadings(const shared_ptr<vega::Model>& model, ofstream
 				pload4.add(forceSurface->getApplicationFace()[0]);
 				pload4.add(forceSurface->getApplicationFace()[2]);
 				if (forceSurface->hasCoordinateSystem()) {
-					shared_ptr<CoordinateSystem> coordinateSystem = model->mesh->getCoordinateSystem(forceSurface->coordinate_system_id);
+					shared_ptr<CoordinateSystem> coordinateSystem = model->mesh->findCoordinateSystemByPosition(forceSurface->cspos);
 					pload4.add(coordinateSystem->bestId());
 					pload4.add(coordinateSystem->vectorToGlobal(forceSurface->getForce().normalized()));
 				} else {

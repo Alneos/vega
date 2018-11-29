@@ -50,5 +50,9 @@ BOOST_AUTO_TEST_CASE( cbush ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/probA/probA.bdf", RUN_SYSTUS, true, 0.05);
 }
 
+BOOST_AUTO_TEST_CASE( bugcoords ) {
+	CommandLineUtils::nastranStudy2Systus("/irt/bug-coord/bug-coord.nas", false, true, 0.00001);
+}
+
 } /* namespace test */
 } /* namespace vega */

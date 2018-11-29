@@ -942,7 +942,8 @@ void NastranParser::parseCORD2R(NastranTokenizer& tok, shared_ptr<Model> model) 
     VectorialValue ex = (vect[2] - vect[0]).orthonormalized(ez);
     VectorialValue ey = ez.cross(ex);
 
-    CartesianCoordinateSystem coordinateSystem(*(model->mesh), vect[0], ex, ey, rid, cid);
+    int rpos = model->mesh->findOrReserveCoordinateSystem(rid);
+    CartesianCoordinateSystem coordinateSystem(*(model->mesh), vect[0], ex, ey, rpos, cid);
     model->mesh->add(coordinateSystem);
 }
 
@@ -1213,14 +1214,15 @@ void NastranParser::parseFORCE(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     int loadset_id = tok.nextInt();
     int node_id = tok.nextInt();
-    int coordinate_system_id = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+    int csid = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+    int cspos = model->mesh->findOrReserveCoordinateSystem(csid);
     double force = tok.nextDouble(true,0.0);
     double fx = tok.nextDouble(true,0.0) * force;
     double fy = tok.nextDouble(true,0.0) * force;
     double fz = tok.nextDouble(true,0.0) * force;
 
     NodalForce force1(*model, fx, fy, fz, 0., 0., 0., Loading::NO_ORIGINAL_ID,
-            coordinate_system_id);
+            cspos);
     force1.addNodeId(node_id);
 
     model->add(force1);
@@ -1315,8 +1317,8 @@ void NastranParser::parseFREQ4(NastranTokenizer& tok, shared_ptr<Model> model) {
 
 void NastranParser::parseGRAV(NastranTokenizer& tok, shared_ptr<Model> model) {
     int sid = tok.nextInt();
-    int coordinate_system_id = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-    if (coordinate_system_id != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+    int csid = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+    if (csid != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
         string message = "CoordinateSystem not supported.";
         handleParsingWarning(message, tok, model);
     }
@@ -1547,8 +1549,8 @@ void NastranParser::parseMATS1(NastranTokenizer& tok, shared_ptr<Model> model) {
 void NastranParser::parseMOMENT(NastranTokenizer& tok, shared_ptr<Model> model) {
     int loadset_id = tok.nextInt();
     int node_id = tok.nextInt();
-    int coordinate_system_id = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-    if (coordinate_system_id != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+    int csid = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+    if (csid != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
         handleParsingWarning("MOMENT coordinate system not supported", tok, model);
     }
     double scale = tok.nextDouble(true);
@@ -2538,9 +2540,9 @@ void NastranParser::parseRFORCE(NastranTokenizer& tok, shared_ptr<Model> model) 
     // RFORCE  2       1               200.    0.0     0.0     1.0     2
     int sid = tok.nextInt();
     int g = tok.nextInt();
-    int coordinate_system_id = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-    if (coordinate_system_id != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-        coordinate_system_id = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
+    int csid = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+    if (csid != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+        csid = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
         string message = "CoordinateSystem not supported and taken as 0.";
         handleParsingWarning(message, tok, model);
     }

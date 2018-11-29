@@ -1871,6 +1871,7 @@
 		<Unit filename="testdata/nastran/irt/appd/appd.f06" />
 		<Unit filename="testdata/nastran/irt/appd/appd.nas" />
 		<Unit filename="testdata/nastran/irt/appd/readme.txt" />
+		<Unit filename="testdata/nastran/irt/bug-coord/bug-coord.nas" />
 		<Unit filename="testdata/nastran/irt/cbush/cbush.f06" />
 		<Unit filename="testdata/nastran/irt/cbush/cbush.inp" />
 		<Unit filename="testdata/nastran/irt/cbush/readme.txt" />

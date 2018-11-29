@@ -40,6 +40,7 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
     friend std::ostream& operator<<(std::ostream&, const CoordinateSystem&);
     public:
     static constexpr int GLOBAL_COORDINATE_SYSTEM_ID = 0;
+    //static const Reference<CoordinateSystem> GLOBAL_COORDINATE_SYSTEM;
     enum class Type {
         CARTESIAN,
         CYLINDRICAL,
@@ -56,9 +57,9 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
     VectorialValue origin; /** local origin */
     VectorialValue ex; /** local X axis */
     VectorialValue ey; /** local Y axis */
-    const int rcs; /** Identification number of a coordinate system that is defined independently from this coordinate system. */
+    const int rcsPos; /** Identification number of a coordinate system that is defined independently from this coordinate system. */
     VectorialValue ez; /** internally computed as cross product of ex and ey */
-    bool isVirtual=false;
+    bool isVirtual = false;
     std::vector<int> nodesId;
     boost::numeric::ublas::matrix<double> inverseMatrix;
 
@@ -72,7 +73,7 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
 
     protected:
     CoordinateSystem(const Mesh&, Type, const VectorialValue origin, const VectorialValue ex,
-            const VectorialValue ey, const int rcs = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
+            const VectorialValue ey, const int rcsPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
     public:
     virtual void updateLocalBase(const VectorialValue&) {
     }
@@ -97,7 +98,7 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
     virtual const VectorialValue vectorToLocal(const VectorialValue&) const = 0;
     /**
      *  Compute the Euler Angles (PSI,THETA,PHI) around the axes (OZ, OY, OX)
-     *  of the reference coordinate system RCS. If no rcs is provided, the global
+     *  of the reference coordinate system RCS. If no rcsPos is provided, the global
      *  coordinate system is used.
      * TODO LD use internal RCS ?
      */
@@ -108,8 +109,8 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
 class CartesianCoordinateSystem: public CoordinateSystem {
 public:
     CartesianCoordinateSystem(const Mesh&, const VectorialValue& origin = VectorialValue::O, const VectorialValue& ex = VectorialValue::X,
-            const VectorialValue& ey = VectorialValue::Y, const int rcs = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
-    CartesianCoordinateSystem(const Mesh&, int nO, int nZ, int nXZ, const int rcs = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
+            const VectorialValue& ey = VectorialValue::Y, const int rcsPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
+    CartesianCoordinateSystem(const Mesh&, int nO, int nZ, int nXZ, const int rcsPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
 
     /**
      * Build (O, ex,ey,ez) from nodesId.
@@ -133,9 +134,9 @@ public:
 class OrientationCoordinateSystem: public CoordinateSystem {
 public:
     OrientationCoordinateSystem(const Mesh&, const int nO, const int nX,
-            const int nV, const int rcs = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
+            const int nV, const int rcsPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
     OrientationCoordinateSystem(const Mesh&, const int nO, const int nX,
-                const VectorialValue v, const int rcs = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
+                const VectorialValue v, const int rcsPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
 
 protected:
     VectorialValue v; /**< Orientation vector */
@@ -164,7 +165,7 @@ class CylindricalCoordinateSystem: public CoordinateSystem {
     VectorialValue utheta;
     public:
     CylindricalCoordinateSystem(const Mesh&, const VectorialValue origin, const VectorialValue ex,
-            const VectorialValue ey, const int rcs = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
+            const VectorialValue ey, const int rcsPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
 
     /**
      *  Compute the local cylindrical base (ur, utheta, uz) corresponding to point.
@@ -187,7 +188,7 @@ class CylindricalCoordinateSystem: public CoordinateSystem {
     /**
      *  Compute the Euler Angles (PSI,THETA,PHI) of the local base,
      *  around the axes (OZ, OY, OX) of the coordinate system RCS.
-     *  If no rcs is provided, the global coordinate system is used.
+     *  If no rcsPos is provided, the global coordinate system is used.
      */
     const VectorialValue getLocalEulerAnglesIntrinsicZYX(const CoordinateSystem *rcs = nullptr) const;
 
@@ -239,38 +240,29 @@ private:
     static constexpr int UNAVAILABLE_ID = -INT_MAX;
     static constexpr int UNAVAILABLE_POSITION = -INT_MAX;
     const LogLevel logLevel;
-    std::map<int, int> modelIdByPosition; /**< A map < Position, VEGA Id > to keep track of coordinate System. */
-    std::map<int, int> userIdByPosition;  /**< A map < Position, Original Id > to keep track of coordinate System. */
+    std::map<int, int> originalIdByPosition;  /**< A map < Position, Original Id > to keep track of coordinate System. */
 
     /**
      * Reserve a CS position given a user id (input model id).
      */
-    int reserve(int user_id);
+    int reserve(int originalId);
     const Mesh& mesh;
     CoordinateSystemStorage(const Mesh&, LogLevel logLevel);
 public:
     std::map<int, std::shared_ptr<CoordinateSystem>> coordinateSystemById;
 
     /** Find the Position related to the input user id.
-     * TODO LD : what is this ?? also look at findPositionById !!
      *  Return UNAVAILABLE_POSITION if nothing is found.
      */
-    int findPositionByUserId(int user_id) const;
-
-    /** Find the Position related to the input model id.
-     * TODO LD : what is this ?? also look at findPositionByUserId !!
-     *  Return UNAVAILABLE_POSITION if nothing is found.
-     */
-    int findPositionById(int model_id) const;
+    int findPositionByOriginalId(int originalId) const;
 
     /** Update the maps with the data (id, original_id)
      *  of this CS.
      *  Return the corresponding Position.
      */
     int add(const CoordinateSystem& coordinateSystem);
-    std::shared_ptr<CoordinateSystem> get(int csid) const;
-    int getId(int cpos) const; /**< TODO LD : what is this for? */
-    //bool validate() const;
+    std::shared_ptr<CoordinateSystem> findByPosition(int cspos) const;
+    std::shared_ptr<CoordinateSystem> findById(int csid) const;
 };
 
 

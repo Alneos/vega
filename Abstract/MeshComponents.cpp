@@ -459,11 +459,11 @@ unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::init_fa
 
 Cell::Cell(int id, const CellType &type, const std::vector<int> &nodeIds, int position,
 		const std::vector<int> &nodePositions, bool isvirtual,
-		int cid, int element_id, int cellTypePosition,
+		int cspos, int element_id, int cellTypePosition,
 		std::shared_ptr<OrientationCoordinateSystem> orientation) :
-		id(id), position(position), hasOrientation(cid!=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID), type(type),
+		id(id), position(position), hasOrientation(cspos!=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID), type(type),
 				nodeIds(nodeIds), nodePositions(nodePositions), isvirtual(isvirtual), elementId(
-						element_id), cellTypePosition(cellTypePosition), cid(cid), orientation(orientation) {
+						element_id), cellTypePosition(cellTypePosition), cspos(cspos), orientation(orientation) {
 }
 
 Cell::~Cell() {

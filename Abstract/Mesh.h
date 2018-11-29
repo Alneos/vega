@@ -124,7 +124,7 @@ private:
 	 */
 	std::map<int, std::shared_ptr<Group>> groupById;
 
-	std::shared_ptr<CellGroup> getOrCreateCellGroupForCS(const int cid);
+	std::shared_ptr<CellGroup> getOrCreateCellGroupForCS(const int cspos);
 	void createFamilies(med_idt fid, const char meshname[MED_NAME_SIZE + 1],
 			const std::vector<Family>& families);
 public:
@@ -162,7 +162,7 @@ public:
      */
     int findOrReserveCoordinateSystem(int cid);
     void add(const CoordinateSystem& coordinateSystem);
-	std::shared_ptr<CoordinateSystem> getCoordinateSystem(int cid) const; /**< Return a CoordinateSystem by its USER Id **/
+	std::shared_ptr<CoordinateSystem> findCoordinateSystemByPosition(int cspos) const;
     /**
      * Add or Find an Orientation Coordinate System in the model.
      * Return the Position of the Orientation Coordinate System.

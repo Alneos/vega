@@ -160,12 +160,14 @@ BOOST_AUTO_TEST_CASE( test_chaining_CoordinateSystem ) {
     const VectorialValue Y = VectorialValue::Y;
     const VectorialValue Z = VectorialValue::Z;
 
-    CartesianCoordinateSystem cs1(*model.mesh, O1, X, Y);
+    int csid1 = 42;
+    int rpos1 = model.mesh->findOrReserveCoordinateSystem(csid1);
+    CartesianCoordinateSystem cs1(*model.mesh, O1, X, Y, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, csid1);
     model.mesh->add(cs1);
 
     VectorialValue O2(15., 25., 35.);
 
-    CartesianCoordinateSystem cs2(*model.mesh, O2, X, Y, cs1.getId());
+    CartesianCoordinateSystem cs2(*model.mesh, O2, X, Y, rpos1);
     model.mesh->add(cs2);
 
     VectorialValue O(0., 0., 0.);

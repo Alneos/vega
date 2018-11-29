@@ -57,9 +57,9 @@ public:
 	static const std::string name;
 	static const std::map<Type, std::string> stringByType;
 	const ApplicationType applicationType;
-	const int coordinate_system_id;
+	const int cspos;
 	inline bool hasCoordinateSystem() const {
-		return coordinate_system_id
+		return cspos
 				!= CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
 	}
 	virtual std::shared_ptr<Loading> clone() const = 0;
@@ -201,7 +201,7 @@ public:
 	 * The value is assigned to all the dof present in DOFS.
 	 */
 	ImposedDisplacement(const Model& model, DOFS dofs, double value, int original_id = NO_ORIGINAL_ID,
-                     int coordinate_system_id = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+                     int cspos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
 	double getDoubleForDOF(const DOF& dof) const;
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	bool ineffective() const override;

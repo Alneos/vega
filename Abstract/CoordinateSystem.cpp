@@ -31,13 +31,14 @@ namespace vega {
 using namespace std;
 
 CoordinateSystem::CoordinateSystem(const Mesh& mesh, Type type, const VectorialValue origin,
-        const VectorialValue ex, const VectorialValue ey, const int rcs, int original_id) :
+        const VectorialValue ex, const VectorialValue ey, const int rcsPos, int original_id) :
         Identifiable(original_id), mesh(mesh), type(type), origin(origin), ex(ex.normalized()), ey(
-                ey.orthonormalized(this->ex)), rcs(rcs),  ez(this->ex.cross(this->ey)),
+                ey.orthonormalized(this->ex)), rcsPos(rcsPos),  ez(this->ex.cross(this->ey)),
                 inverseMatrix(3, 3){
 
 }
 
+//const Reference<CoordinateSystem> CoordinateSystem::GLOBAL_COORDINATE_SYSTEM{CoordinateSystem::Type::CARTESIAN, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID};
 
 const string CoordinateSystem::name = "CoordinateSystem";
 
@@ -58,7 +59,7 @@ const VectorialValue CoordinateSystem::getEulerAnglesIntrinsicZYX(const Coordina
     double ax, ay, az = 0;
     VectorialValue EX, EY, EZ;
 
-    if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
+    if (rcsPos == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
         EX= this->ex;
         EY= this->ey;
         EZ= this->ez;
@@ -87,13 +88,13 @@ const VectorialValue CoordinateSystem::getEulerAnglesIntrinsicZYX(const Coordina
 
 
 CartesianCoordinateSystem::CartesianCoordinateSystem(const Mesh& mesh,
-        const VectorialValue& origin, const VectorialValue& ex, const VectorialValue& ey, const int rcs,
+        const VectorialValue& origin, const VectorialValue& ex, const VectorialValue& ey, const int rcsPos,
         int _original_id) :
-        CoordinateSystem(mesh, CoordinateSystem::Type::CARTESIAN, origin, ex, ey, rcs, _original_id) {
+        CoordinateSystem(mesh, CoordinateSystem::Type::CARTESIAN, origin, ex, ey, rcsPos, _original_id) {
 }
 CartesianCoordinateSystem::CartesianCoordinateSystem(const Mesh& mesh,
-        int nO, int nZ, int nXZ, const int rcs, int _original_id) :
-        CoordinateSystem(mesh, CoordinateSystem::Type::CARTESIAN, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcs, _original_id){
+        int nO, int nZ, int nXZ, const int rcsPos, int _original_id) :
+        CoordinateSystem(mesh, CoordinateSystem::Type::CARTESIAN, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcsPos, _original_id){
     nodesId.push_back(nO);
     nodesId.push_back(nZ);
     nodesId.push_back(nXZ);
@@ -102,10 +103,10 @@ CartesianCoordinateSystem::CartesianCoordinateSystem(const Mesh& mesh,
 
 const VectorialValue CartesianCoordinateSystem::positionToGlobal(const VectorialValue& local) const{
     VectorialValue global = vectorToGlobal(local);
-    if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+    if (rcsPos == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
         return this->getOrigin()+ global;
     } else {
-        shared_ptr<CoordinateSystem> coordSystem = mesh.getCoordinateSystem(rcs);
+        shared_ptr<CoordinateSystem> coordSystem = mesh.findCoordinateSystemByPosition(rcsPos);
         return coordSystem->positionToGlobal(this->getOrigin())+global;
     }
 }
@@ -116,10 +117,10 @@ const VectorialValue CartesianCoordinateSystem::vectorToGlobal(const VectorialVa
     double z = local.x() * ex.z() + local.y() * ey.z() + local.z() * ez.z();
 
     VectorialValue vect = VectorialValue(x, y, z);
-    if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+    if (rcsPos == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
         return vect;
     } else {
-        shared_ptr<CoordinateSystem> coordSystem = mesh.getCoordinateSystem(rcs);
+        shared_ptr<CoordinateSystem> coordSystem = mesh.findCoordinateSystemByPosition(rcsPos);
         assert(coordSystem != nullptr);
         return coordSystem->vectorToGlobal(vect);
     }
@@ -128,10 +129,10 @@ const VectorialValue CartesianCoordinateSystem::vectorToGlobal(const VectorialVa
 const VectorialValue CartesianCoordinateSystem::vectorToLocal(const VectorialValue& global) const {
 
     VectorialValue vect;
-    if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+    if (rcsPos == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
         vect = global;
     } else {
-        shared_ptr<CoordinateSystem> coordSystem = mesh.getCoordinateSystem(rcs);
+        shared_ptr<CoordinateSystem> coordSystem = mesh.findCoordinateSystemByPosition(rcsPos);
         vect = coordSystem->vectorToLocal(global);
     }
 
@@ -176,9 +177,9 @@ void CartesianCoordinateSystem::build(){
 
 
 CylindricalCoordinateSystem::CylindricalCoordinateSystem(const Mesh& mesh,
-        const VectorialValue origin, const VectorialValue ex, const VectorialValue ey, const int rcs,
+        const VectorialValue origin, const VectorialValue ex, const VectorialValue ey, const int rcsPos,
         int original_id) :
-        CoordinateSystem(mesh, CoordinateSystem::Type::CYLINDRICAL, origin, ex, ey, rcs, original_id), ur(this->ex), utheta(
+        CoordinateSystem(mesh, CoordinateSystem::Type::CYLINDRICAL, origin, ex, ey, rcsPos, original_id), ur(this->ex), utheta(
                 this->ey) {
 }
 
@@ -198,10 +199,10 @@ const VectorialValue CylindricalCoordinateSystem::positionToGlobal(const Vectori
     double y = rcosth*ex.y() + rsinth*ey.y() + local.z()*ez.y();
     double z = rcosth*ex.z() + rsinth*ey.z() + local.z()*ez.z();
     VectorialValue position = this->getOrigin()+VectorialValue(x,y,z);
-    if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+    if (rcsPos == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
         return position;
     } else {
-        shared_ptr<CoordinateSystem> coordSystem = mesh.getCoordinateSystem(rcs);
+        shared_ptr<CoordinateSystem> coordSystem = mesh.findCoordinateSystemByPosition(rcsPos);
         return coordSystem->positionToGlobal(position);
     }
 }
@@ -212,10 +213,10 @@ const VectorialValue CylindricalCoordinateSystem::vectorToGlobal(
     double y = local.x() * ur.y() + local.y() * utheta.y() + local.z() * ez.y();
     double z = local.x() * ur.z() + local.y() * utheta.z() + local.z() * ez.z();
     VectorialValue vect = VectorialValue(x, y, z);
-    if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+    if (rcsPos == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
         return vect;
     } else {
-        shared_ptr<CoordinateSystem> coordSystem = mesh.getCoordinateSystem(rcs);
+        shared_ptr<CoordinateSystem> coordSystem = mesh.findCoordinateSystemByPosition(rcsPos);
         return coordSystem->vectorToGlobal(vect);
     }
 }
@@ -240,8 +241,8 @@ const VectorialValue CylindricalCoordinateSystem::getLocalEulerAnglesIntrinsicZY
 
 
 OrientationCoordinateSystem::OrientationCoordinateSystem(const Mesh& mesh, const int nO, const int nX,
-        const int nV, const int rcs, int original_id) :
-        CoordinateSystem(mesh, CoordinateSystem::Type::ORIENTATION, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcs, original_id){
+        const int nV, const int rcsPos, int original_id) :
+        CoordinateSystem(mesh, CoordinateSystem::Type::ORIENTATION, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcsPos, original_id){
     nodesId.push_back(nO);
     nodesId.push_back(nX);
     nodesId.push_back(nV);
@@ -249,8 +250,8 @@ OrientationCoordinateSystem::OrientationCoordinateSystem(const Mesh& mesh, const
 }
 
 OrientationCoordinateSystem::OrientationCoordinateSystem(const Mesh& mesh, const int nO, const int nX,
-        const  VectorialValue v, const int rcs, int original_id) :
-        CoordinateSystem(mesh, CoordinateSystem::Type::ORIENTATION, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcs, original_id),
+        const  VectorialValue v, const int rcsPos, int original_id) :
+        CoordinateSystem(mesh, CoordinateSystem::Type::ORIENTATION, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcsPos, original_id),
         v(v.normalized()){
     nodesId.push_back(nO);
     nodesId.push_back(nX);
@@ -326,10 +327,10 @@ const VectorialValue OrientationCoordinateSystem::positionToGlobal(const Vectori
         throw logic_error("Coordinate System is still virtual.");
     }
     VectorialValue global = vectorToGlobal(local);
-    if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+    if (rcsPos == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
         return origin + global;
     } else {
-        shared_ptr<CoordinateSystem> coordSystem = mesh.getCoordinateSystem(rcs);
+        shared_ptr<CoordinateSystem> coordSystem = mesh.findCoordinateSystemByPosition(rcsPos);
         return coordSystem->positionToGlobal(origin + global);
     }
 }
@@ -342,10 +343,10 @@ const VectorialValue OrientationCoordinateSystem::vectorToGlobal(const Vectorial
     double y = local.x() * ex.y() + local.y() * ey.y() + local.z() * ez.y();
     double z = local.x() * ex.z() + local.y() * ey.z() + local.z() * ez.z();
     VectorialValue vect = VectorialValue(x, y, z);
-    if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+    if (rcsPos == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
         return vect;
     } else {
-        shared_ptr<CoordinateSystem> coordSystem = mesh.getCoordinateSystem(rcs);
+        shared_ptr<CoordinateSystem> coordSystem = mesh.findCoordinateSystemByPosition(rcsPos);
         return coordSystem->vectorToGlobal(vect);
     }
 }
@@ -353,10 +354,10 @@ const VectorialValue OrientationCoordinateSystem::vectorToGlobal(const Vectorial
 const VectorialValue OrientationCoordinateSystem::vectorToLocal(const VectorialValue& global) const {
 
     VectorialValue vect;
-    if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+    if (rcsPos == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
         vect = global;
     } else {
-        shared_ptr<CoordinateSystem> coordSystem = mesh.getCoordinateSystem(rcs);
+        shared_ptr<CoordinateSystem> coordSystem = mesh.findCoordinateSystemByPosition(rcsPos);
         vect = coordSystem->vectorToLocal(global);
     }
     double x = vect.x() * this->inverseMatrix(0,0) + vect.y() * this->inverseMatrix(0,1) + vect.z() * this->inverseMatrix(0,2);
@@ -378,34 +379,15 @@ shared_ptr<CoordinateSystem> OrientationCoordinateSystem::clone() const {
  */
 int CoordinateSystemStorage::cs_next_position= CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID + 1;
 
-
 CoordinateSystemStorage::CoordinateSystemStorage(const Mesh& mesh, LogLevel logLevel) :
-        logLevel(logLevel), mesh(mesh) {
+        logLevel(logLevel),
+        mesh(mesh) {
 }
 
-int CoordinateSystemStorage::getId(int cpos) const{
-    const auto it=modelIdByPosition.find(cpos);
-    if (it!= modelIdByPosition.end()){
-        return it->second;
-    }
-    return UNAVAILABLE_ID;
-}
-
-int CoordinateSystemStorage::findPositionByUserId(int user_id) const{
+int CoordinateSystemStorage::findPositionByOriginalId(int originalId) const{
     int cpos = UNAVAILABLE_POSITION;
-    for (auto it= userIdByPosition.begin(); it!=userIdByPosition.end(); ++it){
-        if (it->second == user_id){
-            cpos = it->first;
-            break;
-        }
-    }
-    return cpos;
-}
-
-int CoordinateSystemStorage::findPositionById(int model_id) const{
-    int cpos = UNAVAILABLE_POSITION;
-    for (auto it= modelIdByPosition.begin(); it!=modelIdByPosition.end(); ++it){
-        if (it->second == model_id){
+    for (auto it= originalIdByPosition.begin(); it!=originalIdByPosition.end(); ++it){
+        if (it->second == originalId){
             cpos = it->first;
             break;
         }
@@ -414,13 +396,12 @@ int CoordinateSystemStorage::findPositionById(int model_id) const{
 }
 
 int CoordinateSystemStorage::add(const CoordinateSystem& coordinateSystem){
-    int vid = coordinateSystem.getId();  // Model intern number
-    int uid = coordinateSystem.getOriginalId(); // User Original number
+    int uid = coordinateSystem.getOriginalId();
     int cpos = UNAVAILABLE_POSITION;
 
     // Is this CS already reserved ?
     if (uid != Identifiable<CoordinateSystem>::NO_ORIGINAL_ID)
-        cpos = findPositionByUserId(uid);
+        cpos = findPositionByOriginalId(uid);
 
     if (cpos == UNAVAILABLE_POSITION){
         cpos = cs_next_position;
@@ -428,47 +409,54 @@ int CoordinateSystemStorage::add(const CoordinateSystem& coordinateSystem){
     }
 
     // We check some errors
-    const auto it= modelIdByPosition.find(cpos);
-    if ((it!=modelIdByPosition.end()) && (it->second!=UNAVAILABLE_ID)){
-        throw logic_error("Coordinate system already added: Position "+to_string(cpos)+" VEGA Ids: "+ to_string(vid));
-    }
-    const auto it2= userIdByPosition.find(cpos);
-    if ((it2!=userIdByPosition.end()) && (it2->second!=uid)){
-        throw logic_error("Mismatch in coordinate system: Position "+to_string(cpos)+" has two original Ids: "+ to_string(uid) + " "+ to_string(it2->second));
+    const auto it2= originalIdByPosition.find(cpos);
+    if ((it2!=originalIdByPosition.end()) && (it2->second!=uid)){
+        throw logic_error("Mismatch in coordinate system in position:"+to_string(cpos)+" has conflicting ids: "+ to_string(uid) + " "+ to_string(it2->second));
     }
 
-    userIdByPosition[cpos] = uid;
-    modelIdByPosition[cpos] = vid;
-    coordinateSystemById[vid] = coordinateSystem.clone();
+    originalIdByPosition[cpos] = uid;
+    coordinateSystemById[uid] = coordinateSystem.clone();
 
     if (this->logLevel >= LogLevel::TRACE) {
-        cout << "Add coordinate system id:" << vid << " (user id: "<<uid<<") in position:" << cpos << endl;
+        cout << "Add coordinate system id:" << uid << " (user id: "<<uid<<") in position:" << cpos << endl;
     }
     return cpos;
 }
 
-shared_ptr<CoordinateSystem> CoordinateSystemStorage::get(int cid) const {
-  auto it = coordinateSystemById.find(cid);
-  if (it == coordinateSystemById.end()) {
-    return nullptr;
-  }
-  return it->second;
+shared_ptr<CoordinateSystem> CoordinateSystemStorage::findByPosition(int cpos) const {
+    const auto it2= originalIdByPosition.find(cpos);
+    if (it2 == originalIdByPosition.end()){
+        throw logic_error("Mismatch in coordinate system: Position " + to_string(cpos) + " not found");
+    }
+    const int cid = it2->second;
+    auto it = coordinateSystemById.find(cid);
+    if (it == coordinateSystemById.end()) {
+        return nullptr;
+    }
+    return it->second;
 }
 
-int CoordinateSystemStorage::reserve(int user_id) {
+shared_ptr<CoordinateSystem> CoordinateSystemStorage::findById(int cid) const {
+    auto it = coordinateSystemById.find(cid);
+    if (it == coordinateSystemById.end()) {
+        return nullptr;
+    }
+    return it->second;
+}
 
-    if (user_id==CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
+int CoordinateSystemStorage::reserve(int originalId) {
+
+    if (originalId==CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
         throw logic_error("We don't reserve a position for the GLOBAL Coordinate System "+to_string(CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID));
     }
 
     int cpos= cs_next_position;
     cs_next_position++;
 
-    userIdByPosition[cpos] = user_id;
-    modelIdByPosition[cpos] = UNAVAILABLE_ID;
+    originalIdByPosition[cpos] = originalId;
 
     if (this->logLevel >= LogLevel::TRACE) {
-        cout << "Reserve coordinate user id:" << user_id << " in position:" << cpos << endl;
+        cout << "Reserve coordinate original id:" << originalId << " in position:" << cpos << endl;
     }
     return cpos;
 }

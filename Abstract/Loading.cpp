@@ -19,8 +19,8 @@ namespace vega {
 using namespace std;
 
 Loading::Loading(const Model& model, Loading::Type type, Loading::ApplicationType applicationType,
-		const int original_id, int coordinate_system_id) :
-		Identifiable(original_id), model(model), type(type), applicationType(applicationType), coordinate_system_id(coordinate_system_id) {
+		const int original_id, int cspos) :
+		Identifiable(original_id), model(model), type(type), applicationType(applicationType), cspos(cspos) {
 }
 
 const string Loading::name = "Loading";
@@ -44,11 +44,11 @@ ostream &operator<<(ostream &out, const Loading& loading) {
 bool Loading::validate() const {
 	bool valid = true;
 	if (hasCoordinateSystem()) {
-		valid = model.mesh->getCoordinateSystem(coordinate_system_id) != nullptr;
+		valid = model.mesh->findCoordinateSystemByPosition(cspos) != nullptr;
 		if (!valid) {
 			cerr
-			<< string("Coordinate system id:")
-					+ to_string(coordinate_system_id)
+			<< string("Coordinate system position:")
+					+ to_string(cspos)
 					+ " for loading " << *this << " not found." << endl;
 		}
 	}
@@ -247,8 +247,8 @@ void RotationNode::scale(const double factor) {
 	speed *= factor;
 }
 
-ImposedDisplacement::ImposedDisplacement(const Model& model, DOFS dofs, double value, const int original_id, int coordinate_system_id) :
-    NodeLoading(model, Loading::Type::IMPOSED_DISPLACEMENT, original_id, coordinate_system_id), displacements(dofs, value) {
+ImposedDisplacement::ImposedDisplacement(const Model& model, DOFS dofs, double value, const int original_id, int cspos) :
+    NodeLoading(model, Loading::Type::IMPOSED_DISPLACEMENT, original_id, cspos), displacements(dofs, value) {
 }
 
 const DOFS ImposedDisplacement::getDOFSForNode(int nodePosition) const {
@@ -276,22 +276,22 @@ void ImposedDisplacement::scale(const double factor) {
 }
 
 NodalForce::NodalForce(const Model& model, const VectorialValue& force,
-		const VectorialValue& moment, const int original_id, int coordinate_system_id) :
-		NodeLoading(model, Loading::Type::NODAL_FORCE, original_id, coordinate_system_id), force(force), moment(moment) {
+		const VectorialValue& moment, const int original_id, int cspos) :
+		NodeLoading(model, Loading::Type::NODAL_FORCE, original_id, cspos), force(force), moment(moment) {
 }
 
 NodalForce::NodalForce(const Model& model, double fx, double fy, double fz, double mx,
-		double my, double mz, const int original_id, int coordinate_system_id) :
-		NodeLoading(model, Loading::Type::NODAL_FORCE, original_id, coordinate_system_id), force(fx, fy, fz), moment(mx, my, mz) {
+		double my, double mz, const int original_id, int cspos) :
+		NodeLoading(model, Loading::Type::NODAL_FORCE, original_id, cspos), force(fx, fy, fz), moment(mx, my, mz) {
 }
 
 const VectorialValue NodalForce::localToGlobal(int nodePosition, const VectorialValue& vectorialValue) const {
 	if (!hasCoordinateSystem())
 		return vectorialValue;
-	shared_ptr<CoordinateSystem> coordSystem = model.mesh->getCoordinateSystem(coordinate_system_id);
+	shared_ptr<CoordinateSystem> coordSystem = model.mesh->findCoordinateSystemByPosition(cspos);
 	if (!coordSystem) {
 		ostringstream oss;
-		oss << "Coordinate system id: " << coordinate_system_id
+		oss << "Coordinate system position: " << cspos
 				<< " for nodal force not found." << endl;
 		throw logic_error(oss.str());
 	}

@@ -546,9 +546,9 @@ void Mesh::writeMED(const Model& model, const char* medFileName) {
 	}
 }
 
-shared_ptr<CellGroup> Mesh::getOrCreateCellGroupForCS(int cid){
+shared_ptr<CellGroup> Mesh::getOrCreateCellGroupForCS(int cspos){
 	shared_ptr<CellGroup> result;
-	auto cellGroupNameIter = cellGroupNameByCID.find(cid);
+	auto cellGroupNameIter = cellGroupNameByCID.find(cspos);
 	if (cellGroupNameIter != cellGroupNameByCID.end()) {
 		string cellGroupName = cellGroupNameIter->second;
 		result = dynamic_pointer_cast<CellGroup>(findGroup(cellGroupName));
@@ -560,8 +560,8 @@ shared_ptr<CellGroup> Mesh::getOrCreateCellGroupForCS(int cid){
 		} else {
 			gmaName = string("C") + id;
 		}
-		cellGroupNameByCID[cid] = gmaName;
-		result = createCellGroup(gmaName, CellGroup::NO_ORIGINAL_ID, "Orientation of coordinate system: " + to_string(cid));
+		cellGroupNameByCID[cspos] = gmaName;
+		result = createCellGroup(gmaName, CellGroup::NO_ORIGINAL_ID, "Orientation of coordinate system: " + to_string(cspos));
 	}
 	return result;
 }
@@ -573,14 +573,14 @@ void Mesh::add(const CoordinateSystem& coordinateSystem) {
   coordinateSystemStorage.add(coordinateSystem);
 }
 
-std::shared_ptr<CoordinateSystem> Mesh::getCoordinateSystem(int cid) const {
-  return coordinateSystemStorage.get(cid);
+std::shared_ptr<CoordinateSystem> Mesh::findCoordinateSystemByPosition(int cspos) const {
+  return coordinateSystemStorage.findByPosition(cspos);
 }
 
 int Mesh::findOrReserveCoordinateSystem(int cid){
 	if (cid == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID)
 		return CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
-	int cpos = coordinateSystemStorage.findPositionByUserId(cid);
+	int cpos = coordinateSystemStorage.findPositionByOriginalId(cid);
 	if (cpos == CoordinateSystemStorage::UNAVAILABLE_POSITION)
 		cpos = coordinateSystemStorage.reserve(cid);
 	return cpos;
@@ -591,7 +591,7 @@ int Mesh::addOrFindOrientation(const OrientationCoordinateSystem & ocs){
 	int posOrientation = findOrientation(ocs);
 	if (posOrientation==0){
 		this->add(ocs);
-		posOrientation = coordinateSystemStorage.findPositionById(ocs.getId());
+		posOrientation = coordinateSystemStorage.findPositionByOriginalId(ocs.getOriginalId());
 	}
 	return posOrientation;
 }
@@ -603,7 +603,7 @@ int Mesh::findOrientation(const OrientationCoordinateSystem & ocs) const{
 		if (coordinateSystem->type==CoordinateSystem::Type::ORIENTATION){
 			std::shared_ptr<OrientationCoordinateSystem> mocs = std::dynamic_pointer_cast<OrientationCoordinateSystem>(coordinateSystem);
 			if (ocs == *mocs){
-				posOrientation = coordinateSystemStorage.findPositionById(mocs->getId());
+				posOrientation = coordinateSystemStorage.findPositionByOriginalId(mocs->getOriginalId());
 				break;
 			}
 		}
@@ -612,8 +612,7 @@ int Mesh::findOrientation(const OrientationCoordinateSystem & ocs) const{
 }
 
 std::shared_ptr<vega::CoordinateSystem> Mesh::getCoordinateSystemByPosition(const int pos) const{
-	const int cid =  coordinateSystemStorage.getId(pos);
-	return getCoordinateSystem(cid);
+	return coordinateSystemStorage.findByPosition(pos);
 }
 
 CellStorage::CellStorage(Mesh& mesh, LogLevel logLevel) :

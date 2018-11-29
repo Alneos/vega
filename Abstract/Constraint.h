@@ -274,7 +274,7 @@ public:
     double getFriction() const;
     std::shared_ptr<CellGroup> masterCellGroup = nullptr;
     std::shared_ptr<CellGroup> slaveCellGroup = nullptr;
-    int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
+    int coordinateSystemPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
 	std::shared_ptr<Constraint> clone() const override;
 	std::set<int> nodePositions() const override;
 	const DOFS getDOFSForNode(int nodePosition) const override;

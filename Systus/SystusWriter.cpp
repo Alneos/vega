@@ -2583,7 +2583,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
 
             // Local Orientation
             if (cell.hasOrientation){
-                writeElementLocalReferentiel(systusModel, dim, typecell, systusConnect, cell.cid, out);
+                writeElementLocalReferentiel(systusModel, dim, typecell, systusConnect, cell.cspos, out);
             }else{
                 out << " 0";
             }
