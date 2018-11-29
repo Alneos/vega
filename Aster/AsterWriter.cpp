@@ -9,6 +9,7 @@
  */
 
 #include "AsterWriter.h"
+#include "MedWriter.h"
 #include "build_properties.h"
 #include "../Abstract/Model.h"
 #include <cstdlib>
@@ -59,7 +60,8 @@ string AsterWriter::writeModel(const shared_ptr<vega::Model> model_ptr,
 	string med_path = asterModel.getOutputFileName(".med");
 	string comm_path = asterModel.getOutputFileName(".comm");
 
-	model_ptr->mesh->writeMED(*model_ptr, med_path.c_str());
+	MedWriter medWriter;
+	medWriter.writeMED(*model_ptr, med_path.c_str());
 
 	ofstream comm_file_ofs;
 	//comm_file_ofs.setf(ios::scientific);
@@ -868,7 +870,7 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 
 	//orientations
 	bool orientationsPrinted = false;
-	for (auto it : asterModel.model.mesh->cellGroupNameByCID){
+	for (auto it : asterModel.model.mesh->cellGroupNameByCspos){
         std::shared_ptr<vega::CoordinateSystem> cs= asterModel.model.mesh->getCoordinateSystemByPosition(it.first);
 		if (cs->type!=CoordinateSystem::Type::ORIENTATION){
 		   //handleWritingError("Coordinate System of Group "+ it.second+" is not an ORIENTATION.");

@@ -23,8 +23,6 @@
 // Avoid tons of warnings with root code
 #pragma GCC system_header
 #endif
-#include <med.h>
-#define MESGERR 1
 
 namespace vega {
 
@@ -63,7 +61,9 @@ public:
 	NodeStorage(Mesh& mesh, LogLevel logLevel);
 	NodeIterator begin() const;
 	NodeIterator end() const;
-
+	const std::vector<NodeData>& getNodeDatas() const {
+	    return nodeDatas;
+	}
 	bool validate() const;
 };
 
@@ -113,9 +113,6 @@ private:
 	const std::string name;
 	bool finished;
 
-	//mapping position->external id
-	std::map<CellType, std::vector<int>> cellPositionsByType;
-
 	std::map<std::string, std::shared_ptr<Group>> groupByName;
 
 	/**
@@ -125,11 +122,9 @@ private:
 	std::map<int, std::shared_ptr<Group>> groupById;
 
 	std::shared_ptr<CellGroup> getOrCreateCellGroupForCS(const int cspos);
-	void createFamilies(med_idt fid, const char meshname[MED_NAME_SIZE + 1],
-			const std::vector<Family>& families);
 public:
-
-	std::map<int, std::string> cellGroupNameByCID;
+	std::map<CellType, std::vector<int>> cellPositionsByType;
+	std::map<int, std::string> cellGroupNameByCspos; /**< mapping position->group name **/
 	std::map<int, std::string> cellGroupNameByMaterialOrientationTimes100;
 	Mesh(LogLevel logLevel, const std::string& name);
 	NodeStorage nodes;
@@ -181,6 +176,7 @@ public:
 	int addNode(int id, double x, double y, double z = 0,
 	        int cpPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
 	        int cdPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+    const std::string getName() const;
 	int countNodes() const;
 	void allowDOFS(int nodePosition, const DOFS& allowed);
 	/**
@@ -235,7 +231,6 @@ public:
 	 */
 	void assignElementId(const CellContainer&, int elementId);
 
-	void writeMED(const Model& model, const char* medFileName);
 	void finish();
 	bool validate() const;
 	Mesh(const Mesh& that) = delete;

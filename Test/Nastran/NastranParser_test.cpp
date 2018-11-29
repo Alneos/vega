@@ -23,23 +23,6 @@ using namespace vega;
 
 //____________________________________________________________________________//
 
-BOOST_AUTO_TEST_CASE( nastran_med_write ) {
-	string testLocation = fs::path(
-	PROJECT_BASE_DIR "/testdata/unitTest/nastranparser/test1.nas").make_preferred().string();
-	string outFile = fs::path(PROJECT_BINARY_DIR "/bin/test1.med").make_preferred().string();
-	nastran::NastranParser parser;
-    try {
-        const shared_ptr<Model> model = parser.parse(
-                ConfigurationParameters(testLocation, SolverName::CODE_ASTER, string("1")));
-        model->mesh->writeMED(*model, outFile.c_str());
-
-        BOOST_CHECK(boost::filesystem::exists(outFile));
-    } catch (exception& e) {
-		cout << e.what() << endl;
-		BOOST_FAIL(string("Parse threw exception ") + e.what());
-	}
-}
-
 BOOST_AUTO_TEST_CASE( test_model_read ) {
 	string testLocation = fs::path(
 	PROJECT_BASE_DIR "/testdata/nastran/alneos/test4a/test4a.dat").make_preferred().string();

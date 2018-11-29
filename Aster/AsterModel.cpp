@@ -184,5 +184,5 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
     return result;
 }
 
-}
+} // namespace aster
 } //namespace vega
