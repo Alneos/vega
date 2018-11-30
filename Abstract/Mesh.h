@@ -155,9 +155,9 @@ public:
      * Find or Reserve a Coordinate System in the model by Input Id.
      * Return the VEGA Id (position) of the Coordinate System.
      */
-    int findOrReserveCoordinateSystem(int cid);
+    int findOrReserveCoordinateSystem(const Reference<CoordinateSystem>);
     void add(const CoordinateSystem& coordinateSystem);
-	std::shared_ptr<CoordinateSystem> findCoordinateSystemByPosition(int cspos) const;
+	std::shared_ptr<CoordinateSystem> findCoordinateSystem(const Reference<CoordinateSystem> csref) const;
     /**
      * Add or Find an Orientation Coordinate System in the model.
      * Return the Position of the Orientation Coordinate System.

@@ -64,12 +64,12 @@ void NastranParser::parseGRDSET(NastranTokenizer& tok, shared_ptr<Model> model) 
     tok.skip(1);
     grdSet.cp = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     if (grdSet.cp != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
-        grdSet.cp = model->mesh->findOrReserveCoordinateSystem(grdSet.cp);
+        grdSet.cp = model->mesh->findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::POSITION, grdSet.cp));
         }
     tok.skip(3);
     grdSet.cd = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     if (grdSet.cd != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
-        grdSet.cd = model->mesh->findOrReserveCoordinateSystem(grdSet.cd);
+        grdSet.cd = model->mesh->findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::POSITION, grdSet.cd));
         }
     grdSet.ps = tok.nextInt(true, 0);
     grdSet.seid = tok.nextInt(true, 0);
@@ -82,7 +82,7 @@ void NastranParser::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model) {
     int cpos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
     string scp;
     if (cp != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
-        cpos = model->mesh->findOrReserveCoordinateSystem(cp);
+        cpos = model->mesh->findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::POSITION, cp));
         scp=" in CS"+to_string(cp)+"_"+to_string(cpos);
     }
 
@@ -95,7 +95,7 @@ void NastranParser::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model) {
     int cdos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
     string scd="";
     if (cd != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
-        cdos = model->mesh->findOrReserveCoordinateSystem(cd);
+        cdos = model->mesh->findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::POSITION, cd));
         scd=", DISP in CS"+to_string(cd)+"_"+to_string(cdos);
     }
     model->mesh->addNode(id, x1, x2, x3, cpos, cdos);
@@ -257,7 +257,7 @@ void NastranParser::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
         // A CID is provided by the user
         tok.skip(3);
         int cid = tok.nextInt();
-        cpos = model->mesh->findOrReserveCoordinateSystem(cid);
+        cpos = model->mesh->findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::POSITION, cid));
     }else{
         // Local definition of the element coordinate system
         if (forbidOrientation){

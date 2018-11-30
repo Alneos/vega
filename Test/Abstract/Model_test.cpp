@@ -403,6 +403,7 @@ BOOST_AUTO_TEST_CASE( reference_compare ) {
 	Reference<LoadSet> rauto2(LoadSet::Type::LOAD, Reference<LoadSet>::NO_ID, 2);
 	Reference<LoadSet> r1(LoadSet::Type::LOAD, 1);
 	BOOST_CHECK(r1 == r1);
+	BOOST_CHECK(!(r1 != r1));
 	BOOST_CHECK(!(r1 < r1));
 	BOOST_CHECK(r1 == *r1.clone());
 	Reference<LoadSet> r1bis(LoadSet::Type::LOAD, 1);
@@ -410,9 +411,11 @@ BOOST_AUTO_TEST_CASE( reference_compare ) {
 	BOOST_CHECK(!(r1 < r1bis));
 	Reference<LoadSet> r2(LoadSet::Type::LOAD, 2);
 	BOOST_CHECK(!(r1 == r2));
+	BOOST_CHECK(r1 != r2);
 	BOOST_CHECK(r1 < r2);
 	Reference<LoadSet> rd1(LoadSet::Type::DLOAD, 1);
 	BOOST_CHECK(!(r1 == rd1));
+	BOOST_CHECK(r1 != rd1);
 	BOOST_CHECK(r1 < rauto1);
 }
 
@@ -562,6 +565,15 @@ BOOST_AUTO_TEST_CASE( test_cdnoanalysis )
     model.mesh->addNode(7, 0.0, 0.0, 0.0, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, coordinateSystem.getOriginalId());
     BOOST_CHECK_EQUAL(model.analyses.size(), 0);
 
+}
+
+BOOST_AUTO_TEST_CASE( test_globalcs_force )
+{
+    // https://github.com/Alneos/vega/issues/15
+    Model model("cs test model", "10.3", SolverName::NASTRAN);
+    NodalForce force1(model, 42.0, 43.0, 44.0, 0., 0., 0., Loading::NO_ORIGINAL_ID,
+            Reference<CoordinateSystem>(CoordinateSystem::Type::POSITION, 0));
+    BOOST_CHECK_EQUAL(force1.csref, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM);
 }
 //____________________________________________________________________________//
 

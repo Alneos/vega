@@ -230,7 +230,7 @@ protected:
 public:
     //const SpaceDimension dimension;
     Type type;
-    std::string comment; ///< A comment string, usually use to retain the command which created the group.
+    std::string comment; ///< A comment string, usually used to retain the command which created the group.
     bool isUseful; ///< A boolean that can be used by Writer to keep or discard group.
     const std::string& getName() const;
     const std::string& getComment() const;

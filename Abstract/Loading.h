@@ -51,16 +51,16 @@ public:
 protected:
 	const Model& model;
 	Loading(const Model&, Loading::Type, Loading::ApplicationType, const int original_id =
-			NO_ORIGINAL_ID, int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+			NO_ORIGINAL_ID, const Reference<CoordinateSystem> csref = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM);
 public:
 	const Type type;
 	static const std::string name;
 	static const std::map<Type, std::string> stringByType;
 	const ApplicationType applicationType;
-	const int cspos;
+	const Reference<CoordinateSystem> csref;
 	inline bool hasCoordinateSystem() const {
-		return cspos
-				!= CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
+		return csref
+				!= CoordinateSystem::GLOBAL_COORDINATE_SYSTEM;
 	}
 	virtual std::shared_ptr<Loading> clone() const = 0;
 	virtual void scale(const double factor) {
@@ -105,7 +105,7 @@ public:
 class NodeLoading: public Loading, public NodeContainer {
 protected:
 	NodeLoading(const Model&, Loading::Type, const int original_id = NO_ORIGINAL_ID,
-			int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+			const Reference<CoordinateSystem> csref = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM);
 public:
 	std::set<int> nodePositions() const override final;
 	SpaceDimension getLoadingDimension() const {
@@ -201,7 +201,7 @@ public:
 	 * The value is assigned to all the dof present in DOFS.
 	 */
 	ImposedDisplacement(const Model& model, DOFS dofs, double value, int original_id = NO_ORIGINAL_ID,
-                     int cspos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+                     const Reference<CoordinateSystem> csref = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM);
 	double getDoubleForDOF(const DOF& dof) const;
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	bool ineffective() const override;
@@ -215,11 +215,11 @@ public:
 class NodalForce: public NodeLoading {
 public:
 	NodalForce(const Model&, const VectorialValue& force, const VectorialValue& moment,
-			const int original_id = NO_ORIGINAL_ID, int coordinateSystemId =
-					CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+			const int original_id = NO_ORIGINAL_ID, const Reference<CoordinateSystem> csref =
+					CoordinateSystem::GLOBAL_COORDINATE_SYSTEM);
 	NodalForce(const Model&, double fx, double fy = 0, double fz = 0, double mx = 0,
 			double my = 0, double mz = 0, const int original_id = NO_ORIGINAL_ID,
-			int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+			const Reference<CoordinateSystem> csref = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM);
 protected:
 	//NodalForce(const Model&, const int original_id = NO_ORIGINAL_ID,
 	//		int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
@@ -291,7 +291,7 @@ public:
 class ElementLoading: public Loading, public CellContainer {
 protected:
 	ElementLoading(const Model&, Loading::Type, const int original_id = NO_ORIGINAL_ID,
-			int coordinateSystemId = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+			const Reference<CoordinateSystem> csref = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM);
 public:
 	/**
 	 * Return true if all cells are of the dimension passed as parameter.

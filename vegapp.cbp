@@ -1658,6 +1658,8 @@
 		<Unit filename="Aster/CMakeLists.txt">
 			<Option virtualFolder="CMake Files/Aster/" />
 		</Unit>
+		<Unit filename="Aster/MedWriter.cpp" />
+		<Unit filename="Aster/MedWriter.h" />
 		<Unit filename="CMakeLists.txt">
 			<Option virtualFolder="CMake Files/" />
 		</Unit>
@@ -1791,6 +1793,7 @@
 		<Unit filename="Test/Aster/CMakeLists.txt">
 			<Option virtualFolder="CMake Files/Test/Aster/" />
 		</Unit>
+		<Unit filename="Test/Aster/MedWriter_test.cpp" />
 		<Unit filename="Test/CMakeLists.txt">
 			<Option virtualFolder="CMake Files/Test/" />
 		</Unit>

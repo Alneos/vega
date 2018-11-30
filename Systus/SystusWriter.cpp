@@ -1472,58 +1472,60 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
             auto cs = systusModel.model->mesh->getCoordinateSystemByPosition(node.displacementCS);
             vector<double> vec;
             switch (cs->type){
-            case CoordinateSystem::Type::CARTESIAN:{
-                VectorialValue angles = cs->getEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
-                vec.push_back(0);
-                vec.push_back(0);
-                vec.push_back(0);
-                vec.push_back(0);
-                vec.push_back(0);
-                vec.push_back(0);
-                vec.push_back(angles.x());
-                vec.push_back(angles.y());
-                vec.push_back(angles.z());
-                localVectorIdByCoordinateSystemPos[node.displacementCS]=vectorId;
-                break;
-            }
-            // Element orientation : it depends of the kind of elements.
-            case CoordinateSystem::Type::ORIENTATION:{
-                handleWritingWarning("Local coordinate system are forbidden for nodes.");
-                handleWritingWarning("We will fill a null vector for the node "+ to_string(mesh->findNodeId(node.position)));
-                vec.push_back(0);
-                vec.push_back(0);
-                vec.push_back(0);
-                vec.push_back(0);
-                vec.push_back(0);
-                vec.push_back(0);
-                vec.push_back(0.0);
-                vec.push_back(0.0);
-                vec.push_back(0.0);
-                break;
-            }
+            case CoordinateSystem::Type::POSITION:{
+                switch (cs->coordType){
+                case CoordinateSystem::CoordinateType::CARTESIAN:{
+                    VectorialValue angles = cs->getEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(angles.x());
+                    vec.push_back(angles.y());
+                    vec.push_back(angles.z());
+                    localVectorIdByCoordinateSystemPos[node.displacementCS]=vectorId;
+                    break;
+                    }
+                // Cylyndrical orientation : we create a vector by point
+                case CoordinateSystem::CoordinateType::CYLINDRICAL:{
+                    const Node& nNode = mesh->findNode(node.position);
+                    shared_ptr<CylindricalCoordinateSystem> ccs = dynamic_pointer_cast<CylindricalCoordinateSystem>(cs);
+                    ccs->updateLocalBase(VectorialValue(nNode.x, nNode.y, nNode.z));
+                    const VectorialValue& angles = ccs->getLocalEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(angles.x());
+                    vec.push_back(angles.y());
+                    vec.push_back(angles.z());
+                    break;
+                }
 
-            // Cylyndrical orientation : we create a vector by point
-            case CoordinateSystem::Type::CYLINDRICAL:{
-                const Node& nNode = mesh->findNode(node.position);
-                shared_ptr<CylindricalCoordinateSystem> ccs = dynamic_pointer_cast<CylindricalCoordinateSystem>(cs);
-                ccs->updateLocalBase(VectorialValue(nNode.x, nNode.y, nNode.z));
-                const VectorialValue& angles = ccs->getLocalEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
-                vec.push_back(0);
-                vec.push_back(0);
-                vec.push_back(0);
-                vec.push_back(0);
-                vec.push_back(0);
-                vec.push_back(0);
-                vec.push_back(angles.x());
-                vec.push_back(angles.y());
-                vec.push_back(angles.z());
+                default: {
+                    ostringstream oerr;
+                    oerr << *cs << " is not supported. Referentiel dismissed.";
+                    handleWritingWarning(oerr.str());
+                    handleWritingWarning("We will fill a null vector for the node "+ to_string(mesh->findNodeId(node.position)));
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0.0);
+                    vec.push_back(0.0);
+                    vec.push_back(0.0);
+                }
+                }
                 break;
             }
-
             default: {
-                ostringstream oerr;
-                oerr << *cs << " is not supported. Referentiel dismissed.";
-                handleWritingWarning(oerr.str());
+                handleWritingWarning("Non position local coordinate system are forbidden for nodes.");
                 handleWritingWarning("We will fill a null vector for the node "+ to_string(mesh->findNodeId(node.position)));
                 vec.push_back(0);
                 vec.push_back(0);
@@ -1534,6 +1536,7 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
                 vec.push_back(0.0);
                 vec.push_back(0.0);
                 vec.push_back(0.0);
+                break;
             }
             }
             vectors[vectorId]=vec;
@@ -2390,7 +2393,8 @@ void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel,
         return;
     }
 
-    if ((cs->type!=CoordinateSystem::Type::CARTESIAN) and (cs->type!=CoordinateSystem::Type::ORIENTATION)){
+    if ((cs->type!=CoordinateSystem::Type::ORIENTATION and cs->coordType!=CoordinateSystem::CoordinateType::VECTOR) and
+        (cs->type!=CoordinateSystem::Type::POSITION and cs->coordType!=CoordinateSystem::CoordinateType::CARTESIAN)){
         out << " 0";
         handleWritingWarning("Coordinate System "+ to_string(static_cast<int>(cs->type)) + " is not supported. Referentiel dismissed.", "Angle Elements");
         return;

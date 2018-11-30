@@ -379,16 +379,16 @@ void Mesh::add(const CoordinateSystem& coordinateSystem) {
   coordinateSystemStorage.add(coordinateSystem);
 }
 
-std::shared_ptr<CoordinateSystem> Mesh::findCoordinateSystemByPosition(int cspos) const {
-  return coordinateSystemStorage.findByPosition(cspos);
+std::shared_ptr<CoordinateSystem> Mesh::findCoordinateSystem(const Reference<CoordinateSystem> csref) const {
+  return coordinateSystemStorage.find(csref);
 }
 
-int Mesh::findOrReserveCoordinateSystem(int cid){
-	if (cid == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID)
+int Mesh::findOrReserveCoordinateSystem(const Reference<CoordinateSystem> csref){
+	if (csref == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM)
 		return CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
-	int cpos = coordinateSystemStorage.findPositionByOriginalId(cid);
+	int cpos = coordinateSystemStorage.findPosition(csref);
 	if (cpos == CoordinateSystemStorage::UNAVAILABLE_POSITION)
-		cpos = coordinateSystemStorage.reserve(cid);
+		cpos = coordinateSystemStorage.reserve(csref);
 	return cpos;
 }
 
@@ -397,19 +397,19 @@ int Mesh::addOrFindOrientation(const OrientationCoordinateSystem & ocs){
 	int posOrientation = findOrientation(ocs);
 	if (posOrientation==0){
 		this->add(ocs);
-		posOrientation = coordinateSystemStorage.findPositionByOriginalId(ocs.getOriginalId());
+		posOrientation = coordinateSystemStorage.findPosition(ocs.getReference());
 	}
 	return posOrientation;
 }
 
 int Mesh::findOrientation(const OrientationCoordinateSystem & ocs) const{
 	int posOrientation=0;
-	for (auto& coordinateSystemEntry : this->coordinateSystemStorage.coordinateSystemById) {
-    shared_ptr<CoordinateSystem> coordinateSystem = coordinateSystemEntry.second;
+	for (auto& coordinateSystemEntry : this->coordinateSystemStorage.coordinateSystemByRef) {
+        shared_ptr<CoordinateSystem> coordinateSystem = coordinateSystemEntry.second;
 		if (coordinateSystem->type==CoordinateSystem::Type::ORIENTATION){
 			std::shared_ptr<OrientationCoordinateSystem> mocs = std::dynamic_pointer_cast<OrientationCoordinateSystem>(coordinateSystem);
 			if (ocs == *mocs){
-				posOrientation = coordinateSystemStorage.findPositionByOriginalId(mocs->getOriginalId());
+				posOrientation = coordinateSystemStorage.findPosition(mocs->getReference());
 				break;
 			}
 		}

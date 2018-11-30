@@ -336,7 +336,7 @@ void NastranWriter::writeLoadings(const shared_ptr<vega::Model>& model, ofstream
 				pload4.add(forceSurface->getApplicationFace()[0]);
 				pload4.add(forceSurface->getApplicationFace()[2]);
 				if (forceSurface->hasCoordinateSystem()) {
-					shared_ptr<CoordinateSystem> coordinateSystem = model->mesh->findCoordinateSystemByPosition(forceSurface->cspos);
+					shared_ptr<CoordinateSystem> coordinateSystem = model->mesh->findCoordinateSystem(forceSurface->csref);
 					pload4.add(coordinateSystem->bestId());
 					pload4.add(coordinateSystem->vectorToGlobal(forceSurface->getForce().normalized()));
 				} else {
@@ -417,23 +417,23 @@ string NastranWriter::writeModel(const shared_ptr<vega::Model> model,
 	out << "TITLE=Vega Exported Model" << endl;
 	out << "BEGIN BULK" << endl;
 
-	for (auto& coordinateSystemEntry : model->mesh->coordinateSystemStorage.coordinateSystemById) {
-    shared_ptr<CoordinateSystem> coordinateSystem = coordinateSystemEntry.second;
-		switch (coordinateSystem->type) {
-			case CoordinateSystem::Type::CARTESIAN:
+	for (auto& coordinateSystemEntry : model->mesh->coordinateSystemStorage.coordinateSystemByRef) {
+        shared_ptr<CoordinateSystem> coordinateSystem = coordinateSystemEntry.second;
+        if (coordinateSystem->type != CoordinateSystem::Type::POSITION) {
+            continue;
+        }
+		switch (coordinateSystem->coordType) {
+			case CoordinateSystem::CoordinateType::CARTESIAN:
 				// TODO LD complete
 				out << Line("CORD2R").add(coordinateSystem->bestId()).add(coordinateSystem->getOrigin());
 				break;
-			case CoordinateSystem::Type::SPHERICAL:
+			case CoordinateSystem::CoordinateType::SPHERICAL:
 				// TODO LD complete
 				out << Line("CORD2S").add(coordinateSystem->bestId()).add(coordinateSystem->getOrigin());
 				break;
-			case CoordinateSystem::Type::CYLINDRICAL:
+			case CoordinateSystem::CoordinateType::CYLINDRICAL:
 				// TODO LD complete
 				out << Line("CORD2C").add(coordinateSystem->bestId()).add(coordinateSystem->getOrigin());
-				break;
-			case CoordinateSystem::Type::ORIENTATION:
-				// Nothing to do here: it will be handled by CBEAM, CBAR etc.
 				break;
 			default:
 				throw logic_error("Unimplemented coordinate system type");

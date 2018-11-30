@@ -40,24 +40,28 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
     friend std::ostream& operator<<(std::ostream&, const CoordinateSystem&);
     public:
     static constexpr int GLOBAL_COORDINATE_SYSTEM_ID = 0;
-    //static const Reference<CoordinateSystem> GLOBAL_COORDINATE_SYSTEM;
+    static const Reference<CoordinateSystem> GLOBAL_COORDINATE_SYSTEM;
     enum class Type {
+        POSITION,
+        ORIENTATION
+    };
+    enum class CoordinateType {
         CARTESIAN,
         CYLINDRICAL,
-        ORIENTATION,
         SPHERICAL,
-        UNKNOWN
+        VECTOR
     };
     protected:
     const Mesh &mesh;
     public:
     const Type type;
+    const CoordinateType coordType;
 
     protected:
     VectorialValue origin; /** local origin */
     VectorialValue ex; /** local X axis */
     VectorialValue ey; /** local Y axis */
-    const int rcsPos; /** Identification number of a coordinate system that is defined independently from this coordinate system. */
+    const Reference<CoordinateSystem> rcs; /** Identification of a coordinate system that is defined independently from this coordinate system. */
     VectorialValue ez; /** internally computed as cross product of ex and ey */
     bool isVirtual = false;
     std::vector<int> nodesId;
@@ -66,14 +70,15 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
     public:
     static const std::string name;
     static const std::map<Type, std::string> stringByType;
+    static const std::map<CoordinateType, std::string> stringByCoordinateSystemType;
     inline const VectorialValue getOrigin() const {return origin;};
     inline const VectorialValue getEx() const {return ex;};
     inline const VectorialValue getEy() const {return ey;};
     inline const VectorialValue getEz() const {return ez;};
 
     protected:
-    CoordinateSystem(const Mesh&, Type, const VectorialValue origin, const VectorialValue ex,
-            const VectorialValue ey, const int rcsPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
+    CoordinateSystem(const Mesh&, Type, CoordinateType, const VectorialValue origin, const VectorialValue ex,
+            const VectorialValue ey, const Reference<CoordinateSystem> rcs = GLOBAL_COORDINATE_SYSTEM, int original_id = NO_ORIGINAL_ID);
     public:
     virtual void updateLocalBase(const VectorialValue&) {
     }
@@ -109,8 +114,8 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
 class CartesianCoordinateSystem: public CoordinateSystem {
 public:
     CartesianCoordinateSystem(const Mesh&, const VectorialValue& origin = VectorialValue::O, const VectorialValue& ex = VectorialValue::X,
-            const VectorialValue& ey = VectorialValue::Y, const int rcsPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
-    CartesianCoordinateSystem(const Mesh&, int nO, int nZ, int nXZ, const int rcsPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
+            const VectorialValue& ey = VectorialValue::Y, const Reference<CoordinateSystem> rcs = GLOBAL_COORDINATE_SYSTEM, int original_id = NO_ORIGINAL_ID);
+    CartesianCoordinateSystem(const Mesh&, int nO, int nZ, int nXZ, const Reference<CoordinateSystem> rcs = GLOBAL_COORDINATE_SYSTEM, int original_id = NO_ORIGINAL_ID);
 
     /**
      * Build (O, ex,ey,ez) from nodesId.
@@ -134,9 +139,9 @@ public:
 class OrientationCoordinateSystem: public CoordinateSystem {
 public:
     OrientationCoordinateSystem(const Mesh&, const int nO, const int nX,
-            const int nV, const int rcsPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
+            const int nV, const Reference<CoordinateSystem> rcs = GLOBAL_COORDINATE_SYSTEM, int original_id = NO_ORIGINAL_ID);
     OrientationCoordinateSystem(const Mesh&, const int nO, const int nX,
-                const VectorialValue v, const int rcsPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
+                const VectorialValue v, const Reference<CoordinateSystem> rcs = GLOBAL_COORDINATE_SYSTEM, int original_id = NO_ORIGINAL_ID);
 
 protected:
     VectorialValue v; /**< Orientation vector */
@@ -165,7 +170,7 @@ class CylindricalCoordinateSystem: public CoordinateSystem {
     VectorialValue utheta;
     public:
     CylindricalCoordinateSystem(const Mesh&, const VectorialValue origin, const VectorialValue ex,
-            const VectorialValue ey, const int rcsPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int original_id = NO_ORIGINAL_ID);
+            const VectorialValue ey, const Reference<CoordinateSystem> rcs = GLOBAL_COORDINATE_SYSTEM, int original_id = NO_ORIGINAL_ID);
 
     /**
      *  Compute the local cylindrical base (ur, utheta, uz) corresponding to point.
@@ -237,32 +242,33 @@ private:
     friend Mesh;
     friend CoordinateSystem;
     static int cs_next_position;          /**< Static token for the next CS Position. */
-    static constexpr int UNAVAILABLE_ID = -INT_MAX;
+    //static constexpr int UNAVAILABLE_ID = -INT_MAX;
     static constexpr int UNAVAILABLE_POSITION = -INT_MAX;
     const LogLevel logLevel;
-    std::map<int, int> originalIdByPosition;  /**< A map < Position, Original Id > to keep track of coordinate System. */
+    std::map<int, Reference<CoordinateSystem>> refByPosition;  /**< A map < Position, Original Id > to keep track of coordinate System. */
 
     /**
      * Reserve a CS position given a user id (input model id).
      */
-    int reserve(int originalId);
+    int reserve(const Reference<CoordinateSystem>);
     const Mesh& mesh;
     CoordinateSystemStorage(const Mesh&, LogLevel logLevel);
 public:
-    std::map<int, std::shared_ptr<CoordinateSystem>> coordinateSystemById;
+    std::map<Reference<CoordinateSystem>, std::shared_ptr<CoordinateSystem>> coordinateSystemByRef;
 
     /** Find the Position related to the input user id.
      *  Return UNAVAILABLE_POSITION if nothing is found.
      */
-    int findPositionByOriginalId(int originalId) const;
+    int findPosition(const Reference<CoordinateSystem>) const;
 
     /** Update the maps with the data (id, original_id)
      *  of this CS.
      *  Return the corresponding Position.
      */
     int add(const CoordinateSystem& coordinateSystem);
+    std::shared_ptr<CoordinateSystem> find(Reference<CoordinateSystem> csref) const;
     std::shared_ptr<CoordinateSystem> findByPosition(int cspos) const;
-    std::shared_ptr<CoordinateSystem> findById(int csid) const;
+    //std::shared_ptr<CoordinateSystem> findById(int csid) const;
 };
 
 

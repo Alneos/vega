@@ -82,6 +82,11 @@ bool operator==(const Reference<T>& left, const Reference<T>& right) {
 }
 
 template<class T>
+bool operator!=(const Reference<T>& left, const Reference<T>& right) {
+    return not (left == right);
+}
+
+template<class T>
 bool operator <(const Reference<T>& left, const Reference<T>& right) {
     if (left.type != right.type) {
         return left.type < right.type; // first ordering : type

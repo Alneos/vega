@@ -83,7 +83,7 @@ int F06Parser::readDisplacementSection(const Model& model,
 
 				const Node& node = model.mesh->findNode(model.mesh->findNodePosition(nodeId));
 				if (node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-					shared_ptr<CoordinateSystem> coordSystem = model.mesh->findCoordinateSystemByPosition(node.displacementCS);
+					shared_ptr<CoordinateSystem> coordSystem = model.mesh->getCoordinateSystemByPosition(node.displacementCS);
 					coordSystem->updateLocalBase(VectorialValue(node.x, node.y, node.z));
 					translation = coordSystem->vectorToGlobal(translation);
 					rotation = coordSystem->vectorToGlobal(rotation);

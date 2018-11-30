@@ -901,7 +901,7 @@ void NastranParser::parseCORD1R(NastranTokenizer& tok, shared_ptr<Model> model) 
         int nA  = tok.nextInt();
         int nB  = tok.nextInt();
         int nC  = tok.nextInt();
-        CartesianCoordinateSystem coordinateSystem(*(model->mesh), nA, nB, nC, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, cid);
+        CartesianCoordinateSystem coordinateSystem(*(model->mesh), nA, nB, nC, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM, cid);
         model->mesh->add(coordinateSystem);
         }
 }
@@ -923,7 +923,7 @@ void NastranParser::parseCORD2C(NastranTokenizer& tok, shared_ptr<Model> model) 
     VectorialValue ex = (vect[2] - vect[0]).orthonormalized(ez);
     VectorialValue ey = ez.cross(ex);
 
-    CylindricalCoordinateSystem coordinateSystem(*(model->mesh), vect[0], ex, ey, rid, cid);
+    CylindricalCoordinateSystem coordinateSystem(*(model->mesh), vect[0], ex, ey, Reference<CoordinateSystem>(CoordinateSystem::Type::POSITION, rid), cid);
     model->mesh->add(coordinateSystem);
 }
 
@@ -942,8 +942,7 @@ void NastranParser::parseCORD2R(NastranTokenizer& tok, shared_ptr<Model> model) 
     VectorialValue ex = (vect[2] - vect[0]).orthonormalized(ez);
     VectorialValue ey = ez.cross(ex);
 
-    int rpos = model->mesh->findOrReserveCoordinateSystem(rid);
-    CartesianCoordinateSystem coordinateSystem(*(model->mesh), vect[0], ex, ey, rpos, cid);
+    CartesianCoordinateSystem coordinateSystem(*(model->mesh), vect[0], ex, ey, Reference<CoordinateSystem>(CoordinateSystem::Type::POSITION, rid), cid);
     model->mesh->add(coordinateSystem);
 }
 
@@ -1215,14 +1214,13 @@ void NastranParser::parseFORCE(NastranTokenizer& tok, shared_ptr<Model> model) {
     int loadset_id = tok.nextInt();
     int node_id = tok.nextInt();
     int csid = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-    int cspos = model->mesh->findOrReserveCoordinateSystem(csid);
     double force = tok.nextDouble(true,0.0);
     double fx = tok.nextDouble(true,0.0) * force;
     double fy = tok.nextDouble(true,0.0) * force;
     double fz = tok.nextDouble(true,0.0) * force;
 
     NodalForce force1(*model, fx, fy, fz, 0., 0., 0., Loading::NO_ORIGINAL_ID,
-            cspos);
+            Reference<CoordinateSystem>(CoordinateSystem::Type::POSITION, csid));
     force1.addNodeId(node_id);
 
     model->add(force1);

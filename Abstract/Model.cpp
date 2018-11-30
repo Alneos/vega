@@ -2106,7 +2106,7 @@ void Model::finish() {
     }
 
     /* Build the coordinate systems from their definition points */
-    for (auto& coordinateSystemEntry : mesh->coordinateSystemStorage.coordinateSystemById) {
+    for (auto& coordinateSystemEntry : mesh->coordinateSystemStorage.coordinateSystemByRef) {
         coordinateSystemEntry.second->build();
     }
 
