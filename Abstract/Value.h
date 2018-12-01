@@ -64,6 +64,7 @@ public:
     const Value::Type type;
 public:
 
+    //virtual const std::string str() const = 0;
     virtual bool isPlaceHolder() const {
         return false;
     }
@@ -94,7 +95,7 @@ protected:
     KeywordValue(const Model&, Keyword keyword);
 public:
     const Keyword keyword;
-
+    const std::string str() const;// override;
     virtual std::shared_ptr<KeywordValue> clone() const =0;
 };
 

@@ -587,7 +587,7 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 
 	for (auto material : asterModel.model.materials) {
 		if (material->isOriginal()) {
-			out << "#Material original id " << material->getOriginalId() << endl;
+			out << "# Material original id " << material->getOriginalId() << endl;
 		}
 		out << "M" << material->getId() << "=DEFI_MATERIAU(" << endl;
 		const shared_ptr<Nature> enature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
@@ -639,11 +639,11 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 			out << "                         SY=" << bilinearNature.elastic_limit << "," << endl;
 			out << "                         )," << endl;
 		}
-		out << "                 );" << "# Original id:" << material->getOriginalId() << endl << endl;
+		out << "                 );" << endl << endl;
 	}
 
 	vector<shared_ptr<ElementSet>> composites = asterModel.model.elementSets.filter(ElementSet::Type::COMPOSITE);
-    out << "                    # writing " << composites.size() << " composites" << endl;
+    out << "# writing " << composites.size() << " composites" << endl;
     for (shared_ptr<ElementSet> c : composites) {
         shared_ptr<Composite> composite = dynamic_pointer_cast<Composite>(c);
         out << "MC" << composite->getId() << "=DEFI_COMPOSITE(" << endl;
@@ -1061,6 +1061,9 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 		}
 		string asterName = string("CN") + to_string(constraintSet.getId());
 		asternameByConstraintSet[constraintSet.getReference()] = asterName;
+		if (constraintSet.isOriginal()) {
+            out << "# ConstraintSet original id:" << constraintSet.getOriginalId() << endl;
+		}
 		out << asterName << "=DEFI_CONTACT(MODELE=MODMECA," << endl;
 		if (gaps.size() >= 1) {
             out << "                   FORMULATION='LIAISON_UNIL'," << endl;
@@ -1784,12 +1787,12 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		if (nonLinAnalysis.previousAnalysis) {
 			for (shared_ptr<LoadSet> loadSet : nonLinAnalysis.previousAnalysis->getLoadSets()) {
 				out << "                           _F(CHARGE=" << asternameByLoadSet[loadSet->getReference()]
-						<< ",FONC_MULT=IRAMP" << nonLinAnalysis.getId() << ")," << endl;
+						<< ",FONC_MULT=IRAMP" << nonLinAnalysis.getId() << ")," << "# Original id:" << loadSet->getOriginalId() << endl;
 			}
 		}
 		for (shared_ptr<LoadSet> loadSet : nonLinAnalysis.getLoadSets()) {
 			out << "                           _F(CHARGE=" << asternameByLoadSet[loadSet->getReference()]
-					<< ",FONC_MULT=RAMP" << nonLinAnalysis.getId() << ")," << endl;
+					<< ",FONC_MULT=RAMP" << nonLinAnalysis.getId() << ")," << "# Original id:" << loadSet->getOriginalId() << endl;
 		}
 		for (shared_ptr<ConstraintSet> constraintSet : nonLinAnalysis.getConstraintSets()) {
 			if (constraintSet->hasContacts()) {
@@ -1798,7 +1801,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 			//GC: dirty fix for #801, a deeper analysis must be done
 			if (constraintSet->getConstraints().size() >= 1) {
 				out << "                           _F(CHARGE=" << asternameByConstraintSet[constraintSet->getReference()] << "),"
-						<< endl;
+						 << "# Original id:" << constraintSet->getOriginalId() << endl;
 			}
 		}
 		out << "                           )," << endl;
@@ -1810,7 +1813,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 			if (not constraintSet->hasContacts()) {
 				continue;
 			}
-			out << "                    CONTACT=" << asternameByConstraintSet[constraintSet->getReference()] << "," << endl;
+			out << "                    CONTACT=" << asternameByConstraintSet[constraintSet->getReference()] << "," << "# Original id:" << constraintSet->getOriginalId() << endl;
 		}
 		double largeDisp = 0;
 		out << "                    COMPORTEMENT=(" << endl;

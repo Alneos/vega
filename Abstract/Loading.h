@@ -19,6 +19,7 @@
 #include "CoordinateSystem.h"
 #include "Reference.h"
 #include <climits>
+#include <tuple>
 
 namespace vega {
 

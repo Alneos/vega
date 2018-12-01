@@ -245,7 +245,7 @@ BOOST_AUTO_TEST_CASE( test_create_skin2d ) {
 	BOOST_CHECK_EQUAL_COLLECTIONS(applicationFace.begin(), applicationFace.end(),
 			expectedFace1NodeIds.begin(), expectedFace1NodeIds.end());
 	model->finish();
-	BOOST_CHECK_EQUAL(model->materials.size(), 1);
+	BOOST_CHECK_EQUAL(model->materials.size(), 2 /* skin adds a virtual material */);
 	BOOST_CHECK(model->validate());
 	BOOST_REQUIRE_EQUAL(1, model->mesh->countCells(CellType::QUAD4));
 	Cell cell = model->mesh->cells.cells_begin(CellType::QUAD4).next();

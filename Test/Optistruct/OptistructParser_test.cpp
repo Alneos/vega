@@ -77,6 +77,9 @@ BOOST_AUTO_TEST_CASE(optistruct_pload4) {
 			ConfigurationParameters(testLocation, SolverName::CODE_ASTER, "", ""));
         model->finish();
         BOOST_CHECK_EQUAL(model->analyses.size(), 1);
+        auto analysis = model->analyses.first();
+        BOOST_CHECK(not analysis->isLinear());
+        BOOST_CHECK_EQUAL(analysis->getConstraintSets().size(), 2);
 	}
 	catch (exception& e) {
 		cerr << e.what() << endl;
@@ -85,5 +88,26 @@ BOOST_AUTO_TEST_CASE(optistruct_pload4) {
 		BOOST_FAIL(string("Parse threw exception ") + e.what());
 	}
 }
+
+/*BOOST_AUTO_TEST_CASE(optistruct_rbe2) {
+	string testLocation = fs::path(
+		PROJECT_BASE_DIR "/testdata/unitTest/optistructparser/rbe2.nas").make_preferred().string();
+	optistruct::OptistructParser parser;
+	try {
+		const shared_ptr<Model> model = parser.parse(
+			ConfigurationParameters(testLocation, SolverName::CODE_ASTER, "", ""));
+        model->finish();
+        BOOST_CHECK_EQUAL(model->analyses.size(), 1);
+        auto analysis = model->analyses.first();
+        BOOST_CHECK(analysis->isLinear());
+        BOOST_CHECK_EQUAL(analysis->getConstraintSets().size(), 1);
+	}
+	catch (exception& e) {
+		cerr << e.what() << endl;
+		BOOST_TEST_MESSAGE(string("Application exception") + e.what());
+
+		BOOST_FAIL(string("Parse threw exception ") + e.what());
+	}
+}*/
 
 //____________________________________________________________________________//

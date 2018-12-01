@@ -358,6 +358,18 @@ const set<int> Analysis::boundaryNodePositions() const {
     return result;
 }
 
+void Analysis::copyInto(Analysis& other) const {
+    for(const auto& loadSetRef : loadSet_references) {
+        other.add(*loadSetRef);
+    }
+    for(const auto& constraintSetRef : constraintSet_references) {
+        other.add(*constraintSetRef);
+    }
+    for(const auto& objectiveRef : objectiveReferences) {
+        other.add(*objectiveRef);
+    }
+}
+
 Analysis::~Analysis() {
 }
 

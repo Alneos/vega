@@ -62,6 +62,14 @@ ostream &operator<<(ostream &out, const KeywordValue& value) {
     return out;
 }
 
+const std::string KeywordValue::str() const {
+    auto entry = stringByType.find(keyword);
+    if (entry != KeywordValue::stringByType.end())
+        return entry->second;
+    else
+        return "unmapped KeywordValue:" + to_string(static_cast<int>(keyword));
+}
+
 const string NamedValue::name = "NamedValue";
 
 ostream &operator<<(ostream &out, const NamedValue& value) {

@@ -1790,6 +1790,7 @@
 		<Unit filename="Test/Abstract/Utility_test.cpp">
 			<Option target="Utility_test" />
 		</Unit>
+		<Unit filename="Test/Abstract/Value_test.cpp" />
 		<Unit filename="Test/Aster/CMakeLists.txt">
 			<Option virtualFolder="CMake Files/Test/Aster/" />
 		</Unit>

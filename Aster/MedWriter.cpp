@@ -267,21 +267,23 @@ void MedWriter::writeMED(const Model& model, const string& medFileName) {
 		}
 		connectivity.clear();
 
-		/*char* cellNames = new char[numCells*MED_SNAME_SIZE]();
-		med_int* cellNum=new med_int[numCells];
+/*		char* cellNames = new char[numCells*MED_SNAME_SIZE]();
+		//med_int* cellNum=new med_int[numCells];
 		int i = 0;
         for (int cellPosition : cellPositions) {
             //int cellId = findCellId(cellPosition);
             //cellNum[i] = cellId;
-            cellNum[i] = cellPosition;
+            //cellNum[i] = cellPosition;
             strncpy(cellNames+(i*MED_SNAME_SIZE),Cell::MedName(cellPosition).c_str(),MED_SNAME_SIZE);
+            cout << cellNames+(i*MED_SNAME_SIZE) << endl;
             ++i;
         }
         result = MEDmeshEntityNameWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_CELL, code,
         numCells, cellNames);
+        cout << "result:" << to_string(result) << endl;
         delete[](cellNames);
-        result = MEDmeshEntityNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_CELL, code, numCells, cellNum);
-        delete[](cellNum);*/
+        //result = MEDmeshEntityNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_CELL, code, numCells, cellNum);
+        //delete[](cellNum);*/
 
         vector<med_int> cellnums;
         cellnums.reserve(numCells);

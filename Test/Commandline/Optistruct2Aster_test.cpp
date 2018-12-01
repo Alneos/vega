@@ -26,17 +26,17 @@ namespace tests {
 
 using namespace std;
 
-BOOST_AUTO_TEST_CASE( prob6 ) {
-	CommandLineUtils::optistructStudy2Aster("/caw/prob6/prob6.dat", RUN_ASTER, true, 0.02);
-}
-
+//BOOST_AUTO_TEST_CASE( prob6 ) {
+//	CommandLineUtils::optistructStudy2Aster("/caw/prob6/prob6.dat", RUN_ASTER, true, 0.02);
+//}
+//
 BOOST_AUTO_TEST_CASE( pload4 ) {
 	CommandLineUtils::optistructStudy2Aster("/irt/pload4/pload4.nas", false, true, 0.00001);
 }
 
-/*BOOST_AUTO_TEST_CASE( bigtest ) {
-	CommandLineUtils::optistructStudy2Aster("/../../../../tmp/bigtest.fem", false, true, 0.03);
-}*/
+//BOOST_AUTO_TEST_CASE( bigtest ) {
+//	CommandLineUtils::optistructStudy2Aster("/../../../../tmp/bigtest.fem", false, true, 0.03);
+//}
 
 } /* namespace test */
 } /* namespace vega */

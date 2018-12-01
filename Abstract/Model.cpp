@@ -819,6 +819,7 @@ void Model::generateSkin() {
     oss << "created by generateSkin() because of FORCE_SURFACE or BOUNDARY_ELEMENTFACE or ...";
     shared_ptr<CellGroup> mappl = mesh->createCellGroup("VEGASKIN", Group::NO_ORIGINAL_ID, oss.str());
 
+    bool addedSkin = false;
     for (auto it = loadings.begin(); it != loadings.end(); it++) {
         shared_ptr<Loading> loadingPtr = *it;
         if (loadingPtr->applicationType == Loading::ApplicationType::ELEMENT) {
@@ -831,10 +832,15 @@ void Model::generateSkin() {
                             loadingPtr);
                     vector<int> faceIds = forceSurface->getApplicationFace();
                     if (faceIds.size() > 0) {
+                        addedSkin = true;
                         vega::Cell cell = generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
                         mappl->addCellId(cell.id);
                         forceSurface->clear(); //< To remove the volumic cell and then add the skin at its place
-                        forceSurface->addCellId(cell.id);
+                        //forceSurface->addCellId(cell.id);
+                        // LD Workaround for problem "cannot write cell names"
+                        shared_ptr<CellGroup> cellGrp = mesh->createCellGroup(Cell::MedName(cell.position), Group::NO_ORIGINAL_ID, oss.str());
+                        cellGrp->addCellId(cell.id);
+                        forceSurface->add(*cellGrp);
                         //forceSurface->add(*mappl);
                     }
                 }
@@ -858,6 +864,7 @@ void Model::generateSkin() {
                 Cell cell0 = this->mesh->findCell(this->mesh->findCellPosition(faceInfo.cellId));
                 const vector<int>& faceIds = cell0.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
                 if (faceIds.size() > 0) {
+                    addedSkin = true;
                     vega::Cell cell = generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
                     mappl->addCellId(cell.id);
                     surfGrp->addCellId(cell.id);
@@ -867,13 +874,14 @@ void Model::generateSkin() {
         }
     }
 
-    if (this->configuration.addSkinToModel) {
+    if (addedSkin) {
         // LD : Workaround for Aster problem : MODELISA6_96
         //  les 1 mailles imprimées ci-dessus n'appartiennent pas au modèle et pourtant elles ont été affectées dans le mot-clé facteur : !
         //   ! FORCE_FACE
-        Continuum continuum(*this, this->modelType);
-        continuum.assignCellGroup(mappl);
-        this->add(continuum);
+        Continuum skin(*this, this->modelType);
+        skin.assignCellGroup(mappl);
+        skin.assignMaterial(getVirtualMaterial());
+        this->add(skin);
     }
 
 }
@@ -2125,15 +2133,7 @@ void Model::finish() {
                 NonLinearStrategy nonLinearStrategy(*this, 1, i++);
                 this->add(nonLinearStrategy);
                 NonLinearMecaStat nonLinAnalysis(*this, nonLinearStrategy.getOriginalId());
-                for(const auto& loadSet : analysis->getLoadSets()) {
-                    nonLinAnalysis.add(loadSet->getReference());
-                }
-                for(const auto& constraintSet : analysis->getConstraintSets()) {
-                    nonLinAnalysis.add(constraintSet->getReference());
-                }
-                for(const auto& assertion : analysis->getAssertions()) {
-                    nonLinAnalysis.add(assertion->getReference());
-                }
+                analysis->copyInto(nonLinAnalysis);
                 this->add(nonLinAnalysis);
 
                 this->analyses.erase(analysis->getReference());

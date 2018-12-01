@@ -117,6 +117,7 @@ public:
     void addBoundaryDOFS(int nodePosition, const DOFS dofs);
     const DOFS findBoundaryDOFS(int nodePosition) const;
     const std::set<int> boundaryNodePositions() const;
+    void copyInto(Analysis& other) const;
 
     virtual std::shared_ptr<Analysis> clone() const =0;
     virtual bool isStatic() const {
