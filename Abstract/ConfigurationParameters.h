@@ -150,6 +150,14 @@ public:
      */
     bool removeConstrainedImposed = false;
 
+    /**
+     * Replace rigid elements (for example PBUSH with RIGID keywords)
+     * see http://blog.altair.co.kr/wp-content/uploads/2013/08/PBUSH.pdf
+     * This flag asks to use a cinematic constraint to avoid conditionment
+     * problems in stiffness matrix
+     */
+    bool replaceRigidSegments = false;
+
 };
 // TODO: THe Configuration Parameters should be much more generalized. With this,
 // it's a pain in the keyboard to add options!!

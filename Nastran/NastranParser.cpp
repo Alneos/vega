@@ -1919,12 +1919,48 @@ void NastranParser::parsePBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
         tok.skipToNotEmpty();
         string flag = tok.nextString();
         if (flag=="K"){ // Stiffness values (Default 0.0)
-            k1=tok.nextDouble(true, 0.0);
-            k2=tok.nextDouble(true, 0.0);
-            k3=tok.nextDouble(true, 0.0);
-            k4=tok.nextDouble(true, 0.0);
-            k5=tok.nextDouble(true, 0.0);
-            k6=tok.nextDouble(true, 0.0);
+            if (tok.isNextDouble() or tok.isNextEmpty())
+                k1=tok.nextDouble(true, 0.0);
+            else
+                if (tok.nextString() == "RIGID")
+                    k1 = DBL_MAX;
+                else
+                    throw logic_error("Unsupported value (for now)");
+            if (tok.isNextDouble() or tok.isNextEmpty())
+                k2=tok.nextDouble(true, 0.0);
+            else
+                if (tok.nextString() == "RIGID")
+                    k2 = DBL_MAX;
+                else
+                    throw logic_error("Unsupported value (for now)");
+            if (tok.isNextDouble() or tok.isNextEmpty())
+                k3=tok.nextDouble(true, 0.0);
+            else
+                if (tok.nextString() == "RIGID")
+                    k3 = DBL_MAX;
+                else
+                    throw logic_error("Unsupported value (for now)");
+            if (tok.isNextDouble() or tok.isNextEmpty())
+                k4=tok.nextDouble(true, 0.0);
+            else
+                if (tok.nextString() == "RIGID")
+                    k4 = DBL_MAX;
+                else
+                    throw logic_error("Unsupported value (for now)");
+            if (tok.isNextDouble() or tok.isNextEmpty())
+                k5=tok.nextDouble(true, 0.0);
+            else
+                if (tok.nextString() == "RIGID")
+                    k5 = DBL_MAX;
+                else
+                    throw logic_error("Unsupported value (for now)");
+            if (tok.isNextDouble() or tok.isNextEmpty())
+                k6=tok.nextDouble(true, 0.0);
+            else
+                if (tok.nextString() == "RIGID")
+                    k6 = DBL_MAX;
+                else
+                    throw logic_error("Unsupported value (for now)");
         }else if (flag=="B"){ // Force-Per-velocity Damping (Default 0.0)
             b1=tok.nextDouble(true, 0.0);
             b2=tok.nextDouble(true, 0.0);
@@ -2867,54 +2903,6 @@ void NastranParser::parseSPCD(NastranTokenizer& tok, shared_ptr<Model> model) {
         LoadSet loadingSet(*model, LoadSet::Type::LOAD, set_id);
         model->add(loadingSet);
     }
-
-    /*for (auto analysis : model->analyses) {
-        if (!analysis->contains(loadingSetReference)) {
-            continue;
-        }
-
-        // Values of Di will override the values specified on an SPC Bulk Data entry, if
-        // the SID is selected as indicated above.
-        for (const shared_ptr<ConstraintSet>& constraintSet : analysis->getConstraintSets()) {
-            if (constraintSet->type != ConstraintSet::Type::SPC) {
-                continue;
-            }
-            const set<shared_ptr<Constraint> > spcs = constraintSet->getConstraintsByType(
-                    Constraint::Type::SPC);
-            if (spcs.size() == 0) {
-                continue;
-            }
-            for (shared_ptr<Constraint> constraint : spcs) {
-                shared_ptr<SinglePointConstraint> spc = dynamic_pointer_cast<SinglePointConstraint>(
-                        constraint);
-                for (int nodePosition : spc->nodePositions()) {
-                    int g;
-                    int c;
-                    if (nodePosition == g1pos) {
-                        g = g1;
-                        c = c1;
-                    } else if (nodePosition == g2pos) {
-                        g = g2;
-                        c = c2;
-                    } else {
-                        continue;
-                    }
-                    DOFS spcDofs = spc->getDOFSForNode(nodePosition);
-                    DOFS blockingDofs = DOFS::nastranCodeToDOFS(c);
-                    if (!spcDofs.containsAnyOf(blockingDofs)) {
-                        continue;
-                    }
-                    analysis->removeSPCNodeDofs(*spc, nodePosition, blockingDofs);
-                    if (model->configuration.logLevel >= LogLevel::DEBUG) {
-                        cout << "In analysis : " + to_str(*analysis) + ", SPCD "
-                                << to_string(set_id) <<
-                                " replaced DOFS " << blockingDofs << " for node id : " << g
-                                << " from spc : " << *spc << endl;
-                    }
-                }
-            }
-        }
-    }*/
 
     ImposedDisplacement spcd = ImposedDisplacement(*model, DOFS::nastranCodeToDOFS(c1), d1);
     spcd.addNodeId(g1);

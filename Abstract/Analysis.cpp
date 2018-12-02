@@ -298,8 +298,8 @@ void Analysis::removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition,  
         }
         model.add(remainingSpc);
         if (model.configuration.logLevel >= LogLevel::DEBUG) {
-            cout << "Created spc : " << remainingSpc << " for node position : "
-                    << nodePosition
+            cout << "Created spc : " << remainingSpc << " for node id : "
+                    << nodeId
                     << " to handle dofs : " << remainingDofs << endl;
         }
         for (const auto& constraintSet : affectedConstraintSets) {
@@ -317,8 +317,8 @@ void Analysis::removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition,  
         model.add(otherAnalysesSpc);
         model.addConstraintIntoConstraintSet(otherAnalysesSpc, otherAnalysesCS);
         if (this->model.configuration.logLevel >= LogLevel::DEBUG) {
-            cout << "Created spc : " << otherAnalysesSpc << " for node position : "
-                    << nodePosition
+            cout << "Created spc : " << otherAnalysesSpc << " for node id : "
+                    << nodeId
                     << " to handle dofs : " << dofsToRemove << endl;
         }
         for (auto otherAnalysis : this->model.analyses) {

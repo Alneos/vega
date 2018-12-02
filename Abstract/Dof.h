@@ -166,6 +166,11 @@ public:
 		bool hasTranslations() const;
 		bool hasRotations() const;
 		bool isDiagonal() const;
+		/**
+		 * Checks if diagonal is filled with DBL_MAX values
+		 * useful (for now) to understand if an element is totally rigid
+		 **/
+		bool isMaxDiagonal() const;
 		bool isSymmetric() const;
 		bool isEmpty() const;
 };

@@ -522,6 +522,10 @@ bool StructuralSegment::hasStiffness() const {
 	return !(stiffness.isEmpty());
 }
 
+bool StructuralSegment::isDiagonalRigid() const {
+	return stiffness.isMaxDiagonal();
+}
+
 bool StructuralSegment::hasMass() const {
 	return !(mass.isEmpty());
 }
@@ -538,6 +542,12 @@ void StructuralSegment::addMass(DOF rowdof, DOF coldof, double value){
 }
 void StructuralSegment::addDamping(DOF rowdof, DOF coldof, double value){
 	damping.componentByDofs[make_pair(rowdof, coldof)] = value;
+}
+
+void StructuralSegment::setAllZero() {
+    for (auto& entry : stiffness.componentByDofs) {
+        entry.second = 0.0;
+    }
 }
 
 double StructuralSegment::findStiffness(DOF rowdof, DOF coldof) const{

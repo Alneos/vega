@@ -118,6 +118,14 @@ private:
     void removeConstrainedImposed();
 
     /**
+     * Replace rigid elements (for example PBUSH with RIGID keywords)
+     * see http://blog.altair.co.kr/wp-content/uploads/2013/08/PBUSH.pdf
+     * using cinematic constraints to avoid conditionment
+     * problems in stiffness matrix
+     */
+    void replaceRigidSegments();
+
+    /**
      * Get a non rigid material (virtual)
      */
     std::shared_ptr<Material> getVirtualMaterial();

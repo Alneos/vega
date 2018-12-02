@@ -367,6 +367,7 @@ public:
 	DiscreteSegment(Model&, bool symmetric = true, int original_id = NO_ORIGINAL_ID);
 	bool hasTranslations() const override;
 	bool hasRotations() const override;
+	bool isDiagonalRigid() const;
 	void addStiffness(int rowindex, int colindex, DOF rowdof, DOF coldof,
 			double value);
 	double findStiffness(int rowindex, int colindex, DOF rowdof, DOF coldof) const;
@@ -387,12 +388,14 @@ public:
 	StructuralSegment(Model&, bool symmetric = true, int original_id = NO_ORIGINAL_ID);
 	bool hasTranslations() const override;
 	bool hasRotations() const override;
+	bool isDiagonalRigid() const;
 	bool hasStiffness() const;
 	bool hasMass() const;
 	bool hasDamping() const;
 	void addStiffness(DOF rowdof, DOF coldof, double value);
 	void addMass(DOF rowdof, DOF coldof, double value);
 	void addDamping(DOF rowdof, DOF coldof, double value);
+	void setAllZero();
 	double findStiffness(DOF rowdof, DOF coldof) const;
 	double findDamping(DOF rowdof, DOF coldof) const;
 	const std::vector<double> asStiffnessVector(bool addRotationsIfNotPresent = false) const override final;

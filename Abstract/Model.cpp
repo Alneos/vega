@@ -838,7 +838,7 @@ void Model::generateSkin() {
                         forceSurface->clear(); //< To remove the volumic cell and then add the skin at its place
                         //forceSurface->addCellId(cell.id);
                         // LD Workaround for problem "cannot write cell names"
-                        shared_ptr<CellGroup> cellGrp = mesh->createCellGroup(Cell::MedName(cell.position), Group::NO_ORIGINAL_ID, oss.str());
+                        shared_ptr<CellGroup> cellGrp = mesh->createCellGroup(Cell::MedName(cell.position), Group::NO_ORIGINAL_ID, "Single cell group over skin element");
                         cellGrp->addCellId(cell.id);
                         forceSurface->add(*cellGrp);
                         //forceSurface->add(*mappl);
@@ -1446,6 +1446,22 @@ void Model::replaceDirectMatrices()
             cout << "Replaced " << *elementSet << endl;
         }
         this->elementSets.erase(elementSet->getReference());
+    }
+}
+
+void Model::replaceRigidSegments()
+{
+    for (auto elementSet : elementSets.filter(ElementSet::Type::STRUCTURAL_SEGMENT)) {
+        shared_ptr<StructuralSegment> segment = dynamic_pointer_cast<StructuralSegment>(elementSet);
+        if (not segment->isDiagonalRigid()) {
+            continue;
+        }
+        const vector<int>& nodePositions{segment->nodePositions().begin(), segment->nodePositions().end()};
+        int masterId = mesh->findCellId(nodePositions[0]);
+        //set<int> slaveIds {mesh->findCellId(nodePositions[1])};
+        RigidConstraint rigid(*this, masterId, RigidConstraint::NO_ORIGINAL_ID, {mesh->findCellId(nodePositions[1])});
+        this->add(rigid);
+        segment->setAllZero(); // make the rigid segment... no more rigid.
     }
 }
 
@@ -2130,6 +2146,7 @@ void Model::finish() {
         int i = 1;
         for (shared_ptr<Analysis> analysis : analyses) {
             if (analysis->isLinear() and analysis->isStatic() and constraintSets.contains(ConstraintSet::Type::CONTACT)) {
+                cout << "Transforming linear static analysis " + to_str(*analysis) + " in non-linear because of contact.";
                 NonLinearStrategy nonLinearStrategy(*this, 1, i++);
                 this->add(nonLinearStrategy);
                 NonLinearMecaStat nonLinAnalysis(*this, nonLinearStrategy.getOriginalId());
@@ -2179,6 +2196,10 @@ void Model::finish() {
     if (this->configuration.replaceDirectMatrices) {
         replaceDirectMatrices();
     }
+
+//    if (this->configuration.replaceRigidSegments) {
+//        replaceRigidSegments();
+//    }
 
     if (this->configuration.removeRedundantSpcs) {
         removeRedundantSpcs();

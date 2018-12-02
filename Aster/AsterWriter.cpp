@@ -1133,6 +1133,7 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 				out << "GROUP_MA_ESCL='"
 						<< surfaceSlideSlave->cellGroup->getName()
 						<< "',";
+                out << "GLISSIERE='OUI',";
 				out << ")," << endl;
 		}
 		for (shared_ptr<Constraint> constraint : surfaces) {

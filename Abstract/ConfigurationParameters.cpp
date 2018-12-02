@@ -55,6 +55,7 @@ const ModelConfiguration ConfigurationParameters::getModelConfiguration() const 
         configuration.makeBoundaryCells = true;
         configuration.autoDetectAnalysis = true;
         configuration.removeConstrainedImposed = true;
+        configuration.replaceRigidSegments = true;
     } else if (this->outputSolver.getSolverName() == SolverName::SYSTUS) {
         configuration.createSkin = true;
         configuration.emulateAdditionalMass = true;
@@ -68,6 +69,7 @@ const ModelConfiguration ConfigurationParameters::getModelConfiguration() const 
         configuration.makeCellsFromRBE = true;
         configuration.splitElementsByDOFS = true;
         configuration.autoDetectAnalysis = true;
+        configuration.replaceRigidSegments = true;
     } else if (this->outputSolver.getSolverName() == SolverName::NASTRAN) {
         // default should be always false
         configuration.autoDetectAnalysis = true;
