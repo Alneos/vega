@@ -69,7 +69,9 @@ esiqual:
     - irt
     - linux
   script:
+    - export TOPAZE_PATH=/opt/TOP/ESI/topaze
     - source /opt/TOP/ESI/topazerc.sh
+    - export PATH=$PATH:$TOPAZE_BIN
     - cd /srv/data/BDTest_VEGA
     - ./QUALIF_VEGAOK.csh
     - 'grep "Nombre de fichiers passes avec erreur :   0" /srv/data/BDTest_VEGA/BASE_DETESTS/RES_ANG/RAP_ANG/ANG_linux86_64_VEGAOK_Sysworld_V19.0-new.RAPQ'
