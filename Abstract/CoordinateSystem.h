@@ -42,8 +42,8 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
     static constexpr int GLOBAL_COORDINATE_SYSTEM_ID = 0;
     static const Reference<CoordinateSystem> GLOBAL_COORDINATE_SYSTEM;
     enum class Type {
-        POSITION,
-        ORIENTATION
+        ABSOLUTE,
+        RELATIVE
     };
     enum class CoordinateType {
         CARTESIAN,

@@ -872,7 +872,7 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 	bool orientationsPrinted = false;
 	for (auto it : asterModel.model.mesh->cellGroupNameByCspos){
         std::shared_ptr<vega::CoordinateSystem> cs= asterModel.model.mesh->getCoordinateSystemByPosition(it.first);
-		if (cs->type!=CoordinateSystem::Type::ORIENTATION){
+		if (cs->type!=CoordinateSystem::Type::RELATIVE){
 		   //handleWritingError("Coordinate System of Group "+ it.second+" is not an ORIENTATION.");
 		   continue;
 		}
@@ -1778,6 +1778,9 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 			out << "IRAMP" << nonLinAnalysis.getId()
 					<< "=DEFI_FONCTION(NOM_PARA='INST', PROL_DROITE='LINEAIRE', VALE=("
 					<< stepRange.start << ",1.0," << stepRange.end << ",0.0,));" << endl;
+		} else {
+		    out << "DZERO" << nonLinAnalysis.getId()
+		        << "=CREA_CHAMP(OPERATION='AFFE',MODELE=MODMECA,TYPE_CHAM='NOEU_DEPL_R',AFFE=_F(TOUT='OUI',NOM_CMP=('DX','DY','DZ'), VALE=(0.0,0.0,0.0)))" << endl;
 		}
 		out << "RESU" << nonLinAnalysis.getId() << "=STAT_NON_LINE(MODELE=MODMECA," << endl;
 		if (asterModel.model.materials.size() >= 1) {
@@ -1857,6 +1860,14 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		if (nonLinAnalysis.previousAnalysis) {
 			out << "                    ETAT_INIT=_F(EVOL_NOLI =RESU"
 					<< nonLinAnalysis.previousAnalysis->getId() << ")," << endl;
+		} else {
+		    // Workaround for ELEMENTS4_73
+		    // Les comportements écrits en configuration de référence ne sont pas disponibles
+            // sur les éléments linéaires pour la modélisation 3D_SI.
+            // Pour contourner le problème et passer à un comportement en configuration actuelle,
+            // ajoutez un état initial nul au calcul.
+			out << "                    ETAT_INIT=_F(DEPL =DZERO"
+					<< nonLinAnalysis.getId() << ")," << endl;
 		}
 		out << "                    SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS')," << endl;
 		out << "                    );" << endl << endl;

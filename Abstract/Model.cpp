@@ -880,7 +880,11 @@ void Model::generateSkin() {
         //   ! FORCE_FACE
         Continuum skin(*this, this->modelType);
         skin.assignCellGroup(mappl);
-        skin.assignMaterial(getVirtualMaterial());
+        // LD: Workaround for Aster problem : COMPOR1_60
+        // Toutes les mailles déclarées dans l'occurrence numéro 6 du mot-clé COMPORTEMENT
+        // sont des éléments de bord qui ne portent pas de rigidité.
+        // Il faut supprimer cette occurrence pour que le calcul fonctionne.
+        //skin.assignMaterial(getVirtualMaterial());
         this->add(skin);
     }
 

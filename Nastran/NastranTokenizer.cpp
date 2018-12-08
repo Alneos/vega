@@ -42,6 +42,28 @@ NastranTokenizer::NastranTokenizer(istream& stream, vega::LogLevel logLevel, con
 NastranTokenizer::~NastranTokenizer() {
 }
 
+const string NastranTokenizer::HM_COMMENT_START = "$HMNAME ";
+
+const map<string, NastranTokenizer::CommentType> NastranTokenizer::commentTypeByString = {
+        { "BEAMSECTCOLS", CommentType::BEAMSECTCOLS },
+        { "BEAMSECTS", CommentType::BEAMSECTS },
+        { "COMP", CommentType::COMP },
+        { "COMPS", CommentType::COMPS },
+        { "CSURF", CommentType::CSURF },
+        { "DEQUATIONS", CommentType::DEQUATIONS },
+        { "GROUP", CommentType::GROUP },
+        { "LOADCOL", CommentType::LOADCOL },
+        { "LOADCOLS", CommentType::LOADCOLS },
+        { "LOADSTEP", CommentType::LOADSTEP },
+        { "MAT", CommentType::MAT },
+        { "MATS", CommentType::MATS },
+        { "OBJECTIVES", CommentType::OBJECTIVES },
+        { "OPTICONSTRAINTS", CommentType::OPTICONSTRAINTS },
+        { "PROP", CommentType::PROP },
+        { "SYSTCOL", CommentType::SYSTCOL },
+        { "VECTORCOL", CommentType::VECTORCOL },
+};
+
 NastranTokenizer::LineType NastranTokenizer::getLineType(const string& line) {
 	const string beginning = line.substr(0, 8);
 	if (beginning.find(",") == string::npos) {
@@ -117,6 +139,16 @@ bool NastranTokenizer::readLineSkipComment(string& line) {
 				eof = false;
 				break;
 			}
+		} else if (boost::starts_with(line, HM_COMMENT_START)) {
+		    boost::erase_head(line, static_cast<int>(HM_COMMENT_START.size()));
+		    vector<string> commentParts;
+		    boost::split(commentParts, line, boost::is_any_of(" \""), boost::token_compress_on);
+            if (commentParts.size() >= 3) {
+                auto result = commentTypeByString.find(commentParts[0]);
+                if (result != commentTypeByString.end()) {
+                    labelByCommentTypeAndId[make_pair(result->second, std::stoi(commentParts[1]))] = commentParts[2];
+                }
+            }
 		}
 	}
 	return eof;

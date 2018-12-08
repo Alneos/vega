@@ -1472,7 +1472,7 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
             auto cs = systusModel.model->mesh->getCoordinateSystemByPosition(node.displacementCS);
             vector<double> vec;
             switch (cs->type){
-            case CoordinateSystem::Type::POSITION:{
+            case CoordinateSystem::Type::ABSOLUTE:{
                 switch (cs->coordType){
                 case CoordinateSystem::CoordinateType::CARTESIAN:{
                     VectorialValue angles = cs->getEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
@@ -2393,8 +2393,8 @@ void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel,
         return;
     }
 
-    if ((cs->type!=CoordinateSystem::Type::ORIENTATION and cs->coordType!=CoordinateSystem::CoordinateType::VECTOR) and
-        (cs->type!=CoordinateSystem::Type::POSITION and cs->coordType!=CoordinateSystem::CoordinateType::CARTESIAN)){
+    if ((cs->type!=CoordinateSystem::Type::RELATIVE and cs->coordType!=CoordinateSystem::CoordinateType::VECTOR) and
+        (cs->type!=CoordinateSystem::Type::ABSOLUTE and cs->coordType!=CoordinateSystem::CoordinateType::CARTESIAN)){
         out << " 0";
         handleWritingWarning("Coordinate System "+ to_string(static_cast<int>(cs->type)) + " is not supported. Referentiel dismissed.", "Angle Elements");
         return;
@@ -2407,7 +2407,7 @@ void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel,
 
     // Orientation are not allowed for 0d elements.
     case 0: {
-        if (cs->type==CoordinateSystem::Type::ORIENTATION){
+        if (cs->type==CoordinateSystem::Type::RELATIVE){
             out << " 0";
             handleWritingWarning("Local orientation are not defined for 0D elements.",  "Angle Elements");
         }else{

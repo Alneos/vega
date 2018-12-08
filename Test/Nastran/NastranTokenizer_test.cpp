@@ -368,12 +368,11 @@ BOOST_AUTO_TEST_CASE(nastran_THRU_BY_symbol) {
     tokenizer.nextLine();
 }
 
-/*void countGridElems(NastranTokenizer& tok) {
-    int symcount = 0;
-    while (tok.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_FIELD) {
-        string symbol = tok.nextString();
-        symcount += symbol.empty() ? 0 : 1;
-    }
-    BOOST_CHECK_EQUAL(4, symcount);
-}*/
-
+BOOST_AUTO_TEST_CASE(nastran_HM_comment) {
+    //                    12345678123456781234567812345678 1234567812345 6781234567812345678
+    string nastranLine = "$HMNAME LOADSTEP               2\"Lateral_load\"       1";
+    istringstream istr(nastranLine);
+    NastranTokenizer tokenizer(istr);
+    tokenizer.bulkSection();
+    tokenizer.nextLine();
+}

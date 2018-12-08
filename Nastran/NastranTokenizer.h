@@ -44,9 +44,30 @@ public:
         SHORT_FORMAT,
         LONG_FORMAT
     };
+    enum class CommentType : int {
+        BEAMSECTCOLS,
+        BEAMSECTS,
+        COMP,
+        COMPS,
+        CSURF,
+        DEQUATIONS,
+        GROUP,
+        LOADCOL,
+        LOADCOLS,
+        LOADSTEP,
+        MAT,
+        MATS,
+        OBJECTIVES,
+        OPTICONSTRAINTS,
+        PROP,
+        SYSTCOL,
+        VECTORCOL
+    };
 private:
     static const int SFSIZE = 8; /**< Short field size **/
     static const int LFSIZE = 16;/**< Long field size **/
+    static const std::string HM_COMMENT_START;
+    static const std::map<std::string, CommentType> commentTypeByString;
 
     unsigned int currentField;   /**< Current position of the Tokenizer, i.e, the next field to be interpreted **/
     std::vector<std::string> currentLineVector;
@@ -83,6 +104,7 @@ public:
 
     SectionType currentSection;
     SymbolType nextSymbolType;
+    std::map<std::pair<CommentType, int>, std::string> labelByCommentTypeAndId;
 
     NastranTokenizer(std::istream& stream, vega::LogLevel logLevel = vega::LogLevel::INFO,
             const std::string fileName = "UNKNOWN",

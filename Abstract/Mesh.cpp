@@ -406,7 +406,7 @@ int Mesh::findOrientation(const OrientationCoordinateSystem & ocs) const{
 	int posOrientation=0;
 	for (auto& coordinateSystemEntry : this->coordinateSystemStorage.coordinateSystemByRef) {
         shared_ptr<CoordinateSystem> coordinateSystem = coordinateSystemEntry.second;
-		if (coordinateSystem->type==CoordinateSystem::Type::ORIENTATION){
+		if (coordinateSystem->type==CoordinateSystem::Type::RELATIVE){
 			std::shared_ptr<OrientationCoordinateSystem> mocs = std::dynamic_pointer_cast<OrientationCoordinateSystem>(coordinateSystem);
 			if (ocs == *mocs){
 				posOrientation = coordinateSystemStorage.findPosition(mocs->getReference());

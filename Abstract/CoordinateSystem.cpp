@@ -38,13 +38,13 @@ CoordinateSystem::CoordinateSystem(const Mesh& mesh, Type type, CoordinateType c
 
 }
 
-const Reference<CoordinateSystem> CoordinateSystem::GLOBAL_COORDINATE_SYSTEM{CoordinateSystem::Type::POSITION, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID};
+const Reference<CoordinateSystem> CoordinateSystem::GLOBAL_COORDINATE_SYSTEM{CoordinateSystem::Type::ABSOLUTE, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID};
 
 const string CoordinateSystem::name = "CoordinateSystem";
 
 const map<CoordinateSystem::Type, string> CoordinateSystem::stringByType = {
-        { CoordinateSystem::Type::POSITION, "POSITION" },
-        { CoordinateSystem::Type::ORIENTATION, "ORIENTATION"},
+        { CoordinateSystem::Type::ABSOLUTE, "ABSOLUTE" },
+        { CoordinateSystem::Type::RELATIVE, "RELATIVE"},
 };
 
 const map<CoordinateSystem::CoordinateType, string> CoordinateSystem::stringByCoordinateSystemType = {
@@ -93,11 +93,11 @@ const VectorialValue CoordinateSystem::getEulerAnglesIntrinsicZYX(const Coordina
 CartesianCoordinateSystem::CartesianCoordinateSystem(const Mesh& mesh,
         const VectorialValue& origin, const VectorialValue& ex, const VectorialValue& ey, const Reference<CoordinateSystem> rcs,
         int _original_id) :
-        CoordinateSystem(mesh, CoordinateSystem::Type::POSITION, CoordinateSystem::CoordinateType::CARTESIAN, origin, ex, ey, rcs, _original_id) {
+        CoordinateSystem(mesh, CoordinateSystem::Type::ABSOLUTE, CoordinateSystem::CoordinateType::CARTESIAN, origin, ex, ey, rcs, _original_id) {
 }
 CartesianCoordinateSystem::CartesianCoordinateSystem(const Mesh& mesh,
         int nO, int nZ, int nXZ, const Reference<CoordinateSystem> rcs, int _original_id) :
-        CoordinateSystem(mesh, CoordinateSystem::Type::POSITION, CoordinateSystem::CoordinateType::CARTESIAN, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcs, _original_id){
+        CoordinateSystem(mesh, CoordinateSystem::Type::ABSOLUTE, CoordinateSystem::CoordinateType::CARTESIAN, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcs, _original_id){
     nodesId.push_back(nO);
     nodesId.push_back(nZ);
     nodesId.push_back(nXZ);
@@ -182,7 +182,7 @@ void CartesianCoordinateSystem::build(){
 CylindricalCoordinateSystem::CylindricalCoordinateSystem(const Mesh& mesh,
         const VectorialValue origin, const VectorialValue ex, const VectorialValue ey, const Reference<CoordinateSystem> rcs,
         int original_id) :
-        CoordinateSystem(mesh, CoordinateSystem::Type::POSITION, CoordinateSystem::CoordinateType::CYLINDRICAL, origin, ex, ey, rcs, original_id), ur(this->ex), utheta(
+        CoordinateSystem(mesh, CoordinateSystem::Type::ABSOLUTE, CoordinateSystem::CoordinateType::CYLINDRICAL, origin, ex, ey, rcs, original_id), ur(this->ex), utheta(
                 this->ey) {
 }
 
@@ -245,7 +245,7 @@ const VectorialValue CylindricalCoordinateSystem::getLocalEulerAnglesIntrinsicZY
 
 OrientationCoordinateSystem::OrientationCoordinateSystem(const Mesh& mesh, const int nO, const int nX,
         const int nV, const Reference<CoordinateSystem> rcs, int original_id) :
-        CoordinateSystem(mesh, CoordinateSystem::Type::ORIENTATION, CoordinateSystem::CoordinateType::VECTOR, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcs, original_id){
+        CoordinateSystem(mesh, CoordinateSystem::Type::RELATIVE, CoordinateSystem::CoordinateType::VECTOR, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcs, original_id){
     nodesId.push_back(nO);
     nodesId.push_back(nX);
     nodesId.push_back(nV);
@@ -254,7 +254,7 @@ OrientationCoordinateSystem::OrientationCoordinateSystem(const Mesh& mesh, const
 
 OrientationCoordinateSystem::OrientationCoordinateSystem(const Mesh& mesh, const int nO, const int nX,
         const  VectorialValue v, const Reference<CoordinateSystem> rcs, int original_id) :
-        CoordinateSystem(mesh, CoordinateSystem::Type::ORIENTATION, CoordinateSystem::CoordinateType::VECTOR, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcs, original_id),
+        CoordinateSystem(mesh, CoordinateSystem::Type::RELATIVE, CoordinateSystem::CoordinateType::VECTOR, VectorialValue(0,0,0), VectorialValue(0,0,0), VectorialValue(0,0,0), rcs, original_id),
         v(v.normalized()){
     nodesId.push_back(nO);
     nodesId.push_back(nX);

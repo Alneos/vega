@@ -64,12 +64,12 @@ void NastranParser::parseGRDSET(NastranTokenizer& tok, shared_ptr<Model> model) 
     tok.skip(1);
     grdSet.cp = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     if (grdSet.cp != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
-        grdSet.cp = model->mesh->findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::POSITION, grdSet.cp));
+        grdSet.cp = model->mesh->findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, grdSet.cp));
         }
     tok.skip(3);
     grdSet.cd = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     if (grdSet.cd != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
-        grdSet.cd = model->mesh->findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::POSITION, grdSet.cd));
+        grdSet.cd = model->mesh->findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, grdSet.cd));
         }
     grdSet.ps = tok.nextInt(true, 0);
     grdSet.seid = tok.nextInt(true, 0);
@@ -82,7 +82,7 @@ void NastranParser::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model) {
     int cpos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
     string scp;
     if (cp != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
-        cpos = model->mesh->findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::POSITION, cp));
+        cpos = model->mesh->findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, cp));
         scp=" in CS"+to_string(cp)+"_"+to_string(cpos);
     }
 
@@ -95,7 +95,7 @@ void NastranParser::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model) {
     int cdos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
     string scd="";
     if (cd != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
-        cdos = model->mesh->findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::POSITION, cd));
+        cdos = model->mesh->findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, cd));
         scd=", DISP in CS"+to_string(cd)+"_"+to_string(cdos);
     }
     model->mesh->addNode(id, x1, x2, x3, cpos, cdos);
@@ -114,23 +114,24 @@ void NastranParser::parseGRID(NastranTokenizer& tok, shared_ptr<Model> model) {
     }
 }
 
-void NastranParser::addProperty(int property_id, int cell_id, shared_ptr<Model> model, string command) {
-    shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(property_id, model, command);
+void NastranParser::addProperty(NastranTokenizer& tok, int property_id, int cell_id, shared_ptr<Model> model) {
+    shared_ptr<CellGroup> cellGroup = dynamic_pointer_cast<CellGroup>(model->mesh->findGroup(property_id));
+    if (cellGroup == nullptr) {
+        string cellGroupName = "PROP_" + to_string(property_id);
+        string comment = cellGroupName;
+        auto commentEntry = tok.labelByCommentTypeAndId.find(make_pair(NastranTokenizer::CommentType::COMP, property_id));
+        if (commentEntry != tok.labelByCommentTypeAndId.end())
+            comment = commentEntry->second;
+        cellGroup = model->mesh->createCellGroup(cellGroupName, property_id, comment);
+    }
     cellGroup->addCellId(cell_id);
 }
 
-shared_ptr<CellGroup> NastranParser::getOrCreateCellGroup(int property_id, shared_ptr<Model> model, const string & command) {
-    shared_ptr<CellGroup> cellGroup = dynamic_pointer_cast<CellGroup>(model->mesh->findGroup(property_id));
+shared_ptr<CellGroup> NastranParser::getOrCreateCellGroup(int group_id, shared_ptr<Model> model, string comment) {
+    shared_ptr<CellGroup> cellGroup = dynamic_pointer_cast<CellGroup>(model->mesh->findGroup(group_id));
 
-    string cellGroupName= command + "_" + to_string(property_id);
-    if (cellGroup == nullptr){
-        cellGroup = model->mesh->createCellGroup(cellGroupName, property_id, command);
-    }
-    else{
-        // If the Group already exists, and if it was not already done, we enforce the name and comment of the Group
-        if ((command != "CGVEGA") && (cellGroup->getName().substr(0,6)=="CGVEGA")){
-            model->mesh->renameGroup(cellGroup->getName(), cellGroupName, command);
-        }
+    if (cellGroup == nullptr) {
+        cellGroup = model->mesh->createCellGroup("CGVEGA_"+to_string(group_id), group_id, comment);
     }
     return cellGroup;
 }
@@ -192,7 +193,7 @@ void NastranParser::parseCBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
     vector<int> connectivity;
     connectivity += point1, point2;
     model->mesh->addCell(cell_id, CellType::SEG2, connectivity, false, cpos);
-    addProperty(property_id, cell_id, model, "CBAR");
+    addProperty(tok, property_id, cell_id, model);
 }
 
 void NastranParser::parseCBEAM(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -239,7 +240,7 @@ void NastranParser::parseCBEAM(NastranTokenizer& tok, shared_ptr<Model> model) {
     connectivity += point1, point2;
 
     model->mesh->addCell(cell_id, CellType::SEG2, connectivity, false, cpos);
-    addProperty(property_id, cell_id, model, "CBEAM");
+    addProperty(tok, property_id, cell_id, model);
 }
 
 
@@ -257,7 +258,7 @@ void NastranParser::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
         // A CID is provided by the user
         tok.skip(3);
         int cid = tok.nextInt();
-        cpos = model->mesh->findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::POSITION, cid));
+        cpos = model->mesh->findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, cid));
     }else{
         // Local definition of the element coordinate system
         if (forbidOrientation){
@@ -297,7 +298,7 @@ void NastranParser::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
         connectivity += ga, gb;
         model->mesh->addCell(eid, CellType::SEG2, connectivity, false, cpos);
     }
-    addProperty(pid, eid, model, "CBUSH");
+    addProperty(tok, pid, eid, model);
 }
 
 
@@ -466,7 +467,7 @@ void NastranParser::parseElem(NastranTokenizer& tok, shared_ptr<Model> model,
             medConnect[nastran2medNodeConnect[i2]] = nastranConnect[i2];
     }
     model->mesh->addCell(cell_id, cellType, medConnect);
-    addProperty(property_id, cell_id, model, cellType.description);
+    addProperty(tok, property_id, cell_id, model);
 }
 
 void NastranParser::parseCGAP(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -543,7 +544,7 @@ void NastranParser::parseCROD(NastranTokenizer& tok, shared_ptr<Model> model) {
     vector<int> nodeIds;
     nodeIds += point1, point2;
     model->mesh->addCell(cell_id, cellType, nodeIds);
-    addProperty(property_id, cell_id, model, "CROD");
+    addProperty(tok, property_id, cell_id, model);
 }
 
 void NastranParser::parseCTETRA(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -659,7 +660,7 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> mode
     }
 
     model->mesh->addCell(cell_id, cellType, nodeIds);
-    addProperty(property_id, cell_id, model, cellType.description);
+    addProperty(tok, property_id, cell_id, model);
 
 }
 

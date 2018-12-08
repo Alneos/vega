@@ -419,7 +419,7 @@ string NastranWriter::writeModel(const shared_ptr<vega::Model> model,
 
 	for (auto& coordinateSystemEntry : model->mesh->coordinateSystemStorage.coordinateSystemByRef) {
         shared_ptr<CoordinateSystem> coordinateSystem = coordinateSystemEntry.second;
-        if (coordinateSystem->type != CoordinateSystem::Type::POSITION) {
+        if (coordinateSystem->type != CoordinateSystem::Type::ABSOLUTE) {
             continue;
         }
 		switch (coordinateSystem->coordType) {

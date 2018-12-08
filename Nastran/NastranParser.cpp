@@ -474,6 +474,11 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
     it0 = context.find("LABEL");
     if (it0 != context.end())
         labelAnalysis = trim_copy(it0->second);
+    else {
+        auto commentEntry = tok.labelByCommentTypeAndId.find(make_pair(NastranTokenizer::CommentType::LOADSTEP, analysis_id));
+        if (commentEntry != tok.labelByCommentTypeAndId.end())
+            labelAnalysis = commentEntry->second;
+    }
 
 
     if (analysis_str == "101" || analysis_str == "SESTATIC") {
@@ -923,7 +928,7 @@ void NastranParser::parseCORD2C(NastranTokenizer& tok, shared_ptr<Model> model) 
     VectorialValue ex = (vect[2] - vect[0]).orthonormalized(ez);
     VectorialValue ey = ez.cross(ex);
 
-    CylindricalCoordinateSystem coordinateSystem(*(model->mesh), vect[0], ex, ey, Reference<CoordinateSystem>(CoordinateSystem::Type::POSITION, rid), cid);
+    CylindricalCoordinateSystem coordinateSystem(*(model->mesh), vect[0], ex, ey, Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, rid), cid);
     model->mesh->add(coordinateSystem);
 }
 
@@ -942,7 +947,7 @@ void NastranParser::parseCORD2R(NastranTokenizer& tok, shared_ptr<Model> model) 
     VectorialValue ex = (vect[2] - vect[0]).orthonormalized(ez);
     VectorialValue ey = ez.cross(ex);
 
-    CartesianCoordinateSystem coordinateSystem(*(model->mesh), vect[0], ex, ey, Reference<CoordinateSystem>(CoordinateSystem::Type::POSITION, rid), cid);
+    CartesianCoordinateSystem coordinateSystem(*(model->mesh), vect[0], ex, ey, Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, rid), cid);
     model->mesh->add(coordinateSystem);
 }
 
@@ -1220,7 +1225,7 @@ void NastranParser::parseFORCE(NastranTokenizer& tok, shared_ptr<Model> model) {
     double fz = tok.nextDouble(true,0.0) * force;
 
     NodalForce force1(*model, fx, fy, fz, 0., 0., 0., Loading::NO_ORIGINAL_ID,
-            Reference<CoordinateSystem>(CoordinateSystem::Type::POSITION, csid));
+            Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, csid));
     force1.addNodeId(node_id);
 
     model->add(force1);

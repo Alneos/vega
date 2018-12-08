@@ -176,6 +176,6 @@ BOOST_AUTO_TEST_CASE( test_chaining_CoordinateSystem ) {
 
 BOOST_AUTO_TEST_CASE( test_globalcs ) {
 
-    Reference<CoordinateSystem> gcsRef(CoordinateSystem::Type::POSITION, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+    Reference<CoordinateSystem> gcsRef(CoordinateSystem::Type::ABSOLUTE, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     BOOST_CHECK_EQUAL(CoordinateSystem::GLOBAL_COORDINATE_SYSTEM, gcsRef);
 }
