@@ -4,7 +4,7 @@ ADD_LIBRARY( aster STATIC
 
 # Default value for MEDFile_DIR
 IF(NOT DEFINED MEDFile_DIR)
-    set(MEDFile_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmakemodules/" CACHE PATH "MEDFile cmake config path")
+    set(MEDFile_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../cmakemodules/" CACHE PATH "MEDFile cmake config path")
 ENDIF(NOT DEFINED MEDFile_DIR)
 if(IS_DIRECTORY ${MEDFile_DIR})
     mark_as_advanced(MEDFile_DIR)

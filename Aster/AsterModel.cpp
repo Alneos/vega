@@ -123,6 +123,11 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
         if (modelType == ModelType::TRIDIMENSIONAL_SI and not model.analyses.contains(Analysis::Type::NONLINEAR_MECA_STAT)) {
             result = "('3D', '3D_SI')";
         } else if (modelType == ModelType::TRIDIMENSIONAL_SI and model.analyses.contains(Analysis::Type::NONLINEAR_MECA_STAT)) {
+            // Workaround for problem ELEMENTS4_73
+            // Les comportements écrits en configuration de référence ne sont pas disponibles     !
+            // sur les éléments linéaires pour la modélisation 3D_SI.                             !
+            // Pour contourner le problème et passer à un comportement en configuration actuelle, !
+            // ajoutez un état initial nul au calcul.
             result = "('3D',)";
         } else if (modelType == ModelType::PLANE_STRESS) {
             result = "('C_PLAN',)";
