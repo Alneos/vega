@@ -1739,7 +1739,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 
 		out << "RESU" << linearMecaStat.getId() << "=MECA_STATIQUE(MODELE=MODMECA," << endl;
 		if (asterModel.model.materials.size() >= 1) {
-      out << "                    CHAM_MATER=CHMAT," << endl;
+            out << "                    CHAM_MATER=CHMAT," << endl;
 		}
 		out << "                    CARA_ELEM=CAEL," << endl;
 		out << "                    EXCIT=(" << endl;
@@ -1822,29 +1822,28 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 			if (elementSet->material != nullptr && elementSet->cellGroup != nullptr) {
 				out << "                          _F(GROUP_MA='" << elementSet->cellGroup->getName()
 						<< "',";
+                const shared_ptr<Nature> hyelas = elementSet->material->findNature(
+                        Nature::NatureType::NATURE_HYPERELASTIC);
+                const shared_ptr<Nature> binature = elementSet->material->findNature(
+                        Nature::NatureType::NATURE_BILINEAR_ELASTIC);
+                const shared_ptr<Nature> nlelas = elementSet->material->findNature(
+                        Nature::NatureType::NATURE_NONLINEAR_ELASTIC);
+                if (binature) {
+                    out << "RELATION='VMIS_ISOT_LINE',";
+                } else if (nlelas) {
+                    out << "RELATION='ELAS_VMIS_LINE',";
+                } else if (hyelas) {
+                    out << "RELATION='ELAS_HYPER',";
+                    out << "DEFORMATION='GROT_GDEP',";
+                } else if (!is_equal(largeDisp, 0) && elementSet->isBeam()) {
+                    out << "RELATION='ELAS_POUTRE_GR',";
+                    out << "DEFORMATION='GROT_GDEP',";
+                } else {
+                    out << "RELATION='ELAS',";
+                }
 			} else {
-				out << "# WARN Skipping material id " << *elementSet << " because no assignment"
-						<< endl;
-                continue;
-			}
-            const shared_ptr<Nature> hyelas = elementSet->material->findNature(
-					Nature::NatureType::NATURE_HYPERELASTIC);
-			const shared_ptr<Nature> binature = elementSet->material->findNature(
-					Nature::NatureType::NATURE_BILINEAR_ELASTIC);
-			const shared_ptr<Nature> nlelas = elementSet->material->findNature(
-					Nature::NatureType::NATURE_NONLINEAR_ELASTIC);
-			if (binature) {
-				out << "RELATION='VMIS_ISOT_LINE',";
-			} else if (nlelas) {
-				out << "RELATION='ELAS_VMIS_LINE',";
-            } else if (hyelas) {
-                out << "RELATION='ELAS_HYPER',";
-                out << "DEFORMATION='GROT_GDEP',";
-			} else if (!is_equal(largeDisp, 0) && elementSet->isBeam()) {
-				out << "RELATION='ELAS_POUTRE_GR',";
-				out << "DEFORMATION='GROT_GDEP',";
-			} else {
-				out << "RELATION='ELAS',";
+//				out << "# WARN Skipping material id " << *elementSet << " because no assignment"
+//						<< endl;
 			}
 			out << ")," << endl;
 
