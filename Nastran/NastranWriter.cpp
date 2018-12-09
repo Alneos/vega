@@ -2,7 +2,7 @@
  * Copyright (C) Alneos, s. a r. l. (contact@alneos.fr)
  * Released under the GNU General Public License
  *
- * AsterBuilder.cpp
+ * NastranWriter.cpp
  *
  *  Created on: 5 mars 2013
  *      Author: dallolio

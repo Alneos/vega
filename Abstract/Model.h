@@ -215,7 +215,14 @@ private:
         std::shared_ptr<T> find(int) const; /**< Find an object by its Original Id **/
         std::shared_ptr<T> get(int) const; /**< Return an object by its Vega Id **/
         const std::vector<std::shared_ptr<T>> filter(const typename T::Type) const; /**< Choose objects based on their type */
-        bool contains(const typename T::Type) const; /**< Ask if objects of a given type are contained */
+        bool contains(const typename T::Type type) const {
+            for (const auto& id_obj_pair: by_id) {
+                if (id_obj_pair.second->type == type) {
+                    return true;
+                }
+            }
+            return false;
+        }; /**< Ask if objects of a given type are contained */
         bool validate(){
             bool isValid = true;
             std::vector<std::shared_ptr<T>> toBeRemoved;

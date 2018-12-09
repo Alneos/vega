@@ -15,5 +15,6 @@
 #define BUILD_TYPE "@CMAKE_BUILD_TYPE@"
 
 #cmakedefine01 RUN_ASTER
+#cmakedefine01 ENABLE_ASTER
 #cmakedefine01 RUN_SYSTUS
 #endif

@@ -120,8 +120,10 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
     string result;
     switch (elementSet->type) {
     case ElementSet::Type::CONTINUUM: {
-        if (modelType == ModelType::TRIDIMENSIONAL_SI) {
+        if (modelType == ModelType::TRIDIMENSIONAL_SI and not model.analyses.contains(Analysis::Type::NONLINEAR_MECA_STAT)) {
             result = "('3D', '3D_SI')";
+        } else if (modelType == ModelType::TRIDIMENSIONAL_SI and model.analyses.contains(Analysis::Type::NONLINEAR_MECA_STAT)) {
+            result = "('3D',)";
         } else if (modelType == ModelType::PLANE_STRESS) {
             result = "('C_PLAN',)";
         } else if (modelType == ModelType::PLANE_STRAIN) {

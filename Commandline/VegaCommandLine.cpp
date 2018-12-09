@@ -15,8 +15,11 @@
 #include "../Optistruct/OptistructParser.h"
 #include "../Nastran/NastranWriter.h"
 #include "../Nastran/NastranRunner.h"
+
+#if ENABLE_ASTER
 #include "../Aster/AsterWriter.h"
 #include "../Aster/AsterRunner.h"
+#endif
 #include "../Systus/SystusWriter.h"
 #include "../Systus/SystusRunner.h"
 #include "../ResultReaders/ResultReadersFacade.h"
@@ -63,10 +66,12 @@ unordered_map<VegaCommandLine::ExitCode, string, EnumClassHash> VegaCommandLine:
 VegaCommandLine::VegaCommandLine() {
     parserBySolverName[SolverName::NASTRAN] = make_shared<nastran::NastranParser>();
     parserBySolverName[SolverName::OPTISTRUCT] = make_shared<optistruct::OptistructParser>();
+#if ENABLE_ASTER
     writersBySolverName[SolverName::CODE_ASTER] = make_shared<aster::AsterWriter>();
+    runnerBySolverType[SolverName::CODE_ASTER] = make_shared<aster::AsterRunner>();
+#endif
     writersBySolverName[SolverName::NASTRAN] = make_shared<nastran::NastranWriter>();
     writersBySolverName[SolverName::SYSTUS] = make_shared<systus::SystusWriter>();
-    runnerBySolverType[SolverName::CODE_ASTER] = make_shared<aster::AsterRunner>();
     runnerBySolverType[SolverName::NASTRAN] = make_shared<nastran::NastranRunner>();
     runnerBySolverType[SolverName::SYSTUS] = make_shared<systus::SystusRunner>();
 }
@@ -189,7 +194,11 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
 
 
     // Choice of output solver, and options related to it
+    #if ENABLE_ASTER
     Solver solver(SolverName::CODE_ASTER);
+    #else
+    Solver solver(SolverName::NASTRAN);
+    #endif
     if (vm.count("output-format")) {
         string outputSolver = vm["output-format"].as<string>();
         solver = Solver::fromString(outputSolver);

@@ -73,15 +73,15 @@ const vector<shared_ptr<T>> Model::Container<T>::filter(const typename T::Type t
     return result;
 }
 
-template<class T>
-bool Model::Container<T>::contains(const typename T::Type type) const {
-    for (const auto& id_obj_pair: by_id) {
-        if (id_obj_pair.second->type == type) {
-            return true;
-        }
-    }
-    return false;
-}
+//template<class T>
+//bool Model::Container<T>::contains(const typename T::Type type) const {
+//    for (const auto& id_obj_pair: by_id) {
+//        if (id_obj_pair.second->type == type) {
+//            return true;
+//        }
+//    }
+//    return false;
+//}
 
 
 /*

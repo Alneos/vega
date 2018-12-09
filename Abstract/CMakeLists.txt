@@ -9,7 +9,7 @@ ADD_LIBRARY( abstract STATIC
        Element.cpp Loading.cpp Material.cpp Model.cpp Mesh.cpp MeshComponents.cpp Objective.cpp
        SolverInterfaces.cpp Utility.cpp Value.cpp Constraint.cpp Dof.cpp Target.cpp
 )
-       
+
 target_link_libraries(abstract ${EXTERNAL_LIBRARIES})
 
 IF(MSVC)

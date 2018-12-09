@@ -253,15 +253,6 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   set_config_option(HAVE_64BIT_SIZE_T "Have64BitSizeT")
 endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
 
-# Default value for MEDFile_DIR
-IF(NOT DEFINED MEDFile_DIR)
-    set(MEDFile_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmakemodules/" CACHE PATH "MEDFile cmake config path")
-ENDIF(NOT DEFINED MEDFile_DIR)
-if(IS_DIRECTORY ${MEDFile_DIR})
-    mark_as_advanced(MEDFile_DIR)
-endif(IS_DIRECTORY ${MEDFile_DIR})
-
-
 set(Boost_USE_STATIC_LIBS ${STATIC_LINKING})
 #set(Boost_USE_MULTITHREADED ON)
 IF(NOT WIN32)
@@ -280,21 +271,6 @@ IF("105800" STRGREATER ${Boost_MAJOR_VERSION})
   message(STATUS "BOOST VERSION UNDER 1.58, BOOST_NO_CXX11_SCOPED_ENUMS is defined.")
   add_definitions(-DBOOST_NO_CXX11_SCOPED_ENUMS)
 ENDIF("105800" STRGREATER ${Boost_MAJOR_VERSION})
-
-#works only in Linux, in windows always choose the static version
-set(MEDFILE_USE_STATIC_LIBS ${STATIC_LINKING})
-SET(HDF5_USE_STATIC_LIBRARIES ${STATIC_LINKING})
-find_package(MEDFile CONFIG REQUIRED NO_DEFAULT_PATH)
-include_directories(SYSTEM ${MEDFILE_INCLUDE_DIRS})
-include_directories(SYSTEM ${HDF5_INCLUDE_DIRS})
-include_directories(SYSTEM ${MPI_CXX_INCLUDE_PATH})
-#link_directories ( ${MEDFILE_LIBRARY_DIR} )
-list(APPEND EXTERNAL_LIBRARIES ${MEDFILE_C_LIBRARIES})
-list(APPEND EXTERNAL_LIBRARIES ${MPI_C_LIBRARIES})
-IF(NOT CYGWIN)
-    # Needed in static linking
-    list(APPEND EXTERNAL_LIBRARIES ${HDF5_LIBRARIES})
-ENDIF(NOT CYGWIN)
 
 # On Cygwin, we need to explicitely look some libraries on /lib
 IF(CYGWIN)
@@ -325,16 +301,6 @@ ENDIF()
 #necessary to find build_properties.h
 include_directories(${CMAKE_BINARY_DIR})
 
-INCLUDE(CTest)
-IF(BUILD_TESTING)
-  SET(BUILDNAME "${BUILDNAME}" CACHE STRING "Name of build on the dashboard")
-  MARK_AS_ADVANCED(BUILDNAME)
-ENDIF(BUILD_TESTING)
-
-IF(NIGHTLY_BUILD MATCHES "TRUE")
-   set_config_option(HAVE_LONG_TESTS "LongTests")
-ENDIF(NIGHTLY_BUILD MATCHES "TRUE")
-
 if(ENABLE_ASTER)
   set_config_option(HAVE_ASTER "Aster")
   add_subdirectory(Aster)
@@ -355,10 +321,17 @@ add_subdirectory(Abstract)
 add_subdirectory(ResultReaders)
 add_subdirectory(Commandline)
 
+INCLUDE(CTest)
+
+IF(NIGHTLY_BUILD MATCHES "TRUE")
+   set_config_option(HAVE_LONG_TESTS "LongTests")
+ENDIF(NIGHTLY_BUILD MATCHES "TRUE")
+
 IF(BUILD_TESTING)
+    SET(BUILDNAME "${BUILDNAME}" CACHE STRING "Name of build on the dashboard")
+    MARK_AS_ADVANCED(BUILDNAME)
     ENABLE_TESTING()
     add_subdirectory(Test)
-    INCLUDE(CTest)
 ENDIF()
 
 list(SORT CONFIG_OPTIONS)
@@ -382,7 +355,7 @@ if(ENABLE_WRAP_PYTHON)
   endif(SWIG_FOUND AND PYTHONLIBS_FOUND)
 endif(ENABLE_WRAP_PYTHON)
 
-mark_as_advanced(VEGA_EXTRA_VERSION HDF5_DIR Boost_DIR)
+mark_as_advanced(VEGA_EXTRA_VERSION Boost_DIR)
 
 ##build Doxygen documentation
 find_package(Doxygen)

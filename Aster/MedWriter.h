@@ -27,8 +27,6 @@
 
 #include "../Abstract/ConfigurationParameters.h"
 #include "../Abstract/Mesh.h"
-#include <med.h>
-#define MESGERR 1
 
 namespace vega {
 
@@ -66,7 +64,7 @@ class MedWriter {
 private:
     friend Mesh;
     friend NodeData;
-	void createFamilies(med_idt fid, const char meshname[MED_NAME_SIZE + 1],
+	void createFamilies(int fid, const char meshname[],
 			const std::vector<Family>& families);
 public:
 	MedWriter();

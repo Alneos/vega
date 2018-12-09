@@ -3,21 +3,23 @@ ADD_LIBRARY( command_line_test_utils STATIC
        CommandLineUtils.cpp
 )
 
-add_executable(
- Nastran2Aster_test
- Nastran2Aster_test.cpp
-)
+if(ENABLE_ASTER)
+    add_executable(
+     Nastran2Aster_test
+     Nastran2Aster_test.cpp
+    )
 
-SET_TARGET_PROPERTIES(Nastran2Aster_test PROPERTIES LINK_SEARCH_START_STATIC ${STATIC_LINKING})
-SET_TARGET_PROPERTIES(Nastran2Aster_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINKING})
+    SET_TARGET_PROPERTIES(Nastran2Aster_test PROPERTIES LINK_SEARCH_START_STATIC ${STATIC_LINKING})
+    SET_TARGET_PROPERTIES(Nastran2Aster_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINKING})
 
-target_link_libraries(
- Nastran2Aster_test
- command_line_test_utils
- commandline
-)
+    target_link_libraries(
+     Nastran2Aster_test
+     command_line_test_utils
+     commandline
+    )
 
-add_test(NAME Nastran2Aster_test COMMAND Nastran2Aster_test)
+    add_test(NAME Nastran2Aster_test COMMAND Nastran2Aster_test)
+endif(ENABLE_ASTER)
 
 add_executable(
  Nastran2Systus_test
@@ -51,21 +53,23 @@ target_link_libraries(
 
 add_test(NAME Nastran2Nastran_test COMMAND Nastran2Nastran_test)
 
-add_executable(
- Optistruct2Aster_test
- Optistruct2Aster_test.cpp
-)
+if(ENABLE_ASTER)
+    add_executable(
+     Optistruct2Aster_test
+     Optistruct2Aster_test.cpp
+    )
 
-SET_TARGET_PROPERTIES(Optistruct2Aster_test PROPERTIES LINK_SEARCH_START_STATIC ${STATIC_LINKING})
-SET_TARGET_PROPERTIES(Optistruct2Aster_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINKING})
+    SET_TARGET_PROPERTIES(Optistruct2Aster_test PROPERTIES LINK_SEARCH_START_STATIC ${STATIC_LINKING})
+    SET_TARGET_PROPERTIES(Optistruct2Aster_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINKING})
 
-target_link_libraries(
- Optistruct2Aster_test
- command_line_test_utils
- commandline
-)
+    target_link_libraries(
+     Optistruct2Aster_test
+     command_line_test_utils
+     commandline
+    )
 
-add_test(NAME Optistruct2Aster_test COMMAND Optistruct2Aster_test)
+    add_test(NAME Optistruct2Aster_test COMMAND Optistruct2Aster_test)
+endif(ENABLE_ASTER)
 
 #uncomment to see details of each test method (update tests.cmake with
 #the batch file ../update_tests.sh

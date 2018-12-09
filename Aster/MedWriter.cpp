@@ -23,7 +23,8 @@
 
 #include "MedWriter.h"
 #include "../Abstract/Model.h"
-
+#include <med.h>
+#define MESGERR 1
 #include <boost/filesystem.hpp>
 
 namespace vega {
@@ -157,7 +158,7 @@ MedWriter::MedWriter() {
 
 }
 
-void MedWriter::createFamilies(med_idt fid, const char meshname[MED_NAME_SIZE + 1],
+void MedWriter::createFamilies(int fid, const char meshname[],
 		const vector<Family>& families) {
 	for (auto& family : families) {
 		const unsigned int ngroups = static_cast<unsigned int>(family.groups.size());
