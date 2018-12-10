@@ -1841,11 +1841,11 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
                 } else {
                     out << "RELATION='ELAS',";
                 }
+                out << ")," << endl;
 			} else {
 //				out << "# WARN Skipping material id " << *elementSet << " because no assignment"
 //						<< endl;
 			}
-			out << ")," << endl;
 
 		}
 		out << "                           )," << endl;
