@@ -421,7 +421,7 @@ const Node NodeIterator::next() {
 ///////////////////////////////////////////////////////////////////////////////
 /*                             Cells                                         */
 ///////////////////////////////////////////////////////////////////////////////
-int Cell::auto_cell_id = 2999999;
+int Cell::auto_cell_id = 9999999;
 
 const unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::FACE_BY_CELLTYPE =
 		init_faceByCelltype();

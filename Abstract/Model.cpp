@@ -1460,7 +1460,8 @@ void Model::replaceRigidSegments()
         if (not segment->isDiagonalRigid()) {
             continue;
         }
-        const vector<int>& nodePositions{segment->nodePositions().begin(), segment->nodePositions().end()};
+        const set<int>& segmentNodePositions = segment->nodePositions();
+        const vector<int>& nodePositions{segmentNodePositions.begin(), segmentNodePositions.end()};
         int masterId = mesh->findCellId(nodePositions[0]);
         //set<int> slaveIds {mesh->findCellId(nodePositions[1])};
         RigidConstraint rigid(*this, masterId, RigidConstraint::NO_ORIGINAL_ID, {mesh->findCellId(nodePositions[1])});
@@ -2201,9 +2202,9 @@ void Model::finish() {
         replaceDirectMatrices();
     }
 
-//    if (this->configuration.replaceRigidSegments) {
-//        replaceRigidSegments();
-//    }
+    if (this->configuration.replaceRigidSegments) {
+        replaceRigidSegments();
+    }
 
     if (this->configuration.removeRedundantSpcs) {
         removeRedundantSpcs();

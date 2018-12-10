@@ -352,7 +352,7 @@ bool DOFMatrix::isDiagonal() const {
 bool DOFMatrix::isMaxDiagonal() const {
 	bool isMaxDiagonal = true;
 	for (auto& kv : componentByDofs) {
-		if (kv.first.first != kv.first.second and !is_equal(kv.second, DBL_MAX)) {
+		if ((kv.first.first != kv.first.second and !is_equal(kv.second, 0)) or !is_equal(kv.second, DBL_MAX)) {
 			isMaxDiagonal = false;
 			break;
 		}
