@@ -317,9 +317,9 @@ public:
 /**
  * see Optistruct CONTACT option SLIDE
  */
-class SurfaceSlideContact: public Contact {
+class SurfaceSlide: public Constraint {
 public:
-	SurfaceSlideContact(Model& model, Reference<Target> master, Reference<Target> slave, int original_id = NO_ORIGINAL_ID);
+	SurfaceSlide(Model& model, Reference<Target> master, Reference<Target> slave, int original_id = NO_ORIGINAL_ID);
     const Reference<Target> master;
     const Reference<Target> slave;
 	std::shared_ptr<Constraint> clone() const override;

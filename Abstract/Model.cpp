@@ -860,7 +860,10 @@ void Model::generateSkin() {
             ostringstream oss2;
             oss2 << "created by generateSkin() because of BOUNDARY_ELEMENTFACE";
             shared_ptr<CellGroup> surfGrp = this->mesh->createCellGroup("SURF" + to_string(elementFace->bestId()), Group::NO_ORIGINAL_ID, oss2.str());
+            shared_ptr<CellGroup> elemGrp = this->mesh->createCellGroup("SURFO" + to_string(elementFace->bestId()), Group::NO_ORIGINAL_ID, "BOUNDARY ELEMENTFACE");
             for(auto& faceInfo: elementFace->faceInfos) {
+                elemGrp->addCellId(faceInfo.cellId);
+                elementFace->elementCellGroup = elemGrp;
                 Cell cell0 = this->mesh->findCell(this->mesh->findCellPosition(faceInfo.cellId));
                 const vector<int>& faceIds = cell0.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
                 if (faceIds.size() > 0) {
@@ -868,7 +871,7 @@ void Model::generateSkin() {
                     vega::Cell cell = generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
                     mappl->addCellId(cell.id);
                     surfGrp->addCellId(cell.id);
-                    elementFace->cellGroup = surfGrp;
+                    elementFace->surfaceCellGroup = surfGrp;
                 }
             }
         }
@@ -2147,20 +2150,27 @@ void Model::finish() {
 
     if (this->configuration.autoDetectAnalysis and analyses.size() == 0) {
         addAutoAnalysis();
-    } else {
-        int i = 1;
-        for (shared_ptr<Analysis> analysis : analyses) {
-            if (analysis->isLinear() and analysis->isStatic() and constraintSets.contains(ConstraintSet::Type::CONTACT)) {
-                cout << "Transforming linear static analysis " + to_str(*analysis) + " in non-linear because of contact.";
-                NonLinearStrategy nonLinearStrategy(*this, 1, i++);
-                this->add(nonLinearStrategy);
-                NonLinearMecaStat nonLinAnalysis(*this, nonLinearStrategy.getOriginalId());
-                analysis->copyInto(nonLinAnalysis);
-                this->add(nonLinAnalysis);
+    }
+//    if (this->configuration.autoDetectAnalysis and analyses.size() == 0) {
+//        addAutoAnalysis();
+//    } else {
+//        int i = 1;
+//        for (shared_ptr<Analysis> analysis : analyses) {
+//            if (analysis->isLinear() and analysis->isStatic() and constraintSets.contains(ConstraintSet::Type::CONTACT)) {
+//                cout << "Transforming linear static analysis " + to_str(*analysis) + " in non-linear because of contact.";
+//                NonLinearStrategy nonLinearStrategy(*this, 1, i++);
+//                this->add(nonLinearStrategy);
+//                NonLinearMecaStat nonLinAnalysis(*this, nonLinearStrategy.getOriginalId());
+//                analysis->copyInto(nonLinAnalysis);
+//                this->add(nonLinAnalysis);
+//
+//                this->analyses.erase(analysis->getReference());
+//            }
+//        }
+//    }
 
-                this->analyses.erase(analysis->getReference());
-            }
-        }
+    if (this->configuration.createSkin) {
+        generateSkin();
     }
 
     for (shared_ptr<Analysis> analysis : analyses) {
@@ -2187,9 +2197,6 @@ void Model::finish() {
         generateBeamsToDisplayHomogeneousConstraint();
     }
 
-    if (this->configuration.createSkin) {
-        generateSkin();
-    }
     if (this->configuration.emulateAdditionalMass) {
         emulateAdditionalMass();
     }

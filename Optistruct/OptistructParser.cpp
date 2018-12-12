@@ -95,9 +95,10 @@ void OptistructParser::parseCONTACT(nastran::NastranTokenizer& tok, shared_ptr<M
         ConstraintSet constraintSet(*model, ConstraintSet::Type::CONTACT, ctid);
         model->add(constraintSet);
     }
-    SurfaceSlideContact table(*model, Reference<Target>(Target::Type::BOUNDARY_ELEMENTFACE, msid), Reference<Target>(Target::Type::BOUNDARY_ELEMENTFACE, ssid));
-    model->add(table);
-    model->addConstraintIntoConstraintSet(table, constraintSetReference);
+    SurfaceSlide surface(*model, Reference<Target>(Target::Type::BOUNDARY_ELEMENTFACE, msid), Reference<Target>(Target::Type::BOUNDARY_ELEMENTFACE, ssid));
+    model->add(surface);
+    //model->addConstraintIntoConstraintSet(surface, constraintSetReference);
+    model->addConstraintIntoConstraintSet(surface, model->commonConstraintSet);
 }
 
 void OptistructParser::parseSET(nastran::NastranTokenizer& tok, shared_ptr<Model> model) {

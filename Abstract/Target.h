@@ -110,7 +110,8 @@ public:
     };
     BoundaryElementFace(const Model& model, std::list<ElementFaceByTwoNodes> faceInfos, int original_id =
             NO_ORIGINAL_ID);
-    std::shared_ptr<CellGroup> cellGroup;
+    std::shared_ptr<CellGroup> surfaceCellGroup;
+    std::shared_ptr<CellGroup> elementCellGroup;
     std::list<ElementFaceByTwoNodes> faceInfos;
     std::shared_ptr<Target> clone() const;
 };

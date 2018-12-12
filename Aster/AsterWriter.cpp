@@ -428,9 +428,6 @@ void AsterWriter::writeLireMaillage(const AsterModel& asterModel, ostream& out) 
 
 	for (auto it : asterModel.model.constraintSets) {
 		ConstraintSet& constraintSet = *it;
-		if (not constraintSet.hasContacts()) {
-			continue;
-		}
         const set<shared_ptr<Constraint>> surfaces = constraintSet.getConstraintsByType(
 				Constraint::Type::SURFACE_SLIDE_CONTACT);
         if (surfaces.empty()) {
@@ -440,13 +437,13 @@ void AsterWriter::writeLireMaillage(const AsterModel& asterModel, ostream& out) 
         out << "MAILLAGE=" << mail_name << "," << endl;
         out << "         ORIE_PEAU_3D=(" << endl;
 		for (shared_ptr<Constraint> constraint : surfaces) {
-		    shared_ptr<const SurfaceSlideContact> surface = dynamic_pointer_cast<const SurfaceSlideContact>(constraint);
+		    shared_ptr<const SurfaceSlide> surface = dynamic_pointer_cast<const SurfaceSlide>(constraint);
 		    shared_ptr<const BoundaryElementFace> masterSurface = dynamic_pointer_cast<const BoundaryElementFace>(asterModel.model.find(surface->master));
 		    shared_ptr<const BoundaryElementFace> slaveSurface = dynamic_pointer_cast<const BoundaryElementFace>(asterModel.model.find(surface->slave));
             out << "                             _F(";
             out << "GROUP_MA=('"
-                    << masterSurface->cellGroup->getName() << "', '"
-                    << slaveSurface->cellGroup->getName()
+                    << masterSurface->surfaceCellGroup->getName() << "', '"
+                    << slaveSurface->surfaceCellGroup->getName()
                     << "'),";
             out << ")," << endl;
 		}
@@ -971,6 +968,7 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
 
             writeSPC(asterModel, constraintSet, out);
             writeLIAISON_SOLIDE(asterModel, constraintSet, out);
+            writeLIAISON_MAIL(asterModel, constraintSet, out);
             writeRBE3(asterModel, constraintSet, out);
             writeLMPC(asterModel, constraintSet, out);
             out << "                   );" << endl << endl;
@@ -1031,8 +1029,8 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 				Constraint::Type::SLIDE);
         const set<shared_ptr<Constraint>> surfaces = constraintSet.getConstraintsByType(
 				Constraint::Type::SURFACE_CONTACT);
-        const set<shared_ptr<Constraint>> surfaceSlides = constraintSet.getConstraintsByType(
-				Constraint::Type::SURFACE_SLIDE_CONTACT);
+//        const set<shared_ptr<Constraint>> surfaceSlides = constraintSet.getConstraintsByType(
+//				Constraint::Type::SURFACE_SLIDE_CONTACT);
         const set<shared_ptr<Constraint>> zones = constraintSet.getConstraintsByType(
 				Constraint::Type::ZONE_CONTACT);
 		for (shared_ptr<Constraint> constraint : gaps) {
@@ -1122,20 +1120,20 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
                 out << "COULOMB=" << slide->getFriction() << ",";
 				out << ")," << endl;
 		}
-		for (shared_ptr<Constraint> constraint : surfaceSlides) {
-		    shared_ptr<const SurfaceSlideContact> surfaceSlide = dynamic_pointer_cast<const SurfaceSlideContact>(constraint);
-		    shared_ptr<const BoundaryElementFace> surfaceSlideMaster = dynamic_pointer_cast<const BoundaryElementFace>(asterModel.model.find(surfaceSlide->master));
-		    shared_ptr<const BoundaryElementFace> surfaceSlideSlave = dynamic_pointer_cast<const BoundaryElementFace>(asterModel.model.find(surfaceSlide->slave));
-                out << "                             _F(";
-				out << "GROUP_MA_MAIT='"
-						<< surfaceSlideMaster->cellGroup->getName()
-						<< "',";
-				out << "GROUP_MA_ESCL='"
-						<< surfaceSlideSlave->cellGroup->getName()
-						<< "',";
-                out << "GLISSIERE='OUI',";
-				out << ")," << endl;
-		}
+//		for (shared_ptr<Constraint> constraint : surfaceSlides) {
+//		    shared_ptr<const SurfaceSlide> surfaceSlide = dynamic_pointer_cast<const SurfaceSlide>(constraint);
+//		    shared_ptr<const BoundaryElementFace> surfaceSlideMaster = dynamic_pointer_cast<const BoundaryElementFace>(asterModel.model.find(surfaceSlide->master));
+//		    shared_ptr<const BoundaryElementFace> surfaceSlideSlave = dynamic_pointer_cast<const BoundaryElementFace>(asterModel.model.find(surfaceSlide->slave));
+//                out << "                             _F(";
+//				out << "GROUP_MA_MAIT='"
+//						<< surfaceSlideMaster->cellGroup->getName()
+//						<< "',";
+//				out << "GROUP_MA_ESCL='"
+//						<< surfaceSlideSlave->cellGroup->getName()
+//						<< "',";
+//                out << "GLISSIERE='OUI',";
+//				out << ")," << endl;
+//		}
 		for (shared_ptr<Constraint> constraint : surfaces) {
 		    shared_ptr<const SurfaceContact> surface = dynamic_pointer_cast<const SurfaceContact>(constraint);
                 out << "                             _F(";
@@ -1283,6 +1281,27 @@ void AsterWriter::writeLIAISON_SOLIDE(const AsterModel& asterModel, const Constr
 			out << ")," << endl;
 			out << "                                      )," << endl;
 
+		}
+		out << "                                   )," << endl;
+	}
+}
+
+void AsterWriter::writeLIAISON_MAIL(const AsterModel& asterModel, const ConstraintSet& cset,
+		ostream& out) {
+
+	const set<shared_ptr<Constraint>> slideSurfaces = cset.getConstraintsByType(
+			Constraint::Type::SURFACE_SLIDE_CONTACT);
+
+	if (slideSurfaces.size() >= 1) {
+		out << "                   LIAISON_MAIL=(" << endl;
+        for (shared_ptr<Constraint> constraint : slideSurfaces) {
+		    shared_ptr<const SurfaceSlide> surface = dynamic_pointer_cast<const SurfaceSlide>(constraint);
+		    shared_ptr<const BoundaryElementFace> masterSurface = dynamic_pointer_cast<const BoundaryElementFace>(asterModel.model.find(surface->master));
+		    shared_ptr<const BoundaryElementFace> slaveSurface = dynamic_pointer_cast<const BoundaryElementFace>(asterModel.model.find(surface->slave));
+			out << "                                   _F(TYPE_RACCORD='MASSIF', DDL_MAIT='DNOR', DDL_ESCL='DNOR',";
+			out << "GROUP_MA_MAIT='" << masterSurface->elementCellGroup->getName() << "',";
+			out << "GROUP_MA_ESCL='" << slaveSurface->surfaceCellGroup->getName() << "',";
+            out << ")," << endl;
 		}
 		out << "                                   )," << endl;
 	}

@@ -46,6 +46,7 @@ class AsterWriter final : public Writer{
 	void writeSPC(const AsterModel&, const ConstraintSet&, std::ostream&);
 	void writeSPCD(const AsterModel&, const LoadSet&, std::ostream&);
 	void writeLIAISON_SOLIDE(const AsterModel&, const ConstraintSet&, std::ostream&);
+	void writeLIAISON_MAIL(const AsterModel&, const ConstraintSet&, std::ostream&);
 	void writeRBE3(const AsterModel&, const ConstraintSet&, std::ostream&);
 	void writeLMPC(const AsterModel&, const ConstraintSet&, std::ostream&);
 	void writeGravity(const LoadSet&, std::ostream&);

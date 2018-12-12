@@ -785,37 +785,44 @@ const DOFS ZoneContact::getDOFSForNode(int nodePosition) const {
     return DOFS::TRANSLATIONS;
 }
 
-SurfaceSlideContact::SurfaceSlideContact(Model& model, Reference<Target> master, Reference<Target> slave, int original_id) :
-    Contact(model, Constraint::Type::SURFACE_SLIDE_CONTACT, original_id), master(master), slave(slave) {
+SurfaceSlide::SurfaceSlide(Model& model, Reference<Target> master, Reference<Target> slave, int original_id) :
+    Constraint(model, Constraint::Type::SURFACE_SLIDE_CONTACT, original_id), master(master), slave(slave) {
 }
 
-shared_ptr<Constraint> SurfaceSlideContact::clone() const {
-    return make_shared<SurfaceSlideContact>(*this);
+shared_ptr<Constraint> SurfaceSlide::clone() const {
+    return make_shared<SurfaceSlide>(*this);
 }
 
-set<int> SurfaceSlideContact::nodePositions() const {
+set<int> SurfaceSlide::nodePositions() const {
     set<int> result;
     const auto& masterBoundary = dynamic_pointer_cast<BoundaryElementFace>(model.find(master));
     if (masterBoundary == nullptr) {
         throw logic_error("Cannot find master body boundary");
     }
-    const auto& masterNodePositions = masterBoundary->cellGroup->nodePositions();
+    if (masterBoundary->surfaceCellGroup == nullptr) {
+        throw logic_error("Cannot find master body cells");
+    }
+    const auto& masterNodePositions = masterBoundary->surfaceCellGroup->nodePositions();
     result.insert(masterNodePositions.begin(), masterNodePositions.end());
     const auto& slaveBoundary = dynamic_pointer_cast<BoundaryElementFace>(model.find(slave));
     if (slaveBoundary == nullptr) {
         throw logic_error("Cannot find slave body boundary");
     }
-    const auto& slaveNodePositions = slaveBoundary->cellGroup->nodePositions();
+    if (slaveBoundary->surfaceCellGroup == nullptr) {
+        throw logic_error("Cannot find slave body cells");
+    }
+
+    const auto& slaveNodePositions = slaveBoundary->surfaceCellGroup->nodePositions();
     result.insert(slaveNodePositions.begin(), slaveNodePositions.end());
     return result;
 }
 
-void SurfaceSlideContact::removeNode(int nodePosition) {
+void SurfaceSlide::removeNode(int nodePosition) {
     UNUSEDV(nodePosition);
     throw logic_error("Not yet implemented");
 }
 
-bool SurfaceSlideContact::ineffective() const {
+bool SurfaceSlide::ineffective() const {
     const auto& masterBoundary = dynamic_pointer_cast<BoundaryElementFace>(model.find(master));
     if (masterBoundary == nullptr) {
         throw logic_error("Cannot find master body boundary (or unexpected type)");
@@ -827,7 +834,7 @@ bool SurfaceSlideContact::ineffective() const {
     return masterBoundary->faceInfos.size() == 0 or slaveBoundary->faceInfos.size() == 0;
 }
 
-const DOFS SurfaceSlideContact::getDOFSForNode(int nodePosition) const {
+const DOFS SurfaceSlide::getDOFSForNode(int nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::TRANSLATIONS;
 }
