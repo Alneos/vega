@@ -601,22 +601,26 @@ bool ForceSurface::validate() const {
 	return true;
 }
 
-PressionFaceTwoNodes::PressionFaceTwoNodes(const Model& model, int nodeId1, int nodeId2,
+ForceSurfaceTwoNodes::ForceSurfaceTwoNodes(const Model& model, int nodeId1, int nodeId2,
 		const VectorialValue& force, const VectorialValue& moment, const int original_id) :
 		ForceSurface(model, force, moment, original_id), nodePosition1(
 				model.mesh->findOrReserveNode(nodeId1)), nodePosition2(
 				model.mesh->findOrReserveNode(nodeId2)) {
 }
 
-vector<int> PressionFaceTwoNodes::getApplicationFace() const {
+vector<int> ForceSurfaceTwoNodes::getApplicationFace() const {
 	vector<Cell> cells = getCells();
 	if (cells.size() != 1) {
-		throw logic_error("More than one cell specified for a PressionFaceTwoNodes");
+		throw logic_error("More than one cell specified for a ForceSurfaceTwoNodes");
 	}
 	const int nodeId1 = model.mesh->findNodeId(nodePosition1);
 	const int nodeId2 = model.mesh->findNodeId(nodePosition2);
 	const vector<int>& nodeIds = cells[0].faceids_from_two_nodes(nodeId1, nodeId2);
 	return nodeIds;
+}
+
+shared_ptr<Loading> ForceSurfaceTwoNodes::clone() const {
+	return make_shared<ForceSurfaceTwoNodes>(*this);
 }
 
 ForceLine::ForceLine(const Model& model, const shared_ptr<NamedValue> force, DOF dof,
@@ -651,10 +655,6 @@ bool ForceLine::validate() const {
 	return true;
 }
 
-shared_ptr<Loading> PressionFaceTwoNodes::clone() const {
-	return make_shared<PressionFaceTwoNodes>(*this);
-}
-
 NormalPressionFace::NormalPressionFace(const Model& model, double intensity, const int original_id) :
 		ElementLoading(model, Loading::Type::NORMAL_PRESSION_FACE, original_id,
 				CoordinateSystem::GLOBAL_COORDINATE_SYSTEM), intensity(intensity) {
@@ -664,7 +664,7 @@ const DOFS NormalPressionFace::getDOFSForNode(const int nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
 	set<int> nodes = nodePositions();
 	if (nodes.find(nodePosition) != nodes.end()) {
-		dofs += DOFS::ALL_DOFS;
+		dofs += DOFS::TRANSLATIONS;
 	}
 	return dofs;
 }
@@ -685,6 +685,29 @@ bool NormalPressionFace::validate() const {
 	// TODO validate : Check that all the elements are 2D
 	return true;
 }
+
+NormalPressionFaceTwoNodes::NormalPressionFaceTwoNodes(const Model& model, int nodeId1, int nodeId2,
+		double intensity, const int original_id) :
+		NormalPressionFace(model, intensity, original_id), nodePosition1(
+				model.mesh->findOrReserveNode(nodeId1)), nodePosition2(
+				model.mesh->findOrReserveNode(nodeId2)) {
+}
+
+vector<int> NormalPressionFaceTwoNodes::getApplicationFace() const {
+	vector<Cell> cells = getCells();
+	if (cells.size() != 1) {
+		throw logic_error("More than one cell specified for a NormalPressionFaceTwoNodes");
+	}
+	const int nodeId1 = model.mesh->findNodeId(nodePosition1);
+	const int nodeId2 = model.mesh->findNodeId(nodePosition2);
+	const vector<int>& nodeIds = cells[0].faceids_from_two_nodes(nodeId1, nodeId2);
+	return nodeIds;
+}
+
+shared_ptr<Loading> NormalPressionFaceTwoNodes::clone() const {
+	return make_shared<NormalPressionFaceTwoNodes>(*this);
+}
+
 
 DynamicExcitation::DynamicExcitation(const Model& model, const Reference<NamedValue> dynaDelay, const Reference<NamedValue> dynaPhase,
         const Reference<NamedValue> functionTableB, const Reference<NamedValue> functionTableP, const Reference<LoadSet> loadSet,

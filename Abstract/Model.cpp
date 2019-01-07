@@ -843,8 +843,26 @@ void Model::generateSkin() {
                         forceSurface->add(*cellGrp);
                         //forceSurface->add(*mappl);
                     }
-                }
                     break;
+                }
+                case Loading::Type::NORMAL_PRESSION_FACE: {
+                    shared_ptr<NormalPressionFace> normalPressionFace = dynamic_pointer_cast<NormalPressionFace>(
+                            loadingPtr);
+                    vector<int> faceIds = normalPressionFace->getApplicationFace();
+                    if (faceIds.size() > 0) {
+                        addedSkin = true;
+                        vega::Cell cell = generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
+                        mappl->addCellId(cell.id);
+                        normalPressionFace->clear(); //< To remove the volumic cell and then add the skin at its place
+                        //forceSurface->addCellId(cell.id);
+                        // LD Workaround for problem "cannot write cell names"
+                        shared_ptr<CellGroup> cellGrp = mesh->createCellGroup(Cell::MedName(cell.position), Group::NO_ORIGINAL_ID, "Single cell group over skin element");
+                        cellGrp->addCellId(cell.id);
+                        normalPressionFace->add(*cellGrp);
+                        //forceSurface->add(*mappl);
+                    }
+                    break;
+                }
                 default:
                     throw logic_error("generate skin implemented only for pression face");
                 }

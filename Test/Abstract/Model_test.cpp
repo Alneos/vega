@@ -234,19 +234,19 @@ shared_ptr<Model> createModelWith1HEXA8() {
 
 BOOST_AUTO_TEST_CASE( test_create_skin2d ) {
 	shared_ptr<Model> model = createModelWith1HEXA8();
-	vega::PressionFaceTwoNodes pressionFaceTwoNodes = PressionFaceTwoNodes(*model, 50, 52,
+	vega::ForceSurfaceTwoNodes forceSurfaceTwoNodes = ForceSurfaceTwoNodes(*model, 50, 52,
 			VectorialValue(0, 0, 1.0), VectorialValue(0, 0, 0));
 
-	pressionFaceTwoNodes.addCellId(1);
-	vector<Cell> cells = pressionFaceTwoNodes.getCells();
+	forceSurfaceTwoNodes.addCellId(1);
+	vector<Cell> cells = forceSurfaceTwoNodes.getCells();
 	BOOST_CHECK_EQUAL(cells.size(), static_cast<size_t>(1));
 	Cell hexa = cells[0];
 	BOOST_CHECK_EQUAL(hexa.id, 1);
 	//BOOST_CHECK_EQUAL(hexa.cellType, CellType::HEXA8);
 	BOOST_CHECK_EQUAL(hexa.nodeIds[0], 50);
-	model->add(pressionFaceTwoNodes);
+	model->add(forceSurfaceTwoNodes);
 	vector<int> expectedFace1NodeIds = { 50, 51, 52, 53 };
-	vector<int> applicationFace = pressionFaceTwoNodes.getApplicationFace();
+	vector<int> applicationFace = forceSurfaceTwoNodes.getApplicationFace();
 	BOOST_CHECK_EQUAL_COLLECTIONS(applicationFace.begin(), applicationFace.end(),
 			expectedFace1NodeIds.begin(), expectedFace1NodeIds.end());
 	model->finish();

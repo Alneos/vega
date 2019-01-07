@@ -308,7 +308,7 @@ public:
 // TODO : refactor conception of ForceSurface to have only one base class and virtual fct to generate skin get/add applications
 
 /**
- *  Responsible of being a force applied to a surface (i.e. a Pressure over a Shell)
+ *  Responsible of being a force applied to a surface (a Pressure over a Shell or a Pressure over a Solid face)
  */
 class ForceSurface: public ElementLoading {
 protected:
@@ -326,7 +326,6 @@ public:
 	SpaceDimension getLoadingDimension() const {
 		return SpaceDimension::DIMENSION_2D;
 	}
-	// TODO validate : Check that all the elements are 2D
 	bool validate() const override;
 	virtual std::vector<int> getApplicationFace() const {
 		return std::vector<int>();
@@ -334,14 +333,14 @@ public:
 };
 
 /**
- Responsible of being a ForceSurface applied to an element face, identified by two nodes
+ Responsible of being a ForceSurface applied to an element face, identified by two nodes and a direction
  */
-class PressionFaceTwoNodes: public ForceSurface {
+class ForceSurfaceTwoNodes: public ForceSurface {
 public:
 	const int nodePosition1;
 	const int nodePosition2;
 
-	PressionFaceTwoNodes(const Model&, int nodeId1, int nodeId2, const VectorialValue& force,
+	ForceSurfaceTwoNodes(const Model&, int nodeId1, int nodeId2, const VectorialValue& force,
 			const VectorialValue& moment, const int original_id = NO_ORIGINAL_ID);
 	std::vector<int> getApplicationFace() const;
 	virtual std::shared_ptr<Loading> clone() const override;
@@ -372,6 +371,9 @@ public:
 
 };
 
+/**
+ A normal pression applied to a surface element
+ */
 class NormalPressionFace: public ElementLoading {
 
 public:
@@ -385,6 +387,22 @@ public:
 	virtual std::shared_ptr<Loading> clone() const override;
 	void scale(const double factor) override;
 	bool ineffective() const override;
+	virtual std::vector<int> getApplicationFace() const {
+		return std::vector<int>();
+	}
+};
+
+/**
+ A normal pression applied to an element face, identified by two nodes and a direction
+ */
+class NormalPressionFaceTwoNodes: public NormalPressionFace {
+
+public:
+	const int nodePosition1;
+	const int nodePosition2;
+	NormalPressionFaceTwoNodes(const Model&, int nodeId1, int nodeId2, double intensity, const int original_id = NO_ORIGINAL_ID);
+	std::vector<int> getApplicationFace() const;
+	virtual std::shared_ptr<Loading> clone() const override;
 };
 
 /**

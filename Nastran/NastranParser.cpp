@@ -2322,8 +2322,9 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) 
     }
 
     Reference<LoadSet> loadSetReference(LoadSet::Type::LOAD, loadset_id);
-    if (is_equal(n1, 0.0) && is_equal(n2, 0.0) && is_equal(n3, 0.0) && cid == 0
-            && g1 == Globals::UNAVAILABLE_INT) {
+    bool has_direction = not (is_equal(n1, 0.0) and is_equal(n2, 0.0) and is_equal(n3, 0.0)
+                              and cid == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+    if (not has_direction and g1 == Globals::UNAVAILABLE_INT) {
         NormalPressionFace normalPressionFace(*model, p1);
         for(int cellId = eid1; cellId < eid2; cellId++) {
             normalPressionFace.addCellId(cellId);
@@ -2331,9 +2332,9 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) 
 
         model->add(normalPressionFace);
         model->addLoadingIntoLoadSet(normalPressionFace, loadSetReference);
-    } else if (g1 != Globals::UNAVAILABLE_INT) {
-        PressionFaceTwoNodes pressionFaceTwoNodes(*model, g1, g3_or_4,
-                VectorialValue(n1 * p1, n2 * p1, n3 * p1), VectorialValue(0.0, 0.0, 0.0));
+    } else if (not has_direction and g1 != Globals::UNAVAILABLE_INT) {
+        NormalPressionFaceTwoNodes pressionFaceTwoNodes(*model, g1, g3_or_4,
+                p1);
         for(int cellId = eid1; cellId < eid2; cellId++) {
             pressionFaceTwoNodes.addCellId(cellId);
         }

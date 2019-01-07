@@ -594,10 +594,10 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 			out << "                         E=" << elasticNature.getE() << "," << endl;
 			out << "                         NU=" << elasticNature.getNu() << "," << endl;
 			out << "                         RHO=" << elasticNature.getRho() << "," << endl;
-			out << "                         )," << endl;
-			if (!is_zero(elasticNature.getGE())){
-                cerr <<"Warning in Material: no support for GE material properties yet.";
+			if (not is_equal(elasticNature.getGE(), Globals::UNAVAILABLE_DOUBLE)) {
+                out << "                         AMOR_HYST=" << elasticNature.getGE() << "," << endl;
 			}
+			out << "                         )," << endl;
 		}
 		const shared_ptr<Nature> hynature = material->findNature(Nature::NatureType::NATURE_HYPERELASTIC);
 		if (hynature) {
@@ -1509,15 +1509,14 @@ void AsterWriter::writeNodalForce(const AsterModel& asterModel, const LoadSet& l
 }
 
 void AsterWriter::writePression(const LoadSet& loadSet, ostream& out) {
-	return; // TODO : check if the cellContainer contain skin or shell elements
 	const set<shared_ptr<Loading>> loading = loadSet.getLoadingsByType(
 			Loading::Type::NORMAL_PRESSION_FACE);
 	if (loading.size() > 0) {
-		out << "           PRESS_REP=(" << endl;
+		out << "           PRES_REP=(" << endl;
 		for (shared_ptr<Loading> pressionFace : loading) {
 			shared_ptr<NormalPressionFace> normalPressionFace = dynamic_pointer_cast<
 					NormalPressionFace>(pressionFace);
-			out << "                         _F(PRES= " << normalPressionFace->intensity << endl;
+			out << "                         _F(PRES= " << normalPressionFace->intensity << ",";
 			writeCellContainer(*normalPressionFace, out);
 			out << "                         )," << endl;
 		}
@@ -1526,6 +1525,7 @@ void AsterWriter::writePression(const LoadSet& loadSet, ostream& out) {
 }
 
 void AsterWriter::writeForceCoque(const LoadSet& loadSet, ostream&out) {
+    return; // TODO : change type of loading in parser to something specific for shell elements
 	const set<shared_ptr<Loading> > pressionFaces = loadSet.getLoadingsByType(
 			Loading::Type::NORMAL_PRESSION_FACE);
 	if (pressionFaces.size() > 0) {
