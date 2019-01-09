@@ -764,8 +764,10 @@ void NastranParser::parseBSURF(NastranTokenizer& tok, shared_ptr<Model> model) {
     int id = tok.nextInt();
     string gname = string("BSURF_") + to_string(id);
     auto gsurf = model->mesh->createCellGroup(gname, CellGroup::NO_ORIGINAL_ID, "BSURF");
-    const auto& cellids = tok.nextInts();
-    gsurf->cellIds.insert(cellids.begin(), cellids.end());
+    const auto& cellIds = tok.nextInts();
+    for (int cellId : cellIds) {
+        gsurf->addCellId(cellId);
+    }
     BoundarySurface surface{*model, id};
     surface.add(*gsurf);
     model->add(surface);

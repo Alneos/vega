@@ -66,6 +66,7 @@ public:
         LMPC,
         SCALAR_SPRING,
         COMPOSITE,
+        SURFACE_SLIDE_CONTACT,
         UNKNOWN,
     };
 protected:
@@ -535,6 +536,15 @@ public:
     virtual ~Lmpc() {}
 };
 
+/**
+ * A Sliding elemenset regroup various cells subject to the same Sliding surface constraints
+ **/
+class SurfaceSlideSet: public RigidSet {
+public:
+    SurfaceSlideSet(Model&, int original_id = NO_ORIGINAL_ID);
+    std::shared_ptr<ElementSet> clone() const override;
+    virtual ~SurfaceSlideSet() {}
+};
 
 /**
  * ScalarSpring elemenset represent springs between two nodes.

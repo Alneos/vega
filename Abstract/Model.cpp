@@ -13,8 +13,9 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-#include <boost/lexical_cast.hpp>
 #include <boost/assign.hpp>
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/geometries.hpp>
 #include <ciso646>
 
 using namespace std;
@@ -718,7 +719,7 @@ void Model::generateDiscrets() {
                 mesh->allowDOFS(node.position, DOFS::ALL_DOFS);
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::POINT1, cellNodes,
                         true);
-                virtualDiscretTRGroup->addCellId(mesh->findCell(cellPosition).id);
+                virtualDiscretTRGroup->addCellPosition(cellPosition);
             } else {
                 addedDOFS = DOFS::TRANSLATIONS - node.dofs - missingDOFS;
                 if (virtualDiscretTGroup == nullptr) {
@@ -734,7 +735,7 @@ void Model::generateDiscrets() {
                 }
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::POINT1, { node.id },
                         true);
-                virtualDiscretTGroup->addCellId(mesh->findCell(cellPosition).id);
+                virtualDiscretTGroup->addCellPosition(cellPosition);
                 mesh->allowDOFS(node.position, DOFS::TRANSLATIONS);
             }
         }
@@ -834,12 +835,12 @@ void Model::generateSkin() {
                     if (faceIds.size() > 0) {
                         addedSkin = true;
                         vega::Cell cell = generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
-                        mappl->addCellId(cell.id);
+                        mappl->addCellPosition(cell.position);
                         forceSurface->clear(); //< To remove the volumic cell and then add the skin at its place
                         //forceSurface->addCellId(cell.id);
                         // LD Workaround for problem "cannot write cell names"
                         shared_ptr<CellGroup> cellGrp = mesh->createCellGroup(Cell::MedName(cell.position), Group::NO_ORIGINAL_ID, "Single cell group over skin element");
-                        cellGrp->addCellId(cell.id);
+                        cellGrp->addCellPosition(cell.position);
                         forceSurface->add(*cellGrp);
                         //forceSurface->add(*mappl);
                     }
@@ -852,12 +853,12 @@ void Model::generateSkin() {
                     if (faceIds.size() > 0) {
                         addedSkin = true;
                         vega::Cell cell = generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
-                        mappl->addCellId(cell.id);
+                        mappl->addCellPosition(cell.position);
                         normalPressionFace->clear(); //< To remove the volumic cell and then add the skin at its place
                         //forceSurface->addCellId(cell.id);
                         // LD Workaround for problem "cannot write cell names"
                         shared_ptr<CellGroup> cellGrp = mesh->createCellGroup(Cell::MedName(cell.position), Group::NO_ORIGINAL_ID, "Single cell group over skin element");
-                        cellGrp->addCellId(cell.id);
+                        cellGrp->addCellPosition(cell.position);
                         normalPressionFace->add(*cellGrp);
                         //forceSurface->add(*mappl);
                     }
@@ -882,13 +883,13 @@ void Model::generateSkin() {
             for(auto& faceInfo: elementFace->faceInfos) {
                 elemGrp->addCellId(faceInfo.cellId);
                 elementFace->elementCellGroup = elemGrp;
-                Cell cell0 = this->mesh->findCell(this->mesh->findCellPosition(faceInfo.cellId));
+                const Cell& cell0 = this->mesh->findCell(this->mesh->findCellPosition(faceInfo.cellId));
                 const vector<int>& faceIds = cell0.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
                 if (faceIds.size() > 0) {
                     addedSkin = true;
                     vega::Cell cell = generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
-                    mappl->addCellId(cell.id);
-                    surfGrp->addCellId(cell.id);
+                    mappl->addCellPosition(cell.position);
+                    surfGrp->addCellPosition(cell.position);
                     elementFace->surfaceCellGroup = surfGrp;
                 }
             }
@@ -1015,7 +1016,7 @@ void Model::emulateAdditionalMass() {
             for (auto cell : cells) {
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, cell.type, cell.nodeIds, cell.isvirtual,
                         cell.cspos, cell.elementId);
-                newCellGroup->addCellId(mesh->findCell(cellPosition).id);
+                newCellGroup->addCellPosition(cellPosition);
             }
         }
     }
@@ -1053,7 +1054,7 @@ void Model::generateBeamsToDisplayHomogeneousConstraint() {
                 for (int slaveNode : rigid->getSlaves()) {
                     nodes[1] = mesh->findNodeId(slaveNode);
                     int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
-                    virtualGroupRigid->addCellId(mesh->findCell(cellPosition).id);
+                    virtualGroupRigid->addCellPosition(cellPosition);
                     mesh->allowDOFS(slaveNode, DOFS::ALL_DOFS);
                 }
                 break;
@@ -1078,7 +1079,7 @@ void Model::generateBeamsToDisplayHomogeneousConstraint() {
                     nodes[1] = mesh->findNodeId(slaveNode);
                     int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
                     mesh->allowDOFS(slaveNode, DOFS::ALL_DOFS);
-                    virtualGroupRBE3->addCellId(mesh->findCell(cellPosition).id);
+                    virtualGroupRBE3->addCellPosition(cellPosition);
                 }
                 break;
             }
@@ -1171,7 +1172,7 @@ void Model::removeIneffectives() {
     // remove empty elementSets from the model
     vector<shared_ptr<ElementSet>> elementSetsToRemove;
     for (auto elementSet : elementSets) {
-        if (elementSet->cellGroup && elementSet->cellGroup->cellIds.size() == 0)
+        if (elementSet->cellGroup and elementSet->cellGroup->empty())
             elementSetsToRemove.push_back(elementSet);
     }
     for (auto elementSet : elementSetsToRemove) {
@@ -1331,7 +1332,7 @@ void Model::replaceDirectMatrices()
                         "MTN" + to_string(matrix_count), Group::NO_ORIGINAL_ID, oss.str());
                 discrete.assignCellGroup(matrixGroup);
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, { nodeId }, true);
-                matrixGroup->addCellId(mesh->findCell(cellPosition).id);
+                matrixGroup->addCellPosition(cellPosition);
                 if (discrete.hasRotations()) {
                     addedDofsByNode[nodePosition] = DOFS::ALL_DOFS;
                     mesh->allowDOFS(nodePosition, DOFS::ALL_DOFS);
@@ -1361,7 +1362,7 @@ void Model::replaceDirectMatrices()
                 matrix_count++;
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, { rowNodeId,
                         colNodeId }, true);
-                matrixGroup->addCellId(mesh->findCell(cellPosition).id);
+                matrixGroup->addCellPosition(cellPosition);
                 if (configuration.addVirtualMaterial) {
                     discrete.assignMaterial(getVirtualMaterial());
                 }
@@ -1739,7 +1740,7 @@ void Model::makeCellsFromDirectMatrices(){
         }
 
         int cellPosition = mesh->addCell(Cell::AUTO_ID, cellType, vNodeIds, true);
-        matrixGroup->addCellId(mesh->findCell(cellPosition).id);
+        matrixGroup->addCellPosition(cellPosition);
 
         if (configuration.logLevel >= LogLevel::DEBUG){
            cout << "Built cells, in cellgroup "<<matrixGroup->getName()<<", for Matrix Elements in "<< elementSetM->name<<"."<<endl;
@@ -1797,7 +1798,7 @@ void Model::makeCellsFromLMPC(){
                     nodes.push_back(nodeId);
                 }
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::polyType(static_cast<unsigned int>(nodes.size())), nodes, true);
-                group->addCellId(mesh->findCell(cellPosition).id);
+                group->addCellPosition(cellPosition);
                 if (configuration.logLevel >= LogLevel::DEBUG){
                     cout << "Building cells in group "<<group->getName()<<" from "<< *lmpc<<"."<<endl;
                 }
@@ -1857,7 +1858,7 @@ void Model::makeCellsFromRBE(){
                 const int slaveId = mesh->findNodeId(position);
                 vector<int> nodes = {masterId, slaveId};
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
-                group->addCellId(mesh->findCell(cellPosition).id);
+                group->addCellPosition(cellPosition);
             }
 
             // Removing the constraint from the model.
@@ -1896,7 +1897,7 @@ void Model::makeCellsFromRBE(){
             // Creating a cell and adding it to the CellGroup
             vector<int> nodes = {masterNodeId, slaveNodeId};
             int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
-            group->addCellId(mesh->findCell(cellPosition).id);
+            group->addCellPosition(cellPosition);
 
             // Removing the constraint from the model.
             toBeRemoved.push_back(constraint);
@@ -1957,10 +1958,86 @@ void Model::makeCellsFromRBE(){
                     groupByCoefByDOFS[sDOFS][sCoef]= group;
                 }
                 groupRBE3=groupByCoefByDOFS[sDOFS][sCoef];
-                groupRBE3->addCellId(mesh->findCell(cellPosition).id);
+                groupRBE3->addCellPosition(cellPosition);
             }
 
             // Removing the constraint from the model.
+            toBeRemoved.push_back(constraint);
+        }
+
+        for(auto& constraint: toBeRemoved) {
+            remove(constraint->getReference(), idConstraintSet, originalIdConstraintSet, natConstraintSet);
+        }
+    }
+}
+
+void Model::makeCellsFromSurfaceSlide() {
+    namespace bg = boost::geometry;
+    namespace bgi = boost::geometry::index;
+    using node_point = bg::model::point<double, 3, bg::cs::cartesian>;
+    using node_polygon = bg::model::polygon<node_point >;
+    using node_box = bg::model::box<node_point>;
+    using value = std::pair<node_box, unsigned>;
+    for (const auto& constraintSet : this->getCommonConstraintSets()) {
+
+        const int idConstraintSet = constraintSet->getId();
+        const int originalIdConstraintSet = constraintSet->getOriginalId();
+        const ConstraintSet::Type natConstraintSet = constraintSet->type;
+        auto constraints = constraintSet->getConstraintsByType(Constraint::Type::SURFACE_SLIDE_CONTACT);
+
+        vector<shared_ptr<Constraint>> toBeRemoved;
+        for (const auto& constraint : constraints) {
+            shared_ptr<CellGroup> group = mesh->createCellGroup("SURF_"+to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "SURF");
+            SurfaceSlideSet elementsetSlide(*this);
+            elementsetSlide.assignCellGroup(group);
+            this->add(elementsetSlide);
+
+            shared_ptr<const SurfaceSlide> surface = dynamic_pointer_cast<const SurfaceSlide>(constraint);
+		    shared_ptr<const BoundaryElementFace> masterSurface = dynamic_pointer_cast<const BoundaryElementFace>(this->find(surface->master));
+		    vector<node_polygon> masterFaces;
+		    bgi::rtree< value, bgi::rstar<16> > rtree;
+		    for (const auto& faceInfo : masterSurface->faceInfos) {
+                const Cell& masterCell = this->mesh->findCell(this->mesh->findCellPosition(faceInfo.cellId));
+                const vector<int>& faceIds = masterCell.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
+                if (faceIds.size() > 0) {
+                    node_polygon masterFace;
+                    for (const int faceId : faceIds) {
+                        int nodePosition = this->mesh->findNodePosition(faceId);
+                        const Node& node = this->mesh->findNode(nodePosition);
+                        const node_point np{node.x, node.y, node.z};
+                        masterFace.outer().push_back(np);
+                        masterFaces.push_back(masterFace);
+                    }
+                    for (size_t i = 0 ; i < masterFaces.size() ; ++i) {
+                        node_box b = bg::return_envelope<node_box>(masterFaces[i]);
+                        rtree.insert(std::make_pair(b, i));
+                    }
+                }
+		    }
+		    shared_ptr<const BoundaryElementFace> slaveSurface = dynamic_pointer_cast<const BoundaryElementFace>(this->find(surface->slave));
+            for (const auto& faceInfo : slaveSurface->faceInfos) {
+                const Cell& slaveCell = this->mesh->findCell(this->mesh->findCellPosition(faceInfo.cellId));
+                const vector<int>& faceIds = slaveCell.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
+                for (const int faceId : faceIds) {
+                    int nodePosition = this->mesh->findNodePosition(faceId);
+                    const Node& node = this->mesh->findNode(nodePosition);
+                    vector<value> result_n;
+                    rtree.query(bgi::nearest(node_point{node.x, node.y, node.z}, 1), std::back_inserter(result_n));
+                    int masterFaceIndex = result_n[0].second;
+                    const node_polygon& masterFace = masterFaces[masterFaceIndex];
+                    size_t num_master_points = bg::num_points(masterFace);
+                    switch(num_master_points) {
+                    case 3:
+                        break;
+                    case 4:
+                        break;
+                    default:
+                        throw logic_error("Slide element not yet implemented:" + to_string(num_master_points));
+                    }
+
+                }
+		    }
+
             toBeRemoved.push_back(constraint);
         }
 
@@ -2014,7 +2091,7 @@ void Model::splitElementsByDOFS(){
                     scalarSpring.assignCellGroup(cellGroup);
                     for (const int cellPosition : it.second){
                         scalarSpring.addSpring(cellPosition, it.first.first, it.first.second);
-                        cellGroup->addCellId(this->mesh->findCell(cellPosition).id);
+                        cellGroup->addCellPosition(cellPosition);
                     }
                     elementSetsToAdd.push_back(scalarSpring);
                     i++;
@@ -2054,7 +2131,7 @@ void Model::makeBoundarySegments() {
                 int nodeId2 = *(++it);
                 vector<int> connectivity {nodeId1, nodeId2};
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, connectivity, true);
-                masterCellGroup->addCellId(mesh->findCell(cellPosition).id);
+                masterCellGroup->addCellPosition(cellPosition);
             }
             slide->masterCellGroup = masterCellGroup;
             shared_ptr<BoundaryNodeLine> slaveNodeLine = dynamic_pointer_cast<BoundaryNodeLine>(this->find(slide->slave));
@@ -2065,7 +2142,7 @@ void Model::makeBoundarySegments() {
                 int nodeId2 = *(++it2);
                 vector<int> connectivity = {nodeId1, nodeId2};
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, connectivity, true);
-                slaveCellGroup->addCellId(mesh->findCell(cellPosition).id);
+                slaveCellGroup->addCellPosition(cellPosition);
             }
             slide->slaveCellGroup = slaveCellGroup;
         }
@@ -2097,7 +2174,7 @@ void Model::makeBoundarySurfaces() {
                     cellType = CellType::QUAD4;
                 }
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, cellType, connectivity, true);
-                slaveCellGroup->addCellId(mesh->findCell(cellPosition).id);
+                slaveCellGroup->addCellPosition(cellPosition);
             }
             surface->slaveCellGroup = slaveCellGroup;
             shared_ptr<BoundaryNodeSurface> masterNodeSurface = dynamic_pointer_cast<BoundaryNodeSurface>(this->find(surface->master));
@@ -2118,7 +2195,7 @@ void Model::makeBoundarySurfaces() {
                     cellType = CellType::QUAD4;
                 }
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, cellType, connectivity, true);
-                masterCellGroup->addCellId(mesh->findCell(cellPosition).id);
+                masterCellGroup->addCellPosition(cellPosition);
             }
             surface->masterCellGroup = masterCellGroup;
         }
@@ -2261,6 +2338,10 @@ void Model::finish() {
 
     if (this->configuration.makeCellsFromRBE){
         makeCellsFromRBE();
+    }
+
+    if (this->configuration.makeCellsFromSurfaceSlide){
+        makeCellsFromSurfaceSlide();
     }
 
     if (this->configuration.splitElementsByDOFS){

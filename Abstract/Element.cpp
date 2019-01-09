@@ -899,6 +899,14 @@ void Lmpc::assignDofCoefs(std::vector<DOFCoefs> dofCoefs) {
     this->dofCoefs= dofCoefs;
 }
 
+SurfaceSlideSet::SurfaceSlideSet(Model& model, int original_id) :
+                RigidSet(model, ElementSet::Type::SURFACE_SLIDE_CONTACT, Globals::UNAVAILABLE_INT, original_id) {
+}
+
+shared_ptr<ElementSet> SurfaceSlideSet::clone() const {
+    return make_shared<SurfaceSlideSet>(*this);
+}
+
 // ScalarSpring Methods
 ScalarSpring::ScalarSpring(Model& model, int original_id, double stiffness, double damping) :
                 Discrete(model, ElementSet::Type::SCALAR_SPRING, true, original_id), stiffness(stiffness),

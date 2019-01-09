@@ -67,6 +67,7 @@ const ModelConfiguration ConfigurationParameters::getModelConfiguration() const 
         configuration.makeCellsFromDirectMatrices = true;
         configuration.makeCellsFromLMPC = true;
         configuration.makeCellsFromRBE = true;
+        configuration.makeCellsFromSurfaceSlide = true;
         configuration.splitElementsByDOFS = true;
         configuration.autoDetectAnalysis = true;
         configuration.replaceRigidSegments = true;

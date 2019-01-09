@@ -91,6 +91,10 @@ private:
      */
     void makeCellsFromRBE();
     /**
+     * Build the corresponding cells of Surface slides (Optistruct SURF) with a group.
+     */
+    void makeCellsFromSurfaceSlide();
+    /**
      * Some elementSet can hold very general elements, acting on various DOFs of the corresponding cells.
      * For example, Nastran PELAS1 can regroup CELAS1 cells which "spring" in various DOFS (DXtoDX, DYtoDZ, etc)
      * whereas Systus can only have one spring direction by 1902 Part.

@@ -26,7 +26,8 @@
 
 #include "CoordinateSystem.h"
 #include "Dof.h"
-#include <boost/lexical_cast.hpp>
+#include <boost/functional/hash.hpp>
+#include <boost/geometry/geometries/geometries.hpp>
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
@@ -210,7 +211,6 @@ public:
 };
 
 class Mesh;
-class Node;
 class NodeStorage;
 class CellStorage;
 
@@ -301,7 +301,7 @@ public:
 };
 
 /**
- * Identifies a geometry component
+ * A mesh cell
  */
 class Cell final {
 private:
@@ -367,11 +367,14 @@ class CellGroup final: public Group {
 private:
     friend Mesh;
     CellGroup(Mesh& mesh, const std::string & name, int id = NO_ORIGINAL_ID, const std::string & comment = "");
+    std::set<int> _cellPositions;
 public:
-    std::set<int> cellIds;
+
     void addCellId(int cellId);
+    void addCellPosition(int cellPosition);
     const std::vector<Cell> getCells();
     const std::vector<int> cellPositions();
+    const std::vector<int> cellIds();
     const std::set<int> nodePositions() const override;
     bool empty() const override;
     virtual ~CellGroup();
@@ -540,5 +543,61 @@ struct hash<vega::Node> {
 };
 
 } /* namespace std */
+
+namespace boost {
+    namespace geometry {
+        namespace traits {
+            // Adapt Node to Boost.Geometry
+
+            template<> struct tag<vega::Node> {
+                typedef point_tag type;
+            };
+
+            template<> struct coordinate_type<vega::Node> {
+                typedef double type;
+            };
+
+            template<> struct coordinate_system<vega::Node> {
+                // using global coordinates
+                typedef cs::cartesian type;
+            };
+
+            template<> struct dimension<vega::Node> : boost::mpl::int_<3> {};
+
+            template<>
+            struct access<vega::Node, 0> {
+                static double get(vega::Node const& p) {
+                    return p.x;
+                }
+
+                static void set(vega::Node& p, double const& value) {
+                    p.x = value;
+                }
+            };
+
+            template<>
+            struct access<vega::Node, 1> {
+                static double get(vega::Node const& p) {
+                    return p.y;
+                }
+
+                static void set(vega::Node& p, double const& value) {
+                    p.y = value;
+                }
+            };
+
+            template<>
+            struct access<vega::Node, 2> {
+                static double get(vega::Node const& p) {
+                    return p.z;
+                }
+
+                static void set(vega::Node& p, double const& value) {
+                    p.z = value;
+                }
+            };
+        }
+    }
+} // namespace boost::geometry::traits
 
 #endif /* MESHCOMPONENTS_H_ */

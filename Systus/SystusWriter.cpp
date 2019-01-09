@@ -924,7 +924,7 @@ void SystusWriter::generateSubcases(const SystusModel& systusModel,
             for (auto constraintSet : constraintSets){
                 cAna.push_back(constraintSet->getId());
             }
-            //TODO Maybe we need to test that to?
+            //TODO Maybe we need to test that too?
             //const vector<shared_ptr<BoundaryCondition>> boundaryConditions= analysis.getBoundaryConditions();
             //cAna.push_back(boundaryConditions.size());
             //for (auto boundaryCondition : boundaryConditions){

@@ -315,38 +315,45 @@ CellGroup::CellGroup(Mesh& mesh, const string& name, int groupId, const string& 
 }
 
 void CellGroup::addCellId(int cellId) {
-	this->cellIds.insert(cellId);
+	this->_cellPositions.insert(this->mesh.findCellPosition(cellId));
+}
+
+void CellGroup::addCellPosition(int cellPosition) {
+	this->_cellPositions.insert(cellPosition);
 }
 
 const vector<Cell> CellGroup::getCells() {
 	vector<Cell> result;
-	for (int cellId : cellIds) {
-		int cellPosition = mesh.findCellPosition(cellId);
+	for (int cellPosition : _cellPositions) {
 		result.push_back(mesh.findCell(cellPosition));
 	}
 	return result;
 }
 
 const vector<int> CellGroup::cellPositions() {
+	vector<int> result{_cellPositions.begin(), _cellPositions.end()};
+	return result;
+}
+
+const vector<int> CellGroup::cellIds() {
 	vector<int> result;
-	for (int cellId : cellIds) {
-		result.push_back(mesh.findCellPosition(cellId));
+    for (int cellPosition : _cellPositions) {
+		result.push_back(mesh.findCellId(cellPosition));
 	}
 	return result;
 }
 
 const set<int> CellGroup::nodePositions() const {
 	set<int> result;
-	for (int cellId : cellIds) {
-		int position = mesh.findCellPosition(cellId);
-		const Cell& cell = mesh.findCell(position);
+	for (int cellPosition : _cellPositions) {
+		const Cell& cell = mesh.findCell(cellPosition);
 		result.insert(cell.nodePositions.begin(), cell.nodePositions.end());
 	}
 	return result;
 }
 
 bool CellGroup::empty() const {
-	return cellIds.size() == 0;
+	return _cellPositions.size() == 0;
 }
 
 CellGroup::~CellGroup() {
@@ -768,7 +775,8 @@ const vector<int> CellContainer::getCellIds(bool all) const {
 		for (string groupName : groupNames) {
 			shared_ptr<CellGroup> group = dynamic_pointer_cast<CellGroup>(mesh.findGroup(groupName));
 			if (group != nullptr) {
-				cells.insert(cells.end(), group->cellIds.begin(), group->cellIds.end());
+                const auto& groupCellIds = group->cellIds();
+				cells.insert(cells.end(), groupCellIds.begin(), groupCellIds.end());
 			}
 		}
 	}

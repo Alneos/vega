@@ -15,7 +15,6 @@
 #include <string>
 #include <stdexcept>
 #include <boost/range.hpp>
-#include <boost/functional/hash.hpp>
 #include "BoundaryCondition.h"
 #include "MeshComponents.h"
 #include "ConfigurationParameters.h"
