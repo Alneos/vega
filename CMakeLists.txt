@@ -276,9 +276,10 @@ list(APPEND EXTERNAL_LIBRARIES ${Boost_LIBRARIES})
 IF("105800" STRGREATER ${Boost_VERSION})
   message(STATUS "BOOST VERSION UNDER 1.58, BOOST_NO_CXX11_SCOPED_ENUMS is defined.")
   add_definitions(-DBOOST_NO_CXX11_SCOPED_ENUMS)
-  message(STATUS "BOOST VERSION UNDER 1.58, BOOST_MATH_DISABLE_FLOAT128 is defined.")
-  add_definitions(-DBOOST_MATH_DISABLE_FLOAT128)
 ENDIF("105800" STRGREATER ${Boost_VERSION})
+
+# Try to fix issues with boost::geometry
+add_definitions(-DBOOST_MATH_DISABLE_FLOAT128)
 
 # On Cygwin, we need to explicitely look some libraries on /lib
 IF(CYGWIN)
