@@ -40,6 +40,7 @@ set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/build/cmake_files)
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 SET(CMAKE_BUILD_TYPE DDebug CACHE STRING
     "Choose the type of build, options are: None DDebug SDebug DRelease SRelease.")
@@ -48,6 +49,7 @@ OPTION(CMAKE_VERBOSE_MAKEFILE "make outputs build commands" OFF)
 project ( vegapp CXX C)
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG(-Wshadow=local COMPILER_SUPPORTS_WSHADOWLOCAL)
+CHECK_CXX_COMPILER_FLAG(-std=gnu++11 COMPILER_SUPPORTS_STDGNU11)
 
 if(CMAKE_CROSSCOMPILING)
   find_program(WINE_EXECUTABLE NAMES wine64 wine)
@@ -131,6 +133,10 @@ else(MSVC)
 
         if(COMPILER_SUPPORTS_WSHADOWLOCAL)
           add_compile_options(-Wshadow=local)
+        endif()
+
+        if(COMPILER_SUPPORTS_STDGNU11)
+          add_compile_options(-std=gnu++11)
         endif()
 
         if(NOT CMAKE_CROSSCOMPILING)
@@ -267,10 +273,12 @@ link_directories ( ${Boost_LIBRARY_DIRS} )
 list(APPEND EXTERNAL_LIBRARIES ${Boost_LIBRARIES})
 
 # Bug fix for https://stackoverflow.com/questions/35007134/c-boost-undefined-reference-to-boostfilesystemdetailcopy-file
-IF("105800" STRGREATER ${Boost_MAJOR_VERSION})
+IF("105800" STRGREATER ${Boost_VERSION})
   message(STATUS "BOOST VERSION UNDER 1.58, BOOST_NO_CXX11_SCOPED_ENUMS is defined.")
   add_definitions(-DBOOST_NO_CXX11_SCOPED_ENUMS)
-ENDIF("105800" STRGREATER ${Boost_MAJOR_VERSION})
+  message(STATUS "BOOST VERSION UNDER 1.58, BOOST_MATH_DISABLE_FLOAT128 is defined.")
+  add_definitions(-DBOOST_MATH_DISABLE_FLOAT128)
+ENDIF("105800" STRGREATER ${Boost_VERSION})
 
 # On Cygwin, we need to explicitely look some libraries on /lib
 IF(CYGWIN)
