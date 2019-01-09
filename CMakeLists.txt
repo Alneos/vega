@@ -139,7 +139,7 @@ else(MSVC)
         endif()
 
         # try to reduce boost memory usage
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --param ggc-min-expand=1 --param ggc-min-heapsize=10000000")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --param ggc-min-expand=0 --param ggc-min-heapsize=1000000")
 
         if(NOT CMAKE_CROSSCOMPILING)
             add_compile_options(-Wsuggest-attribute=const) # LD strange results, probably because MXE is using 5.4.0

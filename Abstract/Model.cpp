@@ -1978,7 +1978,7 @@ void Model::makeCellsFromSurfaceSlide() {
     using node_point = bg::model::point<double, 3, bg::cs::cartesian>;
     using node_polygon = bg::model::polygon<node_point >;
     using node_box = bg::model::box<node_point>;
-    using value = std::pair<node_box, unsigned>;
+    using value = pair<node_box, size_t>;
     for (const auto& constraintSet : this->getCommonConstraintSets()) {
 
         const int idConstraintSet = constraintSet->getId();
@@ -2024,7 +2024,7 @@ void Model::makeCellsFromSurfaceSlide() {
                     const Node& node = this->mesh->findNode(nodePosition);
                     vector<value> result_n;
                     rtree.query(bgi::nearest(node_point{node.x, node.y, node.z}, 1), std::back_inserter(result_n));
-                    int masterFaceIndex = result_n[0].second;
+                    size_t masterFaceIndex = result_n[0].second;
                     const node_polygon& masterFace = masterFaces[masterFaceIndex];
                     size_t num_master_points = bg::num_points(masterFace);
                     switch(num_master_points) {
