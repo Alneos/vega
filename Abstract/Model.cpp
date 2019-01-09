@@ -15,6 +15,7 @@
 #include <fstream>
 #include <boost/assign.hpp>
 #include <boost/geometry.hpp>
+#include <boost/geometry/index/rtree.hpp>
 #include <boost/geometry/geometries/geometries.hpp>
 #include <ciso646>
 

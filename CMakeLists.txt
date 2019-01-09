@@ -18,8 +18,6 @@ if(CMAKE_VERSION VERSION_LESS "2.8.12")
     endfunction(add_compile_options)
 endif()
 
-
-
 # Definition of the VEGA version
 set(VEGA_MAJOR_VERSION 2)
 set(VEGA_MINOR_VERSION 5)
@@ -49,6 +47,7 @@ OPTION(CMAKE_VERBOSE_MAKEFILE "make outputs build commands" OFF)
 project ( vegapp CXX C)
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG(-Wshadow=local COMPILER_SUPPORTS_WSHADOWLOCAL)
+CHECK_CXX_COMPILER_FLAG(-std=gnu++11 COMPILER_SUPPORTS_STDGNU11)
 CHECK_CXX_COMPILER_FLAG(-std=gnu++11 COMPILER_SUPPORTS_STDGNU11)
 
 if(CMAKE_CROSSCOMPILING)
@@ -138,6 +137,9 @@ else(MSVC)
         if(COMPILER_SUPPORTS_STDGNU11)
           add_compile_options(-std=gnu++11)
         endif()
+
+        # try to reduce boost memory usage
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --param ggc-min-expand=1 --param ggc-min-heapsize=10000000")
 
         if(NOT CMAKE_CROSSCOMPILING)
             add_compile_options(-Wsuggest-attribute=const) # LD strange results, probably because MXE is using 5.4.0
@@ -388,6 +390,7 @@ endif(DOXYGEN_FOUND)
 
 message("")
 message(STATUS "Vega ${VEGA_VERSION} has been configured for ${VEGA_OS} with the "  "following options:" ${VEGA_CONFIG_OPTIONS})
+message(STATUS "CMAKE_VERSION:        ${CMAKE_VERSION}")
 message(STATUS "C compiler: " ${CMAKE_C_COMPILER})
 message(STATUS "C++ compiler: " ${CMAKE_CXX_COMPILER})
 message(STATUS "CMAKE_CROSSCOMPILING: ${CMAKE_CROSSCOMPILING}")
