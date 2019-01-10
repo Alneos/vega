@@ -26,14 +26,13 @@ namespace tests {
 
 using namespace std;
 
-
-BOOST_AUTO_TEST_CASE( prob6 ) {
-	CommandLineUtils::optistructStudy2Aster("/caw/prob6/prob6.dat", RUN_ASTER, true, 0.02);
-}
-
 BOOST_AUTO_TEST_CASE( beam ) {
-	CommandLineUtils::optistructStudy2Aster("/irt/beam/beam.fem", RUN_ASTER, true, 0.02);
+	CommandLineUtils::optistructStudy2Systus("/irt/beam/beam.fem", RUN_SYSTUS, true, 0.02);
 }
+
+//BOOST_AUTO_TEST_CASE( tcid_contact_qvol ) {
+//	CommandLineUtils::optistructStudy2Systus("/irt/tcid_contact_qvol/tcid_contact_qvol.fem", RUN_SYSTUS, true, 0.02);
+//}
 
 //BOOST_AUTO_TEST_CASE( bigtest ) {
 //	CommandLineUtils::optistructStudy2Aster("/../../../../tmp/bigtest.fem", false, true, 0.03);

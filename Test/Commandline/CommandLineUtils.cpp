@@ -244,6 +244,11 @@ void CommandLineUtils::optistructStudy2Aster(string fname, bool runSolver, bool 
     run(fname, SolverName::OPTISTRUCT, SolverName::CODE_ASTER, runSolver, strict, tolerance);
 }
 
+void CommandLineUtils::optistructStudy2Systus(string fname, bool runSolver, bool strict,
+        double tolerance) {
+    run(fname, SolverName::OPTISTRUCT, SolverName::SYSTUS, runSolver, strict, tolerance);
+}
+
 vector<bool> CommandLineUtils::containWords(const string &fname, const vector<string> &words) {
     ifstream file(fname);
     vector<string> lower_search;

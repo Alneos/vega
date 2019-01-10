@@ -10,5 +10,5 @@ before_install:
   - docker pull ldallolio/vegaci
 
 script:
-  - docker run -e GITHUB_TOKEN=$GITHUB_TOKEN ldallolio/vegaci /bin/sh -c "source /home/vega/.bashrc && git clone --depth=50 --branch=master https://github.com/Alneos/vega.git /home/vega/vegapp && mkdir /home/vega/vegapp/build && cd /home/vega/vegapp/build && cmake -DCMAKE_BUILD_TYPE=Debug -DRUN_SYSTUS=OFF .. && make -j && ctest -D Experimental ."
+  - docker run -e GITHUB_TOKEN=$GITHUB_TOKEN ldallolio/vegaci /bin/sh -c "source /home/vega/.bashrc && git clone --depth=50 --branch=master https://github.com/Alneos/vega.git /home/vega/vegapp && mkdir /home/vega/vegapp/build && cd /home/vega/vegapp/build && cmake -DCMAKE_BUILD_TYPE=Debug -DRUN_SYSTUS=OFF .. && make -j2 && ctest -D Experimental ."
 

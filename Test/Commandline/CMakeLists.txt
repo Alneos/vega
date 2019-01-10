@@ -21,6 +21,7 @@ if(ENABLE_ASTER)
     add_test(NAME Nastran2Aster_test COMMAND Nastran2Aster_test)
 endif(ENABLE_ASTER)
 
+if(ENABLE_SYSTUS)
 add_executable(
  Nastran2Systus_test
  Nastran2Systus_test.cpp
@@ -36,6 +37,7 @@ target_link_libraries(
 )
 
 add_test(NAME Nastran2Systus_test COMMAND Nastran2Systus_test)
+endif(ENABLE_SYSTUS)
 
 add_executable(
  Nastran2Nastran_test
@@ -69,6 +71,24 @@ if(ENABLE_ASTER)
     )
 
     add_test(NAME Optistruct2Aster_test COMMAND Optistruct2Aster_test)
+endif(ENABLE_ASTER)
+
+if(ENABLE_SYSTUS)
+    add_executable(
+     Optistruct2Systus_test
+     Optistruct2Systus_test.cpp
+    )
+
+    SET_TARGET_PROPERTIES(Optistruct2Systus_test PROPERTIES LINK_SEARCH_START_STATIC ${STATIC_LINKING})
+    SET_TARGET_PROPERTIES(Optistruct2Systus_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINKING})
+
+    target_link_libraries(
+     Optistruct2Systus_test
+     command_line_test_utils
+     commandline
+    )
+
+    add_test(NAME Optistruct2Systus_test COMMAND Optistruct2Systus_test)
 endif(ENABLE_ASTER)
 
 #uncomment to see details of each test method (update tests.cmake with

@@ -1,0 +1,6 @@
+BEGIN BULK
+GRID      121022        4444.942-72.328 795.7608
+GRID      121030        4444.888-72.2813795.4687
+PBUSH          4       KRIGID   RIGID   RIGID   RIGID   RIGID   RIGID
+CBUSH     570037       4  121030  121022                               1
+ENDDATA

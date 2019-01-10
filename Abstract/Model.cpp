@@ -1485,10 +1485,11 @@ void Model::replaceRigidSegments()
         }
         const set<int>& segmentNodePositions = segment->nodePositions();
         const vector<int>& nodePositions{segmentNodePositions.begin(), segmentNodePositions.end()};
-        int masterId = mesh->findCellId(nodePositions[0]);
+        int masterId = mesh->findNodeId(nodePositions[0]);
         //set<int> slaveIds {mesh->findCellId(nodePositions[1])};
-        RigidConstraint rigid(*this, masterId, RigidConstraint::NO_ORIGINAL_ID, {mesh->findCellId(nodePositions[1])});
+        RigidConstraint rigid(*this, masterId, RigidConstraint::NO_ORIGINAL_ID, {mesh->findNodeId(nodePositions[1])});
         this->add(rigid);
+        addConstraintIntoConstraintSet(rigid, commonConstraintSet);
         segment->setAllZero(); // make the rigid segment... no more rigid.
     }
 }

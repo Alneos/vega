@@ -110,4 +110,25 @@ BOOST_AUTO_TEST_CASE(optistruct_rbe2) {
 	}
 }
 
+BOOST_AUTO_TEST_CASE(optistruct_pbushrigid) {
+	string testLocation = fs::path(
+		PROJECT_BASE_DIR "/testdata/unitTest/optistructparser/pbushrigid.nas").make_preferred().string();
+	optistruct::OptistructParser parser;
+	try {
+		const shared_ptr<Model> model = parser.parse(
+			ConfigurationParameters(testLocation, SolverName::CODE_ASTER, "", ""));
+        BOOST_CHECK_EQUAL(model->elementSets.size(), 1);
+        BOOST_CHECK_EQUAL(model->constraintSets.size(), 0);
+        model->finish();
+        BOOST_CHECK_EQUAL(model->elementSets.size(), 1);
+        BOOST_CHECK_EQUAL(model->constraintSets.size(), 1);
+	}
+	catch (exception& e) {
+		cerr << e.what() << endl;
+		BOOST_TEST_MESSAGE(string("Application exception") + e.what());
+
+		BOOST_FAIL(string("Parse threw exception ") + e.what());
+	}
+}
+
 //____________________________________________________________________________//

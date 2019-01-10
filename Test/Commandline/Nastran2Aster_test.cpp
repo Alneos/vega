@@ -117,6 +117,15 @@ BOOST_AUTO_TEST_CASE( pload4 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/pload4/pload4.nas", RUN_ASTER, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( nas101prob4 ) {
+    // RBAR with 123 DOFs, test with LIAISON_MAIL ?
+	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob4/nas101prob4.nas", RUN_ASTER, false, 0.005);
+}
+
+BOOST_AUTO_TEST_CASE( nas101prob6 ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob6/nas101prob6.nas", RUN_ASTER, true, 0.1);
+}
+
 //BOOST_AUTO_TEST_CASE( prob24 ) {
 //	CommandLineUtils::nastranStudy2Aster("/caw/prob24/prob24.dat", RUN_ASTER, true, 0.05);
 //}
