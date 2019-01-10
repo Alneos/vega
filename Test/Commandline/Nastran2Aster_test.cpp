@@ -126,6 +126,11 @@ BOOST_AUTO_TEST_CASE( nas101prob6 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob6/nas101prob6.nas", RUN_ASTER, true, 0.1);
 }
 
+BOOST_AUTO_TEST_CASE( nas101probB ) {
+    // LIAISON_RBE3 <EXCEPTION> <DVP_2>  Erreur numérique (floating point exception).
+	CommandLineUtils::nastranStudy2Aster("/irt/nas101probB/nas101probB.nas", false, true, 0.1);
+}
+
 //BOOST_AUTO_TEST_CASE( prob24 ) {
 //	CommandLineUtils::nastranStudy2Aster("/caw/prob24/prob24.dat", RUN_ASTER, true, 0.05);
 //}

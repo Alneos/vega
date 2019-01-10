@@ -89,7 +89,7 @@ if(ENABLE_SYSTUS)
     )
 
     add_test(NAME Optistruct2Systus_test COMMAND Optistruct2Systus_test)
-endif(ENABLE_ASTER)
+endif(ENABLE_SYSTUS)
 
 #uncomment to see details of each test method (update tests.cmake with
 #the batch file ../update_tests.sh
