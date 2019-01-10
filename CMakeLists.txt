@@ -48,7 +48,7 @@ project ( vegapp CXX C)
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG(-Wshadow=local COMPILER_SUPPORTS_WSHADOWLOCAL)
 CHECK_CXX_COMPILER_FLAG(-std=gnu++11 COMPILER_SUPPORTS_STDGNU11)
-CHECK_CXX_COMPILER_FLAG(-std=gnu++11 COMPILER_SUPPORTS_STDGNU11)
+CHECK_CXX_COMPILER_FLAG(-fext-numeric-literals COMPILER_SUPPORTS_FEXTNUMERICLITERALS)
 
 if(CMAKE_CROSSCOMPILING)
   find_program(WINE_EXECUTABLE NAMES wine64 wine)
@@ -101,6 +101,18 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES "[Ss][Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmakemodules/")
 
+if(COMPILER_SUPPORTS_WSHADOWLOCAL)
+  add_compile_options(-Wshadow=local)
+endif()
+
+if(COMPILER_SUPPORTS_STDGNU11)
+  add_compile_options(-std=gnu++11)
+endif()
+
+if(COMPILER_SUPPORTS_FEXTNUMERICLITERALS)
+  add_compile_options(-fext-numeric-literals)
+endif()
+
 if(MSVC)
     # Patch for MSVC10 generator, 64 bit
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHa /MP")
@@ -130,16 +142,8 @@ else(MSVC)
     ELSEIF(CMAKE_C_COMPILER_ID MATCHES "GNU")
         add_compile_options(-Wfloat-equal -Woverlength-strings -fmessage-length=0 -Wmain -Wmissing-declarations -Wundef -Wredundant-decls -Wcast-align -Wswitch-default -Wlogical-op -Wuseless-cast -Wold-style-cast -Wdouble-promotion -Wunused-variable)
 
-        if(COMPILER_SUPPORTS_WSHADOWLOCAL)
-          add_compile_options(-Wshadow=local)
-        endif()
-
-        if(COMPILER_SUPPORTS_STDGNU11)
-          add_compile_options(-std=gnu++11)
-        endif()
-
         # try to reduce boost memory usage
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --param ggc-min-expand=0 --param ggc-min-heapsize=1000000")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --param ggc-min-expand=0 --param ggc-min-heapsize=100000")
 
         if(NOT CMAKE_CROSSCOMPILING)
             add_compile_options(-Wsuggest-attribute=const) # LD strange results, probably because MXE is using 5.4.0
@@ -279,6 +283,12 @@ IF("105800" STRGREATER ${Boost_VERSION})
   message(STATUS "BOOST VERSION UNDER 1.58, BOOST_NO_CXX11_SCOPED_ENUMS is defined.")
   add_definitions(-DBOOST_NO_CXX11_SCOPED_ENUMS)
 ENDIF("105800" STRGREATER ${Boost_VERSION})
+
+IF("105500" STRGREATER ${Boost_VERSION})
+  message(STATUS "BOOST VERSION UNDER 1.55, -fext-numeric-literals is defined.")
+  add_compile_options(-fext-numeric-literals)
+ENDIF("105800" STRGREATER ${Boost_VERSION})
+
 
 # Try to fix issues with boost::geometry
 add_definitions(-DBOOST_MATH_DISABLE_FLOAT128)
