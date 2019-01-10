@@ -143,7 +143,7 @@ else(MSVC)
         add_compile_options(-Wfloat-equal -Woverlength-strings -fmessage-length=0 -Wmain -Wmissing-declarations -Wundef -Wredundant-decls -Wcast-align -Wswitch-default -Wlogical-op -Wuseless-cast -Wold-style-cast -Wdouble-promotion -Wunused-variable)
 
         # try to reduce boost memory usage
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --param ggc-min-expand=0 --param ggc-min-heapsize=100000")
+        #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --param ggc-min-expand=0 --param ggc-min-heapsize=100000")
 
         if(NOT CMAKE_CROSSCOMPILING)
             add_compile_options(-Wsuggest-attribute=const) # LD strange results, probably because MXE is using 5.4.0
@@ -287,8 +287,7 @@ ENDIF("105800" STRGREATER ${Boost_VERSION})
 IF("105500" STRGREATER ${Boost_VERSION})
   message(STATUS "BOOST VERSION UNDER 1.55, -fext-numeric-literals is defined.")
   add_compile_options(-fext-numeric-literals)
-ENDIF("105800" STRGREATER ${Boost_VERSION})
-
+ENDIF("105500" STRGREATER ${Boost_VERSION})
 
 # Try to fix issues with boost::geometry
 add_definitions(-DBOOST_MATH_DISABLE_FLOAT128)
