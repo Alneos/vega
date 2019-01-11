@@ -1483,13 +1483,16 @@ void Model::replaceRigidSegments()
         if (not segment->isDiagonalRigid()) {
             continue;
         }
-        const set<int>& segmentNodePositions = segment->nodePositions();
-        const vector<int>& nodePositions{segmentNodePositions.begin(), segmentNodePositions.end()};
-        int masterId = mesh->findNodeId(nodePositions[0]);
-        //set<int> slaveIds {mesh->findCellId(nodePositions[1])};
-        RigidConstraint rigid(*this, masterId, RigidConstraint::NO_ORIGINAL_ID, {mesh->findNodeId(nodePositions[1])});
-        this->add(rigid);
-        addConstraintIntoConstraintSet(rigid, commonConstraintSet);
+        for (const auto& cell : segment->cellGroup->getCells()) {
+            const set<int> nodeIds{cell.nodeIds.begin(), cell.nodeIds.end()};
+            RigidConstraint rigid(*this, RigidConstraint::UNAVAILABLE_MASTER, RigidConstraint::NO_ORIGINAL_ID, nodeIds);
+            this->add(rigid);
+            addConstraintIntoConstraintSet(rigid, commonConstraintSet);
+            if (configuration.logLevel >= LogLevel::DEBUG) {
+                cout << "Added contraint: " << rigid << " to replace a cell of: " << *segment << endl;
+            }
+        }
+
         segment->setAllZero(); // make the rigid segment... no more rigid.
     }
 }
@@ -1997,6 +2000,7 @@ void Model::makeCellsFromSurfaceSlide() {
             shared_ptr<const SurfaceSlide> surface = dynamic_pointer_cast<const SurfaceSlide>(constraint);
 		    shared_ptr<const BoundaryElementFace> masterSurface = dynamic_pointer_cast<const BoundaryElementFace>(this->find(surface->master));
 		    vector<node_polygon> masterFaces;
+		    vector<vector<int>> masterFaceNodeIds;
 		    bgi::rtree< value, bgi::rstar<16> > rtree;
 		    for (const auto& faceInfo : masterSurface->faceInfos) {
                 const Cell& masterCell = this->mesh->findCell(this->mesh->findCellPosition(faceInfo.cellId));
@@ -2008,8 +2012,9 @@ void Model::makeCellsFromSurfaceSlide() {
                         const Node& node = this->mesh->findNode(nodePosition);
                         const node_point np{node.x, node.y, node.z};
                         masterFace.outer().push_back(np);
-                        masterFaces.push_back(masterFace);
                     }
+                    masterFaces.push_back(masterFace);
+                    masterFaceNodeIds.push_back(faceIds);
                     for (size_t i = 0 ; i < masterFaces.size() ; ++i) {
                         node_box b = bg::return_envelope<node_box>(masterFaces[i]);
                         rtree.insert(std::make_pair(b, i));
@@ -2027,12 +2032,20 @@ void Model::makeCellsFromSurfaceSlide() {
                     rtree.query(bgi::nearest(node_point{node.x, node.y, node.z}, 1), std::back_inserter(result_n));
                     size_t masterFaceIndex = result_n[0].second;
                     const node_polygon& masterFace = masterFaces[masterFaceIndex];
+                    vector<int> contactNodeIds = masterFaceNodeIds[masterFaceIndex];
+                    contactNodeIds.push_back(faceId);
                     size_t num_master_points = bg::num_points(masterFace);
                     switch(num_master_points) {
-                    case 3:
+                    case 3: {
+                        int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::TETRA4, contactNodeIds , true);
+                        group->addCellPosition(cellPosition);
                         break;
-                    case 4:
+                    }
+                    case 4: {
+                        int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::PYRA5, contactNodeIds , true);
+                        group->addCellPosition(cellPosition);
                         break;
+                    }
                     default:
                         throw logic_error("Slide element not yet implemented:" + to_string(num_master_points));
                     }
@@ -2131,8 +2144,7 @@ void Model::makeBoundarySegments() {
             for(unsigned int i = 0; i < masterNodeIds.size() - 1;++i) {
                 int nodeId1 = *it;
                 int nodeId2 = *(++it);
-                vector<int> connectivity {nodeId1, nodeId2};
-                int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, connectivity, true);
+                int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, {nodeId1, nodeId2}, true);
                 masterCellGroup->addCellPosition(cellPosition);
             }
             slide->masterCellGroup = masterCellGroup;
@@ -2142,8 +2154,7 @@ void Model::makeBoundarySegments() {
             for(unsigned int i = 0; i < slaveNodeIds.size() - 1;++i) {
                 int nodeId1 = *it2;
                 int nodeId2 = *(++it2);
-                vector<int> connectivity = {nodeId1, nodeId2};
-                int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, connectivity, true);
+                int cellPosition = mesh->addCell(Cell::AUTO_ID, CellType::SEG2, {nodeId1, nodeId2}, true);
                 slaveCellGroup->addCellPosition(cellPosition);
             }
             slide->slaveCellGroup = slaveCellGroup;

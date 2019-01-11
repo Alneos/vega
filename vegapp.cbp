@@ -1195,7 +1195,7 @@
 					<AskRebuildNeeded command="$make -q -f $makefile $target" />
 					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
 				</MakeCommands>
-			</Target>            
+			</Target>
 			<Target title="command_line_test_utils">
 				<Option output="lib/libcommand_line_test_utils.a" prefix_auto="0" extension_auto="0" />
 				<Option working_dir="" />
@@ -1921,6 +1921,12 @@
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/readme.txt" />
 		<Unit filename="testdata/nastran/irt/gasket/gasket.bdf" />
 		<Unit filename="testdata/nastran/irt/gasket/readme.txt" />
+		<Unit filename="testdata/nastran/irt/nas101prob3/__nas101prob3__.f06" />
+		<Unit filename="testdata/nastran/irt/nas101prob3/nas101prob3.nas" />
+		<Unit filename="testdata/nastran/irt/nas101prob3/readme.txt" />
+		<Unit filename="testdata/nastran/irt/nas101prob4/nas101prob4.f06" />
+		<Unit filename="testdata/nastran/irt/nas101prob4/nas101prob4.nas" />
+		<Unit filename="testdata/nastran/irt/nas101prob4/readme.txt" />
 		<Unit filename="testdata/nastran/irt/nas103prob5/nas103prob5.f06" />
 		<Unit filename="testdata/nastran/irt/nas103prob5/nas103prob5.nas" />
 		<Unit filename="testdata/nastran/irt/nas103prob5/readme.txt" />
@@ -1944,7 +1950,6 @@
 		<Unit filename="testdata/nastran/irt/t01331/t01331a.inp" />
 		<Unit filename="testdata/optistruct/caw/prob6/prob6.dat" />
 		<Unit filename="testdata/optistruct/caw/prob6/prob6.f06" />
-		<Unit filename="testdata/optistruct/irt/pload4/pload4.nas" />
 		<Unit filename="testdata/unitTest/nastranparser/README.TXT" />
 		<Unit filename="testdata/unitTest/nastranparser/bush.dat" />
 		<Unit filename="testdata/unitTest/nastranparser/comments.dat" />

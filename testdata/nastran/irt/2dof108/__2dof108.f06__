@@ -1,193 +1,8 @@
-1
- 
- 
- 
- 
-                      Warning: This computer program is protected by copyright law and international treaties.       
-                  Unauthorized use, reproduction or distribution of this computer program, or any portion of it, may 
-                                          result in severe civil and criminal penalties.                             
-                         Copyright (C) 2012 MSC.Software Corporation and its licensors. All rights reserved.         
- 
- 
-                                              * * * * * * * * * * * * * * * * * * * *
-                                              * * * * * * * * * * * * * * * * * * * *
-                                              * *                                 * *
-                                              * *           MSC.SOFTWARE          * *
-                                              * *               CORP              * *
-                                              * *                                 * *
-                                              * *      M S C   N a s t r a n      * *
-                                              * *                                 * *
-                                              * *                                 * *
-                                              * *                                 * *
-                                              * *     Version 2012.2.0-CL151760   * *
-                                              * *                                 * *
-                                              * *                                 * *
-                                              * *                                 * *
-                                              * *          JUL  6, 2012           * *
-                                              * *                                 * *
-                                              * *       x86-64 Based System       * *
-                                              * *        MODEL Intel x8664        * *
-                                              * *     Linux 4.15.0-36-generic     * *
-                                              * *       Compiled for x8664        * *
-                                              * *                                 * *
-                                              * * * * * * * * * * * * * * * * * * * *
-                                              * * * * * * * * * * * * * * * * * * * *
-1News file -  (May 29, 2012):
-  
-               Welcome to MSC Nastran 2012.2
-  
-   Details of the release can be found in the Release Guide available
-   electronically in the installation documentation sub-directory.
-   Additional information can be found at the Nastran Product Support page:
-  
-      http://simcompanion.mscsoftware.com
-  
-   The support page provides links to this valuable information:
-      * A searchable Knowledge Base containing examples and answers to thousands
-        frequently asked questions written by MSC.Software subject-matter experts
-      * Peer-to-peer Discussion Forums enabling you to post questions for your
-        MSC.Software products and receive answers from other users worldwide.
-      * A list of known issues with the product and any workarounds.
-      * Instructions on how to contact technical support
-      * A mechanism for sending us product feedback or enhancement requests.
-      * Hardware and software requirements.
-      * Examples and Tutorials
-      * and much more.
-  
-   For information on training, please visit our Training web site
-  
-      http://www.mscsoftware.com/Contents/Services/Training/
-  
-   MSC Nastran brings powerful new features and enhancements for engineering
-   solutions. For a detailed description of features added to MSC Nastran 2012.2
-   Release Guide.
-   The highlights for the 2012.1 release include:
-      * MD and MSC Products have been consolidated into one release.
-      * Improved Performance when using ACMS especially with Parallel Processing
-      * A New Method for Complex Eigenvalue Analysis which has Greater Accuracy
-      * Improved performance for the Solution of Nonsymmetric systems encountered
-        with Exterior Acoustics, Friction and complex Lanczos
-      * Support of GPU computing
-      * Structural Interior - Exterior Acoustics can be performed using Weakly
-        Coupled Procedure which is Faster in SOL 111 and SOL 200
-      * Complex stress recovery for Shells in SOL 108,109, 111 and 112.
-      * Improved coupling with ACTRAN for modeling of Trimming material in SOL 10
-        and SOL 111
-      * Panel Participation Factor may be obtained for the Structural Response an
-        may be utilized in optimization.
-      * Easier to use Linear Contact Capability in SOL 400
-      * Improved Time Stepping procedure in SOL 400
-      * Coupled Thermal-Structural Analysis with SOL 700
-      * Wood and Ice Model in SOL 700
-      * Improved Computational Performance for FSI simulations on Parallel Proces
-      * Improved Splining techniques in Aeroelastic calculations
- The highlights for the 2012.2 release include:
-1     * Reduction in I/O times for large models which had significant I/O in
-        previous releases
-      * Improved performance when using SOL 400 for nonlinear analysis
-      * The Segment-to-Segment Contact Procedure is expanded for Large Deformatio
-        and Friction
-      * User can easily add mass to CBUSH elements
-  
-  
-  
-  
-  
-  
-  
-  
-  
-1                                                                           OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE     1
-                                                                                                                                    
-0        N A S T R A N    F I L E    A N D    S Y S T E M    P A R A M E T E R    E C H O                                           
-0                                                                                                                                   
-                                                                                                                                    
-                                                                                                                                    
-     NASTRAN BUFFSIZE=8193 $(/MSC/MSC_NASTRAN/20122/CONF/NAST20122RC[3])             
-     NASTRAN IFPSTAR=NO $(COMMAND LINE[1])                                           
-     $ NORMAL MODES ANALYSIS, VISCOUS                                                
-1                                                                           OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE     2
-                                                                                                                                    
-0        N A S T R A N    E X E C U T I V E    C O N T R O L    E C H O                                                             
-0                                                                                                                                   
-                                                                                                                                    
-                                                                                                                                    
-     SOL 108                                                                                 
-     $ DIRECT TEXT INPUT FOR EXECUTIVE CONTROL                                               
-     $                                                                                       
-     CEND                                                                                    
-1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE     3
-                                                                                                                                    
-0                                                                                                                                   
-0                                        C A S E    C O N T R O L    E C H O                                                        
-                 COMMAND                                                                                                            
-                 COUNT                                                                                                              
-                  1      TITLE = ME443 2DOF EXAMPLE FOR LECTURE 4                                                
-                  2      ECHO = PUNCH                                                                            
-                  3      $ DIRECT TEXT INPUT FOR GLOBAL CASE CONTROL DATA                                        
-                  4      SUBCASE 1                                                                               
-                  5       DLOAD=80                                                                               
-                  6       FREQ=90                                                                                
-                  7       SPC=2                                                                                  
-                  8       DISP(SORT2,PHASE)=ALL                                                                  
-                  9      BEGIN BULK                                                                              
-0                             INPUT BULK DATA ENTRY COUNT =      32
-0                       TOTAL COUNT=        20
- ^^^     
- ^^^ >>> IFP OPERATIONS COMPLETE <<< 
- ^^^     
- *** USER WARNING MESSAGE 4124 (IFS3P)
-     THE SPCADD OR MPCADD UNION CONSISTS OF A SINGLE SET.
-
-
-                                        M O D E L   S U M M A R Y
-
-                                   NUMBER OF GRID     POINTS   =        3
-  
-                                   NUMBER OF CDAMP1   ELEMENTS =        2
-                                   NUMBER OF CELAS1   ELEMENTS =        2
-                                   NUMBER OF CONM2    ELEMENTS =        2
-  
- *** USER INFORMATION MESSAGE 7553 (GP1D)
-     A TOTAL OF 1 DAREA BULK DATA ENTRIES FOR GRID AND SCALAR POINTS HAVE BEEN CONVERTED TO EQUIVALENT
-     FORCE / MOMENT / SLOAD ENTRIES (AS APPROPRIATE)
-1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE     4
-                                                                                                                                    
-0                                                                                                                                   
- *** USER INFORMATION MESSAGE 7310 (VECPRN)
-     ORIGIN OF SUPERELEMENT BASIC COORDINATE SYSTEM WILL BE USED AS REFERENCE LOCATION.
-     RESULTANTS ABOUT ORIGIN OF SUPERELEMENT BASIC COORDINATE SYSTEM IN SUPERELEMENT BASIC SYSTEM COORDINATES.
-0                                                  OLOAD    RESULTANT       
-  SUBCASE/    LOAD
-  DAREA ID    TYPE       T1            T2            T3            R1            R2            R3
-0       81     FX    5.000000E+02     ----          ----          ----       0.000000E+00  0.000000E+00                             
-               FY       ----       0.000000E+00     ----       0.000000E+00     ----       0.000000E+00                             
-               FZ       ----          ----       0.000000E+00  0.000000E+00  0.000000E+00     ----                                  
-               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
-               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
-               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
-             TOTALS  5.000000E+02  0.000000E+00  0.000000E+00  0.000000E+00  0.000000E+00  0.000000E+00
- *** USER INFORMATION MESSAGE 5458 (REIG)
-     QL HOUSEHOLDER METHOD IS AUTOMATICALLY SELECTED .
-1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE     5
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
-1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE     6
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
- *** USER INFORMATION MESSAGE 7559 (FRLGA)
-     THIS FREQUENCY RESPONSE ANALYSIS INVOLVES THE FOLLOWING TYPES OF EXCITATION --
-
-     * APPLIED LOADS
- *** USER INFORMATION MESSAGE 5222 (SQFREQ)
-      COUPLED SOLUTION ALGORITHM USED.
-1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE     7
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  0.0              G      1.106195E-05   0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -222,12 +37,12 @@
 0  1.500000E+02     G      1.125611E-05   0.0            0.0            0.0            0.0            0.0
                            359.7873         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE     8
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.600000E+02     G      1.128333E-05   0.0            0.0            0.0            0.0            0.0
                            359.7726         0.0            0.0            0.0            0.0            0.0
@@ -262,12 +77,12 @@
 0  3.100000E+02     G      1.193500E-05   0.0            0.0            0.0            0.0            0.0
                            359.5341         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE     9
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.200000E+02     G      1.199645E-05   0.0            0.0            0.0            0.0            0.0
                            359.5167         0.0            0.0            0.0            0.0            0.0
@@ -302,12 +117,12 @@
 0  4.700000E+02     G      1.326539E-05   0.0            0.0            0.0            0.0            0.0
                            359.2172         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    10
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.800000E+02     G      1.337738E-05   0.0            0.0            0.0            0.0            0.0
                            359.1941         0.0            0.0            0.0            0.0            0.0
@@ -342,12 +157,12 @@
 0  6.300000E+02     G      1.565224E-05   0.0            0.0            0.0            0.0            0.0
                            358.7719         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    11
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  6.400000E+02     G      1.585410E-05   0.0            0.0            0.0            0.0            0.0
                            358.7372         0.0            0.0            0.0            0.0            0.0
@@ -382,12 +197,12 @@
 0  7.899999E+02     G      2.013526E-05   0.0            0.0            0.0            0.0            0.0
                            358.0530         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    12
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  8.000000E+02     G      2.053613E-05   0.0            0.0            0.0            0.0            0.0
                            357.9921         0.0            0.0            0.0            0.0            0.0
@@ -422,12 +237,12 @@
 0  9.499999E+02     G      3.013410E-05   0.0            0.0            0.0            0.0            0.0
                            356.6078         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    13
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  9.600000E+02     G      3.115925E-05   0.0            0.0            0.0            0.0            0.0
                            356.4650         0.0            0.0            0.0            0.0            0.0
@@ -462,12 +277,12 @@
 0  1.110000E+03     G      6.633753E-05   0.0            0.0            0.0            0.0            0.0
                            351.7327         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    14
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.120000E+03     G      7.189340E-05   0.0            0.0            0.0            0.0            0.0
                            350.9954         0.0            0.0            0.0            0.0            0.0
@@ -502,12 +317,12 @@
 0  1.270000E+03     G      2.052432E-04   0.0            0.0            0.0            0.0            0.0
                            207.5943         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    15
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.280000E+03     G      1.672338E-04   0.0            0.0            0.0            0.0            0.0
                            202.1801         0.0            0.0            0.0            0.0            0.0
@@ -542,12 +357,12 @@
 0  1.430000E+03     G      4.183730E-05   0.0            0.0            0.0            0.0            0.0
                            185.2206         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    16
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.440000E+03     G      3.983619E-05   0.0            0.0            0.0            0.0            0.0
                            184.9418         0.0            0.0            0.0            0.0            0.0
@@ -582,12 +397,12 @@
 0  1.590000E+03     G      2.342142E-05   0.0            0.0            0.0            0.0            0.0
                            182.4818         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    17
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.600000E+03     G      2.281592E-05   0.0            0.0            0.0            0.0            0.0
                            182.3777         0.0            0.0            0.0            0.0            0.0
@@ -622,12 +437,12 @@
 0  1.750000E+03     G      1.669325E-05   0.0            0.0            0.0            0.0            0.0
                            181.1362         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    18
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.760000E+03     G      1.641966E-05   0.0            0.0            0.0            0.0            0.0
                            181.0660         0.0            0.0            0.0            0.0            0.0
@@ -662,12 +477,12 @@
 0  1.910000E+03     G      1.343608E-05   0.0            0.0            0.0            0.0            0.0
                            180.0626         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    19
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.920000E+03     G      1.329462E-05   0.0            0.0            0.0            0.0            0.0
                            179.9957         0.0            0.0            0.0            0.0            0.0
@@ -702,12 +517,12 @@
 0  2.070000E+03     G      1.175320E-05   0.0            0.0            0.0            0.0            0.0
                            178.9197         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    20
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  2.080000E+03     G      1.168325E-05   0.0            0.0            0.0            0.0            0.0
                            178.8404         0.0            0.0            0.0            0.0            0.0
@@ -742,12 +557,12 @@
 0  2.230000E+03     G      1.103550E-05   0.0            0.0            0.0            0.0            0.0
                            177.4541         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    21
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  2.240000E+03     G      1.101776E-05   0.0            0.0            0.0            0.0            0.0
                            177.3446         0.0            0.0            0.0            0.0            0.0
@@ -782,12 +597,12 @@
 0  2.390000E+03     G      1.114644E-05   0.0            0.0            0.0            0.0            0.0
                            175.2911         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    22
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  2.400000E+03     G      1.118384E-05   0.0            0.0            0.0            0.0            0.0
                            175.1184         0.0            0.0            0.0            0.0            0.0
@@ -822,12 +637,12 @@
 0  2.550000E+03     G      1.233071E-05   0.0            0.0            0.0            0.0            0.0
                            171.6091         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    23
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  2.560000E+03     G      1.245663E-05   0.0            0.0            0.0            0.0            0.0
                            171.2902         0.0            0.0            0.0            0.0            0.0
@@ -862,12 +677,12 @@
 0  2.710000E+03     G      1.565343E-05   0.0            0.0            0.0            0.0            0.0
                            163.9392         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    24
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  2.720000E+03     G      1.599279E-05   0.0            0.0            0.0            0.0            0.0
                            163.1829         0.0            0.0            0.0            0.0            0.0
@@ -902,12 +717,12 @@
 0  2.870000E+03     G      2.495055E-05   0.0            0.0            0.0            0.0            0.0
                            141.1223         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    25
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  2.880000E+03     G      2.586496E-05   0.0            0.0            0.0            0.0            0.0
                            138.3680         0.0            0.0            0.0            0.0            0.0
@@ -942,12 +757,12 @@
 0  3.030000E+03     G      2.728441E-05   0.0            0.0            0.0            0.0            0.0
                             70.6794         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    26
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.040000E+03     G      2.602064E-05   0.0            0.0            0.0            0.0            0.0
                             66.5187         0.0            0.0            0.0            0.0            0.0
@@ -982,12 +797,12 @@
 0  3.190000E+03     G      1.185815E-05   0.0            0.0            0.0            0.0            0.0
                             33.3067         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    27
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.200000E+03     G      1.132554E-05   0.0            0.0            0.0            0.0            0.0
                             32.2565         0.0            0.0            0.0            0.0            0.0
@@ -1022,12 +837,12 @@
 0  3.350000E+03     G      6.330505E-06   0.0            0.0            0.0            0.0            0.0
                             22.5966         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    28
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.360000E+03     G      6.124990E-06   0.0            0.0            0.0            0.0            0.0
                             22.2021         0.0            0.0            0.0            0.0            0.0
@@ -1062,12 +877,12 @@
 0  3.510000E+03     G      3.957533E-06   0.0            0.0            0.0            0.0            0.0
                             18.0211         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    29
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.520000E+03     G      3.856243E-06   0.0            0.0            0.0            0.0            0.0
                             17.8241         0.0            0.0            0.0            0.0            0.0
@@ -1102,12 +917,12 @@
 0  3.670000E+03     G      2.705946E-06   0.0            0.0            0.0            0.0            0.0
                             15.5695         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    30
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.680000E+03     G      2.648024E-06   0.0            0.0            0.0            0.0            0.0
                             15.4551         0.0            0.0            0.0            0.0            0.0
@@ -1142,12 +957,12 @@
 0  3.830000E+03     G      1.958541E-06   0.0            0.0            0.0            0.0            0.0
                             14.0851         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    31
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.840000E+03     G      1.922147E-06   0.0            0.0            0.0            0.0            0.0
                             14.0125         0.0            0.0            0.0            0.0            0.0
@@ -1182,12 +997,12 @@
 0  3.990000E+03     G      1.474794E-06   0.0            0.0            0.0            0.0            0.0
                             13.1200         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    32
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.000000E+03     G      1.450407E-06   0.0            0.0            0.0            0.0            0.0
                             13.0715         0.0            0.0            0.0            0.0            0.0
@@ -1222,12 +1037,12 @@
 0  4.150000E+03     G      1.143581E-06   0.0            0.0            0.0            0.0            0.0
                             12.4657         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    33
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.160000E+03     G      1.126459E-06   0.0            0.0            0.0            0.0            0.0
                             12.4323         0.0            0.0            0.0            0.0            0.0
@@ -1262,12 +1077,12 @@
 0  4.310000E+03     G      9.071746E-07   0.0            0.0            0.0            0.0            0.0
                             12.0122         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    34
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.320000E+03     G      8.947164E-07   0.0            0.0            0.0            0.0            0.0
                             11.9889         0.0            0.0            0.0            0.0            0.0
@@ -1302,12 +1117,12 @@
 0  4.470000E+03     G      7.329290E-07   0.0            0.0            0.0            0.0            0.0
                             11.6960         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    35
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.480000E+03     G      7.236065E-07   0.0            0.0            0.0            0.0            0.0
                             11.6798         0.0            0.0            0.0            0.0            0.0
@@ -1342,12 +1157,12 @@
 0  4.630000E+03     G      6.011636E-07   0.0            0.0            0.0            0.0            0.0
                             11.4779         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    36
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.640000E+03     G      5.940270E-07   0.0            0.0            0.0            0.0            0.0
                             11.4669         0.0            0.0            0.0            0.0            0.0
@@ -1382,12 +1197,12 @@
 0  4.790000E+03     G      4.994065E-07   0.0            0.0            0.0            0.0            0.0
                             11.3325         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    37
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.800000E+03     G      4.938387E-07   0.0            0.0            0.0            0.0            0.0
                             11.3254         0.0            0.0            0.0            0.0            0.0
@@ -1422,12 +1237,12 @@
 0  4.950000E+03     G      4.194289E-07   0.0            0.0            0.0            0.0            0.0
                             11.2424         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    38
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         1
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.960000E+03     G      4.150149E-07   0.0            0.0            0.0            0.0            0.0
                             11.2383         0.0            0.0            0.0            0.0            0.0
@@ -1440,12 +1255,12 @@
 0  5.000000E+03     G      3.979637E-07   0.0            0.0            0.0            0.0            0.0
                             11.2235         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    39
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  0.0              G      2.212389E-05   0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -1480,12 +1295,12 @@
 0  1.500000E+02     G      2.241489E-05   0.0            0.0            0.0            0.0            0.0
                            359.7882         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    40
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.600000E+02     G      2.245565E-05   0.0            0.0            0.0            0.0            0.0
                            359.7737         0.0            0.0            0.0            0.0            0.0
@@ -1520,12 +1335,12 @@
 0  3.100000E+02     G      2.342924E-05   0.0            0.0            0.0            0.0            0.0
                            359.5423         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    41
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.200000E+02     G      2.352083E-05   0.0            0.0            0.0            0.0            0.0
                            359.5256         0.0            0.0            0.0            0.0            0.0
@@ -1560,12 +1375,12 @@
 0  4.700000E+02     G      2.540479E-05   0.0            0.0            0.0            0.0            0.0
                            359.2463         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    42
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.800000E+02     G      2.557045E-05   0.0            0.0            0.0            0.0            0.0
                            359.2251         0.0            0.0            0.0            0.0            0.0
@@ -1600,12 +1415,12 @@
 0  6.300000E+02     G      2.891763E-05   0.0            0.0            0.0            0.0            0.0
                            358.8444         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    43
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  6.400000E+02     G      2.921322E-05   0.0            0.0            0.0            0.0            0.0
                            358.8134         0.0            0.0            0.0            0.0            0.0
@@ -1640,12 +1455,12 @@
 0  7.899999E+02     G      3.544312E-05   0.0            0.0            0.0            0.0            0.0
                            358.2030         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    44
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  8.000000E+02     G      3.602336E-05   0.0            0.0            0.0            0.0            0.0
                            358.1484         0.0            0.0            0.0            0.0            0.0
@@ -1680,12 +1495,12 @@
 0  9.499999E+02     G      4.982284E-05   0.0            0.0            0.0            0.0            0.0
                            356.8854         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    45
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  9.600000E+02     G      5.128937E-05   0.0            0.0            0.0            0.0            0.0
                            356.7527         0.0            0.0            0.0            0.0            0.0
@@ -1720,12 +1535,12 @@
 0  1.110000E+03     G      1.012907E-04   0.0            0.0            0.0            0.0            0.0
                            352.2121         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    46
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.120000E+03     G      1.091589E-04   0.0            0.0            0.0            0.0            0.0
                            351.4907         0.0            0.0            0.0            0.0            0.0
@@ -1760,12 +1575,12 @@
 0  1.270000E+03     G      2.834165E-04   0.0            0.0            0.0            0.0            0.0
                            208.3881         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    47
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.280000E+03     G      2.292955E-04   0.0            0.0            0.0            0.0            0.0
                            202.9986         0.0            0.0            0.0            0.0            0.0
@@ -1800,12 +1615,12 @@
 0  1.430000E+03     G      5.084884E-05   0.0            0.0            0.0            0.0            0.0
                            186.5078         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    48
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.440000E+03     G      4.797904E-05   0.0            0.0            0.0            0.0            0.0
                            186.2683         0.0            0.0            0.0            0.0            0.0
@@ -1840,12 +1655,12 @@
 0  1.590000E+03     G      2.413760E-05   0.0            0.0            0.0            0.0            0.0
                            184.5683         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    49
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.600000E+03     G      2.323550E-05   0.0            0.0            0.0            0.0            0.0
                            184.5294         0.0            0.0            0.0            0.0            0.0
@@ -1880,12 +1695,12 @@
 0  1.750000E+03     G      1.380056E-05   0.0            0.0            0.0            0.0            0.0
                            184.6045         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    50
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.760000E+03     G      1.335499E-05   0.0            0.0            0.0            0.0            0.0
                            184.6521         0.0            0.0            0.0            0.0            0.0
@@ -1920,12 +1735,12 @@
 0  1.910000E+03     G      8.122761E-06   0.0            0.0            0.0            0.0            0.0
                            186.2349         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    51
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.920000E+03     G      7.845074E-06   0.0            0.0            0.0            0.0            0.0
                            186.4200         0.0            0.0            0.0            0.0            0.0
@@ -1960,12 +1775,12 @@
 0  2.070000E+03     G      4.312348E-06   0.0            0.0            0.0            0.0            0.0
                            191.9477         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    52
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  2.080000E+03     G      4.109613E-06   0.0            0.0            0.0            0.0            0.0
                            192.6420         0.0            0.0            0.0            0.0            0.0
@@ -2000,12 +1815,12 @@
 0  2.230000E+03     G      1.545628E-06   0.0            0.0            0.0            0.0            0.0
                            225.0186         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    53
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  2.240000E+03     G      1.435300E-06   0.0            0.0            0.0            0.0            0.0
                            230.8770         0.0            0.0            0.0            0.0            0.0
@@ -2040,12 +1855,12 @@
 0  2.390000E+03     G      2.528099E-06   0.0            0.0            0.0            0.0            0.0
                            321.1786         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    54
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  2.400000E+03     G      2.717750E-06   0.0            0.0            0.0            0.0            0.0
                            323.1118         0.0            0.0            0.0            0.0            0.0
@@ -2080,12 +1895,12 @@
 0  2.550000E+03     G      6.327364E-06   0.0            0.0            0.0            0.0            0.0
                            334.0954         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    55
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  2.560000E+03     G      6.630491E-06   0.0            0.0            0.0            0.0            0.0
                            334.2210         0.0            0.0            0.0            0.0            0.0
@@ -2120,12 +1935,12 @@
 0  2.710000E+03     G      1.300893E-05   0.0            0.0            0.0            0.0            0.0
                            331.0587         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    56
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  2.720000E+03     G      1.362086E-05   0.0            0.0            0.0            0.0            0.0
                            330.4781         0.0            0.0            0.0            0.0            0.0
@@ -2160,12 +1975,12 @@
 0  2.870000E+03     G      2.921589E-05   0.0            0.0            0.0            0.0            0.0
                            310.2966         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    57
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  2.880000E+03     G      3.085375E-05   0.0            0.0            0.0            0.0            0.0
                            307.6311         0.0            0.0            0.0            0.0            0.0
@@ -2200,12 +2015,12 @@
 0  3.030000E+03     G      4.177758E-05   0.0            0.0            0.0            0.0            0.0
                            240.9539         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    58
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.040000E+03     G      4.044557E-05   0.0            0.0            0.0            0.0            0.0
                            236.8440         0.0            0.0            0.0            0.0            0.0
@@ -2240,12 +2055,12 @@
 0  3.190000E+03     G      2.266393E-05   0.0            0.0            0.0            0.0            0.0
                            204.2255         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    59
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.200000E+03     G      2.192240E-05   0.0            0.0            0.0            0.0            0.0
                            203.2058         0.0            0.0            0.0            0.0            0.0
@@ -2280,12 +2095,12 @@
 0  3.350000E+03     G      1.462927E-05   0.0            0.0            0.0            0.0            0.0
                            193.9066         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    60
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.360000E+03     G      1.431131E-05   0.0            0.0            0.0            0.0            0.0
                            193.5307         0.0            0.0            0.0            0.0            0.0
@@ -2320,12 +2135,12 @@
 0  3.510000E+03     G      1.080425E-05   0.0            0.0            0.0            0.0            0.0
                            189.5674         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    61
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.520000E+03     G      1.063122E-05   0.0            0.0            0.0            0.0            0.0
                            189.3813         0.0            0.0            0.0            0.0            0.0
@@ -2360,12 +2175,12 @@
 0  3.670000E+03     G      8.573937E-06   0.0            0.0            0.0            0.0            0.0
                            187.2501         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    62
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.680000E+03     G      8.464678E-06   0.0            0.0            0.0            0.0            0.0
                            187.1415         0.0            0.0            0.0            0.0            0.0
@@ -2400,12 +2215,12 @@
 0  3.830000E+03     G      7.102393E-06   0.0            0.0            0.0            0.0            0.0
                            185.8295         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    63
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.840000E+03     G      7.026641E-06   0.0            0.0            0.0            0.0            0.0
                            185.7590         0.0            0.0            0.0            0.0            0.0
@@ -2440,12 +2255,12 @@
 0  3.990000E+03     G      6.051718E-06   0.0            0.0            0.0            0.0            0.0
                            184.8773         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    64
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.000000E+03     G      5.995819E-06   0.0            0.0            0.0            0.0            0.0
                            184.8282         0.0            0.0            0.0            0.0            0.0
@@ -2480,12 +2295,12 @@
 0  4.150000E+03     G      5.260123E-06   0.0            0.0            0.0            0.0            0.0
                            184.1978         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    65
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.160000E+03     G      5.217017E-06   0.0            0.0            0.0            0.0            0.0
                            184.1618         0.0            0.0            0.0            0.0            0.0
@@ -2520,12 +2335,12 @@
 0  4.310000E+03     G      4.640282E-06   0.0            0.0            0.0            0.0            0.0
                            183.6901         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    66
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.320000E+03     G      4.605946E-06   0.0            0.0            0.0            0.0            0.0
                            183.6626         0.0            0.0            0.0            0.0            0.0
@@ -2560,12 +2375,12 @@
 0  4.470000E+03     G      4.140743E-06   0.0            0.0            0.0            0.0            0.0
                            183.2968         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    67
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.480000E+03     G      4.112705E-06   0.0            0.0            0.0            0.0            0.0
                            183.2752         0.0            0.0            0.0            0.0            0.0
@@ -2600,12 +2415,12 @@
 0  4.630000E+03     G      3.729086E-06   0.0            0.0            0.0            0.0            0.0
                            182.9836         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    68
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.640000E+03     G      3.705742E-06   0.0            0.0            0.0            0.0            0.0
                            182.9661         0.0            0.0            0.0            0.0            0.0
@@ -2640,12 +2455,12 @@
 0  4.790000E+03     G      3.383793E-06   0.0            0.0            0.0            0.0            0.0
                            182.7283         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    69
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.800000E+03     G      3.364049E-06   0.0            0.0            0.0            0.0            0.0
                            182.7139         0.0            0.0            0.0            0.0            0.0
@@ -2680,12 +2495,12 @@
 0  4.950000E+03     G      3.089966E-06   0.0            0.0            0.0            0.0            0.0
                            182.5162         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    70
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =         2
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.960000E+03     G      3.073049E-06   0.0            0.0            0.0            0.0            0.0
                            182.5041         0.0            0.0            0.0            0.0            0.0
@@ -2698,12 +2513,12 @@
 0  5.000000E+03     G      3.006926E-06   0.0            0.0            0.0            0.0            0.0
                            182.4571         0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    71
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  0.0              G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -2738,12 +2553,12 @@
 0  1.500000E+02     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    72
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.600000E+02     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -2778,12 +2593,12 @@
 0  3.100000E+02     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    73
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.200000E+02     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -2818,12 +2633,12 @@
 0  4.700000E+02     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    74
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.800000E+02     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -2858,12 +2673,12 @@
 0  6.300000E+02     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    75
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  6.400000E+02     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -2898,12 +2713,12 @@
 0  7.899999E+02     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    76
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  8.000000E+02     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -2938,12 +2753,12 @@
 0  9.499999E+02     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    77
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  9.600000E+02     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -2978,12 +2793,12 @@
 0  1.110000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    78
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.120000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3018,12 +2833,12 @@
 0  1.270000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    79
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.280000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3058,12 +2873,12 @@
 0  1.430000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    80
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.440000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3098,12 +2913,12 @@
 0  1.590000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    81
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.600000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3138,12 +2953,12 @@
 0  1.750000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    82
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.760000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3178,12 +2993,12 @@
 0  1.910000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    83
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  1.920000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3218,12 +3033,12 @@
 0  2.070000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    84
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  2.080000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3258,12 +3073,12 @@
 0  2.230000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    85
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  2.240000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3298,12 +3113,12 @@
 0  2.390000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    86
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  2.400000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3338,12 +3153,12 @@
 0  2.550000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    87
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  2.560000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3378,12 +3193,12 @@
 0  2.710000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    88
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  2.720000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3418,12 +3233,12 @@
 0  2.870000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    89
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  2.880000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3458,12 +3273,12 @@
 0  3.030000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    90
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.040000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3498,12 +3313,12 @@
 0  3.190000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    91
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.200000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3538,12 +3353,12 @@
 0  3.350000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    92
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.360000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3578,12 +3393,12 @@
 0  3.510000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    93
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.520000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3618,12 +3433,12 @@
 0  3.670000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    94
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.680000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3658,12 +3473,12 @@
 0  3.830000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    95
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  3.840000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3698,12 +3513,12 @@
 0  3.990000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    96
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.000000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3738,12 +3553,12 @@
 0  4.150000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    97
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.160000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3778,12 +3593,12 @@
 0  4.310000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    98
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.320000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3818,12 +3633,12 @@
 0  4.470000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE    99
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.480000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3858,12 +3673,12 @@
 0  4.630000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE   100
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.640000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3898,12 +3713,12 @@
 0  4.790000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE   101
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.800000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3938,12 +3753,12 @@
 0  4.950000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE   102
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
       POINT-ID =       100
                                        C O M P L E X   D I S P L A C E M E N T   V E C T O R
                                                          (MAGNITUDE/PHASE)
- 
+
       FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
 0  4.960000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
@@ -3956,8 +3771,8 @@
 0  5.000000E+03     G      0.0            0.0            0.0            0.0            0.0            0.0
                              0.0            0.0            0.0            0.0            0.0            0.0
 1    ME443 2DOF EXAMPLE FOR LECTURE 4                                       OCTOBER  10, 2018  MSC.NASTRAN  7/ 6/12   PAGE   103
-                                                                                                                                    
-0                                                                                                            SUBCASE 1              
+
+0                                                                                                            SUBCASE 1
  * * * *  D B D I C T   P R I N T  * * * *      SUBDMAP = PRTSUM  ,  DMAP STATEMENT NO.     41
 
 
@@ -3975,7 +3790,7 @@
  SEMR = MASS MATRIX REDUCTION STEP (INCLUDES EIGENVALUE SOLUTION FOR MODES).
  SEKR = STIFFNESS MATRIX REDUCTION STEP.
  SELG = LOAD MATRIX GENERATION STEP.
- SELR = LOAD MATRIX REDUCTION STEP. 
+ SELR = LOAD MATRIX REDUCTION STEP.
  MODES = T (TRUE) IF NORMAL MODES OR BUCKLING MODES CALCULATED.
  DYNRED = T (TRUE) MEANS GENERALIZED DYNAMIC AND/OR COMPONENT MODE REDUCTION PERFORMED.
  SOLLIN = T (TRUE) IF LINEAR SOLUTION EXISTS IN DATABASE.
@@ -3984,11 +3799,11 @@
  SOLNL = T (TRUE) IF NONLINEAR SOLUTION EXISTS IN DATABASE.
  DESIGN CYCLE = THE LAST DESIGN CYCLE (ONLY VALID IN OPTIMIZATION).
  SENSITIVITY = SENSITIVITY MATRIX GENERATION FLAG.
- 
+
  No PARAM values were set in the Control File.
- 
+
 1                                        * * * END OF JOB * * *
- 
- 
+
+
  No Symbolic Replacement variables or values were specified.
-  
+

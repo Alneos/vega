@@ -2933,14 +2933,16 @@ void NastranParser::parseTABDMP1(NastranTokenizer& tok, shared_ptr<Model> model)
     vega::FunctionTable functionTable(*model, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::LINEAR,
             FunctionTable::Interpolation::NONE, FunctionTable::Interpolation::CONSTANT);
 
-    // The next 6 fields are empty.
+    // The next 6 fields are empty (but not in free syntax).
     // We do a special treatment for the second one, which can be filled in the OPTISTRUCT syntax
-    tok.skip(1);
-    int flat = tok.nextInt(true, 0);
-    if (flat != 0){
-        handleParsingWarning("FLAT field is dismissed (OPTISTRUCT syntax)", tok, model);
+    if (tok.isNextEmpty()) {
+        tok.skip(1); // skip first field
+        if (tok.isNextInt()) {
+            int flat = tok.nextInt(); UNUSEDV(flat);
+            handleParsingWarning("FLAT field is dismissed (OPTISTRUCT syntax)", tok, model);
+        }
+        tok.skipToNotEmpty();
     }
-    tok.skip(4);
 
     double x,y;
     string sField="";
@@ -2994,13 +2996,13 @@ void NastranParser::parseTABLED1(NastranTokenizer& tok, shared_ptr<Model> model)
     vega::FunctionTable functionTable(*model, parameter, value, FunctionTable::Interpolation::NONE,
             FunctionTable::Interpolation::NONE, original_id);
 
-    // The next 5 fields are empty.
+    // The next 5 fields are empty (but not in the free syntax).
     // We do a special treatment for the first one, which can be filled in the OPTISTRUCT syntax
-    int flat = tok.nextInt(true, 0);
-    if (flat != 0){
+    if (tok.isNextInt()) {
+        int flat = tok.nextInt(); UNUSEDV(flat);
         handleParsingWarning("FLAT field is dismissed (OPTISTRUCT syntax)", tok, model);
     }
-    tok.skip(4);
+    tok.skipToNotEmpty();
 
     double x,y;
     string sField="";

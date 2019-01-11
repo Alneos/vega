@@ -85,10 +85,6 @@ BOOST_AUTO_TEST_CASE( prob5 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/prob5/prob5.bdf", RUN_ASTER, true, 0.05);
 }
 
-//BOOST_AUTO_TEST_CASE( prob9 ) {
-//	CommandLineUtils::nastranStudy2Aster("/caw/prob9/prob9.dat", false, false, 0.02);
-//}
-
 BOOST_AUTO_TEST_CASE( ssnv129a ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/ssnv129a/ssnv129a.bdf", RUN_ASTER, true, 0.01);
 }
@@ -101,24 +97,20 @@ BOOST_AUTO_TEST_CASE( appd ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/appd/appd.nas", RUN_ASTER, true, 0.02);
 }
 
-BOOST_AUTO_TEST_CASE( nas103prob5 ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/nas103prob5/nas103prob5.nas", RUN_ASTER, true, 0.005);
-}
-
 BOOST_AUTO_TEST_CASE( bugcoords ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/bug-coord/bug-coord.nas", RUN_ASTER, true, 0.00001);
-}
-
-BOOST_AUTO_TEST_CASE( nas101prob3 ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob3/nas101prob3.nas", RUN_ASTER, true, 0.005);
 }
 
 BOOST_AUTO_TEST_CASE( pload4 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/pload4/pload4.nas", RUN_ASTER, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( nas101prob3 ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob3/nas101prob3.nas", RUN_ASTER, true, 0.005);
+}
+
 BOOST_AUTO_TEST_CASE( nas101prob4 ) {
-    // RBAR with 123 DOFs, test with LIAISON_MAIL ?
+    // RBAR with "123" DOFs, test with LIAISON_MAIL ?
 	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob4/nas101prob4.nas", RUN_ASTER, false, 0.005);
 }
 
@@ -131,13 +123,23 @@ BOOST_AUTO_TEST_CASE( nas101probB ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/nas101probB/nas101probB.nas", false, true, 0.1);
 }
 
+BOOST_AUTO_TEST_CASE( nas103prob5 ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/nas103prob5/nas103prob5.nas", RUN_ASTER, true, 0.005);
+}
+
+BOOST_AUTO_TEST_CASE( nas103prob9 ) {
+    // TODO : LD <CONTACT_60>
+	CommandLineUtils::nastranStudy2Aster("/irt/nas103prob9/nas103prob9.dat", false, false, 0.02);
+}
+
 //BOOST_AUTO_TEST_CASE( prob24 ) {
+//    // Problem with ID namespace conflict
 //	CommandLineUtils::nastranStudy2Aster("/caw/prob24/prob24.dat", RUN_ASTER, true, 0.05);
 //}
 
-//BOOST_AUTO_TEST_CASE( test_2dof108 ) {
-//	CommandLineUtils::nastranStudy2Aster("/irt/2dof108/2dof108.bdf", false, false, 0.05);
-//}
+BOOST_AUTO_TEST_CASE( test_2dof108 ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/2dof108/2dof108.bdf", false, false, 0.05);
+}
 
 } /* namespace test */
 } /* namespace vega */
