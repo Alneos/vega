@@ -1902,9 +1902,8 @@
 		<Unit filename="testdata/nastran/caw/prob30c/prob30c.f06" />
 		<Unit filename="testdata/nastran/caw/prob6/prob6.dat" />
 		<Unit filename="testdata/nastran/caw/prob6/prob6.f06" />
-		<Unit filename="testdata/nastran/caw/prob9/prob9.dat" />
 		<Unit filename="testdata/nastran/irt/2dof108/2dof108.bdf" />
-		<Unit filename="testdata/nastran/irt/2dof108/2dof108.f06" />
+		<Unit filename="testdata/nastran/irt/2dof108/__2dof108.f06__" />
 		<Unit filename="testdata/nastran/irt/2dof108/readme.txt" />
 		<Unit filename="testdata/nastran/irt/appd/appd.f06" />
 		<Unit filename="testdata/nastran/irt/appd/appd.nas" />
@@ -1930,6 +1929,9 @@
 		<Unit filename="testdata/nastran/irt/nas103prob5/nas103prob5.f06" />
 		<Unit filename="testdata/nastran/irt/nas103prob5/nas103prob5.nas" />
 		<Unit filename="testdata/nastran/irt/nas103prob5/readme.txt" />
+		<Unit filename="testdata/nastran/irt/nas103prob9/nas103prob9.dat" />
+		<Unit filename="testdata/nastran/irt/nas103prob9/nas103prob9.f06" />
+		<Unit filename="testdata/nastran/irt/nas103prob9/readme.txt" />
 		<Unit filename="testdata/nastran/irt/prob2/prob2.dat" />
 		<Unit filename="testdata/nastran/irt/prob2/prob2.f06" />
 		<Unit filename="testdata/nastran/irt/prob2/readme.txt" />
@@ -1959,7 +1961,9 @@
 		<Unit filename="testdata/unitTest/nastranparser/test1.nas" />
 		<Unit filename="testdata/unitTest/optistructparser/contact.nas" />
 		<Unit filename="testdata/unitTest/optistructparser/contact2.nas" />
+		<Unit filename="testdata/unitTest/optistructparser/pbushrigid.nas" />
 		<Unit filename="testdata/unitTest/optistructparser/pload4.nas" />
+		<Unit filename="testdata/unitTest/optistructparser/rbe2.nas" />
 		<Unit filename="testdata/unitTest/resultReaders/tut01.csv" />
 		<Extensions>
 			<envvars />

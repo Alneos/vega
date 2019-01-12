@@ -49,6 +49,7 @@ include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG(-Wshadow=local COMPILER_SUPPORTS_WSHADOWLOCAL)
 CHECK_CXX_COMPILER_FLAG(-std=gnu++11 COMPILER_SUPPORTS_STDGNU11)
 CHECK_CXX_COMPILER_FLAG(-fext-numeric-literals COMPILER_SUPPORTS_FEXTNUMERICLITERALS)
+CHECK_CXX_COMPILER_FLAG(-Wmisleading-indentation COMPILER_SUPPORTS_MISLEADING_INDENTATION)
 
 if(CMAKE_CROSSCOMPILING)
   find_program(WINE_EXECUTABLE NAMES wine64 wine)
@@ -111,6 +112,10 @@ endif()
 
 if(COMPILER_SUPPORTS_FEXTNUMERICLITERALS)
   add_compile_options(-fext-numeric-literals)
+endif()
+
+if(COMPILER_SUPPORTS_MISLEADING_INDENTATION)
+  add_compile_options(-Wmisleading-indentation)
 endif()
 
 if(MSVC)
