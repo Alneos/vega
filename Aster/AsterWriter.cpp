@@ -1448,7 +1448,7 @@ void AsterWriter::writeGravity(const LoadSet& loadSet, ostream& out) {
 			shared_ptr<Gravity> gravity = dynamic_pointer_cast<Gravity>(loading);
 			out << "                                 _F(GRAVITE=" << gravity->getAcceleration()
 					<< "," << endl;
-			VectorialValue direction = gravity->getDirection();
+			VectorialValue direction = gravity->getDirection().normalized();
 			out << "                                    DIRECTION=(" << direction.x() << ","
 					<< direction.y() << "," << direction.z() << "),)," << endl;
 		}

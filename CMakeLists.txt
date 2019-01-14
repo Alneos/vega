@@ -45,11 +45,6 @@ SET(CMAKE_BUILD_TYPE DDebug CACHE STRING
 #make outputs build commands and options
 OPTION(CMAKE_VERBOSE_MAKEFILE "make outputs build commands" OFF)
 project ( vegapp CXX C)
-include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG(-Wshadow=local COMPILER_SUPPORTS_WSHADOWLOCAL)
-CHECK_CXX_COMPILER_FLAG(-std=gnu++11 COMPILER_SUPPORTS_STDGNU11)
-CHECK_CXX_COMPILER_FLAG(-fext-numeric-literals COMPILER_SUPPORTS_FEXTNUMERICLITERALS)
-CHECK_CXX_COMPILER_FLAG(-Wmisleading-indentation COMPILER_SUPPORTS_MISLEADING_INDENTATION)
 
 if(CMAKE_CROSSCOMPILING)
   find_program(WINE_EXECUTABLE NAMES wine64 wine)
@@ -102,20 +97,31 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES "[Ss][Rr][Ee][Ll][Ee][Aa][Ss][Ee]")
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmakemodules/")
 
+include(CheckCXXCompilerFlag)
+
+CHECK_CXX_COMPILER_FLAG(-Wshadow=local COMPILER_SUPPORTS_WSHADOWLOCAL)
 if(COMPILER_SUPPORTS_WSHADOWLOCAL)
   add_compile_options(-Wshadow=local)
 endif()
 
+CHECK_CXX_COMPILER_FLAG(-std=gnu++11 COMPILER_SUPPORTS_STDGNU11)
 if(COMPILER_SUPPORTS_STDGNU11)
   add_compile_options(-std=gnu++11)
 endif()
 
+CHECK_CXX_COMPILER_FLAG(-fext-numeric-literals COMPILER_SUPPORTS_FEXTNUMERICLITERALS)
 if(COMPILER_SUPPORTS_FEXTNUMERICLITERALS)
   add_compile_options(-fext-numeric-literals)
 endif()
 
+CHECK_CXX_COMPILER_FLAG(-Wmisleading-indentation COMPILER_SUPPORTS_MISLEADING_INDENTATION)
 if(COMPILER_SUPPORTS_MISLEADING_INDENTATION)
   add_compile_options(-Wmisleading-indentation)
+endif()
+
+CHECK_CXX_COMPILER_FLAG(-Wfloat-equal COMPILER_SUPPORTS_FLOAT_EQUAL)
+if(COMPILER_SUPPORTS_FLOAT_EQUAL)
+  add_compile_options(-Wfloat-equal)
 endif()
 
 if(MSVC)
@@ -143,9 +149,9 @@ else(MSVC)
     #set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} -Wl,--strip-all")
     add_compile_options(-std=c++11 -Werror -Wall -Wextra -Winit-self -Wconversion -pedantic -pedantic-errors)
     IF(CMAKE_C_COMPILER_ID MATCHES "Intel")
-        add_compile_options(-Wfloat-equal -diag-disable 1170 -fmessage-length=0) # -Wshadow
+        add_compile_options(-diag-disable 1170 -fmessage-length=0) # -Wshadow
     ELSEIF(CMAKE_C_COMPILER_ID MATCHES "GNU")
-        add_compile_options(-Wfloat-equal -Woverlength-strings -fmessage-length=0 -Wmain -Wmissing-declarations -Wundef -Wredundant-decls -Wcast-align -Wswitch-default -Wlogical-op -Wuseless-cast -Wold-style-cast -Wdouble-promotion -Wunused-variable)
+        add_compile_options(-Woverlength-strings -fmessage-length=0 -Wmain -Wmissing-declarations -Wundef -Wredundant-decls -Wcast-align -Wswitch-default -Wlogical-op -Wuseless-cast -Wold-style-cast -Wdouble-promotion -Wunused-variable)
 
         # try to reduce boost memory usage for Travis but causes out of time, it is better to use make -j1
         #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --param ggc-min-expand=1 --param ggc-min-heapsize=100000")
@@ -288,14 +294,6 @@ IF("105800" STRGREATER ${Boost_VERSION})
   message(STATUS "BOOST VERSION UNDER 1.58, BOOST_NO_CXX11_SCOPED_ENUMS is defined.")
   add_definitions(-DBOOST_NO_CXX11_SCOPED_ENUMS)
 ENDIF("105800" STRGREATER ${Boost_VERSION})
-
-IF("105500" STRGREATER ${Boost_VERSION})
-  message(STATUS "BOOST VERSION UNDER 1.55, -fext-numeric-literals is defined.")
-  add_compile_options(-fext-numeric-literals)
-ENDIF("105500" STRGREATER ${Boost_VERSION})
-
-# Try to fix issues with boost::geometry
-add_definitions(-DBOOST_MATH_DISABLE_FLOAT128)
 
 # On Cygwin, we need to explicitely look some libraries on /lib
 IF(CYGWIN)

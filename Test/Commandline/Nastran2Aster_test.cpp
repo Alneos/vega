@@ -26,10 +26,6 @@ namespace tests {
 
 using namespace std;
 
-BOOST_AUTO_TEST_CASE( prob6 ) {
-	CommandLineUtils::nastranStudy2Aster("/caw/prob6/prob6.dat", RUN_ASTER, true, 0.02);
-}
-
 BOOST_AUTO_TEST_CASE( prob19 ) {
 	CommandLineUtils::nastranStudy2Aster("/caw/prob19/prob19.dat", RUN_ASTER, true, 0.001);
 }
@@ -54,10 +50,6 @@ BOOST_AUTO_TEST_CASE( fixedcircularplate ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/fixed_circular_plate/fixed_circular_plate.dat", RUN_ASTER, true, 0.1);
 }
 
-BOOST_AUTO_TEST_CASE( prob2 ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/prob2/prob2.dat", RUN_ASTER, true, 0.15);
-}
-
 BOOST_AUTO_TEST_CASE( t01331a ) {
     // TODO : LD test not yet complete, but running
 	CommandLineUtils::nastranStudy2Aster("/irt/t01331/t01331a.inp", RUN_ASTER, true, 0.00001);
@@ -67,22 +59,12 @@ BOOST_AUTO_TEST_CASE( cbush ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/cbush/cbush.inp", RUN_ASTER, true, 0.00001);
 }
 
-BOOST_AUTO_TEST_CASE( probA ) {
-  // TODO : LD RESU NOOK, maybe mesh refine ?
-	CommandLineUtils::nastranStudy2Aster("/irt/probA/probA.bdf", RUN_ASTER, true, 0.05);
-}
-
 BOOST_AUTO_TEST_CASE( cbush1 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/cbush1/cbush1.bdf", RUN_ASTER, true, 0.00001);
 }
 
 BOOST_AUTO_TEST_CASE( cbush1b ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/cbush1b/cbush1b.bdf", RUN_ASTER, true, 0.00001);
-}
-
-BOOST_AUTO_TEST_CASE( prob5 ) {
-    // TODO : LD missing G param, tests not found, otherwise ok
-	CommandLineUtils::nastranStudy2Aster("/irt/prob5/prob5.bdf", RUN_ASTER, true, 0.05);
 }
 
 BOOST_AUTO_TEST_CASE( ssnv129a ) {
@@ -105,6 +87,11 @@ BOOST_AUTO_TEST_CASE( pload4 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/pload4/pload4.nas", RUN_ASTER, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( nas101prob2 ) {
+    // TODO LD ERROR too big
+	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob2/nas101prob2.dat", RUN_ASTER, true, 0.15);
+}
+
 BOOST_AUTO_TEST_CASE( nas101prob3 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob3/nas101prob3.nas", RUN_ASTER, true, 0.005);
 }
@@ -118,13 +105,27 @@ BOOST_AUTO_TEST_CASE( nas101prob6 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob6/nas101prob6.nas", RUN_ASTER, true, 0.1);
 }
 
+BOOST_AUTO_TEST_CASE( nas101probA ) {
+  // TODO : LD RESU NOOK, maybe mesh refine ?
+	CommandLineUtils::nastranStudy2Aster("/irt/nas101probA/nas101probA.bdf", RUN_ASTER, true, 0.05);
+}
+
 BOOST_AUTO_TEST_CASE( nas101probB ) {
     // LIAISON_RBE3 <EXCEPTION> <DVP_2>  Erreur numérique (floating point exception).
 	CommandLineUtils::nastranStudy2Aster("/irt/nas101probB/nas101probB.nas", false, true, 0.1);
 }
 
+BOOST_AUTO_TEST_CASE( nas102prob5 ) {
+    // TODO : LD missing G param, tests not found, otherwise ok
+	CommandLineUtils::nastranStudy2Aster("/irt/nas102prob5/nas102prob5.bdf", RUN_ASTER, true, 0.05);
+}
+
 BOOST_AUTO_TEST_CASE( nas103prob5 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/nas103prob5/nas103prob5.nas", RUN_ASTER, true, 0.005);
+}
+
+BOOST_AUTO_TEST_CASE( nas103prob6 ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/nas103prob6/nas103prob6.dat", RUN_ASTER, true, 0.02);
 }
 
 BOOST_AUTO_TEST_CASE( nas103prob9 ) {
@@ -140,6 +141,11 @@ BOOST_AUTO_TEST_CASE( nas103prob9 ) {
 BOOST_AUTO_TEST_CASE( test_2dof108 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/2dof108/2dof108.bdf", false, false, 0.05);
 }
+
+BOOST_AUTO_TEST_CASE( nas101prob5 ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob5/nas101prob5.nas", RUN_ASTER, false, 0.0001);
+}
+
 
 } /* namespace test */
 } /* namespace vega */

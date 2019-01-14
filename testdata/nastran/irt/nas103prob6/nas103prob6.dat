@@ -1,9 +1,3 @@
-$ NASTRAN input file created by the MSC MSC/NASTRAN input file
-$ translator ( MSC/PATRAN Version 7.5 ) on January   15, 1998 at
-$ 20:10:47.
-$ASSIGN OUTPUT2 = ‘prob6.op2’, UNIT = 12
-$ Direct Text Input for File Management Section
-$ Nonlinear Static Analysis, Database
 SOL 106
 TIME 600
 $ Direct Text Input for Executive Control
