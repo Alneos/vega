@@ -1685,7 +1685,7 @@ void NastranParser::parsePBARL(NastranTokenizer& tok, shared_ptr<Model> model) {
         double width = tok.nextDouble();
         double height = tok.nextDouble();
         nsm = tok.nextDouble(true, 0.0);
-        RectangularSectionBeam rectangularSectionBeam(*model, width, height, Beam::BeamModel::EULER, nsm,
+        RectangularSectionBeam rectangularSectionBeam(*model, width, height, Beam::BeamModel::TIMOSHENKO, nsm,
                 propertyId);
         rectangularSectionBeam.assignMaterial(material_id);
         rectangularSectionBeam.assignCellGroup(getOrCreateCellGroup(propertyId, model, "PBARL"));
@@ -1694,10 +1694,19 @@ void NastranParser::parsePBARL(NastranTokenizer& tok, shared_ptr<Model> model) {
         tok.skip(4);
         double radius = tok.nextDouble();
         nsm = tok.nextDouble(true, 0.0);
-        CircularSectionBeam circularSectionBeam(*model, radius, Beam::BeamModel::EULER, nsm, propertyId);
+        CircularSectionBeam circularSectionBeam(*model, radius, Beam::BeamModel::TIMOSHENKO, nsm, propertyId);
         circularSectionBeam.assignMaterial(material_id);
         circularSectionBeam.assignCellGroup(getOrCreateCellGroup(propertyId, model, "PBARL"));
         model->add(circularSectionBeam);
+    } else if (type == "TUBE") {
+        tok.skip(4);
+        double extRadius = tok.nextDouble();
+        double intRadius = tok.nextDouble();
+        nsm = tok.nextDouble(true, 0.0);
+        TubeSectionBeam tubeSectionBeam(*model, intRadius, extRadius - intRadius, Beam::BeamModel::TIMOSHENKO, nsm, propertyId);
+        tubeSectionBeam.assignMaterial(material_id);
+        tubeSectionBeam.assignCellGroup(getOrCreateCellGroup(propertyId, model, "PBARL"));
+        model->add(tubeSectionBeam);
     } else if (type == "I") {
         tok.skip(4);
         double beam_height = tok.nextDouble();
@@ -1709,7 +1718,7 @@ void NastranParser::parsePBARL(NastranTokenizer& tok, shared_ptr<Model> model) {
         nsm = tok.nextDouble(true, 0.0);
         ISectionBeam iSectionBeam(*model, upper_flange_width, lower_flange_width,
                 upper_flange_thickness, lower_flange_thickness, beam_height, web_thickness,
-                Beam::BeamModel::EULER, nsm, propertyId);
+                Beam::BeamModel::TIMOSHENKO, nsm, propertyId);
         iSectionBeam.assignMaterial(material_id);
         iSectionBeam.assignCellGroup(getOrCreateCellGroup(propertyId, model, "PBARL"));
         model->add(iSectionBeam);
@@ -1850,7 +1859,7 @@ void NastranParser::parsePBEAML(NastranTokenizer& tok, shared_ptr<Model> model) 
         double width = tok.nextDouble();
         double height = tok.nextDouble();
         nsm = tok.nextDouble(true, 0.0);
-        RectangularSectionBeam rectangularSectionBeam(*model, width, height, Beam::BeamModel::EULER, nsm, pid);
+        RectangularSectionBeam rectangularSectionBeam(*model, width, height, Beam::BeamModel::TIMOSHENKO, nsm, pid);
         rectangularSectionBeam.assignMaterial(mid);
         rectangularSectionBeam.assignCellGroup(getOrCreateCellGroup(pid, model,"PBEAML"));
         model->add(rectangularSectionBeam);
@@ -1858,10 +1867,19 @@ void NastranParser::parsePBEAML(NastranTokenizer& tok, shared_ptr<Model> model) 
         tok.skip(4);
         double radius = tok.nextDouble();
         nsm = tok.nextDouble(true, 0.0);
-        CircularSectionBeam circularSectionBeam(*model, radius, Beam::BeamModel::EULER, nsm, pid);
+        CircularSectionBeam circularSectionBeam(*model, radius, Beam::BeamModel::TIMOSHENKO, nsm, pid);
         circularSectionBeam.assignMaterial(mid);
         circularSectionBeam.assignCellGroup(getOrCreateCellGroup(pid, model,"PBEAML"));
         model->add(circularSectionBeam);
+    } else if (type == "TUBE") {
+        tok.skip(4);
+        double extRadius = tok.nextDouble();
+        double intRadius = tok.nextDouble();
+        nsm = tok.nextDouble(true, 0.0);
+        TubeSectionBeam tubeSectionBeam(*model, intRadius, extRadius - intRadius, Beam::BeamModel::TIMOSHENKO, nsm, pid);
+        tubeSectionBeam.assignMaterial(mid);
+        tubeSectionBeam.assignCellGroup(getOrCreateCellGroup(pid, model,"PBEAML"));
+        model->add(tubeSectionBeam);
     } else if (type == "I") {
         tok.skip(4);
         double beam_height = tok.nextDouble();
@@ -1874,7 +1892,7 @@ void NastranParser::parsePBEAML(NastranTokenizer& tok, shared_ptr<Model> model) 
         string so = tok.nextString(true, "YES");
         ISectionBeam iSectionBeam(*model, upper_flange_width, lower_flange_width,
                 upper_flange_thickness, lower_flange_thickness, beam_height, web_thickness,
-                Beam::BeamModel::EULER, nsm, pid);
+                Beam::BeamModel::TIMOSHENKO, nsm, pid);
         iSectionBeam.assignMaterial(mid);
         iSectionBeam.assignCellGroup(getOrCreateCellGroup(pid, model,"PBEAML"));
         model->add(iSectionBeam);

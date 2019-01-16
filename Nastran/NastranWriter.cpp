@@ -306,8 +306,8 @@ void NastranWriter::writeLoadings(const shared_ptr<vega::Model>& model, ofstream
 				} else {
 					grav.add(0);
 				}
-				grav.add(gravity->getAcceleration());
-				grav.add(gravity->getDirection());
+				grav.add(gravity->getAccelerationScale());
+				grav.add(gravity->getGravityVector());
 				out << grav;
 			}
 		}

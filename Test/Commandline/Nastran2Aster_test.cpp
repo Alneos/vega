@@ -67,6 +67,10 @@ BOOST_AUTO_TEST_CASE( cbush1b ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/cbush1b/cbush1b.bdf", RUN_ASTER, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( ssll11a ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/ssll11a/ssll11a.nas", RUN_ASTER, true, 0.000001);
+}
+
 BOOST_AUTO_TEST_CASE( ssnv129a ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/ssnv129a/ssnv129a.bdf", RUN_ASTER, true, 0.01);
 }
@@ -88,8 +92,8 @@ BOOST_AUTO_TEST_CASE( pload4 ) {
 }
 
 BOOST_AUTO_TEST_CASE( nas101prob2 ) {
-    // TODO LD ERROR too big
-	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob2/nas101prob2.dat", RUN_ASTER, true, 0.15);
+    // already refined, error becomes smaller
+	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob2/nas101prob2.dat", RUN_ASTER, true, 0.05);
 }
 
 BOOST_AUTO_TEST_CASE( nas101prob3 ) {
@@ -99,6 +103,10 @@ BOOST_AUTO_TEST_CASE( nas101prob3 ) {
 BOOST_AUTO_TEST_CASE( nas101prob4 ) {
     // RBAR with "123" DOFs, test with LIAISON_MAIL ?
 	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob4/nas101prob4.nas", RUN_ASTER, false, 0.005);
+}
+
+BOOST_AUTO_TEST_CASE( nas101prob5 ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob5/nas101prob5.nas", RUN_ASTER, false, 0.0001);
 }
 
 BOOST_AUTO_TEST_CASE( nas101prob6 ) {
@@ -141,11 +149,6 @@ BOOST_AUTO_TEST_CASE( nas103prob9 ) {
 BOOST_AUTO_TEST_CASE( test_2dof108 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/2dof108/2dof108.bdf", false, false, 0.05);
 }
-
-BOOST_AUTO_TEST_CASE( nas101prob5 ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob5/nas101prob5.nas", RUN_ASTER, false, 0.0001);
-}
-
 
 } /* namespace test */
 } /* namespace vega */

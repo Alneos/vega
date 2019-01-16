@@ -174,6 +174,41 @@ double CircularSectionBeam::getShearAreaFactorZ() const {
 	return 10.0/9.0;
 }
 
+TubeSectionBeam::TubeSectionBeam(Model& model, double _radius, double _thickness, BeamModel beamModel,
+		double additional_mass, int original_id) :
+		Beam(model, ElementSet::Type::TUBE_SECTION_BEAM, model.modelType, beamModel, additional_mass, original_id), radius(
+				_radius), thickness(_thickness) {
+}
+
+shared_ptr<ElementSet> TubeSectionBeam::clone() const {
+	return make_shared<TubeSectionBeam>(*this);
+}
+
+double TubeSectionBeam::getAreaCrossSection() const {
+	return M_PI * (pow(radius, 2) - pow(thickness, 2)) ;
+}
+
+double TubeSectionBeam::getMomentOfInertiaY() const {
+	return (pow(radius, 4) - pow(thickness, 4)) * M_PI / 4;
+}
+
+double TubeSectionBeam::getMomentOfInertiaZ() const {
+	return getMomentOfInertiaY();
+}
+
+double TubeSectionBeam::getTorsionalConstant() const {
+	// http://en.wikipedia.org/wiki/Torsion_constant
+	return (pow(radius, 4) - pow(thickness, 4)) * M_PI / 2;
+}
+
+double TubeSectionBeam::getShearAreaFactorY() const {
+	return 10.0/9.0;
+}
+
+double TubeSectionBeam::getShearAreaFactorZ() const {
+	return 10.0/9.0;
+}
+
 RectangularSectionBeam::RectangularSectionBeam(Model& model, double _width, double _height,
 		BeamModel beamModel, double additional_mass, int original_id) :
 		Beam(model, ElementSet::Type::RECTANGULAR_SECTION_BEAM, model.modelType, beamModel, additional_mass, original_id), width(_width), height(

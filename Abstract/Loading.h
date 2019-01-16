@@ -116,16 +116,15 @@ public:
 
 class Gravity: public Loading {
 private:
-	double acceleration;
-	const VectorialValue direction;
+	double scalingFactor;
+	const VectorialValue gravityVector;
 public:
-	const VectorialValue getDirection() const;
 	/**
-	 * Get gravity acceleration (in m.s^{-2}).
+	 * gravity vector (without its scaling factor).
 	 */
-	double getAcceleration() const;
+	const VectorialValue getGravityVector() const;
 	/**
-	 * acceleration vector is given by acceleration * direction.
+	 * acceleration vector is given by scalingFactor * gravityVector.
 	 */
 	const VectorialValue getAccelerationVector() const;
 	/**
@@ -133,9 +132,9 @@ public:
 	 */
 	double getAccelerationScale() const;
 	/**
-	 * acceleration vector is given by acceleration * direction.
+	 * acceleration vector is given by scalingFactor * gravityVector.
 	 */
-	Gravity(const Model&, double acceleration, const VectorialValue& direction,
+	Gravity(const Model&, double scalingFactor, const VectorialValue& gravityVector,
 			const int original_id = NO_ORIGINAL_ID);
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	std::set<int> nodePositions() const override;

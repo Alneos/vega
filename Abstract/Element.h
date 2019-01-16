@@ -51,6 +51,7 @@ public:
         DISCRETE_1D,
         NODAL_MASS,
         CIRCULAR_SECTION_BEAM,
+        TUBE_SECTION_BEAM,
         RECTANGULAR_SECTION_BEAM,
         I_SECTION_BEAM,
         GENERIC_SECTION_BEAM,
@@ -170,6 +171,23 @@ public:
 	double getShearAreaFactorY() const override;
 	double getShearAreaFactorZ() const override;
 };
+
+class TubeSectionBeam: public Beam {
+
+public:
+	const double radius;
+	const double thickness;
+	TubeSectionBeam(Model&, double _radius, double _thickness, BeamModel beamModel = BeamModel::EULER,
+			double additional_mass = 0, int original_id = NO_ORIGINAL_ID);
+	std::shared_ptr<ElementSet> clone() const override;
+	double getAreaCrossSection() const override;
+	double getMomentOfInertiaY() const override;
+	double getMomentOfInertiaZ() const override;
+	double getTorsionalConstant() const override;
+	double getShearAreaFactorY() const override;
+	double getShearAreaFactorZ() const override;
+};
+
 
 class GenericSectionBeam: public Beam {
 private:

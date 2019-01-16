@@ -147,6 +147,7 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
         break;
     }
     case ElementSet::Type::CIRCULAR_SECTION_BEAM:
+    case ElementSet::Type::TUBE_SECTION_BEAM:
     case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
     case ElementSet::Type::I_SECTION_BEAM:
     case ElementSet::Type::GENERIC_SECTION_BEAM: {

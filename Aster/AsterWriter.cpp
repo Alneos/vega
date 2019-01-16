@@ -565,7 +565,11 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
 		out << "                       PROL_DROITE="
 				<< AsterModel::ProlongementByInterpolation.find(functionTable.right)->second << ","
 				<< endl;
-		out << "                       );" << "# Original id:" << functionTable.getOriginalId() << endl << endl;
+		out << "                       );";
+		if (functionTable.isOriginal()) {
+			out << "# Original id:" << functionTable.getOriginalId();
+		}
+		out << endl << endl;
 		break;
 	}
 	case Value::Type::SCALAR:
@@ -905,8 +909,15 @@ void AsterWriter::writeAffeCaraElemPoutre(const ElementSet& elementSet, ostream&
 	case ElementSet::Type::CIRCULAR_SECTION_BEAM: {
 		const CircularSectionBeam& circBeam = static_cast<const CircularSectionBeam&>(elementSet);
 		out << "                               SECTION='CERCLE'," << endl;
-		out << "                               CARA=('R',)," << endl; //{%- if element_fini.ep != None %}'EP',{%- endif -%}),
-		out << "                               VALE=(" << circBeam.radius << ")," << endl; //{%- if element_fini.ep != None %}{{ element_fini.ep }},{%- endif -%}),
+		out << "                               CARA=('R',)," << endl;
+		out << "                               VALE=(" << circBeam.radius << ")," << endl;
+		break;
+	}
+	case ElementSet::Type::TUBE_SECTION_BEAM: {
+		const TubeSectionBeam& tubeBeam = static_cast<const TubeSectionBeam&>(elementSet);
+		out << "                               SECTION='CERCLE'," << endl;
+		out << "                               CARA=('R','EP')," << endl;
+		out << "                               VALE=(" << tubeBeam.radius << ","<< tubeBeam.thickness << ")," << endl;
 		break;
 	}
 	default:
@@ -1446,9 +1457,9 @@ void AsterWriter::writeGravity(const LoadSet& loadSet, ostream& out) {
 		out << "                      PESANTEUR=(" << endl;
 		for (shared_ptr<Loading> loading : gravities) {
 			shared_ptr<Gravity> gravity = dynamic_pointer_cast<Gravity>(loading);
-			out << "                                 _F(GRAVITE=" << gravity->getAcceleration()
+			out << "                                 _F(GRAVITE=" << gravity->getAccelerationVector().norm()
 					<< "," << endl;
-			VectorialValue direction = gravity->getDirection().normalized();
+			VectorialValue direction = gravity->getAccelerationVector().normalized();
 			out << "                                    DIRECTION=(" << direction.x() << ","
 					<< direction.y() << "," << direction.z() << "),)," << endl;
 		}

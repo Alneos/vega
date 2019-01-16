@@ -12,6 +12,7 @@ SUBCASE 1
  SPC = 2
 BEGIN BULK
 CONM2   51      999             500.
+$CONM2   51      999             1.295
 CORD2C  1               0.      0.      0.      0.      0.      1.      +C
 +C      1.      0.      0.
 CQUAD4  1       1       1       2       8       7
