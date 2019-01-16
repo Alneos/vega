@@ -102,6 +102,9 @@ public:
     virtual bool isBeam() const {
         return false;
     }
+    virtual bool isBar() const {
+        return false;
+    }
     virtual bool isShell() const {
         return false;
     }
@@ -130,7 +133,8 @@ class Beam: public ElementSet {
 public:
 	enum class BeamModel {
 		EULER,
-		TIMOSHENKO
+		TIMOSHENKO,
+		BAR
 	};
 	BeamModel beamModel;
 	protected:
@@ -143,7 +147,10 @@ public:
 		return additional_mass / std::max(getAreaCrossSection(), DBL_MIN);
 	}
 	bool isBeam() const override final {
-		return true;
+		return beamModel != BeamModel::BAR;
+	}
+    bool isBar() const override final {
+		return beamModel == BeamModel::BAR;
 	}
 	virtual double getAreaCrossSection() const = 0;
 	virtual double getMomentOfInertiaY() const = 0;

@@ -815,6 +815,17 @@ const vector<shared_ptr<Beam>> Model::getBeams() const {
     return result;
 }
 
+const vector<shared_ptr<Beam>> Model::getBars() const {
+    vector<shared_ptr<Beam>> result;
+    for (auto elementSet : elementSets) {
+        if (elementSet->isBar()) {
+            shared_ptr<Beam> bar = dynamic_pointer_cast<Beam>(elementSet);
+            result.push_back(bar);
+        }
+    }
+    return result;
+}
+
 
 void Model::generateSkin() {
     ostringstream oss;

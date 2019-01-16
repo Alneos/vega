@@ -2411,7 +2411,7 @@ void NastranParser::parsePROD(NastranTokenizer& tok, shared_ptr<Model> model) {
     if (!is_equal(nsm, 0)) {
         handleParsingWarning("Non Structural mass (NSM) not supported and dismissed.", tok, model);
     }
-    GenericSectionBeam genericSectionBeam(*model, a, 0, 0, j, 0, 0, GenericSectionBeam::BeamModel::EULER, nsm,
+    GenericSectionBeam genericSectionBeam(*model, a, 0, 0, j, 0, 0, GenericSectionBeam::BeamModel::BAR, nsm,
             propId);
     genericSectionBeam.assignMaterial(material_id);
     genericSectionBeam.assignCellGroup(getOrCreateCellGroup(propId, model, "PROD"));

@@ -816,6 +816,17 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 			}
 			out << "                            )," << endl;
 		}
+
+        vector<shared_ptr<Beam>> barres = asterModel.model.getBars();
+
+		out << "                    # writing " << barres.size() << " barres" << endl;
+		if (barres.size() > 0) {
+			out << "                    BARRE=(" << endl;
+			for (auto barre : barres) {
+				writeAffeCaraElemPoutre(*barre, out);
+			}
+			out << "                            )," << endl;
+		}
 		vector<shared_ptr<ElementSet>> shells = asterModel.model.elementSets.filter(ElementSet::Type::SHELL);
 		vector<shared_ptr<ElementSet>> composites = asterModel.model.elementSets.filter(ElementSet::Type::COMPOSITE);
 		out << "                    # writing " << shells.size()+composites.size() << " shells (ou composites)" << endl;
@@ -921,23 +932,33 @@ void AsterWriter::writeAffeCaraElemPoutre(const ElementSet& elementSet, ostream&
 		break;
 	}
 	default:
-		out << "                               SECTION='GENERALE'," << endl;
-		out << "                               CARA=('A','IY','IZ','JX','AY','AZ',)," << endl;
-		out << "                               VALE=(";
 		const Beam& beam =
 				static_cast<const Beam&>(elementSet);
-		out << max(std::numeric_limits<double>::epsilon(), beam.getAreaCrossSection()) << ","
+		out << "                               SECTION='GENERALE'," << endl;
+		if (not beam.isBar()) {
+		    out << "                               CARA=('A','IY','IZ','JX','AY','AZ',)," << endl;
+		} else {
+		    out << "                               CARA=('A',)," << endl;
+		}
+
+		out << "                               VALE=(";
+        if (not beam.isBar()) {
+            out << max(std::numeric_limits<double>::epsilon(), beam.getAreaCrossSection()) << ","
 				<< max(std::numeric_limits<double>::epsilon(), beam.getMomentOfInertiaY()) << "," << max(std::numeric_limits<double>::epsilon(), beam.getMomentOfInertiaZ())
 				<< "," << max(std::numeric_limits<double>::epsilon(), beam.getTorsionalConstant()) << ",";
-        if (! is_zero(beam.getShearAreaFactorY()))
-            out << 1.0 / beam.getShearAreaFactorY();
-        else
-            out << 0.0;
-        out << ",";
-        if (! is_zero(beam.getShearAreaFactorZ()))
-            out << 1.0 / beam.getShearAreaFactorZ();
-        else
-            out << 0.0;
+            if (! is_zero(beam.getShearAreaFactorY()))
+                out << 1.0 / beam.getShearAreaFactorY();
+            else
+                out << 0.0;
+            out << ",";
+            if (! is_zero(beam.getShearAreaFactorZ()))
+                out << 1.0 / beam.getShearAreaFactorZ();
+            else
+                out << 0.0;
+		} else {
+            out << max(std::numeric_limits<double>::epsilon(), beam.getAreaCrossSection()) << ",";
+		}
+
 		out << ")," << endl;
 	}
 	out << "                               )," << endl;

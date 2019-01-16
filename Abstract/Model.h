@@ -407,6 +407,7 @@ private:
         const std::set<std::shared_ptr<LoadSet>> getUncommonLoadSets() const;
 
         const std::vector<std::shared_ptr<Beam>> getBeams() const;
+        const std::vector<std::shared_ptr<Beam>> getBars() const;
 
         /**
          * Method that is called when parsing is complete.

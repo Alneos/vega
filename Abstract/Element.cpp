@@ -105,7 +105,11 @@ Beam::Beam(Model& model, Type type, const ModelType& modelType, BeamModel beamMo
 
 const DOFS Beam::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
-	return DOFS::ALL_DOFS;
+	if (this->isBar()) {
+	    return DOFS::TRANSLATIONS;
+	}
+
+    return DOFS::ALL_DOFS;
 }
 
 RecoveryPoint::RecoveryPoint(const Model& model, const double lx, const double ly, const double lz) :

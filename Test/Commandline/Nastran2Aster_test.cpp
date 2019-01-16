@@ -71,6 +71,10 @@ BOOST_AUTO_TEST_CASE( ssll11a ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/ssll11a/ssll11a.nas", RUN_ASTER, true, 0.000001);
 }
 
+BOOST_AUTO_TEST_CASE( ssll11c ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/ssll11c/ssll11c.nas", RUN_ASTER, true, 0.000001);
+}
+
 BOOST_AUTO_TEST_CASE( ssnv129a ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/ssnv129a/ssnv129a.bdf", RUN_ASTER, true, 0.01);
 }

@@ -158,10 +158,21 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
             largeDisp = it->second;
         }
         if (is_zero(largeDisp)) {
-            if (beamModel == Beam::BeamModel::EULER) {
+            switch (beamModel) {
+            case Beam::BeamModel::EULER: {
                 result = "('POU_D_E',)";
-            } else {
+                break;
+            }
+            case Beam::BeamModel::TIMOSHENKO: {
                 result = "('POU_D_T',)";
+                break;
+            }
+            case Beam::BeamModel::BAR: {
+                result = "('BARRE',)";
+                break;
+            }
+            default:
+                throw logic_error("Beam model not yet implemented");
             }
         } else {
             result = "('POU_D_T_GD',)";
