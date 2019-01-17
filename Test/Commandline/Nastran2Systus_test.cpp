@@ -42,6 +42,28 @@ BOOST_AUTO_TEST_CASE( fixedcircularplate ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/fixed_circular_plate/fixed_circular_plate.dat", RUN_SYSTUS, true, 0.1);
 }
 
+BOOST_AUTO_TEST_CASE( cbush ) {
+	CommandLineUtils::nastranStudy2Systus("/irt/cbush/cbush.inp", RUN_SYSTUS, true, 0.00001);
+}
+
+//BOOST_AUTO_TEST_CASE( cbush1 ) {
+//  Missing DIRECT solver
+//	CommandLineUtils::nastranStudy2Systus("/irt/cbush1/cbush1.bdf", RUN_SYSTUS, true, 0.00001);
+//}
+
+//BOOST_AUTO_TEST_CASE( cbush1b ) {
+//  Missing DIRECT solver
+//	CommandLineUtils::nastranStudy2Systus("/irt/cbush1b/cbush1b.bdf", RUN_SYSTUS, true, 0.00001);
+//}
+
+BOOST_AUTO_TEST_CASE( ssll11a ) {
+	CommandLineUtils::nastranStudy2Systus("/irt/ssll11a/ssll11a.nas", RUN_SYSTUS, true, 0.000001);
+}
+
+BOOST_AUTO_TEST_CASE( ssll11c ) {
+	CommandLineUtils::nastranStudy2Systus("/irt/ssll11c/ssll11c.nas", RUN_SYSTUS, true, 0.000001);
+}
+
 BOOST_AUTO_TEST_CASE( bugcoords ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/bug-coord/bug-coord.nas", false, true, 0.00001);
 }
@@ -58,6 +80,11 @@ BOOST_AUTO_TEST_CASE( nas101prob4 ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/nas101prob4/nas101prob4.nas", RUN_SYSTUS, false, 0.005);
 }
 
+//BOOST_AUTO_TEST_CASE( nas102prob5 ) {
+//  Missing DIRECT solver
+//	CommandLineUtils::nastranStudy2Systus("/irt/nas102prob5/nas102prob5.bdf", RUN_SYSTUS, true, 0.05);
+//}
+
 BOOST_AUTO_TEST_CASE( nas101prob6 ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/nas101prob6/nas101prob6.nas", RUN_SYSTUS, true, 0.1);
 }
@@ -69,11 +96,6 @@ BOOST_AUTO_TEST_CASE( nas101probA ) {
 BOOST_AUTO_TEST_CASE( nas101probB ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/nas101probB/nas101probB.nas", RUN_SYSTUS, true, 0.1);
 }
-
-//BOOST_AUTO_TEST_CASE( nas102prob5 ) {
-//  Missing DIRECT solver
-//	CommandLineUtils::nastranStudy2Systus("/irt/nas102prob5/nas102prob5.bdf", RUN_SYSTUS, true, 0.05);
-//}
 
 } /* namespace test */
 } /* namespace vega */

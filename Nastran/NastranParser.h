@@ -292,6 +292,12 @@ private:
     void parseCRIGD1(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
+     * Rod Element Property and Connection,
+     * defines a tension-compression-torsion element without reference to a property entry
+     */
+    void parseCONROD(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
      * Parse the CORD2R keyword (page 1273 of MDN Nastran 2006 Quick Reference Guide.)
      * Reference coordinate system (RID) not supported.
      */

@@ -477,7 +477,10 @@ shared_ptr<NodeGroup> Mesh::createNodeGroup(const string& name, int group_id, co
 	}
 
 	if (this->logLevel >= LogLevel::DEBUG) {
-		cout << "Created Node Group:" << name <<" with comment: "<<comment<< endl;
+		cout << "Created Node Group:" << name;
+		if (not comment.empty())
+            cout <<" with comment: "<<comment;
+        cout << endl;
 	}
 	return group;
 }
@@ -519,7 +522,10 @@ shared_ptr<CellGroup> Mesh::createCellGroup(const string& name, int group_id, co
 	}
 
 	if (this->logLevel >= LogLevel::DEBUG) {
-		cout << "Created Cell Group: " << name <<" with comment: "<<comment<< endl;
+		cout << "Created Cell Group: " << name;
+        if (not comment.empty())
+            cout <<" with comment: "<<comment;
+        cout << endl;
 	}
 	return group;
 }

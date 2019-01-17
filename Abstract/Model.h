@@ -408,6 +408,7 @@ private:
 
         const std::vector<std::shared_ptr<Beam>> getBeams() const;
         const std::vector<std::shared_ptr<Beam>> getBars() const;
+        bool needsLargeDisplacements() const;
 
         /**
          * Method that is called when parsing is complete.

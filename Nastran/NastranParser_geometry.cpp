@@ -190,9 +190,7 @@ void NastranParser::parseCBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
         string message = string("Offset vectors (WA, WB) not supported and taken as null.");
         handleParsingWarning(message, tok, model);
     }
-    vector<int> connectivity;
-    connectivity += point1, point2;
-    model->mesh->addCell(cell_id, CellType::SEG2, connectivity, false, cpos);
+    model->mesh->addCell(cell_id, CellType::SEG2, {point1, point2}, false, cpos);
     addProperty(tok, property_id, cell_id, model);
 }
 
@@ -236,10 +234,7 @@ void NastranParser::parseCBEAM(NastranTokenizer& tok, shared_ptr<Model> model) {
         handleParsingWarning(message, tok, model);
     }
 
-    vector<int> connectivity;
-    connectivity += point1, point2;
-
-    model->mesh->addCell(cell_id, CellType::SEG2, connectivity, false, cpos);
+    model->mesh->addCell(cell_id, CellType::SEG2, {point1, point2}, false, cpos);
     addProperty(tok, property_id, cell_id, model);
 }
 
@@ -285,18 +280,15 @@ void NastranParser::parseCBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
     double s3=tok.nextDouble(true);
     if (ocid!=-1){
         handleParsingWarning(string("OCID keyword not supported. Default (-1) used."), tok, model);
-        handleParsingWarning(string("S1 S2 S3 dismissed :")+std::to_string(s1)+ string(" ")+std::to_string(s2)+ string(" ")+std::to_string(s3), tok, model);
+        handleParsingWarning(string("S1 S2 S3 dismissed :")+to_string(s1)+ string(" ")+to_string(s2)+ string(" ")+to_string(s3), tok, model);
         ocid=-1;
     }
 
     // Add cell
-    vector<int> connectivity;
     if (gb == Globals::UNAVAILABLE_INT){
-        connectivity += ga;
-        model->mesh->addCell(eid, CellType::POINT1, connectivity, false, cpos);
+        model->mesh->addCell(eid, CellType::POINT1, {ga}, false, cpos);
     }else{
-        connectivity += ga, gb;
-        model->mesh->addCell(eid, CellType::SEG2, connectivity, false, cpos);
+        model->mesh->addCell(eid, CellType::SEG2, {ga, gb}, false, cpos);
     }
     addProperty(tok, pid, eid, model);
 }
@@ -315,19 +307,23 @@ void NastranParser::parseCDAMP1(NastranTokenizer& tok, shared_ptr<Model> model) 
     // If G2 is undefined, it is considered a fictitious grounded point, and c2=c1
     vector<int> connectivity;
     connectivity += g1;
-    CellType cellType =  CellType::POINT1;
-    if (g2 == Globals::UNAVAILABLE_INT){
+    if (g2 == Globals::UNAVAILABLE_INT or g2 == 0){
         c2= c1;
-    }else{
-        connectivity += g2;
-        cellType = CellType::SEG2;
+        SinglePointConstraint spc = SinglePointConstraint(*model, DOFS::ALL_DOFS, 0.0);
+        //shared_ptr<NodeGroup> spcNodeGroup = model->mesh->findOrCreateNodeGroup("CELAS1_" + to_string(eid) + "_GND",NodeGroup::NO_ORIGINAL_ID,"CELAS1 GROUND");
+        int nodePosition = model->mesh->addNode(Node::AUTO_ID, 0.0, 0.0, 0.0);
+        g2 = model->mesh->findNodeId(nodePosition);
+        spc.addNodeId(g2);
+        model->add(spc);
     }
-    int cellPosition= model->mesh->addCell(eid, cellType, connectivity);
+    connectivity += g2;
+
+    int cellPosition= model->mesh->addCell(eid, CellType::SEG2, connectivity);
     shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model, "CDAMP1");
     cellGroup->addCellId(model->mesh->findCell(cellPosition).id);
 
     // Creates or update the ElementSet defined by the PELAS key.
-    std::shared_ptr<ElementSet> elementSet = model->elementSets.find(pid);
+    shared_ptr<ElementSet> elementSet = model->elementSets.find(pid);
     if (elementSet == nullptr){
         ScalarSpring scalarSpring(*model, pid);
         scalarSpring.assignCellGroup(cellGroup);
@@ -335,10 +331,10 @@ void NastranParser::parseCDAMP1(NastranTokenizer& tok, shared_ptr<Model> model) 
         model->add(scalarSpring);
     }else{
         if (elementSet->type == ElementSet::Type::SCALAR_SPRING){
-            std::shared_ptr<ScalarSpring> springElementSet = dynamic_pointer_cast<ScalarSpring>(elementSet);
+            shared_ptr<ScalarSpring> springElementSet = dynamic_pointer_cast<ScalarSpring>(elementSet);
             springElementSet->addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
         }else{
-            string message = "The part of PID "+std::to_string(pid)+" already exists with the wrong NATURE.";
+            string message = "The part of PID "+to_string(pid)+" already exists with the wrong NATURE.";
             handleParsingError(message, tok, model);
         }
     }
@@ -357,19 +353,23 @@ void NastranParser::parseCELAS1(NastranTokenizer& tok, shared_ptr<Model> model) 
     // If G2 is undefined, it is considered a fictitious grounded point, and c2=c1
     vector<int> connectivity;
     connectivity += g1;
-    CellType cellType =  CellType::POINT1;
-    if (g2 == Globals::UNAVAILABLE_INT){
+    CellType cellType =  CellType::SEG2;
+    if (g2 == Globals::UNAVAILABLE_INT or g2 == 0){
         c2= c1;
-    }else{
-        connectivity += g2;
-        cellType = CellType::SEG2;
+        SinglePointConstraint spc = SinglePointConstraint(*model, DOFS::ALL_DOFS, 0.0);
+        //shared_ptr<NodeGroup> spcNodeGroup = model->mesh->findOrCreateNodeGroup("CELAS1_" + to_string(eid) + "_GND",NodeGroup::NO_ORIGINAL_ID,"CELAS1 GROUND");
+        int nodePosition = model->mesh->addNode(Node::AUTO_ID, 0.0, 0.0, 0.0);
+        g2 = model->mesh->findNodeId(nodePosition);
+        spc.addNodeId(g2);
+        model->add(spc);
     }
+    connectivity += g2;
     int cellPosition= model->mesh->addCell(eid, cellType, connectivity);
     shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model, "CELAS1");
     cellGroup->addCellId(model->mesh->findCell(cellPosition).id);
 
     // Creates or update the ElementSet defined by the PELAS key.
-    std::shared_ptr<ElementSet> elementSet = model->elementSets.find(pid);
+    shared_ptr<ElementSet> elementSet = model->elementSets.find(pid);
     if (elementSet == nullptr){
         ScalarSpring scalarSpring(*model, pid);
         scalarSpring.assignCellGroup(cellGroup);
@@ -377,10 +377,10 @@ void NastranParser::parseCELAS1(NastranTokenizer& tok, shared_ptr<Model> model) 
         model->add(scalarSpring);
     }else{
         if (elementSet->type == ElementSet::Type::SCALAR_SPRING){
-            std::shared_ptr<ScalarSpring> springElementSet = dynamic_pointer_cast<ScalarSpring>(elementSet);
+            shared_ptr<ScalarSpring> springElementSet = dynamic_pointer_cast<ScalarSpring>(elementSet);
             springElementSet->addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
         }else{
-            string message = "The part of PID "+std::to_string(pid)+" already exists with the wrong NATURE.";
+            string message = "The part of PID "+to_string(pid)+" already exists with the wrong NATURE.";
             handleParsingError(message, tok, model);
         }
     }
@@ -406,10 +406,8 @@ void NastranParser::parseCELAS2(NastranTokenizer& tok, shared_ptr<Model> model) 
 
     // Create a Cell and a cellgroup
     shared_ptr<CellGroup> springGroup = model->mesh->createCellGroup("CELAS2_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS2");
-    vector<int> connectivity;
-    connectivity += g1, g2;
-    int cellPosition= model->mesh->addCell(eid, CellType::SEG2, connectivity);
-    springGroup->addCellId(model->mesh->findCell(cellPosition).id);
+    int cellPosition= model->mesh->addCell(eid, CellType::SEG2, {g1, g2});
+    springGroup->addCellId(model->mesh->findCellId(cellPosition));
 
     // Create ElementSet
     ScalarSpring scalarSpring(*model, eid, k ,ge);
@@ -428,9 +426,7 @@ void NastranParser::parseCELAS4(NastranTokenizer& tok, shared_ptr<Model> model) 
 
     // Create a Cell and a cellgroup
     shared_ptr<CellGroup> springGroup = model->mesh->createCellGroup("CELAS4_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS4");
-    vector<int> connectivity;
-    connectivity += s1, s2;
-    int cellPosition= model->mesh->addCell(eid, CellType::SEG2, connectivity);
+    int cellPosition= model->mesh->addCell(eid, CellType::SEG2, {s1, s2});
     springGroup->addCellId(model->mesh->findCell(cellPosition).id);
 
     // Create ElementSet
@@ -540,10 +536,7 @@ void NastranParser::parseCROD(NastranTokenizer& tok, shared_ptr<Model> model) {
     int property_id = tok.nextInt(true, cell_id);
     int point1 = tok.nextInt();
     int point2 = tok.nextInt();
-    CellType cellType = CellType::SEG2;
-    vector<int> nodeIds;
-    nodeIds += point1, point2;
-    model->mesh->addCell(cell_id, cellType, nodeIds);
+    model->mesh->addCell(cell_id, CellType::SEG2, {point1, point2});
     addProperty(tok, property_id, cell_id, model);
 }
 
@@ -665,8 +658,8 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, shared_ptr<Model> mode
 }
 
 /*
- * Defining allowDOFS::ONE should suffice for VEGA to know, during the translation
- * that these GRID points have only one DOF. IT's not the case, so we create SPC to
+ * Defining DOFS::DX should suffice for VEGA to know, during the translation
+ * that these GRID points have only one DOF. It's not the case, so we create SPC to
  * compensate.
  */
 void NastranParser::parseSPOINT(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -678,12 +671,12 @@ void NastranParser::parseSPOINT(NastranTokenizer& tok, shared_ptr<Model> model) 
     int cpos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
 
     // Creating or finding the Node Group and Constraint
-    SinglePointConstraint spc = SinglePointConstraint(*model, DOFS::ALL_DOFS-DOFS::ONE, 0.0);
+    SinglePointConstraint spc = SinglePointConstraint(*model, DOFS::ALL_DOFS-DOF::DX, 0.0);
     string name = string("SPC_SPOINT");
     shared_ptr<NodeGroup> spcNodeGroup = model->mesh->findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPOINT");
 
     int nodePosition = model->mesh->addNode(id1, x1, x2, x3, cpos, cpos);
-    model->mesh->allowDOFS(nodePosition, DOFS::DOFS::ONE);
+    model->mesh->allowDOFS(nodePosition, DOF::DX);
     spcNodeGroup->addNodeId(id1);
     spc.addNodeId(id1);
     if (this->logLevel >= LogLevel::TRACE) {
@@ -695,7 +688,7 @@ void NastranParser::parseSPOINT(NastranTokenizer& tok, shared_ptr<Model> model) 
         while (tok.isNextInt()){
             const int id2 = tok.nextInt();
             nodePosition = model->mesh->addNode(id2, x1, x2, x3, cpos, cpos);
-            model->mesh->allowDOFS(nodePosition, DOFS::DOFS::ONE);
+            model->mesh->allowDOFS(nodePosition, DOF::DX);
             spcNodeGroup->addNodeId(id2);
             spc.addNodeId(id2);
             if (this->logLevel >= LogLevel::TRACE) {
@@ -710,7 +703,7 @@ void NastranParser::parseSPOINT(NastranTokenizer& tok, shared_ptr<Model> model) 
             const int id2 = tok.nextInt();
             for (int id=id1+1; id<=id2; id++){
                 nodePosition = model->mesh->addNode(id, x1, x2, x3, cpos, cpos);
-                model->mesh->allowDOFS(nodePosition, DOFS::DOFS::ONE);
+                model->mesh->allowDOFS(nodePosition, DOF::DX);
                 spcNodeGroup->addNodeId(id);
                 spc.addNodeId(id);
                 if (this->logLevel >= LogLevel::TRACE) {

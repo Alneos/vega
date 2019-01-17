@@ -360,6 +360,7 @@ void F06Parser::add_assertions(const ConfigurationParameters& configuration,
 		int currentSubCase = NO_SUBCASE;
 		double loadStep = -1;
 		double frequency = -1;
+		int pointId = -1;
 		while (this->readLine(istream, currentLine)) {
 			trim(currentLine);
 			size_t subCasePosition = currentLine.find("SUBCASE");
@@ -368,6 +369,13 @@ void F06Parser::add_assertions(const ConfigurationParameters& configuration,
 				//cout << "SUBCASE "<<subcaseN<< "  " << currentLine <<endl;
 				currentSubCase = parseSubcase(currentSubCase, currentLine);
 				loadStep = -1;
+			}
+            size_t pointIdPosition = currentLine.find("POINT-ID = ");
+			if (pointIdPosition != string::npos) {
+				string pointIdString = trim_copy(currentLine.substr(pointIdPosition + 11));
+				//cout << "POINT-ID "<<pointId<< "  " << currentLine <<endl;
+				istringstream istringLine(pointIdString);
+				istringLine >> pointId;
 			}
 			size_t loadStepPosition = currentLine.find("LOAD STEP = ");
 			if (loadStepPosition != string::npos) {

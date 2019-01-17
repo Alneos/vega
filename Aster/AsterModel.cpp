@@ -152,12 +152,7 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
     case ElementSet::Type::I_SECTION_BEAM:
     case ElementSet::Type::GENERIC_SECTION_BEAM: {
         Beam::BeamModel beamModel = (dynamic_pointer_cast<Beam>(elementSet))->beamModel;
-        double largeDisp = 0;
-        auto it = model.parameters.find(Model::Parameter::LARGE_DISPLACEMENTS);
-        if (it != model.parameters.end()) {
-            largeDisp = it->second;
-        }
-        if (is_zero(largeDisp)) {
+        if (not model.needsLargeDisplacements()) {
             switch (beamModel) {
             case Beam::BeamModel::EULER: {
                 result = "('POU_D_E',)";

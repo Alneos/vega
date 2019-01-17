@@ -64,6 +64,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "CHEXA", &NastranParser::parseCHEXA },
                 { "CMASS2", &NastranParser::parseCMASS2 },
                 { "CONM2", &NastranParser::parseCONM2 },
+                { "CONROD", &NastranParser::parseCONROD },
                 { "CORD1R", &NastranParser::parseCORD1R },
                 { "CORD2C", &NastranParser::parseCORD2C },
                 { "CORD2R", &NastranParser::parseCORD2R },
@@ -859,6 +860,27 @@ void NastranParser::parseBSCONP(NastranTokenizer& tok, shared_ptr<Model> model) 
                            id);
     model->add(surface);
     model->addConstraintIntoConstraintSet(surface, model->commonConstraintSet);
+}
+
+void NastranParser::parseCONROD(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int eid = tok.nextInt();
+    int g1 = tok.nextInt();
+    int g2 = tok.nextInt();
+    int mid = tok.nextInt();
+    double a = tok.nextDouble();
+    double j = tok.nextDouble(true, 0.0);
+    double c = tok.nextDouble(true, 0.0);
+    if (!is_equal(c, 0)) {
+        handleParsingWarning("Stress coefficient (C) not supported and dismissed.", tok, model);
+    }
+    double nsm = tok.nextDouble(true, 0.0);
+    model->mesh->addCell(eid, CellType::SEG2, {g1, g2});
+    GenericSectionBeam genericSectionBeam(*model, a, 0, 0, j, 0, 0, GenericSectionBeam::BeamModel::BAR, nsm);
+    genericSectionBeam.assignMaterial(mid);
+    shared_ptr<CellGroup> cellGroup = model->mesh->createCellGroup("CONROD_" + to_string(eid), Group::NO_ORIGINAL_ID, "CONROD");
+    cellGroup->addCellId(eid);
+    genericSectionBeam.assignCellGroup(cellGroup);
+    model->add(genericSectionBeam);
 }
 
 void NastranParser::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> model) {

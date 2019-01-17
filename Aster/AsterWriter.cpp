@@ -46,12 +46,12 @@ string AsterWriter::writeModel(const shared_ptr<vega::Model> model_ptr,
 		throw iostream::failure("Directory " + path + " don't exist.");
 	}
 
-  fs::path inputFile(asterModel.configuration.inputFile);
+    fs::path inputFile(asterModel.configuration.inputFile);
 	if (fs::exists(inputFile)) {
 		fs::copy_file(inputFile, fs::absolute(path) / inputFile.filename(), fs::copy_option::overwrite_if_exists);
 	}
 
-  fs::path testFile = asterModel.configuration.resultFile;
+    fs::path testFile = asterModel.configuration.resultFile;
 	if (fs::exists(testFile)) {
 		fs::copy_file(testFile, fs::absolute(path) / testFile.filename(), fs::copy_option::overwrite_if_exists);
 	}
@@ -253,6 +253,12 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 			out << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
 			out << "           MODELE=MODMECA," << endl;
 			out << "           CONTRAINTE =('SIPO_NOEU')," << endl;
+			out << "           GROUP_MA=(";
+            for (auto elementSet : asterModel.model.elementSets) {
+                if (not elementSet->isBeam()) continue; // to avoid CALCUL_37 Le TYPE_ELEMENT MECA_BARRE  ne sait pas encore calculer l'option:  SIPO_ELNO.
+                out << "'" << elementSet->cellGroup->getName() << "'" << ",";
+            }
+            out << ")" << endl;
 			out << ")" << endl;
 
             out << "RCTB" << analysis->getId() << "=MACR_LIGN_COUPE(" << endl;
@@ -807,23 +813,26 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 			out << "                             )," << endl;
 		}
 		vector<shared_ptr<Beam>> poutres = asterModel.model.getBeams();
-
+        vector<shared_ptr<Beam>> barres = asterModel.model.getBars();
 		out << "                    # writing " << poutres.size() << " poutres" << endl;
-		if (poutres.size() > 0) {
+		out << "                    # writing " << barres.size() << " barres" << endl;
+		if (poutres.size() > 0 or (asterModel.model.needsLargeDisplacements() and barres.size() > 0)) {
 			out << "                    POUTRE=(" << endl;
 			for (auto poutre : poutres) {
-				writeAffeCaraElemPoutre(*poutre, out);
+				writeAffeCaraElemPoutre(asterModel, *poutre, out);
+			}
+			if (asterModel.model.needsLargeDisplacements()) {
+                for (auto barre : barres) {
+                    writeAffeCaraElemPoutre(asterModel, *barre, out);
+                }
 			}
 			out << "                            )," << endl;
 		}
 
-        vector<shared_ptr<Beam>> barres = asterModel.model.getBars();
-
-		out << "                    # writing " << barres.size() << " barres" << endl;
-		if (barres.size() > 0) {
+		if (barres.size() > 0 and not asterModel.model.needsLargeDisplacements()) {
 			out << "                    BARRE=(" << endl;
 			for (auto barre : barres) {
-				writeAffeCaraElemPoutre(*barre, out);
+				writeAffeCaraElemPoutre(asterModel, *barre, out);
 			}
 			out << "                            )," << endl;
 		}
@@ -903,7 +912,7 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 	}
 	out << "                    );" << endl << endl;
 }
-void AsterWriter::writeAffeCaraElemPoutre(const ElementSet& elementSet, ostream& out) {
+void AsterWriter::writeAffeCaraElemPoutre(const AsterModel& asterModel, const ElementSet& elementSet, ostream& out) {
 	out << "                            _F(GROUP_MA='" << elementSet.cellGroup->getName() << "',"
 			<< endl;
 	switch (elementSet.type) {
@@ -935,24 +944,24 @@ void AsterWriter::writeAffeCaraElemPoutre(const ElementSet& elementSet, ostream&
 		const Beam& beam =
 				static_cast<const Beam&>(elementSet);
 		out << "                               SECTION='GENERALE'," << endl;
-		if (not beam.isBar()) {
+		if (not beam.isBar() or asterModel.model.needsLargeDisplacements()) {
 		    out << "                               CARA=('A','IY','IZ','JX','AY','AZ',)," << endl;
 		} else {
 		    out << "                               CARA=('A',)," << endl;
 		}
 
 		out << "                               VALE=(";
-        if (not beam.isBar()) {
+        if (not beam.isBar() or asterModel.model.needsLargeDisplacements()) {
             out << max(std::numeric_limits<double>::epsilon(), beam.getAreaCrossSection()) << ","
 				<< max(std::numeric_limits<double>::epsilon(), beam.getMomentOfInertiaY()) << "," << max(std::numeric_limits<double>::epsilon(), beam.getMomentOfInertiaZ())
 				<< "," << max(std::numeric_limits<double>::epsilon(), beam.getTorsionalConstant()) << ",";
             if (! is_zero(beam.getShearAreaFactorY()))
-                out << 1.0 / beam.getShearAreaFactorY();
+                out << beam.getShearAreaFactorY();
             else
                 out << 0.0;
             out << ",";
             if (! is_zero(beam.getShearAreaFactorZ()))
-                out << 1.0 / beam.getShearAreaFactorZ();
+                out << beam.getShearAreaFactorZ();
             else
                 out << 0.0;
 		} else {
@@ -1711,6 +1720,9 @@ shared_ptr<NonLinearStrategy> AsterWriter::getNonLinearStrategy(
 	shared_ptr<NonLinearStrategy> nonLinearStrategy;
 	shared_ptr<vega::Objective> strategy = nonLinAnalysis.model.find(
 			nonLinAnalysis.strategy_reference);
+    if (strategy == nullptr) {
+        throw new logic_error("Cannot find nonlinear strategy" + to_str(nonLinAnalysis.strategy_reference));
+    }
 	switch (strategy->type) {
 	case Objective::Type::NONLINEAR_STRATEGY: {
 		nonLinearStrategy = dynamic_pointer_cast<NonLinearStrategy>(strategy);
@@ -1867,7 +1879,6 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 			}
 			out << "                    CONTACT=" << asternameByConstraintSet[constraintSet->getReference()] << "," << "# Original id:" << constraintSet->getOriginalId() << endl;
 		}
-		double largeDisp = 0;
 		out << "                    COMPORTEMENT=(" << endl;
 		for (auto elementSet : asterModel.model.elementSets) {
 			if (elementSet->material != nullptr && elementSet->cellGroup != nullptr) {
@@ -1886,7 +1897,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
                 } else if (hyelas) {
                     out << "RELATION='ELAS_HYPER',";
                     out << "DEFORMATION='GROT_GDEP',";
-                } else if (!is_equal(largeDisp, 0) && elementSet->isBeam()) {
+                } else if (asterModel.model.needsLargeDisplacements() and (elementSet->isBeam() or elementSet->isBar())) {
                     out << "RELATION='ELAS_POUTRE_GR',";
                     out << "DEFORMATION='GROT_GDEP',";
                 } else {

@@ -40,7 +40,7 @@ class AsterWriter final : public Writer{
 	void writeValues(const AsterModel&, std::ostream&);
 	void writeMaterials(const AsterModel&, std::ostream&);
 	void writeAffeCaraElem(const AsterModel&, std::ostream&);
-	void writeAffeCaraElemPoutre(const ElementSet&, std::ostream&);
+	void writeAffeCaraElemPoutre(const AsterModel&, const ElementSet&, std::ostream&);
 	void writeAffeCharMeca(const AsterModel&, std::ostream&);
 	void writeDefiContact(const AsterModel&, std::ostream&);
 	void writeSPC(const AsterModel&, const ConstraintSet&, std::ostream&);

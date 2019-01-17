@@ -41,7 +41,6 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "GRDPNT", &NastranParser::parseParamGRDPNT },
                 { "HFREQ", &NastranParser::parseParamHFREQ },
                 { "K6ROT", &NastranParser::parseParamK6ROT },
-                { "K6ROT", &NastranParser::parseParamK6ROT },
                 { "LFREQ", &NastranParser::parseParamLFREQ },
                 { "LGDISP", &NastranParser::parseParamLGDISP },
                 { "NOCOMPS", &NastranParser::parseParamNOCOMPS },
@@ -66,8 +65,7 @@ void NastranParser::parseParamAUTOSPC(NastranTokenizer& tok, shared_ptr<Model> m
 
     string value = tok.nextString(true, "NO");
     if (value == "YES") {
-        handleParsingError(
-                string("unsupported AUTOSPC value in parseParamAUTOSPC. "),
+        handleParsingError("unsupported AUTOSPC value in parseParamAUTOSPC. ",
                 tok, model);
     }
 }
@@ -112,8 +110,7 @@ void NastranParser::parseParamGRDPNT(NastranTokenizer& tok, shared_ptr<Model> mo
      */
     int value = tok.nextInt(true, -1);
     if (value!=-1){
-        handleParsingWarning(
-                string("Ignored parameter GRDPNT value ") + to_string(value), tok, model);
+        handleParsingWarning("Ignored parameter GRDPNT value " + to_string(value), tok, model);
     }
 }
 
@@ -133,9 +130,9 @@ void NastranParser::parseParamK6ROT(NastranTokenizer& tok, shared_ptr<Model> mod
      to the normal rotation for CQUAD4 and CTRIA3 elements. The
      contribution of the penalty term to the strain energy functional is ...*/
     double val = tok.nextDouble(true, 100.0);
-    if (!is_equal(val, 100.0)) {
-        handleParsingError(
-                string("unsupported parameter K6ROT value in parsePARAM. "),
+    if (not is_zero(val)) {
+        handleParsingWarning(
+                "Non zero parameter K6ROT : " + to_string(val),
                 tok, model);
     }
 }
@@ -195,16 +192,15 @@ void NastranParser::parseParamNOCOMPS(NastranTokenizer& tok, shared_ptr<Model> m
      strains are correct however.
      */
     int value = tok.nextInt(true, 1);
-    handleParsingWarning(
-            string("Ignored parameter NOCOMPS value ") + to_string(value)
-                    + string(" in parseParamNOCOMPS. "), tok, model);
+    if (not is_equal(value, -1) and not is_zero(value)) {
+        handleParsingWarning("Ignored parameter NOCOMPS value " + to_string(value), tok, model);
+    }
 }
 
 void NastranParser::parseParamPATVER(NastranTokenizer& tok, shared_ptr<Model> model) {
     double val = tok.nextDouble(true, 3.0);
     if (!is_equal(val, 3.0)) {
-        handleParsingError(
-                string("unsupported parameter PATVER value in parseParamPATVER. "),
+        handleParsingError("unsupported parameter PATVER value in parseParamPATVER. ",
                 tok, model);
     }
 }
@@ -253,7 +249,7 @@ void NastranParser::parsePARAM(NastranTokenizer& tok, shared_ptr<Model> model) {
         }
         tok.skipToNextKeyword();
     } else {
-        handleParsingError(string("Unknown parameter ") + param + string(" is dismissed."), tok,
+        handleParsingError("Unknown parameter " + param + " is dismissed.", tok,
                 model);
     }
 }

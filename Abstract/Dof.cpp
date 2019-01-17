@@ -79,7 +79,6 @@ const boost::bimap<int, DOF::Code> DOFS::DOF_BY_NASTRANCODE = boost::assign::lis
 		( 6, DOF::Code::RZ_CODE );
 
 const DOFS DOFS::NO_DOFS(static_cast<char>(0));
-const DOFS DOFS::ONE(static_cast<char>(DOF::Code::DX_CODE));
 const DOFS DOFS::TRANSLATIONS(static_cast<char>(static_cast<char>(DOF::Code::DX_CODE) | static_cast<char>(DOF::Code::DY_CODE) | static_cast<char>(DOF::Code::DZ_CODE)));
 const DOFS DOFS::ROTATIONS(static_cast<char>(static_cast<char>(DOF::Code::RX_CODE) | static_cast<char>(DOF::Code::RY_CODE) | static_cast<char>(DOF::Code::RZ_CODE)));
 const DOFS DOFS::ALL_DOFS = TRANSLATIONS + ROTATIONS;

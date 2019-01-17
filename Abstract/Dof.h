@@ -75,7 +75,7 @@ private:
 public:
 	static const double FREE_DOF;
 	static const DOFS NO_DOFS;
-	static const DOFS ONE;
+	static const DOFS DX;
 	static const DOFS TRANSLATIONS;
 	static const DOFS ROTATIONS;
 	static const DOFS ALL_DOFS;

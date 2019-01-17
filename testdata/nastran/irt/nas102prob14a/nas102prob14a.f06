@@ -1,0 +1,8 @@
+0                                                                                                            SUBCASE 1              
+ 
+                                              R E A L   E I G E N V A L U E S
+   MODE    EXTRACTION      EIGENVALUE            RADIANS             CYCLES            GENERALIZED         GENERALIZED
+    NO.       ORDER                                                                       MASS              STIFFNESS
+        1         1        2.239525E+04        1.496504E+02        2.381760E+01        1.000000E+00        2.239525E+04
+        2         2        3.550679E+05        5.958757E+02        9.483656E+01        1.000000E+00        3.550679E+05
+        3         3        1.772662E+06        1.331413E+03        2.119010E+02        1.000000E+00        1.772662E+06

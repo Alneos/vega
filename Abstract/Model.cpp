@@ -826,6 +826,14 @@ const vector<shared_ptr<Beam>> Model::getBars() const {
     return result;
 }
 
+bool Model::needsLargeDisplacements() const {
+    double largeDisp = 0;
+    auto it = this->parameters.find(Model::Parameter::LARGE_DISPLACEMENTS);
+    if (it != this->parameters.end()) {
+        largeDisp = it->second;
+    }
+    return not is_zero(largeDisp);
+}
 
 void Model::generateSkin() {
     ostringstream oss;

@@ -753,7 +753,7 @@ double ISectionBeam::getMomentOfInertiaZ() const {
 		throw logic_error("Different flange width not yet handled");
 	}
 	// LD : symplified (but correct, in some special cases) formula
-	// http://www.had2know.com/technology/I-beam-calculator-moments-engineering.html
+	// https://web.archive.org/web/20161123001455/http://www.had2know.com/technology/I-beam-calculator-moments-engineering.html
 	double izz = pow(h2, 3)*e2/12 + 2 * (pow(e1,3)*h1) / 12 + 2 * (e1*h1) * pow(h2+e1,2) / 4;
 	return izz;
 }
@@ -772,14 +772,20 @@ double ISectionBeam::getTorsionalConstant() const {
 }
 
 double ISectionBeam::getShearAreaFactorY() const {
-    double sly = (beam_height - upper_flange_thickness - lower_flange_thickness)*web_thickness;
-    return 1.0 / sly;
+    //double sly = (beam_height - upper_flange_thickness - lower_flange_thickness)*web_thickness;
+    //return 1.0 / sly;
+    double web_height = (beam_height - upper_flange_thickness - lower_flange_thickness);
+    double web_area = (web_thickness * web_height);
+    return this->getAreaCrossSection() / web_area;
 }
 
 double ISectionBeam::getShearAreaFactorZ() const {
-	double slz = upper_flange_width * upper_flange_thickness
-			+ lower_flange_width * lower_flange_thickness;
-	return 1.0 / slz;
+	//double slz = upper_flange_width * upper_flange_thickness
+	//		+ lower_flange_width * lower_flange_thickness;
+	//return 1.0 / slz;
+    double web_height = (beam_height - upper_flange_thickness - lower_flange_thickness);
+    double web_area = (web_thickness * web_height);
+    return this->getAreaCrossSection() / web_area;
 }
 
 MatrixElement::MatrixElement(Model& model, Type type, bool symmetric, int original_id) :
