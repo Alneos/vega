@@ -134,7 +134,7 @@ public:
 	enum class BeamModel {
 		EULER,
 		TIMOSHENKO,
-		BAR
+		TRUSS
 	};
 	BeamModel beamModel;
 	protected:
@@ -147,10 +147,10 @@ public:
 		return additional_mass / std::max(getAreaCrossSection(), DBL_MIN);
 	}
 	bool isBeam() const override final {
-		return beamModel != BeamModel::BAR;
+		return beamModel != BeamModel::TRUSS;
 	}
     bool isBar() const override final {
-		return beamModel == BeamModel::BAR;
+		return beamModel == BeamModel::TRUSS;
 	}
 	virtual double getAreaCrossSection() const = 0;
 	virtual double getMomentOfInertiaY() const = 0;

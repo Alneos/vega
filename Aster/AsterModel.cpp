@@ -162,7 +162,7 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
                 result = "('POU_D_T',)";
                 break;
             }
-            case Beam::BeamModel::BAR: {
+            case Beam::BeamModel::TRUSS: {
                 result = "('BARRE',)";
                 break;
             }

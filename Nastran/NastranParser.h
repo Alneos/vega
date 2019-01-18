@@ -57,6 +57,17 @@ private:
     GrdSet grdSet;
 
     std::unordered_map<std::string, std::shared_ptr<Reference<ElementSet>>> directMatrixByName;
+    enum class NastranAnalysis {
+        STATIC = 101,
+        MODES = 103,
+        BUCKL = 105,
+        NLSTATIC = 106,
+        DFREQ = 108,
+        DTRAN = 109,
+        MFREQ = 111,
+        DESOPT = 200
+    };
+    static const std::unordered_map<std::string, NastranAnalysis> ANALYSIS_BY_LABEL;
     static const std::unordered_map<std::string, parseElementFPtr> PARSE_FUNCTION_BY_KEYWORD;
     static const std::unordered_map<std::string, parseElementFPtr> PARSEPARAM_FUNCTION_BY_KEYWORD;
 
@@ -519,6 +530,12 @@ private:
      * All parameters are ignored except NINC.
      */
     void parseNLPARM(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
+     * Parameters for Arc-Length Methods in Nonlinear Static Analysis
+     * Defines a set of parameters for the arc-length incremental solution strategies in nonlinear static analysis
+     */
+    void parseNLPCI(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
      * PARAM NOCOMPS

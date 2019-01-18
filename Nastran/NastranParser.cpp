@@ -105,6 +105,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "MOMENT", &NastranParser::parseMOMENT },
                 { "MPC", &NastranParser::parseMPC },
                 { "NLPARM", &NastranParser::parseNLPARM },
+                { "NLPCI", &NastranParser::parseNLPCI },
                 { "PARAM", &NastranParser::parsePARAM },
                 { "PBAR", &NastranParser::parsePBAR },
                 { "PBARL", &NastranParser::parsePBARL },
@@ -143,6 +144,31 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "TEMP", &NastranParser::parseTEMP },
                 { "GRDSET", &NastranParser::parseGRDSET }
         };
+
+const std::unordered_map<std::string, NastranParser::NastranAnalysis> NastranParser::ANALYSIS_BY_LABEL = {
+        { "1", NastranAnalysis::STATIC },
+        { "101", NastranAnalysis::STATIC },
+        { "STATIC", NastranAnalysis::STATIC },
+        { "STATICS", NastranAnalysis::STATIC },
+        { "SESTATIC", NastranAnalysis::STATIC },
+        { "3", NastranAnalysis::MODES },
+        { "103", NastranAnalysis::MODES },
+        { "MODES", NastranAnalysis::MODES },
+        { "SEMODES", NastranAnalysis::MODES },
+        { "105", NastranAnalysis::BUCKL },
+        { "BUCKL", NastranAnalysis::BUCKL },
+        { "SEBUCKL", NastranAnalysis::BUCKL },
+        { "106", NastranAnalysis::NLSTATIC },
+        { "NLSTATIC", NastranAnalysis::NLSTATIC },
+        { "108", NastranAnalysis::DFREQ },
+        { "SEDFREQ", NastranAnalysis::DFREQ },
+        { "109", NastranAnalysis::DTRAN },
+        { "SEDTRAN", NastranAnalysis::DTRAN },
+        { "111", NastranAnalysis::MFREQ },
+        { "SEMTRAN", NastranAnalysis::MFREQ },
+        { "200", NastranAnalysis::DESOPT },
+        { "DESOPT", NastranAnalysis::DESOPT },
+};
 
 NastranParser::NastranParser() :
         Parser() {
@@ -450,25 +476,32 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
       return;
     }
 
-    if (analysis_str == "200" || analysis_str == "DESOPT") {
+    auto str_entry = ANALYSIS_BY_LABEL.find(analysis_str);
+    if (str_entry == ANALYSIS_BY_LABEL.end()) {
+        handleParsingError("Analysis " + analysis_str + " Not implemented", tok, model);
+    }
+    NastranAnalysis analysis_type = str_entry->second;
+
+    shared_ptr<Analysis> previous = nullptr;
+    if (model->analyses.size() >= 1) {
+        previous = model->analyses.last();
+    }
+
+    if (analysis_type == NastranAnalysis::DESOPT) {
         auto it = context.find("ANALYSIS");
         if (it != context.end()) {
-            string analysis = trim_copy(it->second);
-            if (analysis == "STATICS" || analysis == "")
-                analysis_str = "101";
-            else if (analysis == "MODES")
-                analysis_str = "103";
-            else if (analysis == "NLSTATIC")
-                analysis_str = "106";
-            else if (analysis == "MFREQ")
-                analysis_str = "111";
+            string analysis_label = trim_copy(it->second);
+            auto label_entry = ANALYSIS_BY_LABEL.find(analysis_label);
+            if (label_entry != ANALYSIS_BY_LABEL.end())
+                analysis_type = label_entry->second;
             else {
-                string message = "Analysis " + analysis + " Not implemented";
-                handleParsingError(message, tok, model);
+                handleParsingError("DESOPT analysis " + analysis_label + " Not implemented", tok, model);
             }
         } else
-            analysis_str = "101";
+            analysis_type = NastranAnalysis::STATIC;
     }
+
+    shared_ptr<Analysis> analysis = nullptr;
 
     // Finding label
     string labelAnalysis="Analysis_"+to_string(analysis_id);
@@ -481,41 +514,11 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
             labelAnalysis = commentEntry->second;
     }
 
+    if (analysis_type == NastranAnalysis::STATIC or (analysis_type == NastranAnalysis::BUCKL and previous == nullptr)) {
 
-    if (analysis_str == "101" || analysis_str == "SESTATIC") {
+        analysis = make_shared<LinearMecaStat>(*model, labelAnalysis, analysis_id);
 
-        LinearMecaStat analysis(*model, labelAnalysis, analysis_id);
-
-        for (auto it = context.begin(); it != context.end(); it++) {
-            string key = it->first;
-            int id = atoi(it->second.c_str());
-            if (!key.compare(0, 3, "SPC")) {
-                Reference<ConstraintSet> constraintReference(ConstraintSet::Type::SPC, id);
-                analysis.add(constraintReference);
-                if (!model->find(constraintReference)) { // constraintSet is added in the model if not found in the model
-                    ConstraintSet constraintSet(*model, ConstraintSet::Type::SPC, id);
-                    model->add(constraintSet);
-                }
-            } else if (!key.compare(0, 3, "MPC")) {
-                Reference<ConstraintSet> constraintReference(ConstraintSet::Type::MPC, id);
-                analysis.add(constraintReference);
-                if (!model->find(constraintReference)) { // constraintSet is added in the model if not found in the model
-                    ConstraintSet constraintSet(*model, ConstraintSet::Type::MPC, id);
-                    model->add(constraintSet);
-                }
-            } else if (!key.compare(0, 4, "LOAD")) {
-                Reference<LoadSet> loadsetReference(LoadSet::Type::LOAD, id);
-                analysis.add(loadsetReference);
-                if (!model->find(loadsetReference)) { // constraintSet is added in the model if not found in the model
-                    LoadSet loadSet(*model, LoadSet::Type::LOAD, id);
-                    model->add(loadSet);
-                }
-            }
-        }
-
-        model->add(analysis);
-
-    } else if (analysis_str == "103" || analysis_str == "SEMODES") {
+    } else if (analysis_type == NastranAnalysis::MODES or (analysis_type == NastranAnalysis::BUCKL and previous != nullptr)) {
 
         map<string, string>::iterator it;
         int frequency_band_original_id = 0;
@@ -528,31 +531,9 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         if (it == context.end())
             handleParsingError("METHOD not found for linear modal analysis", tok, model);
 
-        LinearModal analysis(*model, frequency_band_original_id, labelAnalysis, analysis_id);
+        analysis = make_shared<LinearModal>(*model, frequency_band_original_id, labelAnalysis, analysis_id);
 
-        it = context.find("SPC");
-        if (it != context.end()) {
-            int id = atoi(it->second.c_str());
-            Reference<ConstraintSet> constraintReference(ConstraintSet::Type::SPC, id);
-            analysis.add(constraintReference);
-            if (!model->find(constraintReference)) { // constraintSet is added in the model if not found in the model
-                ConstraintSet constraintSet(*model, ConstraintSet::Type::SPC, id);
-                model->add(constraintSet);
-            }
-        }
-        it = context.find("MPC");
-        if (it != context.end()) {
-            int id = atoi(it->second.c_str());
-            Reference<ConstraintSet> constraintReference(ConstraintSet::Type::MPC, id);
-            analysis.add(constraintReference);
-            if (!model->find(constraintReference)) { // constraintSet is added in the model if not found in the model
-                ConstraintSet constraintSet(*model, ConstraintSet::Type::MPC, id);
-                model->add(constraintSet);
-            }
-        }
-
-        model->add(analysis);
-    } else if (analysis_str == "106" || analysis_str == "NLSTATIC") {
+    } else if (analysis_type == NastranAnalysis::NLSTATIC) {
 
         auto itparam = context.find("NLPARM");
         int strategy_original_id = 0;
@@ -561,59 +542,10 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         else
             strategy_original_id = atoi(itparam->second.c_str());
 
-        NonLinearMecaStat analysis(*model, strategy_original_id, labelAnalysis, analysis_id);
+        analysis = make_shared<NonLinearMecaStat>(*model, strategy_original_id, labelAnalysis, analysis_id);
 
-        for (auto it = context.begin(); it != context.end(); it++) {
-            string key = it->first;
-            int id = atoi(it->second.c_str());
-            if (!key.compare(0, 3, "SPC")) {
-                Reference<ConstraintSet> constraintReference(ConstraintSet::Type::SPC, id);
-                analysis.add(constraintReference);
-                if (!model->find(constraintReference)) { // constraintSet is added in the model if not found in the model
-                    ConstraintSet constraintSet(*model, ConstraintSet::Type::SPC, id);
-                    model->add(constraintSet);
-                }
-            } else if (!key.compare(0, 3, "MPC")) {
-                Reference<ConstraintSet> constraintReference(ConstraintSet::Type::MPC, id);
-                analysis.add(constraintReference);
-                if (!model->find(constraintReference)) { // constraintSet is added in the model if not found in the model
-                    ConstraintSet constraintSet(*model, ConstraintSet::Type::MPC, id);
-                    model->add(constraintSet);
-                }
-            } else if (!key.compare(0, 4, "LOAD")) {
-                Reference<LoadSet> loadsetReference(LoadSet::Type::LOAD, id);
-                analysis.add(loadsetReference);
-            } else if (!key.compare(0, 4, "BCONTACT")) {
-                Reference<ConstraintSet> constraintReference(ConstraintSet::Type::CONTACT, id);
-                analysis.add(constraintReference);
-                if (!model->find(constraintReference)) { // constraintSet is added in the model if not found in the model
-                    ConstraintSet constraintSet(*model, ConstraintSet::Type::CONTACT, id);
-                    model->add(constraintSet);
-                }
-            }
-        }
-        /*
-         The subcase structure provides a unique means of changing loads,
-         boundary conditions, and solution methods by making selections from the Bulk Data.
-         Confining the discussion to SOL 66 (or 106) and SOL 99 (or 129),
-         loads and solution methods may change from subcase to subcase
-         on an incremental basis. However, constraints can be changed
-         from subcase to subcase only in the static solution sequence.
-         As a result, the subcase structure determines a sequence of loading
-         and constraint paths in a nonlinear analysis.
-         The subcase structure also allows the user to selectand change
-         output requests for printout, plot, etc., by specifying set numbers with keywords.
-         Any selections made above the subcase specifications are applicable to all the subcases.
-         Selectionsmade in an individual subcase supersede the selections made above the subcases.
-         */
-        if (model->analyses.size() >= 1) {
-            for (auto previous : model->analyses) {
-                analysis.previousAnalysis = previous;
-            }
-        }
-        model->add(analysis);
 
-    } else if (analysis_str == "108" || analysis_str == "SEDFREQ") {
+    } else if (analysis_type == NastranAnalysis::DFREQ) {
         int frequency_value_original_id = 0;
         map<string, string>::iterator it;
         for (it = context.begin(); it != context.end(); it++) {
@@ -622,26 +554,9 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         }
         if (frequency_value_original_id == 0)
             handleParsingError("FREQ not found for linear dynamic direct frequency analysis", tok, model);
-        LinearDynaDirectFreq analysis(*model, frequency_value_original_id, labelAnalysis, analysis_id);
-        it = context.find("SPC");
-        if (it != context.end()) {
-            int id = atoi(it->second.c_str());
-            Reference<ConstraintSet> constraintReference(ConstraintSet::Type::SPC, id);
-            analysis.add(constraintReference);
-            if (!model->find(constraintReference)) { // constraintSet is added in the model if not found in the model
-                ConstraintSet constraintSet(*model, ConstraintSet::Type::SPC, id);
-                model->add(constraintSet);
-            }
-        }
-        it = context.find("DLOAD");
-        if (it != context.end()) {
-            int id = atoi(it->second.c_str());
-            Reference<LoadSet> loadsetReference(LoadSet::Type::DLOAD, id);
-            analysis.add(loadsetReference);
-        }
+        analysis = make_shared<LinearDynaDirectFreq>(*model, frequency_value_original_id, labelAnalysis, analysis_id);
 
-        model->add(analysis);
-    } else if (analysis_str == "111" || analysis_str == "SEMFREQ") {
+    } else if (analysis_type == NastranAnalysis::MFREQ) {
 
         int frequency_band_original_id = 0;
         int modal_damping_original_id = 0;
@@ -662,35 +577,6 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         if (frequency_value_original_id == 0)
             handleParsingError("FREQ not found for linear dynamic modal frequency analysis", tok, model);
 
-        /*
-         auto it = context.find("METHOD");
-         int frequency_band_original_id = 0;
-         if (it == context.end())
-         it = context.find("METHOD(STRUCTURE)");
-         if (it == context.end())
-         handleParsingError("METHOD not found for linear dynamic modal frequency analysis", tok, model);
-         else
-         frequency_band_original_id = atoi(it->second.c_str());
-
-         it = context.find("SDAMPING");
-         int modal_damping_original_id = 0;
-         if (it == context.end())
-         it = context.find("SDAMPING(STRUCTURE)");
-         if (it == context.end())
-         handleParsingError("SDAMPING not found for linear dynamic modal frequency analysis", tok, model);
-         else
-         modal_damping_original_id = atoi(it->second.c_str());
-
-         it = context.find("FREQ");
-         int frequency_value_original_id = 0;
-         if (it == context.end())
-         it = context.find("FREQUENCY");
-         if (it == context.end())
-         handleParsingError("FREQ not found for linear dynamic modal frequency analysis", tok, model);
-         else
-         frequency_value_original_id = atoi(it->second.c_str());
-         */
-
         bool residual_vector = false;
         it = context.find("RESVEC(NOINREL)");
         if (it != context.end() && it->second == "YES")
@@ -699,32 +585,71 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         if (frequency_band_original_id == 0)
             handleParsingError("METHOD not found for linear dynamic modal frequency analysis", tok, model);
 
-        LinearDynaModalFreq analysis(*model, frequency_band_original_id, modal_damping_original_id,
+        analysis = make_shared<LinearDynaModalFreq>(*model, frequency_band_original_id, modal_damping_original_id,
                 frequency_value_original_id, residual_vector, labelAnalysis, analysis_id);
 
-        it = context.find("SPC");
-        if (it != context.end()) {
-            int id = atoi(it->second.c_str());
+    } else {
+        handleParsingError("Analysis " + analysis_str + " Not implemented", tok, model);
+    }
+
+    for (auto it = context.begin(); it != context.end(); it++) {
+        string key = it->first;
+        int id = atoi(it->second.c_str());
+        if (!key.compare(0, 3, "SPC")) {
             Reference<ConstraintSet> constraintReference(ConstraintSet::Type::SPC, id);
-            analysis.add(constraintReference);
+            analysis->add(constraintReference);
             if (!model->find(constraintReference)) { // constraintSet is added in the model if not found in the model
                 ConstraintSet constraintSet(*model, ConstraintSet::Type::SPC, id);
                 model->add(constraintSet);
             }
-        }
-        it = context.find("DLOAD");
-        if (it != context.end()) {
-            int id = atoi(it->second.c_str());
+        } else if (!key.compare(0, 3, "MPC")) {
+            Reference<ConstraintSet> constraintReference(ConstraintSet::Type::MPC, id);
+            analysis->add(constraintReference);
+            if (!model->find(constraintReference)) { // constraintSet is added in the model if not found in the model
+                ConstraintSet constraintSet(*model, ConstraintSet::Type::MPC, id);
+                model->add(constraintSet);
+            }
+        } else if (!key.compare(0, 4, "LOAD")) {
+            Reference<LoadSet> loadsetReference(LoadSet::Type::LOAD, id);
+            analysis->add(loadsetReference);
+            if (!model->find(loadsetReference)) { // loadSet is added in the model if not found in the model
+                LoadSet loadSet(*model, LoadSet::Type::LOAD, id);
+                model->add(loadSet);
+            }
+        } else if (!key.compare(0, 5, "DLOAD")) {
             Reference<LoadSet> loadsetReference(LoadSet::Type::DLOAD, id);
-            analysis.add(loadsetReference);
+            analysis->add(loadsetReference);
+            if (!model->find(loadsetReference)) { // loadSet is added in the model if not found in the model
+                LoadSet loadSet(*model, LoadSet::Type::DLOAD, id);
+                model->add(loadSet);
+            }
+        } else if (!key.compare(0, 4, "BCONTACT")) {
+            Reference<ConstraintSet> constraintReference(ConstraintSet::Type::CONTACT, id);
+            analysis->add(constraintReference);
+            if (!model->find(constraintReference)) { // constraintSet is added in the model if not found in the model
+                ConstraintSet constraintSet(*model, ConstraintSet::Type::CONTACT, id);
+                model->add(constraintSet);
+            }
         }
-
-        model->add(analysis);
-
-    } else {
-        string message = "Analysis " + analysis_str + " Not implemented";
-        handleParsingError(message, tok, model);
     }
+
+    /*
+         The subcase structure provides a unique means of changing loads,
+         boundary conditions, and solution methods by making selections from the Bulk Data.
+         Confining the discussion to SOL 66 (or 106) and SOL 99 (or 129),
+         loads and solution methods may change from subcase to subcase
+         on an incremental basis. However, constraints can be changed
+         from subcase to subcase only in the static solution sequence.
+         As a result, the subcase structure determines a sequence of loading
+         and constraint paths in a nonlinear analysis.
+         The subcase structure also allows the user to selectand change
+         output requests for printout, plot, etc., by specifying set numbers with keywords.
+         Any selections made above the subcase specifications are applicable to all the subcases.
+         Selectionsmade in an individual subcase supersede the selections made above the subcases.
+         */
+    analysis->previousAnalysis = previous;
+    model->add(*analysis);
+
 }
 
 void NastranParser::parseBCBODY(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -875,7 +800,7 @@ void NastranParser::parseCONROD(NastranTokenizer& tok, shared_ptr<Model> model) 
     }
     double nsm = tok.nextDouble(true, 0.0);
     model->mesh->addCell(eid, CellType::SEG2, {g1, g2});
-    GenericSectionBeam genericSectionBeam(*model, a, 0, 0, j, 0, 0, GenericSectionBeam::BeamModel::BAR, nsm);
+    GenericSectionBeam genericSectionBeam(*model, a, 0, 0, j, 0, 0, GenericSectionBeam::BeamModel::TRUSS, nsm);
     genericSectionBeam.assignMaterial(mid);
     shared_ptr<CellGroup> cellGroup = model->mesh->createCellGroup("CONROD_" + to_string(eid), Group::NO_ORIGINAL_ID, "CONROD");
     cellGroup->addCellId(eid);
@@ -1633,6 +1558,18 @@ void NastranParser::parseNLPARM(NastranTokenizer& tok, shared_ptr<Model> model) 
     model->add(nonLinearStrategy);
 }
 
+void NastranParser::parseNLPCI(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int original_id = tok.nextInt();
+
+    if (!tok.isEmptyUntilNextKeyword()){
+        tok.skipToNextKeyword();
+        handleParsingWarning("All parameters are ignored.", tok, model);
+    }
+
+    ArcLengthMethod arcLengthMethod(*model, Reference<Objective>(Objective::Type::NONLINEAR_STRATEGY, original_id));
+    model->add(arcLengthMethod);
+}
+
 
 void NastranParser::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
     int elemId = tok.nextInt();
@@ -1681,7 +1618,9 @@ void NastranParser::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
     genericSectionBeam.assignCellGroup(getOrCreateCellGroup(elemId, model, "PBAR"));
     std::list<std::pair<double, double>> reccoefs = { {c1, c2}, {d1, d2}, {e1, e2}, {f1, f2} };
     for (auto& reccoef : reccoefs) {
-        if (is_equal(reccoef.first, 0.0) and is_equal(reccoef.second, 0.0)) continue;
+        if (is_zero(reccoef.first) and is_zero(reccoef.second)) {
+                continue;
+        }
         RecoveryPoint c1recpointa(*model, 0.0, reccoef.first, reccoef.second);
         genericSectionBeam.recoveryPoints.push_back(c1recpointa);
         RecoveryPoint c1recpointb(*model, 1.0, reccoef.first, reccoef.second);
@@ -2433,7 +2372,7 @@ void NastranParser::parsePROD(NastranTokenizer& tok, shared_ptr<Model> model) {
     if (!is_equal(nsm, 0)) {
         handleParsingWarning("Non Structural mass (NSM) not supported and dismissed.", tok, model);
     }
-    GenericSectionBeam genericSectionBeam(*model, a, 0, 0, j, 0, 0, GenericSectionBeam::BeamModel::BAR, nsm,
+    GenericSectionBeam genericSectionBeam(*model, a, 0, 0, j, 0, 0, GenericSectionBeam::BeamModel::TRUSS, nsm,
             propId);
     genericSectionBeam.assignMaterial(material_id);
     genericSectionBeam.assignCellGroup(getOrCreateCellGroup(propId, model, "PROD"));

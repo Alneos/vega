@@ -208,8 +208,9 @@ private:
                 }
         }; /* iterator class */
         iterator begin() const {return iterator(by_id, by_id.begin());}
-        std::shared_ptr<T> first() const {return *begin();};
         iterator end() const {return iterator(by_id, by_id.end());}
+        std::shared_ptr<T> first() const {return *begin();};
+        std::shared_ptr<T> last() const {return by_id.rbegin()->second;};
         int size() const {return static_cast<int>(by_id.size());}
         bool empty() const {return by_id.size() == 0;}
         void add(const T&);

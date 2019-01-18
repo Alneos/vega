@@ -96,10 +96,8 @@ BOOST_AUTO_TEST_CASE( pload4 ) {
 }
 
 BOOST_AUTO_TEST_CASE( nas101prob2 ) {
-    // already partially refined, error becomes smaller, should try redrawing the mesh
-    // problem only on DRZ and only on four nodes: 2, 4, 8, 10
-    // Vega model seems too rigid in DRZ
-	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob2/nas101prob2.dat", RUN_ASTER, true, 0.5);
+    // ok but using refinment in beams (cannot refine a truss in Aster)
+	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob2/nas101prob2.dat", RUN_ASTER, true, 0.03);
 }
 
 BOOST_AUTO_TEST_CASE( nas101prob3 ) {
@@ -116,8 +114,14 @@ BOOST_AUTO_TEST_CASE( nas101prob5 ) {
 }
 
 BOOST_AUTO_TEST_CASE( nas101prob6 ) {
+    // Mesh should be refined
 	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob6/nas101prob6.nas", RUN_ASTER, true, 0.1);
 }
+
+//BOOST_AUTO_TEST_CASE( nas101prob7 ) {
+//    // Mesh should be refined
+//	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob7/nas101prob7.nas", RUN_ASTER, true, 0.1);
+//}
 
 BOOST_AUTO_TEST_CASE( nas101probA ) {
   // TODO : LD RESU NOOK, maybe mesh refine ?
@@ -144,8 +148,8 @@ BOOST_AUTO_TEST_CASE( nas103prob1c ) {
 }
 
 BOOST_AUTO_TEST_CASE( nas103prob3 ) {
-    // Singular matrix in Aster (rod)
-	CommandLineUtils::nastranStudy2Aster("/irt/nas103prob3/nas103prob3.nas", false, true, 0.02);
+    // Singular matrix in Aster in LGDISP (rod), ok without LGDISP and NLPCI
+	CommandLineUtils::nastranStudy2Aster("/irt/nas103prob3/nas103prob3.nas", RUN_ASTER, true, 0.02);
 }
 
 BOOST_AUTO_TEST_CASE( nas103prob5 ) {

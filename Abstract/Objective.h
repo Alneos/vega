@@ -47,7 +47,8 @@ public:
         FREQUENCY_ASSERTION,
         FREQUENCY_TARGET,
         MODAL_DAMPING,
-        NONLINEAR_STRATEGY
+        NONLINEAR_STRATEGY,
+        ARC_LENGTH_METHOD
     };
 protected:
     const Model & model;
@@ -173,6 +174,13 @@ public:
     const int number_of_increments;
     NonLinearStrategy(const Model& model, const int number_of_increments, int original_id =
             NO_ORIGINAL_ID);
+    std::shared_ptr<Objective> clone() const;
+};
+
+class ArcLengthMethod: public AnalysisParameter {
+public:
+    ArcLengthMethod(const Model& model, const Reference<Objective>& strategy_reference, int original_id = NO_ORIGINAL_ID);
+    const Reference<Objective>& strategy_reference;
     std::shared_ptr<Objective> clone() const;
 };
 

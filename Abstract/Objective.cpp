@@ -159,5 +159,13 @@ shared_ptr<Objective> NonLinearStrategy::clone() const {
     return make_shared<NonLinearStrategy>(*this);
 }
 
+ArcLengthMethod::ArcLengthMethod(const Model& model, const Reference<Objective>& strategy_reference, int original_id) :
+        AnalysisParameter(model, Objective::Type::ARC_LENGTH_METHOD, original_id), strategy_reference(strategy_reference) {
+}
+
+shared_ptr<Objective> ArcLengthMethod::clone() const {
+    return make_shared<ArcLengthMethod>(*this);
+}
+
 } /* namespace vega */
 
