@@ -54,6 +54,7 @@ private:
 public:
     enum class Type {
         LINEAR_MECA_STAT,
+        LINEAR_BUCKLING,
         LINEAR_MODAL,
         LINEAR_DYNA_DIRECT_FREQ,
         LINEAR_DYNA_MODAL_FREQ,
@@ -163,7 +164,7 @@ class LinearModal: public Analysis {
 protected:
     Reference<Objective> frequencySearchRef;
 public:
-    LinearModal(Model&, const FrequencyTarget&, const std::string original_label = "",
+    LinearModal(Model&, const Reference<Objective>&, const std::string original_label = "",
             const int original_id = NO_ORIGINAL_ID, const Type type = Type::LINEAR_MODAL);
     LinearModal(Model&, const int frequency_band_original_id, const std::string original_label = "",
             const int original_id = NO_ORIGINAL_ID, const Type type = Type::LINEAR_MODAL);
@@ -171,6 +172,16 @@ public:
     std::shared_ptr<Analysis> clone() const;
     bool use_power_iteration = false;
     bool validate() const override;
+    bool isLinear() const override {
+        return true;
+    }
+};
+
+class LinearBuckling: public LinearModal {
+public:
+    LinearBuckling(Model&, const Reference<Objective>&, const std::string original_label = "",
+            const int original_id = NO_ORIGINAL_ID);
+    std::shared_ptr<Analysis> clone() const override;
     bool isLinear() const override {
         return true;
     }

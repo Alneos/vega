@@ -147,11 +147,12 @@ void F06Parser::readEigenvalueSection(const Model& model,
 			if (tokens.size() != 7)
 				break;
 			int number = stoi(tokens.at(0));
-			double value = stod(tokens.at(4));
-			if (abs(value) < 1e-12)
-				value = 0.;
+			double eigenValue = stod(tokens.at(2));
+			double cycles = stod(tokens.at(4));
+			if (abs(cycles) < 1e-12)
+				cycles = 0.;
 			assertions.push_back(
-					new FrequencyAssertion(model, number, value, configuration.testTolerance));
+					new FrequencyAssertion(model, number, cycles, eigenValue, configuration.testTolerance));
 		}
 	} catch (const exception &e) {
 		string message("Error ");

@@ -42,6 +42,7 @@ const string Analysis::name = "Analysis";
 const map<Analysis::Type, string> Analysis::stringByType = {
         { Analysis::Type::LINEAR_MECA_STAT, "LINEAR_MECA_STAT" },
         { Analysis::Type::LINEAR_MODAL, "LINEAR_MODAL" },
+        { Analysis::Type::LINEAR_BUCKLING, "LINEAR_BUCKLING" },
         { Analysis::Type::LINEAR_DYNA_DIRECT_FREQ, "LINEAR_DYNA_DIRECT_FREQ" },
         { Analysis::Type::LINEAR_DYNA_MODAL_FREQ, "LINEAR_DYNA_MODAL_FREQ" },
         { Analysis::Type::NONLINEAR_MECA_STAT, "NONLINEAR_MECA_STAT" },
@@ -397,6 +398,11 @@ bool NonLinearMecaStat::validate() const {
     return Analysis::validate();
 }
 
+LinearModal::LinearModal(Model& model, const Reference<Objective>& frequencySearchRef,
+        const string original_label, const int original_id, const Type type) :
+        Analysis(model, type, original_label, original_id), frequencySearchRef(frequencySearchRef) {
+}
+
 LinearModal::LinearModal(Model& model, const int frequency_band_original_id,
         const string original_label, const int original_id, const Type type) :
         Analysis(model, type, original_label, original_id), frequencySearchRef(Objective::Type::FREQUENCY_TARGET,
@@ -420,6 +426,15 @@ bool LinearModal::validate() const {
         isValid = false;
     }
     return isValid;
+}
+
+LinearBuckling::LinearBuckling(Model& model, const Reference<Objective>& frequencySearchRef,
+        const string original_label, const int original_id) :
+        LinearModal(model, frequencySearchRef, original_label, original_id, Type::LINEAR_BUCKLING) {
+}
+
+shared_ptr<Analysis> LinearBuckling::clone() const {
+    return make_shared<LinearBuckling>(*this);
 }
 
 LinearDynaModalFreq::LinearDynaModalFreq(Model& model, const int frequency_band_original_id,

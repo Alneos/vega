@@ -368,6 +368,28 @@ BOOST_AUTO_TEST_CASE(nastran_THRU_BY_symbol) {
     tokenizer.nextLine();
 }
 
+BOOST_AUTO_TEST_CASE(nastran_THRU_BY_symbol2) {
+    //                    1234567812345678123456781234567812345678123456781234567812345678
+    string nastranLine = "SPC1    4       3       1       THRU    11";
+    istringstream istr(nastranLine);
+    NastranTokenizer tokenizer(istr);
+    tokenizer.bulkSection();
+    tokenizer.nextLine();
+    BOOST_CHECK(tokenizer.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_KEYWORD);
+    BOOST_CHECK_EQUAL("SPC1", tokenizer.nextString());
+    BOOST_CHECK(tokenizer.isNextInt());
+    BOOST_CHECK_EQUAL(4, tokenizer.nextInt());
+    BOOST_CHECK(tokenizer.isNextInt());
+    BOOST_CHECK_EQUAL(3, tokenizer.nextInt());
+    BOOST_CHECK(tokenizer.isNextInt());
+    list<int> ids = tokenizer.nextInts();
+    BOOST_CHECK_EQUAL(11, ids.size());
+    BOOST_CHECK_EQUAL(1, ids.front());
+    BOOST_CHECK_EQUAL(11, ids.back());
+    //end
+    tokenizer.nextLine();
+}
+
 BOOST_AUTO_TEST_CASE(nastran_HM_comment) {
     //                    12345678123456781234567812345678 1234567812345 6781234567812345678
     string nastranLine = "$HMNAME LOADSTEP               2\"Lateral_load\"       1";

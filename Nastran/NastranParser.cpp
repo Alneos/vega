@@ -155,9 +155,11 @@ const std::unordered_map<std::string, NastranParser::NastranAnalysis> NastranPar
         { "103", NastranAnalysis::MODES },
         { "MODES", NastranAnalysis::MODES },
         { "SEMODES", NastranAnalysis::MODES },
+        { "5", NastranAnalysis::BUCKL },
         { "105", NastranAnalysis::BUCKL },
         { "BUCKL", NastranAnalysis::BUCKL },
         { "SEBUCKL", NastranAnalysis::BUCKL },
+        { "6", NastranAnalysis::NLSTATIC },
         { "106", NastranAnalysis::NLSTATIC },
         { "NLSTATIC", NastranAnalysis::NLSTATIC },
         { "108", NastranAnalysis::DFREQ },
@@ -165,6 +167,7 @@ const std::unordered_map<std::string, NastranParser::NastranAnalysis> NastranPar
         { "109", NastranAnalysis::DTRAN },
         { "SEDTRAN", NastranAnalysis::DTRAN },
         { "111", NastranAnalysis::MFREQ },
+        { "MFREQ", NastranAnalysis::MFREQ },
         { "SEMTRAN", NastranAnalysis::MFREQ },
         { "200", NastranAnalysis::DESOPT },
         { "DESOPT", NastranAnalysis::DESOPT },
@@ -518,7 +521,22 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
 
         analysis = make_shared<LinearMecaStat>(*model, labelAnalysis, analysis_id);
 
-    } else if (analysis_type == NastranAnalysis::MODES or (analysis_type == NastranAnalysis::BUCKL and previous != nullptr)) {
+    } else if (analysis_type == NastranAnalysis::BUCKL and previous != nullptr) {
+
+        map<string, string>::iterator it;
+        int frequency_band_original_id = 0;
+        for (it = context.begin(); it != context.end(); it++) {
+            if (it->first.find("METHOD") != string::npos) {
+                frequency_band_original_id = atoi(it->second.c_str());
+                break;
+            }
+        }
+        if (it == context.end())
+            handleParsingError("METHOD not found for linear modal analysis", tok, model);
+
+        analysis = make_shared<LinearBuckling>(*model, Reference<Objective>(Objective::Type::FREQUENCY_TARGET, frequency_band_original_id), labelAnalysis, analysis_id);
+
+    } else if (analysis_type == NastranAnalysis::MODES) {
 
         map<string, string>::iterator it;
         int frequency_band_original_id = 0;
@@ -1608,8 +1626,7 @@ void NastranParser::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     double i12 = tok.nextDouble(true, 0.0);
     if (!is_equal(i12, 0)) {
-        string message = "PBAR i12 not implemented.";
-        handleParsingWarning(message, tok, model);
+        handleParsingWarning("PBAR i12 not implemented.", tok, model);
     }
 
     GenericSectionBeam genericSectionBeam(*model, area, i2, i1, j, invk2, invk1, Beam::BeamModel::TIMOSHENKO, nsm,
@@ -2307,7 +2324,7 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) 
                               and cid == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     if (not has_direction and g1 == Globals::UNAVAILABLE_INT) {
         NormalPressionFace normalPressionFace(*model, p1);
-        for(int cellId = eid1; cellId < eid2; cellId++) {
+        for(int cellId = eid1; cellId <= eid2; cellId++) {
             normalPressionFace.addCellId(cellId);
         }
 
@@ -2861,9 +2878,10 @@ void NastranParser::parseSPCADD(NastranTokenizer& tok, shared_ptr<Model> model) 
     else {
         while (tok.isNextInt()) {
             int constraintSet_id = tok.nextInt();
-            ConstraintSet constraintSet(*model, ConstraintSet::Type::SPC, constraintSet_id);
-            model->add(constraintSet);
-            Reference<ConstraintSet> constraintSetReference(constraintSet);
+            //ConstraintSet constraintSet(*model, ConstraintSet::Type::SPC, constraintSet_id);
+            //model->add(constraintSet);
+            //Reference<ConstraintSet> constraintSetReference(constraintSet);
+            Reference<ConstraintSet> constraintSetReference(ConstraintSet::Type::SPC, constraintSet_id);
             constraintSet_ptr->add(constraintSetReference);
         }
     }

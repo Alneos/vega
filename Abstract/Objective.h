@@ -118,8 +118,9 @@ class FrequencyAssertion: public Assertion {
 
 public:
     const int number;
-    const double value;
-    FrequencyAssertion(const Model&, int number, double value, double tolerance, int original_id =
+    const double cycles;
+    const double eigenValue;
+    FrequencyAssertion(const Model&, int number, double cycles, double eigenValue, double tolerance, int original_id =
             NO_ORIGINAL_ID);
     std::shared_ptr<Objective> clone() const;
     const DOFS getDOFSForNode(const int nodePosition) const override final;

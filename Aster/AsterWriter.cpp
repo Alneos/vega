@@ -126,6 +126,11 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 						<< ", NOM_PARA='FREQ', TOUT_CHAM='NON')," << endl;
 				break;
 			}
+            case (Analysis::Type::LINEAR_BUCKLING): {
+				out << "                _F(RESULTAT=RESU" << analysis.getId()
+						<< ", NOM_PARA='CHAR_CRIT', TOUT_CHAM='NON')," << endl;
+				break;
+			}
 			case (Analysis::Type::LINEAR_DYNA_DIRECT_FREQ): {
 				out << "                _F(RESULTAT=RESU" << analysis.getId()
 						<< ", NOM_PARA='FREQ', TOUT_CHAM='NON')," << endl;
@@ -160,6 +165,8 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 				out << ",),)," << endl;
 				break;
 			}
+			case (Analysis::Type::NONLINEAR_MECA_STAT):
+			case (Analysis::Type::LINEAR_BUCKLING):
 			case (Analysis::Type::LINEAR_MODAL): {
 				out << "                _F(RESULTAT=RESU" << analysis.getId()
 						<< ", NOM_CHAM = 'DEPL',)," << endl;
@@ -175,11 +182,6 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 						<< ", NOM_CHAM = 'DEPL',)," << endl;
 				out << "                _F(RESULTAT=RESU" << analysis.getId()
 						<< ", PARTIE='REEL')," << endl;
-				break;
-			}
-			case (Analysis::Type::NONLINEAR_MECA_STAT): {
-				out << "                _F(RESULTAT=RESU" << analysis.getId()
-						<< ", NOM_CHAM='DEPL',)," << endl;
 				break;
 			}
 			default:
@@ -193,12 +195,10 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 
 			out << "RETB" << analysis.getId() << "=CREA_TABLE(RESU=(" << endl;
 			switch (analysis.type) {
+            case (Analysis::Type::LINEAR_MODAL):
+            case (Analysis::Type::LINEAR_BUCKLING):
+            case (Analysis::Type::NONLINEAR_MECA_STAT):
 			case (Analysis::Type::LINEAR_MECA_STAT): {
-				out << "                _F(RESULTAT=RESU" << analysis.getId()
-						<< ",TOUT='OUI',NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
-				break;
-			}
-			case (Analysis::Type::LINEAR_MODAL): {
 				out << "                _F(RESULTAT=RESU" << analysis.getId()
 						<< ",TOUT='OUI',NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
 				break;
@@ -208,11 +208,6 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 			}
 			case (Analysis::Type::LINEAR_DYNA_MODAL_FREQ): {
 				out << "                _F(RESULTAT=MODES" << analysis.getId()
-						<< ",TOUT='OUI',NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
-				break;
-			}
-			case (Analysis::Type::NONLINEAR_MECA_STAT): {
-				out << "                _F(RESULTAT=RESU" << analysis.getId()
 						<< ",TOUT='OUI',NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
 				break;
 			}
@@ -312,7 +307,7 @@ void AsterWriter::writeAnalyses(const AsterModel& asterModel, ostream& out) {
 		Analysis& analysis = *it;
 		debut = writeAnalysis(asterModel, analysis, out, debut);
 
-		if (analysis.type != Analysis::Type::LINEAR_MECA_STAT && calc_sigm) {
+		if (analysis.type != Analysis::Type::LINEAR_MECA_STAT and calc_sigm) {
 			out << "RESU" << analysis.getId() << "=CALC_CHAMP(reuse=RESU" << analysis.getId() << ","
 					<< endl;
 			out << "           RESULTAT=RESU" << analysis.getId() << "," << endl;
@@ -333,9 +328,9 @@ void AsterWriter::writeAnalyses(const AsterModel& asterModel, ostream& out) {
 					break;
 				case Objective::Type::FREQUENCY_ASSERTION:
 					out << "                  _F(RESULTAT="
-							<< ((analysis.type == Analysis::Type::LINEAR_MODAL) ? "RESU" : "MODES")
+							<< ((analysis.type == Analysis::Type::LINEAR_MODAL or analysis.type == Analysis::Type::LINEAR_BUCKLING) ? "RESU" : "MODES")
 							<< analysis.getId() << "," << endl;
-					writeFrequencyAssertion(*assertion, out);
+					writeFrequencyAssertion(analysis, *assertion, out);
 					break;
 				case Objective::Type::NODAL_COMPLEX_DISPLACEMENT_ASSERTION:
 					out << "                  _F(RESULTAT=RESU" << analysis.getId() << "," << endl;
@@ -1791,6 +1786,88 @@ void AsterWriter::writeDynamicExcitation(Analysis& analysis,
     }
 }
 
+void AsterWriter::writeCalcFreq(const AsterModel& asterModel, LinearModal& linearModal, ostream& out) {
+    string suffix;
+    if (linearModal.type == Analysis::Type::LINEAR_BUCKLING) {
+        suffix = "CHAR_CRIT";
+    } else {
+        suffix = "FREQ";
+    }
+    FrequencyTarget& frequencySearch = *(linearModal.getFrequencySearch());
+    switch(frequencySearch.frequencyType) {
+    case FrequencyTarget::FrequencyType::BAND: {
+      BandRange band = dynamic_cast<BandRange&>(*frequencySearch.getValue());
+      if (linearModal.use_power_iteration) {
+          out << "                       OPTION='SEPARE'," << endl;
+      } else if (is_equal(band.end, Globals::UNAVAILABLE_DOUBLE)) {
+          out << "                       OPTION='CENTRE'," << endl; // LD : could be replaced by PLUS_PETITE + FILTRE
+      } else {
+          out << "                       OPTION='BANDE'," << endl;
+      }
+      out << "                       CALC_" << suffix << "=_F(" << endl;
+      out << "                                    " << suffix << "=(";
+      if (is_equal(band.start, Globals::UNAVAILABLE_DOUBLE)) {
+        auto lower_cutoff_frequency = asterModel.model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY);
+        if (lower_cutoff_frequency != asterModel.model.parameters.end()) {
+            if (asterModel.model.configuration.logLevel >= LogLevel::TRACE) {
+                cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
+            }
+            out << lower_cutoff_frequency->second;
+        } else {
+          out << 0.0;
+        }
+      } else {
+        out << band.start;
+      }
+      if (is_equal(band.end, Globals::UNAVAILABLE_DOUBLE)) {
+          out << ", " << ")," << endl;
+      } else {
+          out << ", " << band.end << ")," << endl;
+      }
+      if (not is_equal(band.maxsearch, Globals::UNAVAILABLE_DOUBLE)) {
+          out << "                                    NMAX_" << suffix << "=" << band.maxsearch << endl;
+      }
+      out << "                                    )," << endl;
+      break;
+    }
+    case FrequencyTarget::FrequencyType::STEP: {
+      StepRange frequencyStep = dynamic_cast<StepRange&>(*frequencySearch.getValue());
+      if (linearModal.use_power_iteration) {
+        out << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
+      } else {
+        out << "                       OPTION='CENTRE'," << endl;
+      }
+      out << "                       CALC_" << suffix << "=_F(" << endl;
+      out << "                                    " << suffix << "=(";
+      for (double frequency = frequencyStep.start; frequency < frequencyStep.end; frequency += frequencyStep.step ) {
+        out << frequency << ",";
+      }
+      out << ")," << endl;
+      out << "                                    )," << endl;
+      break;
+    }
+    case FrequencyTarget::FrequencyType::LIST: {
+      ListValue<double>& frequencyList = dynamic_cast<ListValue<double>&>(*frequencySearch.getValue());
+      if (linearModal.use_power_iteration) {
+        out << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
+      } else {
+        out << "                       OPTION='CENTRE'," << endl;
+      }
+      out << "                       CALC_" << suffix << "=_F(" << endl;
+      out << "                                    " << suffix << "=(";
+      for (const double frequency : frequencyList.getList()) {
+          out << frequency << ",";
+      }
+      out << ")," << endl;
+      out << "                                    )," << endl;
+      break;
+    }
+    default:
+      handleWritingError(
+                "Frequency search " + to_string(static_cast<int>(frequencySearch.frequencyType)) + " not (yet) implemented");
+    }
+}
+
 double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analysis,
 		ostream& out, double debut) {
 	if (analysis.isOriginal()) {
@@ -1817,7 +1894,8 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 			}
 		}
 		out << "                           )," << endl;
-                out << "                    SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS')," << endl;
+        out << "                    SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS')," << endl;
+        out << "                    OPTION='SIEF_ELGA'," << endl;
 		out << "                    );" << endl << endl;
 		break;
 	}
@@ -1994,79 +2072,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		} else {
             out << "                       SOLVEUR_MODAL=_F(METHODE='TRI_DIAG')," << endl;
 		}
-		FrequencyTarget& frequencySearch = *(linearModal.getFrequencySearch());
-		switch(frequencySearch.frequencyType) {
-        case FrequencyTarget::FrequencyType::BAND: {
-          BandRange band = dynamic_cast<BandRange&>(*frequencySearch.getValue());
-          if (linearModal.use_power_iteration) {
-              out << "                       OPTION='SEPARE'," << endl;
-          } else if (is_equal(band.end, Globals::UNAVAILABLE_DOUBLE)) {
-              out << "                       OPTION='CENTRE'," << endl; // LD : could be replaced by PLUS_PETITE + FILTRE
-          } else {
-              out << "                       OPTION='BANDE'," << endl;
-          }
-          out << "                       CALC_FREQ=_F(" << endl;
-          out << "                                    FREQ=(";
-          if (is_equal(band.start, Globals::UNAVAILABLE_DOUBLE)) {
-            auto lower_cutoff_frequency = asterModel.model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY);
-            if (lower_cutoff_frequency != asterModel.model.parameters.end()) {
-                if (asterModel.model.configuration.logLevel >= LogLevel::TRACE) {
-                    cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
-                }
-                out << lower_cutoff_frequency->second;
-            } else {
-              out << 0.0;
-            }
-          } else {
-            out << band.start;
-          }
-          if (is_equal(band.end, Globals::UNAVAILABLE_DOUBLE)) {
-              out << ", " << ")," << endl;
-          } else {
-              out << ", " << band.end << ")," << endl;
-          }
-          if (not is_equal(band.maxsearch, Globals::UNAVAILABLE_DOUBLE)) {
-              out << "                                    NMAX_FREQ=" << band.maxsearch << endl;
-          }
-          out << "                                    )," << endl;
-          break;
-        }
-        case FrequencyTarget::FrequencyType::STEP: {
-          StepRange frequencyStep = dynamic_cast<StepRange&>(*frequencySearch.getValue());
-          if (linearModal.use_power_iteration) {
-            out << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
-          } else {
-            out << "                       OPTION='CENTRE'," << endl;
-          }
-          out << "                       CALC_FREQ=_F(" << endl;
-          out << "                                    FREQ=(";
-          for (double frequency = frequencyStep.start; frequency < frequencyStep.end; frequency += frequencyStep.step ) {
-            out << frequency << ",";
-          }
-          out << ")," << endl;
-          out << "                                    )," << endl;
-          break;
-        }
-        case FrequencyTarget::FrequencyType::LIST: {
-          ListValue<double>& frequencyList = dynamic_cast<ListValue<double>&>(*frequencySearch.getValue());
-          if (linearModal.use_power_iteration) {
-            out << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
-          } else {
-            out << "                       OPTION='CENTRE'," << endl;
-          }
-          out << "                       CALC_FREQ=_F(" << endl;
-          out << "                                    FREQ=(";
-          for (const double frequency : frequencyList.getList()) {
-              out << frequency << ",";
-          }
-          out << ")," << endl;
-          out << "                                    )," << endl;
-          break;
-        }
-        default:
-          handleWritingError(
-                    "Frequency search " + to_string(static_cast<int>(frequencySearch.frequencyType)) + " not (yet) implemented");
-		}
+        writeCalcFreq(asterModel, linearModal, out);
 		out << "                       VERI_MODE=_F(STOP_ERREUR='NON',)," << endl;
 		out << "                       SOLVEUR=_F(METHODE='MUMPS'," << endl;
 		out << "                                  RENUM='PORD'," << endl;
@@ -2243,7 +2249,54 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 
 		break;
 	}
+    case Analysis::Type::LINEAR_BUCKLING: {
+        LinearBuckling& linearBuckling = dynamic_cast<LinearBuckling&>(analysis);
 
+        out << "SMEC" << linearBuckling.getId() << " = CALC_MATR_ELEM(OPTION = 'RIGI_MECA'," << endl;
+        out << "                 MODELE = MODMECA," << endl;
+        out << "                 CHARGE=(" << endl;
+        for (shared_ptr<ConstraintSet> constraintSet : analysis.getConstraintSets()) {
+            out << "                   BL" << constraintSet->getId() << "," << endl;
+        }
+        out << "                   )," << endl;
+        out << "                 CARA_ELEM=CAEL," << endl;
+        out << "                 CHAM_MATER = CHMAT," << endl;
+        out << "                )" << endl << endl;
+
+        out << "FSIG" << linearBuckling.getId() << " = CREA_CHAMP(OPERATION='EXTR'," << endl;
+        out << "            TYPE_CHAM='ELGA_SIEF_R'," << endl;
+        out << "            RESULTAT=RESU" << linearBuckling.previousAnalysis->getId() << "," << endl;
+        //out << "            NUME_ORDRE=1," << endl;
+        out << "            NOM_CHAM='SIEF_ELGA',)" << endl << endl;
+
+        out << "SGEO" << linearBuckling.getId() << " = CALC_MATR_ELEM(OPTION='RIGI_GEOM'," << endl;
+        out << "               MODELE=MODMECA," << endl;
+        out << "               CARA_ELEM=CAEL," << endl;
+        out << "               CHAM_MATER = CHMAT," << endl;
+        out << "               SIEF_ELGA=FSIG" << linearBuckling.getId() << ",)" << endl << endl;
+
+        out << "NDDL" << linearBuckling.getId() << " = NUME_DDL(MATR_RIGI=SMEC" << linearBuckling.getId() << ")" << endl;
+        out << "SAMEC" << linearBuckling.getId() << " = ASSE_MATRICE(NUME_DDL=NDDL" << linearBuckling.getId() << ",MATR_ELEM=SMEC" << linearBuckling.getId() << ",)" << endl;
+        out << "SAGEO" << linearBuckling.getId() << " = ASSE_MATRICE(NUME_DDL=NDDL" << linearBuckling.getId() << ",MATR_ELEM=SGEO" << linearBuckling.getId() << ",)" << endl;
+
+        out << "RESU" << linearBuckling.getId() << "=CALC_MODES(MATR_RIGI=SAMEC" << linearBuckling.getId() << "," << endl;
+        out << "                 MATR_RIGI_GEOM=SAGEO" << linearBuckling.getId() << "," << endl;
+        out << "                 TYPE_RESU='MODE_FLAMB'," << endl;
+		if (linearBuckling.use_power_iteration) {
+            out << "                       SOLVEUR_MODAL=_F(OPTION_INV='DIRECT')," << endl;
+		} else {
+            out << "                       SOLVEUR_MODAL=_F(METHODE='TRI_DIAG')," << endl;
+		}
+        writeCalcFreq(asterModel, linearBuckling, out);
+        out << "             VERI_MODE=_F(STOP_ERREUR='NON',)," << endl;
+        out << "             SOLVEUR=_F(METHODE='MUMPS',)," << endl;
+        out << "       )" << endl << endl;
+
+        out << "RESUN" << linearBuckling.getId() << " = NORM_MODE(MODE=RESU" << linearBuckling.getId() << ",NORME='TRAN',)" << endl;
+        out << "TBCRT" << linearBuckling.getId() << " = RECU_TABLE(CO=RESUN" << linearBuckling.getId() << ",NOM_PARA='CHAR_CRIT')" << endl;
+
+        break;
+    }
 	default:
 		handleWritingError(
 				"Analysis " + Analysis::stringByType.at(analysis.type) + " not (yet) implemented");
@@ -2293,14 +2346,21 @@ void AsterWriter::writeNodalComplexDisplacementAssertion(const AsterModel& aster
 	out << "                     TOLE_MACHINE = (" << (relativeComparison ? nda.tolerance : 1e-5) << "," << 1e-5 << ")," << endl;
 }
 
-void AsterWriter::writeFrequencyAssertion(const Assertion& assertion, ostream& out) const {
+void AsterWriter::writeFrequencyAssertion(const Analysis& analysis, const Assertion& assertion, ostream& out) const {
 	const FrequencyAssertion& frequencyAssertion = dynamic_cast<const FrequencyAssertion&>(assertion);
+	bool isBuckling = analysis.type == Analysis::Type::LINEAR_BUCKLING;
 
 	out << "                     CRITERE = "
-			<< (!is_equal(frequencyAssertion.value, 0) ? "'RELATIF'," : "'ABSOLU',") << endl;
-	out << "                     PARA = 'FREQ'," << endl;
-	out << "                     NUME_MODE = " << frequencyAssertion.number << "," << endl;
-	out << "                     VALE_CALC = " << frequencyAssertion.value << "," << endl;
+			<< (!is_zero(frequencyAssertion.cycles) ? "'RELATIF'," : "'ABSOLU',") << endl;
+    if (isBuckling) {
+        out << "                     PARA = 'CHAR_CRIT'," << endl;
+        out << "                     NUME_MODE = " << analysis.getAssertions().size() - frequencyAssertion.number + 1 << "," << endl;
+        out << "                     VALE_CALC = " << -frequencyAssertion.eigenValue << "," << endl;
+    } else {
+        out << "                     PARA = 'FREQ'," << endl;
+        out << "                     NUME_MODE = " << frequencyAssertion.number << "," << endl;
+        out << "                     VALE_CALC = " << frequencyAssertion.cycles << "," << endl;
+    }
 	out << "                     TOLE_MACHINE = " << frequencyAssertion.tolerance << "," << endl;
 
 }

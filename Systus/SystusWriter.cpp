@@ -3501,8 +3501,8 @@ void SystusWriter::writeFrequencyAssertion(Assertion& assertion, ostream& out) {
 
     out << scientific;
     out << "frequency = frequency_number(" << frequencyAssertion.number << ");" << endl;
-    out << "diff = abs((frequency-(" << frequencyAssertion.value << "))/("
-            << (abs(frequencyAssertion.value) >= 1e-9 ? frequencyAssertion.value : 1.) << "));" << endl;
+    out << "diff = abs((frequency-(" << frequencyAssertion.cycles << "))/("
+            << (abs(frequencyAssertion.cycles) >= 1e-9 ? frequencyAssertion.cycles : 1.) << "));" << endl;
 
     out << "fprintf(iResu,\" ------------------------ TEST_RESU FREQUENCY ASSERTION ------------------------\\n\")"
             << endl;
@@ -3510,7 +3510,7 @@ void SystusWriter::writeFrequencyAssertion(Assertion& assertion, ostream& out) {
             << endl;
     out << "if (diff > abs(" << frequencyAssertion.tolerance
             << ")) fprintf(iResu,\" NOOK \"); else fprintf(iResu,\" OK   \");" << endl;
-    out << "fprintf(iResu,\"" << setw(8) << frequencyAssertion.number << "     " << frequencyAssertion.value
+    out << "fprintf(iResu,\"" << setw(8) << frequencyAssertion.number << "     " << frequencyAssertion.cycles
             << " %e %e " << frequencyAssertion.tolerance << " \\n\\n\", frequency, diff);"
             << endl;
     out.unsetf(ios::scientific);
