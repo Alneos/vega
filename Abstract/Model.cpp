@@ -1003,7 +1003,7 @@ void Model::emulateLocalDisplacementConstraint() {
             add(*linearMultiplePointConstraint);
             for (auto constraintSet : constraintSets) {
                 if (configuration.logLevel >= LogLevel::DEBUG)
-                    cout << "Adding Local emulation constraint:" << linearMultiplePointConstraint << " to constraintset: " << constraintSet << ";" << endl;
+                    cout << "Adding Local emulation constraint:" << *linearMultiplePointConstraint << " to constraintset: " << *constraintSet << ";" << endl;
                 addConstraintIntoConstraintSet(linearMultiplePointConstraint->getReference(),
                         constraintSet->getReference());
             }
