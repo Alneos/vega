@@ -967,7 +967,7 @@ void Model::emulateLocalDisplacementConstraint() {
                     coordSystem->updateLocalBase(VectorialValue(node.x, node.y, node.z));
                     DOFS dofs = constraint->getDOFSForNode(nodePosition);
                     if (configuration.logLevel >= LogLevel::DEBUG)
-                        cout << "Replacing local spc" << *spc << "node:" << node << ",dofs " << constraint->getDOFSForNode(nodePosition) << endl;
+                        cout << "Replacing local spc " << *spc << " for: " << node << ",dofs " << constraint->getDOFSForNode(nodePosition) << endl;
                     for (int i = 0; i < 6; i++) {
                         vega::DOF currentDOF = *DOF::dofByPosition[i];
                         if (dofs.contains(currentDOF)) {
@@ -984,7 +984,7 @@ void Model::emulateLocalDisplacementConstraint() {
                                         participation.y(), participation.z());
                             }
                             if (configuration.logLevel >= LogLevel::DEBUG)
-                                cout << "Node:" << node << ", current dof:" << currentDOF << ", participation:" << participation << ", coef:" << lmpc->coef_impo << endl;
+                                cout << "Adding: " << node << ", current dof:" << currentDOF << ", participation:" << participation << ", coef:" << lmpc->coef_impo << endl;
                             linearMultiplePointConstraintsByConstraint[constraint].insert(lmpc);
                         }
                     }
@@ -1002,6 +1002,8 @@ void Model::emulateLocalDisplacementConstraint() {
         for (auto linearMultiplePointConstraint : it.second) {
             add(*linearMultiplePointConstraint);
             for (auto constraintSet : constraintSets) {
+                if (configuration.logLevel >= LogLevel::DEBUG)
+                    cout << "Adding Local emulation constraint:" << linearMultiplePointConstraint << " to constraintset: " << constraintSet << ";" << endl;
                 addConstraintIntoConstraintSet(linearMultiplePointConstraint->getReference(),
                         constraintSet->getReference());
             }
@@ -1179,13 +1181,13 @@ void Model::removeIneffectives() {
     // remove empty constraintSets from the model
     vector<Reference<ConstraintSet>> constraintSetSetsToRemove;
     for (auto constraintSet : this->constraintSets) {
-        if (constraintSet->size() == 0) {
+        if (constraintSet->empty()) {
             constraintSetSetsToRemove.push_back(constraintSet->getReference());
         }
     }
     for (Reference<ConstraintSet> constraintSetRef : constraintSetSetsToRemove) {
         if (configuration.logLevel >= LogLevel::DEBUG)
-            cout << "Removed empty " << constraintSetRef.id << endl;
+            cout << "Removed empty " << constraintSetRef << endl;
         remove(constraintSetRef);
     }
 
@@ -1477,7 +1479,7 @@ void Model::replaceDirectMatrices()
         }
         const DOFS& extra = added - owned - required;
         if (extra != DOFS::NO_DOFS) {
-            SinglePointConstraint spc = SinglePointConstraint(*this, extra);
+            SinglePointConstraint spc{*this, extra};
             spc.addNodeId(nodeId);
             add(spc);
             addConstraintIntoConstraintSet(spc, commonConstraintSet);

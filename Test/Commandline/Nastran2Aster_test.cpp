@@ -75,10 +75,9 @@ BOOST_AUTO_TEST_CASE( ssll11c ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/ssll11c/ssll11c.nas", RUN_ASTER, true, 0.000001);
 }
 
-//BOOST_AUTO_TEST_CASE( ssnv129a ) {
-//  Exception threw Unavailable cell requested.
-//	CommandLineUtils::nastranStudy2Aster("/irt/ssnv129a/ssnv129a.bdf", RUN_ASTER, true, 0.01);
-//}
+BOOST_AUTO_TEST_CASE( ssnv129a ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/ssnv129a/ssnv129a.bdf", RUN_ASTER, true, 0.01);
+}
 
 BOOST_AUTO_TEST_CASE( ssnv104i ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/ssnv104i/ssnv104i.bdf", RUN_ASTER, true, 0.04);
@@ -97,7 +96,7 @@ BOOST_AUTO_TEST_CASE( pload4 ) {
 }
 
 BOOST_AUTO_TEST_CASE( nas101prob2 ) {
-    // ok but using refinment in beams (cannot refine a truss in Aster)
+    // ok but using refinement in beams (cannot refine a truss in Aster)
 	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob2/nas101prob2.dat", RUN_ASTER, true, 0.03);
 }
 
@@ -124,8 +123,7 @@ BOOST_AUTO_TEST_CASE( nas101prob7 ) {
 }
 
 BOOST_AUTO_TEST_CASE( nas101probA ) {
-  // TODO : LD RESU NOOK, maybe mesh refine ?
-	CommandLineUtils::nastranStudy2Aster("/irt/nas101probA/nas101probA.bdf", false, true, 0.05);
+	CommandLineUtils::nastranStudy2Aster("/irt/nas101probA/nas101probA.bdf", RUN_ASTER, true, 0.05);
 }
 
 BOOST_AUTO_TEST_CASE( nas101probB ) {

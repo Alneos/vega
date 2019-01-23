@@ -2324,7 +2324,7 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) 
                               and cid == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     if (not has_direction and g1 == Globals::UNAVAILABLE_INT) {
         NormalPressionFace normalPressionFace(*model, p1);
-        for(int cellId = eid1; cellId <= eid2; cellId++) {
+        for(int cellId = eid1; cellId < eid2; cellId++) {
             normalPressionFace.addCellId(cellId);
         }
 
@@ -2878,9 +2878,12 @@ void NastranParser::parseSPCADD(NastranTokenizer& tok, shared_ptr<Model> model) 
     else {
         while (tok.isNextInt()) {
             int constraintSet_id = tok.nextInt();
-            //ConstraintSet constraintSet(*model, ConstraintSet::Type::SPC, constraintSet_id);
-            //model->add(constraintSet);
-            //Reference<ConstraintSet> constraintSetReference(constraintSet);
+            // Need to add referenced SPCs in the same constraintset, otherwise it will not be found
+            // Example: case of SPC in local coordinate system replaced by MPCs
+            // Possible alternative: make sure that these SPCs are found also with methods like
+            // Model.getConstraintsByConstraintSet() etc. which seems not to be the case now
+            ConstraintSet constraintSet(*model, ConstraintSet::Type::SPC, constraintSet_id);
+            model->add(constraintSet);
             Reference<ConstraintSet> constraintSetReference(ConstraintSet::Type::SPC, constraintSet_id);
             constraintSet_ptr->add(constraintSetReference);
         }

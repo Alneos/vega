@@ -114,9 +114,9 @@ if(COMPILER_SUPPORTS_FEXTNUMERICLITERALS)
   add_compile_options(-fext-numeric-literals)
 endif()
 
-CHECK_CXX_COMPILER_FLAG(-Wmisleading-indentation COMPILER_SUPPORTS_MISLEADING_INDENTATION)
-if(COMPILER_SUPPORTS_MISLEADING_INDENTATION)
-  add_compile_options(-Wmisleading-indentation)
+CHECK_CXX_COMPILER_FLAG(-Wduplicated-cond COMPILER_SUPPORTS_DUPLICATED_COND)
+if(COMPILER_SUPPORTS_DUPLICATED_COND)
+  add_compile_options(-Wduplicated-cond)
 endif()
 
 CHECK_CXX_COMPILER_FLAG(-Wfloat-equal COMPILER_SUPPORTS_FLOAT_EQUAL)

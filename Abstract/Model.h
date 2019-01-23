@@ -272,7 +272,7 @@ private:
         std::map<Parameter, double> parameters;
         bool onlyMesh;
 
-        Model(std::string name, std::string inputSolverVersion = std::string("UNKNOWN"),
+        Model(std::string name, std::string inputSolverVersion = "UNKNOWN",
                 SolverName inputSolver = SolverName::NASTRAN,
                 const ModelConfiguration configuration = ModelConfiguration(),
                 const vega::ConfigurationParameters::TranslationMode translationMode = vega::ConfigurationParameters::TranslationMode::BEST_EFFORT);

@@ -82,6 +82,7 @@ public:
 	const std::set<std::shared_ptr<Constraint> > getConstraints() const;
 	const std::set<std::shared_ptr<Constraint> > getConstraintsByType(Constraint::Type) const;
 	int size() const;
+	inline bool empty() const {return size() == 0;};
 	std::shared_ptr<ConstraintSet> clone() const;
 	bool hasFunctions() const;
 	bool hasContacts() const;

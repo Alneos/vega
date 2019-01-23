@@ -111,9 +111,9 @@ std::string to_str(const Reference<T>& reference) {
 
     auto it = T::stringByType.find(reference.type);
     if (it != T::stringByType.end())
-        type = "type=" + it->second;
+        type = "type=" + T::name + "<" + it->second + ">";
     else
-        type = "type " + std::to_string(static_cast<int>(reference.type)) + " not yet mapped in stringByType";
+        type = "type " + T::name + "<" + std::to_string(static_cast<int>(reference.type)) + ">" + " not yet mapped in stringByType";
 
     oss << "Reference[" << type << "; " << id << "]";
 
