@@ -1929,9 +1929,13 @@
 		<Unit filename="testdata/nastran/irt/nas101prob4/nas101prob4.f06" />
 		<Unit filename="testdata/nastran/irt/nas101prob4/nas101prob4.nas" />
 		<Unit filename="testdata/nastran/irt/nas101prob4/readme.txt" />
+		<Unit filename="testdata/nastran/irt/nas101prob7/nas101prob7.f06" />
+		<Unit filename="testdata/nastran/irt/nas101prob7/nas101prob7.nas" />
+		<Unit filename="testdata/nastran/irt/nas101prob7/readme.txt" />
 		<Unit filename="testdata/nastran/irt/nas101probA/nas101probA.bdf" />
 		<Unit filename="testdata/nastran/irt/nas101probA/nas101probA.f06" />
 		<Unit filename="testdata/nastran/irt/nas101probA/readme.txt" />
+		<Unit filename="testdata/nastran/irt/nas103prob4a/nas103prob4a.nas" />
 		<Unit filename="testdata/nastran/irt/nas103prob5/nas103prob5.f06" />
 		<Unit filename="testdata/nastran/irt/nas103prob5/nas103prob5.nas" />
 		<Unit filename="testdata/nastran/irt/nas103prob5/readme.txt" />

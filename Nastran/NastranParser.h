@@ -363,6 +363,11 @@ private:
     void parseDPHASE(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     /**
+     * EIGB Defines data needed to perform buckling analysis.
+     */
+    void parseEIGB(NastranTokenizer& tok, std::shared_ptr<Model> model);
+
+    /**
      * Parse the keyword EIGR (page 1517 of MDN Nastran 2006 Quick Reference Guide.)
      * Only Lanczos Method is supported.
      */

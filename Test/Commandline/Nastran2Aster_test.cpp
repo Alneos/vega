@@ -150,6 +150,11 @@ BOOST_AUTO_TEST_CASE( nas103prob3 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/nas103prob3/nas103prob3.nas", RUN_ASTER, true, 0.02);
 }
 
+BOOST_AUTO_TEST_CASE( nas103prob4a ) {
+    // Cannot solve buckling using BARRE, can solve using POUTRE but must also free DRZ at left end, maybe refine ?
+	CommandLineUtils::nastranStudy2Aster("/irt/nas103prob4a/nas103prob4a.nas", false, true, 0.02);
+}
+
 BOOST_AUTO_TEST_CASE( nas103prob5 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/nas103prob5/nas103prob5.nas", RUN_ASTER, true, 0.005);
 }

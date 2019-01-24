@@ -85,6 +85,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "DLOAD", &NastranParser::parseDLOAD },
                 { "DMIG", &NastranParser::parseDMIG },
                 { "DPHASE", &NastranParser::parseDPHASE },
+                { "EIGB", &NastranParser::parseEIGB },
                 { "EIGR", &NastranParser::parseEIGR },
                 { "EIGRL", &NastranParser::parseEIGRL },
                 { "FORCE", &NastranParser::parseFORCE },
@@ -1089,6 +1090,51 @@ void NastranParser::parseDPHASE(NastranTokenizer& tok, shared_ptr<Model> model) 
     }
     DynaPhase dynaphase(*model, dphase, original_id);
     model->add(dynaphase);
+}
+
+void NastranParser::parseEIGB(NastranTokenizer& tok, shared_ptr<Model> model) {
+    int sid = tok.nextInt();
+    string method = tok.nextString(true); UNUSEDV(method);
+    double lower = tok.nextDouble(true);
+    double upper = tok.nextDouble(true);
+    int ne = tok.nextInt(true); UNUSEDV(ne);// Estimate of number of roots in range: not use by the LANCZOS method
+
+    int ndp = tok.nextInt(true); // Desired number of positive roots in range
+    int ndn = tok.nextInt(true); UNUSEDV(ndn);// Desired number of negative roots in range
+    handleParsingWarning("Desired number of negative roots in range NDN ignored.", tok, model);
+
+    // See Nastran Quick reference guide for the treatment of nd in the Lancszos method
+    if ((ndp==Globals::UNAVAILABLE_INT) && (is_equal(upper, Globals::UNAVAILABLE_DOUBLE))){
+        ndp=1;
+    }
+
+    tok.skip(2);
+
+    FrequencyTarget::NormType norm;
+    string normString = tok.nextString(true, "MASS");
+    if (normString == "MASS")
+        norm = FrequencyTarget::NormType::MASS;
+    else if (normString == "MAX")
+        norm = FrequencyTarget::NormType::MAX;
+    else {
+        handleParsingWarning("Only MASS and MAX normalizing method (NORM) supported. Default (MASS) assumed.", tok, model);
+        norm = FrequencyTarget::NormType::MAX;
+    }
+    int g = tok.nextInt(true);
+    if (g!=Globals::UNAVAILABLE_INT){
+        handleParsingWarning("Grid identification number (G) not supported.", tok, model);
+    }
+    int c = tok.nextInt(true);
+    if (c!=Globals::UNAVAILABLE_INT){
+        handleParsingWarning("Component number (C) not supported.", tok, model);
+    }
+
+    BandRange bandRange(*model, lower, ndp, upper);
+    //bandRange.setParaX(Function::ParaName::FREQ);
+    FrequencyTarget frequencyTarget(*model, FrequencyTarget::FrequencyType::BAND, bandRange, norm, sid);
+
+    model->add(bandRange);
+    model->add(frequencyTarget);
 }
 
 void NastranParser::parseEIGR(NastranTokenizer& tok, shared_ptr<Model> model) {

@@ -1788,7 +1788,8 @@ void AsterWriter::writeDynamicExcitation(Analysis& analysis,
 
 void AsterWriter::writeCalcFreq(const AsterModel& asterModel, LinearModal& linearModal, ostream& out) {
     string suffix;
-    if (linearModal.type == Analysis::Type::LINEAR_BUCKLING) {
+    bool isBuckling = linearModal.type == Analysis::Type::LINEAR_BUCKLING;
+    if (isBuckling) {
         suffix = "CHAR_CRIT";
     } else {
         suffix = "FREQ";
@@ -1796,62 +1797,72 @@ void AsterWriter::writeCalcFreq(const AsterModel& asterModel, LinearModal& linea
     FrequencyTarget& frequencySearch = *(linearModal.getFrequencySearch());
     switch(frequencySearch.frequencyType) {
     case FrequencyTarget::FrequencyType::BAND: {
-      BandRange band = dynamic_cast<BandRange&>(*frequencySearch.getValue());
-      if (linearModal.use_power_iteration) {
-          out << "                       OPTION='SEPARE'," << endl;
-      } else if (is_equal(band.end, Globals::UNAVAILABLE_DOUBLE)) {
-          out << "                       OPTION='CENTRE'," << endl; // LD : could be replaced by PLUS_PETITE + FILTRE
-      } else {
-          out << "                       OPTION='BANDE'," << endl;
-      }
-      out << "                       CALC_" << suffix << "=_F(" << endl;
-      out << "                                    " << suffix << "=(";
-      if (is_equal(band.start, Globals::UNAVAILABLE_DOUBLE)) {
-        auto lower_cutoff_frequency = asterModel.model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY);
-        if (lower_cutoff_frequency != asterModel.model.parameters.end()) {
-            if (asterModel.model.configuration.logLevel >= LogLevel::TRACE) {
-                cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
+        BandRange band = dynamic_cast<BandRange&>(*frequencySearch.getValue());
+        double fstart = band.start;
+        if (is_equal(fstart, Globals::UNAVAILABLE_DOUBLE)) {
+            auto lower_cutoff_frequency = asterModel.model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY);
+            if (lower_cutoff_frequency != asterModel.model.parameters.end()) {
+                if (asterModel.model.configuration.logLevel >= LogLevel::TRACE) {
+                    cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
+                }
+                fstart = lower_cutoff_frequency->second;
+            } else {
+                fstart = 0.0;
             }
-            out << lower_cutoff_frequency->second;
-        } else {
-          out << 0.0;
         }
-      } else {
-        out << band.start;
-      }
-      if (is_equal(band.end, Globals::UNAVAILABLE_DOUBLE)) {
-          out << ", " << ")," << endl;
-      } else {
-          out << ", " << band.end << ")," << endl;
-      }
-      if (not is_equal(band.maxsearch, Globals::UNAVAILABLE_DOUBLE)) {
-          out << "                                    NMAX_" << suffix << "=" << band.maxsearch << endl;
-      }
-      out << "                                    )," << endl;
-      break;
+        double fend = band.end;
+        if (isBuckling and not is_equal(band.end, Globals::UNAVAILABLE_DOUBLE)) {
+            fstart = -fstart;
+            fend = -fend;
+            swap(fstart, fend);
+        }
+        if (linearModal.use_power_iteration) {
+            out << "                       OPTION='SEPARE'," << endl;
+        } else if (is_equal(fend, Globals::UNAVAILABLE_DOUBLE)) {
+            out << "                       OPTION='PLUS_PETITE'," << endl;
+        } else if (not is_equal(fend, Globals::UNAVAILABLE_DOUBLE)) {
+            out << "                       OPTION='CENTRE'," << endl; // LD : could be replaced by PLUS_PETITE + FILTRE
+        } else {
+            out << "                       OPTION='BANDE'," << endl;
+        }
+        out << "                       CALC_" << suffix << "=_F(" << endl;
+        if (is_equal(band.maxsearch, Globals::UNAVAILABLE_DOUBLE)) {
+            out << "                                    " << suffix << "=(";
+            out << fstart;
+            if (is_equal(fend, Globals::UNAVAILABLE_DOUBLE)) {
+                out << ", " << ")," << endl;
+            } else {
+                out << ", " << fend;
+                out << ")," << endl;
+            }
+        } else {
+            out << "                                    NMAX_" << suffix << "=" << band.maxsearch << endl;
+        }
+        out << "                                    )," << endl;
+        break;
     }
     case FrequencyTarget::FrequencyType::STEP: {
-      StepRange frequencyStep = dynamic_cast<StepRange&>(*frequencySearch.getValue());
-      if (linearModal.use_power_iteration) {
-        out << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
-      } else {
-        out << "                       OPTION='CENTRE'," << endl;
-      }
-      out << "                       CALC_" << suffix << "=_F(" << endl;
-      out << "                                    " << suffix << "=(";
-      for (double frequency = frequencyStep.start; frequency < frequencyStep.end; frequency += frequencyStep.step ) {
-        out << frequency << ",";
-      }
-      out << ")," << endl;
-      out << "                                    )," << endl;
-      break;
+        StepRange frequencyStep = dynamic_cast<StepRange&>(*frequencySearch.getValue());
+        if (linearModal.use_power_iteration) {
+            out << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
+        } else {
+            out << "                       OPTION='CENTRE'," << endl;
+        }
+        out << "                       CALC_" << suffix << "=_F(" << endl;
+        out << "                                    " << suffix << "=(";
+        for (double frequency = frequencyStep.start; frequency < frequencyStep.end; frequency += frequencyStep.step ) {
+            out << frequency << ",";
+        }
+        out << ")," << endl;
+        out << "                                    )," << endl;
+        break;
     }
     case FrequencyTarget::FrequencyType::LIST: {
       ListValue<double>& frequencyList = dynamic_cast<ListValue<double>&>(*frequencySearch.getValue());
       if (linearModal.use_power_iteration) {
-        out << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
+          out << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
       } else {
-        out << "                       OPTION='CENTRE'," << endl;
+          out << "                       OPTION='CENTRE'," << endl;
       }
       out << "                       CALC_" << suffix << "=_F(" << endl;
       out << "                                    " << suffix << "=(";
@@ -1863,7 +1874,7 @@ void AsterWriter::writeCalcFreq(const AsterModel& asterModel, LinearModal& linea
       break;
     }
     default:
-      handleWritingError(
+        handleWritingError(
                 "Frequency search " + to_string(static_cast<int>(frequencySearch.frequencyType)) + " not (yet) implemented");
     }
 }

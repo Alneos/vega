@@ -133,6 +133,10 @@ public:
     const std::list<T> getList() const {
         return alist;
     }
+    const std::list<T> getReverseList() const {
+        std::list<T> alist2 = alist; alist2.reverse();
+        return alist2;
+    }
     bool empty() const {
         return alist.size() == 0;
     }
