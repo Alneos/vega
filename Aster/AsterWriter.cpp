@@ -1818,15 +1818,16 @@ void AsterWriter::writeCalcFreq(const AsterModel& asterModel, LinearModal& linea
         }
         if (linearModal.use_power_iteration) {
             out << "                       OPTION='SEPARE'," << endl;
-        } else if (is_equal(fend, Globals::UNAVAILABLE_DOUBLE)) {
+        } else if (isBuckling or (is_equal(fstart, Globals::UNAVAILABLE_DOUBLE) and is_equal(fend, Globals::UNAVAILABLE_DOUBLE))) {
+            // CALC_CHAR_CRIT is not filtering eigenvalues correctly in Aster 13.6
             out << "                       OPTION='PLUS_PETITE'," << endl;
-        } else if (not is_equal(fend, Globals::UNAVAILABLE_DOUBLE)) {
+        } else if (is_equal(fend, Globals::UNAVAILABLE_DOUBLE)) {
             out << "                       OPTION='CENTRE'," << endl; // LD : could be replaced by PLUS_PETITE + FILTRE
         } else {
             out << "                       OPTION='BANDE'," << endl;
         }
         out << "                       CALC_" << suffix << "=_F(" << endl;
-        if (is_equal(band.maxsearch, Globals::UNAVAILABLE_DOUBLE)) {
+        if (not isBuckling and not is_equal(fstart, Globals::UNAVAILABLE_DOUBLE)) {
             out << "                                    " << suffix << "=(";
             out << fstart;
             if (is_equal(fend, Globals::UNAVAILABLE_DOUBLE)) {
@@ -1835,9 +1836,10 @@ void AsterWriter::writeCalcFreq(const AsterModel& asterModel, LinearModal& linea
                 out << ", " << fend;
                 out << ")," << endl;
             }
-        } else {
+        } else if (not is_equal(band.maxsearch, Globals::UNAVAILABLE_DOUBLE)) {
             out << "                                    NMAX_" << suffix << "=" << band.maxsearch << endl;
         }
+
         out << "                                    )," << endl;
         break;
     }

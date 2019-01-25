@@ -24,6 +24,7 @@
 #include "NastranParser.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/math/constants/constants.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
 #include <iostream>
@@ -2435,6 +2436,8 @@ void NastranParser::parsePROD(NastranTokenizer& tok, shared_ptr<Model> model) {
     if (!is_equal(nsm, 0)) {
         handleParsingWarning("Non Structural mass (NSM) not supported and dismissed.", tok, model);
     }
+//    double equivalent_inertia_moment = pow(a, 2) / 4 / boost::math::constants::pi<double>(); // Using circular beam formula
+//    GenericSectionBeam genericSectionBeam(*model, a, equivalent_inertia_moment, equivalent_inertia_moment, j, 1.0, 1.0, GenericSectionBeam::BeamModel::TIMOSHENKO, nsm,
     GenericSectionBeam genericSectionBeam(*model, a, 0, 0, j, 0, 0, GenericSectionBeam::BeamModel::TRUSS, nsm,
             propId);
     genericSectionBeam.assignMaterial(material_id);

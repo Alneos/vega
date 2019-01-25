@@ -16,11 +16,6 @@
 #include "Dof.h"
 
 #include <fstream>
-#include <boost/lexical_cast.hpp>
-#include <boost/functional/hash.hpp>
-//win
-#define _USE_MATH_DEFINES
-#include <math.h>
 
 namespace vega {
 

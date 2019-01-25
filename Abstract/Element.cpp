@@ -13,6 +13,9 @@
 #include "SolverInterfaces.h"
 #include <boost/assign.hpp>
 #include <ciso646>
+//win
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 namespace vega {
 
