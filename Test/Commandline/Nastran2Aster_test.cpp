@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE( fixedcircularplate ) {
 }
 
 BOOST_AUTO_TEST_CASE( t01331a ) {
-    // TODO : LD test not yet complete, but running
+    // Results NOOK, still missing THETA CTRIA3 orientation (should become a ANGL_VRIL)
 	CommandLineUtils::nastranStudy2Aster("/irt/t01331/t01331a.inp", RUN_ASTER, true, 0.00001);
 }
 
@@ -114,8 +114,7 @@ BOOST_AUTO_TEST_CASE( nas101prob5 ) {
 }
 
 BOOST_AUTO_TEST_CASE( nas101prob6 ) {
-    // Mesh should be refined
-	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob6/nas101prob6.nas", RUN_ASTER, true, 0.1);
+	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob6/nas101prob6.nas", RUN_ASTER, true, 0.05);
 }
 
 BOOST_AUTO_TEST_CASE( nas101prob7 ) {
@@ -128,7 +127,7 @@ BOOST_AUTO_TEST_CASE( nas101probA ) {
 
 BOOST_AUTO_TEST_CASE( nas101probB ) {
     // LIAISON_RBE3 <EXCEPTION> <DVP_2>  Erreur numérique (floating point exception).
-	CommandLineUtils::nastranStudy2Aster("/irt/nas101probB/nas101probB.nas", false, true, 0.1);
+	CommandLineUtils::nastranStudy2Aster("/irt/nas101probB/nas101probB.nas", false, true, 0.05);
 }
 
 BOOST_AUTO_TEST_CASE( nas102prob5 ) {

@@ -120,12 +120,6 @@ CORD2R  2       0       0.0     0.0     0.0     0.0     0.0     1.0     +C2
 CORD2R  3       0       0.0     0.0     0.0     0.0     0.0     1.0     +C3
 +C3     1.0     0.0     0.0
 MAT8    1       20.0 E+70.5 E+070.25    0.25 E+70.25 E+70.25 E+7
-$ LD REPLACE NEXT 1 LINE ....
-$PARAM   AUTOSPC 1
-SPC1           1       4       1       9      10      18      19      27
-SPC1           1       4      28      36      37      45      46      54
-SPC1           1       4      55      63      64      72
-$ LD ... END REPLACE
 PCOMP   1                                                               +PC1
 +PC1    1       .03125  45.0    YES                     -45.0   YES     +PC2
 +PC2    1       .03125  15.0    YES                     -15.0   YES     +PC3
