@@ -405,12 +405,12 @@ LinearModal::LinearModal(Model& model, const Reference<Objective>& frequencySear
 
 LinearModal::LinearModal(Model& model, const int frequency_band_original_id,
         const string original_label, const int original_id, const Type type) :
-        Analysis(model, type, original_label, original_id), frequencySearchRef(Objective::Type::FREQUENCY_TARGET,
+        Analysis(model, type, original_label, original_id), frequencySearchRef(Objective::Type::FREQUENCY_SEARCH,
                 frequency_band_original_id) {
 }
 
-shared_ptr<FrequencyTarget> LinearModal::getFrequencySearch() const {
-    return dynamic_pointer_cast<FrequencyTarget>(model.find(frequencySearchRef));
+shared_ptr<FrequencySearch> LinearModal::getFrequencySearch() const {
+    return dynamic_pointer_cast<FrequencySearch>(model.find(frequencySearchRef));
 }
 
 shared_ptr<Analysis> LinearModal::clone() const {
@@ -442,7 +442,7 @@ LinearDynaModalFreq::LinearDynaModalFreq(Model& model, const int frequency_band_
         const bool residual_vector, const string original_label, const int original_id) :
         LinearModal(model, frequency_band_original_id, original_label, original_id,
                 Analysis::Type::LINEAR_DYNA_MODAL_FREQ), modal_damping_reference(Objective::Type::MODAL_DAMPING,
-                modal_damping_original_id), frequencyExcitationRef(Objective::Type::FREQUENCY_TARGET,
+                modal_damping_original_id), frequencyExcitationRef(Objective::Type::FREQUENCY_EXCIT,
                 frequency_value_original_id), residual_vector(residual_vector) {
 }
 
@@ -450,8 +450,8 @@ shared_ptr<ModalDamping> LinearDynaModalFreq::getModalDamping() const {
     return dynamic_pointer_cast<ModalDamping>(model.find(modal_damping_reference));
 }
 
-shared_ptr<FrequencyTarget> LinearDynaModalFreq::getExcitationFrequencies() const {
-    return dynamic_pointer_cast<FrequencyTarget>(model.find(frequencyExcitationRef));
+shared_ptr<FrequencyExcit> LinearDynaModalFreq::getExcitationFrequencies() const {
+    return dynamic_pointer_cast<FrequencyExcit>(model.find(frequencyExcitationRef));
 }
 
 shared_ptr<Analysis> LinearDynaModalFreq::clone() const {
@@ -473,12 +473,12 @@ LinearDynaDirectFreq::LinearDynaDirectFreq(Model& model,
         const int frequency_value_original_id,
         const string original_label, const int original_id) :
         Analysis(model, Analysis::Type::LINEAR_DYNA_DIRECT_FREQ, original_label, original_id),
-                frequencyExcitationRef(Objective::Type::FREQUENCY_TARGET,
+                frequencyExcitationRef(Objective::Type::FREQUENCY_EXCIT,
                 frequency_value_original_id) {
 }
 
-shared_ptr<FrequencyTarget> LinearDynaDirectFreq::getExcitationFrequencies() const {
-    return dynamic_pointer_cast<FrequencyTarget>(model.find(frequencyExcitationRef));
+shared_ptr<FrequencyExcit> LinearDynaDirectFreq::getExcitationFrequencies() const {
+    return dynamic_pointer_cast<FrequencyExcit>(model.find(frequencyExcitationRef));
 }
 
 shared_ptr<Analysis> LinearDynaDirectFreq::clone() const {

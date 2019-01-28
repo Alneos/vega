@@ -64,17 +64,6 @@ void Model::Container<T>::erase(const Reference<T> ref) {
         by_original_ids_by_type[ref.type].erase(ref.original_id);
 }
 
-template<class T>
-const vector<shared_ptr<T>> Model::Container<T>::filter(const typename T::Type type) const {
-    vector<shared_ptr<T>> result;
-    for (const auto& id_obj_pair: by_id) {
-        if (id_obj_pair.second->type == type) {
-            result.push_back(id_obj_pair.second);
-        }
-    }
-    return result;
-}
-
 //template<class T>
 //bool Model::Container<T>::contains(const typename T::Type type) const {
 //    for (const auto& id_obj_pair: by_id) {
@@ -511,7 +500,9 @@ const set<shared_ptr<Loading>> Model::getLoadingsByLoadSet(
     if (itm != loadingReferences_by_loadSet_ids.end()) {
         for (auto itm2 : itm->second) {
             shared_ptr<Loading> loading = find(*itm2);
-            assert(loading != nullptr);
+            if (loading == nullptr) {
+                throw logic_error("Missing loading declared in loadingSet : " + to_str(*itm2));
+            }
             result.insert(loading);
         }
     }
@@ -522,7 +513,9 @@ const set<shared_ptr<Loading>> Model::getLoadingsByLoadSet(
         if (itm3 != itm2->second.end()) {
             for (auto itm4 : itm3->second) {
                 shared_ptr<Loading> loading = find(*itm4);
-                assert(loading != nullptr);
+            if (loading == nullptr) {
+                throw logic_error("Missing loading declared in loadingSet : " + to_str(*itm4));
+            }
                 result.insert(loading);
             }
         }
@@ -1162,7 +1155,7 @@ void Model::removeIneffectives() {
     }
     for (Reference<LoadSet> loadSetRef : loadSetSetsToRemove) {
         if (configuration.logLevel >= LogLevel::DEBUG)
-            cout << "Removed empty loadset " << loadSetRef.id << endl;
+            cout << "Removed empty loadset " << loadSetRef << endl;
         remove(loadSetRef);
     }
 
@@ -1226,7 +1219,7 @@ void Model::replaceCombinedLoadSets() {
         for (auto& kv : loadSet->embedded_loadsets) {
             shared_ptr<LoadSet> otherloadSet = this->find(kv.first);
             if (!otherloadSet) {
-                cerr << "CombinedLoadSet: missing loadSet " << to_string(kv.first.id) << endl;
+                throw logic_error("CombinedLoadSet: missing loadSet " + to_str(kv.first));
             }
             double coefficient = kv.second;
             for (shared_ptr<Loading> loading : otherloadSet->getLoadings()) {
@@ -2247,7 +2240,7 @@ void Model::addAutoAnalysis() {
             linearStatic = false;
         }
     }
-    auto& modalStrategies = objectives.filter(Objective::Type::FREQUENCY_TARGET);
+    auto& modalStrategies = objectives.filter(Objective::Type::FREQUENCY_SEARCH);
     if (modalStrategies.size() >= 1) {
         for(auto& modalStrategy : modalStrategies) {
             LinearModal analysis(*this, modalStrategy->getOriginalId());

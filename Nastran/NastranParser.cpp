@@ -536,7 +536,7 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         if (it == context.end())
             handleParsingError("METHOD not found for linear modal analysis", tok, model);
 
-        analysis = make_shared<LinearBuckling>(*model, Reference<Objective>(Objective::Type::FREQUENCY_TARGET, frequency_band_original_id), labelAnalysis, analysis_id);
+        analysis = make_shared<LinearBuckling>(*model, Reference<Objective>(Objective::Type::FREQUENCY_SEARCH, frequency_band_original_id), labelAnalysis, analysis_id);
 
     } else if (analysis_type == NastranAnalysis::MODES) {
 
@@ -628,6 +628,13 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
             if (!model->find(constraintReference)) { // constraintSet is added in the model if not found in the model
                 ConstraintSet constraintSet(*model, ConstraintSet::Type::MPC, id);
                 model->add(constraintSet);
+            }
+        } else if (!key.compare(0, 7, "LOADSET")) {
+            Reference<LoadSet> loadsetReference(LoadSet::Type::LOADSET, id);
+            analysis->add(loadsetReference);
+            if (!model->find(loadsetReference)) { // loadSet is added in the model if not found in the model
+                LoadSet loadSet(*model, LoadSet::Type::LOADSET, id);
+                model->add(loadSet);
             }
         } else if (!key.compare(0, 4, "LOAD")) {
             Reference<LoadSet> loadsetReference(LoadSet::Type::LOAD, id);
@@ -994,7 +1001,7 @@ void NastranParser::parseDLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
     while (tok.isNextDouble()) {
         double scale = tok.nextDouble(true, 1);
         int rload2_id = tok.nextInt();
-        Reference<LoadSet> loadSetReference(LoadSet::Type::LOAD, rload2_id);
+        Reference<LoadSet> loadSetReference(LoadSet::Type::DLOAD, rload2_id);
         loadSetMaster->embedded_loadsets.push_back(
                             pair<Reference<LoadSet>, double>(loadSetReference, S * scale));
     }
@@ -1111,15 +1118,15 @@ void NastranParser::parseEIGB(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     tok.skip(2);
 
-    FrequencyTarget::NormType norm;
+    FrequencySearch::NormType norm;
     string normString = tok.nextString(true, "MASS");
     if (normString == "MASS")
-        norm = FrequencyTarget::NormType::MASS;
+        norm = FrequencySearch::NormType::MASS;
     else if (normString == "MAX")
-        norm = FrequencyTarget::NormType::MAX;
+        norm = FrequencySearch::NormType::MAX;
     else {
         handleParsingWarning("Only MASS and MAX normalizing method (NORM) supported. Default (MASS) assumed.", tok, model);
-        norm = FrequencyTarget::NormType::MAX;
+        norm = FrequencySearch::NormType::MAX;
     }
     int g = tok.nextInt(true);
     if (g!=Globals::UNAVAILABLE_INT){
@@ -1132,7 +1139,7 @@ void NastranParser::parseEIGB(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     BandRange bandRange(*model, lower, ndp, upper);
     //bandRange.setParaX(Function::ParaName::FREQ);
-    FrequencyTarget frequencyTarget(*model, FrequencyTarget::FrequencyType::BAND, bandRange, norm, sid);
+    FrequencySearch frequencyTarget(*model, FrequencySearch::FrequencyType::BAND, bandRange, norm, sid);
 
     model->add(bandRange);
     model->add(frequencyTarget);
@@ -1157,15 +1164,15 @@ void NastranParser::parseEIGR(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     tok.skip(2);
 
-    FrequencyTarget::NormType norm;
+    FrequencySearch::NormType norm;
     string normString = tok.nextString(true, "MASS");
     if (normString == "MASS")
-        norm = FrequencyTarget::NormType::MASS;
+        norm = FrequencySearch::NormType::MASS;
     else if (normString == "MAX")
-        norm = FrequencyTarget::NormType::MAX;
+        norm = FrequencySearch::NormType::MAX;
     else {
         handleParsingWarning("Only MASS and MAX normalizing method (NORM) supported. Default (MASS) assumed.", tok, model);
-        norm = FrequencyTarget::NormType::MAX;
+        norm = FrequencySearch::NormType::MAX;
     }
     int g = tok.nextInt(true);
     if (g!=Globals::UNAVAILABLE_INT){
@@ -1178,10 +1185,10 @@ void NastranParser::parseEIGR(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     BandRange bandRange(*model, lower, nd, upper);
     //bandRange.setParaX(Function::ParaName::FREQ);
-    FrequencyTarget frequencyTarget(*model, FrequencyTarget::FrequencyType::BAND, bandRange, norm, original_id);
+    FrequencySearch frequencySearch(*model, FrequencySearch::FrequencyType::BAND, bandRange, norm, original_id);
 
     model->add(bandRange);
-    model->add(frequencyTarget);
+    model->add(frequencySearch);
 }
 
 void NastranParser::parseEIGRL(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -1210,22 +1217,22 @@ void NastranParser::parseEIGRL(NastranTokenizer& tok, shared_ptr<Model> model) {
     }
 
     // Normalization method
-    FrequencyTarget::NormType norm;
+    FrequencySearch::NormType norm;
     string normString = tok.nextString(true, "MASS");
     if (normString == "MASS")
-        norm = FrequencyTarget::NormType::MASS;
+        norm = FrequencySearch::NormType::MASS;
     else if (normString == "MAX")
-        norm = FrequencyTarget::NormType::MAX;
+        norm = FrequencySearch::NormType::MAX;
     else {
         handleParsingWarning("Only MASS and MAX normalizing method (NORM) supported. Default (MASS) assumed.", tok, model);
-        norm = FrequencyTarget::NormType::MAX;
+        norm = FrequencySearch::NormType::MAX;
     }
     BandRange bandRange(*model, lower, nd, upper);
     //bandRange.setParaX(Function::ParaName::FREQ);
-    FrequencyTarget frequencyTarget(*model, FrequencyTarget::FrequencyType::BAND, bandRange, norm, original_id);
+    FrequencySearch frequencySearch(*model, FrequencySearch::FrequencyType::BAND, bandRange, norm, original_id);
 
     model->add(bandRange);
-    model->add(frequencyTarget);
+    model->add(frequencySearch);
 }
 
 void NastranParser::parseFORCE(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -1293,32 +1300,32 @@ void NastranParser::parseFORCE2(NastranTokenizer& tok, shared_ptr<Model> model) 
 }
 
 void NastranParser::parseFREQ(NastranTokenizer& tok, shared_ptr<Model> model) {
-    int original_id = tok.nextInt();
+    int sid = tok.nextInt();
     list<double> frequencies = tok.nextDoubles();
 
     ListValue<double> frequencyValue(*model, frequencies);
     model->add(frequencyValue);
-    FrequencyTarget frequencyRange(*model, FrequencyTarget::FrequencyType::LIST, frequencyValue, FrequencyTarget::NormType::MASS, original_id);
+    FrequencyExcit frequencyRange(*model, FrequencyExcit::FrequencyType::LIST, frequencyValue, FrequencyExcit::NormType::MASS, sid);
 
     model->add(frequencyRange);
 }
 
 void NastranParser::parseFREQ1(NastranTokenizer& tok, shared_ptr<Model> model) {
-    int original_id = tok.nextInt();
+    int sid = tok.nextInt();
     double start = tok.nextDouble();
     double step = tok.nextDouble();
     int count = tok.nextInt(true, 1);
 
     vega::StepRange stepRange(*model, start, step, count);
     //stepRange.setParaX(Function::ParaName::FREQ);
-    FrequencyTarget frequencyTarget(*model, FrequencyTarget::FrequencyType::STEP, stepRange, FrequencyTarget::NormType::MASS, original_id);
+    FrequencyExcit frequencyExcit(*model, FrequencyExcit::FrequencyType::STEP, stepRange, FrequencyExcit::NormType::MASS, sid);
 
     model->add(stepRange);
-    model->add(frequencyTarget);
+    model->add(frequencyExcit);
 }
 
 void NastranParser::parseFREQ4(NastranTokenizer& tok, shared_ptr<Model> model) {
-    int original_id = tok.nextInt();
+    int sid = tok.nextInt();
     double f1 = tok.nextDouble();
     double f2 = tok.nextDouble();
     double spread = tok.nextDouble();
@@ -1326,10 +1333,10 @@ void NastranParser::parseFREQ4(NastranTokenizer& tok, shared_ptr<Model> model) {
 
     vega::SpreadRange spreadRange(*model, f1, count, f2, spread);
     //spreadRange.setParaX(Function::ParaName::FREQ);
-    FrequencyTarget frequencyTarget(*model, FrequencyTarget::FrequencyType::SPREAD, spreadRange, FrequencyTarget::NormType::MASS, original_id);
+    FrequencyExcit frequencyExcit(*model, FrequencyExcit::FrequencyType::SPREAD, spreadRange, FrequencyExcit::NormType::MASS, sid);
 
     model->add(spreadRange);
-    model->add(frequencyTarget);
+    model->add(frequencyExcit);
 }
 
 void NastranParser::parseGRAV(NastranTokenizer& tok, shared_ptr<Model> model) {
@@ -1383,12 +1390,13 @@ void NastranParser::parseInclude(NastranTokenizer& tok, shared_ptr<Model> model)
 
 void NastranParser::parseLSEQ(NastranTokenizer& tok, shared_ptr<Model> model) {
     int set_id = tok.nextInt();
-    shared_ptr<LoadSet> loadSetMaster = model->getOrCreateLoadSet(set_id, LoadSet::Type::LOAD);
-    int darea_id = tok.nextInt();
+    // LSEQ will not be used unless selected in the Case Control Section with the LOADSET command.
+    shared_ptr<LoadSet> loadSetMaster = model->getOrCreateLoadSet(set_id, LoadSet::Type::LOADSET);
+    int darea_id = tok.nextInt(); UNUSEDV(darea_id);
     // LD : not sure about this interpretation
-    Reference<LoadSet> dareaReference(LoadSet::Type::LOAD, darea_id);
-    loadSetMaster->embedded_loadsets.push_back(
-                    pair<Reference<LoadSet>, double>(dareaReference, 1.0));
+//    Reference<LoadSet> dareaReference(LoadSet::Type::LOAD, darea_id);
+//    loadSetMaster->embedded_loadsets.push_back(
+//                    pair<Reference<LoadSet>, double>(dareaReference, 1.0));
     int loadSet_id = tok.nextInt();
     Reference<LoadSet> loadSetReference(LoadSet::Type::LOAD, loadSet_id);
     loadSetMaster->embedded_loadsets.push_back(
@@ -2436,9 +2444,8 @@ void NastranParser::parsePROD(NastranTokenizer& tok, shared_ptr<Model> model) {
     if (!is_equal(nsm, 0)) {
         handleParsingWarning("Non Structural mass (NSM) not supported and dismissed.", tok, model);
     }
-//    double equivalent_inertia_moment = pow(a, 2) / 4 / boost::math::constants::pi<double>(); // Using circular beam formula
-//    GenericSectionBeam genericSectionBeam(*model, a, equivalent_inertia_moment, equivalent_inertia_moment, j, 1.0, 1.0, GenericSectionBeam::BeamModel::TIMOSHENKO, nsm,
-    GenericSectionBeam genericSectionBeam(*model, a, 0, 0, j, 0, 0, GenericSectionBeam::BeamModel::TRUSS, nsm,
+    double equivalent_inertia_moment = pow(a, 2) / 4 / boost::math::constants::pi<double>(); // Using circular beam formula
+    GenericSectionBeam genericSectionBeam(*model, a, equivalent_inertia_moment, equivalent_inertia_moment, j, 1.0, 1.0, GenericSectionBeam::BeamModel::TRUSS, nsm,
             propId);
     genericSectionBeam.assignMaterial(material_id);
     genericSectionBeam.assignCellGroup(getOrCreateCellGroup(propId, model, "PROD"));
@@ -2772,7 +2779,7 @@ void NastranParser::parseRLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) 
     // Type
     string type = tok.nextString(true, "LOAD").substr(0, 1);
     if (type != "L" && type != "0")
-        handleParsingError("TYPE in RLOAD2 not supported. ", tok, model);
+        handleParsingError("TYPE in RLOAD2 not yet supported. ", tok, model);
 
     Reference<NamedValue> dynaDelay_ref = Reference<NamedValue>(Value::Type::DYNA_PHASE, delay_id);
     if (delay_id == 0) {
@@ -2792,12 +2799,23 @@ void NastranParser::parseRLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) 
 
 
 
-    // If needed, creates a LoadSet EXCITEID for the DynamicExcitation
-    LoadSet darea(*model, LoadSet::Type::EXCITEID, darea_set_id);
-    Reference<LoadSet> darea_ref(darea);
-    if (!model->find(darea_ref)){
-       model->add(darea);
+    Reference<LoadSet> excitRef{LoadSet::Type::EXCITEID, darea_set_id};
+    if (model->loadSets.contains(LoadSet::Type::LOADSET) and not model->find(excitRef)) {
+        // If there is a LOADSET request in the Case Control, then the model will reference static and thermal load set entries specified by the LID or TID field in the selected LSEQ entries corresponding to the EXCITEID.
+        auto loadsets = model->loadSets.filter(LoadSet::Type::LOADSET); // Hack should look for the indicated LOADSEQ context parameter
+        const auto& lseq = loadsets[0];
+//        const Reference<LoadSet>& dareaSetId = lseq->embedded_loadsets[0].first; // What about .second ?
+//        handleParsingWarning("Hack in resolving RLOAD2->LSEQ->(darea id)->LOAD : " + to_string(dareaSetId.original_id) + " versus " + to_string(darea_set_id),
+//                tok, model); // Hack, should seek the corresponding darea
+        Reference<LoadSet> loadId = lseq->embedded_loadsets[0].first; // What about .second ?
+        excitRef = loadId; // HACK?
     }
+    // If needed, creates a LoadSet EXCITEID for the DynamicExcitation
+//    LoadSet darea(*model, LoadSet::Type::EXCITEID, darea_set_id);
+//    Reference<LoadSet> darea_ref(darea);
+//    if (!model->find(darea_ref)){
+//       model->add(darea);
+//    }
 
     // if loadSet DLOAD does not exist (was not declared in the bulk), loadset_id become the original id of DynamicExcitation
     // else DynamicExcitation is created without original_id and is mapped to this loadSet
@@ -2808,7 +2826,7 @@ void NastranParser::parseRLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) 
     else
         original_id = loadset_id;
 
-    DynamicExcitation dynamicExcitation(*model, dynaDelay_ref, dynaPhase_ref, functionTableB_ref, functionTableP_ref, darea_ref,
+    DynamicExcitation dynamicExcitation(*model, dynaDelay_ref, dynaPhase_ref, functionTableB_ref, functionTableP_ref, excitRef,
             original_id);
     model->add(dynamicExcitation);
 

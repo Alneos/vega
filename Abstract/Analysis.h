@@ -168,7 +168,7 @@ public:
             const int original_id = NO_ORIGINAL_ID, const Type type = Type::LINEAR_MODAL);
     LinearModal(Model&, const int frequency_band_original_id, const std::string original_label = "",
             const int original_id = NO_ORIGINAL_ID, const Type type = Type::LINEAR_MODAL);
-    std::shared_ptr<FrequencyTarget> getFrequencySearch() const;
+    std::shared_ptr<FrequencySearch> getFrequencySearch() const;
     std::shared_ptr<Analysis> clone() const;
     bool use_power_iteration = false;
     bool validate() const override;
@@ -205,7 +205,7 @@ public:
             const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     const bool residual_vector;
     std::shared_ptr<ModalDamping> getModalDamping() const;
-    std::shared_ptr<FrequencyTarget> getExcitationFrequencies() const;
+    std::shared_ptr<FrequencyExcit> getExcitationFrequencies() const;
     std::shared_ptr<Analysis> clone() const;
     bool validate() const override;
 };
@@ -221,7 +221,7 @@ public:
     LinearDynaDirectFreq(Model& model,
             const int frequency_value_original_id,
             const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
-    std::shared_ptr<FrequencyTarget> getExcitationFrequencies() const;
+    std::shared_ptr<FrequencyExcit> getExcitationFrequencies() const;
     std::shared_ptr<Analysis> clone() const;
     bool validate() const override;
 };

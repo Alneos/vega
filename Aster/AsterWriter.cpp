@@ -988,7 +988,7 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
 			continue;
 		}
 		if (constraintSet.isOriginal()) {
-			out << "# ConstraintSet original id : " << constraintSet.getOriginalId() << endl;
+			out << "# ConstraintSet : " << constraintSet << endl;
 		}
 		for(bool withFunctions : {false, true} ) {
             string asterName;
@@ -1024,6 +1024,9 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
 			out << "# Ignoring INITIAL_TEMPERATURES!!!!!!" << endl;
 			cout << "!!!!!!Ignoring INITIAL_TEMPERATURES!!!!!!" << endl;
 			continue;
+		}
+		if (loadSet.isOriginal()) {
+			out << "# LoadSet " << loadSet << endl;
 		}
 		for(bool withFunctions : {false, true} ) {
             string asterName;
@@ -1732,6 +1735,7 @@ shared_ptr<NonLinearStrategy> AsterWriter::getNonLinearStrategy(
 
 void AsterWriter::writeAssemblage(const AsterModel& asterModel, Analysis& analysis,
 		ostream& out) {
+    bool hasDynamicExcit = asterModel.model.loadSets.contains(LoadSet::Type::DLOAD);
     out << "ASSEMBLAGE(MODELE=MODMECA," << endl;
     if (asterModel.model.materials.size() >= 1) {
         out << "           CHAM_MATER=CHMAT," << endl;
@@ -1750,40 +1754,26 @@ void AsterWriter::writeAssemblage(const AsterModel& asterModel, Analysis& analys
     out << "                      _F(OPTION='AMOR_MECA', MATRICE=CO('AMOR"
             << analysis.getId() << "'),)," << endl;
     out << "                      )," << endl;
-    out << "           );" << endl << endl;
-}
-
-void AsterWriter::writeDynamicExcitation(Analysis& analysis,
-		ostream& out) {
-    for (shared_ptr<LoadSet> loadSet : analysis.getLoadSets()) {
-        for (shared_ptr<Loading> loading : loadSet->getLoadings()) {
-            if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
-                DynamicExcitation& dynamicExcitation =
-                        dynamic_cast<DynamicExcitation&>(*loading);
-                out << "FXL" << analysis.getId() << "_"
-                        << dynamicExcitation.getLoadSet()->getId()
-                        << "= CALC_VECT_ELEM(OPTION='CHAR_MECA'," << endl;
-                out << "                        CHARGE=(" << endl;
-                out << "                                CHMEC"
-                        << dynamicExcitation.getLoadSet()->getId() << "," << endl;
-                for (shared_ptr<ConstraintSet> constraintSet : analysis.getConstraintSets()) {
-                    out << "                                BL" << constraintSet->getId() << ","
-                            << endl;
+    if (hasDynamicExcit) {
+        out << "           VECT_ASSE=(" << endl;
+        for (shared_ptr<LoadSet> loadSet : analysis.getLoadSets()) {
+            for (shared_ptr<Loading> loading : loadSet->getLoadings()) {
+                if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
+                    DynamicExcitation& dynamicExcitation =
+                            dynamic_cast<DynamicExcitation&>(*loading);
+                    out << "                      _F(OPTION='CHAR_MECA', VECTEUR=CO('FX"
+                            << analysis.getId() << "_" << dynamicExcitation.getId() << "')," << endl;
+                    out << "                        CHARGE=(" << endl;
+                    out << "                                CHMEC"
+                            << dynamicExcitation.getLoadSet()->getId() << "," << endl;
+                    out << "                                )," << endl;
+                    out << "                      )," << endl;
                 }
-                out << "                                )," << endl;
-                out << "                        CARA_ELEM=CAEL," << endl;
-                out << "                        );" << endl << endl;
-
-                out << "FX" << analysis.getId() << "_"
-                        << dynamicExcitation.getLoadSet()->getId()
-                        << "= ASSE_VECTEUR(VECT_ELEM=FXL" << analysis.getId() << "_"
-                        << dynamicExcitation.getLoadSet()->getId() << "," << endl;
-                out << "                    NUME_DDL=NUMDDL" << analysis.getId()
-                        << endl;
-                out << "                    );" << endl << endl;
             }
         }
+        out << "             )," << endl;
     }
+    out << "           );" << endl << endl;
 }
 
 void AsterWriter::writeCalcFreq(const AsterModel& asterModel, LinearModal& linearModal, ostream& out) {
@@ -1794,9 +1784,9 @@ void AsterWriter::writeCalcFreq(const AsterModel& asterModel, LinearModal& linea
     } else {
         suffix = "FREQ";
     }
-    FrequencyTarget& frequencySearch = *(linearModal.getFrequencySearch());
+    FrequencySearch& frequencySearch = *(linearModal.getFrequencySearch());
     switch(frequencySearch.frequencyType) {
-    case FrequencyTarget::FrequencyType::BAND: {
+    case FrequencySearch::FrequencyType::BAND: {
         BandRange band = dynamic_cast<BandRange&>(*frequencySearch.getValue());
         double fstart = band.start;
         if (is_equal(fstart, Globals::UNAVAILABLE_DOUBLE)) {
@@ -1843,7 +1833,7 @@ void AsterWriter::writeCalcFreq(const AsterModel& asterModel, LinearModal& linea
         out << "                                    )," << endl;
         break;
     }
-    case FrequencyTarget::FrequencyType::STEP: {
+    case FrequencySearch::FrequencyType::STEP: {
         StepRange frequencyStep = dynamic_cast<StepRange&>(*frequencySearch.getValue());
         if (linearModal.use_power_iteration) {
             out << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
@@ -1859,7 +1849,7 @@ void AsterWriter::writeCalcFreq(const AsterModel& asterModel, LinearModal& linea
         out << "                                    )," << endl;
         break;
     }
-    case FrequencyTarget::FrequencyType::LIST: {
+    case FrequencySearch::FrequencyType::LIST: {
       ListValue<double>& frequencyList = dynamic_cast<ListValue<double>&>(*frequencySearch.getValue());
       if (linearModal.use_power_iteration) {
           out << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
@@ -2016,7 +2006,6 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 	}
 	case Analysis::Type::LINEAR_DYNA_DIRECT_FREQ: {
         writeAssemblage(asterModel, analysis, out);
-        writeDynamicExcitation(analysis, out);
         auto structural_damping = asterModel.model.parameters.find(Model::Parameter::STRUCTURAL_DAMPING);
         auto frequency_of_interest_radians = asterModel.model.parameters.find(Model::Parameter::FREQUENCY_OF_INTEREST_RADIANS);
         bool has_structural_damping = structural_damping != asterModel.model.parameters.end() and frequency_of_interest_radians != asterModel.model.parameters.end() and frequency_of_interest_radians->second > 0;
@@ -2052,7 +2041,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 					out << "                                 _F(" << endl;
                     out << "                                    VECT_ASSE=FX"
                             << linearDirect.getId() << "_"
-                            << dynamicExcitation.getLoadSet()->getId() << "," << endl;
+                            << dynamicExcitation.getId() << "," << endl;
 					out << "                                    FONC_MULT = FCT" << setfill('0')
 							<< setw(5) << dynamicExcitation.getFunctionTableB()->getId() << ","
 							<< endl;
@@ -2069,7 +2058,6 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 	case Analysis::Type::LINEAR_MODAL:
 	case Analysis::Type::LINEAR_DYNA_MODAL_FREQ: {
         writeAssemblage(asterModel, analysis, out);
-        writeDynamicExcitation(analysis, out);
 
 		LinearModal& linearModal = dynamic_cast<LinearModal&>(analysis);
 
@@ -2183,10 +2171,10 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
                             dynamic_cast<DynamicExcitation&>(*loading);
                     out << "                          _F(VECTEUR=CO('VG"
                             << linearDynaModalFreq.getId() << "_"
-                            << dynamicExcitation.getLoadSet()->getId() << "')," << endl;
+                            << dynamicExcitation.getId() << "')," << endl;
                     out << "                             VECT_ASSE=FX"
                             << linearDynaModalFreq.getId() << "_"
-                            << dynamicExcitation.getLoadSet()->getId() << ",)," << endl;
+                            << dynamicExcitation.getId() << ",)," << endl;
                 }
             }
         }
@@ -2241,7 +2229,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 					out << "                                 _F(" << endl;
                     out << "                                    VECT_ASSE_GENE = VG"
                             << linearDynaModalFreq.getId() << "_"
-                            << dynamicExcitation.getLoadSet()->getId() << "," << endl;
+                            << dynamicExcitation.getId() << "," << endl;
 					out << "                                    FONC_MULT = FCT" << setfill('0')
 							<< setw(5) << dynamicExcitation.getFunctionTableB()->getId() << ","
 							<< endl;

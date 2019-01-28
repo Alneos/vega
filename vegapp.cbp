@@ -1900,8 +1900,6 @@
 		<Unit filename="testdata/nastran/caw/prob24/prob24.dat" />
 		<Unit filename="testdata/nastran/caw/prob30c/prob30c.dat" />
 		<Unit filename="testdata/nastran/caw/prob30c/prob30c.f06" />
-		<Unit filename="testdata/nastran/caw/prob6/prob6.dat" />
-		<Unit filename="testdata/nastran/caw/prob6/prob6.f06" />
 		<Unit filename="testdata/nastran/irt/2dof108/2dof108.bdf" />
 		<Unit filename="testdata/nastran/irt/2dof108/__2dof108.f06__" />
 		<Unit filename="testdata/nastran/irt/2dof108/readme.txt" />
@@ -1935,6 +1933,9 @@
 		<Unit filename="testdata/nastran/irt/nas101probA/nas101probA.bdf" />
 		<Unit filename="testdata/nastran/irt/nas101probA/nas101probA.f06" />
 		<Unit filename="testdata/nastran/irt/nas101probA/readme.txt" />
+		<Unit filename="testdata/nastran/irt/nas102prob6/nas102prob6.f06" />
+		<Unit filename="testdata/nastran/irt/nas102prob6/nas102prob6.nas" />
+		<Unit filename="testdata/nastran/irt/nas102prob6/readme.txt" />
 		<Unit filename="testdata/nastran/irt/nas103prob4a/nas103prob4a.nas" />
 		<Unit filename="testdata/nastran/irt/nas103prob5/nas103prob5.f06" />
 		<Unit filename="testdata/nastran/irt/nas103prob5/nas103prob5.nas" />

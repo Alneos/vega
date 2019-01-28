@@ -61,7 +61,6 @@ class AsterWriter final : public Writer{
 	double writeAnalysis(const AsterModel&, Analysis& analysis, std::ostream&, double debut);
 	void writeAssemblage(const AsterModel&, Analysis& analysis, std::ostream&);
 	void writeCalcFreq(const AsterModel&, LinearModal& analysis, std::ostream&);
-	void writeDynamicExcitation(Analysis& analysis, std::ostream&);
 	void writeNodalDisplacementAssertion(const AsterModel&, const Assertion&, std::ostream&) const;
 	void writeNodalComplexDisplacementAssertion(const AsterModel&, const Assertion&, std::ostream&) const;
 	void writeFrequencyAssertion(const Analysis&, const Assertion&, std::ostream&) const;

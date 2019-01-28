@@ -219,7 +219,15 @@ private:
         std::shared_ptr<T> find(const Reference<T>&) const;
         std::shared_ptr<T> find(int) const; /**< Find an object by its Original Id **/
         std::shared_ptr<T> get(int) const; /**< Return an object by its Vega Id **/
-        const std::vector<std::shared_ptr<T>> filter(const typename T::Type) const; /**< Choose objects based on their type */
+        const std::vector<std::shared_ptr<T>> filter(const typename T::Type type) const {
+            std::vector<std::shared_ptr<T>> result;
+            for (const auto& id_obj_pair: by_id) {
+                if (id_obj_pair.second->type == type) {
+                    result.push_back(id_obj_pair.second);
+                }
+            }
+            return result;
+        }; /**< Choose objects based on their type */
         bool contains(const typename T::Type type) const {
             for (const auto& id_obj_pair: by_id) {
                 if (id_obj_pair.second->type == type) {

@@ -37,7 +37,8 @@ const string Objective::name = "Objective";
 const map<Objective::Type, string> Objective::stringByType = {
         { Objective::Type::NODAL_DISPLACEMENT_ASSERTION, "NODAL_DISPLACEMENT_ASSERTION" },
         { Objective::Type::FREQUENCY_ASSERTION, "FREQUENCY_ASSERTION" },
-        { Objective::Type::FREQUENCY_TARGET, "FREQUENCY_TARGET" },
+        { Objective::Type::FREQUENCY_SEARCH, "FREQUENCY_SEARCH" },
+        { Objective::Type::FREQUENCY_EXCIT, "FREQUENCY_EXCIT" },
         { Objective::Type::MODAL_DAMPING, "MODAL_DAMPING" },
         { Objective::Type::NONLINEAR_STRATEGY, "NONLINEAR_STRATEGY" }
 };
@@ -112,20 +113,36 @@ AnalysisParameter::AnalysisParameter(const Model& model, Type type, int original
         Objective(model, type, original_id) {
 }
 
-FrequencyTarget::FrequencyTarget(const Model& model, const FrequencyType frequencyType, const NamedValue& namedValue, NormType norm, int original_id) :
-        AnalysisParameter(model, Objective::Type::FREQUENCY_TARGET, original_id), namedValue(namedValue), frequencyType(frequencyType), norm(norm) {
+FrequencySearch::FrequencySearch(const Model& model, const FrequencyType frequencyType, const NamedValue& namedValue, NormType norm, int original_id) :
+        AnalysisParameter(model, Objective::Type::FREQUENCY_SEARCH, original_id), namedValue(namedValue), frequencyType(frequencyType), norm(norm) {
 }
 
-const shared_ptr<NamedValue> FrequencyTarget::getValue() const {
+const shared_ptr<NamedValue> FrequencySearch::getValue() const {
     return dynamic_pointer_cast<NamedValue>(model.find(namedValue));
 }
 
-const FunctionPlaceHolder FrequencyTarget::getValueRangePlaceHolder() const {
+const FunctionPlaceHolder FrequencySearch::getValueRangePlaceHolder() const {
     return FunctionPlaceHolder(model, namedValue.type, namedValue.original_id, Function::ParaName::FREQ);
 }
 
-shared_ptr<Objective> FrequencyTarget::clone() const {
-    return make_shared<FrequencyTarget>(*this);
+shared_ptr<Objective> FrequencySearch::clone() const {
+    return make_shared<FrequencySearch>(*this);
+}
+
+FrequencyExcit::FrequencyExcit(const Model& model, const FrequencyType frequencyType, const NamedValue& namedValue, NormType norm, int original_id) :
+        AnalysisParameter(model, Objective::Type::FREQUENCY_EXCIT, original_id), namedValue(namedValue), frequencyType(frequencyType), norm(norm) {
+}
+
+const shared_ptr<NamedValue> FrequencyExcit::getValue() const {
+    return dynamic_pointer_cast<NamedValue>(model.find(namedValue));
+}
+
+const FunctionPlaceHolder FrequencyExcit::getValueRangePlaceHolder() const {
+    return FunctionPlaceHolder(model, namedValue.type, namedValue.original_id, Function::ParaName::FREQ);
+}
+
+shared_ptr<Objective> FrequencyExcit::clone() const {
+    return make_shared<FrequencyExcit>(*this);
 }
 
 ModalDamping::ModalDamping(const Model& model, const FunctionTable& function_table, int original_id) :

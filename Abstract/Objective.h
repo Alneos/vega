@@ -45,7 +45,8 @@ public:
         NODAL_DISPLACEMENT_ASSERTION,
         NODAL_COMPLEX_DISPLACEMENT_ASSERTION,
         FREQUENCY_ASSERTION,
-        FREQUENCY_TARGET,
+        FREQUENCY_SEARCH,
+        FREQUENCY_EXCIT,
         MODAL_DAMPING,
         NONLINEAR_STRATEGY,
         ARC_LENGTH_METHOD
@@ -133,7 +134,7 @@ public:
     virtual std::shared_ptr<Objective> clone() const=0;
 };
 
-class FrequencyTarget: public AnalysisParameter {
+class FrequencySearch: public AnalysisParameter {
 protected:
     Reference<NamedValue> namedValue;
 public:
@@ -149,7 +150,31 @@ public:
         MASS,
         MAX
     };
-    FrequencyTarget(const Model&, const FrequencyType frequencyType, const NamedValue&, const NormType norm = NormType::MASS, int original_id = NO_ORIGINAL_ID);
+    FrequencySearch(const Model&, const FrequencyType frequencyType, const NamedValue&, const NormType norm = NormType::MASS, int original_id = NO_ORIGINAL_ID);
+    const FrequencyType frequencyType;
+    const NormType norm;  /**< Method for normalizing eigenvectors: MASS or MAX **/
+    const std::shared_ptr<NamedValue> getValue() const;
+    const FunctionPlaceHolder getValueRangePlaceHolder() const;
+    std::shared_ptr<Objective> clone() const;
+};
+
+class FrequencyExcit: public AnalysisParameter {
+protected:
+    Reference<NamedValue> namedValue;
+public:
+
+    enum class FrequencyType {
+        BAND,
+        STEP,
+        LIST,
+        SPREAD
+    };
+
+    enum class NormType {
+        MASS,
+        MAX
+    };
+    FrequencyExcit(const Model&, const FrequencyType frequencyType, const NamedValue&, const NormType norm = NormType::MASS, int original_id = NO_ORIGINAL_ID);
     const FrequencyType frequencyType;
     const NormType norm;  /**< Method for normalizing eigenvectors: MASS or MAX **/
     const std::shared_ptr<NamedValue> getValue() const;

@@ -3083,12 +3083,12 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
 
         // Parameters of the analysis
         const LinearModal& linearModal = static_cast<const LinearModal&>(*analysis);
-        FrequencyTarget& frequencySearch = *(linearModal.getFrequencySearch());
+        FrequencySearch& frequencySearch = *(linearModal.getFrequencySearch());
         double upperF;
         double lowerF;
         int nmodes;
         switch(frequencySearch.frequencyType) {
-        case FrequencyTarget::FrequencyType::BAND: {
+        case FrequencySearch::FrequencyType::BAND: {
           BandRange band = dynamic_cast<BandRange&>(*frequencySearch.getValue());
           upperF = band.end;
           lowerF = band.start;
@@ -3149,11 +3149,11 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         // Choice of norm
         string sNorm;
         switch (frequencySearch.norm) {
-          case(FrequencyTarget::NormType::MASS): {
+          case(FrequencySearch::NormType::MASS): {
             sNorm=" NORM MASS";
             break;
           }
-          case(FrequencyTarget::NormType::MAX): {
+          case(FrequencySearch::NormType::MAX): {
             sNorm="";
             break;
           }
@@ -3249,12 +3249,12 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             // It's a limited version of what is done in Analysis::Type::LINEAR_MODAL, because we need to know
             // exactly the numbers of modes for the next part (so no STURM)
             // However, we keep the same syntax, for future development.
-            FrequencyTarget& frequencySearch = *(linearDynaModalFreq.getFrequencySearch());
+            FrequencySearch& frequencySearch = *(linearDynaModalFreq.getFrequencySearch());
             double upperF;
             double lowerF;
             int nModes;
             switch(frequencySearch.frequencyType) {
-            case FrequencyTarget::FrequencyType::BAND: {
+            case FrequencySearch::FrequencyType::BAND: {
               BandRange band = dynamic_cast<BandRange&>(*frequencySearch.getValue());
               upperF = band.end;
               lowerF = band.start;
@@ -3283,11 +3283,11 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             // Choice of norm
             string sNorm;
             switch (frequencySearch.norm) {
-              case(FrequencyTarget::NormType::MASS): {
+              case(FrequencySearch::NormType::MASS): {
                 sNorm=" NORM MASS";
                 break;
               }
-              case(FrequencyTarget::NormType::MAX): {
+              case(FrequencySearch::NormType::MAX): {
                 sNorm="";
                 break;
               }

@@ -135,6 +135,10 @@ BOOST_AUTO_TEST_CASE( nas102prob5 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/nas102prob5/nas102prob5.bdf", RUN_ASTER, true, 0.05);
 }
 
+//BOOST_AUTO_TEST_CASE( nas102prob6 ) {
+//	CommandLineUtils::nastranStudy2Aster("/irt/nas102prob6/nas102prob6.nas", RUN_ASTER, true, 0.05);
+//}
+
 BOOST_AUTO_TEST_CASE( nas102prob14a ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/nas102prob14a/nas102prob14a.nas", RUN_ASTER, true, 0.003);
 }
@@ -176,13 +180,13 @@ BOOST_AUTO_TEST_CASE( nas120probF ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/nas120probF/nas120probF.nas", RUN_ASTER, true, 0.000001);
 }
 
-//BOOST_AUTO_TEST_CASE( prob24 ) {
-//    // Problem with ID namespace conflict
-//	CommandLineUtils::nastranStudy2Aster("/caw/prob24/prob24.dat", RUN_ASTER, true, 0.05);
-//}
-
 BOOST_AUTO_TEST_CASE( test_2dof108 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/2dof108/2dof108.bdf", false, true, 0.05);
+}
+
+BOOST_AUTO_TEST_CASE( prob24 ) {
+    // Problem with ID namespace conflict
+	CommandLineUtils::nastranStudy2Aster("/caw/prob24/prob24.dat", RUN_ASTER, true, 0.05);
 }
 
 } /* namespace test */

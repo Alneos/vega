@@ -82,6 +82,7 @@ public:
 	enum class Type {
 		LOAD,
 		DLOAD,
+		LOADSET, // Static Load Set Selection for Use in Dynamics
 		EXCITEID,
 		ALL
 	};
@@ -428,6 +429,7 @@ public:
     const FunctionPlaceHolder getFunctionTablePPlaceHolder() const;
     std::set<int> nodePositions() const override;
     const DOFS getDOFSForNode(const int nodePosition) const override;
+    void scale(const double factor) override;
     std::shared_ptr<Loading> clone() const override;
     bool validate() const override;
     bool ineffective() const override;

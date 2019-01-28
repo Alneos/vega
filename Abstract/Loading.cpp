@@ -62,7 +62,7 @@ LoadSet::LoadSet(const Model& model, Type type, int original_id) :
 const string LoadSet::name = "LoadSet";
 
 const map<LoadSet::Type, string> LoadSet::stringByType = { { LoadSet::Type::LOAD, "LOAD" }, { LoadSet::Type::DLOAD, "DLOAD" }, {
-		LoadSet::Type::EXCITEID, "EXCITEID" }, { LoadSet::Type::ALL, "ALL" } };
+		LoadSet::Type::EXCITEID, "EXCITEID" }, { LoadSet::Type::LOADSET, "LOADSET" }, { LoadSet::Type::ALL, "ALL" } };
 
 ostream &operator<<(ostream &out, const LoadSet& loadset) {
 	out << to_str(loadset);
@@ -743,6 +743,10 @@ set<int> DynamicExcitation::nodePositions() const {
 const DOFS DynamicExcitation::getDOFSForNode(const int nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::NO_DOFS;
+}
+
+void DynamicExcitation::scale(const double factor) {
+	model.find(functionTableB)->scale(factor);
 }
 
 shared_ptr<Loading> DynamicExcitation::clone() const {
