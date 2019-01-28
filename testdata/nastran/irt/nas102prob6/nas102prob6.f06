@@ -1,0 +1,7 @@
+                                              R E A L   E I G E N V A L U E S
+                                         (BEFORE AUGMENTATION OF RESIDUAL VECTORS)
+   MODE    EXTRACTION      EIGENVALUE            RADIANS             CYCLES            GENERALIZED         GENERALIZED
+    NO.       ORDER                                                                       MASS              STIFFNESS
+        1         1        7.055894E+05        8.399937E+02        1.336891E+02        1.000000E+00        7.055894E+05
+        2         2        1.877186E+07        4.332651E+03        6.895628E+02        1.000000E+00        1.877186E+07
+        3         3        2.811177E+07        5.302053E+03        8.438480E+02        1.000000E+00        2.811177E+07

@@ -2809,6 +2809,8 @@ void NastranParser::parseRLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) 
 //                tok, model); // Hack, should seek the corresponding darea
         Reference<LoadSet> loadId = lseq->embedded_loadsets[0].first; // What about .second ?
         excitRef = loadId; // HACK?
+    } else if (model->find(Reference<LoadSet>{LoadSet::Type::LOAD, darea_set_id})) {
+        excitRef = Reference<LoadSet>{LoadSet::Type::LOAD, darea_set_id};
     }
     // If needed, creates a LoadSet EXCITEID for the DynamicExcitation
 //    LoadSet darea(*model, LoadSet::Type::EXCITEID, darea_set_id);
