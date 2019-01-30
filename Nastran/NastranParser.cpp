@@ -192,7 +192,7 @@ string NastranParser::parseSubcase(NastranTokenizer& tok, shared_ptr<Model> mode
             continue;
         }
         nextKeyword = tok.nextString(true,"");
-        if ((!nextKeyword.empty()) && (nextKeyword != "BEGIN") && (nextKeyword != "SUBCASE")) {
+        if ((!nextKeyword.empty()) && (nextKeyword != "BEGIN") && (nextKeyword != "SUBCASE")  && (nextKeyword != "SUBCOM")) {
             string line ="";
             string sep="";
             while (tok.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_FIELD) {
@@ -200,13 +200,47 @@ string NastranParser::parseSubcase(NastranTokenizer& tok, shared_ptr<Model> mode
                 sep="_";
             }
             context[nextKeyword] = line;
-        }else{
+        } else {
             bParseSubcase=false;
         }
     }
 
     try{
         addAnalysis(tok, model, context, subCaseId);
+    }catch (std::string&){
+        return nextKeyword;
+    }
+    return nextKeyword;
+}
+
+string NastranParser::parseSubcom(NastranTokenizer& tok, shared_ptr<Model> model,
+        map<string, string> context) {
+    int subComId = tok.nextInt(true, 0);
+    string nextKeyword;
+    bool bParseSubcom =true;
+
+    while (bParseSubcom){
+        tok.nextLine();
+        if (tok.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_EOF){
+            bParseSubcom=false;
+            continue;
+        }
+        nextKeyword = tok.nextString(true,"");
+        if ((!nextKeyword.empty()) && (nextKeyword != "BEGIN") && (nextKeyword != "SUBCASE")  && (nextKeyword != "SUBCOM")) {
+            string line ="";
+            string sep="";
+            while (tok.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_FIELD) {
+                line+=sep+tok.nextString(true,"");
+                sep="_";
+            }
+            context[nextKeyword] = line;
+        } else {
+            bParseSubcom=false;
+        }
+    }
+
+    try{
+        addCombinationAnalysis(tok, model, context, subComId);
     }catch (std::string&){
         return nextKeyword;
     }
@@ -328,6 +362,10 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<Mode
                 model->add(matrix);
             } else if (keyword == "SUBCASE") {
                 keyword = parseSubcase(tok, model, context);
+                readNewKeyword = false;
+                subCaseFound = true;
+            } else if (keyword == "SUBCOM") {
+                keyword = parseSubcom(tok, model, context);
                 readNewKeyword = false;
                 subCaseFound = true;
             } else if (keyword == "SUBTITLE") {
@@ -471,7 +509,7 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         int analysis_id) {
 
     string analysis_str;
-    auto it0 = context.find("SOL");
+    const auto& it0 = context.find("SOL");
     if (it0 != context.end())
         analysis_str = trim_copy(it0->second);
     else
@@ -510,9 +548,9 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
 
     // Finding label
     string labelAnalysis="Analysis_"+to_string(analysis_id);
-    it0 = context.find("LABEL");
-    if (it0 != context.end())
-        labelAnalysis = trim_copy(it0->second);
+    const auto& it1 = context.find("LABEL");
+    if (it1 != context.end())
+        labelAnalysis = trim_copy(it1->second);
     else {
         auto commentEntry = tok.labelByCommentTypeAndId.find(make_pair(NastranTokenizer::CommentType::LOADSTEP, analysis_id));
         if (commentEntry != tok.labelByCommentTypeAndId.end())
@@ -677,6 +715,32 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
     analysis->previousAnalysis = previous;
     model->add(*analysis);
 
+}
+
+void NastranParser::addCombinationAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, map<string, string> &context,
+        int analysis_id) {
+    // Finding label
+    string labelAnalysis="Analysis_"+to_string(analysis_id);
+    const auto& label = context.find("LABEL");
+    if (label != context.end())
+        labelAnalysis = trim_copy(label->second);
+    else {
+        auto commentEntry = tok.labelByCommentTypeAndId.find(make_pair(NastranTokenizer::CommentType::LOADSTEP, analysis_id));
+        if (commentEntry != tok.labelByCommentTypeAndId.end())
+            labelAnalysis = commentEntry->second;
+    }
+    Combination combination{*model, labelAnalysis, analysis_id};
+
+    // A SUBSEQ command must follow this command.
+    const auto& subseq = context.find("SUBSEQ");
+    vector<string> coefStrings(model->analyses.size());
+    boost::split(coefStrings,subseq->second,boost::is_any_of(","));
+    int i = 0;
+    for (const auto& analysis : model->analyses) {
+        combination.coefByAnalysis[analysis->getReference()] = stod(coefStrings[i++]);
+    }
+
+    model->add(combination);
 }
 
 void NastranParser::parseBCBODY(NastranTokenizer& tok, shared_ptr<Model> model) {

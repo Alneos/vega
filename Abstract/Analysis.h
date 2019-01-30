@@ -53,6 +53,7 @@ private:
     const std::string label;         /**< User defined label for this instance of Analysis. **/
 public:
     enum class Type {
+        COMBINATION,
         LINEAR_MECA_STAT,
         LINEAR_BUCKLING,
         LINEAR_MODAL,
@@ -132,6 +133,19 @@ public:
 
     virtual ~Analysis();
 
+};
+
+class Combination: public Analysis {
+public:
+    Combination(Model& model, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
+    std::map<Reference<Analysis>,double> coefByAnalysis;
+    bool isStatic() const override {
+        return true;
+    }
+    bool isLinear() const override {
+        return true;
+    }
+    std::shared_ptr<Analysis> clone() const;
 };
 
 class LinearMecaStat: public Analysis {

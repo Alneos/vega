@@ -699,9 +699,24 @@ double NodalMass::getMass() const {
 	return m * mass_multiplier;
 }
 
+bool NodalMass::hasTranslations() const {
+	return not is_zero(m);
+}
+
+bool NodalMass::hasRotations() const {
+	return (not is_zero(ixx) or not is_zero(iyy) or not is_zero(izz) or not is_zero(ixy) or not is_zero(iyz) or not is_zero(ixz));
+}
+
 const DOFS NodalMass::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
-	return DOFS::ALL_DOFS;
+	DOFS dofs;
+	if (hasTranslations()) {
+        dofs = DOFS::TRANSLATIONS;
+	}
+	if (hasRotations()) {
+        dofs = DOFS::ALL_DOFS;
+	}
+	return dofs;
 }
 
 double NodalMass::getMassAsForce() const {

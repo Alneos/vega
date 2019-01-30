@@ -126,8 +126,7 @@ BOOST_AUTO_TEST_CASE( nas101probA ) {
 }
 
 BOOST_AUTO_TEST_CASE( nas101probB ) {
-    // LIAISON_RBE3 <EXCEPTION> <DVP_2>  Erreur numérique (floating point exception).
-	CommandLineUtils::nastranStudy2Aster("/irt/nas101probB/nas101probB.nas", false, true, 0.05);
+	CommandLineUtils::nastranStudy2Aster("/irt/nas101probB/nas101probB.nas", RUN_ASTER, true, 0.05);
 }
 
 BOOST_AUTO_TEST_CASE( nas102prob5 ) {

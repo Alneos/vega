@@ -374,6 +374,14 @@ void Analysis::copyInto(Analysis& other) const {
 Analysis::~Analysis() {
 }
 
+Combination::Combination(Model& model, const string original_label, const int original_id) :
+        Analysis(model, Analysis::Type::COMBINATION, original_label, original_id) {
+}
+
+shared_ptr<Analysis> Combination::clone() const {
+    return make_shared<Combination>(*this);
+}
+
 LinearMecaStat::LinearMecaStat(Model& model, const string original_label, const int original_id) :
         Analysis(model, Analysis::Type::LINEAR_MECA_STAT, original_label, original_id) {
 

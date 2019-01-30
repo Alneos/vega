@@ -73,6 +73,8 @@ private:
 
     void addAnalysis(NastranTokenizer& tok, std::shared_ptr<Model> model, std::map<std::string, std::string>& context, int analysis_id =
             Analysis::NO_ORIGINAL_ID);
+    void addCombinationAnalysis(NastranTokenizer& tok, std::shared_ptr<Model> model, std::map<std::string, std::string>& context, int analysis_id =
+            Analysis::NO_ORIGINAL_ID);
 
     fs::path findModelFile(const std::string& filename);
     void parseBULKSection(NastranTokenizer &tok, std::shared_ptr<Model> model1);
@@ -784,6 +786,7 @@ private:
     void parseParamWTMASS(NastranTokenizer& tok, std::shared_ptr<Model> model);
 
     std::string parseSubcase(NastranTokenizer& tok, std::shared_ptr<Model> model, std::map<std::string, std::string> context);
+    std::string parseSubcom(NastranTokenizer& tok, std::shared_ptr<Model> model, std::map<std::string, std::string> context);
 
     /**
      *  Add the Cell to the CellGroup corresponding to the property_id (use getOrCreateCellGroup)

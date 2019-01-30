@@ -452,6 +452,8 @@ class NodalMass: public ElementSet {
 	double getMassAsForce() const;
 
 	const DOFS getDOFSForNode(const int nodePosition) const override final;
+	bool hasTranslations() const;
+	bool hasRotations() const;
 
 	~NodalMass();
 

@@ -64,17 +64,6 @@ void Model::Container<T>::erase(const Reference<T> ref) {
         by_original_ids_by_type[ref.type].erase(ref.original_id);
 }
 
-//template<class T>
-//bool Model::Container<T>::contains(const typename T::Type type) const {
-//    for (const auto& id_obj_pair: by_id) {
-//        if (id_obj_pair.second->type == type) {
-//            return true;
-//        }
-//    }
-//    return false;
-//}
-
-
 /*
  * Redefining method add for Value to take into account placeHolder
  */

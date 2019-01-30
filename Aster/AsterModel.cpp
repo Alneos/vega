@@ -188,7 +188,11 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
     }
     case ElementSet::Type::NODAL_MASS: {
         shared_ptr<NodalMass> mass = (dynamic_pointer_cast<NodalMass>(elementSet));
-        result = "('DIS_TR',)";
+        if (mass->hasRotations()) {
+            result = "('DIS_TR',)";
+        } else {
+            result = "('DIS_T',)";
+        }
         break;
     }
     default:

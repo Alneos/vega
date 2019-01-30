@@ -307,7 +307,7 @@ void AsterWriter::writeAnalyses(const AsterModel& asterModel, ostream& out) {
 		Analysis& analysis = *it;
 		debut = writeAnalysis(asterModel, analysis, out, debut);
 
-		if (analysis.type != Analysis::Type::LINEAR_MECA_STAT and calc_sigm) {
+		if (calc_sigm) {
 			out << "RESU" << analysis.getId() << "=CALC_CHAMP(reuse=RESU" << analysis.getId() << ","
 					<< endl;
 			out << "           RESULTAT=RESU" << analysis.getId() << "," << endl;
@@ -794,12 +794,17 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 					out << "                             _F(GROUP_MA='"
 							<< discret->cellGroup->getName() << "'," << endl;
 					shared_ptr<NodalMass> nodalMass = dynamic_pointer_cast<NodalMass>(discret);
-					out << "                                CARA='M_TR_D_N',VALE=("
-							<< nodalMass->getMass() << "," << nodalMass->ixx << ","
-							<< nodalMass->iyy << "," << nodalMass->izz << "," << nodalMass->ixy
-							<< "," << nodalMass->iyz << "," << nodalMass->ixz << ","
-							<< nodalMass->ex << "," << nodalMass->ey << "," << nodalMass->ez
-							<< "),)," << endl;
+					if (nodalMass->hasRotations()) {
+                        out << "                                CARA='M_TR_D_N',VALE=("
+                                << nodalMass->getMass() << "," << nodalMass->ixx << ","
+                                << nodalMass->iyy << "," << nodalMass->izz << "," << nodalMass->ixy
+                                << "," << nodalMass->iyz << "," << nodalMass->ixz << ","
+                                << nodalMass->ex << "," << nodalMass->ey << "," << nodalMass->ez
+                                << "),)," << endl;
+					} else {
+                        out << "                                CARA='M_T_D_N',VALE=("
+							<< nodalMass->getMass()	<< "),)," << endl;
+					}
 				} else
 					out
 							<< "                             # WARN Finite Element : NODAL_MASS ignored because its GROUP_MA is empty."
@@ -1877,6 +1882,40 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		out << "# Analysis original id : " << analysis.getOriginalId() << endl;
 	}
 	switch (analysis.type) {
+    case Analysis::Type::COMBINATION: {
+        Combination& combination = dynamic_cast<Combination&>(analysis);
+        for (const auto& subPair : combination.coefByAnalysis) {
+            out << "D" << combination.getId() << "_" << subPair.first.id << "=CREA_CHAMP(TYPE_CHAM='NOEU_DEPL_R'," << endl;
+            out << "          OPERATION='EXTR'," << endl;
+            out << "          RESULTAT=RESU" << subPair.first.id << "," << endl;
+            out << "          NOM_CHAM='DEPL'," << endl;
+            out << "          NUME_ORDRE=1,);" << endl << endl;
+        }
+
+        out << "DEP" << combination.getId() << "=CREA_CHAMP(TYPE_CHAM='NOEU_DEPL_R'," << endl;
+        out << "          OPTION='DEPL'," << endl;
+        out << "          OPERATION='ASSE'," << endl;
+        out << "          MODELE=MODMECA," << endl;
+        out << "          ASSE=(" << endl;
+        for (const auto& subPair : combination.coefByAnalysis) {
+            out << "                _F(TOUT='OUI'," << endl;
+            out << "                   CHAM_GD=D" << combination.getId() << "_" << subPair.first.id << "," << endl;
+            out << "                   CUMUL='OUI'," << endl;
+            out << "                   COEF_R=" << subPair.second << "," << endl;
+        }
+        out << "                )," << endl;
+        out << "          )" << endl << endl;
+
+        out << "RESU" << combination.getId() << "=CREA_RESU(OPERATION='AFFE'," << endl;
+        out << "              TYPE_RESU='MULT_ELAS'," << endl;
+        out << "              NOM_CHAM='DEPL'," << endl;
+        out << "              AFFE=_F(CHAM_GD=DEP" << combination.getId() << "," << endl;
+        out << "                      MODELE=MODMECA," << endl;
+        out << "                      CHAM_MATER=CHMAT," << endl;
+        out << "                      )," << endl;
+        out << "              )" << endl << endl;
+        break;
+    }
 	case Analysis::Type::LINEAR_MECA_STAT: {
 		LinearMecaStat& linearMecaStat = dynamic_cast<LinearMecaStat&>(analysis);
 
