@@ -70,7 +70,7 @@ const vector<shared_ptr<LoadSet>> Analysis::getLoadSets() const {
     shared_ptr<LoadSet> commonLoadSet = model.find(model.commonLoadSet.getReference());
     if (commonLoadSet)
         result.push_back(commonLoadSet);
-    for (auto &loadSetReference : this->loadSet_references) {
+    for (const auto& loadSetReference : this->loadSet_references) {
         result.push_back(model.find(*loadSetReference));
     }
     return result;
@@ -139,7 +139,7 @@ void Analysis::remove(const Reference<Objective> objectiveReference) {
 }
 
 bool Analysis::contains(const Reference<LoadSet> reference) const {
-    for (auto loadset : getLoadSets()) {
+    for (const auto& loadset : getLoadSets()) {
         if (reference == loadset->getReference()) {
             return true;
         }
@@ -148,7 +148,7 @@ bool Analysis::contains(const Reference<LoadSet> reference) const {
 }
 
 bool Analysis::contains(const Reference<ConstraintSet> reference) const {
-    for (auto constraintset : getConstraintSets()) {
+    for (const auto& constraintset : getConstraintSets()) {
         if (reference == constraintset->getReference()) {
             return true;
         }
@@ -157,7 +157,7 @@ bool Analysis::contains(const Reference<ConstraintSet> reference) const {
 }
 
 bool Analysis::contains(const Reference<Objective> reference) const {
-    for (auto objective: getObjectives()) {
+    for (const auto& objective: getObjectives()) {
         if (reference == objective->getReference()) {
             return true;
         }
@@ -166,7 +166,7 @@ bool Analysis::contains(const Reference<Objective> reference) const {
 }
 
 bool Analysis::contains(const LoadSet::Type type) const {
-    for (auto loadset : getLoadSets()) {
+    for (const auto& loadset : getLoadSets()) {
         if (type == loadset->type) {
             return true;
         }
@@ -175,7 +175,7 @@ bool Analysis::contains(const LoadSet::Type type) const {
 }
 
 bool Analysis::contains(const ConstraintSet::Type type) const {
-    for (auto constraintset : this->getConstraintSets()) {
+    for (const auto& constraintset : this->getConstraintSets()) {
         if (type == constraintset->type) {
             return true;
         }
@@ -184,7 +184,7 @@ bool Analysis::contains(const ConstraintSet::Type type) const {
 }
 
 bool Analysis::contains(const Objective::Type type) const {
-    for (auto objective : this->getObjectives()) {
+    for (const auto& objective : this->getObjectives()) {
         if (type == objective->type) {
             return true;
         }
@@ -199,7 +199,7 @@ const vector<shared_ptr<ConstraintSet>> Analysis::getConstraintSets() const {
             model.commonConstraintSet.getReference());
     if (commonConstraintSet)
         result.push_back(commonConstraintSet);
-    for (auto &constraintSetReference : this->constraintSet_references) {
+    for (const auto& constraintSetReference : this->constraintSet_references) {
         result.push_back(model.find(*constraintSetReference));
     }
 
@@ -212,7 +212,7 @@ void Analysis::add(const Reference<Objective>& assertionReference) {
 
 const vector<shared_ptr<Assertion>> Analysis::getAssertions() const {
     vector<shared_ptr<Assertion>> assertions;
-    for (auto assertion_reference : objectiveReferences) {
+    for (const auto& assertion_reference : objectiveReferences) {
         shared_ptr<Objective> objective = model.find(*assertion_reference);
         if (not objective->isAssertion()) continue;
         assertions.push_back(dynamic_pointer_cast<Assertion>(objective));
@@ -222,7 +222,7 @@ const vector<shared_ptr<Assertion>> Analysis::getAssertions() const {
 
 const vector<shared_ptr<Objective>> Analysis::getObjectives() const {
     vector<shared_ptr<Objective>> objectives;
-    for (auto objective_reference : objectiveReferences) {
+    for (const auto& objective_reference : objectiveReferences) {
         shared_ptr<Objective> objective = model.find(*objective_reference);
         objectives.push_back(objective);
     }
@@ -265,7 +265,7 @@ bool Analysis::hasSPC() const{
 
 bool Analysis::validate() const {
     bool result = true;
-    for (auto &constraintSetReference : this->constraintSet_references) {
+    for (const auto& constraintSetReference : this->constraintSet_references) {
         if (model.find(*constraintSetReference) == nullptr) {
             if (model.configuration.logLevel >= LogLevel::INFO) {
                 cout << "Missing constraintset reference:" << *constraintSetReference << endl;
@@ -273,7 +273,7 @@ bool Analysis::validate() const {
             result = false;
         }
     }
-    for (auto &loadSetReference : this->loadSet_references) {
+    for (const auto& loadSetReference : this->loadSet_references) {
         if (model.find(*loadSetReference) == nullptr) {
             if (model.configuration.logLevel >= LogLevel::INFO) {
                 cout << "Missing loadset reference:" << *loadSetReference << endl;
@@ -322,7 +322,7 @@ void Analysis::removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition,  
                     << nodeId
                     << " to handle dofs : " << dofsToRemove << endl;
         }
-        for (auto otherAnalysis : this->model.analyses) {
+        for (const auto& otherAnalysis : this->model.analyses) {
             if (*this == *otherAnalysis) {
                 continue;
             }
@@ -353,7 +353,7 @@ const DOFS Analysis::findBoundaryDOFS(int nodePosition) const {
 
 const set<int> Analysis::boundaryNodePositions() const {
     set<int> result;
-    for (auto& entry : boundaryDOFSByNodePosition) {
+    for (const auto& entry : boundaryDOFSByNodePosition) {
         result.insert(entry.first);
     }
     return result;

@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 	vector<shared_ptr<Assertion>> assertions2 = linearMecaStat1->getAssertions();
 	BOOST_CHECK_EQUAL(assertions2.size(), static_cast<size_t>(24));
 	bool found = false;
-	for (auto assertion : assertions) {
+	for (const auto& assertion : assertions) {
 
 		BOOST_CHECK(assertion->type == Objective::Type::NODAL_DISPLACEMENT_ASSERTION);
 		NodalDisplacementAssertion & nodalDispAssertion =

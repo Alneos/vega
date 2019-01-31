@@ -112,7 +112,7 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 	if (asterModel.model.analyses.size() > 0) {
 		out << "IMPR_RESU(FORMAT='RESULTAT'," << endl;
 		out << "          RESU=(" << endl;
-		for (auto it : asterModel.model.analyses) {
+		for (const auto& it : asterModel.model.analyses) {
 			const Analysis& analysis = *it;
 			switch (analysis.type) {
 			case (Analysis::Type::LINEAR_MECA_STAT): {
@@ -153,7 +153,7 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 		out << "          );" << endl << endl;
 		out << "IMPR_RESU(FORMAT='MED',UNITE=80," << endl;
 		out << "          RESU=(" << endl;
-		for (auto it : asterModel.model.analyses) {
+		for (const auto& it : asterModel.model.analyses) {
 			const Analysis& analysis = *it;
 			switch (analysis.type) {
 			case (Analysis::Type::LINEAR_MECA_STAT): {
@@ -190,7 +190,7 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 		}
 		out << "                )," << endl;
 		out << "          );" << endl << endl;
-		for (auto it : asterModel.model.analyses) {
+		for (const auto& it : asterModel.model.analyses) {
 			const Analysis& analysis = *it;
 
 			out << "RETB" << analysis.getId() << "=CREA_TABLE(RESU=(" << endl;
@@ -231,9 +231,9 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 			out << "             UNITE=26)" << endl << endl;
 		}
 
-		for (auto analysis : asterModel.model.analyses) {
+		for (const auto& analysis : asterModel.model.analyses) {
 		    bool hasRecoveryPoints = false;
-            for (auto elementSet : asterModel.model.elementSets) {
+            for (const auto& elementSet : asterModel.model.elementSets) {
                 if (not elementSet->isBeam()) continue;
                 auto beam = dynamic_pointer_cast<Beam>(elementSet);
                 if (beam->recoveryPoints.size() >= 1) {
@@ -249,7 +249,7 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 			out << "           MODELE=MODMECA," << endl;
 			out << "           CONTRAINTE =('SIPO_NOEU')," << endl;
 			out << "           GROUP_MA=(";
-            for (auto elementSet : asterModel.model.elementSets) {
+            for (const auto& elementSet : asterModel.model.elementSets) {
                 if (not elementSet->isBeam()) continue; // to avoid CALCUL_37 Le TYPE_ELEMENT MECA_BARRE  ne sait pas encore calculer l'option:  SIPO_ELNO.
                 out << "'" << elementSet->cellGroup->getName() << "'" << ",";
             }
@@ -261,10 +261,10 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
             out << "            NOM_CHAM='SIPO_NOEU'," << endl;
             out << "            MODELE=MODMECA," << endl;
             out << "            LIGN_COUPE=(" << endl;
-            for (auto elementSet : asterModel.model.elementSets) {
+            for (const auto& elementSet : asterModel.model.elementSets) {
                 if (not elementSet->isBeam()) continue;
                 auto beam = dynamic_pointer_cast<Beam>(elementSet);
-                for (auto recoveryPoint : beam->recoveryPoints) {
+                for (const auto& recoveryPoint : beam->recoveryPoints) {
                     const VectorialValue& localCoords = recoveryPoint.getLocalCoords();
                     for (const Cell& cell : beam->cellGroup->getCells()) {
                         const Node& node1 = asterModel.model.mesh->findNode(cell.nodePositions[0]);
@@ -303,7 +303,7 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 
 void AsterWriter::writeAnalyses(const AsterModel& asterModel, ostream& out) {
 	double debut = 0;
-	for (auto it : asterModel.model.analyses) {
+	for (const auto& it : asterModel.model.analyses) {
 		Analysis& analysis = *it;
 		debut = writeAnalysis(asterModel, analysis, out, debut);
 
@@ -362,7 +362,7 @@ void AsterWriter::writeComm(const AsterModel& asterModel, ostream& out) {
 
 	writeAffeModele(asterModel, out);
 
-	for (auto value : asterModel.model.values) {
+	for (const auto& value : asterModel.model.values) {
 		writeValue(*value, out);
 	}
 
@@ -390,7 +390,7 @@ void AsterWriter::writeLireMaillage(const AsterModel& asterModel, ostream& out) 
 	}
 	out << ");" << endl << endl;
 
-    for (auto it : asterModel.model.constraintSets) {
+    for (const auto& it : asterModel.model.constraintSets) {
 		ConstraintSet& constraintSet = *it;
 		if (not constraintSet.hasContacts()) {
 			continue;
@@ -427,7 +427,7 @@ void AsterWriter::writeLireMaillage(const AsterModel& asterModel, ostream& out) 
 		out << "                   )" << endl << endl;
 	}
 
-	for (auto it : asterModel.model.constraintSets) {
+	for (const auto& it : asterModel.model.constraintSets) {
 		ConstraintSet& constraintSet = *it;
         const set<shared_ptr<Constraint>> surfaces = constraintSet.getConstraintsByType(
 				Constraint::Type::SURFACE_SLIDE_CONTACT);
@@ -456,7 +456,7 @@ void AsterWriter::writeLireMaillage(const AsterModel& asterModel, ostream& out) 
 void AsterWriter::writeAffeModele(const AsterModel& asterModel, ostream& out) {
 	out << "MODMECA=AFFE_MODELE(MAILLAGE=" << mail_name << "," << endl;
 	out << "                    AFFE=(" << endl;
-	for (auto elementSet : asterModel.model.elementSets) {
+	for (const auto& elementSet : asterModel.model.elementSets) {
 		if (elementSet->cellGroup != nullptr) {
 			out << "                          _F(GROUP_MA='" << elementSet->cellGroup->getName()
 					<< "'," << endl;
@@ -587,7 +587,7 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
 
 void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 
-	for (auto material : asterModel.model.materials) {
+	for (const auto& material : asterModel.model.materials) {
 		if (material->isOriginal()) {
 			out << "# Material original id " << material->getOriginalId() << endl;
 		}
@@ -818,11 +818,11 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 		out << "                    # writing " << barres.size() << " barres" << endl;
 		if (poutres.size() > 0 or (asterModel.model.needsLargeDisplacements() and barres.size() > 0)) {
 			out << "                    POUTRE=(" << endl;
-			for (auto poutre : poutres) {
+			for (const auto& poutre : poutres) {
 				writeAffeCaraElemPoutre(asterModel, *poutre, out);
 			}
 			if (asterModel.model.needsLargeDisplacements()) {
-                for (auto barre : barres) {
+                for (const auto& barre : barres) {
                     writeAffeCaraElemPoutre(asterModel, *barre, out);
                 }
 			}
@@ -831,7 +831,7 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 
 		if (barres.size() > 0 and not asterModel.model.needsLargeDisplacements()) {
 			out << "                    BARRE=(" << endl;
-			for (auto barre : barres) {
+			for (const auto& barre : barres) {
 				writeAffeCaraElemPoutre(asterModel, *barre, out);
 			}
 			out << "                            )," << endl;
@@ -891,7 +891,7 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 
 	//orientations
 	bool orientationsPrinted = false;
-	for (auto it : asterModel.model.mesh->cellGroupNameByCspos){
+	for (const auto& it : asterModel.model.mesh->cellGroupNameByCspos){
         std::shared_ptr<vega::CoordinateSystem> cs= asterModel.model.mesh->getCoordinateSystemByPosition(it.first);
 		if (cs->type!=CoordinateSystem::Type::RELATIVE){
 		   //handleWritingError("Coordinate System of Group "+ it.second+" is not an ORIENTATION.");
@@ -974,7 +974,7 @@ void AsterWriter::writeAffeCaraElemPoutre(const AsterModel& asterModel, const El
 }
 
 void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) {
-	for (auto it : asterModel.model.constraintSets) {
+	for (const auto& it : asterModel.model.constraintSets) {
 		ConstraintSet& constraintSet = *it;
 		if (constraintSet.getConstraints().size() == 0) {
 			//GC fix for http://hotline.alneos.fr/redmine/issues/801.
@@ -1016,7 +1016,7 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
 		}
 	}
 
-	for (auto it : asterModel.model.loadSets) {
+	for (const auto& it : asterModel.model.loadSets) {
 		LoadSet& loadSet = *it;
 		if (loadSet.type == LoadSet::Type::DLOAD) {
 			continue;
@@ -1058,7 +1058,7 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
 }
 
 void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
-	for (auto it : asterModel.model.constraintSets) {
+	for (const auto& it : asterModel.model.constraintSets) {
 		ConstraintSet& constraintSet = *it;
 		if (constraintSet.getConstraints().size() == 0) {
 			// LD filter empty constraintSet
@@ -1317,7 +1317,7 @@ void AsterWriter::writeLIAISON_SOLIDE(const AsterModel& asterModel, const Constr
 
 	if (needLiaisonSolide) {
 		out << "                   LIAISON_SOLIDE=(" << endl;
-		for (auto constraintPtr : constraints) {
+		for (const auto& constraintPtr : constraints) {
 			out << "                                   _F(NOEUD=(";
 			for (int node : constraintPtr->nodePositions()) {
 				out << "'" << Node::MedName(node) << "',";
@@ -1357,7 +1357,7 @@ void AsterWriter::writeRBE3(const AsterModel& asterModel, const ConstraintSet& c
 	const set<shared_ptr<Constraint>> constraints = cset.getConstraintsByType(Constraint::Type::RBE3);
 	if (constraints.size() > 0) {
 		out << "                   LIAISON_RBE3=(" << endl;
-		for (auto constraint : constraints) {
+		for (const auto& constraint : constraints) {
 			shared_ptr<const RBE3> rbe3 = dynamic_pointer_cast<const RBE3>(constraint);
 			int masterNode = rbe3->getMaster();
 			out << "                                 _F(NOEUD_MAIT='"
@@ -2000,7 +2000,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 			out << "                    CONTACT=" << asternameByConstraintSet[constraintSet->getReference()] << "," << "# Original id:" << constraintSet->getOriginalId() << endl;
 		}
 		out << "                    COMPORTEMENT=(" << endl;
-		for (auto elementSet : asterModel.model.elementSets) {
+		for (const auto& elementSet : asterModel.model.elementSets) {
 			if (elementSet->material != nullptr && elementSet->cellGroup != nullptr) {
 				out << "                          _F(GROUP_MA='" << elementSet->cellGroup->getName()
 						<< "',";
@@ -2131,14 +2131,14 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 					<< endl;
 			out << "                     FORCE_NODALE=(" << endl;
 			for (shared_ptr<LoadSet> loadSet : linearDynaModalFreq.getLoadSets()) {
-				for (auto loading : loadSet->getLoadings()) {
+				for (const auto& loading : loadSet->getLoadings()) {
 					if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
 						DynamicExcitation& dynamicExcitation =
 								dynamic_cast<DynamicExcitation&>(*loading);
 						const set<shared_ptr<Loading>> nodalForces =
 								dynamicExcitation.getLoadSet()->getLoadingsByType(
 										Loading::Type::NODAL_FORCE);
-						for (auto loading2 : nodalForces) {
+						for (const auto& loading2 : nodalForces) {
 							shared_ptr<NodalForce> nodal_force = dynamic_pointer_cast<NodalForce>(
 									loading2);
                             for(auto& nodePosition : nodal_force->nodePositions()) {

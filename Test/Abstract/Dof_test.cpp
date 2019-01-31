@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE( test_DOFS ) {
 	//DX
 	DOFS dofs(true, false, true);
 
-	dofs = dofs + DOF::RZ;
+	dofs += DOF::RZ;
 	int iteration_count = 0;
 	bool hasDX = false;
 	bool hasDRZ = false;

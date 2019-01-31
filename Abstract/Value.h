@@ -280,14 +280,14 @@ class FunctionPlaceHolder: public Function {
 public:
     FunctionPlaceHolder(const Model&, Type, int original_id, ParaName paraX, ParaName paraY =
             ParaName::NO_PARA_NAME);
-    bool isPlaceHolder() const {
+    bool isPlaceHolder() const override {
         return true;
     };
-    std::shared_ptr<NamedValue> clone() const;
-    virtual bool iszero() const {
+    std::shared_ptr<NamedValue> clone() const override;
+    bool iszero() const override {
         throw std::logic_error("Should not check placeholders for being zero");
     }
-    virtual void scale(double factor) {
+    void scale(double factor) override {
         UNUSEDV(factor);
         throw std::logic_error("Should not try to scale placeholders");
     }

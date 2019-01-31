@@ -333,8 +333,8 @@ void NastranWriter::writeLoadings(const shared_ptr<vega::Model>& model, ofstream
 					throw logic_error("Unimplemented moment in PLOAD4");
 				}
 				// TODO LD must recalculate two opposite nodes... hack
-				pload4.add(forceSurface->getApplicationFace()[0]);
-				pload4.add(forceSurface->getApplicationFace()[2]);
+				pload4.add(forceSurface->getApplicationFaceNodeIds()[0]);
+				pload4.add(forceSurface->getApplicationFaceNodeIds()[2]);
 				if (forceSurface->hasCoordinateSystem()) {
 					shared_ptr<CoordinateSystem> coordinateSystem = model->mesh->findCoordinateSystem(forceSurface->csref);
 					pload4.add(coordinateSystem->bestId());
@@ -470,7 +470,7 @@ string NastranWriter::writeModel(const shared_ptr<vega::Model> model,
 //
 //	BEGIN BULK
 //	$---1--][---2--][---3--][---4--][---5--][---6--][---7--][---8--][---9--][--10--]
-//	{% for coordinate_system_id, coordinate_system in model.mesh.coordinate_systems_by_id|dictsort('coordinate_system_id') %}
+//	{% for coordinate_system_id, coordinate_system in model.mesh->coordinate_systems_by_id|dictsort('coordinate_system_id') %}
 //	{%- if coordinate_system.coordinate_system_type == 'CORD_R' %}
 //	{{key('CORD2R')}}{{rpad(coordinate_system.integerid)}}{{rpad('')}}{{ render_floats(2, coordinate_system.abc) }}
 //	{%- elif coordinate_system.coordinate_system_type == 'VECT_Y' %} {# Ignored, directly defined on CBAR #}
@@ -480,13 +480,13 @@ string NastranWriter::writeModel(const shared_ptr<vega::Model> model,
 //	{%- endfor %}
 //
 //	$---1--][---2--][---3--][---4--][---5--][---6--][---7--][---8--][---9--][--10--]
-//	{% for node in model.mesh.nodes %}
+//	{% for node in model.mesh->nodes %}
 //	{{key('GRID')}}{{ rpad(node.integerid) }}{%- if node.coordinate_system %}{{rpad(node.coordinate_system.integerid)}}{%- else -%}{{rpad('')}}{%- endif -%}{{ render_floats(2, node.global_coordinates) }}
 //	{%- endfor %}
 //
 //	$---1--][---2--][---3--][---4--][---5--][---6--][---7--][---8--][---9--][--10--]
-//	{% for element_type in model.mesh.element_types %}
-//	{%- for element in model.mesh.find_elements_in_type(element_type) %}
+//	{% for element_type in model.mesh->element_types %}
+//	{%- for element in model.mesh->find_elements_in_type(element_type) %}
 //	{%- set part = model.parts_by_id[element.part_id] -%}
 //	{%- if element_type == 'SEG2' %}
 //	{{key('CBAR')}}{{ rpad(element.integerid) }}{%- if part -%}{{ rpad(part.integerid) }}{%- endif -%}{{ render_collection(2, element.node_integerids) }}{%- if element.coordinate_system %}{{ render_floats(2+element.node_integerids|length, element.coordinate_system.as_vecty().components) }}{%- endif -%}

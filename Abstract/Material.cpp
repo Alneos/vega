@@ -28,7 +28,7 @@ ostream &operator<<(ostream &out, const Material& material) {
 	out << to_str(material);
 	if (material.nature_by_type.size() > 0) {
 		cout << " with:";
-		for (auto nature : material.nature_by_type) {
+		for (const auto& nature : material.nature_by_type) {
 		    out<< " "<< *nature.second;
 		}
 	}

@@ -246,7 +246,7 @@ BOOST_AUTO_TEST_CASE( test_create_skin2d ) {
 	BOOST_CHECK_EQUAL(hexa.nodeIds[0], 50);
 	model->add(forceSurfaceTwoNodes);
 	vector<int> expectedFace1NodeIds = { 50, 51, 52, 53 };
-	vector<int> applicationFace = forceSurfaceTwoNodes.getApplicationFace();
+	vector<int> applicationFace = forceSurfaceTwoNodes.getApplicationFaceNodeIds();
 	BOOST_CHECK_EQUAL_COLLECTIONS(applicationFace.begin(), applicationFace.end(),
 			expectedFace1NodeIds.begin(), expectedFace1NodeIds.end());
 	model->finish();

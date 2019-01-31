@@ -96,7 +96,7 @@ public:
      */
     double getTref() const;
 
-    virtual std::shared_ptr<Nature> clone() const;
+    std::shared_ptr<Nature> clone() const override;
 
 };
 
@@ -117,7 +117,7 @@ public:
     double getG_longitudinal_transverse() const;
     double getG_transverse_normal() const;
     double getG_longitudinal_normal() const;
-    virtual std::shared_ptr<Nature> clone() const;
+    virtual std::shared_ptr<Nature> clone() const override;
 
 };
 
@@ -129,7 +129,7 @@ public:
     bool hardening_rule_isotropic = true;
     BilinearElasticNature(const Model&, const double elastic_limit, const double secondary_slope);
     BilinearElasticNature(const Model&);
-    virtual std::shared_ptr<Nature> clone() const;
+    virtual std::shared_ptr<Nature> clone() const override;
 };
 
 class HyperElasticNature: public Nature {
@@ -140,7 +140,7 @@ public:
     double k; //< See u4.43.01 ELAS_HYPER
     double rho;
     HyperElasticNature(const Model&, double c10, double c01, double c20, double k, double rho = 0.0);
-    virtual std::shared_ptr<Nature> clone() const;
+    virtual std::shared_ptr<Nature> clone() const override;
 };
 
 class NonLinearElasticNature: public Nature {
@@ -149,7 +149,7 @@ public:
     NonLinearElasticNature(const Model&, const FunctionTable& stress_strain_function);
     NonLinearElasticNature(const Model&, const int stress_strain_function_id);
     std::shared_ptr<FunctionTable> getStressStrainFunction() const;
-    virtual std::shared_ptr<Nature> clone() const;
+    virtual std::shared_ptr<Nature> clone() const override;
  };
 
 /**
@@ -167,7 +167,7 @@ public:
     double getLagrangian() const;
     void setLagrangian(double lagrangian);
 
-    virtual std::shared_ptr<Nature> clone() const;
+    virtual std::shared_ptr<Nature> clone() const override;
 
 };
 

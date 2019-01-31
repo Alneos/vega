@@ -18,9 +18,9 @@ namespace vega {
 
 using namespace std;
 
-Loading::Loading(const Model& model, Loading::Type type, Loading::ApplicationType applicationType,
+Loading::Loading(Model& model, Loading::Type type,
 		const int original_id, const Reference<CoordinateSystem> csref) :
-		Identifiable(original_id), model(model), type(type), applicationType(applicationType), csref(csref) {
+		Identifiable(original_id), model(model), type(type), csref(csref) {
 }
 
 const string Loading::name = "Loading";
@@ -55,7 +55,7 @@ bool Loading::validate() const {
 	return valid;
 }
 
-LoadSet::LoadSet(const Model& model, Type type, int original_id) :
+LoadSet::LoadSet(Model& model, Type type, int original_id) :
 		Identifiable(original_id), model(model), type(type) {
 }
 
@@ -120,18 +120,22 @@ shared_ptr<LoadSet> LoadSet::clone() const {
 	return make_shared<LoadSet>(*this);
 }
 
-NodeLoading::NodeLoading(const Model& model, Loading::Type type, int original_id,
+NodeLoading::NodeLoading(Model& model, Loading::Type type, int original_id,
 		const Reference<CoordinateSystem> csref) :
-		Loading(model, type, Loading::ApplicationType::NODE, original_id, csref), NodeContainer(*(model.mesh)) {
+		Loading(model, type, original_id, csref), NodeContainer(*model.mesh) {
 }
 
 set<int> NodeLoading::nodePositions() const {
 	return NodeContainer::nodePositions();
 }
 
-Gravity::Gravity(const Model& model, double scalingFactor, const VectorialValue& gravityVector,
+VolumicLoading::VolumicLoading(Model& model, Loading::Type type, int original_id) :
+    Loading(model, type, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM) {
+}
+
+Gravity::Gravity(Model& model, double scalingFactor, const VectorialValue& gravityVector,
 		const int original_id) :
-		Loading(model, Loading::Type::GRAVITY, Loading::ApplicationType::NONE, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM), scalingFactor(
+		VolumicLoading(model, Loading::Type::GRAVITY, original_id), scalingFactor(
 				scalingFactor), gravityVector(gravityVector) {
 }
 
@@ -168,8 +172,8 @@ bool Gravity::ineffective() const {
 	return is_zero(scalingFactor) or gravityVector.iszero();
 }
 
-Rotation::Rotation(const Model& model, const int original_id) :
-		Loading(model, Loading::Type::ROTATION, Loading::ApplicationType::NONE, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM) {
+Rotation::Rotation(Model& model, const int original_id) :
+		VolumicLoading(model, Loading::Type::ROTATION, original_id) {
 }
 
 const DOFS Rotation::getDOFSForNode(const int nodePosition) const {
@@ -185,7 +189,7 @@ bool Rotation::ineffective() const {
 	return is_zero(getSpeed()) or getAxis().iszero();
 }
 
-RotationCenter::RotationCenter(const Model& model, double speed, double center_x, double center_y,
+RotationCenter::RotationCenter(Model& model, double speed, double center_x, double center_y,
 		double center_z, double axis_x, double axis_y, double axis_z, const int original_id) :
 		Rotation(model, original_id), speed(speed), axis(axis_x, axis_y, axis_z), center(center_x,
 				center_y, center_z) {
@@ -211,7 +215,7 @@ void RotationCenter::scale(const double factor) {
 	speed *= factor;
 }
 
-RotationNode::RotationNode(const Model& model, double speed, const int node_id, double axis_x,
+RotationNode::RotationNode(Model& model, double speed, const int node_id, double axis_x,
 		double axis_y, double axis_z, const int original_id) :
 		Rotation(model, original_id), speed(speed), axis(axis_x, axis_y, axis_z), node_position(
 				model.mesh->findOrReserveNode(node_id)) {
@@ -238,7 +242,7 @@ void RotationNode::scale(const double factor) {
 	speed *= factor;
 }
 
-ImposedDisplacement::ImposedDisplacement(const Model& model, DOFS dofs, double value, const int original_id, const Reference<CoordinateSystem> csref) :
+ImposedDisplacement::ImposedDisplacement(Model& model, DOFS dofs, double value, const int original_id, const Reference<CoordinateSystem> csref) :
     NodeLoading(model, Loading::Type::IMPOSED_DISPLACEMENT, original_id, csref), displacements(dofs, value) {
 }
 
@@ -266,12 +270,12 @@ void ImposedDisplacement::scale(const double factor) {
     }
 }
 
-NodalForce::NodalForce(const Model& model, const VectorialValue& force,
+NodalForce::NodalForce(Model& model, const VectorialValue& force,
 		const VectorialValue& moment, const int original_id, const Reference<CoordinateSystem> csref) :
 		NodeLoading(model, Loading::Type::NODAL_FORCE, original_id, csref), force(force), moment(moment) {
 }
 
-NodalForce::NodalForce(const Model& model, double fx, double fy, double fz, double mx,
+NodalForce::NodalForce(Model& model, double fx, double fy, double fz, double mx,
 		double my, double mz, const int original_id, const Reference<CoordinateSystem> csref) :
 		NodeLoading(model, Loading::Type::NODAL_FORCE, original_id, csref), force(fx, fy, fz), moment(mx, my, mz) {
 }
@@ -312,17 +316,17 @@ const DOFS NodalForce::getDOFSForNode(const int nodePosition) const {
         VectorialValue globalForce = getForceInGlobalCS(nodePosition);
         VectorialValue globalTorque = getMomentInGlobalCS(nodePosition);
 		if (!is_zero(globalForce.x()))
-			dofs = dofs + DOF::DX;
+			dofs += DOF::DX;
 		if (!is_zero(globalForce.y()))
-			dofs = dofs + DOF::DY;
+			dofs += DOF::DY;
 		if (!is_zero(globalForce.z()))
-			dofs = dofs + DOF::DZ;
+			dofs += DOF::DZ;
 		if (!is_zero(globalTorque.x()))
-			dofs = dofs + DOF::RX;
+			dofs += DOF::RX;
 		if (!is_zero(globalTorque.y()))
-			dofs = dofs + DOF::RY;
+			dofs += DOF::RY;
 		if (!is_zero(globalTorque.z()))
-			dofs = dofs + DOF::RZ;
+			dofs += DOF::RZ;
 	}
 	return dofs;
 }
@@ -340,7 +344,7 @@ bool NodalForce::ineffective() const {
 	return force.iszero() and moment.iszero();
 }
 
-NodalForceTwoNodes::NodalForceTwoNodes(const Model& model, const int node1_id,
+NodalForceTwoNodes::NodalForceTwoNodes(Model& model, const int node1_id,
 		const int node2_id, double magnitude, const int original_id) :
 		NodalForce(model, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM), node_position1(
 				model.mesh->findOrReserveNode(node1_id)), node_position2(
@@ -367,7 +371,7 @@ bool NodalForceTwoNodes::ineffective() const {
 	return is_zero(magnitude) or force.iszero();
 }
 
-NodalForceFourNodes::NodalForceFourNodes(const Model& model, const int node1_id,
+NodalForceFourNodes::NodalForceFourNodes(Model& model, const int node1_id,
         const int node2_id, const int node3_id, const int node4_id, double magnitude, const int original_id) :
         NodalForce(model, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM),
                 node_position1(model.mesh->findOrReserveNode(node1_id)),
@@ -399,7 +403,7 @@ bool NodalForceFourNodes::ineffective() const {
     return is_zero(magnitude);
 }
 
-StaticPressure::StaticPressure(const Model& model, const int node1_id,
+StaticPressure::StaticPressure(Model& model, const int node1_id,
         const int node2_id, const int node3_id, const int node4_id, double magnitude, const int original_id) :
         NodalForce(model, original_id, 0.0, 0.0, 0.0, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID),
                 node_position1(model.mesh->findOrReserveNode(node1_id)),
@@ -484,16 +488,16 @@ bool StaticPressure::ineffective() const {
     return is_zero(magnitude);
 }
 
-ElementLoading::ElementLoading(const Model& model, Loading::Type type, int original_id,
+CellLoading::CellLoading(Model& model, Loading::Type type, int original_id,
 		const Reference<CoordinateSystem> csref) :
-		Loading(model, type, Loading::ApplicationType::ELEMENT, original_id, csref), CellContainer(*(model.mesh)) {
+		Loading(model, type, original_id, csref), CellContainer(*model.mesh) {
 }
 
-set<int> ElementLoading::nodePositions() const {
+set<int> CellLoading::nodePositions() const {
 	return CellContainer::nodePositions();
 }
 
-bool ElementLoading::cellDimensionGreatherThan(SpaceDimension dimension) {
+bool CellLoading::cellDimensionGreatherThan(SpaceDimension dimension) {
 	vector<Cell> cells = this->getCells(true);
 	bool result = false;
 	for (Cell& cell : cells) {
@@ -505,7 +509,7 @@ bool ElementLoading::cellDimensionGreatherThan(SpaceDimension dimension) {
 
 }
 
-bool ElementLoading::appliedToGeometry() {
+bool CellLoading::appliedToGeometry() {
 	bool isForceOnPoutre = false;
 	bool assigned = false;
 	vector<Cell> cells = getCells(true);
@@ -541,9 +545,30 @@ bool ElementLoading::appliedToGeometry() {
 	return !isForceOnPoutre;
 }
 
-ForceSurface::ForceSurface(const Model& model, const VectorialValue& force,
+void CellLoading::createSkin() {
+    vector<int> faceIds = this->getApplicationFaceNodeIds();
+    if (faceIds.size() >= 1) {
+        //addedSkin = true;
+        const int cellPosition = model.mesh->generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
+        this->clear(); //< To remove the volumic cell and then add the skin at its place
+        //this->addCellId(cell.id);
+        // LD Workaround for problem "cannot write cell names"
+        shared_ptr<CellGroup> cellGrp = model.mesh->createCellGroup(Cell::MedName(cellPosition), Group::NO_ORIGINAL_ID, "Single cell group over skin element");
+        cellGrp->addCellPosition(cellPosition);
+        this->add(*cellGrp);
+        // LD : Workaround for Aster problem : MODELISA6_96
+        //  les 1 mailles imprimées ci-dessus n'appartiennent pas au modèle et pourtant elles ont été affectées dans le mot-clé facteur : !
+        //   ! FORCE_FACE
+        Continuum skin(model, model.modelType);
+        skin.assignCellGroup(cellGrp);
+        model.add(skin);
+        //this->add(*mappl);
+    }
+}
+
+ForceSurface::ForceSurface(Model& model, const VectorialValue& force,
 		const VectorialValue& moment, const int original_id) :
-		ElementLoading(model, Loading::Type::FORCE_SURFACE, original_id,
+		CellLoading(model, Loading::Type::FORCE_SURFACE, original_id,
 				CoordinateSystem::GLOBAL_COORDINATE_SYSTEM), force(force), moment(moment) {
 }
 
@@ -560,17 +585,17 @@ const DOFS ForceSurface::getDOFSForNode(const int nodePosition) const {
 	set<int> nodes = nodePositions();
 	if (nodes.find(nodePosition) != nodes.end()) {
 		if (!is_zero(force.x()))
-			dofs = dofs + DOF::DX;
+			dofs += DOF::DX;
 		if (!is_zero(force.y()))
-			dofs = dofs + DOF::DY;
+			dofs += DOF::DY;
 		if (!is_zero(force.z()))
-			dofs = dofs + DOF::DZ;
+			dofs += DOF::DZ;
 		if (!is_zero(moment.x()))
-			dofs = dofs + DOF::RX;
+			dofs += DOF::RX;
 		if (!is_zero(moment.y()))
-			dofs = dofs + DOF::RY;
+			dofs += DOF::RY;
 		if (!is_zero(moment.z()))
-			dofs = dofs + DOF::RZ;
+			dofs += DOF::RZ;
 	}
 	return dofs;
 }
@@ -592,14 +617,14 @@ bool ForceSurface::validate() const {
 	return true;
 }
 
-ForceSurfaceTwoNodes::ForceSurfaceTwoNodes(const Model& model, int nodeId1, int nodeId2,
+ForceSurfaceTwoNodes::ForceSurfaceTwoNodes(Model& model, int nodeId1, int nodeId2,
 		const VectorialValue& force, const VectorialValue& moment, const int original_id) :
 		ForceSurface(model, force, moment, original_id), nodePosition1(
 				model.mesh->findOrReserveNode(nodeId1)), nodePosition2(
 				model.mesh->findOrReserveNode(nodeId2)) {
 }
 
-vector<int> ForceSurfaceTwoNodes::getApplicationFace() const {
+vector<int> ForceSurfaceTwoNodes::getApplicationFaceNodeIds() const {
 	vector<Cell> cells = getCells();
 	if (cells.size() != 1) {
 		throw logic_error("More than one cell specified for a ForceSurfaceTwoNodes");
@@ -614,9 +639,9 @@ shared_ptr<Loading> ForceSurfaceTwoNodes::clone() const {
 	return make_shared<ForceSurfaceTwoNodes>(*this);
 }
 
-ForceLine::ForceLine(const Model& model, const shared_ptr<NamedValue> force, DOF dof,
+ForceLine::ForceLine(Model& model, const shared_ptr<NamedValue> force, DOF dof,
 			const int original_id) :
-		ElementLoading(model, Loading::Type::FORCE_LINE, original_id), force(force), dof(dof) {
+		CellLoading(model, Loading::Type::FORCE_LINE, original_id), force(force), dof(dof) {
 
 }
 
@@ -646,8 +671,8 @@ bool ForceLine::validate() const {
 	return true;
 }
 
-NormalPressionFace::NormalPressionFace(const Model& model, double intensity, const int original_id) :
-		ElementLoading(model, Loading::Type::NORMAL_PRESSION_FACE, original_id,
+NormalPressionFace::NormalPressionFace(Model& model, double intensity, const int original_id) :
+		CellLoading(model, Loading::Type::NORMAL_PRESSION_FACE, original_id,
 				CoordinateSystem::GLOBAL_COORDINATE_SYSTEM), intensity(intensity) {
 }
 
@@ -677,22 +702,22 @@ bool NormalPressionFace::validate() const {
 	return true;
 }
 
-NormalPressionFaceTwoNodes::NormalPressionFaceTwoNodes(const Model& model, int nodeId1, int nodeId2,
+NormalPressionFaceTwoNodes::NormalPressionFaceTwoNodes(Model& model, int nodeId1, int nodeId2,
 		double intensity, const int original_id) :
 		NormalPressionFace(model, intensity, original_id), nodePosition1(
 				model.mesh->findOrReserveNode(nodeId1)), nodePosition2(
 				model.mesh->findOrReserveNode(nodeId2)) {
 }
 
-vector<int> NormalPressionFaceTwoNodes::getApplicationFace() const {
+vector<int> NormalPressionFaceTwoNodes::getApplicationFaceNodeIds() const {
 	vector<Cell> cells = getCells();
 	if (cells.size() != 1) {
 		throw logic_error("More than one cell specified for a NormalPressionFaceTwoNodes");
 	}
 	const int nodeId1 = model.mesh->findNodeId(nodePosition1);
 	const int nodeId2 = model.mesh->findNodeId(nodePosition2);
-	const vector<int>& nodeIds = cells[0].faceids_from_two_nodes(nodeId1, nodeId2);
-	return nodeIds;
+	const vector<int>& faceIds = cells[0].faceids_from_two_nodes(nodeId1, nodeId2);
+	return faceIds;
 }
 
 shared_ptr<Loading> NormalPressionFaceTwoNodes::clone() const {
@@ -700,10 +725,10 @@ shared_ptr<Loading> NormalPressionFaceTwoNodes::clone() const {
 }
 
 
-DynamicExcitation::DynamicExcitation(const Model& model, const Reference<NamedValue> dynaDelay, const Reference<NamedValue> dynaPhase,
+DynamicExcitation::DynamicExcitation(Model& model, const Reference<NamedValue> dynaDelay, const Reference<NamedValue> dynaPhase,
         const Reference<NamedValue> functionTableB, const Reference<NamedValue> functionTableP, const Reference<LoadSet> loadSet,
         const int original_id) :
-                Loading(model, Loading::Type::DYNAMIC_EXCITATION, Loading::ApplicationType::NONE, original_id), dynaDelay(dynaDelay), dynaPhase(dynaPhase),
+                Loading(model, Loading::Type::DYNAMIC_EXCITATION, original_id), dynaDelay(dynaDelay), dynaPhase(dynaPhase),
                 functionTableB(functionTableB), functionTableP(functionTableP), loadSet(loadSet) {
 }
 
@@ -762,7 +787,7 @@ bool DynamicExcitation::ineffective() const {
     return false;
 }
 
-InitialTemperature::InitialTemperature(const Model& model, const double temperature, const int original_id) :
+InitialTemperature::InitialTemperature(Model& model, const double temperature, const int original_id) :
                 NodeLoading(model, Loading::Type::INITIAL_TEMPERATURE, original_id), temperature(temperature) {
 }
 

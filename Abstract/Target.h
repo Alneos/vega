@@ -28,60 +28,86 @@ public:
         BOUNDARY_ELEMENTFACE,
     };
 protected:
-    const Model & model;
+    Model& model;
 
 public:
     const Type type;
     static const std::string name;
     static const std::map<Type, std::string> stringByType;
 protected:
-    Target(const Model&, Target::Type, int original_id = NO_ORIGINAL_ID);
+    Target(Model&, Target::Type, int original_id = NO_ORIGINAL_ID);
 public:
+	virtual bool isNodeTarget() const {
+		return false;
+	}
+	virtual bool isCellTarget() const {
+		return false;
+	}
     virtual std::shared_ptr<Target> clone() const=0;
     const std::string to_str() const;
+};
+
+class NodeTarget: public Target {
+protected:
+    NodeTarget(Model&, Target::Type, int original_id = NO_ORIGINAL_ID);
+public:
+	bool isNodeTarget() const override final {
+		return true;
+	}
 };
 
 /**
  * Defines a could of node ids to be used in contact problems, see Nastran BCGRID
  */
-class BoundaryNodeCloud: public Target {
+class BoundaryNodeCloud: public NodeTarget {
 public:
-    BoundaryNodeCloud(const Model& model, std::list<int> nodeids, int original_id =
+    BoundaryNodeCloud(Model& model, std::list<int> nodeids, int original_id =
             NO_ORIGINAL_ID);
     std::list<int> nodeids;
-    std::shared_ptr<Target> clone() const;
+    std::shared_ptr<Target> clone() const override;
 };
 
 /**
  * Defines a line by couples of node ids, see Nastran BSSEG
  */
-class BoundaryNodeLine: public Target {
+class BoundaryNodeLine: public NodeTarget {
 public:
-    BoundaryNodeLine(const Model& model, std::list<int> nodeids, int original_id =
+    BoundaryNodeLine(Model& model, std::list<int> nodeids, int original_id =
             NO_ORIGINAL_ID);
     std::list<int> nodeids;
-    std::shared_ptr<Target> clone() const;
+    std::shared_ptr<Target> clone() const override;
 };
 
 /**
  * Defines a surface by four node ids (last one may be zero in triangles), see Nastran BSSEG
  */
-class BoundaryNodeSurface: public Target {
+class BoundaryNodeSurface: public NodeTarget {
 public:
-    BoundaryNodeSurface(const Model& model, std::list<int> nodeids, int original_id =
+    BoundaryNodeSurface(Model& model, std::list<int> nodeids, int original_id =
             NO_ORIGINAL_ID);
     std::list<int> nodeids;
-    std::shared_ptr<Target> clone() const;
+    std::shared_ptr<Target> clone() const override;
+};
+
+class CellTarget: public Target {
+protected:
+    CellTarget(Model&, Target::Type, int original_id = NO_ORIGINAL_ID);
+public:
+	bool isCellTarget() const override final {
+		return true;
+	}
+	virtual void createSkin() = 0;
 };
 
 /**
  * Defines a surface by element ids, see Nastran BSURF
  */
-class BoundarySurface: public Target, public CellContainer {
+class BoundarySurface: public CellTarget, public CellContainer {
 public:
-    BoundarySurface(const Model& model, int original_id =
+    BoundarySurface(Model& model, int original_id =
             NO_ORIGINAL_ID);
-    std::shared_ptr<Target> clone() const;
+    std::shared_ptr<Target> clone() const override;
+    void createSkin() override { /* Already a skin */ };
 };
 
 /**
@@ -89,16 +115,16 @@ public:
  */
 class ContactBody: public Target {
 public:
-    ContactBody(const Model& model, Reference<Target> boundary, int original_id =
+    ContactBody(Model& model, Reference<Target> boundary, int original_id =
             NO_ORIGINAL_ID);
     Reference<Target> boundary;
-    std::shared_ptr<Target> clone() const;
+    std::shared_ptr<Target> clone() const override;
 };
 
 /**
  * Defines a surface by an element and a couple of node ids, see Optistruct SURF
  */
-class BoundaryElementFace: public Target {
+class BoundaryElementFace: public CellTarget {
 public:
     class ElementFaceByTwoNodes final {
     public:
@@ -108,12 +134,13 @@ public:
         const int nodeid2;
         const bool swapNormal;
     };
-    BoundaryElementFace(const Model& model, std::list<ElementFaceByTwoNodes> faceInfos, int original_id =
+    BoundaryElementFace(Model& model, std::list<ElementFaceByTwoNodes> faceInfos, int original_id =
             NO_ORIGINAL_ID);
     std::shared_ptr<CellGroup> surfaceCellGroup;
     std::shared_ptr<CellGroup> elementCellGroup;
     std::list<ElementFaceByTwoNodes> faceInfos;
-    std::shared_ptr<Target> clone() const;
+    std::shared_ptr<Target> clone() const override;
+    void createSkin() override;
 };
 
 } /* namespace vega */

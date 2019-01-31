@@ -104,11 +104,6 @@ if(COMPILER_SUPPORTS_WSHADOWLOCAL)
   add_compile_options(-Wshadow=local)
 endif()
 
-CHECK_CXX_COMPILER_FLAG(-std=gnu++11 COMPILER_SUPPORTS_STDGNU11)
-if(COMPILER_SUPPORTS_STDGNU11)
-  add_compile_options(-std=gnu++11)
-endif()
-
 CHECK_CXX_COMPILER_FLAG(-fext-numeric-literals COMPILER_SUPPORTS_FEXTNUMERICLITERALS)
 if(COMPILER_SUPPORTS_FEXTNUMERICLITERALS)
   add_compile_options(-fext-numeric-literals)
@@ -123,6 +118,17 @@ CHECK_CXX_COMPILER_FLAG(-Wfloat-equal COMPILER_SUPPORTS_FLOAT_EQUAL)
 if(COMPILER_SUPPORTS_FLOAT_EQUAL)
   add_compile_options(-Wfloat-equal)
 endif()
+
+CHECK_CXX_COMPILER_FLAG(-Wsuggest-override COMPILER_SUPPORTS_SUGGEST_OVERRIDE)
+if(COMPILER_SUPPORTS_SUGGEST_OVERRIDE)
+  add_compile_options(-Wsuggest-override)
+endif()
+
+# boost variant constructor uses this see ValueOrReference
+#CHECK_CXX_COMPILER_FLAG(-Wzero-as-null-pointer-constant COMPILER_SUPPORTS_ZERO_AS_NULL_POINTER_CONSTANT)
+#if(COMPILER_SUPPORTS_ZERO_AS_NULL_POINTER_CONSTANT)
+#  add_compile_options(-Wzero-as-null-pointer-constant)
+#endif()
 
 if(MSVC)
     # Patch for MSVC10 generator, 64 bit

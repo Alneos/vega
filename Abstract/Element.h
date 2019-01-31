@@ -138,7 +138,7 @@ public:
 			double additionalMass = 0.0, int original_id = NO_ORIGINAL_ID);
 	public:
     std::vector<RecoveryPoint> recoveryPoints;
-	double getAdditionalRho() const {
+	double getAdditionalRho() const override {
 		return additional_mass / std::max(getAreaCrossSection(), DBL_MIN);
 	}
 	bool isBeam() const override final {
@@ -207,7 +207,7 @@ public:
 	/* dans AFFE_CARA_ELEM les coefficients de cisaillement
 	 AY et AZ ne doivent pas etre entres comme le font
 	 tous les autres codes (i.e. un coefficient <=1.) mais a l'inverse (i.e. >=1.)*/
-	double getAreaCrossSection() const;
+	double getAreaCrossSection() const override;
 	double getMomentOfInertiaY() const override;
 	double getMomentOfInertiaZ() const override;
 	double getTorsionalConstant() const override;
@@ -215,7 +215,7 @@ public:
 	double getShearAreaFactorZ() const override;
 	double getInvShearAreaFactorY() const;
 	double getInvShearAreaFactorZ() const;
-	std::shared_ptr<ElementSet> clone() const;
+	std::shared_ptr<ElementSet> clone() const override;
 };
 
 class RectangularSectionBeam: public Beam {
@@ -282,7 +282,7 @@ public:
 	std::shared_ptr<ElementSet> clone() const override {
 		return std::make_shared<Shell>(*this);
 	}
-	double getAdditionalRho() const {
+	double getAdditionalRho() const override {
 		return additional_mass / std::max(thickness, DBL_MIN);
 	}
 	bool isShell() const override final {
@@ -457,7 +457,7 @@ class NodalMass: public ElementSet {
 
 	~NodalMass();
 
-	inline std::shared_ptr<ElementSet> clone() const {
+	inline std::shared_ptr<ElementSet> clone() const override {
 		return std::make_shared<NodalMass>(*this);
 	}
 };
@@ -600,7 +600,7 @@ public:
     void addSpring(int cellPosition, DOF dofNodeA, DOF dofNodeB);
     const std::vector<double> asStiffnessVector(bool addRotationsIfNotPresent = false) const override final;
     const std::vector<double> asDampingVector(bool addRotationsIfNotPresent = false);
-    virtual bool validate() const {
+    bool validate() const override {
         return true;
     }
     std::shared_ptr<ElementSet> clone() const override;

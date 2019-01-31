@@ -28,7 +28,6 @@
 namespace vega {
 
 class Mesh;
-//class Constraint;
 
 /**
  * Responsible of collecting any information for a finite element problem definition.
@@ -50,7 +49,6 @@ private:
      * @see ConfigurationParameters.partitionModel
      */
     void generateMaterialAssignments();
-    Cell generateSkinCell(const std::vector<int>& faceIds, const SpaceDimension& dimension);
     void removeIneffectives();
     void removeUnassignedMaterials();
     void replaceCombinedLoadSets();

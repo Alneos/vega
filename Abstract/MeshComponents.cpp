@@ -554,8 +554,8 @@ ostream &operator<<(ostream &out, const Cell& cell) {
 	out << "Cell[id:" << cell.id;
 	out << ",type:" << static_cast<int>(cell.type.code);
 	out << ",nodeIds:[";
-	for (auto it = cell.nodeIds.begin(); it != cell.nodeIds.end(); ++it) {
-		cout << "," << *it;
+	for (const int nodeId : cell.nodeIds) {
+		cout << "," << nodeId;
 	}
 	out << "]";
 	return out;

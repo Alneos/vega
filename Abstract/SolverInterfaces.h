@@ -37,7 +37,7 @@ private:
 public:
 	ParsingException(std::string message, std::string filename, int lineNum, std::string key="");
 	operator const char*() const;
-	virtual const char* what() const throw ();
+	const char* what() const throw () override;
 	virtual ~ParsingException() throw ();
 };
 
@@ -125,7 +125,7 @@ private:
 public:
 	WritingException(std::string message, std::string key = std::string(""), std::string filename = std::string(""));
 	operator const char*() const;
-	virtual const char* what() const throw ();
+	const char* what() const throw () override;
 	virtual ~WritingException() throw ();
 };
 

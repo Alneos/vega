@@ -19,8 +19,8 @@ namespace aster {
 class AsterRunner: public Runner {
 public:
 	AsterRunner();
-	virtual ExitCode execSolver(const ConfigurationParameters &configuration,
-			std::string modelFile);
+	ExitCode execSolver(const ConfigurationParameters &configuration,
+			std::string modelFile) override;
 };
 
 }

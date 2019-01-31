@@ -650,9 +650,9 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         handleParsingError("Analysis " + analysis_str + " Not implemented", tok, model);
     }
 
-    for (auto it = context.begin(); it != context.end(); it++) {
-        string key = it->first;
-        int id = atoi(it->second.c_str());
+    for (const auto& contextPair : context) {
+        string key = contextPair.first;
+        int id = atoi(contextPair.second.c_str());
         if (!key.compare(0, 3, "SPC")) {
             Reference<ConstraintSet> constraintReference(ConstraintSet::Type::SPC, id);
             analysis->add(constraintReference);

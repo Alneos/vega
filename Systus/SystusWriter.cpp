@@ -210,7 +210,7 @@ CartesianCoordinateSystem SystusWriter::buildElementDefaultReferentiel(const Sys
         // The origin of the referentiel is the center of the element.
         O = VectorialValue(0,0,0);
         int nbnodes=0;
-        for (auto n : nodes){
+        for (const auto& n : nodes){
             const Node& node = mesh->findNode(mesh->findNodePosition(n));
             O = O + VectorialValue(node.x, node.y, node.z);
             nbnodes++;
@@ -921,13 +921,13 @@ void SystusWriter::generateSubcases(const SystusModel& systusModel,
 
             const vector<shared_ptr<ConstraintSet>> constraintSets = analysis.getConstraintSets();
             cAna.push_back(static_cast<int>(constraintSets.size()));
-            for (auto constraintSet : constraintSets){
+            for (const auto& constraintSet : constraintSets){
                 cAna.push_back(constraintSet->getId());
             }
             //TODO Maybe we need to test that too?
             //const vector<shared_ptr<BoundaryCondition>> boundaryConditions= analysis.getBoundaryConditions();
             //cAna.push_back(boundaryConditions.size());
-            //for (auto boundaryCondition : boundaryConditions){
+            //for (const auto& boundaryCondition : boundaryConditions){
             //  cAna.push_back(boundaryCondition->getId());
             //}
 
@@ -3213,11 +3213,10 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             // constant dampings !
             for (auto it = modalDampingTable->getBeginValuesXY(); it != modalDampingTable->getEndValuesXY(); it++){
                 if (!is_equal(firstDamping, it->second)){
-                    handleWritingWarning("SYTUS modal damping must be defined by mode number and not by frequency. Constant damping is assumed.", "Analysis file");
+                    handleWritingWarning("SYSTUS modal damping must be defined by mode number and not by frequency. Constant damping is assumed.", "Analysis file");
                 }
             }
         }
-
 
         if (systusModel.configuration.systusDynamicMethod=="direct"){
 

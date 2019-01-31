@@ -102,7 +102,7 @@ Mesh::Mesh(LogLevel logLevel, const string& modelName) :
 				coordinateSystemStorage(*this, this->logLevel) {
 
 	finished = false;
-	for (auto cellTypePair : CellType::typeByCode) {
+	for (const auto& cellTypePair : CellType::typeByCode) {
 		cellPositionsByType[*(cellTypePair.second)] = vector<int>();
 	}
 }
@@ -350,6 +350,25 @@ const Cell Mesh::findCell(int cellPosition) const {
 	}
 	// Should stay as a "return unnamed" so that compiler can avoid rvalue copy
 	return Cell(cellData.id, *type, nodeIds, cellPosition, nodePositions, false, cellData.csPos, cellData.elementId, cellData.cellTypePosition);
+}
+
+int Mesh::generateSkinCell(const vector<int>& faceIds, const SpaceDimension& dimension) {
+    CellType* cellTypeFound = nullptr;
+    for (const auto& typeAndCodePair : CellType::typeByCode) {
+        CellType * typeToTest = typeAndCodePair.second;
+        if (typeToTest->dimension == dimension && faceIds.size() == typeToTest->numNodes) {
+            cellTypeFound = typeToTest;
+            break;
+        }
+    }
+    vector<int> externalFaceIds;
+    if (cellTypeFound == nullptr) {
+        throw logic_error(
+                "CellType not found connections:"
+                        + to_string(faceIds.size()));
+    }
+    int cellPosition = addCell(Cell::AUTO_ID, *cellTypeFound, faceIds, true);
+    return cellPosition;
 }
 
 shared_ptr<CellGroup> Mesh::getOrCreateCellGroupForCS(int cspos){

@@ -29,7 +29,7 @@ using namespace std;
 
 namespace vega {
 
-Target::Target(const Model& model, Target::Type type, int original_id) :
+Target::Target(Model& model, Target::Type type, int original_id) :
         Identifiable(original_id), model(model), type(type) {
 }
 
@@ -56,39 +56,47 @@ const string Target::to_str() const{
         return typePair->second;
 }
 
-BoundaryNodeCloud::BoundaryNodeCloud(const Model& model, list<int> nodeids, int original_id) :
-        Target(model, Target::Type::BOUNDARY_NODECLOUD, original_id), nodeids{nodeids} {
+NodeTarget::NodeTarget(Model& model, Target::Type type, int original_id) :
+        Target(model, type, original_id) {
+}
+
+BoundaryNodeCloud::BoundaryNodeCloud(Model& model, list<int> nodeids, int original_id) :
+        NodeTarget(model, Target::Type::BOUNDARY_NODECLOUD, original_id), nodeids{nodeids} {
 }
 
 shared_ptr<Target> BoundaryNodeCloud::clone() const {
     return make_shared<BoundaryNodeCloud>(*this);
 }
 
-BoundaryNodeLine::BoundaryNodeLine(const Model& model, list<int> nodeids, int original_id) :
-        Target(model, Target::Type::BOUNDARY_NODELINE, original_id), nodeids{nodeids} {
+BoundaryNodeLine::BoundaryNodeLine(Model& model, list<int> nodeids, int original_id) :
+        NodeTarget(model, Target::Type::BOUNDARY_NODELINE, original_id), nodeids{nodeids} {
 }
 
 shared_ptr<Target> BoundaryNodeLine::clone() const {
     return make_shared<BoundaryNodeLine>(*this);
 }
 
-BoundaryNodeSurface::BoundaryNodeSurface(const Model& model, list<int> nodeids, int original_id) :
-        Target(model, Target::Type::BOUNDARY_NODESURFACE, original_id), nodeids{nodeids} {
+BoundaryNodeSurface::BoundaryNodeSurface(Model& model, list<int> nodeids, int original_id) :
+        NodeTarget(model, Target::Type::BOUNDARY_NODESURFACE, original_id), nodeids{nodeids} {
 }
 
 shared_ptr<Target> BoundaryNodeSurface::clone() const {
     return make_shared<BoundaryNodeSurface>(*this);
 }
 
-BoundarySurface::BoundarySurface(const Model& model, int original_id) :
-        Target(model, Target::Type::BOUNDARY_SURFACE, original_id), CellContainer(*(model.mesh)) {
+CellTarget::CellTarget(Model& model, Target::Type type, int original_id) :
+        Target(model, type, original_id) {
+}
+
+BoundarySurface::BoundarySurface(Model& model, int original_id) :
+        CellTarget(model, Target::Type::BOUNDARY_SURFACE, original_id), CellContainer(*model.mesh) {
 }
 
 shared_ptr<Target> BoundarySurface::clone() const {
     return make_shared<BoundarySurface>(*this);
 }
 
-ContactBody::ContactBody(const Model& model, Reference<Target> boundary, int original_id) :
+ContactBody::ContactBody(Model& model, Reference<Target> boundary, int original_id) :
         Target(model, Target::Type::CONTACT_BODY, original_id), boundary{boundary} {
 }
 
@@ -100,13 +108,39 @@ BoundaryElementFace::ElementFaceByTwoNodes::ElementFaceByTwoNodes(int cellId, in
     cellId(cellId), nodeid1(nodeid1), nodeid2(nodeid2), swapNormal(swapNormal) {
 }
 
-BoundaryElementFace::BoundaryElementFace(const Model& model, list<ElementFaceByTwoNodes> faceInfos, int original_id):
-    Target(model, Target::Type::BOUNDARY_ELEMENTFACE, original_id), faceInfos(faceInfos) {
+BoundaryElementFace::BoundaryElementFace(Model& model, list<ElementFaceByTwoNodes> faceInfos, int original_id):
+    CellTarget(model, Target::Type::BOUNDARY_ELEMENTFACE, original_id), faceInfos(faceInfos) {
 
 }
 
 shared_ptr<Target> BoundaryElementFace::clone() const {
     return make_shared<BoundaryElementFace>(*this);
+}
+
+void BoundaryElementFace::createSkin() {
+    ostringstream oss2;
+    oss2 << "created by generateSkin() because of BOUNDARY_ELEMENTFACE";
+    shared_ptr<CellGroup> surfGrp = model.mesh->createCellGroup("SURF" + to_string(bestId()), Group::NO_ORIGINAL_ID, oss2.str());
+    shared_ptr<CellGroup> elemGrp = model.mesh->createCellGroup("SURFO" + to_string(bestId()), Group::NO_ORIGINAL_ID, "BOUNDARY ELEMENTFACE");
+    for(auto& faceInfo: faceInfos) {
+        elemGrp->addCellId(faceInfo.cellId);
+        elementCellGroup = elemGrp;
+        const Cell& cell0 = model.mesh->findCell(model.mesh->findCellPosition(faceInfo.cellId));
+        const vector<int>& faceIds = cell0.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
+        if (faceIds.size() > 0) {
+            //addedSkin = true;
+            const int cellPosition = model.mesh->generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
+            //mappl->addCellPosition(cell.position);
+            surfGrp->addCellPosition(cellPosition);
+            surfaceCellGroup = surfGrp;
+        }
+    }
+    // LD : Workaround for Aster problem : MODELISA6_96
+    //  les 1 mailles imprimées ci-dessus n'appartiennent pas au modèle et pourtant elles ont été affectées dans le mot-clé facteur : !
+    //   ! FORCE_FACE
+    Continuum skin(model, model.modelType);
+    skin.assignCellGroup(surfGrp);
+    model.add(skin);
 }
 
 } // namespace vega

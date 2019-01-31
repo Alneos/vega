@@ -176,7 +176,7 @@ class CylindricalCoordinateSystem: public CoordinateSystem {
      *  Compute the local cylindrical base (ur, utheta, uz) corresponding to point.
      *   Point must be expressed in the reference cartesian coordinate system.
      */
-    void updateLocalBase(const VectorialValue & point);
+    void updateLocalBase(const VectorialValue & point) override;
     /**
      *  Translate a position expressed in this coordinate system (r, theta, z),
      *   to its global counterpart (x,y,z). theta is expressed in degrees.

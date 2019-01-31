@@ -72,7 +72,7 @@ void ConstraintSet::add(const Reference<ConstraintSet>& constraintSetReference) 
 
 const set<shared_ptr<Constraint> > ConstraintSet::getConstraints() const {
     set<shared_ptr<Constraint>> result = model.getConstraintsByConstraintSet(this->getReference());
-    for (auto constraintSetReference : constraintSetReferences) {
+    for (const auto& constraintSetReference : constraintSetReferences) {
         set<shared_ptr<Constraint>> setToInsert = model.getConstraintsByConstraintSet(
                 constraintSetReference);
         result.insert(setToInsert.begin(), setToInsert.end());
@@ -431,7 +431,7 @@ void LinearMultiplePointConstraint::addParticipation(int nodeId, double dx, doub
 
 set<int> LinearMultiplePointConstraint::nodePositions() const {
     set<int> result;
-    for (auto it : dofCoefsByNodePosition) {
+    for (const auto& it : dofCoefsByNodePosition) {
         result.insert(it.first);
     }
     return result;
@@ -443,17 +443,17 @@ const DOFS LinearMultiplePointConstraint::getDOFSForNode(int nodePosition) const
     if (it != dofCoefsByNodePosition.end()) {
         DOFCoefs dofCoefs = it->second;
         if (!is_zero(dofCoefs[0]))
-            dofs = dofs + DOF::DX;
+            dofs += DOF::DX;
         if (!is_zero(dofCoefs[1]))
-            dofs = dofs + DOF::DY;
+            dofs += DOF::DY;
         if (!is_zero(dofCoefs[2]))
-            dofs = dofs + DOF::DZ;
+            dofs += DOF::DZ;
         if (!is_zero(dofCoefs[3]))
-            dofs = dofs + DOF::RX;
+            dofs += DOF::RX;
         if (!is_zero(dofCoefs[4]))
-            dofs = dofs + DOF::RY;
+            dofs += DOF::RY;
         if (!is_zero(dofCoefs[5]))
-            dofs = dofs + DOF::RZ;
+            dofs += DOF::RZ;
     }
     return dofs;
 }
@@ -516,7 +516,7 @@ void GapTwoNodes::addGapNodes(int constrainedNodeId, int directionNodeId) {
 vector<shared_ptr<Gap::GapParticipation>> GapTwoNodes::getGaps() const {
     vector<shared_ptr<Gap::GapParticipation>> result;
     result.reserve(directionNodePositionByconstrainedNodePosition.size());
-    for (auto it : directionNodePositionByconstrainedNodePosition) {
+    for (const auto& it : directionNodePositionByconstrainedNodePosition) {
         const Node& constrainedNode = model.mesh->findNode(it.first);
         const Node& directionNode = model.mesh->findNode(it.second);
         VectorialValue direction(directionNode.x - constrainedNode.x,
@@ -529,7 +529,7 @@ vector<shared_ptr<Gap::GapParticipation>> GapTwoNodes::getGaps() const {
 
 set<int> GapTwoNodes::nodePositions() const {
     set<int> result;
-    for (auto it : directionNodePositionByconstrainedNodePosition) {
+    for (const auto& it : directionNodePositionByconstrainedNodePosition) {
         result.insert(it.first);
     }
     return result;
@@ -544,7 +544,7 @@ bool GapTwoNodes::ineffective() const {
 }
 
 const DOFS GapTwoNodes::getDOFSForNode(int nodePosition) const {
-    auto it = directionNodePositionByconstrainedNodePosition.find(nodePosition);
+    const auto& it = directionNodePositionByconstrainedNodePosition.find(nodePosition);
     DOFS dofs(DOFS::NO_DOFS);
     if (it != directionNodePositionByconstrainedNodePosition.end()) {
         const Node& constrainedNode = model.mesh->findNode(it->first);
@@ -552,11 +552,11 @@ const DOFS GapTwoNodes::getDOFSForNode(int nodePosition) const {
         VectorialValue direction(directionNode.x - constrainedNode.x,
                 directionNode.y - constrainedNode.y, directionNode.z - constrainedNode.z);
         if (!is_zero(direction.x()))
-            dofs = dofs + DOF::DX;
+            dofs += DOF::DX;
         if (!is_zero(direction.y()))
-            dofs = dofs + DOF::DY;
+            dofs += DOF::DY;
         if (!is_zero(direction.z()))
-            dofs = dofs + DOF::DZ;
+            dofs += DOF::DZ;
     }
     return dofs;
 }
@@ -579,7 +579,7 @@ void GapNodeDirection::addGapNodeDirection(int constrainedNodeId, double directi
 vector<shared_ptr<Gap::GapParticipation>> GapNodeDirection::getGaps() const {
     vector<shared_ptr<Gap::GapParticipation>> result;
     result.reserve(directionBynodePosition.size());
-    for (auto it : directionBynodePosition) {
+    for (const auto& it : directionBynodePosition) {
         const int constrainedNodePosition = it.first;
         shared_ptr<GapParticipation> gp = make_shared<GapParticipation>(constrainedNodePosition, it.second.normalized());
         result.push_back(gp);
@@ -589,7 +589,7 @@ vector<shared_ptr<Gap::GapParticipation>> GapNodeDirection::getGaps() const {
 
 set<int> GapNodeDirection::nodePositions() const {
     set<int> result;
-    for (auto it : directionBynodePosition) {
+    for (const auto& it : directionBynodePosition) {
         result.insert(it.first);
     }
     return result;
@@ -609,11 +609,11 @@ const DOFS GapNodeDirection::getDOFSForNode(int nodePosition) const {
     if (it != directionBynodePosition.end()) {
         VectorialValue direction = it->second;
         if (!is_zero(direction.x()))
-            dofs = dofs + DOF::DX;
+            dofs += DOF::DX;
         if (!is_zero(direction.y()))
-            dofs = dofs + DOF::DY;
+            dofs += DOF::DY;
         if (!is_zero(direction.z()))
-            dofs = dofs + DOF::DZ;
+            dofs += DOF::DZ;
     }
     return dofs;
 }

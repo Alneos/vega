@@ -20,8 +20,8 @@ namespace nastran {
 class NastranRunner: public vega::Runner {
 public:
 	NastranRunner();
-	virtual ExitCode execSolver(const ConfigurationParameters &configuration,
-			std::string modelFile);
+	ExitCode execSolver(const ConfigurationParameters &configuration,
+			std::string modelFile) override;
 
 	virtual ~NastranRunner();
 };

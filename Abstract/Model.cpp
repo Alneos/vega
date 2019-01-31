@@ -126,9 +126,9 @@ shared_ptr<T> Model::Container<T>::find(const Reference<T>& reference) const {
 template<class T>
 shared_ptr<T> Model::Container<T>::find(int original_id) const {
     shared_ptr<T> t;
-    for (auto it = by_original_ids_by_type.begin(); it != by_original_ids_by_type.end(); it++) {
-        auto it2 = it->second.find(original_id);
-        if (it2 != it->second.end()) {
+    for (auto& it : by_original_ids_by_type) {
+        const auto& it2 = it.second.find(original_id);
+        if (it2 != it.second.end()) {
             t = it2->second;
         }
     }
@@ -262,7 +262,7 @@ shared_ptr<Target> Model::getTarget(int id) const {
 
 const vector<int> Model::getMaterialsId() const{
 	vector<int> v;
-	for (auto material : materials){
+	for (const auto& material : materials){
 		v.push_back(material->getId());
 	}
 	return v;
@@ -270,7 +270,7 @@ const vector<int> Model::getMaterialsId() const{
 
 const vector<int> Model::getElementSetsId() const{
 	vector<int> v;
-	for (auto elementSet : elementSets){
+	for (const auto& elementSet : elementSets){
 		v.push_back(elementSet->getId());
 	}
 	return v;
@@ -278,17 +278,17 @@ const vector<int> Model::getElementSetsId() const{
 
 template<>
 void Model::remove(const Reference<Constraint> constraintReference) {
-    for (auto it : constraintReferences_by_constraintSet_ids) {
-        for (auto it2 : it.second) {
+    for (const auto& it : constraintReferences_by_constraintSet_ids) {
+        for (const auto& it2 : it.second) {
             if (*it2 == constraintReference) {
                 constraintReferences_by_constraintSet_ids[it.first].erase(it2);
                 break; // iterator is invalid now
             }
         }
     }
-    for (auto it : constraintReferences_by_constraintSet_original_ids_by_constraintSet_type) {
-        for (auto it2 : it.second) {
-            for (auto it3 : it2.second) {
+    for (const auto& it : constraintReferences_by_constraintSet_original_ids_by_constraintSet_type) {
+        for (const auto& it2 : it.second) {
+            for (const auto& it3 : it2.second) {
                 if (*it3 == constraintReference) {
                     constraintReferences_by_constraintSet_original_ids_by_constraintSet_type[it.first][it2.first].erase(
                             it3);
@@ -304,7 +304,7 @@ void Model::remove(const Reference<Constraint> constraintReference) {
 void Model::remove(const Reference<Constraint> refC, const int idCS, const int originalIdCS, const ConstraintSet::Type csT) {
 
     const auto & cR = constraintReferences_by_constraintSet_ids[idCS];
-    for (auto it2 : cR) {
+    for (const auto& it2 : cR) {
         if (*it2 == refC){
             constraintReferences_by_constraintSet_ids[idCS].erase(it2);
             break; // iterator is invalid now
@@ -312,7 +312,7 @@ void Model::remove(const Reference<Constraint> refC, const int idCS, const int o
     }
     if (originalIdCS!= Identifiable<ConstraintSet>::NO_ORIGINAL_ID){
         const auto & cR2 = constraintReferences_by_constraintSet_original_ids_by_constraintSet_type[csT][originalIdCS];
-        for (auto it3 : cR2) {
+        for (const auto& it3 : cR2) {
             if (*it3 == refC){
                 constraintReferences_by_constraintSet_original_ids_by_constraintSet_type[csT][originalIdCS].erase(it3);
                 break; // iterator is invalid now
@@ -324,17 +324,17 @@ void Model::remove(const Reference<Constraint> refC, const int idCS, const int o
 
 template<>
 void Model::remove(const Reference<Loading> loadingReference) {
-    for (auto it : loadingReferences_by_loadSet_ids) {
-        for (auto it2 : it.second) {
+    for (const auto& it : loadingReferences_by_loadSet_ids) {
+        for (const auto& it2 : it.second) {
             if (*it2 == loadingReference) {
                 loadingReferences_by_loadSet_ids[it.first].erase(it2);
                 break; // iterator is invalid now
             }
         }
     }
-    for (auto it : loadingReferences_by_loadSet_original_ids_by_loadSet_type) {
-        for (auto it2 : it.second) {
-            for (auto it3 : it2.second) {
+    for (const auto& it : loadingReferences_by_loadSet_original_ids_by_loadSet_type) {
+        for (const auto& it2 : it.second) {
+            for (const auto& it3 : it2.second) {
                 if (*it3 == loadingReference) {
                     loadingReferences_by_loadSet_original_ids_by_loadSet_type[it.first][it2.first].erase(
                             it3);
@@ -349,7 +349,7 @@ void Model::remove(const Reference<Loading> loadingReference) {
 template<>
 void Model::remove(const Reference<LoadSet> loadSetReference) {
     shared_ptr<LoadSet> loadSet = loadSets.find(loadSetReference);
-    for (auto analysis : analyses) {
+    for (const auto& analysis : analyses) {
         if (analysis->contains(loadSetReference)) {
             if (configuration.logLevel >= LogLevel::DEBUG)
                 cout << "Disassociating empty " << *loadSet << " from " << *analysis << endl;
@@ -362,7 +362,7 @@ void Model::remove(const Reference<LoadSet> loadSetReference) {
 template<>
 void Model::remove(const Reference<ConstraintSet> constraintSetReference) {
     shared_ptr<ConstraintSet> constraintSet = constraintSets.find(constraintSetReference);
-    for (auto analysis : analyses) {
+    for (const auto& analysis : analyses) {
         if (analysis->contains(constraintSetReference)) {
             if (configuration.logLevel >= LogLevel::DEBUG)
                 cout << "Disassociating empty " << *constraintSet << " from " << *analysis << endl;
@@ -376,7 +376,7 @@ template<>
 void Model::remove(const Reference<Objective> objectiveReference) {
     shared_ptr<Objective> objective = objectives.find(objectiveReference);
     if (objective && objective->isAssertion()) {
-        for (auto analysis : analyses) {
+        for (const auto& analysis : analyses) {
             if (analysis->contains(objectiveReference)) {
                 if (configuration.logLevel >= LogLevel::TRACE) {
                     cout << "Disassociating dangling " << *objective << " from  " << *analysis
@@ -487,7 +487,7 @@ const set<shared_ptr<Loading>> Model::getLoadingsByLoadSet(
     set<shared_ptr<Loading>> result;
     auto itm = loadingReferences_by_loadSet_ids.find(loadSetReference.id);
     if (itm != loadingReferences_by_loadSet_ids.end()) {
-        for (auto itm2 : itm->second) {
+        for (const auto& itm2 : itm->second) {
             shared_ptr<Loading> loading = find(*itm2);
             if (loading == nullptr) {
                 throw logic_error("Missing loading declared in loadingSet : " + to_str(*itm2));
@@ -500,7 +500,7 @@ const set<shared_ptr<Loading>> Model::getLoadingsByLoadSet(
     if (itm2 != loadingReferences_by_loadSet_original_ids_by_loadSet_type.end()) {
         auto itm3 = itm2->second.find(loadSetReference.original_id);
         if (itm3 != itm2->second.end()) {
-            for (auto itm4 : itm3->second) {
+            for (const auto& itm4 : itm3->second) {
                 shared_ptr<Loading> loading = find(*itm4);
             if (loading == nullptr) {
                 throw logic_error("Missing loading declared in loadingSet : " + to_str(*itm4));
@@ -531,7 +531,7 @@ const set<shared_ptr<Constraint>> Model::getConstraintsByConstraintSet(
     set<shared_ptr<Constraint>> result;
     auto itm = constraintReferences_by_constraintSet_ids.find(constraintSetReference.id);
     if (itm != constraintReferences_by_constraintSet_ids.end()) {
-        for (auto itm2 : itm->second) {
+        for (const auto& itm2 : itm->second) {
             result.insert(find(*itm2));
         }
     }
@@ -540,7 +540,7 @@ const set<shared_ptr<Constraint>> Model::getConstraintsByConstraintSet(
     if (itm2 != constraintReferences_by_constraintSet_original_ids_by_constraintSet_type.end()) {
         auto itm3 = itm2->second.find(constraintSetReference.original_id);
         if (itm3 != itm2->second.end()) {
-            for (auto itm4 : itm3->second) {
+            for (const auto& itm4 : itm3->second) {
                 result.insert(find(*itm4));
             }
         }
@@ -573,8 +573,8 @@ const set<shared_ptr<ConstraintSet>> Model::getConstraintSetsByConstraint(
 const vector<shared_ptr<ConstraintSet>> Model::getActiveConstraintSets() const {
     vector<shared_ptr<ConstraintSet>> result;
     set<shared_ptr<ConstraintSet>> set;
-    for (auto analyse : analyses) {
-        for (auto constraintSet : analyse->getConstraintSets()) {
+    for (const auto& analyse : analyses) {
+        for (const auto& constraintSet : analyse->getConstraintSets()) {
             if (set.find(constraintSet) == set.end()) {
                 set.insert(constraintSet);
                 result.push_back(constraintSet);
@@ -587,8 +587,8 @@ const vector<shared_ptr<ConstraintSet>> Model::getActiveConstraintSets() const {
 const vector<shared_ptr<LoadSet>> Model::getActiveLoadSets() const {
     vector<shared_ptr<LoadSet>> result;
     set<shared_ptr<LoadSet>> set;
-    for (auto analyse : analyses) {
-        for (auto loadSet : analyse->getLoadSets()) {
+    for (const auto& analyse : analyses) {
+        for (const auto& loadSet : analyse->getLoadSets()) {
             if (set.find(loadSet) == set.end()) {
                 set.insert(loadSet);
                 result.push_back(loadSet);
@@ -601,12 +601,12 @@ const vector<shared_ptr<LoadSet>> Model::getActiveLoadSets() const {
 const vector<shared_ptr<ConstraintSet>> Model::getCommonConstraintSets() const {
     vector<shared_ptr<ConstraintSet>> result;
     map<shared_ptr<ConstraintSet>, int> map;
-    for (auto analyse : analyses) {
-        for (auto constraintSet : analyse->getConstraintSets()) {
+    for (const auto& analyse : analyses) {
+        for (const auto& constraintSet : analyse->getConstraintSets()) {
             map[constraintSet] += 1;
         }
     }
-    for (auto constraintSet : constraintSets) {
+    for (const auto& constraintSet : constraintSets) {
         auto it = map.find(constraintSet);
         if (it != map.end() && it->second == analyses.size())
             result.push_back(constraintSet);
@@ -617,12 +617,12 @@ const vector<shared_ptr<ConstraintSet>> Model::getCommonConstraintSets() const {
 const vector<shared_ptr<LoadSet>> Model::getCommonLoadSets() const {
     vector<shared_ptr<LoadSet>> result;
     map<shared_ptr<LoadSet>, int> map;
-    for (auto analyse : analyses) {
-        for (auto loadSet : analyse->getLoadSets()) {
+    for (const auto& analyse : analyses) {
+        for (const auto& loadSet : analyse->getLoadSets()) {
             map[loadSet] += 1;
         }
     }
-    for (auto loadSet : loadSets) {
+    for (const auto& loadSet : loadSets) {
         auto it = map.find(loadSet);
         // DLOAD is never common
         if (it != map.end() && it->second == analyses.size() && loadSet->type != LoadSet::Type::DLOAD)
@@ -634,12 +634,12 @@ const vector<shared_ptr<LoadSet>> Model::getCommonLoadSets() const {
 const set<shared_ptr<ConstraintSet>> Model::getUncommonConstraintSets() const {
     set<shared_ptr<ConstraintSet>> result;
     map<shared_ptr<ConstraintSet>, int> map;
-    for (auto analyse : analyses) {
-        for (auto constraintSet : analyse->getConstraintSets()) {
+    for (const auto& analyse : analyses) {
+        for (const auto& constraintSet : analyse->getConstraintSets()) {
             map[constraintSet] += 1;
         }
     }
-    for (auto constraintSet : constraintSets) {
+    for (const auto& constraintSet : constraintSets) {
         auto it = map.find(constraintSet);
         if (it != map.end() && it->second < analyses.size())
             result.insert(constraintSet);
@@ -650,12 +650,12 @@ const set<shared_ptr<ConstraintSet>> Model::getUncommonConstraintSets() const {
 const set<shared_ptr<LoadSet>> Model::getUncommonLoadSets() const {
     set<shared_ptr<LoadSet>> result;
     map<shared_ptr<LoadSet>, int> map;
-    for (auto analyse : analyses) {
-        for (auto loadSet : analyse->getLoadSets()) {
+    for (const auto& analyse : analyses) {
+        for (const auto& loadSet : analyse->getLoadSets()) {
             map[loadSet] += 1;
         }
     }
-    for (auto loadSet : loadSets) {
+    for (const auto& loadSet : loadSets) {
         auto it = map.find(loadSet);
         if ((it != map.end() && it->second < analyses.size()) && loadSet->type != LoadSet::Type::DLOAD)
             result.insert(loadSet);
@@ -788,7 +788,7 @@ shared_ptr<Material> Model::getVirtualMaterial() {
 
 const vector<shared_ptr<Beam>> Model::getBeams() const {
     vector<shared_ptr<Beam>> result;
-    for (auto elementSet : elementSets) {
+    for (const auto& elementSet : elementSets) {
         if (elementSet->isBeam()) {
             shared_ptr<Beam> beam = dynamic_pointer_cast<Beam>(elementSet);
             result.push_back(beam);
@@ -799,7 +799,7 @@ const vector<shared_ptr<Beam>> Model::getBeams() const {
 
 const vector<shared_ptr<Beam>> Model::getBars() const {
     vector<shared_ptr<Beam>> result;
-    for (auto elementSet : elementSets) {
+    for (const auto& elementSet : elementSets) {
         if (elementSet->isBar()) {
             shared_ptr<Beam> bar = dynamic_pointer_cast<Beam>(elementSet);
             result.push_back(bar);
@@ -818,126 +818,29 @@ bool Model::needsLargeDisplacements() const {
 }
 
 void Model::generateSkin() {
-    ostringstream oss;
-    oss << "created by generateSkin() because of FORCE_SURFACE or BOUNDARY_ELEMENTFACE or ...";
-    shared_ptr<CellGroup> mappl = mesh->createCellGroup("VEGASKIN", Group::NO_ORIGINAL_ID, oss.str());
 
-    bool addedSkin = false;
-    for (auto it = loadings.begin(); it != loadings.end(); it++) {
-        shared_ptr<Loading> loadingPtr = *it;
-        if (loadingPtr->applicationType == Loading::ApplicationType::ELEMENT) {
-            shared_ptr<ElementLoading> elementLoading = dynamic_pointer_cast<ElementLoading>(
-                    loadingPtr);
-            if (elementLoading->cellDimensionGreatherThan(elementLoading->getLoadingDimension())) {
-                switch (loadingPtr->type) {
-                case Loading::Type::FORCE_SURFACE: {
-                    shared_ptr<ForceSurface> forceSurface = dynamic_pointer_cast<ForceSurface>(
-                            loadingPtr);
-                    vector<int> faceIds = forceSurface->getApplicationFace();
-                    if (faceIds.size() > 0) {
-                        addedSkin = true;
-                        vega::Cell cell = generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
-                        mappl->addCellPosition(cell.position);
-                        forceSurface->clear(); //< To remove the volumic cell and then add the skin at its place
-                        //forceSurface->addCellId(cell.id);
-                        // LD Workaround for problem "cannot write cell names"
-                        shared_ptr<CellGroup> cellGrp = mesh->createCellGroup(Cell::MedName(cell.position), Group::NO_ORIGINAL_ID, "Single cell group over skin element");
-                        cellGrp->addCellPosition(cell.position);
-                        forceSurface->add(*cellGrp);
-                        //forceSurface->add(*mappl);
-                    }
-                    break;
-                }
-                case Loading::Type::NORMAL_PRESSION_FACE: {
-                    shared_ptr<NormalPressionFace> normalPressionFace = dynamic_pointer_cast<NormalPressionFace>(
-                            loadingPtr);
-                    vector<int> faceIds = normalPressionFace->getApplicationFace();
-                    if (faceIds.size() > 0) {
-                        addedSkin = true;
-                        vega::Cell cell = generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
-                        mappl->addCellPosition(cell.position);
-                        normalPressionFace->clear(); //< To remove the volumic cell and then add the skin at its place
-                        //forceSurface->addCellId(cell.id);
-                        // LD Workaround for problem "cannot write cell names"
-                        shared_ptr<CellGroup> cellGrp = mesh->createCellGroup(Cell::MedName(cell.position), Group::NO_ORIGINAL_ID, "Single cell group over skin element");
-                        cellGrp->addCellPosition(cell.position);
-                        normalPressionFace->add(*cellGrp);
-                        //forceSurface->add(*mappl);
-                    }
-                    break;
-                }
-                default:
-                    throw logic_error("generate skin implemented only for pression face");
-                }
-            }
+    for (auto& loading : loadings) {
+        if (not loading->isCellLoading()) {
+            continue;
         }
+        auto cellLoading = static_pointer_cast<CellLoading>(loading);
+        cellLoading->createSkin();
     }
 
-    for (auto it = targets.begin(); it != targets.end(); it++) {
-        shared_ptr<Target> target = *it;
-        if (target->type == Target::Type::BOUNDARY_ELEMENTFACE) {
-            shared_ptr<BoundaryElementFace> elementFace = dynamic_pointer_cast<BoundaryElementFace>(
-                    target);
-            ostringstream oss2;
-            oss2 << "created by generateSkin() because of BOUNDARY_ELEMENTFACE";
-            shared_ptr<CellGroup> surfGrp = this->mesh->createCellGroup("SURF" + to_string(elementFace->bestId()), Group::NO_ORIGINAL_ID, oss2.str());
-            shared_ptr<CellGroup> elemGrp = this->mesh->createCellGroup("SURFO" + to_string(elementFace->bestId()), Group::NO_ORIGINAL_ID, "BOUNDARY ELEMENTFACE");
-            for(auto& faceInfo: elementFace->faceInfos) {
-                elemGrp->addCellId(faceInfo.cellId);
-                elementFace->elementCellGroup = elemGrp;
-                const Cell& cell0 = this->mesh->findCell(this->mesh->findCellPosition(faceInfo.cellId));
-                const vector<int>& faceIds = cell0.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
-                if (faceIds.size() > 0) {
-                    addedSkin = true;
-                    vega::Cell cell = generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
-                    mappl->addCellPosition(cell.position);
-                    surfGrp->addCellPosition(cell.position);
-                    elementFace->surfaceCellGroup = surfGrp;
-                }
-            }
+    for (auto& target : targets) {
+        if (not target->isCellTarget()) {
+            continue;
         }
+        auto cellTarget = static_pointer_cast<CellTarget>(target);
+        cellTarget->createSkin();
     }
 
-    if (addedSkin) {
-        // LD : Workaround for Aster problem : MODELISA6_96
-        //  les 1 mailles imprimées ci-dessus n'appartiennent pas au modèle et pourtant elles ont été affectées dans le mot-clé facteur : !
-        //   ! FORCE_FACE
-        Continuum skin(*this, this->modelType);
-        skin.assignCellGroup(mappl);
-        // LD: Workaround for Aster problem : COMPOR1_60
-        // Toutes les mailles déclarées dans l'occurrence numéro 6 du mot-clé COMPORTEMENT
-        // sont des éléments de bord qui ne portent pas de rigidité.
-        // Il faut supprimer cette occurrence pour que le calcul fonctionne.
-        //skin.assignMaterial(getVirtualMaterial());
-        this->add(skin);
-    }
-
-}
-
-Cell Model::generateSkinCell(const vector<int>& faceIds, const SpaceDimension& dimension) {
-    CellType* cellTypeFound = nullptr;
-    for (auto typeAndCodePair : CellType::typeByCode) {
-        CellType * typeToTest = typeAndCodePair.second;
-        if (typeToTest->dimension == dimension && faceIds.size() == typeToTest->numNodes) {
-            cellTypeFound = typeToTest;
-            break;
-        }
-    }
-    vector<int> externalFaceIds;
-    if (cellTypeFound == nullptr) {
-        throw logic_error(
-                "CellType not found connections:"
-                        + to_string(faceIds.size()));
-    }
-    int cellPosition = mesh->addCell(Cell::AUTO_ID, *cellTypeFound, faceIds, true);
-    return mesh->findCell(cellPosition);
 }
 
 void Model::emulateLocalDisplacementConstraint() {
-    unordered_map<shared_ptr<Constraint>, set<LinearMultiplePointConstraint*>> linearMultiplePointConstraintsByConstraint;
+    unordered_map<shared_ptr<Constraint>, set<shared_ptr<LinearMultiplePointConstraint>>> linearMultiplePointConstraintsByConstraint;
     // first pass : create LinearMultiplePoint constraints for each constraint that need it
-    for (auto it = constraints.begin(); it != constraints.end(); it++) {
-        const shared_ptr<Constraint>& constraint = *it;
+    for (const auto& constraint : constraints) {
         if (constraint->type == Constraint::Type::SPC) {
             shared_ptr<SinglePointConstraint> spc = dynamic_pointer_cast<SinglePointConstraint>(
                     constraint);
@@ -955,8 +858,8 @@ void Model::emulateLocalDisplacementConstraint() {
                         if (dofs.contains(currentDOF)) {
                             VectorialValue participation = coordSystem->vectorToGlobal(
                                     VectorialValue::XYZ[i % 3]);
-                            LinearMultiplePointConstraint* lmpc =
-                                    new LinearMultiplePointConstraint(*this,
+                            shared_ptr<LinearMultiplePointConstraint> lmpc =
+                                    make_shared<LinearMultiplePointConstraint>(*this,
                                             spc->getDoubleForDOF(currentDOF));
                             if (i < 3) {
                                 lmpc->addParticipation(node.id, participation.x(),
@@ -977,19 +880,18 @@ void Model::emulateLocalDisplacementConstraint() {
     }
 
     // second pass : insert the new LinearMultiplePointConstraints into the model and the constraintSets
-    for (auto it : linearMultiplePointConstraintsByConstraint) {
+    for (const auto& it : linearMultiplePointConstraintsByConstraint) {
         shared_ptr<Constraint> constraint = it.first;
         const set<shared_ptr<ConstraintSet>> constraintSets = getConstraintSetsByConstraint(
                 constraint->getReference());
-        for (auto linearMultiplePointConstraint : it.second) {
+        for (const auto& linearMultiplePointConstraint : it.second) {
             add(*linearMultiplePointConstraint);
-            for (auto constraintSet : constraintSets) {
+            for (const auto& constraintSet : constraintSets) {
                 if (configuration.logLevel >= LogLevel::DEBUG)
                     cout << "Adding Local emulation constraint:" << *linearMultiplePointConstraint << " to constraintset: " << *constraintSet << ";" << endl;
                 addConstraintIntoConstraintSet(linearMultiplePointConstraint->getReference(),
                         constraintSet->getReference());
             }
-            delete linearMultiplePointConstraint;
         }
         if (constraint->nodePositions().size() == 0)
             remove(constraint->getReference());
@@ -998,7 +900,7 @@ void Model::emulateLocalDisplacementConstraint() {
 
 void Model::emulateAdditionalMass() {
     vector<shared_ptr<ElementSet>> newElementSets;
-    for (auto elementSet : elementSets) {
+    for (const auto& elementSet : elementSets) {
         double rho = elementSet->getAdditionalRho();
         if (!is_zero(rho)) {
             // create new elementSet
@@ -1017,14 +919,14 @@ void Model::emulateAdditionalMass() {
                     "VAM_" + to_string(newElementSets.size()), Group::NO_ORIGINAL_ID, oss.str());
             newElementSet->assignCellGroup(newCellGroup);
             vector<Cell> cells = elementSet->cellGroup->getCells();
-            for (auto cell : cells) {
+            for (const auto& cell : cells) {
                 int cellPosition = mesh->addCell(Cell::AUTO_ID, cell.type, cell.nodeIds, cell.isvirtual,
                         cell.cspos, cell.elementId);
                 newCellGroup->addCellPosition(cellPosition);
             }
         }
     }
-    for (auto elementSet : newElementSets)
+    for (const auto& elementSet : newElementSets)
         elementSets.add(elementSet);
 }
 
@@ -1034,9 +936,9 @@ void Model::generateBeamsToDisplayHomogeneousConstraint() {
     shared_ptr<CellGroup> virtualGroupRBE3 = nullptr;
 
     vector<shared_ptr<ConstraintSet>> activeConstraintSets = getActiveConstraintSets();
-    for (auto constraintSet : activeConstraintSets) {
+    for (const auto& constraintSet : activeConstraintSets) {
         set<shared_ptr<Constraint>> constraints = constraintSet->getConstraints();
-        for (auto constraint : constraints) {
+        for (const auto& constraint : constraints) {
             switch (constraint->type) {
             case Constraint::Type::RIGID: {
                 if (!virtualGroupRigid) {
@@ -1125,11 +1027,11 @@ void Model::generateMaterialAssignments() {
 void Model::removeIneffectives() {
     // remove ineffective loadings from the model
     vector<shared_ptr<Loading>> loadingsToRemove;
-    for (auto loading : loadings) {
+    for (const auto& loading : loadings) {
         if (loading->ineffective())
             loadingsToRemove.push_back(loading);
     }
-    for (auto loading : loadingsToRemove) {
+    for (const auto& loading : loadingsToRemove) {
         if (configuration.logLevel >= LogLevel::DEBUG)
             cout << "Removed ineffective " << *loading << endl;
         remove(Reference<Loading>(*loading));
@@ -1137,7 +1039,7 @@ void Model::removeIneffectives() {
 
     // remove empty loadSets from the model
     vector<Reference<LoadSet>> loadSetSetsToRemove;
-    for (auto loadSet : this->loadSets) {
+    for (const auto& loadSet : this->loadSets) {
         if (loadSet->size() == 0) {
             loadSetSetsToRemove.push_back(loadSet->getReference());
         }
@@ -1150,11 +1052,11 @@ void Model::removeIneffectives() {
 
     // remove ineffective constraints from the model
     vector<shared_ptr<Constraint>> constraintsToRemove;
-    for (auto constraint : constraints) {
+    for (const auto& constraint : constraints) {
         if (constraint->ineffective())
             constraintsToRemove.push_back(constraint);
     }
-    for (auto constraint : constraintsToRemove) {
+    for (const auto& constraint : constraintsToRemove) {
         if (configuration.logLevel >= LogLevel::DEBUG)
             cout << "Removed ineffective " << *constraint << endl;
         remove(Reference<Constraint>(*constraint));
@@ -1162,7 +1064,7 @@ void Model::removeIneffectives() {
 
     // remove empty constraintSets from the model
     vector<Reference<ConstraintSet>> constraintSetSetsToRemove;
-    for (auto constraintSet : this->constraintSets) {
+    for (const auto& constraintSet : this->constraintSets) {
         if (constraintSet->empty()) {
             constraintSetSetsToRemove.push_back(constraintSet->getReference());
         }
@@ -1175,11 +1077,11 @@ void Model::removeIneffectives() {
 
     // remove empty elementSets from the model
     vector<shared_ptr<ElementSet>> elementSetsToRemove;
-    for (auto elementSet : elementSets) {
+    for (const auto& elementSet : elementSets) {
         if (elementSet->cellGroup and elementSet->cellGroup->empty())
             elementSetsToRemove.push_back(elementSet);
     }
-    for (auto elementSet : elementSetsToRemove) {
+    for (const auto& elementSet : elementSetsToRemove) {
         if (configuration.logLevel >= LogLevel::DEBUG)
             cout << "Removed empty " << *elementSet << endl;
         this->elementSets.erase(Reference<ElementSet>(*elementSet));
@@ -1204,7 +1106,7 @@ void Model::removeUnassignedMaterials() {
 }
 
 void Model::replaceCombinedLoadSets() {
-    for (auto loadSet : this->loadSets) {
+    for (const auto& loadSet : this->loadSets) {
         for (auto& kv : loadSet->embedded_loadsets) {
             shared_ptr<LoadSet> otherloadSet = this->find(kv.first);
             if (!otherloadSet) {
@@ -1244,7 +1146,7 @@ void Model::removeAssertionsMissingDOFS()
             }
         }
     }
-    for (auto objective : objectivesToRemove) {
+    for (const auto& objective : objectivesToRemove) {
         if (configuration.logLevel >= LogLevel::TRACE)
             cout << "Removed ineffective " << *objective << endl;
 
@@ -1271,7 +1173,7 @@ void Model::replaceDirectMatrices()
     map<int, DOFS> addedDofsByNode;
     map<int, DOFS> requiredDofsByNode;
     map<int, DOFS> ownedDofsByNode;
-    for (auto elementSetM : elementSets) {
+    for (const auto& elementSetM : elementSets) {
         if (!elementSetM->isMatrixElement()) {
             continue;
         }
@@ -1299,7 +1201,7 @@ void Model::replaceDirectMatrices()
             }
             ownedDofsByNode[nodePosition] = owned;
         }
-        for (auto pair : matrix->nodePairs()) {
+        for (const auto& pair : matrix->nodePairs()) {
             if (pair.first == pair.second) {
                 if (matrix->findInPairs(pair.first).size() != 0) {
                     continue; // will be handled by a segment cell with another node
@@ -1471,7 +1373,7 @@ void Model::replaceDirectMatrices()
             }
         }
     }
-    for (auto elementSet : elementSetsToRemove) {
+    for (const auto& elementSet : elementSetsToRemove) {
         if (configuration.logLevel >= LogLevel::DEBUG) {
             cout << "Replaced " << *elementSet << endl;
         }
@@ -1481,7 +1383,7 @@ void Model::replaceDirectMatrices()
 
 void Model::replaceRigidSegments()
 {
-    for (auto elementSet : elementSets.filter(ElementSet::Type::STRUCTURAL_SEGMENT)) {
+    for (const auto& elementSet : elementSets.filter(ElementSet::Type::STRUCTURAL_SEGMENT)) {
         shared_ptr<StructuralSegment> segment = dynamic_pointer_cast<StructuralSegment>(elementSet);
         if (not segment->isDiagonalRigid()) {
             continue;
@@ -1501,7 +1403,7 @@ void Model::replaceRigidSegments()
 }
 
 void Model::removeRedundantSpcs() {
-    for (auto analysis : this->analyses) {
+    for (const auto& analysis : this->analyses) {
         unordered_map<pair<int, DOF>, double, boost::hash<pair<int, int> > > spcvalueByNodeAndDof;
         for (const auto& constraintSet : analysis->getConstraintSets()) {
             const set<shared_ptr<Constraint> > spcs = constraintSet->getConstraintsByType(
@@ -1547,7 +1449,7 @@ void Model::removeRedundantSpcs() {
 }
 
 void Model::removeConstrainedImposed() {
-    for (auto analysis : this->analyses) {
+    for (const auto& analysis : this->analyses) {
         unordered_map<int, DOFS> imposedDofsByNodeId;
         for (const auto& loadSet : analysis->getLoadSets()) {
             const set<shared_ptr<Loading> > loads = loadSet->getLoadingsByType(
@@ -1601,7 +1503,7 @@ void Model::splitDirectMatrices(const unsigned int sizeMax){
     vector<shared_ptr<ElementSet>> esToAdd;
     const int sizeStack = static_cast<int>(sizeMax/2);
 
-    for (auto elementSetM : elementSets) {
+    for (const auto& elementSetM : elementSets) {
         if (!elementSetM->isMatrixElement()) {
             //TODO: Display informative message in debug mode.
             continue;
@@ -1618,7 +1520,7 @@ void Model::splitDirectMatrices(const unsigned int sizeMax){
         // It's too big, we have work to do
         esToErase.push_back(elementSetM);
         map<int, int> nodeIdOfElement;
-        for (auto & v : matrix->nodePositions()){
+        for (const auto& v : matrix->nodePositions()){
             nodeIdOfElement[v] = mesh->findNodeId(v);
         }
 
@@ -1691,7 +1593,7 @@ void Model::splitDirectMatrices(const unsigned int sizeMax){
 
         if (configuration.logLevel >= LogLevel::DEBUG) {
             cout << "Element Matrix "<<matrix->bestId()<< " has been split into the smaller matrices ";
-            for (auto es : esToAddByStackNumber){
+            for (const auto& es : esToAddByStackNumber){
                 cout << es.second->bestId()<<" ";
             }
             cout <<endl;
@@ -1700,12 +1602,12 @@ void Model::splitDirectMatrices(const unsigned int sizeMax){
     }
 
     // We remove the elementSets corresponding to big matrices
-    for (auto es : esToErase){
+    for (const auto& es : esToErase){
         this->elementSets.erase(*es);
     }
 
     // We add the elementSets corresponding to small matrices
-    for (auto es : esToAdd){
+    for (const auto& es : esToAdd){
         this->add(*es);
     }
 }
@@ -1715,7 +1617,7 @@ void Model::splitDirectMatrices(const unsigned int sizeMax){
 void Model::makeCellsFromDirectMatrices(){
 
     int idM=0;
-    for (auto elementSetM : elementSets) {
+    for (const auto& elementSetM : elementSets) {
         if (!elementSetM->isMatrixElement()) {
             //TODO: Display informative message in debug mode.
             continue;
@@ -1763,7 +1665,7 @@ void Model::makeCellsFromLMPC(){
     shared_ptr<Mesh> mesh = this->mesh;
     shared_ptr<Material> materialLMPC= nullptr;
 
-    for (auto analysis : this->analyses) {
+    for (const auto& analysis : this->analyses) {
         map< vector<DOFCoefs>, shared_ptr<CellGroup>> groupBySetOfCoefs;
         for (const auto& constraintSet : analysis->getConstraintSets()) {
 
@@ -1817,7 +1719,7 @@ void Model::makeCellsFromLMPC(){
 
     // After the translation, we remove all LMPC constraints
     // We don't do this during the loop because some LMPC may be used by several analysis.
-    for (auto analysis : this->analyses) {
+    for (const auto& analysis : this->analyses) {
         for (const auto& constraintSet : analysis->getConstraintSets()) {
             const int idConstraintSet = constraintSet->getId();
             const int originalIdConstraintSet = constraintSet->getOriginalId();
@@ -2070,7 +1972,7 @@ void Model::splitElementsByDOFS(){
     vector<ScalarSpring> elementSetsToAdd;
     vector<shared_ptr<ElementSet>> elementSetsToRemove;
 
-    for (auto & elementSet : elementSets) {
+    for (const auto& elementSet : elementSets) {
 
         switch (elementSet->type){
         case ElementSet::Type::DISCRETE_0D:
@@ -2126,10 +2028,10 @@ void Model::splitElementsByDOFS(){
         }
     }
 
-    for (auto elementSet : elementSetsToRemove){
+    for (const auto& elementSet : elementSetsToRemove){
         this->elementSets.erase(Reference<ElementSet>(*elementSet));
     }
-    for (auto & elementSet : elementSetsToAdd){
+    for (const auto& elementSet : elementSetsToAdd){
         this->add(elementSet);
     }
 }

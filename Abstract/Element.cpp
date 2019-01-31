@@ -1009,7 +1009,7 @@ void ScalarSpring::addSpring(int cellPosition, DOF dofNodeA, DOF dofNodeB){
 
 std::vector<std::pair<DOF, DOF>> ScalarSpring::getDOFSSpring() const {
     std::vector<std::pair<DOF, DOF>> vDOF;
-    for (auto it : this->cellpositionByDOFS){
+    for (const auto& it : this->cellpositionByDOFS){
         vDOF.push_back(it.first);
     }
     return vDOF;

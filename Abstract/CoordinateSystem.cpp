@@ -393,9 +393,9 @@ int CoordinateSystemStorage::findPosition(const Reference<CoordinateSystem> csre
     }
 
     int cpos = UNAVAILABLE_POSITION;
-    for (auto it= refByPosition.begin(); it!=refByPosition.end(); ++it){
-        if (it->second == csref){
-            cpos = it->first;
+    for (const auto& it : refByPosition){
+        if (it.second == csref){
+            cpos = it.first;
             break;
         }
     }

@@ -101,7 +101,7 @@ CellGroup2Families::CellGroup2Families(
 
 	for (auto& cellGroup : cellGroups) {
 		newFamilyByOldfamily.clear();
-		for (auto cellPosition : cellGroup->cellPositions()) {
+		for (const auto& cellPosition : cellGroup->cellPositions()) {
 			const Cell&& cell = mesh.findCell(cellPosition);
 			shared_ptr<vector<int>> currentCellFamilies = cellFamiliesByType[cell.type.code];
 			int oldFamilyId = currentCellFamilies->at(cell.cellTypePosition);
@@ -135,7 +135,7 @@ CellGroup2Families::CellGroup2Families(
 	}
 
 	set<int> familiesInUse;
-	for (auto cellFamilyAndTypePair : cellFamiliesByType) {
+	for (const auto& cellFamilyAndTypePair : cellFamiliesByType) {
 		familiesInUse.insert(cellFamilyAndTypePair.second->begin(),
 				cellFamilyAndTypePair.second->end());
 	}
@@ -242,7 +242,7 @@ void MedWriter::writeMED(const Model& model, const string& medFileName) {
     MEDmeshEntityNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_NODE, MED_NONE,nnodes, numnoe.data());
     numnoe.clear();
 
-	for (auto kv : model.mesh->cellPositionsByType) {
+	for (const auto& kv : model.mesh->cellPositionsByType) {
 		CellType type = kv.first;
 		med_int code = static_cast<med_int>(type.code);
 		vector<med_int> cellPositions = kv.second;
@@ -309,7 +309,7 @@ void MedWriter::writeMED(const Model& model, const string& medFileName) {
 		//WARN: if writing to file is delayed to MEDfileClose may be necessary
 		//to move the allocation outside the if
 		auto& families = ng2fam.getFamilies();
-		createFamilies(fid, meshname, families);
+		createFamilies(static_cast<int>(fid), meshname, families);
 		//write family number for nodes
 		if (MEDmeshEntityFamilyNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_NODE, MED_NONE,
 				nnodes, ng2fam.getFamilyOnNodes().data()) < 0) {
@@ -319,15 +319,15 @@ void MedWriter::writeMED(const Model& model, const string& medFileName) {
 	vector<shared_ptr<CellGroup>> cellGroups = model.mesh->getCellGroups();
 	if (cellGroups.size() > 0) {
 		unordered_map<CellType::Code, int, EnumClassHash> cellCountByType;
-		for (auto typeAndCodePair : CellType::typeByCode) {
+		for (const auto& typeAndCodePair : CellType::typeByCode) {
 			int cellNum = model.mesh->countCells(*typeAndCodePair.second);
 			if (cellNum > 0) {
 				cellCountByType[typeAndCodePair.first] = cellNum;
 			}
 		}
 		CellGroup2Families cellGroup2Family = CellGroup2Families(*model.mesh, cellCountByType, cellGroups);
-		createFamilies(fid, meshname, cellGroup2Family.getFamilies());
-		for (auto cellCodeFamilyVectorPair : cellGroup2Family.getFamilyOnCells()) {
+		createFamilies(static_cast<int>(fid), meshname, cellGroup2Family.getFamilies());
+		for (const auto& cellCodeFamilyVectorPair : cellGroup2Family.getFamilyOnCells()) {
 			int ncells = static_cast<int>(cellCodeFamilyVectorPair.second->size());
 			if (MEDmeshEntityFamilyNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_CELL,
 					static_cast<int>(cellCodeFamilyVectorPair.first), ncells, cellCodeFamilyVectorPair.second->data())

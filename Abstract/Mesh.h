@@ -222,6 +222,7 @@ public:
         return cells.cellDatas[cellPosition].id;
     };
 	const Cell findCell(int cellPosition) const;
+	int generateSkinCell(const std::vector<int>& faceIds, const SpaceDimension& dimension);
 	bool hasCell(int cellId) const;
 
 	/**

@@ -170,7 +170,7 @@ int DOFS::nastranCode() const {
 	string dofs = "";
 	for (DOF dof : *this) {
 		int dofCode = DOF_BY_NASTRANCODE.right.find(dof.code)->second;
-		dofs = dofs + to_string(dofCode);
+		dofs += to_string(dofCode);
 	}
 	return dofs.size() >= 1 ? boost::lexical_cast<int>(dofs) : 0;
 }
@@ -194,7 +194,7 @@ DOFS DOFS::nastranCodeToDOFS(int nastranCode) {
 					string("Invalid Nastran code: " + nastranCode));
 		}
 		DOFS internalDOFCode {static_cast<char>(codeiter->second)};
-		dofs = dofs + internalDOFCode;
+		dofs += internalDOFCode;
 	}
 	return dofs;
 }

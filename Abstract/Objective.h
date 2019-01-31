@@ -77,7 +77,6 @@ public:
     bool isAssertion() const override {
         return true;
     }
-    virtual std::shared_ptr<Objective> clone() const=0;
 };
 
 class NodalAssertion: public Assertion {
@@ -98,7 +97,7 @@ public:
     NodalDisplacementAssertion(const Model&, double tolerance, int nodeId, DOF dof,
             double value, double instant, int original_id = NO_ORIGINAL_ID);
     friend std::ostream& operator<<(std::ostream&, const NodalDisplacementAssertion&);
-    std::shared_ptr<Objective> clone() const {
+    std::shared_ptr<Objective> clone() const override {
         return std::make_shared<NodalDisplacementAssertion>(*this);
     }
 };
@@ -110,7 +109,7 @@ public:
     NodalComplexDisplacementAssertion(const Model&, double tolerance, int nodeId, DOF dof,
             std::complex<double> value, double frequency, int original_id = NO_ORIGINAL_ID);
     friend std::ostream& operator<<(std::ostream&, const NodalComplexDisplacementAssertion&);
-    std::shared_ptr<Objective> clone() const {
+    std::shared_ptr<Objective> clone() const override {
         return std::make_shared<NodalComplexDisplacementAssertion>(*this);
     }
 };
@@ -123,7 +122,7 @@ public:
     const double eigenValue;
     FrequencyAssertion(const Model&, int number, double cycles, double eigenValue, double tolerance, int original_id =
             NO_ORIGINAL_ID);
-    std::shared_ptr<Objective> clone() const;
+    std::shared_ptr<Objective> clone() const override;
     const DOFS getDOFSForNode(const int nodePosition) const override final;
     std::set<int> nodePositions() const override final;
 };
@@ -131,7 +130,6 @@ public:
 class AnalysisParameter: public Objective {
 public:
     AnalysisParameter(const Model&, Type type, int original_id = NO_ORIGINAL_ID);
-    virtual std::shared_ptr<Objective> clone() const=0;
 };
 
 class FrequencySearch: public AnalysisParameter {
@@ -155,7 +153,7 @@ public:
     const NormType norm;  /**< Method for normalizing eigenvectors: MASS or MAX **/
     const std::shared_ptr<NamedValue> getValue() const;
     const FunctionPlaceHolder getValueRangePlaceHolder() const;
-    std::shared_ptr<Objective> clone() const;
+    std::shared_ptr<Objective> clone() const override;
 };
 
 class FrequencyExcit: public AnalysisParameter {
@@ -179,7 +177,7 @@ public:
     const NormType norm;  /**< Method for normalizing eigenvectors: MASS or MAX **/
     const std::shared_ptr<NamedValue> getValue() const;
     const FunctionPlaceHolder getValueRangePlaceHolder() const;
-    std::shared_ptr<Objective> clone() const;
+    std::shared_ptr<Objective> clone() const override;
 };
 
 class ModalDamping: public AnalysisParameter {
@@ -192,7 +190,7 @@ public:
     ModalDamping(const Model& model, int function_table_id, int original_id = NO_ORIGINAL_ID);
     const std::shared_ptr<FunctionTable> getFunctionTable() const;
     const FunctionPlaceHolder getFunctionTablePlaceHolder() const;
-    std::shared_ptr<Objective> clone() const;
+    std::shared_ptr<Objective> clone() const override;
 };
 
 class NonLinearStrategy: public AnalysisParameter {
@@ -200,14 +198,14 @@ public:
     const int number_of_increments;
     NonLinearStrategy(const Model& model, const int number_of_increments, int original_id =
             NO_ORIGINAL_ID);
-    std::shared_ptr<Objective> clone() const;
+    std::shared_ptr<Objective> clone() const override;
 };
 
 class ArcLengthMethod: public AnalysisParameter {
 public:
     ArcLengthMethod(const Model& model, const Reference<Objective>& strategy_reference, int original_id = NO_ORIGINAL_ID);
     const Reference<Objective>& strategy_reference;
-    std::shared_ptr<Objective> clone() const;
+    std::shared_ptr<Objective> clone() const override;
 };
 
 } /* namespace vega */
