@@ -104,13 +104,13 @@ const string AsterModel::getAsterVersion() const {
 }
 
 double AsterModel::getMemjeveux() const {
-    double mem = 2048.0* model.mesh->countNodes() / 300000.0;
+    double mem = 2048.0* model.mesh.countNodes() / 300000.0;
     mem = max<double>(128., mem);
     mem = min<double>(12000.0, mem);
     return mem;
 }
 double AsterModel::getTpmax() const {
-    double time = 3600.0 * model.mesh->countNodes() / 300000.0;
+    double time = 3600.0 * model.mesh.countNodes() / 300000.0;
     time = max<double>(360.,time) * max(1,model.analyses.size());
     return time;
 }

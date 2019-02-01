@@ -38,10 +38,6 @@ namespace aster {
 namespace fs = boost::filesystem;
 using namespace std;
 
-AsterRunner::AsterRunner() {
-
-}
-
 Runner::ExitCode AsterRunner::execSolver(const ConfigurationParameters &configuration,
         string modelFile) {
     bool local = configuration.solverServer.empty() || configuration.solverServer == "localhost"

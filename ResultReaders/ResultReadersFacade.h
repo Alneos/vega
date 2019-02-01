@@ -22,8 +22,9 @@ public:
 	/**
 	 * Returns an empty shared pointer if the result file isn't specified
 	 */
-	static std::shared_ptr<ResultReader> getResultReader(
+	static std::unique_ptr<ResultReader> getResultReader(
 			const ConfigurationParameters& configuration);
+    ResultReadersFacade(const ResultReadersFacade& that) = delete;
 
 };
 

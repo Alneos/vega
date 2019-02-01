@@ -190,8 +190,7 @@ DOFS DOFS::nastranCodeToDOFS(int nastranCode) {
 		number = number / 10;
 		auto codeiter = DOF_BY_NASTRANCODE.left.find(nastranDigit);
 		if (codeiter == DOF_BY_NASTRANCODE.left.end()) {
-			throw invalid_argument(
-					string("Invalid Nastran code: " + nastranCode));
+			throw invalid_argument("Invalid Nastran code: " + nastranCode);
 		}
 		DOFS internalDOFCode {static_cast<char>(codeiter->second)};
 		dofs += internalDOFCode;
@@ -289,7 +288,7 @@ DOFMatrix::DOFMatrix(bool symmetric) : symmetric(symmetric) {
 }
 
 void DOFMatrix::addComponent(const DOF dof1, const DOF dof2, const double value) {
-	if (symmetric && dof1 > dof2) {
+	if (symmetric and dof1 > dof2) {
 		componentByDofs[make_pair(dof2, dof1)] = value;
 	} else {
 		componentByDofs[make_pair(dof1, dof2)] = value;
@@ -297,7 +296,7 @@ void DOFMatrix::addComponent(const DOF dof1, const DOF dof2, const double value)
 }
 
 double DOFMatrix::findComponent(const DOF dof1, const DOF dof2) const {
-	if (symmetric && dof1 > dof2) {
+	if (symmetric and dof1 > dof2) {
 		auto it = componentByDofs.find(make_pair(dof2, dof1));
 		if (it != componentByDofs.end()) {
 			return it->second;
@@ -313,7 +312,7 @@ double DOFMatrix::findComponent(const DOF dof1, const DOF dof2) const {
 
 bool DOFMatrix::hasRotations() const {
 	bool hasRotations = false;
-	for (auto& kv : componentByDofs) {
+	for (const auto& kv : componentByDofs) {
 		DOF dof1 = kv.first.first;
 		DOF dof2 = kv.first.second;
 		if (dof1.isRotation or dof2.isRotation) {
@@ -326,7 +325,7 @@ bool DOFMatrix::hasRotations() const {
 
 bool DOFMatrix::hasTranslations() const {
 	bool hasTranslations = false;
-	for (auto& kv : componentByDofs) {
+	for (const auto& kv : componentByDofs) {
 		DOF dof1 = kv.first.first;
 		DOF dof2 = kv.first.second;
 		if (dof1.isTranslation or dof2.isTranslation) {
@@ -339,7 +338,7 @@ bool DOFMatrix::hasTranslations() const {
 
 bool DOFMatrix::isDiagonal() const {
 	bool isDiagonal = true;
-	for (auto& kv : componentByDofs) {
+	for (const auto& kv : componentByDofs) {
 		if (kv.first.first != kv.first.second and !is_equal(kv.second, 0)) {
 			isDiagonal = false;
 			break;
@@ -350,7 +349,7 @@ bool DOFMatrix::isDiagonal() const {
 
 bool DOFMatrix::isMaxDiagonal() const {
 	bool isMaxDiagonal = true;
-	for (auto& kv : componentByDofs) {
+	for (const auto& kv : componentByDofs) {
 		if ((kv.first.first != kv.first.second and !is_equal(kv.second, 0)) or !is_equal(kv.second, DBL_MAX)) {
 			isMaxDiagonal = false;
 			break;
@@ -377,7 +376,7 @@ DOFCoefs::DOFCoefs(double dx, double dy, double dz, double rx, double ry, double
 }
 
 DOFCoefs::DOFCoefs(DOFS dofs, double val) {
-    for(DOF dof : DOFS::ALL_DOFS) {
+    for(const DOF dof : DOFS::ALL_DOFS) {
         if (dofs.contains(dof))
             coefs[dof.position] = val;
         else
@@ -387,7 +386,7 @@ DOFCoefs::DOFCoefs(DOFS dofs, double val) {
 
 DOFS DOFCoefs::getDOFS() const {
     DOFS dofs;
-    for(DOF dof : DOFS::ALL_DOFS) {
+    for(const DOF dof : DOFS::ALL_DOFS) {
         if (not is_equal(coefs[dof.position], Globals::UNAVAILABLE_DOUBLE))
             dofs += dof;
     }
@@ -395,7 +394,7 @@ DOFS DOFCoefs::getDOFS() const {
 }
 
 bool DOFCoefs::isEmpty() const {
-    for(DOF dof : DOFS::ALL_DOFS) {
+    for(const DOF dof : DOFS::ALL_DOFS) {
         if (not is_equal(coefs[dof.position], Globals::UNAVAILABLE_DOUBLE))
             return false;
     }

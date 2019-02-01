@@ -33,10 +33,6 @@ namespace systus {
 namespace fs = boost::filesystem;
 using namespace std;
 
-SystusRunner::SystusRunner() {
-    // TODO Auto-generated constructor stub
-}
-
 Runner::ExitCode SystusRunner::execSolver(const ConfigurationParameters &configuration,
         string modelFile) {
 

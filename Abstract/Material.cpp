@@ -35,7 +35,7 @@ ostream &operator<<(ostream &out, const Material& material) {
 	return out;
 }
 
-Material::Material(Model* model, int original_id) :
+Material::Material(Model& model, int original_id) :
 		Identifiable(original_id), model(model) {
 }
 
@@ -272,11 +272,11 @@ void RigidNature::setLagrangian(double lagrangian) {
 }
 
 CellContainer Material::getAssignment() const {
-	return this->model->getMaterialAssignment(this->getId());
+	return this->model.getMaterialAssignment(this->getId());
 }
 
 void Material::assignMaterial(const CellContainer& cellsToAssign) {
-	this->model->assignMaterial(this->getId(), cellsToAssign);
+	this->model.assignMaterial(this->getId(), cellsToAssign);
 }
 
 }

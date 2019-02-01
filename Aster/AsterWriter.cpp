@@ -28,17 +28,13 @@ using namespace std;
 namespace vega {
 namespace aster {
 
-AsterWriter::AsterWriter() {
-
-}
-
 const string AsterWriter::toString() const {
-	return string("AsterWriter");
+	return "AsterWriter";
 }
 
-string AsterWriter::writeModel(const shared_ptr<vega::Model> model_ptr,
+string AsterWriter::writeModel(Model& model,
 		const vega::ConfigurationParameters &configuration) {
-	AsterModel asterModel(*model_ptr, configuration);
+	AsterModel asterModel(model, configuration);
 //string currentOutFile = asterModel.getOutputFileName();
 
 	string path = asterModel.configuration.outputPath;
@@ -61,7 +57,7 @@ string AsterWriter::writeModel(const shared_ptr<vega::Model> model_ptr,
 	string comm_path = asterModel.getOutputFileName(".comm");
 
 	MedWriter medWriter;
-	medWriter.writeMED(*model_ptr, med_path.c_str());
+	medWriter.writeMED(model, med_path.c_str());
 
 	ofstream comm_file_ofs;
 	//comm_file_ofs.setf(ios::scientific);
@@ -267,7 +263,7 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
                 for (const auto& recoveryPoint : beam->recoveryPoints) {
                     const VectorialValue& localCoords = recoveryPoint.getLocalCoords();
                     for (const Cell& cell : beam->cellGroup->getCells()) {
-                        const Node& node1 = asterModel.model.mesh->findNode(cell.nodePositions[0]);
+                        const Node& node1 = asterModel.model.mesh.findNode(cell.nodePositions[0]);
                         const VectorialValue& globalCoords = recoveryPoint.getGlobalCoords(cell.id);
                         out << "                    _F(" << endl;
                         out << "                        INTITULE='Cell " << cell.id << " stress recovery at (local):" << localCoords << ", global:" << globalCoords << "'," << endl;
@@ -383,7 +379,7 @@ void AsterWriter::writeComm(const AsterModel& asterModel, ostream& out) {
 
 void AsterWriter::writeLireMaillage(const AsterModel& asterModel, ostream& out) {
 	out << mail_name << "=LIRE_MAILLAGE(FORMAT='MED',";
-	if (asterModel.configuration.logLevel >= LogLevel::DEBUG and asterModel.model.mesh->countNodes() < 100) {
+	if (asterModel.configuration.logLevel >= LogLevel::DEBUG and asterModel.model.mesh.countNodes() < 100) {
 		out << "INFO_MED=2,VERI_MAIL=_F(VERIF='OUI',),INFO=2";
 	} else {
 		out << "VERI_MAIL=_F(VERIF='NON',),";
@@ -404,7 +400,7 @@ void AsterWriter::writeLireMaillage(const AsterModel& asterModel, ostream& out) 
         out << "MAILLAGE=" << mail_name << "," << endl;
         // TODO LD should find a better solution
         int firstNodePosition = *((*zones.begin())->nodePositions().begin());
-        if (asterModel.model.mesh->findNode(firstNodePosition).dofs == DOFS::ALL_DOFS) {
+        if (asterModel.model.mesh.findNode(firstNodePosition).dofs == DOFS::ALL_DOFS) {
             out << "         ORIE_PEAU_2D=(" << endl;
         } else {
             out << "         ORIE_PEAU_3D=(" << endl;
@@ -650,7 +646,7 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
         shared_ptr<Composite> composite = dynamic_pointer_cast<Composite>(c);
         out << "MC" << composite->getId() << "=DEFI_COMPOSITE(" << endl;
         out << "                 COUCHE=(" << endl;
-        for (auto& layer : composite->getLayers()) {
+        for (const auto& layer : composite->getLayers()) {
             out << "                     _F(EPAIS=" << layer.getThickness() << ",  MATER=M" << layer.getMaterialId() << ", ORIENTATION=" << layer.getOrientation() << ")," << endl;
         }
         out << "                         )," << endl;
@@ -660,7 +656,7 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
   if (asterModel.model.materials.size() >= 1) {
     out << "CHMAT=AFFE_MATERIAU(MAILLAGE=" << mail_name << "," << endl;
     out << "                    AFFE=(" << endl;
-    for (auto& material : asterModel.model.materials) {
+    for (const auto& material : asterModel.model.materials) {
       CellContainer cells = material->getAssignment();
       if (!cells.empty()) {
         out << "                          _F(MATER=M" << material->getId() << ",";
@@ -891,8 +887,8 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 
 	//orientations
 	bool orientationsPrinted = false;
-	for (const auto& it : asterModel.model.mesh->cellGroupNameByCspos){
-        std::shared_ptr<vega::CoordinateSystem> cs= asterModel.model.mesh->getCoordinateSystemByPosition(it.first);
+	for (const auto& it : asterModel.model.mesh.cellGroupNameByCspos){
+        std::shared_ptr<vega::CoordinateSystem> cs= asterModel.model.mesh.getCoordinateSystemByPosition(it.first);
 		if (cs->type!=CoordinateSystem::Type::RELATIVE){
 		   //handleWritingError("Coordinate System of Group "+ it.second+" is not an ORIENTATION.");
 		   continue;
@@ -983,7 +979,7 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
 			continue;
 		}
 		bool contactOnly = true;
-		for(auto& constraint : constraintSet.getConstraints()) {
+		for(const auto& constraint : constraintSet.getConstraints()) {
 		    if (not constraint->isContact()) {
 		        contactOnly = false;
                 break;
@@ -1198,12 +1194,12 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
             out << "                             _F(";
 
             out << "GROUP_MA_MAIT=(";
-                for(auto& cellGroup : masterSurface->getCellGroups()) {
+                for(const auto& cellGroup : masterSurface->getCellGroups()) {
                     out << "'" << cellGroup->getName() << "',";
                 }
                 out << "),";
             out << "GROUP_MA_ESCL=(";
-                for(auto& cellGroup : slaveSurface->getCellGroups()) {
+                for(const auto& cellGroup : slaveSurface->getCellGroups()) {
                     out << "'" << cellGroup->getName() << "',";
                 }
                 out << "),";
@@ -1527,7 +1523,7 @@ void AsterWriter::writeNodalForce(const AsterModel& asterModel, const LoadSet& l
 		out << "                      FORCE_NODALE=(" << endl;
 		for (shared_ptr<Loading> loading : nodalForces) {
 			shared_ptr<NodalForce> nodal_force = dynamic_pointer_cast<NodalForce>(loading);
-			for(auto& nodePosition : nodal_force->nodePositions()) {
+			for(const int nodePosition : nodal_force->nodePositions()) {
                 VectorialValue force = nodal_force->getForceInGlobalCS(nodePosition);
                 VectorialValue moment = nodal_force->getMomentInGlobalCS(nodePosition);
                 out << "                                    _F(NOEUD='"
@@ -1642,7 +1638,7 @@ void AsterWriter::writeForceSurface(const LoadSet& loadSet, ostream&out) {
 			Loading::Type::FORCE_SURFACE);
 	if (forceSurfaces.size() > 0) {
 		out << "           FORCE_FACE=(" << endl;
-		for (auto& loading : forceSurfaces) {
+		for (const auto& loading : forceSurfaces) {
 			shared_ptr<ForceSurface> forceSurface = dynamic_pointer_cast<ForceSurface>(loading);
 			VectorialValue force = forceSurface->getForce();
 			VectorialValue moment = forceSurface->getMoment();
@@ -1670,7 +1666,7 @@ void AsterWriter::writeNodeContainer(const NodeContainer& nodeContainer, ostream
     int cnode = 0;
     if (nodeContainer.hasNodeGroups()) {
       out << "GROUP_NO=(";
-      for (auto& nodeGroup : nodeContainer.getNodeGroups()) {
+      for (const auto& nodeGroup : nodeContainer.getNodeGroups()) {
         cnode++;
         out << "'" << nodeGroup->getName() << "',";
         if (cnode % 6 == 0) {
@@ -1696,7 +1692,7 @@ void AsterWriter::writeCellContainer(const CellContainer& cellContainer, ostream
     int celem = 0;
     if (cellContainer.hasCellGroups()) {
       out << "GROUP_MA=(";
-      for (auto& cellGroup : cellContainer.getCellGroups()) {
+      for (const auto& cellGroup : cellContainer.getCellGroups()) {
         celem++;
         out << "'" << cellGroup->getName() << "',";
         if (celem % 6 == 0) {
@@ -1724,7 +1720,7 @@ shared_ptr<NonLinearStrategy> AsterWriter::getNonLinearStrategy(
 	shared_ptr<vega::Objective> strategy = nonLinAnalysis.model.find(
 			nonLinAnalysis.strategy_reference);
     if (strategy == nullptr) {
-        throw new logic_error("Cannot find nonlinear strategy" + to_str(nonLinAnalysis.strategy_reference));
+        throw logic_error("Cannot find nonlinear strategy" + to_str(nonLinAnalysis.strategy_reference));
     }
 	switch (strategy->type) {
 	case Objective::Type::NONLINEAR_STRATEGY: {
@@ -2141,7 +2137,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 						for (const auto& loading2 : nodalForces) {
 							shared_ptr<NodalForce> nodal_force = dynamic_pointer_cast<NodalForce>(
 									loading2);
-                            for(auto& nodePosition : nodal_force->nodePositions()) {
+                            for(const int nodePosition : nodal_force->nodePositions()) {
                                 VectorialValue force = nodal_force->getForceInGlobalCS(nodePosition);
                                 VectorialValue moment = nodal_force->getMomentInGlobalCS(nodePosition);
                                 out << "                                    _F(NOEUD='"

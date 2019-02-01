@@ -35,23 +35,23 @@ namespace optistruct {
 
 class OptistructParser final: public nastran::NastranParser {
 private:
-    typedef void (OptistructParser::*parseOptistructElementFPtr)(nastran::NastranTokenizer& tok, std::shared_ptr<Model> model);
+    typedef void (OptistructParser::*parseOptistructElementFPtr)(nastran::NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the CONTACT keyword
      */
-    void parseCONTACT(nastran::NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseCONTACT(nastran::NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the SET keyword
      */
-    void parseSET(nastran::NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseSET(nastran::NastranTokenizer& tok, Model& model);
 
     /**
       * Defines a face of a 2-D or 3-D element as part of a surface.
       * https://www.sharcnet.ca/Software/Hyperworks/help/hwsolvers/hwsolvers.htm?surf.htm
       */
-    void parseSURF(nastran::NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseSURF(nastran::NastranTokenizer& tok, Model& model);
 
     const std::set<std::string> OPTISTRUCT_IGNORED_KEYWORDS = {
         //optistruct optimization variable
@@ -80,7 +80,8 @@ protected:
     std::string defaultAnalysis() const override;
 public:
     OptistructParser();
-    //std::shared_ptr<Model> parse(const ConfigurationParameters& configuration) override;
+    OptistructParser(const OptistructParser& that) = delete;
+    //Model& parse(const ConfigurationParameters& configuration) override;
     virtual ~OptistructParser() {
 	}
 };

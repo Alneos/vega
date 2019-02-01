@@ -39,9 +39,9 @@ F06Parser::F06Parser() {
 	lineNumber = 0;
 }
 
-int F06Parser::readDisplacementSection(const Model& model,
+int F06Parser::readDisplacementSection(Model& model,
 		const ConfigurationParameters& configuration, ifstream& istream,
-		vector<Assertion*>& assertions, double loadStep) {
+		vector<shared_ptr<Assertion>>& assertions, double loadStep) {
 	string header;
 	string currentLine;
 	int subcase_id = NO_SUBCASE;
@@ -81,9 +81,9 @@ int F06Parser::readDisplacementSection(const Model& model,
 				VectorialValue translation(stod(tokens[2]), stod(tokens[3]), stod(tokens[4]));
 				VectorialValue rotation(stod(tokens[5]), stod(tokens[6]), stod(tokens[7]));
 
-				const Node& node = model.mesh->findNode(model.mesh->findNodePosition(nodeId));
+				const Node& node = model.mesh.findNode(model.mesh.findNodePosition(nodeId));
 				if (node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-					shared_ptr<CoordinateSystem> coordSystem = model.mesh->getCoordinateSystemByPosition(node.displacementCS);
+					shared_ptr<CoordinateSystem> coordSystem = model.mesh.getCoordinateSystemByPosition(node.displacementCS);
 					coordSystem->updateLocalBase(VectorialValue(node.x, node.y, node.z));
 					translation = coordSystem->vectorToGlobal(translation);
 					rotation = coordSystem->vectorToGlobal(rotation);
@@ -96,7 +96,7 @@ int F06Parser::readDisplacementSection(const Model& model,
 					double value = values[i];
 					if (abs(value) < 1e-12)
 						value = 0.;
-					assertions.push_back(new NodalDisplacementAssertion(model, configuration.testTolerance,
+					assertions.push_back(make_shared<NodalDisplacementAssertion>(model, configuration.testTolerance,
 									nodeId, DOF::findByPosition(i), value, loadStep));
 				}
 
@@ -118,9 +118,9 @@ int F06Parser::readDisplacementSection(const Model& model,
 	return subcase_id /* It could have consumed the next subcase id so we give it back for the next section parsing */;
 }
 
-void F06Parser::readEigenvalueSection(const Model& model,
+void F06Parser::readEigenvalueSection(Model& model,
 		const ConfigurationParameters& configuration, ifstream& istream,
-		vector<Assertion*>& assertions) {
+		vector<shared_ptr<Assertion>>& assertions) {
 	string currentLine;
 	try {
 		while (this->readLine(istream, currentLine)) {
@@ -152,7 +152,7 @@ void F06Parser::readEigenvalueSection(const Model& model,
 			if (abs(cycles) < 1e-12)
 				cycles = 0.;
 			assertions.push_back(
-					new FrequencyAssertion(model, number, cycles, eigenValue, configuration.testTolerance));
+					make_shared<FrequencyAssertion>(model, number, cycles, eigenValue, configuration.testTolerance));
 		}
 	} catch (const exception &e) {
 		string message("Error ");
@@ -169,9 +169,9 @@ void F06Parser::readEigenvalueSection(const Model& model,
 	}
 }
 
-int F06Parser::readComplexDisplacementSection(const Model& model,
+int F06Parser::readComplexDisplacementSection(Model& model,
 		const ConfigurationParameters& configuration, ifstream& istream,
-		vector<Assertion*>& assertions, double frequency) {
+		vector<shared_ptr<Assertion>>& assertions, double frequency) {
 	string currentLine;
 	int subcase_id = NO_SUBCASE;
 	try {
@@ -217,7 +217,7 @@ int F06Parser::readComplexDisplacementSection(const Model& model,
 				complex<double> value(real, imag);
 
 				assertions.push_back(
-						new NodalComplexDisplacementAssertion(model, configuration.testTolerance,
+						make_shared<NodalComplexDisplacementAssertion>(model, configuration.testTolerance,
 								nodeId, DOF::findByPosition(i), value, frequency));
 			}
 		}
@@ -240,7 +240,7 @@ int F06Parser::readComplexDisplacementSection(const Model& model,
 int F06Parser::addAssertionsToModel(int currentSubcase, double loadStep, Model &model,
 		const ConfigurationParameters& configuration, ifstream& istream) {
 
-	vector<Assertion*> assertions;
+	vector<shared_ptr<Assertion>> assertions;
 	int nextSubcase = readDisplacementSection(model, configuration, istream, assertions, loadStep);
 	shared_ptr<Analysis> analysis;
 	if (currentSubcase != NO_SUBCASE) {
@@ -250,9 +250,9 @@ int F06Parser::addAssertionsToModel(int currentSubcase, double loadStep, Model &
 		}
 	} else if (not model.analyses.empty()) {
 		// LD If no subcase indicated, the first one is used if exists.
-		analysis = *(model.analyses.begin());
+		analysis = model.analyses.first();
 	}
-	for (Assertion* assertion : assertions) {
+	for (const auto& assertion : assertions) {
 		if (analysis != nullptr) {
 			model.add(*assertion);
 			analysis->add(assertion->getReference());
@@ -264,14 +264,13 @@ int F06Parser::addAssertionsToModel(int currentSubcase, double loadStep, Model &
 			cout << "Discarding NodalDisplacementAssertion : " << *assertion
 					<< " because subcase id: " << currentSubcase << " was not found." << endl;
 		}
-		delete (assertion);
 	}
 	return nextSubcase;
 }
 
 void F06Parser::addFrequencyAssertionsToModel(int currentSubCase, Model& model,
 		const ConfigurationParameters& configuration, ifstream& istream) {
-	vector<Assertion*> assertions;
+	vector<shared_ptr<Assertion>> assertions;
 	readEigenvalueSection(model, configuration, istream, assertions);
 	shared_ptr<Analysis> analysis;
 	if (currentSubCase != NO_SUBCASE) {
@@ -288,7 +287,7 @@ void F06Parser::addFrequencyAssertionsToModel(int currentSubCase, Model& model,
 		// created inside the finish()? GC
 		analysis = *model.analyses.begin();
 	}
-	for (Assertion* assertion : assertions) {
+	for (const auto& assertion : assertions) {
 		if (analysis != nullptr) {
 			model.add(*assertion);
 			analysis->add(Reference<Objective>(*assertion));
@@ -300,13 +299,12 @@ void F06Parser::addFrequencyAssertionsToModel(int currentSubCase, Model& model,
 			cout << "Discarding FrequencyAssertion : " << *assertion << " because subcase id: "
 					<< currentSubCase << " was not found." << endl;
 		}
-		delete (assertion);
 	}
 }
 
 int F06Parser::addComplexAssertionsToModel(int currentSubCase, double frequency, Model& model,
 		const ConfigurationParameters& configuration, ifstream& istream) {
-	vector<Assertion*> assertions;
+	vector<shared_ptr<Assertion>> assertions;
 	int nextSubcase = readComplexDisplacementSection(model, configuration, istream, assertions,
 			frequency);
 	shared_ptr<Analysis> analysis;
@@ -321,7 +319,7 @@ int F06Parser::addComplexAssertionsToModel(int currentSubCase, double frequency,
 		// created inside the finish()? GC
 		analysis = *model.analyses.begin();
 	}
-	for (Assertion* assertion : assertions) {
+	for (const auto& assertion : assertions) {
 		if (analysis != nullptr) {
 			model.add(*assertion);
 			analysis->add(Reference<Objective>(*assertion));
@@ -333,7 +331,6 @@ int F06Parser::addComplexAssertionsToModel(int currentSubCase, double frequency,
 			cout << "Discarding Complex Displacement Assertion : " << *assertion
 					<< " because subcase id: " << currentSubCase << " was not found." << endl;
 		}
-		delete (assertion);
 	}
 	return nextSubcase;
 }
@@ -354,7 +351,7 @@ int F06Parser::parseSubcase(int currentSubCase, const string& currentLine) {
 }
 
 void F06Parser::add_assertions(const ConfigurationParameters& configuration,
-		shared_ptr<Model> model) {
+		Model& model) {
 	if (!configuration.resultFile.empty()) {
 		ifstream istream(configuration.resultFile.string());
 		string currentLine;
@@ -395,12 +392,12 @@ void F06Parser::add_assertions(const ConfigurationParameters& configuration,
 				 * The next subcase can be consumed to understand if the section has ended.
 				 * In this case, it will be given back as return value, to be used for the next section.
 				 */
-				currentSubCase = addAssertionsToModel(currentSubCase, loadStep, *model,
+				currentSubCase = addAssertionsToModel(currentSubCase, loadStep, model,
 						configuration, istream);
 			} else if (currentLine == "R E A L   E I G E N V A L U E S") {
-				addFrequencyAssertionsToModel(currentSubCase, *model, configuration, istream);
+				addFrequencyAssertionsToModel(currentSubCase, model, configuration, istream);
 			} else if (currentLine == "C O M P L E X   D I S P L A C E M E N T   V E C T O R") {
-				currentSubCase = addComplexAssertionsToModel(currentSubCase, frequency, *model,
+				currentSubCase = addComplexAssertionsToModel(currentSubCase, frequency, model,
 						configuration, istream);
 			}
 		}

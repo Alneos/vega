@@ -32,9 +32,10 @@ namespace systus {
 
 class SystusModel {
 public:
-    SystusModel(const vega::Model* model, const vega::ConfigurationParameters &configuration);
+    SystusModel(vega::Model& model, const vega::ConfigurationParameters &configuration);
+    SystusModel(const SystusModel& that) = delete;
     virtual ~SystusModel();
-    const vega::Model* model;
+    vega::Model& model;
     const vega::ConfigurationParameters configuration;
     /*string phenomene;*/
     /*const string memjeveux;*/

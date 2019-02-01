@@ -29,7 +29,7 @@ namespace systus {
 namespace fs = boost::filesystem;
 using namespace std;
 
-SystusModel::SystusModel(const vega::Model* model,
+SystusModel::SystusModel(vega::Model& model,
         const vega::ConfigurationParameters &configuration) :
         model(model), configuration(configuration) {
     /*this->phenomene = "MECANIQUE";*/
@@ -59,10 +59,10 @@ const string SystusModel::getOutputFileName(string extension) const {
 const string SystusModel::getName() const {
     string name;
 
-    if (model->name.empty()) {
+    if (model.name.empty()) {
         name = "systus";
     } else {
-        name = model->name;
+        name = model.name;
         const size_t period_idx = name.rfind('.');
         if (string::npos != period_idx) {
             name = name.substr(0, period_idx);

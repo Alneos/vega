@@ -31,7 +31,8 @@ namespace systus {
 
 class SystusRunner: public vega::Runner {
 public:
-    SystusRunner();
+    SystusRunner() = default;
+    SystusRunner(const SystusRunner& that) = delete;
     ExitCode execSolver(const ConfigurationParameters &configuration,
             std::string modelFile) override;
 };

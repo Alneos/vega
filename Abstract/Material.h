@@ -176,7 +176,7 @@ public:
  * Base class for materials
  */
 class Material: public Identifiable<Material> {
-    Model* const model;
+    Model& model;
     std::map<Nature::NatureType, std::shared_ptr<Nature>> nature_by_type;
 
 public:
@@ -188,8 +188,8 @@ public:
     const Type type = Type::MATERIAL;
     static const std::string name;
     static const std::map<Type, std::string> stringByType;
-    Material(Model* model, int material_id = NO_ORIGINAL_ID);
-    void addNature(const Nature &nature);
+    Material(Model& model, int material_id = NO_ORIGINAL_ID);
+    void addNature(const Nature& nature);
     const std::shared_ptr<Nature> findNature(Nature::NatureType) const;
     virtual bool validate() const override;
     virtual std::shared_ptr<Material> clone() const;

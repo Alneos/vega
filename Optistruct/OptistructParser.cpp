@@ -83,7 +83,7 @@ string OptistructParser::defaultAnalysis() const {
     return "200";
 }
 
-void OptistructParser::parseCONTACT(nastran::NastranTokenizer& tok, shared_ptr<Model> model) {
+void OptistructParser::parseCONTACT(nastran::NastranTokenizer& tok, Model& model) {
     // https://www.sharcnet.ca/Software/Hyperworks/help/hwsolvers/contact_bulk.htm
     int ctid = tok.nextInt();
     string type = tok.nextString();
@@ -91,17 +91,17 @@ void OptistructParser::parseCONTACT(nastran::NastranTokenizer& tok, shared_ptr<M
     int msid = tok.nextInt();
 
     Reference<ConstraintSet> constraintSetReference(ConstraintSet::Type::CONTACT, ctid);
-    if (!model->find(constraintSetReference)) {
-        ConstraintSet constraintSet(*model, ConstraintSet::Type::CONTACT, ctid);
-        model->add(constraintSet);
+    if (!model.find(constraintSetReference)) {
+        ConstraintSet constraintSet(model, ConstraintSet::Type::CONTACT, ctid);
+        model.add(constraintSet);
     }
-    SurfaceSlide surface(*model, Reference<Target>(Target::Type::BOUNDARY_ELEMENTFACE, msid), Reference<Target>(Target::Type::BOUNDARY_ELEMENTFACE, ssid));
-    model->add(surface);
-    //model->addConstraintIntoConstraintSet(surface, constraintSetReference);
-    model->addConstraintIntoConstraintSet(surface, model->commonConstraintSet);
+    const auto& surface = make_shared<SurfaceSlide>(model, Reference<Target>(Target::Type::BOUNDARY_ELEMENTFACE, msid), Reference<Target>(Target::Type::BOUNDARY_ELEMENTFACE, ssid));
+    model.add(surface);
+    //model.addConstraintIntoConstraintSet(surface, constraintSetReference);
+    model.addConstraintIntoConstraintSet(*surface, model.commonConstraintSet);
 }
 
-void OptistructParser::parseSET(nastran::NastranTokenizer& tok, shared_ptr<Model> model) {
+void OptistructParser::parseSET(nastran::NastranTokenizer& tok, Model& model) {
     // https://www.sharcnet.ca/Software/Hyperworks/help/hwsolvers/set_bulk_data.htm
     int sid = tok.nextInt();
     string name = string("SET") + "_" + to_string(sid);
@@ -114,18 +114,18 @@ void OptistructParser::parseSET(nastran::NastranTokenizer& tok, shared_ptr<Model
     }
 
     if (type == "GRID") {
-        shared_ptr<NodeGroup> nodeGroup = model->mesh->findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SET");
+        shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SET");
         while(!tok.isEmptyUntilNextKeyword()) {
-            for (auto& id : tok.nextInts()) {
+            for (const auto& id : tok.nextInts()) {
                 nodeGroup->addNodeId(id);
             }
             tok.skipToNotEmpty();
         }
         tok.skipToNextKeyword();
     } else if (type == "ELEM") {
-        shared_ptr<CellGroup> cellGroup = model->mesh->createCellGroup(name,CellGroup::NO_ORIGINAL_ID,"SET");
+        shared_ptr<CellGroup> cellGroup = model.mesh.createCellGroup(name,CellGroup::NO_ORIGINAL_ID,"SET");
         while(!tok.isEmptyUntilNextKeyword()) {
-            for (auto& id : tok.nextInts()) {
+            for (const auto& id : tok.nextInts()) {
                 cellGroup->addCellId(id);
             }
             tok.skipToNotEmpty();
@@ -140,17 +140,17 @@ void OptistructParser::parseSET(nastran::NastranTokenizer& tok, shared_ptr<Model
             tok.skipToNotEmpty();
         }
         tok.skipToNextKeyword();
-        ListValue<double> frequencyValue(*model, values);
-        model->add(frequencyValue);
-        FrequencySearch frequencyRange(*model, FrequencySearch::FrequencyType::LIST, frequencyValue, FrequencySearch::NormType::MASS, sid);
-        model->add(frequencyRange);
+        ListValue<double> frequencyValue(model, values);
+        model.add(frequencyValue);
+        FrequencySearch frequencyRange(model, FrequencySearch::FrequencyType::LIST, frequencyValue, FrequencySearch::NormType::MASS, sid);
+        model.add(frequencyRange);
     } else {
         throw logic_error("Unsupported TYPE value in SET");
     }
 
 }
 
-void OptistructParser::parseSURF(nastran::NastranTokenizer& tok, shared_ptr<Model> model) {
+void OptistructParser::parseSURF(nastran::NastranTokenizer& tok, Model& model) {
     // https://www.sharcnet.ca/Software/Hyperworks/help/hwsolvers/hwsolvers.htm?surf.htm
     int sid = tok.nextInt();
     if (not tok.isNextInt()) {
@@ -166,8 +166,8 @@ void OptistructParser::parseSURF(nastran::NastranTokenizer& tok, shared_ptr<Mode
         BoundaryElementFace::ElementFaceByTwoNodes faceInfo(eid, ga1, ga2, swapNormal);
         faceInfos.push_back(faceInfo);
     }
-    BoundaryElementFace bef(*model, faceInfos, sid);
-    model->add(bef);
+    const auto& bef = make_shared<BoundaryElementFace>(model, faceInfos, sid);
+    model.add(bef);
 }
 
 } //namespace optistruct

@@ -35,9 +35,10 @@ enum LineItems {
 
 class CSVResultReader: public vega::ResultReader {
 public:
-	CSVResultReader();
+	CSVResultReader() = default;
+	CSVResultReader(const CSVResultReader& that) = delete;
 	virtual void add_assertions(const ConfigurationParameters& configuration,
-			std::shared_ptr<Model> model) override;
+			Model& model) override;
 	virtual ~CSVResultReader();
 };
 

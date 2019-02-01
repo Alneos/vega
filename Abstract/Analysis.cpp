@@ -82,7 +82,7 @@ const vector<shared_ptr<BoundaryCondition>> Analysis::getBoundaryConditions() co
         if (constraintSet == nullptr) {
             continue;
         }
-        for (auto& constraint : constraintSet->getConstraints()) {
+        for (const auto& constraint : constraintSet->getConstraints()) {
             if (constraint != nullptr) {
                 result.push_back(constraint);
             }
@@ -92,7 +92,7 @@ const vector<shared_ptr<BoundaryCondition>> Analysis::getBoundaryConditions() co
         if (loadSet == nullptr) {
             continue;
         }
-        for (auto& loading : loadSet->getLoadings()) {
+        for (const auto& loading : loadSet->getLoadings()) {
             if (loading != nullptr) {
                 result.push_back(loading);
             }
@@ -287,38 +287,38 @@ bool Analysis::validate() const {
 
 void Analysis::removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition,  const DOFS dofsToRemove) {
     const DOFS& remainingDofs = spc.getDOFSForNode(nodePosition) - dofsToRemove;
-    const int nodeId = model.mesh->findNodeId(nodePosition);
+    const int nodeId = model.mesh.findNodeId(nodePosition);
     set<shared_ptr<ConstraintSet>> affectedConstraintSets =
             model.getConstraintSetsByConstraint(
                     spc);
     if (remainingDofs.size() != 0) {
-        SinglePointConstraint remainingSpc(this->model);
-        remainingSpc.addNodeId(nodeId);
+        const auto& remainingSpc = make_shared<SinglePointConstraint>(this->model);
+        remainingSpc->addNodeId(nodeId);
         for (const DOF& remainingDof : remainingDofs) {
-            remainingSpc.setDOF(remainingDof, spc.getDoubleForDOF(remainingDof));
+            remainingSpc->setDOF(remainingDof, spc.getDoubleForDOF(remainingDof));
         }
         model.add(remainingSpc);
         if (model.configuration.logLevel >= LogLevel::DEBUG) {
-            cout << "Created spc : " << remainingSpc << " for node id : "
+            cout << "Created spc : " << *remainingSpc << " for node id : "
                     << nodeId
                     << " to handle dofs : " << remainingDofs << endl;
         }
         for (const auto& constraintSet : affectedConstraintSets) {
-            model.addConstraintIntoConstraintSet(remainingSpc, *constraintSet);
+            model.addConstraintIntoConstraintSet(*remainingSpc, *constraintSet);
         }
     }
     if (model.analyses.size() >= 2) {
         ConstraintSet otherAnalysesCS(model, ConstraintSet::Type::SPC);
         model.add(otherAnalysesCS);
-        SinglePointConstraint otherAnalysesSpc(this->model);
-        otherAnalysesSpc.addNodeId(nodeId);
+        const auto& otherAnalysesSpc = make_shared<SinglePointConstraint>(this->model);
+        otherAnalysesSpc->addNodeId(nodeId);
         for (DOF removedDof : dofsToRemove) {
-            otherAnalysesSpc.setDOF(removedDof, spc.getDoubleForDOF(removedDof));
+            otherAnalysesSpc->setDOF(removedDof, spc.getDoubleForDOF(removedDof));
         }
         model.add(otherAnalysesSpc);
-        model.addConstraintIntoConstraintSet(otherAnalysesSpc, otherAnalysesCS);
+        model.addConstraintIntoConstraintSet(*otherAnalysesSpc, otherAnalysesCS);
         if (this->model.configuration.logLevel >= LogLevel::DEBUG) {
-            cout << "Created spc : " << otherAnalysesSpc << " for node id : "
+            cout << "Created spc : " << *otherAnalysesSpc << " for node id : "
                     << nodeId
                     << " to handle dofs : " << dofsToRemove << endl;
         }

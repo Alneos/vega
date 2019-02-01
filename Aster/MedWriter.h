@@ -64,10 +64,11 @@ class MedWriter {
 private:
     friend Mesh;
     friend NodeData;
-	void createFamilies(int fid, const char meshname[],
+	void createFamilies(long int fid, const char meshname[],
 			const std::vector<Family>& families);
 public:
-	MedWriter();
+    MedWriter() = default;
+	MedWriter(const MedWriter& that) = delete;
 	void writeMED(const Model& model, const std::string& medFileName);
 };
 

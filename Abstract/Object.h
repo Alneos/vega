@@ -119,7 +119,7 @@ std::string to_str(const T& t) {
 
     oss << T::name << "<" << type << ">" << "{";
     bool first = true;
-    for (auto& kv : t.to_map()) {
+    for (const auto& kv : t.to_map()) {
         if (!first)
             oss << ";";
         else

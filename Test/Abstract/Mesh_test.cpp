@@ -89,7 +89,7 @@ BOOST_AUTO_TEST_CASE( test_node_iterator )
     BOOST_CHECK(!mesh.nodes.end().hasNext());
 
     i = 0;
-    for (auto& node2 : mesh.nodes) {
+    for (const auto& node2 : mesh.nodes) {
         i++;
         cout << node2 << endl;
     }

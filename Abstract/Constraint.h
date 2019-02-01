@@ -47,8 +47,8 @@ public:
 	};
 
 protected:
-	const Model& model;
-	Constraint(const Model&, Type, int original_id = NO_ORIGINAL_ID);
+	Model& model;
+	Constraint(Model&, Type, int original_id = NO_ORIGINAL_ID);
 public:
 	const Type type;
 	static const std::string name;
@@ -66,14 +66,14 @@ public:
  */
 class ConstraintSet: public Identifiable<ConstraintSet> {
 private:
-	const Model& model;
+	Model& model;
 	std::vector<Reference<ConstraintSet>> constraintSetReferences;
 	friend std::ostream &operator<<(std::ostream&, const ConstraintSet&);
 public:
 	enum class Type {
 		SPC, MPC, ALL, CONTACT
 	};
-	ConstraintSet(const Model&, Type type = Type::SPC, int original_id = NO_ORIGINAL_ID);
+	ConstraintSet(Model&, Type type = Type::SPC, int original_id = NO_ORIGINAL_ID);
 	static constexpr int COMMON_SET_ID = 0;
 	const Type type;
 	static const std::string name;
@@ -159,18 +159,18 @@ public:
 	//GC: static initialization order is undefined. A reference is needed here to
 	//prevent undefined behaviour.
 	static const ValueOrReference& NO_SPC;
-	SinglePointConstraint(const Model& model, const std::array<ValueOrReference, 6>& spcs, std::shared_ptr<Group> group =
+	SinglePointConstraint(Model& model, const std::array<ValueOrReference, 6>& spcs, std::shared_ptr<Group> group =
 	nullptr, int original_id = NO_ORIGINAL_ID);
 
-	SinglePointConstraint(const Model& model, const std::array<ValueOrReference, 3>& spcs, std::shared_ptr<Group> group =
+	SinglePointConstraint(Model& model, const std::array<ValueOrReference, 3>& spcs, std::shared_ptr<Group> group =
 	nullptr, int original_id = NO_ORIGINAL_ID);
 
-	SinglePointConstraint(const Model& model, std::shared_ptr<Group> group = nullptr, int original_id = NO_ORIGINAL_ID);
+	SinglePointConstraint(Model& model, std::shared_ptr<Group> group = nullptr, int original_id = NO_ORIGINAL_ID);
 	/**
 	 * Constructor for backward compatibility.
 	 * The value is assigned to all the dof present in DOFS.
 	 */
-	SinglePointConstraint(const Model& model, DOFS dofs, double value = 0, std::shared_ptr<Group> group = nullptr,
+	SinglePointConstraint(Model& model, DOFS dofs, double value = 0, std::shared_ptr<Group> group = nullptr,
 			int original_id = NO_ORIGINAL_ID);
 	std::shared_ptr<Group> group;
 
@@ -211,7 +211,7 @@ public:
 
 class Contact: public Constraint {
 protected:
-    Contact(const Model&, Type, int original_id = NO_ORIGINAL_ID);
+    Contact(Model&, Type, int original_id = NO_ORIGINAL_ID);
 public:
     bool isContact() const override final {
 	    return true;

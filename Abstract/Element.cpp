@@ -125,15 +125,15 @@ const VectorialValue RecoveryPoint::getLocalCoords() const {
 
 const VectorialValue RecoveryPoint::getGlobalCoords(const int cellId) const {
     UNUSEDV(cellId);
-    const Cell& cell = model.mesh->findCell(model.mesh->findCellPosition(cellId));
+    const Cell& cell = model.mesh.findCell(model.mesh.findCellPosition(cellId));
     if (cell.nodeIds.size() != 2) {
         throw runtime_error("Recovery point currently implemented only for two-node cells.");
     }
     if (localCoords.x() < 0 or localCoords.x() > 1) {
         throw runtime_error("X local axis is currently considered as normalized.");
     }
-    const Node& node1 = model.mesh->findNode(cell.nodePositions[0]);
-    const Node& node2 = model.mesh->findNode(cell.nodePositions[1]);
+    const Node& node1 = model.mesh.findNode(cell.nodePositions[0]);
+    const Node& node2 = model.mesh.findNode(cell.nodePositions[1]);
     VectorialValue segment = VectorialValue(node2.x-node1.x, node2.y-node1.y, node2.z-node1.z);
     if (segment.iszero()) {
         throw runtime_error("Recovery point requested over zero-length cell.");
@@ -324,7 +324,7 @@ void Composite::addLayer(int materialId, double thickness, double orientation) {
 
 double Composite::getTotalThickness() {
     double total = 0.0;
-    for(auto& layer : layers) {
+    for(const auto& layer : layers) {
         total += layer.getThickness();
     }
     return total;
@@ -597,7 +597,7 @@ double StructuralSegment::findStiffness(DOF rowdof, DOF coldof) const{
 	auto itFind = stiffness.componentByDofs.find(make_pair(rowdof, coldof));
 	if (itFind != stiffness.componentByDofs.end()) {
 		result = itFind->second;
-	}else{
+	} else {
 		if (symmetric){
 			itFind = stiffness.componentByDofs.find(make_pair(coldof, rowdof));
 			if (itFind != stiffness.componentByDofs.end()) {
@@ -811,8 +811,8 @@ MatrixElement::MatrixElement(Model& model, Type type, bool symmetric, int origin
 }
 
 void MatrixElement::addComponent(const int nodeid1, const DOF dof1, const int nodeid2, const DOF dof2, const double value) {
-	int nodePosition1 = model.mesh->findOrReserveNode(nodeid1);
-	int nodePosition2 = model.mesh->findOrReserveNode(nodeid2);
+	int nodePosition1 = model.mesh.findOrReserveNode(nodeid1);
+	int nodePosition2 = model.mesh.findOrReserveNode(nodeid2);
 	DOF myDof1 = dof1;
 	DOF myDof2 = dof2;
 
@@ -851,7 +851,7 @@ const shared_ptr<DOFMatrix> MatrixElement::findSubmatrix(const int nodePosition1
 
 const set<int> MatrixElement::nodePositions() const {
 	set<int> result;
-	for (auto& kv : submatrixByNodes) {
+	for (const auto& kv : submatrixByNodes) {
 		result.insert(kv.first.first);
 		result.insert(kv.first.second);
 	}
@@ -860,7 +860,7 @@ const set<int> MatrixElement::nodePositions() const {
 
 const DOFS MatrixElement::getDOFSForNode(const int nodePosition) const {
 	DOFS dofs;
-	for (auto& kv : submatrixByNodes) {
+	for (const auto& kv : submatrixByNodes) {
 		if (kv.first.first == nodePosition or kv.first.second) {
 			if (kv.second->hasRotations()) {
 				dofs += DOFS::ROTATIONS;
@@ -875,7 +875,7 @@ const DOFS MatrixElement::getDOFSForNode(const int nodePosition) const {
 
 const set<pair<int, int>> MatrixElement::nodePairs() const {
 	set<pair<int, int>> result;
-	for (auto& kv : submatrixByNodes) {
+	for (const auto& kv : submatrixByNodes) {
 		result.insert(make_pair(kv.first.first, kv.first.second));
 	}
 	return result;
@@ -883,7 +883,7 @@ const set<pair<int, int>> MatrixElement::nodePairs() const {
 
 const std::set<std::pair<int, int>> MatrixElement::findInPairs(int nodePosition) const {
 	set<pair<int, int>> result;
-	for (auto& kv : submatrixByNodes) {
+	for (const auto& kv : submatrixByNodes) {
 		if (kv.first.first != nodePosition and kv.first.second != nodePosition) {
 			continue;
 		}
@@ -1009,8 +1009,8 @@ void ScalarSpring::addSpring(int cellPosition, DOF dofNodeA, DOF dofNodeB){
 
 std::vector<std::pair<DOF, DOF>> ScalarSpring::getDOFSSpring() const {
     std::vector<std::pair<DOF, DOF>> vDOF;
-    for (const auto& it : this->cellpositionByDOFS){
-        vDOF.push_back(it.first);
+    for (const auto& kv : this->cellpositionByDOFS){
+        vDOF.push_back(kv.first);
     }
     return vDOF;
 }

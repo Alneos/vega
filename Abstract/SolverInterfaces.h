@@ -99,14 +99,14 @@ public:
 	 *
 	 * configuration: a set of configuration parameters usually specified on the command line
 	 */
-	virtual std::shared_ptr<Model> parse(const ConfigurationParameters& configuration) = 0;
+	virtual std::unique_ptr<Model> parse(const ConfigurationParameters& configuration) = 0;
 
     /**
      * Generic handler for parsing exceptions.
      * Throw a ParsingException in strict mode, which shuts the program, and a string otherwise, which
      * should skip the problematic command.
      */
-	void handleParsingError(const std::string& message, Tokenizer& tok, std::shared_ptr<Model> model);
+	void handleParsingError(const std::string& message, Tokenizer& tok, Model& model);
 
     /**
      * Generic handler for parsing exception.
@@ -114,7 +114,7 @@ public:
      * should skip the problematic command.
      */
 	//TODO: Do a difference of treatment in case of a "very-strict" conversion.
-	void handleParsingWarning(const std::string& message, Tokenizer& tok, std::shared_ptr<Model> model);
+	void handleParsingWarning(const std::string& message, Tokenizer& tok, Model& model);
 
 };
 
@@ -145,8 +145,7 @@ public:
 	 *
 	 * returns: the main model file written, to be used with the runner.
 	 */
-	virtual std::string writeModel(const std::shared_ptr<Model> model_ptr,
-			const ConfigurationParameters &configuration) = 0;
+	virtual std::string writeModel(Model&, const ConfigurationParameters&) = 0;
 
     /**
      * Generic handler for writing exceptions.
@@ -206,7 +205,7 @@ public:
 	 * configuration: a set of configuration parameters usually specified on the command line
 	 */
 	virtual void add_assertions(const ConfigurationParameters& configuration,
-			std::shared_ptr<Model> model) = 0;
+			Model& model) = 0;
 	virtual ~ResultReader() {
 	}
 

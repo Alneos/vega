@@ -18,7 +18,8 @@ namespace aster {
 
 class AsterRunner: public Runner {
 public:
-	AsterRunner();
+    AsterRunner() = default;
+	AsterRunner(const AsterRunner& that) = delete;
 	ExitCode execSolver(const ConfigurationParameters &configuration,
 			std::string modelFile) override;
 };

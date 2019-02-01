@@ -80,7 +80,7 @@ public:
     }
     void assignMaterial(int materialId);
     void assignMaterial(std::shared_ptr<Material> material) {
-        this->material = material;
+        this->material = std::move(material);
     }
     void assignCellGroup(std::shared_ptr<CellGroup>);
     const ModelType getModelType() const;

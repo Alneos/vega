@@ -37,7 +37,7 @@ namespace fs = boost::filesystem;
 
 class NastranParser: public vega::Parser {
 protected:
-    typedef void (NastranParser::*parseElementFPtr)(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    typedef void (NastranParser::*parseElementFPtr)(NastranTokenizer& tok, Model& model);
     virtual parseElementFPtr findCmdParser(const std::string) const;
     virtual parseElementFPtr findParamParser(const std::string) const;
     virtual std::string defaultAnalysis() const;
@@ -71,15 +71,15 @@ private:
     static const std::unordered_map<std::string, parseElementFPtr> PARSE_FUNCTION_BY_KEYWORD;
     static const std::unordered_map<std::string, parseElementFPtr> PARSEPARAM_FUNCTION_BY_KEYWORD;
 
-    void addAnalysis(NastranTokenizer& tok, std::shared_ptr<Model> model, std::map<std::string, std::string>& context, int analysis_id =
+    void addAnalysis(NastranTokenizer& tok, Model& model, std::map<std::string, std::string>& context, int analysis_id =
             Analysis::NO_ORIGINAL_ID);
-    void addCombinationAnalysis(NastranTokenizer& tok, std::shared_ptr<Model> model, std::map<std::string, std::string>& context, int analysis_id =
+    void addCombinationAnalysis(NastranTokenizer& tok, Model& model, std::map<std::string, std::string>& context, int analysis_id =
             Analysis::NO_ORIGINAL_ID);
 
     fs::path findModelFile(const std::string& filename);
-    void parseBULKSection(NastranTokenizer &tok, std::shared_ptr<Model> model1);
+    void parseBULKSection(NastranTokenizer &tok, Model& model1);
 
-    void parseExecutiveSection(NastranTokenizer& tok, std::shared_ptr<Model> model, std::map<std::string, std::string>& context);
+    void parseExecutiveSection(NastranTokenizer& tok, Model& model, std::map<std::string, std::string>& context);
     /**Renumbers the nodes
      * The map has no keys for CellTypes that have the same connectivity in Nastran and Med
      *
@@ -178,281 +178,281 @@ private:
     /**
      * PARAM AUTOSPC
      */
-    void parseParamAUTOSPC(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamAUTOSPC(NastranTokenizer& tok, Model& model);
 
     /**
      * BCBODY
      */
-    void parseBCBODY(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseBCBODY(NastranTokenizer& tok, Model& model);
 
     /**
      * BCGRID
      */
-    void parseBCGRID(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseBCGRID(NastranTokenizer& tok, Model& model);
 
     /**
      * BCONP
      */
-    void parseBCONP(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseBCONP(NastranTokenizer& tok, Model& model);
 
     /**
      * BCTABLE
      */
-    void parseBCTABLE(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseBCTABLE(NastranTokenizer& tok, Model& model);
 
     /**
      * BFRIC
      */
-    void parseBFRIC(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseBFRIC(NastranTokenizer& tok, Model& model);
 
     /**
      * BLSEG
      */
-    void parseBLSEG(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseBLSEG(NastranTokenizer& tok, Model& model);
 
     /**
      * BSCONP
      */
-    void parseBSCONP(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseBSCONP(NastranTokenizer& tok, Model& model);
 
     /**
      * BSSEG
      */
-    void parseBSSEG(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseBSSEG(NastranTokenizer& tok, Model& model);
 
     /**
      * BSURF
      */
-    void parseBSURF(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseBSURF(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the CBAR keyword (page 1154 of MDN Nastran 2006 Quick Reference Guide.)
      * Pin flags (PA, PB) and offset vectors (OFFT, WA, WB) are not supported.
      */
-    void parseCBAR(NastranTokenizer& tok, std::shared_ptr<Model> model); //in NastranParser_geometry.cpp
+    void parseCBAR(NastranTokenizer& tok, Model& model); //in NastranParser_geometry.cpp
 
     /**
      * Parse the CBEAM keyword (page 1161 of MDN Nastran 2006 Quick Reference Guide.)
      * Pin flags (PA, PB), offset vectors (OFFT, WiA, WiB) and grid point identification (SA, SB)
      * are not supported.
      */
-    void parseCBEAM(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void parseCBEAM(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
 
     /**
      * Parse the CBUSH keyword (page 1174 of MDN Nastran 2006 Quick Reference Guide.)
      * The location of spring damper (S), coordinate system  of spring damper (OCID) and
      * component of spring-damper-offset (S1, S2, S3) are not supported.
      */
-    void parseCBUSH(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void parseCBUSH(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
 
     /**
      * Parse the CDAMP keyword (page 1187 of MDN Nastran 2006 Quick Reference Guide.)
      */
-    void parseCDAMP1(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void parseCDAMP1(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
 
     /**
      * Parse the CELAS1 keyword (page 1199 of MDN Nastran 2006 Quick Reference Guide.)
      */
-    void parseCELAS1(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void parseCELAS1(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
 
     /**
      * Parse the CELAS2 keyword (page 1202 of MDN Nastran 2006 Quick Reference Guide.)
      * The stress coefficient (S) is ignored, as it's only used for post-treatment.
      */
-    void parseCELAS2(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void parseCELAS2(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
 
     /**
      * Parse the CELAS4 keyword (page 1207 of MDN Nastran 2006 Quick Reference Guide.)
      * Fully supported.
      */
-    void parseCELAS4(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void parseCELAS4(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
 
     /**
      * Parse the CGAP keyword (page 1216 of MDN Nastran 2006 Quick Reference Guide.)
      * Only support Two nodes gap.
      */
-    void parseCGAP(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
-    void parseCHEXA(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void parseCGAP(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
+    void parseCHEXA(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
 
     /**
      * Parse the CMASS2 keyword (page 1243 of MDN Nastran 2006 Quick Reference Guide.)
      * Fully supported.
      */
-    void parseCMASS2(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void parseCMASS2(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
 
     /**
      * Parse the CONM2 keyword (page 1251 of MDN Nastran 2006 Quick Reference Guide.)
      * CID is not supported.
      */
-    void parseCONM2(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseCONM2(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the CORD1R keyword (page 1264 of MDN Nastran 2006 Quick Reference Guide.)
      * Full support.
      */
-    void parseCORD1R(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseCORD1R(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the CORD2C keyword (page 1271 of MDN Nastran 2006 Quick Reference Guide.)
      * Reference coordinate system (RID) not supported.
      */
-    void parseCORD2C(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseCORD2C(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the CRIGD1 keyword (page 385 of THE NASTRAN USER'S MANUAL)
      *
      */
-    void parseCRIGD1(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseCRIGD1(NastranTokenizer& tok, Model& model);
 
     /**
      * Rod Element Property and Connection,
      * defines a tension-compression-torsion element without reference to a property entry
      */
-    void parseCONROD(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseCONROD(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the CORD2R keyword (page 1273 of MDN Nastran 2006 Quick Reference Guide.)
      * Reference coordinate system (RID) not supported.
      */
-    void parseCORD2R(NastranTokenizer& tok, std::shared_ptr<Model> model);
-    void parseCPENTA(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
-    void parseCPYRAM(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
-    void parseCQUAD(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
-    void parseCQUAD4(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
-    void parseCQUAD8(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
-    void parseCQUADR(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void parseCORD2R(NastranTokenizer& tok, Model& model);
+    void parseCPENTA(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
+    void parseCPYRAM(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
+    void parseCQUAD(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
+    void parseCQUAD4(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
+    void parseCQUAD8(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
+    void parseCQUADR(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
 
     /**
      * Parse the CROD keyword (page 1310 of MDN Nastran 2006 Quick Reference Guide.)
      * Full support.
      */
-    void parseCROD(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
-    void parseCTETRA(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
-    void parseCTRIA3(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
-    void parseCTRIA6(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
-    void parseCTRIAR(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void parseCROD(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
+    void parseCTETRA(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
+    void parseCTRIA3(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
+    void parseCTRIA6(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
+    void parseCTRIAR(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
 
     /**
      * Parse the keyword DAREA (page 1377 of MDN Nastran 2006 Quick Reference Guide.)
      * Full support.
      */
-    void parseDAREA(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseDAREA(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword DELAY (page 1386 of MDN Nastran 2006 Quick Reference Guide.)
      * Point identification (P), Component number (C) and a second phase are
      * ignored.
      */
-    void parseDELAY(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseDELAY(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword DLOAD (page 1398 of MDN Nastran 2006 Quick Reference Guide.)
      * Scale factors (S and Si) must be equal to 1.
      */
-    void parseDLOAD(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseDLOAD(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword DMIG (page 1046 of MDN Nastran 2006 Quick Reference Guide.)
      * Unknown reliability.
      */
-    void parseDMIG(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseDMIG(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword DPHASE (page 1433 of MDN Nastran 2006 Quick Reference Guide.)
      * Point identification (P), Component number (C) and a second phase are
      * ignored.
      */
-    void parseDPHASE(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseDPHASE(NastranTokenizer& tok, Model& model);
 
     /**
      * EIGB Defines data needed to perform buckling analysis.
      */
-    void parseEIGB(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseEIGB(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword EIGR (page 1517 of MDN Nastran 2006 Quick Reference Guide.)
      * Only Lanczos Method is supported.
      */
-    void parseEIGR(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseEIGR(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword EIGRL (page 1522 of MDN Nastran 2006 Quick Reference Guide.)
      * Options are not supported.
      */
-    void parseEIGRL(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseEIGRL(NastranTokenizer& tok, Model& model);
 
     /**
      *  Generic function for parsing Element keywords.
      */
-    void parseElem(NastranTokenizer& tok, std::shared_ptr<Model> model, std::vector<CellType>);//in NastranParser_geometry.cpp
+    void parseElem(NastranTokenizer& tok, Model& model, std::vector<CellType>);//in NastranParser_geometry.cpp
 
     /**
      * Parse the FORCE keyword (page 1549 of MDN Nastran 2006 Quick Reference Guide.)
      * Full support.
      */
-    void parseFORCE(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseFORCE(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the FORCE1 keyword (page 1550 of MDN Nastran 2006 Quick Reference Guide.)
      * Full support.
      */
-    void parseFORCE1(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseFORCE1(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the FORCE2 keyword (page 1552 of MDN Nastran 2006 Quick Reference Guide.)
      * Full support.
      */
-    void parseFORCE2(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseFORCE2(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword FREQ (page 1555 of MDN Nastran 2006 Quick Reference Guide.)
      * Fully supported.
      */
-    void parseFREQ(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseFREQ(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword FREQ1 (page 1556 of MDN Nastran 2006 Quick Reference Guide.)
      * Fully supported.
      */
-    void parseFREQ1(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseFREQ1(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword FREQ4
      */
-    void parseFREQ4(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseFREQ4(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the GRAV keyword (page 1651 of MDN Nastran 2006 Quick Reference Guide.)
      * CID and MB are not supported.
      */
-    void parseGRAV(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseGRAV(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the GRDSET keyword (page 1623 of MDN Nastran 2006 Quick Reference Guide.)
      * Fully supported.
      */
-    void parseGRDSET(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void parseGRDSET(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
 
     /**
      * Parse the GRID keyword (page 1624 of MDN Nastran 2006 Quick Reference Guide.)
      * CP coordinate system not supported, and taken as blank.
      */
-    void parseGRID(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void parseGRID(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
 
     /**
      * PARAM GRDPNT
      */
-    void parseParamGRDPNT(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamGRDPNT(NastranTokenizer& tok, Model& model);
 
     /**
      * PARAM HFREQ
      */
-    void parseParamHFREQ(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamHFREQ(NastranTokenizer& tok, Model& model);
 
     /**
      * PARAM K6ROT
      */
-    void parseParamK6ROT(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamK6ROT(NastranTokenizer& tok, Model& model);
 
     /**
      * PARAM G
@@ -461,302 +461,302 @@ private:
      * To obtain the value for the model parameter G, multiply the critical damping ratio,
      * C/C0, by 2.0. Note that PARAM, W3 must be greater than zero or PARAM, G will be ignored.
      */
-    void parseParamG(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamG(NastranTokenizer& tok, Model& model);
 
     /**
      * PARAM W3
      * Frequency of interest for structural damping
      * The units of W3 are radians per unit time.
      */
-    void parseParamW3(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamW3(NastranTokenizer& tok, Model& model);
 
-    void parseInclude(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseInclude(NastranTokenizer& tok, Model& model);
 
     /**
      * PARAM LFREQ
      * Default = 0.0
      * PARAM,LFREQ gives the lower limit on the frequency range of retained modes.
      */
-    void parseParamLFREQ(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamLFREQ(NastranTokenizer& tok, Model& model);
 
     /**
      * PARAM LGDISP
      */
-    void parseParamLGDISP(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamLGDISP(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the LSEQ keyword
      * Fully supported.
      */
-    void parseLSEQ(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseLSEQ(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the LOAD keyword (page 1646 of MDN Nastran 2006 Quick Reference Guide.)
      * Fully supported.
      */
-    void parseLOAD(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseLOAD(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the MAT1 keyword (page 1664 of MDN Nastran 2006 Quick Reference Guide.)
      * Structural element damping coefficient (GE) are not supported.
      */
-    void parseMAT1(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseMAT1(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the MAT8 keyword
      * Only mandatory part is supported
      */
-    void parseMAT8(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseMAT8(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword MATS1 (page 1928 of MDN Nastran 2006 Quick Reference Guide.)
      * Unknown reliability.
      */
-    void parseMATS1(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseMATS1(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword MATHP (page 1917 of MDN Nastran 2006 Quick Reference Guide.)
      * Unknown reliability.
      */
-    void parseMATHP(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseMATHP(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword MOMENT (page 1984 of MDN Nastran 2006 Quick Reference Guide.)
      * Coordinate System (CID) not supported.
      */
-    void parseMOMENT(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseMOMENT(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword MPC (page 1997 of MDN Nastran 2006 Quick Reference Guide.)
      * Unknown reliability.
      */
-    void parseMPC(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseMPC(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword NLPARM (page 2014 of MDN Nastran 2006 Quick Reference Guide.)
      * All parameters are ignored except NINC.
      */
-    void parseNLPARM(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseNLPARM(NastranTokenizer& tok, Model& model);
 
     /**
      * Parameters for Arc-Length Methods in Nonlinear Static Analysis
      * Defines a set of parameters for the arc-length incremental solution strategies in nonlinear static analysis
      */
-    void parseNLPCI(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseNLPCI(NastranTokenizer& tok, Model& model);
 
     /**
      * PARAM NOCOMPS
      */
-    void parseParamNOCOMPS(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamNOCOMPS(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword PARAM (page 2088 of MDN Nastran 2006 Quick Reference Guide.)
      * Partial support, with unknown reliability.
      */
-    virtual void parsePARAM(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    virtual void parsePARAM(NastranTokenizer& tok, Model& model);
 
     /**
      * PARAM PATVER
      */
-    void parseParamPATVER(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamPATVER(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the PBAR keyword (page 2092 of MDN Nastran 2006 Quick Reference Guide.)
      * Neither Stress coefficients nor i12 are supported.
      */
-    void parsePBAR(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parsePBAR(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the PBARL keyword (page 2094 of MDN Nastran 2006 Quick Reference Guide.)
      * Only BAR and ROD type are supported.
      */
-    void parsePBARL(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parsePBARL(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the PBEAM keyword (page 2109 of MDN Nastran 2006 Quick Reference Guide.)
      * Shear center, sections, area of product are not implemented.
      */
-    void parsePBEAM(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parsePBEAM(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the PBEAML keyword (page 2145 of MDN Nastran 2006 Quick Reference Guide.)
      * Only BAR, ROD and I types are supported.
      */
-    void parsePBEAML(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parsePBEAML(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the PBUSH keyword (page 2165 of MDN Nastran 2006 Quick Reference Guide.)
      * Only Stiffness (K) is supported.
      */
-    void parsePBUSH(NastranTokenizer& tok, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void parsePBUSH(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
 
     /**
      * Parse the PCOMP keyword
      */
-    void parsePCOMP(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parsePCOMP(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the PDAMP keyword (page 2197 of MDN Nastran 2006 Quick Reference Guide.)
      */
-    void parsePDAMP(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parsePDAMP(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the PELAS keyword (page 2202 of MDN Nastran 2006 Quick Reference Guide.)
      * The stress coefficient (S) is ignored, as it's only used for post-treatment.
      */
-    void parsePELAS(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parsePELAS(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the PGAP keyword (page 2210 of MDN Nastran 2006 Quick Reference Guide.)
      * Only U0 is supported.
      */
-    void parsePGAP(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parsePGAP(NastranTokenizer& tok, Model& model);
 
 /**
      * Parse the PLOAD keyword
      */
-    void parsePLOAD(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parsePLOAD(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the PLOAD1 keyword
      */
-    void parsePLOAD1(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parsePLOAD1(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the PLOAD2 keyword
      */
-    void parsePLOAD2(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parsePLOAD2(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the PLOAD4 keyword (page 2227 of MDN Nastran 2006 Quick Reference Guide.)
      * Only uniform pressure are supported.
      */
-    void parsePLOAD4(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parsePLOAD4(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the PROD keyword (page 2245 of MDN Nastran 2006 Quick Reference Guide.)
      * Only uniform pressure are supported.
      */
-    void parsePROD(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parsePROD(NastranTokenizer& tok, Model& model);
 
     /**
      * PARAM PRTMAXIM
      */
-    void parseParamPRTMAXIM(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamPRTMAXIM(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the PLSOLID keyword (page 2237 of MDN Nastran 2006 Quick Reference Guide.)
      * Partial support.
      */
-    void parsePLSOLID(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parsePLSOLID(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the PSHELL keyword (page 2250 of MDN Nastran 2006 Quick Reference Guide.)
      * Only uniform PSHELLs are supported, meaning MID2, MID3, MID4, etc are dismissed.
      */
-    void parsePSHELL(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parsePSHELL(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the PSOLID keyword (page 2264 of MDN Nastran 2006 Quick Reference Guide.)
      * Partial support.
      */
-    void parsePSOLID(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parsePSOLID(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the RBAR keyword (page 2312 of MDN Nastran 2006 Quick Reference Guide.)
      * CMA, CMB and the thermal expansion (ALPHA) are not supported.
      */
-    void parseRBAR(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseRBAR(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the RBAR1 keyword (page 2314 of MDN Nastran 2006 Quick Reference Guide.)
      * Thermal expansion (ALPGA) is not supported.
      */
-    void parseRBAR1(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseRBAR1(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the RBE2 keyword (page 2319 of MDN Nastran 2006 Quick Reference Guide.)
      * Only rigid constraint (dofs=123456) is supported.
      */
-    void parseRBE2(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseRBE2(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the RBE3 keyword (page 2334 of MDN Nastran 2006 Quick Reference Guide.)
      * No support of ALPHA nor UM.
      */
-    void parseRBE3(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseRBE3(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the RFORCE keyword (page 2373 of MDN Nastran 2006 Quick Reference Guide.)
      * No support of METHOD, RACC and MB.
      */
-    void parseRFORCE(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseRFORCE(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword RLOAD1 (page 2384 of MDN Nastran 2006 Quick Reference Guide.)
      * Full support, albeit with constant DELAY and DPHASE (see these commands)
      * and **without** imaginary D(f) term
      */
-    void parseRLOAD1(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseRLOAD1(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword RLOAD2 (page 2387 of MDN Nastran 2006 Quick Reference Guide.)
      * Full support, albeit with constant DELAY and DPHASE (see these commands)
      */
-    void parseRLOAD2(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseRLOAD2(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the SET keyword (page 2464 of MDN Nastran 2006 Quick Reference Guide.)
      * Fully supported.
      */
-    void parseSET3(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseSET3(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the SLOAD keyword (page 2464 of MDN Nastran 2006 Quick Reference Guide.)
      * Fully supported.
      */
-    void parseSLOAD(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseSLOAD(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse shell cells in standard form: CTRIA3, CTRIAR, CQUAD4
      */
-    void parseShellElem(NastranTokenizer& tok, std::shared_ptr<Model> model, CellType cellType); //in NastranParser_geometry.cpp
+    void parseShellElem(NastranTokenizer& tok, Model& model, CellType cellType); //in NastranParser_geometry.cpp
 
     /**
      * Parse the keyword SPC (page 2467 of MDN Nastran 2006 Quick Reference Guide.)
      * Full support.
      */
-    void parseSPC(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseSPC(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword SPC1 (page 2468 of MDN Nastran 2006 Quick Reference Guide.)
      * Full support.
      */
-    void parseSPC1(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseSPC1(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword SPCADD (page 2470 of MDN Nastran 2006 Quick Reference Guide.)
      * Full support.
      */
-    void parseSPCADD(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseSPCADD(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword SPCD (page 2472 of MDN Nastran 2006 Quick Reference Guide.)
      * Full support.
      */
-    void parseSPCD(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseSPCD(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword SPOINT (page 2498 of MDN Nastran 2006 Quick Reference Guide.)
      * Full support.
      */
-    void parseSPOINT(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseSPOINT(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword TABDMP1 (page 2512 of MDN Nastran 2006 Quick Reference Guide.)
      * Only CRIT type is supported, with an unknown reliability.
      */
-    void parseTABDMP1(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseTABDMP1(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword TABLED1 (page 2518 of MDN Nastran 2006 Quick Reference Guide.)
@@ -764,7 +764,7 @@ private:
      * Defines a tabular function for use in generating frequency-dependent and
      * time-dependent dynamic loads.
      */
-    void parseTABLED1(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseTABLED1(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword TABLES1 (page 2518 of MDN Nastran 2006 Quick Reference Guide.)
@@ -773,30 +773,30 @@ private:
      * stress-strain curve (MATS1 entry), creep parameters (CREEP entry) and hyperelastic
      * material parameters (MATHP entry).
      */
-    void parseTABLES1(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseTABLES1(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword TEMP (page 2572 of MDN Nastran 2006 Quick Reference Guide.)
      */
-    void parseTEMP(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseTEMP(NastranTokenizer& tok, Model& model);
 
     /**
      * PARAM WTMASS
      */
-    void parseParamWTMASS(NastranTokenizer& tok, std::shared_ptr<Model> model);
+    void parseParamWTMASS(NastranTokenizer& tok, Model& model);
 
-    std::string parseSubcase(NastranTokenizer& tok, std::shared_ptr<Model> model, std::map<std::string, std::string> context);
-    std::string parseSubcom(NastranTokenizer& tok, std::shared_ptr<Model> model, std::map<std::string, std::string> context);
+    std::string parseSubcase(NastranTokenizer& tok, Model& model, std::map<std::string, std::string> context);
+    std::string parseSubcom(NastranTokenizer& tok, Model& model, std::map<std::string, std::string> context);
 
     /**
      *  Add the Cell to the CellGroup corresponding to the property_id (use getOrCreateCellGroup)
      */
-    void addProperty(NastranTokenizer& tok, int property_id, int cell_id, std::shared_ptr<Model> model);//in NastranParser_geometry.cpp
+    void addProperty(NastranTokenizer& tok, int property_id, int cell_id, Model& model);//in NastranParser_geometry.cpp
     /**
      *  Get the Cellgroup corresponding to the property_id. If this group does not exist, it is created.
      *  The name of the group is then "COMMAND_property_id".
      */
-    std::shared_ptr<CellGroup> getOrCreateCellGroup(int group_id, std::shared_ptr<Model> model, std::string comment);//in NastranParser_geometry.cpp
+    std::shared_ptr<CellGroup> getOrCreateCellGroup(int group_id, Model& model, std::string comment);//in NastranParser_geometry.cpp
 
     /**
      * Parse and build an Orientation referentiel.
@@ -806,14 +806,14 @@ private:
      * See, for example, the help on the CBAR keyword (page 1154 of MDN Nastran 2006 Quick Reference Guide.)
      */
     int parseOrientation(int point1, int point2, NastranTokenizer& tok,
-            std::shared_ptr<Model> model);
+            Model& model);
 
     /**
      * Parse a DOF Nastran field to return a VEGA DOF
      *   - Scalar point have a "0" Nastran DOF, translated as a "0" (DX) Vega DOF
      *   - Classic Nastran dofs go from 1 to 6, VEGA from 0 to 5.
      */
-    int parseDOF(NastranTokenizer& tok, std::shared_ptr<Model> model, bool returnDefaultIfNotFoundOrBlank = false, int defaultValue = Globals::UNAVAILABLE_INT);
+    int parseDOF(NastranTokenizer& tok, Model& model, bool returnDefaultIfNotFoundOrBlank = false, int defaultValue = Globals::UNAVAILABLE_INT);
 
     LogLevel logLevel = LogLevel::INFO;
     protected:
@@ -843,9 +843,10 @@ private:
         "TINY"     // Printout command
     };
 public:
-    NastranParser();
+    NastranParser() = default;
+    NastranParser(const NastranParser& that) = delete;
     virtual ~NastranParser();
-    std::shared_ptr<Model> parse(const ConfigurationParameters& configuration) override;
+    std::unique_ptr<Model> parse(const ConfigurationParameters& configuration) override;
 };
 
 }

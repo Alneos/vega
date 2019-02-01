@@ -47,19 +47,20 @@ std::ostream &operator<<(std::ostream &out, const Line& line);
 
 class NastranWriter final : public Writer {
 public:
-	NastranWriter();
-	std::string writeModel(const std::shared_ptr<Model> model_ptr, const ConfigurationParameters&) override;
+    NastranWriter() = default;
+	NastranWriter(const NastranWriter& that) = delete;
+	std::string writeModel(Model&, const ConfigurationParameters&) override;
     const std::string toString() const override;
 private:
-	std::string getDatFilename(const std::shared_ptr<vega::Model>& model, const std::string& outputPath) const;
-	void writeSOL(const std::shared_ptr<vega::Model>& model, std::ofstream& out) const;
-	void writeCells(const std::shared_ptr<vega::Model>& model, std::ofstream& out) const;
-	void writeNodes(const std::shared_ptr<vega::Model>& model, std::ofstream& out) const;
-	void writeMaterials(const std::shared_ptr<vega::Model>& model, std::ofstream& out) const;
-	void writeConstraints(const std::shared_ptr<vega::Model>& model, std::ofstream& out) const;
-	void writeLoadings(const std::shared_ptr<vega::Model>& model, std::ofstream& out) const;
+	std::string getDatFilename(const Model& model, const std::string& outputPath) const;
+	void writeSOL(const Model& model, std::ofstream& out) const;
+	void writeCells(const Model& model, std::ofstream& out) const;
+	void writeNodes(const Model& model, std::ofstream& out) const;
+	void writeMaterials(const Model& model, std::ofstream& out) const;
+	void writeConstraints(const Model& model, std::ofstream& out) const;
+	void writeLoadings(const Model& model, std::ofstream& out) const;
 	void writeRuler(std::ofstream& out) const;
-	void writeElements(const std::shared_ptr<vega::Model>& model, std::ofstream& out) const;
+	void writeElements(const Model& model, std::ofstream& out) const;
 };
 
 }

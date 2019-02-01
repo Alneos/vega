@@ -59,11 +59,12 @@ private:
     static void printHeader();
     std::string expand_user(std::string path);
     static fs::path normalize_path(std::string path);
-    std::unordered_map<SolverName, std::shared_ptr<Parser>, EnumClassHash> parserBySolverName;
-    std::unordered_map<SolverName, std::shared_ptr<Writer>, EnumClassHash> writersBySolverName;
-    std::unordered_map<SolverName, std::shared_ptr<Runner>, EnumClassHash> runnerBySolverType;
+    std::unordered_map<SolverName, std::unique_ptr<Parser>, EnumClassHash> parserBySolverName;
+    std::unordered_map<SolverName, std::unique_ptr<Writer>, EnumClassHash> writersBySolverName;
+    std::unordered_map<SolverName, std::unique_ptr<Runner>, EnumClassHash> runnerBySolverType;
 public:
     VegaCommandLine();
+    VegaCommandLine(const VegaCommandLine& that) = delete;
     ExitCode process(int ac, const char* av[]);
     static const std::string exitCodeToString(ExitCode);
 };

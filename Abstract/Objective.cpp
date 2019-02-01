@@ -28,7 +28,7 @@ using namespace std;
 
 namespace vega {
 
-Objective::Objective(const Model& model, Objective::Type type, int original_id) :
+Objective::Objective(Model& model, Objective::Type type, int original_id) :
         Identifiable(original_id), model(model), type(type) {
 }
 
@@ -48,13 +48,13 @@ ostream &operator<<(ostream &out, const Objective& objective) {
     return out;
 }
 
-Assertion::Assertion(const Model& model, Type type, double tolerance, int original_id) :
+Assertion::Assertion(Model& model, Type type, double tolerance, int original_id) :
         Objective(model, type, original_id), tolerance(tolerance) {
 }
 
-NodalAssertion::NodalAssertion(const Model& model, Type type, double tolerance, int nodeId,
+NodalAssertion::NodalAssertion(Model& model, Type type, double tolerance, int nodeId,
         DOF dof, int original_id) :
-        Assertion(model, type, tolerance, original_id), nodePosition(model.mesh->findOrReserveNode(nodeId)), dof(dof) {
+        Assertion(model, type, tolerance, original_id), nodePosition(model.mesh.findOrReserveNode(nodeId)), dof(dof) {
 }
 
 const DOFS NodalAssertion::getDOFSForNode(const int nodePosition) const {
@@ -67,7 +67,7 @@ set<int> NodalAssertion::nodePositions() const {
     return result;
 }
 
-NodalDisplacementAssertion::NodalDisplacementAssertion(const Model& model, double tolerance,
+NodalDisplacementAssertion::NodalDisplacementAssertion(Model& model, double tolerance,
         int nodeId, DOF dof, double value, double instant, int original_id) :
         NodalAssertion(model, Objective::Type::NODAL_DISPLACEMENT_ASSERTION, tolerance, nodeId, dof,
                 original_id), value(value), instant(instant) {
@@ -79,7 +79,7 @@ ostream &operator<<(ostream &out, const NodalDisplacementAssertion& objective) {
     return out;
 }
 
-NodalComplexDisplacementAssertion::NodalComplexDisplacementAssertion(const Model& model,
+NodalComplexDisplacementAssertion::NodalComplexDisplacementAssertion(Model& model,
         double tolerance, int nodeId, DOF dof, complex<double> value, double frequency,
         int original_id) :
         NodalAssertion(model, Objective::Type::NODAL_COMPLEX_DISPLACEMENT_ASSERTION, tolerance, nodeId, dof,
@@ -92,7 +92,7 @@ ostream &operator<<(ostream &out, const NodalComplexDisplacementAssertion& objec
     return out;
 }
 
-FrequencyAssertion::FrequencyAssertion(const Model& model, int number, double cycles, double eigenValue,
+FrequencyAssertion::FrequencyAssertion(Model& model, int number, double cycles, double eigenValue,
         double tolerance, int original_id) :
         Assertion(model, Objective::Type::FREQUENCY_ASSERTION, tolerance, original_id), number(number), cycles(cycles), eigenValue(eigenValue) {
 }
@@ -109,11 +109,11 @@ shared_ptr<Objective> FrequencyAssertion::clone() const {
     return make_shared<FrequencyAssertion>(*this);
 }
 
-AnalysisParameter::AnalysisParameter(const Model& model, Type type, int original_id) :
+AnalysisParameter::AnalysisParameter(Model& model, Type type, int original_id) :
         Objective(model, type, original_id) {
 }
 
-FrequencySearch::FrequencySearch(const Model& model, const FrequencyType frequencyType, const NamedValue& namedValue, NormType norm, int original_id) :
+FrequencySearch::FrequencySearch(Model& model, const FrequencyType frequencyType, const NamedValue& namedValue, NormType norm, int original_id) :
         AnalysisParameter(model, Objective::Type::FREQUENCY_SEARCH, original_id), namedValue(namedValue), frequencyType(frequencyType), norm(norm) {
 }
 
@@ -129,7 +129,7 @@ shared_ptr<Objective> FrequencySearch::clone() const {
     return make_shared<FrequencySearch>(*this);
 }
 
-FrequencyExcit::FrequencyExcit(const Model& model, const FrequencyType frequencyType, const NamedValue& namedValue, NormType norm, int original_id) :
+FrequencyExcit::FrequencyExcit(Model& model, const FrequencyType frequencyType, const NamedValue& namedValue, NormType norm, int original_id) :
         AnalysisParameter(model, Objective::Type::FREQUENCY_EXCIT, original_id), namedValue(namedValue), frequencyType(frequencyType), norm(norm) {
 }
 
@@ -145,12 +145,12 @@ shared_ptr<Objective> FrequencyExcit::clone() const {
     return make_shared<FrequencyExcit>(*this);
 }
 
-ModalDamping::ModalDamping(const Model& model, const FunctionTable& function_table, int original_id) :
+ModalDamping::ModalDamping(Model& model, const FunctionTable& function_table, int original_id) :
         AnalysisParameter(model, Objective::Type::MODAL_DAMPING, original_id), function_table(Value::Type::FUNCTION_TABLE,
                 Reference<NamedValue>::NO_ID, function_table.getId()) {
 }
 
-ModalDamping::ModalDamping(const Model& model, int function_table_original_id, int original_id) :
+ModalDamping::ModalDamping(Model& model, int function_table_original_id, int original_id) :
         AnalysisParameter(model, Objective::Type::MODAL_DAMPING, original_id), function_table(Value::Type::FUNCTION_TABLE,
                 function_table_original_id) {
 }
@@ -167,7 +167,7 @@ shared_ptr<Objective> ModalDamping::clone() const {
     return make_shared<ModalDamping>(*this);
 }
 
-NonLinearStrategy::NonLinearStrategy(const Model& model, int number_of_increments, int original_id) :
+NonLinearStrategy::NonLinearStrategy(Model& model, int number_of_increments, int original_id) :
         AnalysisParameter(model, Objective::Type::NONLINEAR_STRATEGY, original_id), number_of_increments(
                 number_of_increments) {
 }
@@ -176,7 +176,7 @@ shared_ptr<Objective> NonLinearStrategy::clone() const {
     return make_shared<NonLinearStrategy>(*this);
 }
 
-ArcLengthMethod::ArcLengthMethod(const Model& model, const Reference<Objective>& strategy_reference, int original_id) :
+ArcLengthMethod::ArcLengthMethod(Model& model, const Reference<Objective>& strategy_reference, int original_id) :
         AnalysisParameter(model, Objective::Type::ARC_LENGTH_METHOD, original_id), strategy_reference(strategy_reference) {
 }
 

@@ -62,6 +62,7 @@ public:
     std::vector<double> values;
 
     SystusTable(systus_ascid_t id, SystusTableLabel label=SystusTableLabel::TL_STANDARD, systus_ascid_t type=1);
+    //SystusTable(const SystusTable& that) = delete;
     virtual ~SystusTable();
 
     void add(double value);
@@ -83,6 +84,7 @@ public:
     std::vector<double> values;
 
     SystusMatrix(systus_ascid_t id, int nbNodes, int nbDOFS);
+    //SystusMatrix(const SystusMatrix& that) = delete;
     virtual ~SystusMatrix();
 
     void setValue(int i, int j, int dofi, int dofj, double value);
@@ -104,7 +106,8 @@ public:
     std::vector<SystusMatrix> matrices;
     int nbDOFS;
 
-    SystusMatrices();
+    SystusMatrices() = default;
+    SystusMatrices(const SystusMatrices& that) = delete;
     virtual ~SystusMatrices();
 
     void add(SystusMatrix sm);

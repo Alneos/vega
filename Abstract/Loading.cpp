@@ -44,12 +44,12 @@ ostream &operator<<(ostream &out, const Loading& loading) {
 bool Loading::validate() const {
 	bool valid = true;
 	if (hasCoordinateSystem()) {
-		valid = model.mesh->findCoordinateSystem(csref) != nullptr;
+		valid = model.mesh.findCoordinateSystem(csref) != nullptr;
 		if (!valid) {
 			cerr
-			<< string("Coordinate system:")
-					+ to_str(csref)
-					+ " for loading " << *this << " not found." << endl;
+			<< "Coordinate system:"
+					<< csref
+					<< " for loading " << *this << " not found." << endl;
 		}
 	}
 	return valid;
@@ -73,16 +73,8 @@ int LoadSet::size() const {
 	return static_cast<int>(getLoadings().size());
 }
 
-//bool LoadSet::operator<(const LoadSet &rhs) const {
-//	return (original_id < rhs.original_id);
-//}
-
 const set<shared_ptr<Loading> > LoadSet::getLoadings() const {
 	set<shared_ptr<Loading>> result = model.getLoadingsByLoadSet(this->getReference());
-	//for (auto& kv : this->coefficient_by_loadset) {
-	//	set<shared_ptr<Loading>> setToInsert = model.getLoadingsByLoadSet(kv.first);
-	//	result.insert(setToInsert.begin(), setToInsert.end());
-	//}
 	return result;
 }
 
@@ -122,7 +114,7 @@ shared_ptr<LoadSet> LoadSet::clone() const {
 
 NodeLoading::NodeLoading(Model& model, Loading::Type type, int original_id,
 		const Reference<CoordinateSystem> csref) :
-		Loading(model, type, original_id, csref), NodeContainer(*model.mesh) {
+		Loading(model, type, original_id, csref), NodeContainer(model.mesh) {
 }
 
 set<int> NodeLoading::nodePositions() const {
@@ -218,7 +210,7 @@ void RotationCenter::scale(const double factor) {
 RotationNode::RotationNode(Model& model, double speed, const int node_id, double axis_x,
 		double axis_y, double axis_z, const int original_id) :
 		Rotation(model, original_id), speed(speed), axis(axis_x, axis_y, axis_z), node_position(
-				model.mesh->findOrReserveNode(node_id)) {
+				model.mesh.findOrReserveNode(node_id)) {
 }
 
 double RotationNode::getSpeed() const {
@@ -230,7 +222,7 @@ const VectorialValue RotationNode::getAxis() const {
 }
 
 const VectorialValue RotationNode::getCenter() const {
-	const Node& node = model.mesh->findNode(node_position);
+	const Node& node = model.mesh.findNode(node_position);
 	return VectorialValue(node.x, node.y, node.z);
 }
 
@@ -283,14 +275,14 @@ NodalForce::NodalForce(Model& model, double fx, double fy, double fz, double mx,
 const VectorialValue NodalForce::localToGlobal(int nodePosition, const VectorialValue& vectorialValue) const {
 	if (!hasCoordinateSystem())
 		return vectorialValue;
-	shared_ptr<CoordinateSystem> coordSystem = model.mesh->findCoordinateSystem(csref);
+	shared_ptr<CoordinateSystem> coordSystem = model.mesh.findCoordinateSystem(csref);
 	if (!coordSystem) {
 		ostringstream oss;
 		oss << "Coordinate system: " << csref
 				<< " for nodal force not found." << endl;
 		throw logic_error(oss.str());
 	}
-	const Node& node = model.mesh->findNode(nodePosition);
+	const Node& node = model.mesh.findNode(nodePosition);
 	coordSystem->updateLocalBase(VectorialValue(node.x, node.y, node.z));
 	return coordSystem->vectorToGlobal(vectorialValue);
 }
@@ -347,13 +339,13 @@ bool NodalForce::ineffective() const {
 NodalForceTwoNodes::NodalForceTwoNodes(Model& model, const int node1_id,
 		const int node2_id, double magnitude, const int original_id) :
 		NodalForce(model, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM), node_position1(
-				model.mesh->findOrReserveNode(node1_id)), node_position2(
-				model.mesh->findOrReserveNode(node2_id)), magnitude(magnitude) {
+				model.mesh.findOrReserveNode(node1_id)), node_position2(
+				model.mesh.findOrReserveNode(node2_id)), magnitude(magnitude) {
 }
 
 const VectorialValue NodalForceTwoNodes::getForceInGlobalCS(int nodePosition) const {
-	const Node& node1 = model.mesh->findNode(node_position1);
-	const Node& node2 = model.mesh->findNode(node_position2);
+	const Node& node1 = model.mesh.findNode(node_position1);
+	const Node& node2 = model.mesh.findNode(node_position2);
 	VectorialValue direction = (VectorialValue(node2.x, node2.y, node2.z)
 			- VectorialValue(node1.x, node1.y, node1.z)).normalized();
 	return localToGlobal(nodePosition, magnitude * direction);
@@ -374,17 +366,17 @@ bool NodalForceTwoNodes::ineffective() const {
 NodalForceFourNodes::NodalForceFourNodes(Model& model, const int node1_id,
         const int node2_id, const int node3_id, const int node4_id, double magnitude, const int original_id) :
         NodalForce(model, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM),
-                node_position1(model.mesh->findOrReserveNode(node1_id)),
-                node_position2(model.mesh->findOrReserveNode(node2_id)),
-                node_position3(model.mesh->findOrReserveNode(node3_id)),
-                node_position4(model.mesh->findOrReserveNode(node4_id)), magnitude(magnitude) {
+                node_position1(model.mesh.findOrReserveNode(node1_id)),
+                node_position2(model.mesh.findOrReserveNode(node2_id)),
+                node_position3(model.mesh.findOrReserveNode(node3_id)),
+                node_position4(model.mesh.findOrReserveNode(node4_id)), magnitude(magnitude) {
 }
 
 const VectorialValue NodalForceFourNodes::getForceInGlobalCS(int nodePosition) const {
-    const Node& node1 = model.mesh->findNode(node_position1);
-    const Node& node2 = model.mesh->findNode(node_position2);
-    const Node& node3 = model.mesh->findNode(node_position3);
-    const Node& node4 = model.mesh->findNode(node_position4);
+    const Node& node1 = model.mesh.findNode(node_position1);
+    const Node& node2 = model.mesh.findNode(node_position2);
+    const Node& node3 = model.mesh.findNode(node_position3);
+    const Node& node4 = model.mesh.findNode(node_position4);
     const VectorialValue& v1 = VectorialValue(node2.x, node2.y, node2.z) - VectorialValue(node1.x, node1.y, node1.z);
     const VectorialValue& v2 = VectorialValue(node4.x, node4.y, node4.z) - VectorialValue(node3.x, node3.y, node3.z);
     const VectorialValue& direction = v1.cross(v2).normalized();
@@ -406,10 +398,10 @@ bool NodalForceFourNodes::ineffective() const {
 StaticPressure::StaticPressure(Model& model, const int node1_id,
         const int node2_id, const int node3_id, const int node4_id, double magnitude, const int original_id) :
         NodalForce(model, original_id, 0.0, 0.0, 0.0, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID),
-                node_position1(model.mesh->findOrReserveNode(node1_id)),
-                node_position2(model.mesh->findOrReserveNode(node2_id)),
-                node_position3(model.mesh->findOrReserveNode(node3_id)),
-                node_position4(node4_id == Globals::UNAVAILABLE_INT ? Globals::UNAVAILABLE_INT : model.mesh->findOrReserveNode(node4_id)),
+                node_position1(model.mesh.findOrReserveNode(node1_id)),
+                node_position2(model.mesh.findOrReserveNode(node2_id)),
+                node_position3(model.mesh.findOrReserveNode(node3_id)),
+                node_position4(node4_id == Globals::UNAVAILABLE_INT ? Globals::UNAVAILABLE_INT : model.mesh.findOrReserveNode(node4_id)),
                 magnitude(magnitude) {
     addNodeId(node1_id);
     addNodeId(node2_id);
@@ -425,9 +417,9 @@ const VectorialValue StaticPressure::getForceInGlobalCS(int nodePosition) const 
 	    return VectorialValue();
 	}
 	VectorialValue forceNode;
-    const Node& node1 = model.mesh->findNode(node_position1);
-    const Node& node2 = model.mesh->findNode(node_position2);
-    const Node& node3 = model.mesh->findNode(node_position3);
+    const Node& node1 = model.mesh.findNode(node_position1);
+    const Node& node2 = model.mesh.findNode(node_position2);
+    const Node& node3 = model.mesh.findNode(node_position3);
     const VectorialValue& v12 = VectorialValue(node2.x, node2.y, node2.z) - VectorialValue(node1.x, node1.y, node1.z);
     const VectorialValue& v13 = VectorialValue(node3.x, node3.y, node3.z) - VectorialValue(node1.x, node1.y, node1.z);
     if (node_position4 != Globals::UNAVAILABLE_INT) {
@@ -436,7 +428,7 @@ const VectorialValue StaticPressure::getForceInGlobalCS(int nodePosition) const 
         The surface is divided into two sets of overlapping triangular surfaces. Each triangular surface is bounded by two of the sides and one of the diagonals of the quadrilateral.
         One-half of the pressure is applied to each triangle, which is then treated in the manner described in Remark 2.
         */
-        const Node& node4 = model.mesh->findNode(node_position4);
+        const Node& node4 = model.mesh.findNode(node_position4);
         const VectorialValue& v14 = VectorialValue(node4.x, node4.y, node4.z) - VectorialValue(node1.x, node1.y, node1.z);
         const VectorialValue& v24 = VectorialValue(node4.x, node4.y, node4.z) - VectorialValue(node2.x, node2.y, node2.z);
         VectorialValue force1;
@@ -490,7 +482,7 @@ bool StaticPressure::ineffective() const {
 
 CellLoading::CellLoading(Model& model, Loading::Type type, int original_id,
 		const Reference<CoordinateSystem> csref) :
-		Loading(model, type, original_id, csref), CellContainer(*model.mesh) {
+		Loading(model, type, original_id, csref), CellContainer(model.mesh) {
 }
 
 set<int> CellLoading::nodePositions() const {
@@ -500,7 +492,7 @@ set<int> CellLoading::nodePositions() const {
 bool CellLoading::cellDimensionGreatherThan(SpaceDimension dimension) {
 	vector<Cell> cells = this->getCells(true);
 	bool result = false;
-	for (Cell& cell : cells) {
+	for (const Cell& cell : cells) {
 		result = result or cell.type.dimension > dimension;
 		if (result)
 			break;
@@ -549,11 +541,11 @@ void CellLoading::createSkin() {
     vector<int> faceIds = this->getApplicationFaceNodeIds();
     if (faceIds.size() >= 1) {
         //addedSkin = true;
-        const int cellPosition = model.mesh->generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
+        const int cellPosition = model.mesh.generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
         this->clear(); //< To remove the volumic cell and then add the skin at its place
         //this->addCellId(cell.id);
         // LD Workaround for problem "cannot write cell names"
-        shared_ptr<CellGroup> cellGrp = model.mesh->createCellGroup(Cell::MedName(cellPosition), Group::NO_ORIGINAL_ID, "Single cell group over skin element");
+        shared_ptr<CellGroup> cellGrp = model.mesh.createCellGroup(Cell::MedName(cellPosition), Group::NO_ORIGINAL_ID, "Single cell group over skin element");
         cellGrp->addCellPosition(cellPosition);
         this->add(*cellGrp);
         // LD : Workaround for Aster problem : MODELISA6_96
@@ -620,8 +612,8 @@ bool ForceSurface::validate() const {
 ForceSurfaceTwoNodes::ForceSurfaceTwoNodes(Model& model, int nodeId1, int nodeId2,
 		const VectorialValue& force, const VectorialValue& moment, const int original_id) :
 		ForceSurface(model, force, moment, original_id), nodePosition1(
-				model.mesh->findOrReserveNode(nodeId1)), nodePosition2(
-				model.mesh->findOrReserveNode(nodeId2)) {
+				model.mesh.findOrReserveNode(nodeId1)), nodePosition2(
+				model.mesh.findOrReserveNode(nodeId2)) {
 }
 
 vector<int> ForceSurfaceTwoNodes::getApplicationFaceNodeIds() const {
@@ -629,8 +621,8 @@ vector<int> ForceSurfaceTwoNodes::getApplicationFaceNodeIds() const {
 	if (cells.size() != 1) {
 		throw logic_error("More than one cell specified for a ForceSurfaceTwoNodes");
 	}
-	const int nodeId1 = model.mesh->findNodeId(nodePosition1);
-	const int nodeId2 = model.mesh->findNodeId(nodePosition2);
+	const int nodeId1 = model.mesh.findNodeId(nodePosition1);
+	const int nodeId2 = model.mesh.findNodeId(nodePosition2);
 	const vector<int>& nodeIds = cells[0].faceids_from_two_nodes(nodeId1, nodeId2);
 	return nodeIds;
 }
@@ -705,8 +697,8 @@ bool NormalPressionFace::validate() const {
 NormalPressionFaceTwoNodes::NormalPressionFaceTwoNodes(Model& model, int nodeId1, int nodeId2,
 		double intensity, const int original_id) :
 		NormalPressionFace(model, intensity, original_id), nodePosition1(
-				model.mesh->findOrReserveNode(nodeId1)), nodePosition2(
-				model.mesh->findOrReserveNode(nodeId2)) {
+				model.mesh.findOrReserveNode(nodeId1)), nodePosition2(
+				model.mesh.findOrReserveNode(nodeId2)) {
 }
 
 vector<int> NormalPressionFaceTwoNodes::getApplicationFaceNodeIds() const {
@@ -714,8 +706,8 @@ vector<int> NormalPressionFaceTwoNodes::getApplicationFaceNodeIds() const {
 	if (cells.size() != 1) {
 		throw logic_error("More than one cell specified for a NormalPressionFaceTwoNodes");
 	}
-	const int nodeId1 = model.mesh->findNodeId(nodePosition1);
-	const int nodeId2 = model.mesh->findNodeId(nodePosition2);
+	const int nodeId1 = model.mesh.findNodeId(nodePosition1);
+	const int nodeId2 = model.mesh.findNodeId(nodePosition2);
 	const vector<int>& faceIds = cells[0].faceids_from_two_nodes(nodeId1, nodeId2);
 	return faceIds;
 }

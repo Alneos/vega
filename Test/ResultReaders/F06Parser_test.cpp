@@ -15,11 +15,11 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/pointer_cast.hpp>
 #include <boost/assign.hpp>
+#include <boost/make_unique.hpp>
 #include <string>
 
 using namespace std;
 using namespace vega;
-using boost::assign::list_of;
 using vega::result::F06Parser;
 
 BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
@@ -30,28 +30,28 @@ BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 			LogLevel::DEBUG, ConfigurationParameters::TranslationMode::BEST_EFFORT, testLocation, 0.0003);
 	F06Parser f06parser;
 
-	shared_ptr<Model> model = make_shared<Model>("mname", "unknown", SolverName::NASTRAN);
-	model->mesh->addNode(1, 2, 3, 4);
-	model->mesh->addNode(2, 2, 3, 4);
-	model->mesh->addNode(3, 2, 3, 4);
-	model->mesh->addNode(4, 2, 3, 4);
-	model->mesh->addNode(5, 2, 3, 4);
-	model->mesh->addNode(6, 2, 3, 4);
-	model->mesh->addNode(10, 2, 3, 4);
-	model->mesh->addCell(1, CellType::QUAD4, list_of<int>(1)(2)(3)(4));
-	model->mesh->addCell(2, CellType::QUAD4, list_of<int>(1)(4)(5)(6));
-	shared_ptr<CellGroup> cn1 = model->mesh->createCellGroup("GM1");
+	unique_ptr<Model> model = boost::make_unique<Model>("mname", "unknown", SolverName::NASTRAN);
+	model->mesh.addNode(1, 2, 3, 4);
+	model->mesh.addNode(2, 2, 3, 4);
+	model->mesh.addNode(3, 2, 3, 4);
+	model->mesh.addNode(4, 2, 3, 4);
+	model->mesh.addNode(5, 2, 3, 4);
+	model->mesh.addNode(6, 2, 3, 4);
+	model->mesh.addNode(10, 2, 3, 4);
+	model->mesh.addCell(1, CellType::QUAD4, {1, 2, 3, 4});
+	model->mesh.addCell(2, CellType::QUAD4, {1, 4, 5, 6});
+	shared_ptr<CellGroup> cn1 = model->mesh.createCellGroup("GM1");
 	cn1->addCellId(1);
 	cn1->addCellId(2);
 	Shell shell(*model, 1.1);
 	shell.assignCellGroup(cn1);
 	model->add(shell);
 	//node 10 outside mesh, number of assertion = 6 nodes * 6 dofs
-	model->add(LinearMecaStat(*model, "", 1));
-	model->add(LinearMecaStat(*model, "", 2));
+	model->add(make_shared<LinearMecaStat>(*model, "", 1));
+	model->add(make_shared<LinearMecaStat>(*model, "", 2));
 
 	BOOST_TEST_CHECKPOINT("Before Parse");
-	f06parser.add_assertions(confParams, model);
+	f06parser.add_assertions(confParams, *model);
 	shared_ptr<LinearMecaStat> linearMecaStat1 = dynamic_pointer_cast<LinearMecaStat>(
 			model->find(Reference<Analysis>(Analysis::Type::LINEAR_MECA_STAT, 1)));
 	BOOST_ASSERT(linearMecaStat1!=nullptr);
@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 	BOOST_CHECK_EQUAL(assertions.size(), static_cast<size_t>(24));
 
 	model->finish();
-	//ineffective assertions are removed by model.finish()
+	//ineffective assertions are removed by model->finish()
 	vector<shared_ptr<Assertion>> assertions2 = linearMecaStat1->getAssertions();
 	BOOST_CHECK_EQUAL(assertions2.size(), static_cast<size_t>(24));
 	bool found = false;
@@ -68,7 +68,7 @@ BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 		BOOST_CHECK(assertion->type == Objective::Type::NODAL_DISPLACEMENT_ASSERTION);
 		NodalDisplacementAssertion & nodalDispAssertion =
 				dynamic_cast<NodalDisplacementAssertion&>(*assertion);
-		int nodeId = model->mesh->findNodeId(nodalDispAssertion.nodePosition);
+		int nodeId = model->mesh.findNodeId(nodalDispAssertion.nodePosition);
 		if (nodeId == 3 && nodalDispAssertion.dof == DOF::DX) {
 			found = true;
 			BOOST_CHECK_EQUAL(nodalDispAssertion.value, 4.901961E-01);
@@ -85,20 +85,20 @@ BOOST_AUTO_TEST_CASE(node_not_in_elements) {
 			LogLevel::INFO, ConfigurationParameters::TranslationMode::BEST_EFFORT, testLocation, 0.0003);
 	F06Parser f06parser;
 
-	shared_ptr<Model> model = make_shared<Model>("mname", "unknown", SolverName::NASTRAN);
-	model->mesh->addNode(1, 2, 3, 4);
-	model->mesh->addNode(2, 2.2, 3.2, 4.2);
-	model->mesh->addNode(3, 2.3, 3.3, 4.3);
-	model->mesh->addNode(4, 2, 3, 4);
-	model->mesh->addNode(5, 2, 6.6, 4);
-	model->mesh->addNode(6, 2, 3, 4);
-	model->mesh->addNode(10, 2.1, 3.1, 4.1);
+	unique_ptr<Model> model = boost::make_unique<Model>("mname", "unknown", SolverName::NASTRAN);
+	model->mesh.addNode(1, 2, 3, 4);
+	model->mesh.addNode(2, 2.2, 3.2, 4.2);
+	model->mesh.addNode(3, 2.3, 3.3, 4.3);
+	model->mesh.addNode(4, 2, 3, 4);
+	model->mesh.addNode(5, 2, 6.6, 4);
+	model->mesh.addNode(6, 2, 3, 4);
+	model->mesh.addNode(10, 2.1, 3.1, 4.1);
 
-	model->add(LinearMecaStat(*model, "", 1));
-	model->add(LinearMecaStat(*model, "", 2));
+	model->add(make_shared<LinearMecaStat>(*model, "", 1));
+	model->add(make_shared<LinearMecaStat>(*model, "", 2));
 
 	BOOST_TEST_CHECKPOINT("Before Parse");
-	f06parser.add_assertions(confParams, model);
+	f06parser.add_assertions(confParams, *model);
 	BOOST_TEST_CHECKPOINT("Before Finish");
 	model->finish();
 
@@ -116,36 +116,36 @@ BOOST_AUTO_TEST_CASE(test_4a) {
 
 	string testLocation(
 	PROJECT_BASE_DIR "/testdata/nastran/alneos/test4a/test4a.f06");
-	ConfigurationParameters confParams("inputFile", SolverName::CODE_ASTER, "..", "vega", ".",
-			LogLevel::INFO, ConfigurationParameters::TranslationMode::BEST_EFFORT, testLocation, 0.0003);
+	ConfigurationParameters confParams{"inputFile", SolverName::CODE_ASTER, "..", "vega", ".",
+			LogLevel::INFO, ConfigurationParameters::TranslationMode::BEST_EFFORT, testLocation, 0.0003};
 
-	shared_ptr<Model> model = make_shared<Model>("mname", "unknown", SolverName::NASTRAN);
-	model->mesh->addNode(1, 2, 3, 4);
-	model->mesh->addNode(2, 2.2, 3.2, 4.2);
-	model->mesh->addNode(3, 2.3, 3.3, 4.3);
-	model->mesh->addNode(4, 2, 3, 4);
-	model->mesh->addNode(5, 2, 6.6, 4);
-	model->mesh->addNode(6, 2, 3, 4);
-	model->mesh->addNode(7, 2.1, 3.1, 4.1);
-	model->mesh->addNode(8, 2.2, 3.1, 4.1);
-	model->mesh->addNode(9, 2.3, 3.1, 4.1);
-	model->mesh->addCell(1, CellType::HEXA8, { 1, 2, 3, 4, 5, 6, 7, 8 });
-	model->mesh->addCell(2, CellType::POINT1, { 9 });
-	shared_ptr<CellGroup> cn1 = model->mesh->createCellGroup("GM1");
+	unique_ptr<Model> model = boost::make_unique<Model>("unittest4a", "unknown", SolverName::NASTRAN);
+	model->mesh.addNode(1, 2, 3, 4);
+	model->mesh.addNode(2, 2.2, 3.2, 4.2);
+	model->mesh.addNode(3, 2.3, 3.3, 4.3);
+	model->mesh.addNode(4, 2, 3, 4);
+	model->mesh.addNode(5, 2, 6.6, 4);
+	model->mesh.addNode(6, 2, 3, 4);
+	model->mesh.addNode(7, 2.1, 3.1, 4.1);
+	model->mesh.addNode(8, 2.2, 3.1, 4.1);
+	model->mesh.addNode(9, 2.3, 3.1, 4.1);
+	model->mesh.addCell(1, CellType::HEXA8, { 1, 2, 3, 4, 5, 6, 7, 8 });
+	model->mesh.addCell(2, CellType::POINT1, { 9 });
+	shared_ptr<CellGroup> cn1 = model->mesh.createCellGroup("GM1");
 	cn1->addCellId(1);
-	Continuum continuum(*model, ModelType::TRIDIMENSIONAL_SI, 1);
+	Continuum continuum{*model, ModelType::TRIDIMENSIONAL_SI, 1};
 	continuum.assignCellGroup(cn1);
 	model->add(continuum);
-	shared_ptr<CellGroup> cn2 = model->mesh->createCellGroup("GM2");
+	shared_ptr<CellGroup> cn2 = model->mesh.createCellGroup("GM2");
 	cn2->addCellId(2);
 	DiscretePoint discrete(*model, { });
 	discrete.assignCellGroup(cn2);
 	model->add(discrete);
-	model->add(LinearMecaStat(*model, "", 1));
+	model->add(make_shared<LinearMecaStat>(*model, "", 1));
 
 	BOOST_TEST_CHECKPOINT("Before Parse");
 	F06Parser f06parser;
-	f06parser.add_assertions(confParams, model);
+	f06parser.add_assertions(confParams, *model);
 
 	shared_ptr<LinearMecaStat> linearMecaStat1 = dynamic_pointer_cast<LinearMecaStat>(
 			model->find(Reference<Analysis>(Analysis::Type::LINEAR_MECA_STAT, 1)));

@@ -72,8 +72,9 @@ class AsterWriter final : public Writer{
 	void writeAnalyses(const AsterModel& asterModel, std::ostream& out);
 
 public:
-	AsterWriter();
-	std::string writeModel(const std::shared_ptr<Model> model_ptr, const ConfigurationParameters&) override;
+    AsterWriter() = default;
+	AsterWriter(const AsterWriter& that) = delete;
+	std::string writeModel(Model& model_ptr, const ConfigurationParameters&) override;
 	const std::string toString() const override;
 };
 

@@ -38,7 +38,7 @@ NodeGroup2Families::NodeGroup2Families(int nnodes, const vector<shared_ptr<NodeG
 	unordered_map<int, Family> familyByFamilyId;
 	if (nnodes > 0 && nodeGroups.size() > 0) {
 		this->nodes.resize(nnodes, 0);
-		for (auto& nodeGroup : nodeGroups) {
+		for (const auto& nodeGroup : nodeGroups) {
 			newFamilyByOldfamily.clear();
 			for (int nodePosition : nodeGroup->nodePositions()) {
 				int oldFamilyId = nodes[nodePosition];
@@ -93,13 +93,13 @@ CellGroup2Families::CellGroup2Families(
 	int currentFamilyId = 0;
 	unordered_map<int, int> newFamilyByOldfamily;
 	unordered_map<int, Family> familyByFamilyId;
-	for (auto& cellCountByTypePair : cellCountByType) {
+	for (const auto& cellCountByTypePair : cellCountByType) {
 		shared_ptr<vector<int>> cells = make_shared<vector<int>>();
 		cells->resize(cellCountByTypePair.second, 0);
 		cellFamiliesByType[cellCountByTypePair.first] = cells;
 	}
 
-	for (auto& cellGroup : cellGroups) {
+	for (const auto& cellGroup : cellGroups) {
 		newFamilyByOldfamily.clear();
 		for (const auto& cellPosition : cellGroup->cellPositions()) {
 			const Cell&& cell = mesh.findCell(cellPosition);
@@ -154,13 +154,9 @@ const unordered_map<CellType::Code, shared_ptr<vector<int>>, EnumClassHash>& Cel
 	return this->cellFamiliesByType;
 }
 
-MedWriter::MedWriter() {
-
-}
-
-void MedWriter::createFamilies(int fid, const char meshname[],
+void MedWriter::createFamilies(long int fid, const char meshname[],
 		const vector<Family>& families) {
-	for (auto& family : families) {
+	for (const auto& family : families) {
 		const unsigned int ngroups = static_cast<unsigned int>(family.groups.size());
 		char* groupname = new char[ngroups * MED_LNAME_SIZE + 1]();
 		for (unsigned int i = 0; i < ngroups; i++) {
@@ -184,13 +180,13 @@ void MedWriter::writeMED(const Model& model, const string& medFileName) {
 	const med_int meshdim = 3;
 	const char axisname[3 * MED_SNAME_SIZE + 1] = "x               y               z               ";
 	const char unitname[3 * MED_SNAME_SIZE + 1] = "m               m               m               ";
-	const med_int nnodes = model.mesh->countNodes();
+	const med_int nnodes = model.mesh.countNodes();
 	if (model.configuration.logLevel >= LogLevel::DEBUG) {
 		med_int v[3];
 		MEDlibraryNumVersion(&v[0], &v[1], &v[2]);
 		cout << "Med Version : " << v[0] << "." << v[1] << "." << v[2] << endl;
 		cout << "Num nodes : " << nnodes << endl;
-		cout << "Num cells : " << model.mesh->countCells() << endl;
+		cout << "Num cells : " << model.mesh.countCells() << endl;
 	}
 
 	/* open MED file */
@@ -200,19 +196,19 @@ void MedWriter::writeMED(const Model& model, const string& medFileName) {
 	}
 	/* mesh creation : a 2D unstructured mesh */
 
-	if (MEDmeshCr(fid, meshname, spacedim, meshdim, MED_UNSTRUCTURED_MESH, model.mesh->getName().c_str(), "",
+	if (MEDmeshCr(fid, meshname, spacedim, meshdim, MED_UNSTRUCTURED_MESH, model.mesh.getName().c_str(), "",
 			MED_SORT_DTIT, MED_CARTESIAN, axisname, unitname) < 0) {
 		throw logic_error("ERROR : Mesh creation ...");
 	}
 	vector<med_float> coordinates;
 	coordinates.reserve(nnodes);
-	for (const NodeData& nodeData : model.mesh->nodes.getNodeDatas()) {
+	for (const NodeData& nodeData : model.mesh.nodes.getNodeDatas()) {
 	    if (nodeData.cpPos == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
             coordinates.push_back(nodeData.x);
             coordinates.push_back(nodeData.y);
             coordinates.push_back(nodeData.z);
 	    } else {
-	        shared_ptr<CoordinateSystem> coordSystem = model.mesh->getCoordinateSystemByPosition(nodeData.cpPos);
+	        shared_ptr<CoordinateSystem> coordSystem = model.mesh.getCoordinateSystemByPosition(nodeData.cpPos);
             VectorialValue gCoord = coordSystem->positionToGlobal(VectorialValue(nodeData.x,nodeData.y,nodeData.z));
             coordinates.push_back(gCoord.x());
             coordinates.push_back(gCoord.y());
@@ -242,7 +238,7 @@ void MedWriter::writeMED(const Model& model, const string& medFileName) {
     MEDmeshEntityNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_NODE, MED_NONE,nnodes, numnoe.data());
     numnoe.clear();
 
-	for (const auto& kv : model.mesh->cellPositionsByType) {
+	for (const auto& kv : model.mesh.cellPositionsByType) {
 		CellType type = kv.first;
 		med_int code = static_cast<med_int>(type.code);
 		vector<med_int> cellPositions = kv.second;
@@ -253,7 +249,7 @@ void MedWriter::writeMED(const Model& model, const string& medFileName) {
 		vector<med_int> connectivity;
 		connectivity.reserve(numCells * type.numNodes);
 		for (med_int cellPosition : cellPositions) {
-			const Cell&& cell = model.mesh->findCell(cellPosition);
+			const Cell&& cell = model.mesh.findCell(cellPosition);
 			for (med_int nodePosition : cell.nodePositions) {
 				// med nodes starts at node number 1.
 				connectivity.push_back(nodePosition + 1);
@@ -303,30 +299,31 @@ void MedWriter::writeMED(const Model& model, const string& medFileName) {
 		throw logic_error("ERROR : writing family 0 ...");
 	}
 
-	vector<shared_ptr<NodeGroup>> nodeGroups = model.mesh->getNodeGroups();
+	vector<shared_ptr<NodeGroup>> nodeGroups = model.mesh.getNodeGroups();
+    // To avoid useless cast to type ‘int’ in some installations
 	if (nodeGroups.size() > 0) {
 		NodeGroup2Families ng2fam(nnodes, nodeGroups);
 		//WARN: if writing to file is delayed to MEDfileClose may be necessary
 		//to move the allocation outside the if
 		auto& families = ng2fam.getFamilies();
-		createFamilies(static_cast<int>(fid), meshname, families);
+		createFamilies(fid, meshname, families);
 		//write family number for nodes
 		if (MEDmeshEntityFamilyNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_NODE, MED_NONE,
 				nnodes, ng2fam.getFamilyOnNodes().data()) < 0) {
 			throw logic_error("ERROR : writing family on nodes ...");
 		}
 	}
-	vector<shared_ptr<CellGroup>> cellGroups = model.mesh->getCellGroups();
+	vector<shared_ptr<CellGroup>> cellGroups = model.mesh.getCellGroups();
 	if (cellGroups.size() > 0) {
 		unordered_map<CellType::Code, int, EnumClassHash> cellCountByType;
 		for (const auto& typeAndCodePair : CellType::typeByCode) {
-			int cellNum = model.mesh->countCells(*typeAndCodePair.second);
+			int cellNum = model.mesh.countCells(*typeAndCodePair.second);
 			if (cellNum > 0) {
 				cellCountByType[typeAndCodePair.first] = cellNum;
 			}
 		}
-		CellGroup2Families cellGroup2Family = CellGroup2Families(*model.mesh, cellCountByType, cellGroups);
-		createFamilies(static_cast<int>(fid), meshname, cellGroup2Family.getFamilies());
+		CellGroup2Families cellGroup2Family = CellGroup2Families(model.mesh, cellCountByType, cellGroups);
+		createFamilies(fid, meshname, cellGroup2Family.getFamilies());
 		for (const auto& cellCodeFamilyVectorPair : cellGroup2Family.getFamilyOnCells()) {
 			int ncells = static_cast<int>(cellCodeFamilyVectorPair.second->size());
 			if (MEDmeshEntityFamilyNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_CELL,

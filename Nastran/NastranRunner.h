@@ -19,7 +19,8 @@ namespace nastran {
 
 class NastranRunner: public vega::Runner {
 public:
-	NastranRunner();
+    NastranRunner() = default;
+	NastranRunner(const NastranRunner& that) = delete;
 	ExitCode execSolver(const ConfigurationParameters &configuration,
 			std::string modelFile) override;
 

@@ -110,6 +110,7 @@ public:
             const std::string fileName = "UNKNOWN",
             const vega::ConfigurationParameters::TranslationMode translationMode = vega::ConfigurationParameters::TranslationMode::BEST_EFFORT);
     virtual ~NastranTokenizer();
+    NastranTokenizer(const NastranTokenizer& that) = delete;
 
     /**
      * Set the Tokenizer into BULK mode, which allows three formats: free,

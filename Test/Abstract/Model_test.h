@@ -3,6 +3,6 @@
 
 #include "../../Abstract/Model.h"
 
-std::shared_ptr<vega::Model> createModelWith1HEXA8();
+std::unique_ptr<vega::Model> createModelWith1HEXA8();
 
 #endif /* MODEL_TEST_H_ */

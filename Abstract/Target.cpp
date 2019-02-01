@@ -89,7 +89,7 @@ CellTarget::CellTarget(Model& model, Target::Type type, int original_id) :
 }
 
 BoundarySurface::BoundarySurface(Model& model, int original_id) :
-        CellTarget(model, Target::Type::BOUNDARY_SURFACE, original_id), CellContainer(*model.mesh) {
+        CellTarget(model, Target::Type::BOUNDARY_SURFACE, original_id), CellContainer(model.mesh) {
 }
 
 shared_ptr<Target> BoundarySurface::clone() const {
@@ -120,16 +120,16 @@ shared_ptr<Target> BoundaryElementFace::clone() const {
 void BoundaryElementFace::createSkin() {
     ostringstream oss2;
     oss2 << "created by generateSkin() because of BOUNDARY_ELEMENTFACE";
-    shared_ptr<CellGroup> surfGrp = model.mesh->createCellGroup("SURF" + to_string(bestId()), Group::NO_ORIGINAL_ID, oss2.str());
-    shared_ptr<CellGroup> elemGrp = model.mesh->createCellGroup("SURFO" + to_string(bestId()), Group::NO_ORIGINAL_ID, "BOUNDARY ELEMENTFACE");
-    for(auto& faceInfo: faceInfos) {
+    shared_ptr<CellGroup> surfGrp = model.mesh.createCellGroup("SURF" + to_string(bestId()), Group::NO_ORIGINAL_ID, oss2.str());
+    shared_ptr<CellGroup> elemGrp = model.mesh.createCellGroup("SURFO" + to_string(bestId()), Group::NO_ORIGINAL_ID, "BOUNDARY ELEMENTFACE");
+    for(const auto& faceInfo: faceInfos) {
         elemGrp->addCellId(faceInfo.cellId);
         elementCellGroup = elemGrp;
-        const Cell& cell0 = model.mesh->findCell(model.mesh->findCellPosition(faceInfo.cellId));
+        const Cell& cell0 = model.mesh.findCell(model.mesh.findCellPosition(faceInfo.cellId));
         const vector<int>& faceIds = cell0.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
         if (faceIds.size() > 0) {
             //addedSkin = true;
-            const int cellPosition = model.mesh->generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
+            const int cellPosition = model.mesh.generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
             //mappl->addCellPosition(cell.position);
             surfGrp->addCellPosition(cellPosition);
             surfaceCellGroup = surfGrp;

@@ -26,33 +26,31 @@ using namespace aster;
 //____________________________________________________________________________//
 
 BOOST_AUTO_TEST_CASE( test_medwriter_spc ) {
-	Model model("inputfile", "10.3", SolverName::NASTRAN);
+	Model model{"inputfile", "10.3", SolverName::NASTRAN};
 	double coords[18] = { 0.0, 0.0, 0.0, 0.3, 0.0, 0.0, 0.75, 0.0, 0.0, 1.0, 0.0, 0.0, 1.4, 0.0,
 			0.0, 1.3, 0.0, 0.0 };
 	for (int i = 0; i < 18; i += 3) {
-		model.mesh->addNode(i, coords[i], coords[i + 1], coords[i + 2]);
+		model.mesh.addNode(i, coords[i], coords[i + 1], coords[i + 2]);
 	}
-	model.mesh->addCell(27, CellType::SEG2, {0, 1});
-	model.mesh->addCell(28, CellType::SEG2, {1, 2});
-	model.mesh->addCell(29, CellType::SEG2, {2, 3});
-	model.mesh->addCell(30, CellType::SEG2, {3, 4});
-	model.mesh->addCell(31, CellType::POINT1, {1});
-	shared_ptr<vega::NodeGroup> gn1 = model.mesh->findOrCreateNodeGroup("GN1");
+	model.mesh.addCell(27, CellType::SEG2, {0, 1});
+	model.mesh.addCell(28, CellType::SEG2, {1, 2});
+	model.mesh.addCell(29, CellType::SEG2, {2, 3});
+	model.mesh.addCell(30, CellType::SEG2, {3, 4});
+	model.mesh.addCell(31, CellType::POINT1, {1});
+	shared_ptr<vega::NodeGroup> gn1 = model.mesh.findOrCreateNodeGroup("GN1");
 	gn1->addNodeId(0);
 	gn1->addNodeId(6);
-	shared_ptr<vega::CellGroup> gm1 = model.mesh->createCellGroup("GM1");
+	shared_ptr<vega::CellGroup> gm1 = model.mesh.createCellGroup("GM1");
 	gm1->addCellId(31);
-	shared_ptr<vega::CellGroup> gm2 = model.mesh->createCellGroup("GM2");
+	shared_ptr<vega::CellGroup> gm2 = model.mesh.createCellGroup("GM2");
 	gm2->addCellId(28);
 	gm2->addCellId(30);
-	//SinglePointConstraint spc1 = SinglePointConstraint(model, true, true, true, false, false, false,
-	//		0.0, gn1);
-	SinglePointConstraint spc1 = SinglePointConstraint(model,array<ValueOrReference, 3>{{ 0, 0, 0 }}, gn1);
+	const auto spc1 = make_shared<SinglePointConstraint>(model,array<ValueOrReference, 3>{{ 0, 0, 0 }}, gn1);
 	model.add(spc1);
 	model.finish();
 
 	shared_ptr<SinglePointConstraint> spc1_ptr = dynamic_pointer_cast<SinglePointConstraint>(
-			model.find(Reference<Constraint>(spc1)));
+			model.find(spc1->getReference()));
 	BOOST_CHECK(spc1_ptr);
 	DOFS spc_dofs = spc1_ptr->getDOFSForNode(0);
 	BOOST_CHECK(spc1_ptr->hasReferences() == false);
@@ -70,8 +68,8 @@ BOOST_AUTO_TEST_CASE( nastran_med_write ) {
 	string outFile = fs::path(PROJECT_BINARY_DIR "/bin/test1.med").make_preferred().string();
 	nastran::NastranParser parser;
     try {
-        const shared_ptr<Model> model = parser.parse(
-                ConfigurationParameters(testLocation, SolverName::CODE_ASTER, string("1")));
+        const unique_ptr<Model> model = parser.parse(
+                ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "1"});
         MedWriter medWriter;
         medWriter.writeMED(*model, outFile.c_str());
 
@@ -128,15 +126,15 @@ BOOST_AUTO_TEST_CASE( test_CellGroup2Families )
     cellCountByType[CellType::Code::SEG2_CODE] = 3;
     cellCountByType[CellType::Code::TRI3_CODE] = 3;
     CellGroup2Families cg2fam(mesh, cellCountByType, cellGroups);
-    auto& result = cg2fam.getFamilyOnCells();
+    const auto& result = cg2fam.getFamilyOnCells();
 
     int expectedTri3[] = { -2, -1, 0 };
-    auto& tri3 = result.find(CellType::Code::TRI3_CODE)->second;
+    const auto& tri3 = result.find(CellType::Code::TRI3_CODE)->second;
     BOOST_CHECK_EQUAL_COLLECTIONS(tri3->begin(), tri3->end(), expectedTri3,
                                   expectedTri3 + 3);
 
     int expectedSeg2[] = { -1, 0, 0 };
-    auto& seg2 = result.find(CellType::Code::SEG2_CODE)->second;
+    const auto& seg2 = result.find(CellType::Code::SEG2_CODE)->second;
     BOOST_CHECK_EQUAL_COLLECTIONS(seg2->begin(), seg2->end(), expectedSeg2,
                                   expectedSeg2 + 3);
 

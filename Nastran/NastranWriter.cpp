@@ -115,22 +115,18 @@ Line& Line::add(const VectorialValue vector) {
 	return *this;
 }
 
-NastranWriter::NastranWriter() {
-
-}
-
 const string NastranWriter::toString() const {
 	return string("NastranWriter");
 }
 
-string NastranWriter::getDatFilename(const shared_ptr<vega::Model>& model,
+string NastranWriter::getDatFilename(const Model& model,
 		const string& outputPath) const
 		{
 	string outputFileName;
-	if (model->name.empty()) {
+	if (model.name.empty()) {
 		outputFileName = "nastran";
 	} else {
-		outputFileName = model->name;
+		outputFileName = model.name;
 		const size_t period_idx = outputFileName.rfind('.');
 		if (string::npos != period_idx) {
 			outputFileName = outputFileName.substr(0, period_idx);
@@ -144,9 +140,9 @@ string NastranWriter::getDatFilename(const shared_ptr<vega::Model>& model,
 	return modelPath;
 }
 
-void NastranWriter::writeSOL(const shared_ptr<vega::Model>& model, ofstream& out) const
+void NastranWriter::writeSOL(const Model& model, ofstream& out) const
 		{
-	auto& firstAnalysis = *model->analyses.begin();
+	auto& firstAnalysis = *model.analyses.begin();
 	switch (firstAnalysis->type) {
 	case (Analysis::Type::LINEAR_MECA_STAT):
 		{
@@ -173,9 +169,9 @@ void NastranWriter::writeSOL(const shared_ptr<vega::Model>& model, ofstream& out
 	}
 }
 
-void NastranWriter::writeCells(const shared_ptr<vega::Model>& model, ofstream& out) const
+void NastranWriter::writeCells(const Model& model, ofstream& out) const
 		{
-	for (const auto& elementSet : model->elementSets) {
+	for (const auto& elementSet : model.elementSets) {
 		if (elementSet->isDiscrete() || elementSet->isMatrixElement()) {
 			continue;
 		}
@@ -223,9 +219,9 @@ void NastranWriter::writeCells(const shared_ptr<vega::Model>& model, ofstream& o
 	}
 }
 
-void NastranWriter::writeNodes(const shared_ptr<vega::Model>& model, ofstream& out) const
+void NastranWriter::writeNodes(const Model& model, ofstream& out) const
 		{
-	for (Node node : model->mesh->nodes) {
+	for (Node node : model.mesh.nodes) {
 	    if (node.positionCS!= CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID)
 	        cerr << "Warning in GRID "<<node.id<<" CP not supported and dismissed."<<endl;
         if (node.displacementCS!= CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID)
@@ -234,9 +230,9 @@ void NastranWriter::writeNodes(const shared_ptr<vega::Model>& model, ofstream& o
 	}
 }
 
-void NastranWriter::writeMaterials(const shared_ptr<vega::Model>& model, ofstream& out) const
+void NastranWriter::writeMaterials(const Model& model, ofstream& out) const
 		{
-	for (const auto& material : model->materials) {
+	for (const auto& material : model.materials) {
 		Line mat1("MAT1");
 		mat1.add(material->bestId());
 		const shared_ptr<Nature> enature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
@@ -254,9 +250,9 @@ void NastranWriter::writeMaterials(const shared_ptr<vega::Model>& model, ofstrea
 	}
 }
 
-void NastranWriter::writeConstraints(const shared_ptr<vega::Model>& model, ofstream& out) const
+void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
 		{
-	for (const auto& constraintSet : model->constraintSets) {
+	for (const auto& constraintSet : model.constraintSets) {
 		const set<shared_ptr<Constraint> >& spcs = constraintSet->getConstraintsByType(
 				Constraint::Type::SPC);
 		if (spcs.size() > 0) {
@@ -264,7 +260,7 @@ void NastranWriter::writeConstraints(const shared_ptr<vega::Model>& model, ofstr
 				shared_ptr<const SinglePointConstraint> spc = dynamic_pointer_cast<
 						const SinglePointConstraint>(constraint);
 				for (int nodePosition : spc->nodePositions()) {
-					const int nodeId = model->mesh->findNodeId(nodePosition);
+					const int nodeId = model.mesh.findNodeId(nodePosition);
 					out
 							<< Line("SPC1").add(constraintSet->bestId()).add(
 									spc->getDOFSForNode(nodePosition)).add(nodeId);
@@ -279,11 +275,11 @@ void NastranWriter::writeConstraints(const shared_ptr<vega::Model>& model, ofstr
 						dynamic_pointer_cast<const RigidConstraint>(constraint);
 				Line rbe2("RBE2");
 				rbe2.add(constraintSet->bestId());
-				const int masterId = model->mesh->findNodeId(rigid->getMaster());
+				const int masterId = model.mesh.findNodeId(rigid->getMaster());
 				rbe2.add(masterId);
 				rbe2.add(DOFS::ALL_DOFS);
 				for (int slavePosition : rigid->getSlaves()) {
-					const int slaveId = model->mesh->findNodeId(slavePosition);
+					const int slaveId = model.mesh.findNodeId(slavePosition);
 					rbe2.add(slaveId);
 				}
 				out << rbe2;
@@ -292,9 +288,9 @@ void NastranWriter::writeConstraints(const shared_ptr<vega::Model>& model, ofstr
 	}
 }
 
-void NastranWriter::writeLoadings(const shared_ptr<vega::Model>& model, ofstream& out) const
+void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
 		{
-	for (const auto& loadingSet : model->loadSets) {
+	for (const auto& loadingSet : model.loadSets) {
 		const set<shared_ptr<Loading> > gravities = loadingSet->getLoadingsByType(Loading::Type::GRAVITY);
 		if (gravities.size() > 0) {
 			for (shared_ptr<Loading> loading : gravities) {
@@ -336,7 +332,7 @@ void NastranWriter::writeLoadings(const shared_ptr<vega::Model>& model, ofstream
 				pload4.add(forceSurface->getApplicationFaceNodeIds()[0]);
 				pload4.add(forceSurface->getApplicationFaceNodeIds()[2]);
 				if (forceSurface->hasCoordinateSystem()) {
-					shared_ptr<CoordinateSystem> coordinateSystem = model->mesh->findCoordinateSystem(forceSurface->csref);
+					shared_ptr<CoordinateSystem> coordinateSystem = model.mesh.findCoordinateSystem(forceSurface->csref);
 					pload4.add(coordinateSystem->bestId());
 					pload4.add(coordinateSystem->vectorToGlobal(forceSurface->getForce().normalized()));
 				} else {
@@ -354,9 +350,9 @@ void NastranWriter::writeRuler(ofstream& out) const
 			<< endl;
 }
 
-void NastranWriter::writeElements(const shared_ptr<vega::Model>& model, ofstream& out) const
+void NastranWriter::writeElements(const Model& model, ofstream& out) const
 		{
-	for (shared_ptr<Beam> beam : model->getBeams()) {
+	for (shared_ptr<Beam> beam : model.getBeams()) {
 		Line pbeam("PBEAM");
 		pbeam.add(beam->bestId());
 		pbeam.add(beam->material->bestId());
@@ -367,13 +363,13 @@ void NastranWriter::writeElements(const shared_ptr<vega::Model>& model, ofstream
 		pbeam.add(beam->getTorsionalConstant());
 		out << pbeam;
 	}
-	for (shared_ptr<ElementSet> shell : model->elementSets.filter(ElementSet::Type::SHELL)) {
+	for (shared_ptr<ElementSet> shell : model.elementSets.filter(ElementSet::Type::SHELL)) {
 		Line pshell("PSHELL");
 		pshell.add(shell->bestId());
 		pshell.add(shell->material->bestId());
 		out << pshell;
 	}
-	for (shared_ptr<ElementSet> continuum : model->elementSets.filter(ElementSet::Type::CONTINUUM)) {
+	for (shared_ptr<ElementSet> continuum : model.elementSets.filter(ElementSet::Type::CONTINUUM)) {
 		Line psolid("PSOLID");
 		psolid.add(continuum->bestId());
 		psolid.add(continuum->material->bestId());
@@ -381,7 +377,7 @@ void NastranWriter::writeElements(const shared_ptr<vega::Model>& model, ofstream
 	}
 }
 
-string NastranWriter::writeModel(const shared_ptr<vega::Model> model,
+string NastranWriter::writeModel(Model& model,
 		const vega::ConfigurationParameters &configuration) {
 
 	string outputPath = configuration.outputPath;
@@ -398,10 +394,10 @@ string NastranWriter::writeModel(const shared_ptr<vega::Model> model,
 		throw ios::failure(message);
 	}
 
-	out << "$ " << model->name << endl;
+	out << "$ " << model.name << endl;
 	writeSOL(model, out);
 	out << "TIME 10000" << endl;
-	for (const auto& analysis : model->analyses) {
+	for (const auto& analysis : model.analyses) {
 		out << "SUBCASE " << analysis->bestId() << endl;
 		for (shared_ptr<LoadSet> loadSet : analysis->getLoadSets()) {
 			string typeName = loadSet->stringByType.find(loadSet->type)->second;
@@ -417,7 +413,7 @@ string NastranWriter::writeModel(const shared_ptr<vega::Model> model,
 	out << "TITLE=Vega Exported Model" << endl;
 	out << "BEGIN BULK" << endl;
 
-	for (auto& coordinateSystemEntry : model->mesh->coordinateSystemStorage.coordinateSystemByRef) {
+	for (const auto& coordinateSystemEntry : model.mesh.coordinateSystemStorage.coordinateSystemByRef) {
         shared_ptr<CoordinateSystem> coordinateSystem = coordinateSystemEntry.second;
         if (coordinateSystem->type != CoordinateSystem::Type::ABSOLUTE) {
             continue;
@@ -470,7 +466,7 @@ string NastranWriter::writeModel(const shared_ptr<vega::Model> model,
 //
 //	BEGIN BULK
 //	$---1--][---2--][---3--][---4--][---5--][---6--][---7--][---8--][---9--][--10--]
-//	{% for coordinate_system_id, coordinate_system in model.mesh->coordinate_systems_by_id|dictsort('coordinate_system_id') %}
+//	{% for coordinate_system_id, coordinate_system in model.mesh.coordinate_systems_by_id|dictsort('coordinate_system_id') %}
 //	{%- if coordinate_system.coordinate_system_type == 'CORD_R' %}
 //	{{key('CORD2R')}}{{rpad(coordinate_system.integerid)}}{{rpad('')}}{{ render_floats(2, coordinate_system.abc) }}
 //	{%- elif coordinate_system.coordinate_system_type == 'VECT_Y' %} {# Ignored, directly defined on CBAR #}
@@ -480,13 +476,13 @@ string NastranWriter::writeModel(const shared_ptr<vega::Model> model,
 //	{%- endfor %}
 //
 //	$---1--][---2--][---3--][---4--][---5--][---6--][---7--][---8--][---9--][--10--]
-//	{% for node in model.mesh->nodes %}
+//	{% for node in model.mesh.nodes %}
 //	{{key('GRID')}}{{ rpad(node.integerid) }}{%- if node.coordinate_system %}{{rpad(node.coordinate_system.integerid)}}{%- else -%}{{rpad('')}}{%- endif -%}{{ render_floats(2, node.global_coordinates) }}
 //	{%- endfor %}
 //
 //	$---1--][---2--][---3--][---4--][---5--][---6--][---7--][---8--][---9--][--10--]
-//	{% for element_type in model.mesh->element_types %}
-//	{%- for element in model.mesh->find_elements_in_type(element_type) %}
+//	{% for element_type in model.mesh.element_types %}
+//	{%- for element in model.mesh.find_elements_in_type(element_type) %}
 //	{%- set part = model.parts_by_id[element.part_id] -%}
 //	{%- if element_type == 'SEG2' %}
 //	{{key('CBAR')}}{{ rpad(element.integerid) }}{%- if part -%}{{ rpad(part.integerid) }}{%- endif -%}{{ render_collection(2, element.node_integerids) }}{%- if element.coordinate_system %}{{ render_floats(2+element.node_integerids|length, element.coordinate_system.as_vecty().components) }}{%- endif -%}

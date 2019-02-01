@@ -50,7 +50,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "WTMASS", &NastranParser::parseParamWTMASS },
         };
 
-void NastranParser::parseParamAUTOSPC(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamAUTOSPC(NastranTokenizer& tok, Model& model) {
 
     /*
      AUTOSPC specifies the action to take when singularities exist in the stiffness
@@ -70,7 +70,7 @@ void NastranParser::parseParamAUTOSPC(NastranTokenizer& tok, shared_ptr<Model> m
     }
 }
 
-void NastranParser::parseParamGRDPNT(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamGRDPNT(NastranTokenizer& tok, Model& model) {
     /*GRDPNT
      Default = -1
      GRDPNT>-1 will cause the grid point weight generator to be
@@ -114,18 +114,18 @@ void NastranParser::parseParamGRDPNT(NastranTokenizer& tok, shared_ptr<Model> mo
     }
 }
 
-void NastranParser::parseParamHFREQ(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamHFREQ(NastranTokenizer& tok, Model& model) {
 
     /* Default = 1.+30
      PARAM,HFREQ gives the upper limit on the frequency range of retained modes.
      */
     double val = tok.nextDouble(true, 1e30);
     if (!is_equal(val, 1e30)) {
-        model->parameters[Model::Parameter::UPPER_CUTOFF_FREQUENCY] = val;
+        model.parameters[Model::Parameter::UPPER_CUTOFF_FREQUENCY] = val;
     }
 }
 
-void NastranParser::parseParamK6ROT(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamK6ROT(NastranTokenizer& tok, Model& model) {
     /* K6ROT specifies the scaling factor of the penalty stiffness to be added
      to the normal rotation for CQUAD4 and CTRIA3 elements. The
      contribution of the penalty term to the strain energy functional is ...*/
@@ -137,28 +137,28 @@ void NastranParser::parseParamK6ROT(NastranTokenizer& tok, shared_ptr<Model> mod
     }
 }
 
-void NastranParser::parseParamLFREQ(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamLFREQ(NastranTokenizer& tok, Model& model) {
     double val = tok.nextDouble(true, 0.0);
     if (!is_equal(val, 0.0)) {
-        model->parameters[Model::Parameter::LOWER_CUTOFF_FREQUENCY] = val;
+        model.parameters[Model::Parameter::LOWER_CUTOFF_FREQUENCY] = val;
     }
 }
 
-void NastranParser::parseParamG(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamG(NastranTokenizer& tok, Model& model) {
     double val = tok.nextDouble(true, 0.0);
     if (!is_equal(val, 0.0)) {
-        model->parameters[Model::Parameter::STRUCTURAL_DAMPING] = val;
+        model.parameters[Model::Parameter::STRUCTURAL_DAMPING] = val;
     }
 }
 
-void NastranParser::parseParamW3(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamW3(NastranTokenizer& tok, Model& model) {
     double val = tok.nextDouble(true, 0.0);
     if (!is_equal(val, 0.0)) {
-        model->parameters[Model::Parameter::FREQUENCY_OF_INTEREST_RADIANS] = val;
+        model.parameters[Model::Parameter::FREQUENCY_OF_INTEREST_RADIANS] = val;
     }
 }
 
-void NastranParser::parseParamLGDISP(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamLGDISP(NastranTokenizer& tok, Model& model) {
     /* Default = -1
      If LGDlSP = 1, all the nonlinear element types that have a large
      displacement capability in SOLs 106, 129, 153, 159, 400, and 600 (see
@@ -174,11 +174,11 @@ void NastranParser::parseParamLGDISP(NastranTokenizer& tok, shared_ptr<Model> mo
      */
     double val = tok.nextDouble(true, -1);
     if (!is_equal(val, -1)) {
-        model->parameters[Model::Parameter::LARGE_DISPLACEMENTS] = val;
+        model.parameters[Model::Parameter::LARGE_DISPLACEMENTS] = val;
     }
 }
 
-void NastranParser::parseParamNOCOMPS(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamNOCOMPS(NastranTokenizer& tok, Model& model) {
     /*
      NOCOMPS controls the computation and printout of composite
      element ply stresses, strains and failure indices. If NOCOMPS = 1,
@@ -197,7 +197,7 @@ void NastranParser::parseParamNOCOMPS(NastranTokenizer& tok, shared_ptr<Model> m
     }
 }
 
-void NastranParser::parseParamPATVER(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamPATVER(NastranTokenizer& tok, Model& model) {
     double val = tok.nextDouble(true, 3.0);
     if (!is_equal(val, 3.0)) {
         handleParsingError("unsupported parameter PATVER value in parseParamPATVER. ",
@@ -205,7 +205,7 @@ void NastranParser::parseParamPATVER(NastranTokenizer& tok, shared_ptr<Model> mo
     }
 }
 
-void NastranParser::parseParamPRTMAXIM(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamPRTMAXIM(NastranTokenizer& tok, Model& model) {
     /*
      * PRTMAXIM
      * Default = NO
@@ -217,13 +217,13 @@ void NastranParser::parseParamPRTMAXIM(NastranTokenizer& tok, shared_ptr<Model> 
      */
     string value = tok.nextString(true, "NO");
     if (value == "YES") {
-        model->parameters[Model::Parameter::PRINT_MAXIM] = 1.0;
+        model.parameters[Model::Parameter::PRINT_MAXIM] = 1.0;
     }
 }
 
-void NastranParser::parseParamWTMASS(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseParamWTMASS(NastranTokenizer& tok, Model& model) {
     double value = tok.nextDouble(true, 1);
-    model->parameters[Model::Parameter::MASS_OVER_FORCE_MULTIPLIER] = value;
+    model.parameters[Model::Parameter::MASS_OVER_FORCE_MULTIPLIER] = value;
 }
 
 NastranParser::parseElementFPtr NastranParser::findParamParser(const string keyword) const {
@@ -235,7 +235,7 @@ NastranParser::parseElementFPtr NastranParser::findParamParser(const string keyw
     }
 }
 
-void NastranParser::parsePARAM(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePARAM(NastranTokenizer& tok, Model& model) {
     string param = tok.nextString();
     boost::to_upper(param);
 
@@ -244,7 +244,7 @@ void NastranParser::parsePARAM(NastranTokenizer& tok, shared_ptr<Model> model) {
         (this->*parser)(tok, model);
 
     } else if (IGNORED_PARAMS.find(param) != IGNORED_PARAMS.end()) {
-        if (model->configuration.logLevel >= LogLevel::TRACE) {
+        if (model.configuration.logLevel >= LogLevel::TRACE) {
             cout << "Option PARAM, " << param << " ignored." << endl;
         }
         tok.skipToNextKeyword();

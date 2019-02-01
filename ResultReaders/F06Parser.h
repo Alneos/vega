@@ -27,20 +27,21 @@ private:
 			std::ifstream&);
 	int addComplexAssertionsToModel(int currentSubCase, double frequency, Model&,
 			const ConfigurationParameters&, std::ifstream&);
-	int readDisplacementSection(const Model& model, const ConfigurationParameters&,
-			std::ifstream& istream, std::vector<Assertion*>& assertions, double loadStep);
-	void readEigenvalueSection(const Model&, const ConfigurationParameters&, std::ifstream&,
-			std::vector<Assertion*>&);
-	int readComplexDisplacementSection(const Model&, const ConfigurationParameters&, std::ifstream&,
-			std::vector<Assertion*>&, double frequency);
+	int readDisplacementSection(Model& model, const ConfigurationParameters&,
+			std::ifstream& istream, std::vector<std::shared_ptr<Assertion>>& assertions, double loadStep);
+	void readEigenvalueSection(Model&, const ConfigurationParameters&, std::ifstream&,
+			std::vector<std::shared_ptr<Assertion>>&);
+	int readComplexDisplacementSection(Model&, const ConfigurationParameters&, std::ifstream&,
+			std::vector<std::shared_ptr<Assertion>>&, double frequency);
 
 	int parseSubcase(int currentSubCase, const std::string& currentLine);
 	static const int NO_SUBCASE = -1;
 
 public:
 	F06Parser();
+	F06Parser(const F06Parser& that) = delete;
 	virtual void add_assertions(const ConfigurationParameters& configuration,
-			std::shared_ptr<Model> model) override;
+			Model& model) override;
 	virtual ~F06Parser();
 };
 

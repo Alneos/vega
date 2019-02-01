@@ -56,10 +56,6 @@ SMF DOFtoSMF(DOF dof){
     return SMF::KZ;
 }
 
-
-SystusWriter::SystusWriter() {
-}
-
 SystusWriter::~SystusWriter() {
 }
 
@@ -166,6 +162,7 @@ CartesianCoordinateSystem SystusWriter::buildElementDefaultReferentiel(const Sys
         const int celltype){
 
     VectorialValue O,x,y;
+    const Mesh& mesh = systusModel.model.mesh;
 
     switch (dim){
     case 0:
@@ -178,15 +175,14 @@ CartesianCoordinateSystem SystusWriter::buildElementDefaultReferentiel(const Sys
 
     case 1:{
         // Element 16XX use the global system as a default
-        if (celltype==6){
+        if (celltype==6) {
             x = VectorialValue::X;
             y = VectorialValue::Y;
             O = VectorialValue(0,0,0);
         // Other 1D elements are computed from the orientation of the "bar"
-        }else{
-            shared_ptr<Mesh> mesh = systusModel.model->mesh;
-            const Node& nO = mesh->findNode(mesh->findNodePosition(nodes[0]));
-            const Node& nX = mesh->findNode(mesh->findNodePosition(nodes[1]));
+        } else {
+            const Node& nO = mesh.findNode(mesh.findNodePosition(nodes[0]));
+            const Node& nX = mesh.findNode(mesh.findNodePosition(nodes[1]));
             O = VectorialValue(nO.x, nO.y, nO.z);
             x = VectorialValue(nX.x-nO.x, nX.y-nO.y, nX.z-nO.z);
             // If the beam is parallel to Oz, we have a special treatment.
@@ -205,13 +201,12 @@ CartesianCoordinateSystem SystusWriter::buildElementDefaultReferentiel(const Sys
     }
 
     case 2:{
-        shared_ptr<Mesh> mesh = systusModel.model->mesh;
 
         // The origin of the referentiel is the center of the element.
         O = VectorialValue(0,0,0);
         int nbnodes=0;
         for (const auto& n : nodes){
-            const Node& node = mesh->findNode(mesh->findNodePosition(n));
+            const Node& node = mesh.findNode(mesh.findNodePosition(n));
             O = O + VectorialValue(node.x, node.y, node.z);
             nbnodes++;
         }
@@ -229,9 +224,9 @@ CartesianCoordinateSystem SystusWriter::buildElementDefaultReferentiel(const Sys
 
             //  See Systus Reference Manual, Section 16.2.2, subsection "Shell element with three nodes" page 1114
             if (nbnodes==3){
-                const Node& nA0 = mesh->findNode(mesh->findNodePosition(nodes[0]));
-                const Node& nA1 = mesh->findNode(mesh->findNodePosition(nodes[1]));
-                const Node& nA2 = mesh->findNode(mesh->findNodePosition(nodes[2]));
+                const Node& nA0 = mesh.findNode(mesh.findNodePosition(nodes[0]));
+                const Node& nA1 = mesh.findNode(mesh.findNodePosition(nodes[1]));
+                const Node& nA2 = mesh.findNode(mesh.findNodePosition(nodes[2]));
 
                 const VectorialValue& a0a1 = VectorialValue(nA1.x-nA0.x, nA1.y-nA0.y, nA1.z-nA0.z);
                 const VectorialValue& a0a2 = VectorialValue(nA2.x-nA0.x, nA2.y-nA0.y, nA2.z-nA0.z);
@@ -255,7 +250,7 @@ CartesianCoordinateSystem SystusWriter::buildElementDefaultReferentiel(const Sys
                 y = VectorialValue::Y;
             }
 
-        }else{
+        } else {
             // We don't treat this case yet.
             handleWritingWarning("Default referentiel of element 2"+std::to_string(celltype)+"XX not supported. Global referentiel chosen.", "Element Default Referentiel");
             x = VectorialValue::X;
@@ -272,7 +267,7 @@ CartesianCoordinateSystem SystusWriter::buildElementDefaultReferentiel(const Sys
     }
     }
 
-    CartesianCoordinateSystem rcs = CartesianCoordinateSystem(*(systusModel.model->mesh), O, x, y);
+    CartesianCoordinateSystem rcs = CartesianCoordinateSystem(systusModel.model.mesh, O, x, y);
     rcs.build();
     return rcs;
 
@@ -369,9 +364,9 @@ void SystusWriter::writeMaterialField(const SMF key, const int value, int& nbfie
 
 
 
-string SystusWriter::writeModel(const shared_ptr<Model> model,
+string SystusWriter::writeModel(Model& model,
         const vega::ConfigurationParameters &configuration) {
-    SystusModel systusModel = SystusModel(&(*model), configuration);
+    SystusModel systusModel{model, configuration};
     this->translationMode= configuration.translationMode;
     cout << "Writing to SYSTUS (version " << systusModel.getSystusVersionString()<<")"<< endl;
 
@@ -449,7 +444,7 @@ void SystusWriter::getSystusAutomaticOption(const SystusModel& systusModel, Syst
      *  The list of elements supported by the 3D option is available in the
      *  SYSTUS Reference Manual  (section 8.4.3 Three Dimensional Analysis)
      **/
-    for (const auto& elementSet : systusModel.model->elementSets) {
+    for (const auto& elementSet : systusModel.model.elementSets) {
         switch (elementSet->type) {
 
         // Those elements need 6 DDL
@@ -577,12 +572,12 @@ void SystusWriter::getSystusInformations(const SystusModel& systusModel, const C
 
 double SystusWriter::generateRbarRigidity(const SystusModel& systusModel, const shared_ptr<Rbar> rbar){
 
-    const shared_ptr<Mesh> mesh = systusModel.model->mesh;
+    const Mesh& mesh = systusModel.model.mesh;
 
     // We access the maximum of the Young Modulus of the model. No need to do it twice
     if (is_equal(maxYoungModulus,Globals::UNAVAILABLE_DOUBLE)){
         maxYoungModulus=0.0;
-        for (const auto& elementSet : systusModel.model->elementSets) {
+        for (const auto& elementSet : systusModel.model.elementSets) {
             const auto& material = elementSet->material;
             if ((elementSet->cellGroup != nullptr)&&(material != nullptr)){
                 const shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
@@ -596,13 +591,13 @@ double SystusWriter::generateRbarRigidity(const SystusModel& systusModel, const 
 
     // Master node is the same for all cells
     const int masterId = rbar->masterId;
-    const int masterPosition = mesh->findNodePosition(masterId);
-    const Node& mN = mesh->findNode(masterPosition);
+    const int masterPosition = mesh.findNodePosition(masterId);
+    const Node& mN = mesh.findNode(masterPosition);
 
     double maxLength=0.0;
     for (const Cell& cell : rbar->cellGroup->getCells()) {
        vector<int> nodes = cell.nodeIds;
-       const Node& sN = mesh->findNode(cell.nodePositions[1]);
+       const Node& sN = mesh.findNode(cell.nodePositions[1]);
        double lengthRbar = sqrt( pow(mN.x-sN.x,2) +pow(mN.y-sN.y,2) + pow(mN.z-sN.z,2));
        maxLength=max(maxLength, lengthRbar);
     }
@@ -619,12 +614,12 @@ double SystusWriter::generateRbarRigidity(const SystusModel& systusModel, const 
 //TODO: create a single function to compute penalty
 double SystusWriter::generateLmpcRigidity(const SystusModel& systusModel, const shared_ptr<Lmpc> lmpc){
 
-    const shared_ptr<Mesh> mesh = systusModel.model->mesh;
+    const Mesh& mesh = systusModel.model.mesh;
 
     // We access the maximum of the Young Modulus of the model. No need to do it twice
     if (is_equal(maxYoungModulus,Globals::UNAVAILABLE_DOUBLE)){
         maxYoungModulus=0.0;
-        for (const auto& elementSet : systusModel.model->elementSets) {
+        for (const auto& elementSet : systusModel.model.elementSets) {
             const auto& material = elementSet->material;
             if ((elementSet->cellGroup != nullptr)&&(material != nullptr)){
                 const shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
@@ -641,9 +636,9 @@ double SystusWriter::generateLmpcRigidity(const SystusModel& systusModel, const 
     for (const Cell& cell : lmpc->cellGroup->getCells()) {
         // The reference one is the first one. Why ? Why not ?
         // TODO: a much much better formulation
-        const Node& mN = mesh->findNode(cell.nodePositions[0]);
+        const Node& mN = mesh.findNode(cell.nodePositions[0]);
         for (unsigned int i=1;i<cell.nodePositions.size();i++){
-            const Node& sN = mesh->findNode(cell.nodePositions[i]);
+            const Node& sN = mesh.findNode(cell.nodePositions[i]);
             double lengthLmpc = sqrt( pow(mN.x-sN.x,2) +pow(mN.y-sN.y,2) + pow(mN.z-sN.z,2));
            maxLength=max(maxLength, lengthLmpc);
         }
@@ -659,13 +654,13 @@ double SystusWriter::generateLmpcRigidity(const SystusModel& systusModel, const 
 }
 
 
-void SystusWriter::generateRBEs(const SystusModel& systusModel,
+void SystusWriter::generateRBEs(SystusModel& systusModel,
         const vega::ConfigurationParameters &configuration) {
 
-    shared_ptr<Mesh> mesh = systusModel.model->mesh;
+    Mesh& mesh = systusModel.model.mesh;
     rotationNodeIdByTranslationNodeId.clear();
 
-    for (const auto& elementSet : systusModel.model->elementSets) {
+    for (const auto& elementSet : systusModel.model.elementSets) {
 
         switch (elementSet->type) {
         // None of these element Set are RBE
@@ -692,7 +687,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
         case ElementSet::Type::RBAR: {
             shared_ptr<Rbar> rbars = dynamic_pointer_cast<Rbar>(elementSet);
 
-            auto& material = elementSet->material;
+            const auto& material = elementSet->material;
             if (material == nullptr){
                 throw logic_error("Error: ElementSet::RBAR have no material.");
             }
@@ -718,14 +713,14 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 
 
             const int masterId = rbars->masterId;
-            const int masterPosition = mesh->findNodePosition(masterId);
+            const int masterPosition = mesh.findNodePosition(masterId);
 
-            const Node& master = mesh->findNode(masterPosition);
+            const Node& master = mesh.findNode(masterPosition);
             int master_rot_id = 0;
 
             if (systusOption == SystusOption::CONTINUOUS){
-                int master_rot_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
-                master_rot_id = mesh->findNodeId(master_rot_position);
+                int master_rot_position = mesh.addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
+                master_rot_id = mesh.findNodeId(master_rot_position);
                 rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
             }
 
@@ -747,9 +742,9 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
                 // With a Lagrangian formulation, we add a Lagrange node.
                 // Lagrange node must NOT have an orientation, as they inherit it from the slave node.
                 if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-                    const Node& slave = mesh->findNode(cell.nodePositions[1]);
-                    int slave_lagr_position = mesh->addNode(Node::AUTO_ID, slave.lx, slave.ly, slave.lz, slave.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-                    int slave_lagr_id = mesh->findNodeId(slave_lagr_position);
+                    const Node& slave = mesh.findNode(cell.nodePositions[1]);
+                    int slave_lagr_position = mesh.addNode(Node::AUTO_ID, slave.lx, slave.ly, slave.lz, slave.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+                    int slave_lagr_id = mesh.findNodeId(slave_lagr_position);
                     nodes.push_back(slave_lagr_id);
                 }
 
@@ -759,11 +754,11 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
                     break;
                 }
                 case (3):{
-                    mesh->updateCell(cell.id, CellType::POLY3, nodes, true);
+                    mesh.updateCell(cell.id, CellType::POLY3, nodes, true);
                     break;
                 }
                 case(4):{
-                    mesh->updateCell(cell.id, CellType::POLY4, nodes, true);
+                    mesh.updateCell(cell.id, CellType::POLY4, nodes, true);
                     break;
                 }
                 default:
@@ -781,7 +776,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
         case ElementSet::Type::RBE3: {
             shared_ptr<Rbe3> rbe3 = dynamic_pointer_cast<Rbe3>(elementSet);
 
-            auto& material = elementSet->material;
+            const auto& material = elementSet->material;
             if (material == nullptr){
                 throw logic_error("Error: ElementSet::RBE3 have no material.");
             }
@@ -795,24 +790,24 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
             //rigidNature.setLagrangian(lagrangianValue);
 
             const int masterId = rbe3->masterId;
-            const int masterPosition = mesh->findNodePosition(masterId);
+            const int masterPosition = mesh.findNodePosition(masterId);
 
-            const Node& master = mesh->findNode(masterPosition);
+            const Node& master = mesh.findNode(masterPosition);
 
             // Creating a Lagrange node
             // Lagrange node must NOT have an orientation, as they inherit it from the slave node.
-            int master_lagr_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-            int master_lagr_id = mesh->findNodeId(master_lagr_position);
+            int master_lagr_position = mesh.addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+            int master_lagr_id = mesh.findNodeId(master_lagr_position);
 
             // Creating rotation nodes if needed
             int master_rot_id=0;
             int master_lagr_rot_id=0;
             if (systusOption == SystusOption::CONTINUOUS){
-                int master_rot_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
-                master_rot_id = mesh->findNodeId(master_rot_position);
+                int master_rot_position = mesh.addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
+                master_rot_id = mesh.findNodeId(master_rot_position);
                 rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
-                int master_lagr_rot_position = mesh->addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-                master_lagr_rot_id = mesh->findNodeId(master_lagr_rot_position);
+                int master_lagr_rot_position = mesh.addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+                master_lagr_rot_id = mesh.findNodeId(master_lagr_rot_position);
             }
 
             // Updating the cells
@@ -836,11 +831,11 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
 
                 switch (nodes.size()){
                 case (3):{
-                    mesh->updateCell(cell.id, CellType::POLY3, nodes, true);
+                    mesh.updateCell(cell.id, CellType::POLY3, nodes, true);
                     break;
                 }
                 case(5):{
-                    mesh->updateCell(cell.id, CellType::POLY5, nodes, true);
+                    mesh.updateCell(cell.id, CellType::POLY5, nodes, true);
                     break;
                 }
                 default:
@@ -856,7 +851,7 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
         case ElementSet::Type::LMPC: {
             shared_ptr<Lmpc> lmpc = dynamic_pointer_cast<Lmpc>(elementSet);
 
-            auto& material = elementSet->material;
+            const auto& material = elementSet->material;
             if (material == nullptr){
                 throw logic_error("Error: ElementSet::Lmpc have no material.");
             }
@@ -886,11 +881,11 @@ void SystusWriter::generateRBEs(const SystusModel& systusModel,
                 shared_ptr<CellGroup> cellGroup = elementSet->cellGroup;
                 for (const Cell& cell : cellGroup->getCells()) {
                     vector<int> nodes = cell.nodeIds;
-                    const Node& first = mesh->findNode(cell.nodePositions[0]);
-                    int first_lagr_position = mesh->addNode(Node::AUTO_ID, first.lx, first.ly, first.lz, first.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-                    int first_lagr_id = mesh->findNodeId(first_lagr_position);
+                    const Node& first = mesh.findNode(cell.nodePositions[0]);
+                    int first_lagr_position = mesh.addNode(Node::AUTO_ID, first.lx, first.ly, first.lz, first.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+                    int first_lagr_id = mesh.findNodeId(first_lagr_position);
                     nodes.push_back(first_lagr_id);
-                    mesh->updateCell(cell.id, CellType::polyType(static_cast<unsigned int>(nodes.size())), nodes, true);
+                    mesh.updateCell(cell.id, CellType::polyType(static_cast<unsigned int>(nodes.size())), nodes, true);
                 }
             }
             break;
@@ -912,7 +907,7 @@ void SystusWriter::generateSubcases(const SystusModel& systusModel,
     vector< vector<systus_ascid_t> > characteristicAnalysis;
     // Default is "Automatic merge of static subcases".
     if (configuration.systusSubcases.empty()){
-        for (const auto& it : systusModel.model->analyses) {
+        for (const auto& it : systusModel.model.analyses) {
             const Analysis& analysis = *it;
 
             // We create a vector with the characteristic of the Analysis
@@ -958,7 +953,7 @@ void SystusWriter::generateSubcases(const SystusModel& systusModel,
         // On "single mode", each analysis is in its own subcase.
         if ((configuration.systusSubcases.size()==1) &&
                 (configuration.systusSubcases[0][0]==-1)){
-            for (const auto& it : systusModel.model->analyses) {
+            for (const auto& it : systusModel.model.analyses) {
                 const Analysis& analysis = *it;
                 systusSubcases.push_back({analysis.getId()});
             }
@@ -968,7 +963,7 @@ void SystusWriter::generateSubcases(const SystusModel& systusModel,
             // We make a correspondence between the User defined Id (aka "Original Id")
             // and the internal Id.
             map<int, int> analysisIdByOriginalId;
-            for (const auto& it : systusModel.model->analyses) {
+            for (const auto& it : systusModel.model.analyses) {
                 const Analysis& analysis = *it;
                 const int originalId = analysis.getOriginalId();
                 if (originalId!=Analysis::NO_ORIGINAL_ID){
@@ -1002,10 +997,10 @@ void SystusWriter::generateSubcases(const SystusModel& systusModel,
             // We test if every analysis in a subcase is of the same type
             for (unsigned i = 0 ; i< systusSubcases.size(); i++){
                 const vector<int> subcase = systusSubcases[i];
-                const auto refAnalysis = systusModel.model->getAnalysis(subcase[0]);
+                const auto refAnalysis = systusModel.model.getAnalysis(subcase[0]);
                 const Analysis::Type refType = refAnalysis->type;
                 for (unsigned j = 1; j < subcase.size(); j++){
-                    const auto analysis = systusModel.model->getAnalysis(subcase[j]);
+                    const auto analysis = systusModel.model.getAnalysis(subcase[j]);
                     if (analysis->type!= refType){
                         cerr << "Warning: The user-defined subcase "<<(i+1)<<" regroups analysis of different types: "
                                 <<Analysis::stringByType.at(refType)<< " "<< Analysis::stringByType.at(analysis->type)<<endl;
@@ -1023,7 +1018,7 @@ void SystusWriter::generateSubcases(const SystusModel& systusModel,
             const vector<int> subcase = systusSubcases[i];
             cout << "Subcase "<< (i+1) <<" regroups Analyzes:";
             for (unsigned j = 0; j < subcase.size(); j++){
-                const auto analysis = systusModel.model->getAnalysis(subcase[j]);
+                const auto analysis = systusModel.model.getAnalysis(subcase[j]);
                 cout << " \""<< analysis->getLabel()<<"\"";
             }
             cout <<endl;
@@ -1046,7 +1041,7 @@ void SystusWriter::fillLoads(const SystusModel& systusModel, const int idSubcase
     const vector<int> analysisId = systusSubcases[idSubcase];
 
     for (unsigned i = 0 ; i < analysisId.size(); i++) {
-        const shared_ptr<Analysis> analysis = systusModel.model->getAnalysis(analysisId[i]);
+        const shared_ptr<Analysis> analysis = systusModel.model.getAnalysis(analysisId[i]);
 
         if (analysis==nullptr){
             cerr << "Warning in Filling Loads : wrong analysis number ("<< analysisId[i]<<") Analysis dismissed"<<endl;
@@ -1077,10 +1072,10 @@ void SystusWriter::fillLoads(const SystusModel& systusModel, const int idSubcase
 
 void SystusWriter::writeNodalForce(const SystusModel& systusModel, shared_ptr<NodalForce> nodalForce, const int idLoadCase, systus_ascid_t& vectorId) {
 
-    for(auto& nodePosition : nodalForce->nodePositions()) {
+    for(const int nodePosition : nodalForce->nodePositions()) {
         const VectorialValue& force = nodalForce->getForceInGlobalCS(nodePosition);
         const VectorialValue& moment = nodalForce->getMomentInGlobalCS(nodePosition);
-        const int nodeId = systusModel.model->mesh->findNodeId(nodePosition);
+        const int nodeId = systusModel.model.mesh.findNodeId(nodePosition);
 
         vector<double> vec;
         double normvec = 0.0;
@@ -1108,7 +1103,7 @@ void SystusWriter::writeNodalForce(const SystusModel& systusModel, shared_ptr<No
         if (systusOption == SystusOption::CONTINUOUS){
             const auto & it = rotationNodeIdByTranslationNodeId.find(nodeId);
             if (it != rotationNodeIdByTranslationNodeId.end()){
-                int rotNodePosition= systusModel.model->mesh->findNodePosition(it->second);
+                int rotNodePosition= systusModel.model.mesh.findNodePosition(it->second);
                 normvec = 0.0;
                 vec.clear();
                 vec.push_back(0);
@@ -1140,7 +1135,7 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
 
     // Work, work
     for (unsigned i = 0 ; i < analysisId.size(); i++) {
-        const shared_ptr<Analysis> analysis = systusModel.model->getAnalysis(analysisId[i]);
+        const shared_ptr<Analysis> analysis = systusModel.model.getAnalysis(analysisId[i]);
 
         if (analysis==nullptr){
             cerr << "Warning in Building Vectors : wrong analysis number. Analysis dismissed"<<endl;
@@ -1264,7 +1259,7 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
 
     // We add constraints coming from ConstraintSets
     for (unsigned i = 0 ; i < analysisId.size(); i++) {
-        const shared_ptr<Analysis> analysis = systusModel.model->getAnalysis(analysisId[i]);
+        const shared_ptr<Analysis> analysis = systusModel.model.getAnalysis(analysisId[i]);
 
         if (analysis==nullptr){
             handleWritingWarning("Wrong analysis number. Analysis dismissed", "Constraint vectors");
@@ -1313,10 +1308,10 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
                             if (!is_zero(normvec)){
                                 bool firstTime=true;
                                 for (int nodePosition : constraint->nodePositions()){
-                                    int nid = systusModel.model->mesh->findNodeId(nodePosition);
+                                    int nid = systusModel.model.mesh.findNodeId(nodePosition);
                                     const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
                                     if (it!=rotationNodeIdByTranslationNodeId.end()){
-                                        int rotNodePosition= systusModel.model->mesh->findNodePosition(it->second);
+                                        int rotNodePosition= systusModel.model.mesh.findNodePosition(it->second);
                                         for (const auto & it2 : localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]){
                                             constraintVectorsIdByLocalLoadingByNodePosition[rotNodePosition][it2.second].push_back(vectorId);
                                         }
@@ -1352,7 +1347,7 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
     // Here, we compute the vectors needed for imposed displacement.
     // We do this AFTER the constraintSet, because the imposed displacement supersedes the generic constraint vector.
     for (unsigned i = 0 ; i < analysisId.size(); i++) {
-        const shared_ptr<Analysis> analysis = systusModel.model->getAnalysis(analysisId[i]);
+        const shared_ptr<Analysis> analysis = systusModel.model.getAnalysis(analysisId[i]);
 
         if (analysis==nullptr){
             handleWritingWarning("Wrong analysis number. Analysis dismissed", "Constraint vectors");
@@ -1419,10 +1414,10 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
                         if (!is_zero(normvec)){
                             bool firstTime=true;
                             for (int nodePosition : spc->nodePositions()){
-                                int nid = systusModel.model->mesh->findNodeId(nodePosition);
+                                int nid = systusModel.model.mesh.findNodeId(nodePosition);
                                 const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
                                 if (it!=rotationNodeIdByTranslationNodeId.end()){
-                                    int rotNodePosition= systusModel.model->mesh->findNodePosition(it->second);
+                                    int rotNodePosition= systusModel.model.mesh.findNodePosition(it->second);
                                     for (const auto & it2 : localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]){
                                         constraintVectorsIdByLocalLoadingByNodePosition[rotNodePosition][it2.second].push_back(vectorId);
                                     }
@@ -1458,8 +1453,8 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
 
     // Add vectors for Node Coordinate System
     // Remark: Element Coordinate System are not translated as vectors
-    const shared_ptr<Mesh> mesh = systusModel.model->mesh;
-    for (const auto& node : mesh->nodes) {
+    Mesh& mesh = systusModel.model.mesh;
+    for (const auto& node : mesh.nodes) {
         if (node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
 
             // Trick for not doing the Cartesian coordinate systems all over again;
@@ -1469,7 +1464,7 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
                 continue;
             }
 
-            auto cs = systusModel.model->mesh->getCoordinateSystemByPosition(node.displacementCS);
+            auto cs = systusModel.model.mesh.getCoordinateSystemByPosition(node.displacementCS);
             vector<double> vec;
             switch (cs->type){
             case CoordinateSystem::Type::ABSOLUTE:{
@@ -1490,7 +1485,7 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
                     }
                 // Cylyndrical orientation : we create a vector by point
                 case CoordinateSystem::CoordinateType::CYLINDRICAL:{
-                    const Node& nNode = mesh->findNode(node.position);
+                    const Node& nNode = mesh.findNode(node.position);
                     shared_ptr<CylindricalCoordinateSystem> ccs = dynamic_pointer_cast<CylindricalCoordinateSystem>(cs);
                     ccs->updateLocalBase(VectorialValue(nNode.x, nNode.y, nNode.z));
                     const VectorialValue& angles = ccs->getLocalEulerAnglesIntrinsicZYX(); // (PSI, THETA, PHI)
@@ -1510,7 +1505,7 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
                     ostringstream oerr;
                     oerr << *cs << " is not supported. Referentiel dismissed.";
                     handleWritingWarning(oerr.str());
-                    handleWritingWarning("We will fill a null vector for the node "+ to_string(mesh->findNodeId(node.position)));
+                    handleWritingWarning("We will fill a null vector for the node "+ to_string(mesh.findNodeId(node.position)));
                     vec.push_back(0);
                     vec.push_back(0);
                     vec.push_back(0);
@@ -1526,7 +1521,7 @@ void SystusWriter::fillCoordinatesVectors(const SystusModel& systusModel, const 
             }
             default: {
                 handleWritingWarning("Non position local coordinate system are forbidden for nodes.");
-                handleWritingWarning("We will fill a null vector for the node "+ to_string(mesh->findNodeId(node.position)));
+                handleWritingWarning("We will fill a null vector for the node "+ to_string(mesh.findNodeId(node.position)));
                 vec.push_back(0);
                 vec.push_back(0);
                 vec.push_back(0);
@@ -1559,7 +1554,7 @@ void SystusWriter::fillVectors(const SystusModel& systusModel, const int idSubca
 
 void SystusWriter::fillConstraintsNodes(const SystusModel& systusModel, const int idLoadcase){
 
-    const shared_ptr<Mesh> mesh = systusModel.model->mesh;
+    Mesh& mesh = systusModel.model.mesh;
 
 
     // All analysis of the subcase
@@ -1568,7 +1563,7 @@ void SystusWriter::fillConstraintsNodes(const SystusModel& systusModel, const in
     if (analysisId.size()==0){//Mode: mesh_only
         return;
     }
-    const shared_ptr<Analysis> analysis = systusModel.model->getAnalysis(analysisId[0]);
+    const shared_ptr<Analysis> analysis = systusModel.model.getAnalysis(analysisId[0]);
     if (analysis==nullptr){
         handleWritingError("Wrong analysis number in Constraint Node. Analysis dismissed.");
         return;
@@ -1596,11 +1591,11 @@ void SystusWriter::fillConstraintsNodes(const SystusModel& systusModel, const in
                     // Rigid Body Element in option 3D.
                     // We report the constraints from the master node to the master rotational node.
                     if (systusOption==SystusOption::CONTINUOUS){
-                        int nid =  mesh->findNodeId(nodePosition);
+                        int nid =  mesh.findNodeId(nodePosition);
                         const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
                         if (it != rotationNodeIdByTranslationNodeId.end()){
                             DOFS constrainedRot(constrained.contains(DOF::RX),constrained.contains(DOF::RY),constrained.contains(DOF::RZ));
-                            int rotNodePosition= mesh->findNodePosition(it->second);
+                            int rotNodePosition= mesh.findNodePosition(it->second);
                             if (constraintByNodePosition.find(rotNodePosition) == constraintByNodePosition.end()){
                                 constraintByNodePosition[rotNodePosition] = char(constrainedRot) & dofCode;
                             }else{
@@ -1674,7 +1669,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
     if (systusModel.configuration.systusOutputMatrix=="table"){
 
         // Fill tables for Stiffness, Mass and Damping elements
-        for (const auto& elementSet : systusModel.model->elementSets) {
+        for (const auto& elementSet : systusModel.model.elementSets) {
 
             switch (elementSet->type) {
             // None of these elements needs this kind of tables
@@ -1711,7 +1706,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
                     systus_ascid_t tId2=0;
                     if (ss->hasStiffness()){
                         systus_ascid_t tId= tables.size()+1;
-                        SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
+                        SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
                         const double stiffness = ss->getStiffness();
 
                         int pairCode = 1100;
@@ -1731,7 +1726,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
                     }
                     if (ss->hasDamping()){
                         systus_ascid_t tId= tables.size()+1;
-                        SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
+                        SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
                         const double damping = ss->getDamping();
 
                         int pairCode = 1100;
@@ -1763,7 +1758,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             case ElementSet::Type::STIFFNESS_MATRIX:{
                 shared_ptr<StiffnessMatrix> sm = dynamic_pointer_cast<StiffnessMatrix>(elementSet);
                 systus_ascid_t tId= tables.size()+1;
-                SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
+                SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
 
                 //Numbering the node internally to the element
                 map<int, int> positionToSytusNumber;
@@ -1790,7 +1785,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             case ElementSet::Type::MASS_MATRIX:{
                 shared_ptr<MassMatrix> mm = dynamic_pointer_cast<MassMatrix>(elementSet);
                 systus_ascid_t tId= tables.size()+1;
-                SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
+                SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
 
                 //Numbering the node internally to the element
                 map<int, int> positionToSytusNumber;
@@ -1817,7 +1812,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             case ElementSet::Type::DAMPING_MATRIX:{
                 shared_ptr<DampingMatrix> dm = dynamic_pointer_cast<DampingMatrix>(elementSet);
                 systus_ascid_t tId= tables.size()+1;
-                SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
+                SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
 
                 //Numbering the node internally to the element
                 map<int, int> positionToSytusNumber;
@@ -1850,7 +1845,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
     }
 
     // Build tables for linear multipoint constraints
-    for (const auto& elementSet : systusModel.model->elementSets) {
+    for (const auto& elementSet : systusModel.model.elementSets) {
 
         switch (elementSet->type) {
         // None of these elements are LMPC
@@ -1884,7 +1879,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             }
             // The Table for Lmpc is simply the list of coef by dof by nodes
             systus_ascid_t tId= tables.size()+1;
-            SystusTable aTable = SystusTable(tId, SystusTableLabel::TL_STANDARD, 0);
+            SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
             for (DOFCoefs dofCoefs : lmpc->dofCoefs){
                 for (int i =0; i< nbDOFS; i++){
                     aTable.add(dofCoefs[i]);
@@ -1907,7 +1902,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
         const vector<int> analysisId = systusSubcases[idSubcase];
 
         for (unsigned i = 0 ; i < analysisId.size(); i++) {
-            const shared_ptr<Analysis> analysis = systusModel.model->getAnalysis(analysisId[i]);
+            const shared_ptr<Analysis> analysis = systusModel.model.getAnalysis(analysisId[i]);
 
             if (analysis==nullptr){
                 handleWritingWarning("Wrong analysis number: analysis dismissed", "Table");
@@ -1937,7 +1932,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
 
                         shared_ptr<FunctionTable> aTable = dE->getFunctionTableB();
                         int tId= static_cast<int>(tables.size())+1;
-                        SystusTable aSystusTable = SystusTable(tId);
+                        SystusTable aSystusTable(tId);
                         //TODO: Test the units of the table ?
                         for (auto it = aTable->getBeginValuesXY(); it != aTable->getEndValuesXY(); it++){
                             aSystusTable.add(it->first);
@@ -1974,7 +1969,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
 
     // Fill tables for Stiffness, Mass and Damping elements
     if (systusModel.configuration.systusOutputMatrix=="file"){
-        for (const auto& elementSet : systusModel.model->elementSets) {
+        for (const auto& elementSet : systusModel.model.elementSets) {
 
             switch (elementSet->type) {
             // None of these elements needs to output matrices
@@ -2012,7 +2007,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
                     if (ss->hasStiffness()){
                         systus_ascid_t seId= stiffnessMatrices.size()+1;
                         // Building the Systus Matrix
-                        SystusMatrix aMatrix = SystusMatrix(seId, nbDOFS, 2);
+                        SystusMatrix aMatrix{seId, nbDOFS, 2};
                         int dofI = DOFToInt(pairDOF.first);
                         int dofJ = DOFToInt(pairDOF.second);
                         aMatrix.setValue(1, 1, dofI, dofI, ss->getStiffness());
@@ -2027,7 +2022,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
                     if (ss->hasDamping()){
                         systus_ascid_t seId= dampingMatrices.size()+1;
                         // Building the Systus Matrix
-                        SystusMatrix aMatrix = SystusMatrix(seId, nbDOFS, 2);
+                        SystusMatrix aMatrix{seId, nbDOFS, 2};
                         //for (const auto np : dam->nodePairs()){
                         int dofI = DOFToInt(pairDOF.first);
                         int dofJ = DOFToInt(pairDOF.second);
@@ -2067,7 +2062,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
                 for (const auto np : dam->nodePairs()){
                     int nI = positionToSytusNumber[np.first];
                     int nJ = positionToSytusNumber[np.second];
-                    shared_ptr<DOFMatrix> dM = dam->findSubmatrix(np.first, np.second);
+                    const shared_ptr<DOFMatrix>& dM = dam->findSubmatrix(np.first, np.second);
                     for (const auto dof: dM->componentByDofs){
                         int dofI = DOFToInt(dof.first.first);
                         int dofJ = DOFToInt(dof.first.second);
@@ -2083,7 +2078,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
             }
 
             case ElementSet::Type::MASS_MATRIX:{
-                shared_ptr<MassMatrix> mm = dynamic_pointer_cast<MassMatrix>(elementSet);
+                const shared_ptr<MassMatrix>& mm = dynamic_pointer_cast<MassMatrix>(elementSet);
                 systus_ascid_t seId= massMatrices.size()+1;
 
                 // Numbering the node internally to the element
@@ -2271,8 +2266,8 @@ void SystusWriter::writeAsc(const SystusModel &systusModel, const vega::Configur
 void SystusWriter::writeHeader(const SystusModel& systusModel, ostream& out) {
     out << "1VSD 0 121126 133214 121126 133214 " << endl;
     out << systusModel.getName().substr(0, 20) << endl; //should be less than 24
-    out << " 100000 " << systusOption << " " << systusModel.model->mesh->countNodes() << " ";
-    out << systusModel.model->mesh->countCells() << " ";
+    out << " 100000 " << systusOption << " " << systusModel.model.mesh.countNodes() << " ";
+    out << systusModel.model.mesh.countCells() << " ";
     int kppr = static_cast<int>(localLoadingListName.size()) ; // KPPR: Number of loads
     out << kppr << " ";
 
@@ -2322,8 +2317,8 @@ void SystusWriter::writeInformations(const SystusModel &systusModel, int idSubca
     // Nonetheless, it's cleaner this way.
     int lcode[40]={0};
     lcode[0] = static_cast<int>(localLoadingListName.size()); // KPPR: Number of loads
-    lcode[1] = systusModel.model->mesh->countNodes();     // NMAX: Number of nodes
-    lcode[3] = systusModel.model->mesh->countCells();     // MMAXI: Number of elements
+    lcode[1] = systusModel.model.mesh.countNodes();     // NMAX: Number of nodes
+    lcode[3] = systusModel.model.mesh.countCells();     // MMAXI: Number of elements
     lcode[5] = 0;                                         // JMAT: Number of material couples, will be computed in "nbmaterials" in the writeMaterials method
     lcode[6] = static_cast<int>(lists.size());            // JREP: Number of lists
     lcode[7] = static_cast<int>(vectors.size());          // JVEC: Number of vectors.
@@ -2344,13 +2339,13 @@ void SystusWriter::writeInformations(const SystusModel &systusModel, int idSubca
 }
 
 void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
-    const shared_ptr<Mesh> mesh = systusModel.model->mesh;
+    Mesh& mesh = systusModel.model.mesh;
 
     out << "BEGIN_NODES ";
-    out << mesh->countNodes();
+    out << mesh.countNodes();
     out << " 3" << endl; // number of coordinates
 
-    for (const auto& node : mesh->nodes) {
+    for (const auto& node : mesh.nodes) {
         int nid = node.id;
         int iconst = 0;
         auto it = constraintByNodePosition.find(node.position);
@@ -2386,7 +2381,7 @@ void SystusWriter::writeNodes(const SystusModel& systusModel, ostream& out) {
 void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel,
         const int dim, const int celltype, const vector<int> nodes, const int cpos, ostream& out){
 
-    shared_ptr<CoordinateSystem> cs = systusModel.model->mesh->getCoordinateSystemByPosition(cpos);
+    shared_ptr<CoordinateSystem> cs = systusModel.model.mesh.getCoordinateSystemByPosition(cpos);
     if (cs== nullptr){
         out << " 0";
         handleWritingWarning("Unknown coordinate system of position " +to_string(cpos), "Angle Elements");
@@ -2460,9 +2455,9 @@ void SystusWriter::writeElementLocalReferentiel(const SystusModel& systusModel,
 
 
 void SystusWriter::writeElements(const SystusModel& systusModel, const int idSubcase, ostream& out) {
-    shared_ptr<Mesh> mesh = systusModel.model->mesh;
-    out << "BEGIN_ELEMENTS " << mesh->countCells() << endl;
-    for (const auto& elementSet : systusModel.model->elementSets) {
+    const Mesh& mesh = systusModel.model.mesh;
+    out << "BEGIN_ELEMENTS " << mesh.countCells() << endl;
+    for (const auto& elementSet : systusModel.model.elementSets) {
 
         shared_ptr<CellGroup> cellGroup = elementSet->cellGroup;
         cellGroup->isUseful=false;
@@ -2605,8 +2600,8 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
 
 // TODO: Add an option to only write the User groups, and not all vega-created groups.
 void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
-    vector<shared_ptr<NodeGroup>> nodeGroups = systusModel.model->mesh->getNodeGroups();
-    vector<shared_ptr<CellGroup>> cellGroups = systusModel.model->mesh->getCellGroups();
+    vector<shared_ptr<NodeGroup>> nodeGroups = systusModel.model.mesh.getNodeGroups();
+    vector<shared_ptr<CellGroup>> cellGroups = systusModel.model.mesh.getCellGroups();
 
     ostringstream osgr;
     int nbGroups=0;
@@ -2656,7 +2651,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
     int nbmaterials= 0;
     int nbelements = 0;
 
-    for (const auto& elementSet : systusModel.model->elementSets) {
+    for (const auto& elementSet : systusModel.model.elementSets) {
         const auto& material = elementSet->material;
         if (elementSet->cellGroup != nullptr){
 
@@ -2962,7 +2957,7 @@ void SystusWriter::writeVectors(ostream& out) {
 
 void SystusWriter::writeMasses(const SystusModel &systusModel, ostream& out) {
     // TODO : attention, la doc parle de dynamique. Prise en compte dans le poids en statique ???
-    vector<shared_ptr<ElementSet>> masses = systusModel.model->elementSets.filter(
+    vector<shared_ptr<ElementSet>> masses = systusModel.model.elementSets.filter(
             ElementSet::Type::NODAL_MASS);
     out << "BEGIN_MASSES " << masses.size() << endl;
     if (masses.size() > 0) {
@@ -3051,7 +3046,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
 
     // We find the first Analysis of the Subcase, which will be our reference
     const int idAnalysis = systusSubcases[idSubcase][0];
-    const shared_ptr<Analysis> analysis = systusModel.model->getAnalysis(idAnalysis);
+    const shared_ptr<Analysis> analysis = systusModel.model.getAnalysis(idAnalysis);
     if (analysis== nullptr){
         handleWritingError("Analysis " + to_string(idAnalysis) + " not found.");
     }
@@ -3093,9 +3088,9 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
           upperF = band.end;
           lowerF = band.start;
           if (is_equal(lowerF, Globals::UNAVAILABLE_DOUBLE)) {
-            auto lower_cutoff_frequency = systusModel.model->parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY);
-            if (lower_cutoff_frequency != systusModel.model->parameters.end()) {
-                if (systusModel.model->configuration.logLevel >= LogLevel::TRACE) {
+            auto lower_cutoff_frequency = systusModel.model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY);
+            if (lower_cutoff_frequency != systusModel.model.parameters.end()) {
+                if (systusModel.model.configuration.logLevel >= LogLevel::TRACE) {
                     cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
                 }
                 lowerF = lower_cutoff_frequency->second;
@@ -3258,9 +3253,9 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
               upperF = band.end;
               lowerF = band.start;
               if (is_equal(lowerF, Globals::UNAVAILABLE_DOUBLE)) {
-                auto lower_cutoff_frequency = systusModel.model->parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY);
-                if (lower_cutoff_frequency != systusModel.model->parameters.end()) {
-                    if (systusModel.model->configuration.logLevel >= LogLevel::TRACE) {
+                auto lower_cutoff_frequency = systusModel.model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY);
+                if (lower_cutoff_frequency != systusModel.model.parameters.end()) {
+                    if (systusModel.model.configuration.logLevel >= LogLevel::TRACE) {
                         cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
                     }
                     lowerF = lower_cutoff_frequency->second;
@@ -3333,8 +3328,8 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             out << endl;
 
             // Harmonic part
-            const int nbNodes = systusModel.model->mesh->countNodes();
-            const int nbElements = systusModel.model->mesh->countCells();
+            const int nbNodes = systusModel.model.mesh.countNodes();
+            const int nbElements = systusModel.model.mesh.countCells();
             out << "# MODAL DYNAMIC ANALYSIS"<<endl;
             out << "DYNAMIC" << endl;
             out << "# IF THERE IS NNN RIGID BODY MODES, ADD 'RIGID NNN' TO THE NEXT LINE."<<endl;

@@ -37,10 +37,6 @@ namespace nastran {
 namespace fs = boost::filesystem;
 using namespace std;
 
-NastranRunner::NastranRunner() {
-
-}
-
 Runner::ExitCode NastranRunner::execSolver(const ConfigurationParameters &configuration,
         string modelFile) {
     fs::path modelFilePath(modelFile);

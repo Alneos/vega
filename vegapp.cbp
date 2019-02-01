@@ -1914,15 +1914,12 @@
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/fixed_circular_plate.dat" />
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/fixed_circular_plate.f06" />
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/readme.txt" />
-		<Unit filename="testdata/nastran/irt/gasket/gasket.bdf" />
-		<Unit filename="testdata/nastran/irt/gasket/readme.txt" />
 		<Unit filename="testdata/nastran/irt/nas101prob2/nas101prob2.dat" />
 		<Unit filename="testdata/nastran/irt/nas101prob2/nas101prob2.f06" />
 		<Unit filename="testdata/nastran/irt/nas101prob2/readme.txt" />
 		<Unit filename="testdata/nastran/irt/nas101prob3/__nas101prob3__.f06" />
 		<Unit filename="testdata/nastran/irt/nas101prob3/nas101prob3.nas" />
 		<Unit filename="testdata/nastran/irt/nas101prob3/readme.txt" />
-		<Unit filename="testdata/nastran/irt/nas101prob4/nas101prob4.f06" />
 		<Unit filename="testdata/nastran/irt/nas101prob4/nas101prob4.nas" />
 		<Unit filename="testdata/nastran/irt/nas101prob4/readme.txt" />
 		<Unit filename="testdata/nastran/irt/nas101prob7/nas101prob7.f06" />
@@ -1954,7 +1951,6 @@
 		<Unit filename="testdata/nastran/irt/ssnv129a/ssnv129a.bdf" />
 		<Unit filename="testdata/nastran/irt/ssnv129a/ssnv129a.f06" />
 		<Unit filename="testdata/nastran/irt/t01331/readme.txt" />
-		<Unit filename="testdata/nastran/irt/t01331/t01331a.f06" />
 		<Unit filename="testdata/nastran/irt/t01331/t01331a.inp" />
 		<Unit filename="testdata/optistruct/caw/prob6/prob6.dat" />
 		<Unit filename="testdata/optistruct/caw/prob6/prob6.f06" />

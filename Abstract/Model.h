@@ -142,9 +142,9 @@ public:
     std::string title;
     std::string description;
 
+    Mesh mesh; /**< Handles geometrical information */
     const ModelConfiguration configuration;
     vega::ConfigurationParameters::TranslationMode translationMode;
-    std::shared_ptr<Mesh> mesh; /**< Handles geometrical information */
 
     enum class Parameter {
         MASS_OVER_FORCE_MULTIPLIER,
@@ -256,7 +256,7 @@ private:
                     }
                 }
             }
-            for(auto& t: toBeRemoved) {
+            for(const auto& t: toBeRemoved) {
                 this->erase(*t);
             }
             return isValid;
@@ -290,15 +290,15 @@ private:
          */
         //TODO : make and use a template, does not work because of inherited objects, or, better, avoid need to add altogether (object creation should implicitily add)
         //template<typename T> void add(const T&);
-        void add(const Analysis&);
+        void add(const std::shared_ptr<Analysis>);
         void add(const Loading&);
         void add(const LoadSet&);
-        void add(const Constraint&);
+        void add(const std::shared_ptr<Constraint>);
         void add(const ConstraintSet&);
         void add(const Objective&);
         void add(const NamedValue&);
         void add(const ElementSet&);
-        void add(const Target&);
+        void add(const std::shared_ptr<Target>);
         void add(const std::shared_ptr<Material>);
 
         // Get functions : get object by their VEGA Id.

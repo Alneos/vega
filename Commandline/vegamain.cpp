@@ -39,7 +39,7 @@ int main(int ac, const char* av[]) {
         }
     } else if (child_pid == 0) {
 #endif
-        VegaCommandLine vcl = VegaCommandLine();
+        VegaCommandLine vcl;
         VegaCommandLine::ExitCode exitCode = vcl.process(ac, av);
         if (exitCode != VegaCommandLine::ExitCode::OK) {
             cerr << VegaCommandLine::exitCodeToString(exitCode) << endl;

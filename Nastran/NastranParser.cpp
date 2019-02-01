@@ -27,6 +27,7 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/make_unique.hpp> // waiting for c++14
 #include <iostream>
 #include <string>
 #include <vector>
@@ -175,11 +176,7 @@ const std::unordered_map<std::string, NastranParser::NastranAnalysis> NastranPar
         { "DESOPT", NastranAnalysis::DESOPT },
 };
 
-NastranParser::NastranParser() :
-        Parser() {
-}
-
-string NastranParser::parseSubcase(NastranTokenizer& tok, shared_ptr<Model> model,
+string NastranParser::parseSubcase(NastranTokenizer& tok, Model& model,
         map<string, string> context) {
     int subCaseId = tok.nextInt(true, 0);
     string nextKeyword;
@@ -213,7 +210,7 @@ string NastranParser::parseSubcase(NastranTokenizer& tok, shared_ptr<Model> mode
     return nextKeyword;
 }
 
-string NastranParser::parseSubcom(NastranTokenizer& tok, shared_ptr<Model> model,
+string NastranParser::parseSubcom(NastranTokenizer& tok, Model& model,
         map<string, string> context) {
     int subComId = tok.nextInt(true, 0);
     string nextKeyword;
@@ -250,7 +247,7 @@ string NastranParser::parseSubcom(NastranTokenizer& tok, shared_ptr<Model> model
 NastranParser::~NastranParser() {
 }
 
-void NastranParser::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<Model> model,
+void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
         map<string, string>& context) {
     bool canContinue = true;
     bool readNewKeyword = true;
@@ -296,9 +293,9 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<Mode
                 if (!(iss >> num).fail()) {
                     throw logic_error("set references not yet implemented " + to_string(num));
                 }
-                DampingMatrix matrix(*model); // LD : TODO string identifier here
+                DampingMatrix matrix(model); // LD : TODO string identifier here
                 directMatrixByName[line] = matrix.getReference().clone();
-                model->add(matrix);
+                model.add(matrix);
             } else if (keyword == "CEND") {
                 //Nothing to do
                 tok.skipToNextKeyword();
@@ -328,9 +325,9 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<Mode
                 if (!(iss >> num).fail()) {
                     throw logic_error("set references not yet implemented " + to_string(num));
                 }
-                StiffnessMatrix matrix(*model); // LD : TODO string identifier here
+                StiffnessMatrix matrix(model); // LD : TODO string identifier here
                 directMatrixByName[line] = matrix.getReference().clone();
-                model->add(matrix);
+                model.add(matrix);
             } else if (keyword == "M2GG") {
                 // Selects direct input mass matrix or matrices.
                 string line;
@@ -357,9 +354,9 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<Mode
                 if (!(iss >> num).fail()) {
                     throw logic_error("set references not yet implemented " + to_string(num));
                 }
-                MassMatrix matrix(*model); // LD : TODO string identifier here
+                MassMatrix matrix(model); // LD : TODO string identifier here
                 directMatrixByName[line] = matrix.getReference().clone();
-                model->add(matrix);
+                model.add(matrix);
             } else if (keyword == "SUBCASE") {
                 keyword = parseSubcase(tok, model, context);
                 readNewKeyword = false;
@@ -372,12 +369,12 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, shared_ptr<Mode
                 string line;
                 while (tok.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_FIELD)
                     line += tok.nextString(true,"");
-                model->description = line;
+                model.description = line;
             } else if (keyword == "TITLE") {
                 string line;
                 while (tok.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_FIELD)
                     line += tok.nextString(true,"");
-                model->title = line;
+                model.title = line;
             } else {
                 if (tok.nextSymbolType != NastranTokenizer::SymbolType::SYMBOL_FIELD) {
                     context[keyword] = string("");
@@ -422,7 +419,7 @@ NastranParser::parseElementFPtr NastranParser::findCmdParser(string keyword) con
     }
 }
 
-void NastranParser::parseBULKSection(NastranTokenizer &tok, shared_ptr<Model> model) {
+void NastranParser::parseBULKSection(NastranTokenizer &tok, Model& model) {
 
     while (tok.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_KEYWORD) {
         string keyword = tok.nextString(true,"");
@@ -433,7 +430,7 @@ void NastranParser::parseBULKSection(NastranTokenizer &tok, shared_ptr<Model> mo
                 (this->*parser)(tok, model);
 
             } else if (IGNORED_KEYWORDS.find(keyword) != IGNORED_KEYWORDS.end()) {
-                if (model->configuration.logLevel >= LogLevel::TRACE) {
+                if (model.configuration.logLevel >= LogLevel::TRACE) {
                     cout << "Keyword " << keyword << " ignored." << endl;
                 }
                 tok.skipToNextKeyword();
@@ -467,7 +464,7 @@ fs::path NastranParser::findModelFile(const string& filename) {
     return inputFilePath;
 }
 
-shared_ptr<Model> NastranParser::parse(const ConfigurationParameters& configuration) {
+unique_ptr<Model> NastranParser::parse(const ConfigurationParameters& configuration) {
     this->translationMode = configuration.translationMode;
     this->logLevel = configuration.logLevel;
 
@@ -475,23 +472,23 @@ shared_ptr<Model> NastranParser::parse(const ConfigurationParameters& configurat
 
     fs::path inputFilePath = findModelFile(filename);
     const string modelName = inputFilePath.filename().string();
-    shared_ptr<Model> model = make_shared<Model>(modelName, "UNKNOWN", SolverName::NASTRAN,
+    unique_ptr<Model> model = boost::make_unique<Model>(modelName, "UNKNOWN", SolverName::NASTRAN,
             configuration.getModelConfiguration());
     map<string, string> executive_section_context;
     const string inputFilePathStr = inputFilePath.string();
     ifstream istream(inputFilePathStr);
-    NastranTokenizer tok = NastranTokenizer(istream, logLevel, inputFilePath.string(), this->translationMode);
+    NastranTokenizer tok {istream, logLevel, inputFilePath.string(), this->translationMode};
 
     if (model->configuration.logLevel >= LogLevel::DEBUG) {
         cout << "Parsing Executive section." << endl;
     }
-    parseExecutiveSection(tok, model, executive_section_context);
+    parseExecutiveSection(tok, *model, executive_section_context);
 
     if (model->configuration.logLevel >= LogLevel::DEBUG) {
         cout << "Parsing BULK section." << endl;
     }
     tok.bulkSection();
-    parseBULKSection(tok, model);
+    parseBULKSection(tok, *model);
     istream.close();
 
     if (model->configuration.logLevel >= LogLevel::DEBUG) {
@@ -505,7 +502,7 @@ string NastranParser::defaultAnalysis() const {
     return ""; // instead of "101": see github #15
 }
 
-void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, map<string, string> &context,
+void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string, string> &context,
         int analysis_id) {
 
     string analysis_str;
@@ -526,8 +523,8 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
     NastranAnalysis analysis_type = str_entry->second;
 
     shared_ptr<Analysis> previous = nullptr;
-    if (model->analyses.size() >= 1) {
-        previous = model->analyses.last();
+    if (model.analyses.size() >= 1) {
+        previous = model.analyses.last();
     }
 
     if (analysis_type == NastranAnalysis::DESOPT) {
@@ -559,7 +556,7 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
 
     if (analysis_type == NastranAnalysis::STATIC or (analysis_type == NastranAnalysis::BUCKL and previous == nullptr)) {
 
-        analysis = make_shared<LinearMecaStat>(*model, labelAnalysis, analysis_id);
+        analysis = make_shared<LinearMecaStat>(model, labelAnalysis, analysis_id);
 
     } else if (analysis_type == NastranAnalysis::BUCKL and previous != nullptr) {
 
@@ -574,7 +571,7 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         if (it == context.end())
             handleParsingError("METHOD not found for linear modal analysis", tok, model);
 
-        analysis = make_shared<LinearBuckling>(*model, Reference<Objective>(Objective::Type::FREQUENCY_SEARCH, frequency_band_original_id), labelAnalysis, analysis_id);
+        analysis = make_shared<LinearBuckling>(model, Reference<Objective>(Objective::Type::FREQUENCY_SEARCH, frequency_band_original_id), labelAnalysis, analysis_id);
 
     } else if (analysis_type == NastranAnalysis::MODES) {
 
@@ -589,7 +586,7 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         if (it == context.end())
             handleParsingError("METHOD not found for linear modal analysis", tok, model);
 
-        analysis = make_shared<LinearModal>(*model, frequency_band_original_id, labelAnalysis, analysis_id);
+        analysis = make_shared<LinearModal>(model, frequency_band_original_id, labelAnalysis, analysis_id);
 
     } else if (analysis_type == NastranAnalysis::NLSTATIC) {
 
@@ -600,7 +597,7 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         else
             strategy_original_id = atoi(itparam->second.c_str());
 
-        analysis = make_shared<NonLinearMecaStat>(*model, strategy_original_id, labelAnalysis, analysis_id);
+        analysis = make_shared<NonLinearMecaStat>(model, strategy_original_id, labelAnalysis, analysis_id);
 
 
     } else if (analysis_type == NastranAnalysis::DFREQ) {
@@ -612,7 +609,7 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         }
         if (frequency_value_original_id == 0)
             handleParsingError("FREQ not found for linear dynamic direct frequency analysis", tok, model);
-        analysis = make_shared<LinearDynaDirectFreq>(*model, frequency_value_original_id, labelAnalysis, analysis_id);
+        analysis = make_shared<LinearDynaDirectFreq>(model, frequency_value_original_id, labelAnalysis, analysis_id);
 
     } else if (analysis_type == NastranAnalysis::MFREQ) {
 
@@ -643,7 +640,7 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         if (frequency_band_original_id == 0)
             handleParsingError("METHOD not found for linear dynamic modal frequency analysis", tok, model);
 
-        analysis = make_shared<LinearDynaModalFreq>(*model, frequency_band_original_id, modal_damping_original_id,
+        analysis = make_shared<LinearDynaModalFreq>(model, frequency_band_original_id, modal_damping_original_id,
                 frequency_value_original_id, residual_vector, labelAnalysis, analysis_id);
 
     } else {
@@ -656,44 +653,44 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
         if (!key.compare(0, 3, "SPC")) {
             Reference<ConstraintSet> constraintReference(ConstraintSet::Type::SPC, id);
             analysis->add(constraintReference);
-            if (!model->find(constraintReference)) { // constraintSet is added in the model if not found in the model
-                ConstraintSet constraintSet(*model, ConstraintSet::Type::SPC, id);
-                model->add(constraintSet);
+            if (!model.find(constraintReference)) { // constraintSet is added in the model if not found in the model
+                ConstraintSet constraintSet(model, ConstraintSet::Type::SPC, id);
+                model.add(constraintSet);
             }
         } else if (!key.compare(0, 3, "MPC")) {
             Reference<ConstraintSet> constraintReference(ConstraintSet::Type::MPC, id);
             analysis->add(constraintReference);
-            if (!model->find(constraintReference)) { // constraintSet is added in the model if not found in the model
-                ConstraintSet constraintSet(*model, ConstraintSet::Type::MPC, id);
-                model->add(constraintSet);
+            if (!model.find(constraintReference)) { // constraintSet is added in the model if not found in the model
+                ConstraintSet constraintSet(model, ConstraintSet::Type::MPC, id);
+                model.add(constraintSet);
             }
         } else if (!key.compare(0, 7, "LOADSET")) {
             Reference<LoadSet> loadsetReference(LoadSet::Type::LOADSET, id);
             analysis->add(loadsetReference);
-            if (!model->find(loadsetReference)) { // loadSet is added in the model if not found in the model
-                LoadSet loadSet(*model, LoadSet::Type::LOADSET, id);
-                model->add(loadSet);
+            if (!model.find(loadsetReference)) { // loadSet is added in the model if not found in the model
+                LoadSet loadSet(model, LoadSet::Type::LOADSET, id);
+                model.add(loadSet);
             }
         } else if (!key.compare(0, 4, "LOAD")) {
             Reference<LoadSet> loadsetReference(LoadSet::Type::LOAD, id);
             analysis->add(loadsetReference);
-            if (!model->find(loadsetReference)) { // loadSet is added in the model if not found in the model
-                LoadSet loadSet(*model, LoadSet::Type::LOAD, id);
-                model->add(loadSet);
+            if (!model.find(loadsetReference)) { // loadSet is added in the model if not found in the model
+                LoadSet loadSet(model, LoadSet::Type::LOAD, id);
+                model.add(loadSet);
             }
         } else if (!key.compare(0, 5, "DLOAD")) {
             Reference<LoadSet> loadsetReference(LoadSet::Type::DLOAD, id);
             analysis->add(loadsetReference);
-            if (!model->find(loadsetReference)) { // loadSet is added in the model if not found in the model
-                LoadSet loadSet(*model, LoadSet::Type::DLOAD, id);
-                model->add(loadSet);
+            if (!model.find(loadsetReference)) { // loadSet is added in the model if not found in the model
+                LoadSet loadSet(model, LoadSet::Type::DLOAD, id);
+                model.add(loadSet);
             }
         } else if (!key.compare(0, 4, "BCONTACT")) {
             Reference<ConstraintSet> constraintReference(ConstraintSet::Type::CONTACT, id);
             analysis->add(constraintReference);
-            if (!model->find(constraintReference)) { // constraintSet is added in the model if not found in the model
-                ConstraintSet constraintSet(*model, ConstraintSet::Type::CONTACT, id);
-                model->add(constraintSet);
+            if (!model.find(constraintReference)) { // constraintSet is added in the model if not found in the model
+                ConstraintSet constraintSet(model, ConstraintSet::Type::CONTACT, id);
+                model.add(constraintSet);
             }
         }
     }
@@ -713,11 +710,11 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, 
          Selectionsmade in an individual subcase supersede the selections made above the subcases.
          */
     analysis->previousAnalysis = previous;
-    model->add(*analysis);
+    model.add(analysis);
 
 }
 
-void NastranParser::addCombinationAnalysis(NastranTokenizer& tok, shared_ptr<Model> model, map<string, string> &context,
+void NastranParser::addCombinationAnalysis(NastranTokenizer& tok, Model& model, map<string, string> &context,
         int analysis_id) {
     // Finding label
     string labelAnalysis="Analysis_"+to_string(analysis_id);
@@ -729,21 +726,21 @@ void NastranParser::addCombinationAnalysis(NastranTokenizer& tok, shared_ptr<Mod
         if (commentEntry != tok.labelByCommentTypeAndId.end())
             labelAnalysis = commentEntry->second;
     }
-    Combination combination{*model, labelAnalysis, analysis_id};
+    const auto& combination = make_shared<Combination>(model, labelAnalysis, analysis_id);
 
     // A SUBSEQ command must follow this command.
     const auto& subseq = context.find("SUBSEQ");
-    vector<string> coefStrings(model->analyses.size());
+    vector<string> coefStrings(model.analyses.size());
     boost::split(coefStrings,subseq->second,boost::is_any_of(","));
     int i = 0;
-    for (const auto& analysis : model->analyses) {
-        combination.coefByAnalysis[analysis->getReference()] = stod(coefStrings[i++]);
+    for (const auto& analysis : model.analyses) {
+        combination->coefByAnalysis[analysis->getReference()] = stod(coefStrings[i++]);
     }
 
-    model->add(combination);
+    model.add(combination);
 }
 
-void NastranParser::parseBCBODY(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseBCBODY(NastranTokenizer& tok, Model& model) {
     int bid = tok.nextInt();
     string dim = tok.nextString(true,"3D");
     if (dim != "3D")
@@ -755,66 +752,66 @@ void NastranParser::parseBCBODY(NastranTokenizer& tok, shared_ptr<Model> model) 
     if (not tok.isEmptyUntilNextKeyword()) {
         handleParsingError("BCBODY optional fields not yet handled", tok, model);
     }
-    ContactBody body(*model, Reference<Target>(Target::Type::BOUNDARY_SURFACE, bsid), bid);
-    model->add(body);
+    const auto& body = make_shared<ContactBody>(model, Reference<Target>(Target::Type::BOUNDARY_SURFACE, bsid), bid);
+    model.add(body);
 }
 
-void NastranParser::parseBCGRID(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseBCGRID(NastranTokenizer& tok, Model& model) {
     int id = tok.nextInt();
-    BoundaryNodeCloud nodecloud(*model, tok.nextInts(), id);
-    model->add(nodecloud);
+    const auto& nodecloud = make_shared<BoundaryNodeCloud>(model, tok.nextInts(), id);
+    model.add(nodecloud);
 }
 
-void NastranParser::parseBLSEG(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseBLSEG(NastranTokenizer& tok, Model& model) {
     int id = tok.nextInt();
-    BoundaryNodeLine nodeline(*model, tok.nextInts(), id);
-    model->add(nodeline);
+    const auto& nodeline = make_shared<BoundaryNodeLine>(model, tok.nextInts(), id);
+    model.add(nodeline);
 }
 
-void NastranParser::parseBSSEG(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseBSSEG(NastranTokenizer& tok, Model& model) {
     int id = tok.nextInt();
-    BoundaryNodeSurface surface{*model, tok.nextInts(), id};
-    model->add(surface);
+    const auto& surface = make_shared<BoundaryNodeSurface>(model, tok.nextInts(), id);
+    model.add(surface);
 }
 
-void NastranParser::parseBSURF(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseBSURF(NastranTokenizer& tok, Model& model) {
     int id = tok.nextInt();
     string gname = string("BSURF_") + to_string(id);
-    auto gsurf = model->mesh->createCellGroup(gname, CellGroup::NO_ORIGINAL_ID, "BSURF");
+    auto gsurf = model.mesh.createCellGroup(gname, CellGroup::NO_ORIGINAL_ID, "BSURF");
     const auto& cellIds = tok.nextInts();
     for (int cellId : cellIds) {
         gsurf->addCellId(cellId);
     }
-    BoundarySurface surface{*model, id};
-    surface.add(*gsurf);
-    model->add(surface);
+    const auto& surface = make_shared<BoundarySurface>(model, id);
+    surface->add(*gsurf);
+    model.add(surface);
 }
 
-void NastranParser::parseBFRIC(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseBFRIC(NastranTokenizer& tok, Model& model) {
     int fid = tok.nextInt();
     tok.skip(2);
     double fstif = tok.nextDouble();
     if (not tok.isEmptyUntilNextKeyword()) {
         handleParsingError("BFRIC optional fields not yet handled", tok, model);
     }
-    ScalarValue<double> friction(*model, fstif, fid);
+    ScalarValue<double> friction(model, fstif, fid);
 
-    model->add(friction);
+    model.add(friction);
 }
 
-void NastranParser::parseBCTABLE(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseBCTABLE(NastranTokenizer& tok, Model& model) {
     int set_id = tok.nextInt();
     Reference<ConstraintSet> constraintSetReference(ConstraintSet::Type::CONTACT, set_id);
-    if (!model->find(constraintSetReference)) {
-        ConstraintSet constraintSet(*model, ConstraintSet::Type::CONTACT, set_id);
-        model->add(constraintSet);
+    if (!model.find(constraintSetReference)) {
+        ConstraintSet constraintSet(model, ConstraintSet::Type::CONTACT, set_id);
+        model.add(constraintSet);
     }
     int idslave = tok.nextInt(true,0);
     int idmaster = tok.nextInt(true,0);
     if (idslave != 0 and idmaster != 0) {
-        ZoneContact table(*model, Reference<Target>(Target::Type::BOUNDARY_SURFACE, idmaster), Reference<Target>(Target::Type::BOUNDARY_SURFACE, idslave));
-        model->add(table);
-        model->addConstraintIntoConstraintSet(table, constraintSetReference);
+        const auto& zone = make_shared<ZoneContact>(model, Reference<Target>(Target::Type::BOUNDARY_SURFACE, idmaster), Reference<Target>(Target::Type::BOUNDARY_SURFACE, idslave));
+        model.add(zone);
+        model.addConstraintIntoConstraintSet(*zone, constraintSetReference);
     }
     int ngroup = tok.nextInt(true, 0);
     for (int igroup = 0; igroup < ngroup; igroup++) {
@@ -831,16 +828,16 @@ void NastranParser::parseBCTABLE(NastranTokenizer& tok, shared_ptr<Model> model)
         if (not (tok.isNextEmpty() or tok.isEmptyUntilNextKeyword())) {
             handleParsingError("BCTABLE with more than one master on MASTERS line", tok, model);
         }
-        ZoneContact table(*model, Reference<Target>(Target::Type::BOUNDARY_SURFACE, idmaster2), Reference<Target>(Target::Type::BOUNDARY_SURFACE, idslave2));
-        model->add(table);
-        model->addConstraintIntoConstraintSet(table, constraintSetReference);
+        const auto& zone = make_shared<ZoneContact>(model, Reference<Target>(Target::Type::BOUNDARY_SURFACE, idmaster2), Reference<Target>(Target::Type::BOUNDARY_SURFACE, idslave2));
+        model.add(zone);
+        model.addConstraintIntoConstraintSet(*zone, constraintSetReference);
     }
     if (not tok.isEmptyUntilNextKeyword()) {
         handleParsingError("BCBODY optional fields not yet handled", tok, model);
     }
 }
 
-void NastranParser::parseBCONP(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseBCONP(NastranTokenizer& tok, Model& model) {
     int id = tok.nextInt();
     int slaveId = tok.nextInt();
     int masterId = tok.nextInt();
@@ -856,14 +853,14 @@ void NastranParser::parseBCONP(NastranTokenizer& tok, shared_ptr<Model> model) {
     if (not tok.isEmptyUntilNextKeyword()) {
         handleParsingError("BCONP optional fields not yet handled", tok, model);
     }
-    SlideContact slide(*model, Reference<NamedValue>(Value::Type::SCALAR, fricid),
+    const auto& slide = make_shared<SlideContact>(model, Reference<NamedValue>(Value::Type::SCALAR, fricid),
                        Reference<Target>(Target::Type::BOUNDARY_NODELINE, masterId),
                        Reference<Target>(Target::Type::BOUNDARY_NODELINE, slaveId), id);
-    model->add(slide);
-    model->addConstraintIntoConstraintSet(slide, model->commonConstraintSet);
+    model.add(slide);
+    model.addConstraintIntoConstraintSet(*slide, model.commonConstraintSet);
 }
 
-void NastranParser::parseBSCONP(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseBSCONP(NastranTokenizer& tok, Model& model) {
     int id = tok.nextInt();
     int slaveId = tok.nextInt();
     int masterId = tok.nextInt();
@@ -871,14 +868,14 @@ void NastranParser::parseBSCONP(NastranTokenizer& tok, shared_ptr<Model> model) 
     if (not tok.isEmptyUntilNextKeyword()) {
         handleParsingError("BCONP optional fields not yet handled", tok, model);
     }
-    SurfaceContact surface(*model,Reference<Target>(Target::Type::BOUNDARY_NODESURFACE, masterId),
+    const auto& surface = make_shared<SurfaceContact>(model,Reference<Target>(Target::Type::BOUNDARY_NODESURFACE, masterId),
                            Reference<Target>(Target::Type::BOUNDARY_NODESURFACE, slaveId),
                            id);
-    model->add(surface);
-    model->addConstraintIntoConstraintSet(surface, model->commonConstraintSet);
+    model.add(surface);
+    model.addConstraintIntoConstraintSet(*surface, model.commonConstraintSet);
 }
 
-void NastranParser::parseCONROD(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCONROD(NastranTokenizer& tok, Model& model) {
     int eid = tok.nextInt();
     int g1 = tok.nextInt();
     int g2 = tok.nextInt();
@@ -890,16 +887,16 @@ void NastranParser::parseCONROD(NastranTokenizer& tok, shared_ptr<Model> model) 
         handleParsingWarning("Stress coefficient (C) not supported and dismissed.", tok, model);
     }
     double nsm = tok.nextDouble(true, 0.0);
-    model->mesh->addCell(eid, CellType::SEG2, {g1, g2});
-    GenericSectionBeam genericSectionBeam(*model, a, 0, 0, j, 0, 0, GenericSectionBeam::BeamModel::TRUSS, nsm);
+    model.mesh.addCell(eid, CellType::SEG2, {g1, g2});
+    GenericSectionBeam genericSectionBeam(model, a, 0, 0, j, 0, 0, GenericSectionBeam::BeamModel::TRUSS, nsm);
     genericSectionBeam.assignMaterial(mid);
-    shared_ptr<CellGroup> cellGroup = model->mesh->createCellGroup("CONROD_" + to_string(eid), Group::NO_ORIGINAL_ID, "CONROD");
+    shared_ptr<CellGroup> cellGroup = model.mesh.createCellGroup("CONROD_" + to_string(eid), Group::NO_ORIGINAL_ID, "CONROD");
     cellGroup->addCellId(eid);
     genericSectionBeam.assignCellGroup(cellGroup);
-    model->add(genericSectionBeam);
+    model.add(genericSectionBeam);
 }
 
-void NastranParser::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCONM2(NastranTokenizer& tok, Model& model) {
     int elemId = tok.nextInt();
     int g = tok.nextInt(); // Grid point identification number
     int ci = tok.nextInt(true, 0);
@@ -928,30 +925,30 @@ void NastranParser::parseCONM2(NastranTokenizer& tok, shared_ptr<Model> model) {
     const double i32 = tok.nextDouble(true, 0.0);
     const double i33 = tok.nextDouble(true, 0.0);
 
-    NodalMass nodalMass(*model, mass, i11, i22, i33, -i21, -i31, -i32, x1, x2, x3, elemId);
+    NodalMass nodalMass(model, mass, i11, i22, i33, -i21, -i31, -i32, x1, x2, x3, elemId);
 
-    int cellPosition = model->mesh->addCell(elemId, CellType::POINT1, { g });
+    int cellPosition = model.mesh.addCell(elemId, CellType::POINT1, { g });
     string mn = string("CONM2_") + to_string(elemId);
-    auto mnodale = model->mesh->createCellGroup(mn, CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
-    mnodale->addCellId(model->mesh->findCell(cellPosition).id);
+    auto mnodale = model.mesh.createCellGroup(mn, CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
+    mnodale->addCellId(model.mesh.findCell(cellPosition).id);
     nodalMass.assignCellGroup(mnodale);
 
-    model->add(nodalMass);
+    model.add(nodalMass);
 }
 
-void NastranParser::parseCORD1R(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCORD1R(NastranTokenizer& tok, Model& model) {
 
     while (tok.isNextInt()) {
         int cid = tok.nextInt();
         int nA  = tok.nextInt();
         int nB  = tok.nextInt();
         int nC  = tok.nextInt();
-        CartesianCoordinateSystem coordinateSystem(*(model->mesh), nA, nB, nC, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM, cid);
-        model->mesh->add(coordinateSystem);
+        CartesianCoordinateSystem coordinateSystem(model.mesh, nA, nB, nC, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM, cid);
+        model.mesh.add(coordinateSystem);
         }
 }
 
-void NastranParser::parseCORD2C(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCORD2C(NastranTokenizer& tok, Model& model) {
     int cid = tok.nextInt();
     //reference coordinate system 0 for global.
     int rid = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
@@ -968,11 +965,11 @@ void NastranParser::parseCORD2C(NastranTokenizer& tok, shared_ptr<Model> model) 
     VectorialValue ex = (vect[2] - vect[0]).orthonormalized(ez);
     VectorialValue ey = ez.cross(ex);
 
-    CylindricalCoordinateSystem coordinateSystem(*(model->mesh), vect[0], ex, ey, Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, rid), cid);
-    model->mesh->add(coordinateSystem);
+    CylindricalCoordinateSystem coordinateSystem(model.mesh, vect[0], ex, ey, Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, rid), cid);
+    model.mesh.add(coordinateSystem);
 }
 
-void NastranParser::parseCORD2R(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCORD2R(NastranTokenizer& tok, Model& model) {
     int cid = tok.nextInt();
     int rid = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     double coor[3];
@@ -987,11 +984,11 @@ void NastranParser::parseCORD2R(NastranTokenizer& tok, shared_ptr<Model> model) 
     VectorialValue ex = (vect[2] - vect[0]).orthonormalized(ez);
     VectorialValue ey = ez.cross(ex);
 
-    CartesianCoordinateSystem coordinateSystem(*(model->mesh), vect[0], ex, ey, Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, rid), cid);
-    model->mesh->add(coordinateSystem);
+    CartesianCoordinateSystem coordinateSystem(model.mesh, vect[0], ex, ey, Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, rid), cid);
+    model.mesh.add(coordinateSystem);
 }
 
-void NastranParser::parseCRIGD1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseCRIGD1(NastranTokenizer& tok, Model& model) {
     int original_id = tok.nextInt();
     if (tok.isNextEmpty()) {
         tok.skip(1);
@@ -999,15 +996,15 @@ void NastranParser::parseCRIGD1(NastranTokenizer& tok, shared_ptr<Model> model) 
         handleParsingWarning("CRIGD1 Format not respected (NASA manual v16)", tok, model);
     }
     int masterId = tok.nextInt();
-    RigidConstraint qrc(*model, masterId, original_id);
+    const auto& qrc = make_shared<RigidConstraint>(model, masterId, original_id);
     while (tok.isNextInt()) {
-        qrc.addSlave(tok.nextInt());
+        qrc->addSlave(tok.nextInt());
     }
-    model->add(qrc);
-    model->addConstraintIntoConstraintSet(qrc, model->commonConstraintSet);
+    model.add(qrc);
+    model.addConstraintIntoConstraintSet(*qrc, model.commonConstraintSet);
 }
 
-void NastranParser::parseDAREA(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseDAREA(NastranTokenizer& tok, Model& model) {
     int loadset_id = tok.nextInt();
     Reference<vega::LoadSet> loadset_ref(LoadSet::Type::EXCITEID, loadset_id);
     while (tok.isNextInt()) {
@@ -1015,7 +1012,7 @@ void NastranParser::parseDAREA(NastranTokenizer& tok, shared_ptr<Model> model) {
         int ci = tok.nextInt(true, 123456);
         double ai = tok.nextDouble();
 
-        DOFS dofs = DOFS::nastranCodeToDOFS(ci);
+        const DOFS& dofs = DOFS::nastranCodeToDOFS(ci);
         double tx = dofs.contains(DOF::DX) ? ai : 0;
         double ty = dofs.contains(DOF::DY) ? ai : 0;
         double tz = dofs.contains(DOF::DZ) ? ai : 0;
@@ -1023,20 +1020,20 @@ void NastranParser::parseDAREA(NastranTokenizer& tok, shared_ptr<Model> model) {
         double ry = dofs.contains(DOF::RY) ? ai : 0;
         double rz = dofs.contains(DOF::RZ) ? ai : 0;
 
-        NodalForce force1(*model, tx, ty, tz, rx, ry, rz, Loading::NO_ORIGINAL_ID);
+        NodalForce force1(model, tx, ty, tz, rx, ry, rz, Loading::NO_ORIGINAL_ID);
         force1.addNodeId(node_id);
-        model->add(force1);
-        model->addLoadingIntoLoadSet(force1, loadset_ref);
+        model.add(force1);
+        model.addLoadingIntoLoadSet(force1, loadset_ref);
     }
-    if (!model->find(loadset_ref)) {
-        LoadSet loadSet(*model, LoadSet::Type::EXCITEID, loadset_id);
-        model->add(loadSet);
+    if (!model.find(loadset_ref)) {
+        LoadSet loadSet(model, LoadSet::Type::EXCITEID, loadset_id);
+        model.add(loadSet);
     }
 }
 
 //TODO: Delay should not be a DynaPhase object
 //TODO: But I guess this will be enough for now
-void NastranParser::parseDELAY(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseDELAY(NastranTokenizer& tok, Model& model) {
     int original_id = tok.nextInt();
     int p = tok.nextInt(true);
     if (p!=Globals::UNAVAILABLE_INT){
@@ -1051,15 +1048,15 @@ void NastranParser::parseDELAY(NastranTokenizer& tok, shared_ptr<Model> model) {
     if (!tok.isEmptyUntilNextKeyword()){
         handleParsingWarning("Second dynamic load phase dismissed.", tok, model);
     }
-    DynaPhase dynaphase(*model, -2*M_PI*delay, original_id);
-    model->add(dynaphase);
+    DynaPhase dynaphase(model, -2*M_PI*delay, original_id);
+    model.add(dynaphase);
 }
 
 
 
-void NastranParser::parseDLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseDLOAD(NastranTokenizer& tok, Model& model) {
     int loadset_id = tok.nextInt();
-    shared_ptr<LoadSet> loadSetMaster = model->getOrCreateLoadSet(loadset_id, LoadSet::Type::DLOAD);
+    shared_ptr<LoadSet> loadSetMaster = model.getOrCreateLoadSet(loadset_id, LoadSet::Type::DLOAD);
 
     double S = tok.nextDouble(true, 1);
     while (tok.isNextDouble()) {
@@ -1071,7 +1068,7 @@ void NastranParser::parseDLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
     }
 }
 
-void NastranParser::parseDMIG(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseDMIG(NastranTokenizer& tok, Model& model) {
     string name = tok.nextString();
     if (name == "UACCEL") {
         handleParsingWarning("UACCEL not supported and dismissed.", tok, model);
@@ -1128,7 +1125,7 @@ void NastranParser::parseDMIG(NastranTokenizer& tok, shared_ptr<Model> model) {
     }
 
     shared_ptr<MatrixElement> matrix = dynamic_pointer_cast<MatrixElement>(
-                model->find(*(it->second)));
+                model.find(*(it->second)));
 
 
     int gj = headerIndicator;
@@ -1145,7 +1142,7 @@ void NastranParser::parseDMIG(NastranTokenizer& tok, shared_ptr<Model> model) {
     }
 }
 
-void NastranParser::parseDPHASE(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseDPHASE(NastranTokenizer& tok, Model& model) {
     int original_id = tok.nextInt();
     int p = tok.nextInt(true);
     if (p!=Globals::UNAVAILABLE_INT){
@@ -1160,11 +1157,11 @@ void NastranParser::parseDPHASE(NastranTokenizer& tok, shared_ptr<Model> model) 
     if (!tok.isEmptyUntilNextKeyword()){
         handleParsingWarning("Second dynamic load phase dissmissed.", tok, model);
     }
-    DynaPhase dynaphase(*model, dphase, original_id);
-    model->add(dynaphase);
+    DynaPhase dynaphase(model, dphase, original_id);
+    model.add(dynaphase);
 }
 
-void NastranParser::parseEIGB(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseEIGB(NastranTokenizer& tok, Model& model) {
     int sid = tok.nextInt();
     string method = tok.nextString(true); UNUSEDV(method);
     double lower = tok.nextDouble(true);
@@ -1201,15 +1198,15 @@ void NastranParser::parseEIGB(NastranTokenizer& tok, shared_ptr<Model> model) {
         handleParsingWarning("Component number (C) not supported.", tok, model);
     }
 
-    BandRange bandRange(*model, lower, ndp, upper);
+    BandRange bandRange(model, lower, ndp, upper);
     //bandRange.setParaX(Function::ParaName::FREQ);
-    FrequencySearch frequencyTarget(*model, FrequencySearch::FrequencyType::BAND, bandRange, norm, sid);
+    FrequencySearch frequencyTarget(model, FrequencySearch::FrequencyType::BAND, bandRange, norm, sid);
 
-    model->add(bandRange);
-    model->add(frequencyTarget);
+    model.add(bandRange);
+    model.add(frequencyTarget);
 }
 
-void NastranParser::parseEIGR(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseEIGR(NastranTokenizer& tok, Model& model) {
     int original_id = tok.nextInt();
     string method = tok.nextString(true);
     if (method !="LAN"){
@@ -1247,15 +1244,15 @@ void NastranParser::parseEIGR(NastranTokenizer& tok, shared_ptr<Model> model) {
         handleParsingWarning("Component number (C) not supported.", tok, model);
     }
 
-    BandRange bandRange(*model, lower, nd, upper);
+    BandRange bandRange(model, lower, nd, upper);
     //bandRange.setParaX(Function::ParaName::FREQ);
-    FrequencySearch frequencySearch(*model, FrequencySearch::FrequencyType::BAND, bandRange, norm, original_id);
+    FrequencySearch frequencySearch(model, FrequencySearch::FrequencyType::BAND, bandRange, norm, original_id);
 
-    model->add(bandRange);
-    model->add(frequencySearch);
+    model.add(bandRange);
+    model.add(frequencySearch);
 }
 
-void NastranParser::parseEIGRL(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseEIGRL(NastranTokenizer& tok, Model& model) {
     int original_id = tok.nextInt();
     double lower = tok.nextDouble(true);
     double upper = tok.nextDouble(true);
@@ -1291,15 +1288,15 @@ void NastranParser::parseEIGRL(NastranTokenizer& tok, shared_ptr<Model> model) {
         handleParsingWarning("Only MASS and MAX normalizing method (NORM) supported. Default (MASS) assumed.", tok, model);
         norm = FrequencySearch::NormType::MAX;
     }
-    BandRange bandRange(*model, lower, nd, upper);
+    BandRange bandRange(model, lower, nd, upper);
     //bandRange.setParaX(Function::ParaName::FREQ);
-    FrequencySearch frequencySearch(*model, FrequencySearch::FrequencyType::BAND, bandRange, norm, original_id);
+    FrequencySearch frequencySearch(model, FrequencySearch::FrequencyType::BAND, bandRange, norm, original_id);
 
-    model->add(bandRange);
-    model->add(frequencySearch);
+    model.add(bandRange);
+    model.add(frequencySearch);
 }
 
-void NastranParser::parseFORCE(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseFORCE(NastranTokenizer& tok, Model& model) {
 
     int loadset_id = tok.nextInt();
     int node_id = tok.nextInt();
@@ -1309,20 +1306,20 @@ void NastranParser::parseFORCE(NastranTokenizer& tok, shared_ptr<Model> model) {
     double fy = tok.nextDouble(true,0.0) * force;
     double fz = tok.nextDouble(true,0.0) * force;
 
-    NodalForce force1(*model, fx, fy, fz, 0., 0., 0., Loading::NO_ORIGINAL_ID,
+    NodalForce force1(model, fx, fy, fz, 0., 0., 0., Loading::NO_ORIGINAL_ID,
             Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, csid));
     force1.addNodeId(node_id);
 
-    model->add(force1);
+    model.add(force1);
     Reference<vega::LoadSet> loadset_ref(LoadSet::Type::LOAD, loadset_id);
-    model->addLoadingIntoLoadSet(force1, loadset_ref);
-    if (!model->find(loadset_ref)) {
-        LoadSet loadSet(*model, LoadSet::Type::LOAD, loadset_id);
-        model->add(loadSet);
+    model.addLoadingIntoLoadSet(force1, loadset_ref);
+    if (!model.find(loadset_ref)) {
+        LoadSet loadSet(model, LoadSet::Type::LOAD, loadset_id);
+        model.add(loadSet);
     }
 }
 
-void NastranParser::parseFORCE1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseFORCE1(NastranTokenizer& tok, Model& model) {
 //nodal force two nodes
     int loadset_id = tok.nextInt();
     int node_id = tok.nextInt();
@@ -1330,19 +1327,19 @@ void NastranParser::parseFORCE1(NastranTokenizer& tok, shared_ptr<Model> model) 
     int node1 = tok.nextInt();
     int node2 = tok.nextInt();
 
-    NodalForceTwoNodes force1(*model, node1, node2, force);
+    NodalForceTwoNodes force1(model, node1, node2, force);
     force1.addNodeId(node_id);
 
-    model->add(force1);
+    model.add(force1);
     Reference<vega::LoadSet> loadset_ref(LoadSet::Type::LOAD, loadset_id);
-    model->addLoadingIntoLoadSet(force1, loadset_ref);
-    if (!model->find(loadset_ref)) {
-        LoadSet loadSet(*model, LoadSet::Type::LOAD, loadset_id);
-        model->add(loadSet);
+    model.addLoadingIntoLoadSet(force1, loadset_ref);
+    if (!model.find(loadset_ref)) {
+        LoadSet loadSet(model, LoadSet::Type::LOAD, loadset_id);
+        model.add(loadSet);
     }
 }
 
-void NastranParser::parseFORCE2(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseFORCE2(NastranTokenizer& tok, Model& model) {
     int sid = tok.nextInt();
     int node_id = tok.nextInt();
     double force = tok.nextDouble();
@@ -1351,59 +1348,59 @@ void NastranParser::parseFORCE2(NastranTokenizer& tok, shared_ptr<Model> model) 
     int node3 = tok.nextInt();
     int node4 = tok.nextInt();
 
-    NodalForceFourNodes force2(*model, node1, node2, node3, node4, force);
+    NodalForceFourNodes force2(model, node1, node2, node3, node4, force);
     force2.addNodeId(node_id);
 
-    model->add(force2);
+    model.add(force2);
     Reference<vega::LoadSet> loadset_ref(LoadSet::Type::LOAD, sid);
-    model->addLoadingIntoLoadSet(force2, loadset_ref);
-    if (!model->find(loadset_ref)) {
-        LoadSet loadSet(*model, LoadSet::Type::LOAD, sid);
-        model->add(loadSet);
+    model.addLoadingIntoLoadSet(force2, loadset_ref);
+    if (!model.find(loadset_ref)) {
+        LoadSet loadSet(model, LoadSet::Type::LOAD, sid);
+        model.add(loadSet);
     }
 }
 
-void NastranParser::parseFREQ(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseFREQ(NastranTokenizer& tok, Model& model) {
     int sid = tok.nextInt();
     list<double> frequencies = tok.nextDoubles();
 
-    ListValue<double> frequencyValue(*model, frequencies);
-    model->add(frequencyValue);
-    FrequencyExcit frequencyRange(*model, FrequencyExcit::FrequencyType::LIST, frequencyValue, FrequencyExcit::NormType::MASS, sid);
+    ListValue<double> frequencyValue(model, frequencies);
+    model.add(frequencyValue);
+    FrequencyExcit frequencyRange(model, FrequencyExcit::FrequencyType::LIST, frequencyValue, FrequencyExcit::NormType::MASS, sid);
 
-    model->add(frequencyRange);
+    model.add(frequencyRange);
 }
 
-void NastranParser::parseFREQ1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseFREQ1(NastranTokenizer& tok, Model& model) {
     int sid = tok.nextInt();
     double start = tok.nextDouble();
     double step = tok.nextDouble();
     int count = tok.nextInt(true, 1);
 
-    vega::StepRange stepRange(*model, start, step, count);
+    vega::StepRange stepRange(model, start, step, count);
     //stepRange.setParaX(Function::ParaName::FREQ);
-    FrequencyExcit frequencyExcit(*model, FrequencyExcit::FrequencyType::STEP, stepRange, FrequencyExcit::NormType::MASS, sid);
+    FrequencyExcit frequencyExcit(model, FrequencyExcit::FrequencyType::STEP, stepRange, FrequencyExcit::NormType::MASS, sid);
 
-    model->add(stepRange);
-    model->add(frequencyExcit);
+    model.add(stepRange);
+    model.add(frequencyExcit);
 }
 
-void NastranParser::parseFREQ4(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseFREQ4(NastranTokenizer& tok, Model& model) {
     int sid = tok.nextInt();
     double f1 = tok.nextDouble();
     double f2 = tok.nextDouble();
     double spread = tok.nextDouble();
     int count = tok.nextInt(true, 1);
 
-    vega::SpreadRange spreadRange(*model, f1, count, f2, spread);
+    vega::SpreadRange spreadRange(model, f1, count, f2, spread);
     //spreadRange.setParaX(Function::ParaName::FREQ);
-    FrequencyExcit frequencyExcit(*model, FrequencyExcit::FrequencyType::SPREAD, spreadRange, FrequencyExcit::NormType::MASS, sid);
+    FrequencyExcit frequencyExcit(model, FrequencyExcit::FrequencyType::SPREAD, spreadRange, FrequencyExcit::NormType::MASS, sid);
 
-    model->add(spreadRange);
-    model->add(frequencyExcit);
+    model.add(spreadRange);
+    model.add(frequencyExcit);
 }
 
-void NastranParser::parseGRAV(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseGRAV(NastranTokenizer& tok, Model& model) {
     int sid = tok.nextInt();
     int csid = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     if (csid != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
@@ -1419,17 +1416,17 @@ void NastranParser::parseGRAV(NastranTokenizer& tok, shared_ptr<Model> model) {
         string message = "MB not supported.";
         handleParsingWarning(message, tok, model);
     }
-    Gravity gravity(*model, acceleration, VectorialValue(x, y, z));
+    Gravity gravity(model, acceleration, VectorialValue(x, y, z));
 
-    model->add(gravity);
+    model.add(gravity);
     Reference<vega::LoadSet> loadset_ref(LoadSet::Type::LOAD, sid);
-    model->addLoadingIntoLoadSet(gravity, loadset_ref);
-    if (!model->find(loadset_ref)) {
-        LoadSet loadSet(*model, LoadSet::Type::LOAD, sid);
-        model->add(loadSet);
+    model.addLoadingIntoLoadSet(gravity, loadset_ref);
+    if (!model.find(loadset_ref)) {
+        LoadSet loadSet(model, LoadSet::Type::LOAD, sid);
+        model.add(loadSet);
     }
 }
-void NastranParser::parseInclude(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseInclude(NastranTokenizer& tok, Model& model) {
     string currentRawDataLine = tok.currentRawDataLine();
     string fileName = currentRawDataLine.substr(7, currentRawDataLine.length() - 7);
     trim(fileName);
@@ -1441,7 +1438,7 @@ void NastranParser::parseInclude(NastranTokenizer& tok, shared_ptr<Model> model)
     const string includePathStr = includePath.string();
     if (fs::exists(includePath)) {
         ifstream istream(includePathStr);
-        NastranTokenizer tok2 = NastranTokenizer(istream, this->logLevel, includePathStr, this->translationMode);
+        NastranTokenizer tok2 {istream, this->logLevel, includePathStr, this->translationMode};
         tok2.bulkSection();
         tok2.nextLine();
         parseBULKSection(tok2, model);
@@ -1452,10 +1449,10 @@ void NastranParser::parseInclude(NastranTokenizer& tok, shared_ptr<Model> model)
     tok.skipToNextKeyword();
 }
 
-void NastranParser::parseLSEQ(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseLSEQ(NastranTokenizer& tok, Model& model) {
     int set_id = tok.nextInt();
     // LSEQ will not be used unless selected in the Case Control Section with the LOADSET command.
-    shared_ptr<LoadSet> loadSetMaster = model->getOrCreateLoadSet(set_id, LoadSet::Type::LOADSET);
+    shared_ptr<LoadSet> loadSetMaster = model.getOrCreateLoadSet(set_id, LoadSet::Type::LOADSET);
     int darea_id = tok.nextInt(); UNUSEDV(darea_id);
     // LD : not sure about this interpretation
 //    Reference<LoadSet> dareaReference(LoadSet::Type::LOAD, darea_id);
@@ -1468,9 +1465,9 @@ void NastranParser::parseLSEQ(NastranTokenizer& tok, shared_ptr<Model> model) {
 
 }
 
-void NastranParser::parseLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseLOAD(NastranTokenizer& tok, Model& model) {
     int set_id = tok.nextInt();
-    shared_ptr<LoadSet> loadSetMaster = model->getOrCreateLoadSet(set_id, LoadSet::Type::LOAD);
+    shared_ptr<LoadSet> loadSetMaster = model.getOrCreateLoadSet(set_id, LoadSet::Type::LOAD);
     double S = tok.nextDouble(true, 1);
     while (tok.isNextDouble()) {
         double scale = tok.nextDouble(true, 1);
@@ -1481,7 +1478,7 @@ void NastranParser::parseLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
     }
 }
 
-void NastranParser::parseMAT1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseMAT1(NastranTokenizer& tok, Model& model) {
     int material_id = tok.nextInt();
     double e = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
     double g = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
@@ -1542,11 +1539,11 @@ void NastranParser::parseMAT1(NastranTokenizer& tok, shared_ptr<Model> model) {
     if (mcsid != 0) {
         handleParsingWarning("mcsid value ignored " + to_string(mcsid), tok, model);
     }
-    shared_ptr<Material> material = model->getOrCreateMaterial(material_id);
-    material->addNature(ElasticNature(*model, e, nu, g, rho, a, tref, ge));
+    shared_ptr<Material> material = model.getOrCreateMaterial(material_id);
+    material->addNature(ElasticNature(model, e, nu, g, rho, a, tref, ge));
 }
 
-void NastranParser::parseMAT8(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseMAT8(NastranTokenizer& tok, Model& model) {
     int material_id = tok.nextInt();
     double e1 = tok.nextDouble();
     double e2 = tok.nextDouble();
@@ -1554,13 +1551,13 @@ void NastranParser::parseMAT8(NastranTokenizer& tok, shared_ptr<Model> model) {
     double g12 = tok.nextDouble();
     double g1Z = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
     double g2Z = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
-    shared_ptr<Material> material = model->getOrCreateMaterial(material_id);
-    material->addNature(OrthotropicNature(*model, e1, e2, nu12, g12, g2Z, g1Z));
+    shared_ptr<Material> material = model.getOrCreateMaterial(material_id);
+    material->addNature(OrthotropicNature(model, e1, e2, nu12, g12, g2Z, g1Z));
 }
 
-void NastranParser::parseMATHP(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseMATHP(NastranTokenizer& tok, Model& model) {
     int mid = tok.nextInt();
-    auto material = model->getOrCreateMaterial(mid);
+    auto material = model.getOrCreateMaterial(mid);
     double a10 = tok.nextDouble(true, 0.0);
     double a01 = tok.nextDouble(true, 0.0);
     double d1 = tok.nextDouble(true, 1000*(a10+a01));
@@ -1581,12 +1578,12 @@ void NastranParser::parseMATHP(NastranTokenizer& tok, shared_ptr<Model> model) {
     }
     tok.skip(5);
     double a20 = tok.nextDouble(true, 0.0);
-    material->addNature(HyperElasticNature(*model, a10, a01, a20, d1, rho));
+    material->addNature(HyperElasticNature(model, a10, a01, a20, d1, rho));
 }
 
-void NastranParser::parseMATS1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseMATS1(NastranTokenizer& tok, Model& model) {
     int mid = tok.nextInt();
-    auto material = model->getOrCreateMaterial(mid);
+    auto material = model.getOrCreateMaterial(mid);
     int tid = tok.nextInt(true, 0);
     string type = tok.nextString();
     double h = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
@@ -1595,11 +1592,11 @@ void NastranParser::parseMATS1(NastranTokenizer& tok, shared_ptr<Model> model) {
     double limit1 = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
     double limit2 = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
     if (type == "NLELAST") {
-        NonLinearElasticNature nonLinearElasticNature = NonLinearElasticNature(*model, tid);
+        NonLinearElasticNature nonLinearElasticNature = NonLinearElasticNature(model, tid);
         material->addNature(nonLinearElasticNature);
     } else if (type == "PLASTIC") {
         if (tid == 0) {
-            BilinearElasticNature biNature = BilinearElasticNature(*model);
+            BilinearElasticNature biNature = BilinearElasticNature(model);
             biNature.elastic_limit = limit1;
             if (!is_equal(limit2, Globals::UNAVAILABLE_DOUBLE)) {
                 handleParsingError("MATS1 limit2 " + to_string(yf) + " not yet implemented.", tok,
@@ -1635,7 +1632,7 @@ void NastranParser::parseMATS1(NastranTokenizer& tok, shared_ptr<Model> model) {
     }
 }
 
-void NastranParser::parseMOMENT(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseMOMENT(NastranTokenizer& tok, Model& model) {
     int loadset_id = tok.nextInt();
     int node_id = tok.nextInt();
     int csid = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
@@ -1647,21 +1644,21 @@ void NastranParser::parseMOMENT(NastranTokenizer& tok, shared_ptr<Model> model) 
     double fry = tok.nextDouble(true) * scale;
     double frz = tok.nextDouble(true) * scale;
 
-    NodalForce force1(*model, VectorialValue(0, 0, 0), VectorialValue(frx, fry, frz),
+    NodalForce force1(model, VectorialValue(0, 0, 0), VectorialValue(frx, fry, frz),
             Loading::NO_ORIGINAL_ID);
     force1.addNodeId(node_id);
-    model->add(force1);
+    model.add(force1);
     Reference<vega::LoadSet> loadset_ref(LoadSet::Type::LOAD, loadset_id);
-    model->addLoadingIntoLoadSet(force1, loadset_ref);
-    if (!model->find(loadset_ref)) {
-        LoadSet loadSet(*model, LoadSet::Type::LOAD, loadset_id);
-        model->add(loadSet);
+    model.addLoadingIntoLoadSet(force1, loadset_ref);
+    if (!model.find(loadset_ref)) {
+        LoadSet loadSet(model, LoadSet::Type::LOAD, loadset_id);
+        model.add(loadSet);
     }
 }
 
-void NastranParser::parseMPC(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseMPC(NastranTokenizer& tok, Model& model) {
     int set_id = tok.nextInt();
-    LinearMultiplePointConstraint lmpc(*model);
+    const auto& lmpc = make_shared<LinearMultiplePointConstraint>(model);
     int i = 2;
     while (tok.isNextInt()) {
         const int g1 = tok.nextInt();
@@ -1673,16 +1670,16 @@ void NastranParser::parseMPC(NastranTokenizer& tok, shared_ptr<Model> model) {
             tok.skip(2);
             i += 2;
         }
-        lmpc.addParticipation(g1, dofs.contains(DOF::DX) * a1, dofs.contains(DOF::DY) * a1,
+        lmpc->addParticipation(g1, dofs.contains(DOF::DX) * a1, dofs.contains(DOF::DY) * a1,
                 dofs.contains(DOF::DZ) * a1, dofs.contains(DOF::RX) * a1,
                 dofs.contains(DOF::RY) * a1, dofs.contains(DOF::RZ) * a1);
     }
-    model->add(lmpc);
-    model->addConstraintIntoConstraintSet(lmpc,
+    model.add(lmpc);
+    model.addConstraintIntoConstraintSet(*lmpc,
             Reference<ConstraintSet>(ConstraintSet::Type::MPC, set_id));
 }
 
-void NastranParser::parseNLPARM(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseNLPARM(NastranTokenizer& tok, Model& model) {
     int original_id = tok.nextInt();
     int number_of_increments = tok.nextInt(true, 10);
 
@@ -1691,11 +1688,11 @@ void NastranParser::parseNLPARM(NastranTokenizer& tok, shared_ptr<Model> model) 
         handleParsingWarning("All parameters are ignored except NINC.", tok, model);
     }
 
-    NonLinearStrategy nonLinearStrategy(*model, number_of_increments, original_id);
-    model->add(nonLinearStrategy);
+    NonLinearStrategy nonLinearStrategy(model, number_of_increments, original_id);
+    model.add(nonLinearStrategy);
 }
 
-void NastranParser::parseNLPCI(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseNLPCI(NastranTokenizer& tok, Model& model) {
     int original_id = tok.nextInt();
 
     if (!tok.isEmptyUntilNextKeyword()){
@@ -1703,12 +1700,12 @@ void NastranParser::parseNLPCI(NastranTokenizer& tok, shared_ptr<Model> model) {
         handleParsingWarning("All parameters are ignored.", tok, model);
     }
 
-    ArcLengthMethod arcLengthMethod(*model, Reference<Objective>(Objective::Type::NONLINEAR_STRATEGY, original_id));
-    model->add(arcLengthMethod);
+    ArcLengthMethod arcLengthMethod(model, Reference<Objective>(Objective::Type::NONLINEAR_STRATEGY, original_id));
+    model.add(arcLengthMethod);
 }
 
 
-void NastranParser::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePBAR(NastranTokenizer& tok, Model& model) {
     int elemId = tok.nextInt();
     int material_id = tok.nextInt();
     double area = tok.nextDouble();
@@ -1748,24 +1745,24 @@ void NastranParser::parsePBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
         handleParsingWarning("PBAR i12 not implemented.", tok, model);
     }
 
-    GenericSectionBeam genericSectionBeam(*model, area, i2, i1, j, invk2, invk1, Beam::BeamModel::TIMOSHENKO, nsm,
+    GenericSectionBeam genericSectionBeam(model, area, i2, i1, j, invk2, invk1, Beam::BeamModel::TIMOSHENKO, nsm,
             elemId);
     genericSectionBeam.assignMaterial(material_id);
     genericSectionBeam.assignCellGroup(getOrCreateCellGroup(elemId, model, "PBAR"));
     std::list<std::pair<double, double>> reccoefs = { {c1, c2}, {d1, d2}, {e1, e2}, {f1, f2} };
-    for (auto& reccoef : reccoefs) {
+    for (const auto& reccoef : reccoefs) {
         if (is_zero(reccoef.first) and is_zero(reccoef.second)) {
                 continue;
         }
-        RecoveryPoint c1recpointa(*model, 0.0, reccoef.first, reccoef.second);
+        RecoveryPoint c1recpointa(model, 0.0, reccoef.first, reccoef.second);
         genericSectionBeam.recoveryPoints.push_back(c1recpointa);
-        RecoveryPoint c1recpointb(*model, 1.0, reccoef.first, reccoef.second);
+        RecoveryPoint c1recpointb(model, 1.0, reccoef.first, reccoef.second);
         genericSectionBeam.recoveryPoints.push_back(c1recpointb);
     }
-    model->add(genericSectionBeam);
+    model.add(genericSectionBeam);
 }
 
-void NastranParser::parsePBARL(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePBARL(NastranTokenizer& tok, Model& model) {
     int propertyId = tok.nextInt(); // PID
     int material_id = tok.nextInt();
 
@@ -1782,28 +1779,28 @@ void NastranParser::parsePBARL(NastranTokenizer& tok, shared_ptr<Model> model) {
         double width = tok.nextDouble();
         double height = tok.nextDouble();
         nsm = tok.nextDouble(true, 0.0);
-        RectangularSectionBeam rectangularSectionBeam(*model, width, height, Beam::BeamModel::TIMOSHENKO, nsm,
+        RectangularSectionBeam rectangularSectionBeam(model, width, height, Beam::BeamModel::TIMOSHENKO, nsm,
                 propertyId);
         rectangularSectionBeam.assignMaterial(material_id);
         rectangularSectionBeam.assignCellGroup(getOrCreateCellGroup(propertyId, model, "PBARL"));
-        model->add(rectangularSectionBeam);
+        model.add(rectangularSectionBeam);
     } else if (type == "ROD") {
         tok.skip(4);
         double radius = tok.nextDouble();
         nsm = tok.nextDouble(true, 0.0);
-        CircularSectionBeam circularSectionBeam(*model, radius, Beam::BeamModel::TIMOSHENKO, nsm, propertyId);
+        CircularSectionBeam circularSectionBeam(model, radius, Beam::BeamModel::TIMOSHENKO, nsm, propertyId);
         circularSectionBeam.assignMaterial(material_id);
         circularSectionBeam.assignCellGroup(getOrCreateCellGroup(propertyId, model, "PBARL"));
-        model->add(circularSectionBeam);
+        model.add(circularSectionBeam);
     } else if (type == "TUBE") {
         tok.skip(4);
         double extRadius = tok.nextDouble();
         double intRadius = tok.nextDouble();
         nsm = tok.nextDouble(true, 0.0);
-        TubeSectionBeam tubeSectionBeam(*model, intRadius, extRadius - intRadius, Beam::BeamModel::TIMOSHENKO, nsm, propertyId);
+        TubeSectionBeam tubeSectionBeam(model, intRadius, extRadius - intRadius, Beam::BeamModel::TIMOSHENKO, nsm, propertyId);
         tubeSectionBeam.assignMaterial(material_id);
         tubeSectionBeam.assignCellGroup(getOrCreateCellGroup(propertyId, model, "PBARL"));
-        model->add(tubeSectionBeam);
+        model.add(tubeSectionBeam);
     } else if (type == "I") {
         tok.skip(4);
         double beam_height = tok.nextDouble();
@@ -1813,12 +1810,12 @@ void NastranParser::parsePBARL(NastranTokenizer& tok, shared_ptr<Model> model) {
         double lower_flange_thickness = tok.nextDouble();
         double upper_flange_thickness = tok.nextDouble();
         nsm = tok.nextDouble(true, 0.0);
-        ISectionBeam iSectionBeam(*model, upper_flange_width, lower_flange_width,
+        ISectionBeam iSectionBeam(model, upper_flange_width, lower_flange_width,
                 upper_flange_thickness, lower_flange_thickness, beam_height, web_thickness,
                 Beam::BeamModel::TIMOSHENKO, nsm, propertyId);
         iSectionBeam.assignMaterial(material_id);
         iSectionBeam.assignCellGroup(getOrCreateCellGroup(propertyId, model, "PBARL"));
-        model->add(iSectionBeam);
+        model.add(iSectionBeam);
     } else {
         string message = "PBARL type " + type + " not implemented.";
         handleParsingError(message, tok, model);
@@ -1832,7 +1829,7 @@ void NastranParser::parsePBARL(NastranTokenizer& tok, shared_ptr<Model> model) {
 
 }
 
-void NastranParser::parsePBEAM(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePBEAM(NastranTokenizer& tok, Model& model) {
     int elemId = tok.nextInt();
     int material_id = tok.nextInt();
 
@@ -1878,12 +1875,12 @@ void NastranParser::parsePBEAM(NastranTokenizer& tok, shared_ptr<Model> model) {
         handleParsingWarning("Shear center for stress analysis not implemented.", tok,
                 model);
     }
-    GenericSectionBeam genericSectionBeam(*model, area_cross_section, moment_of_inertia_Y,
+    GenericSectionBeam genericSectionBeam(model, area_cross_section, moment_of_inertia_Y,
             moment_of_inertia_Z, torsionalConstant, 0.0, 0.0, GenericSectionBeam::BeamModel::EULER, nsm,
             elemId);
     genericSectionBeam.assignMaterial(material_id);
     genericSectionBeam.assignCellGroup(getOrCreateCellGroup(elemId, model, "PBEAM"));
-    model->add(genericSectionBeam);
+    model.add(genericSectionBeam);
 
     // Intermediate stations are not supported
     int nbStations=0;
@@ -1938,7 +1935,7 @@ void NastranParser::parsePBEAM(NastranTokenizer& tok, shared_ptr<Model> model) {
 
 }
 
-void NastranParser::parsePBEAML(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePBEAML(NastranTokenizer& tok, Model& model) {
     int pid = tok.nextInt();
     int mid = tok.nextInt();
 
@@ -1956,27 +1953,27 @@ void NastranParser::parsePBEAML(NastranTokenizer& tok, shared_ptr<Model> model) 
         double width = tok.nextDouble();
         double height = tok.nextDouble();
         nsm = tok.nextDouble(true, 0.0);
-        RectangularSectionBeam rectangularSectionBeam(*model, width, height, Beam::BeamModel::TIMOSHENKO, nsm, pid);
+        RectangularSectionBeam rectangularSectionBeam(model, width, height, Beam::BeamModel::TIMOSHENKO, nsm, pid);
         rectangularSectionBeam.assignMaterial(mid);
         rectangularSectionBeam.assignCellGroup(getOrCreateCellGroup(pid, model,"PBEAML"));
-        model->add(rectangularSectionBeam);
+        model.add(rectangularSectionBeam);
     } else if (type == "ROD") {
         tok.skip(4);
         double radius = tok.nextDouble();
         nsm = tok.nextDouble(true, 0.0);
-        CircularSectionBeam circularSectionBeam(*model, radius, Beam::BeamModel::TIMOSHENKO, nsm, pid);
+        CircularSectionBeam circularSectionBeam(model, radius, Beam::BeamModel::TIMOSHENKO, nsm, pid);
         circularSectionBeam.assignMaterial(mid);
         circularSectionBeam.assignCellGroup(getOrCreateCellGroup(pid, model,"PBEAML"));
-        model->add(circularSectionBeam);
+        model.add(circularSectionBeam);
     } else if (type == "TUBE") {
         tok.skip(4);
         double extRadius = tok.nextDouble();
         double intRadius = tok.nextDouble();
         nsm = tok.nextDouble(true, 0.0);
-        TubeSectionBeam tubeSectionBeam(*model, intRadius, extRadius - intRadius, Beam::BeamModel::TIMOSHENKO, nsm, pid);
+        TubeSectionBeam tubeSectionBeam(model, intRadius, extRadius - intRadius, Beam::BeamModel::TIMOSHENKO, nsm, pid);
         tubeSectionBeam.assignMaterial(mid);
         tubeSectionBeam.assignCellGroup(getOrCreateCellGroup(pid, model,"PBEAML"));
-        model->add(tubeSectionBeam);
+        model.add(tubeSectionBeam);
     } else if (type == "I") {
         tok.skip(4);
         double beam_height = tok.nextDouble();
@@ -1987,12 +1984,12 @@ void NastranParser::parsePBEAML(NastranTokenizer& tok, shared_ptr<Model> model) 
         double upper_flange_thickness = tok.nextDouble();
         nsm = tok.nextDouble(true, 0.0);
         string so = tok.nextString(true, "YES");
-        ISectionBeam iSectionBeam(*model, upper_flange_width, lower_flange_width,
+        ISectionBeam iSectionBeam(model, upper_flange_width, lower_flange_width,
                 upper_flange_thickness, lower_flange_thickness, beam_height, web_thickness,
                 Beam::BeamModel::TIMOSHENKO, nsm, pid);
         iSectionBeam.assignMaterial(mid);
         iSectionBeam.assignCellGroup(getOrCreateCellGroup(pid, model,"PBEAML"));
-        model->add(iSectionBeam);
+        model.add(iSectionBeam);
     } else {
         string message = "PBEAML type " + type + " not implemented.";
         handleParsingError(message, tok, model);
@@ -2009,7 +2006,7 @@ void NastranParser::parsePBEAML(NastranTokenizer& tok, shared_ptr<Model> model) 
 
 
 /** Parse the NASTRAN PBUSH Keyword: Generalized Spring-And-Damper Property **/
-void NastranParser::parsePBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePBUSH(NastranTokenizer& tok, Model& model) {
 
     int pid = tok.nextInt();
     double k1=0.0;
@@ -2116,7 +2113,7 @@ void NastranParser::parsePBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
         handleParsingWarning(string("Stress and Strain recovery coefficients (SA, ST, EA, ET ) not supported. Default (1.0) assumed."), tok, model);
     }
 
-    StructuralSegment structuralElement(*model, true, pid);
+    StructuralSegment structuralElement(model, true, pid);
     structuralElement.assignCellGroup(getOrCreateCellGroup(pid, model, "PBUSH"));
     structuralElement.addStiffness(DOF::DX, DOF::DX, k1);
     structuralElement.addStiffness(DOF::DY, DOF::DY, k2);
@@ -2132,22 +2129,22 @@ void NastranParser::parsePBUSH(NastranTokenizer& tok, shared_ptr<Model> model) {
     structuralElement.addDamping(DOF::RY, DOF::RY, b5);
     structuralElement.addDamping(DOF::RZ, DOF::RZ, b6);
 
-    model->add(structuralElement);
+    model.add(structuralElement);
 
 }
 
-void NastranParser::parsePCOMP(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePCOMP(NastranTokenizer& tok, Model& model) {
     int pid = tok.nextInt();
     if (tok.isNextEmpty(7)) {
         tok.skip(7);
     } else {
         handleParsingError("PCOMP fields not yet handled", tok, model);
     }
-    Composite composite(*model, pid);
+    Composite composite(model, pid);
     shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model,"PCOMP");
     composite.assignCellGroup(cellGroup);
     int mid1 = tok.nextInt();
-    shared_ptr<Material> material = model->getOrCreateMaterial(mid1);
+    shared_ptr<Material> material = model.getOrCreateMaterial(mid1);
     composite.assignMaterial(material);
     double t1 = tok.nextDouble();
     double theta1 = tok.nextDouble(true, 0.0);
@@ -2158,7 +2155,7 @@ void NastranParser::parsePCOMP(NastranTokenizer& tok, shared_ptr<Model> model) {
         if (midn != mid1) {
             handleParsingError("Multi material relationship not yet handled or tested", tok, model);
         }
-        shared_ptr<Material> layermatn= model->getOrCreateMaterial(midn);
+        shared_ptr<Material> layermatn= model.getOrCreateMaterial(midn);
         // LD TODO : should change relationship between materials and cellgroups : it is a many to many with composites
         composite.assignMaterial(layermatn);
         double tn = tok.nextDouble(true, t1);
@@ -2166,10 +2163,10 @@ void NastranParser::parsePCOMP(NastranTokenizer& tok, shared_ptr<Model> model) {
         tok.skip(1); // SOUTn
         composite.addLayer(layermatn->getId(), tn, thetan);
     }
-    model->add(composite);
+    model.add(composite);
 }
 
-void NastranParser::parsePDAMP(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePDAMP(NastranTokenizer& tok, Model& model) {
 
     int nbProperties=0;
     // Up to four elastic damper properties can be defined on a single entry.
@@ -2179,11 +2176,11 @@ void NastranParser::parsePDAMP(NastranTokenizer& tok, shared_ptr<Model> model) {
         const double b = tok.nextDouble(true, 0.0);
 
         shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model, "PDAMP");
-        shared_ptr<ElementSet> elementSet = model->elementSets.find(pid);
+        shared_ptr<ElementSet> elementSet = model.elementSets.find(pid);
         if (elementSet == nullptr){
-            ScalarSpring scalarSpring(*model, pid, Globals::UNAVAILABLE_DOUBLE, b);
+            ScalarSpring scalarSpring(model, pid, Globals::UNAVAILABLE_DOUBLE, b);
             scalarSpring.assignCellGroup(cellGroup);
-            model->add(scalarSpring);
+            model.add(scalarSpring);
         }else{
             if (elementSet->type == ElementSet::Type::SCALAR_SPRING){
                 shared_ptr<ScalarSpring> springElementSet = dynamic_pointer_cast<ScalarSpring>(elementSet);
@@ -2198,7 +2195,7 @@ void NastranParser::parsePDAMP(NastranTokenizer& tok, shared_ptr<Model> model) {
     }
 }
 
-void NastranParser::parsePELAS(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePELAS(NastranTokenizer& tok, Model& model) {
 
     int nbProperties=0;
     // One or two elastic spring properties can be defined on a single entry.
@@ -2217,11 +2214,11 @@ void NastranParser::parsePELAS(NastranTokenizer& tok, shared_ptr<Model> model) {
         }
 
         shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model, "PELAS");
-        shared_ptr<ElementSet> elementSet = model->elementSets.find(pid);
+        shared_ptr<ElementSet> elementSet = model.elementSets.find(pid);
         if (elementSet == nullptr){
-            ScalarSpring scalarSpring(*model, pid, k, ge);
+            ScalarSpring scalarSpring(model, pid, k, ge);
             scalarSpring.assignCellGroup(cellGroup);
-            model->add(scalarSpring);
+            model.add(scalarSpring);
         }else{
             if (elementSet->type == ElementSet::Type::SCALAR_SPRING){
                 shared_ptr<ScalarSpring> springElementSet = dynamic_pointer_cast<ScalarSpring>(elementSet);
@@ -2237,7 +2234,7 @@ void NastranParser::parsePELAS(NastranTokenizer& tok, shared_ptr<Model> model) {
     }
 }
 
-void NastranParser::parsePGAP(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePGAP(NastranTokenizer& tok, Model& model) {
     int pid = tok.nextInt();
     double u0 = tok.nextDouble(true, 0.0);
     double f0 = tok.nextDouble(true, 0.0);
@@ -2261,19 +2258,19 @@ void NastranParser::parsePGAP(NastranTokenizer& tok, shared_ptr<Model> model) {
         kt = mu1*ka;
     }
 
-    shared_ptr<Constraint> gapPtr = model->find(Reference<Constraint>(Constraint::Type::GAP, pid));
+    shared_ptr<Constraint> gapPtr = model.find(Reference<Constraint>(Constraint::Type::GAP, pid));
     if (!gapPtr) {
-        GapTwoNodes gapConstraint(*model, pid);
-        gapConstraint.initial_gap_opening = u0;
-        model->add(gapConstraint);
-        model->addConstraintIntoConstraintSet(gapConstraint, model->commonConstraintSet);
+        const auto& gapConstraint = make_shared<GapTwoNodes>(model, pid);
+        gapConstraint->initial_gap_opening = u0;
+        model.add(gapConstraint);
+        model.addConstraintIntoConstraintSet(*gapConstraint, model.commonConstraintSet);
     } else {
         shared_ptr<GapTwoNodes> gap = dynamic_pointer_cast<GapTwoNodes>(gapPtr);
         gap->initial_gap_opening = u0;
     }
 }
 
-void NastranParser::parsePLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePLOAD(NastranTokenizer& tok, Model& model) {
     int loadset_id = tok.nextInt();
     double p = tok.nextDouble();
     int g1 = tok.nextInt();
@@ -2281,21 +2278,21 @@ void NastranParser::parsePLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
     int g3 = tok.nextInt();
     int g4 = tok.nextInt(true, Globals::UNAVAILABLE_INT);
     Reference<LoadSet> loadSetReference(LoadSet::Type::LOAD, loadset_id);
-    StaticPressure staticPressure(*model, g1, g2, g3, g4, p);
-    model->add(staticPressure);
-    model->addLoadingIntoLoadSet(staticPressure, loadSetReference);
-    if (!model->find(loadSetReference)) {
-        LoadSet loadSet(*model, LoadSet::Type::LOAD, loadset_id);
-        model->add(loadSet);
+    StaticPressure staticPressure(model, g1, g2, g3, g4, p);
+    model.add(staticPressure);
+    model.addLoadingIntoLoadSet(staticPressure, loadSetReference);
+    if (!model.find(loadSetReference)) {
+        LoadSet loadSet(model, LoadSet::Type::LOAD, loadset_id);
+        model.add(loadSet);
     }
 }
 
-void NastranParser::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePLOAD1(NastranTokenizer& tok, Model& model) {
     int loadset_id = tok.nextInt();
     int eid = tok.nextInt();
     string type = tok.nextString();
     string scale = tok.nextString();
-    shared_ptr<FunctionTable> force = make_shared<FunctionTable>(*model, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::NONE, FunctionTable::Interpolation::NONE);
+    shared_ptr<FunctionTable> force = make_shared<FunctionTable>(model, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::NONE, FunctionTable::Interpolation::NONE);
     force->setParaX(FunctionTable::ParaName::PARAX);
     DOF dof = DOF::DX;
     double x1 = tok.nextDouble(true, 0.0);
@@ -2331,11 +2328,11 @@ void NastranParser::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> model) 
         /* If SCALE = FRPR (fractional projected), the Xi values are ratios of the actual distance to the length of the bar
          * and (X1 ≠ X2) the distributed load is input in terms of the projected length of the bar.*/
         // TODO LD: encapsulate all this in mesh/cell/node (but it needs model)
-        int cellPos = model->mesh->findCellPosition(eid);
-        const Cell& cell = model->mesh->findCell(cellPos);
+        int cellPos = model.mesh.findCellPosition(eid);
+        const Cell& cell = model.mesh.findCell(cellPos);
         std::shared_ptr<OrientationCoordinateSystem> ocs = cell.orientation;
-        const Node& firstNode = model->mesh->findNode(cell.nodePositions.front());
-        const Node& lastNode = model->mesh->findNode(cell.nodePositions.back());
+        const Node& firstNode = model.mesh.findNode(cell.nodePositions.front());
+        const Node& lastNode = model.mesh.findNode(cell.nodePositions.back());
         const VectorialValue& barvect = VectorialValue(lastNode.x - firstNode.x, lastNode.y - firstNode.y, lastNode.z - firstNode.z);
         double dist = barvect.norm();
         /* If SCALE = LE (length), the Xi values are actual distances along the bar x-axis,
@@ -2363,35 +2360,35 @@ void NastranParser::parsePLOAD1(NastranTokenizer& tok, shared_ptr<Model> model) 
         force->setXY(effx2, effp2);
         force->setXY(effx2 + effx2 / smalldistancefactor, 0.0);
     }
-    model->add(*force);
+    model.add(*force);
     Reference<LoadSet> loadSetReference(LoadSet::Type::LOAD, loadset_id);
-    ForceLine forceLine(*model, force, dof);
+    ForceLine forceLine(model, force, dof);
     forceLine.addCellId(eid);
-    model->add(forceLine);
-    model->addLoadingIntoLoadSet(forceLine, loadSetReference);
-    if (!model->find(loadSetReference)) {
-        LoadSet loadSet(*model, LoadSet::Type::LOAD, loadset_id);
-        model->add(loadSet);
+    model.add(forceLine);
+    model.addLoadingIntoLoadSet(forceLine, loadSetReference);
+    if (!model.find(loadSetReference)) {
+        LoadSet loadSet(model, LoadSet::Type::LOAD, loadset_id);
+        model.add(loadSet);
     }
 }
 
-void NastranParser::parsePLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePLOAD2(NastranTokenizer& tok, Model& model) {
     int loadset_id = tok.nextInt();
     double p = tok.nextDouble();
     Reference<LoadSet> loadSetReference(LoadSet::Type::LOAD, loadset_id);
-    NormalPressionFace normalPressionFace(*model, p);
+    NormalPressionFace normalPressionFace(model, p);
     for(int cellId : tok.nextInts()) {
         normalPressionFace.addCellId(cellId);
     }
-    model->add(normalPressionFace);
-    model->addLoadingIntoLoadSet(normalPressionFace, loadSetReference);
-    if (!model->find(loadSetReference)) {
-        LoadSet loadSet(*model, LoadSet::Type::LOAD, loadset_id);
-        model->add(loadSet);
+    model.add(normalPressionFace);
+    model.addLoadingIntoLoadSet(normalPressionFace, loadSetReference);
+    if (!model.find(loadSetReference)) {
+        LoadSet loadSet(model, LoadSet::Type::LOAD, loadset_id);
+        model.add(loadSet);
     }
 }
 
-void NastranParser::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePLOAD4(NastranTokenizer& tok, Model& model) {
     int loadset_id = tok.nextInt();
     int eid1 = tok.nextInt();
     double p1 = tok.nextDouble();
@@ -2442,39 +2439,39 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, shared_ptr<Model> model) 
     bool has_direction = not (is_equal(n1, 0.0) and is_equal(n2, 0.0) and is_equal(n3, 0.0)
                               and cid == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     if (not has_direction and g1 == Globals::UNAVAILABLE_INT) {
-        NormalPressionFace normalPressionFace(*model, p1);
+        NormalPressionFace normalPressionFace(model, p1);
         for(int cellId = eid1; cellId < eid2; cellId++) {
             normalPressionFace.addCellId(cellId);
         }
 
-        model->add(normalPressionFace);
-        model->addLoadingIntoLoadSet(normalPressionFace, loadSetReference);
+        model.add(normalPressionFace);
+        model.addLoadingIntoLoadSet(normalPressionFace, loadSetReference);
     } else if (not has_direction and g1 != Globals::UNAVAILABLE_INT) {
-        NormalPressionFaceTwoNodes pressionFaceTwoNodes(*model, g1, g3_or_4,
+        NormalPressionFaceTwoNodes pressionFaceTwoNodes(model, g1, g3_or_4,
                 p1);
         for(int cellId = eid1; cellId < eid2; cellId++) {
             pressionFaceTwoNodes.addCellId(cellId);
         }
 
-        model->add(pressionFaceTwoNodes);
-        model->addLoadingIntoLoadSet(pressionFaceTwoNodes, loadSetReference);
+        model.add(pressionFaceTwoNodes);
+        model.addLoadingIntoLoadSet(pressionFaceTwoNodes, loadSetReference);
     } else {
-        ForceSurface forceSurface(*model, VectorialValue(n1 * p1, n2 * p1, n3 * p1),
+        ForceSurface forceSurface(model, VectorialValue(n1 * p1, n2 * p1, n3 * p1),
                 VectorialValue(0.0, 0.0, 0.0));
         for(int cellId = eid1; cellId < eid2; cellId++) {
             forceSurface.addCellId(cellId);
         }
 
-        model->add(forceSurface);
-        model->addLoadingIntoLoadSet(forceSurface, loadSetReference);
+        model.add(forceSurface);
+        model.addLoadingIntoLoadSet(forceSurface, loadSetReference);
     }
-    if (!model->find(loadSetReference)) {
-        LoadSet loadSet(*model, LoadSet::Type::LOAD, loadset_id);
-        model->add(loadSet);
+    if (!model.find(loadSetReference)) {
+        LoadSet loadSet(model, LoadSet::Type::LOAD, loadset_id);
+        model.add(loadSet);
     }
 }
 
-void NastranParser::parsePLSOLID(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePLSOLID(NastranTokenizer& tok, Model& model) {
     int pid = tok.nextInt();
     int mid = tok.nextInt();
     /*
@@ -2489,13 +2486,13 @@ void NastranParser::parsePLSOLID(NastranTokenizer& tok, shared_ptr<Model> model)
         handleParsingWarning("STRESS field " + stress + " not supported", tok, model);
     }
     // TODO LD: add large strain and large rotation somewhere, to be used in COMPORTEMENT
-    Continuum continuum(*model, ModelType::TRIDIMENSIONAL, pid);
+    Continuum continuum(model, ModelType::TRIDIMENSIONAL, pid);
     continuum.assignMaterial(mid);
     continuum.assignCellGroup(getOrCreateCellGroup(pid, model, "PLSOLID"));
-    model->add(continuum);
+    model.add(continuum);
 }
 
-void NastranParser::parsePROD(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePROD(NastranTokenizer& tok, Model& model) {
     int propId = tok.nextInt();
     int material_id = tok.nextInt();
     double a = tok.nextDouble();
@@ -2509,14 +2506,14 @@ void NastranParser::parsePROD(NastranTokenizer& tok, shared_ptr<Model> model) {
         handleParsingWarning("Non Structural mass (NSM) not supported and dismissed.", tok, model);
     }
     double equivalent_inertia_moment = pow(a, 2) / 4 / boost::math::constants::pi<double>(); // Using circular beam formula
-    GenericSectionBeam genericSectionBeam(*model, a, equivalent_inertia_moment, equivalent_inertia_moment, j, 1.0, 1.0, GenericSectionBeam::BeamModel::TRUSS, nsm,
+    GenericSectionBeam genericSectionBeam(model, a, equivalent_inertia_moment, equivalent_inertia_moment, j, 1.0, 1.0, GenericSectionBeam::BeamModel::TRUSS, nsm,
             propId);
     genericSectionBeam.assignMaterial(material_id);
     genericSectionBeam.assignCellGroup(getOrCreateCellGroup(propId, model, "PROD"));
-    model->add(genericSectionBeam);
+    model.add(genericSectionBeam);
 }
 
-void NastranParser::parsePSHELL(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePSHELL(NastranTokenizer& tok, Model& model) {
     int propId = tok.nextInt();
     int material_id1 = tok.nextInt();
     double thickness = tok.nextDouble(true, 0.0);
@@ -2549,13 +2546,13 @@ void NastranParser::parsePSHELL(NastranTokenizer& tok, shared_ptr<Model> model) 
         handleParsingWarning("Material 4 not yet supported and dismissed.", tok, model);
     }
 
-    Shell shell(*model, thickness, nsm, propId);
+    Shell shell(model, thickness, nsm, propId);
     shell.assignMaterial(material_id1);
     shell.assignCellGroup(getOrCreateCellGroup(propId, model,"PSHELL"));
-    model->add(shell);
+    model.add(shell);
 }
 
-void NastranParser::parsePSOLID(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parsePSOLID(NastranTokenizer& tok, Model& model) {
     int elemId = tok.nextInt();
     int material_id = tok.nextInt();
     int material_coordinate_system = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
@@ -2589,13 +2586,13 @@ void NastranParser::parsePSOLID(NastranTokenizer& tok, shared_ptr<Model> model) 
     if (fctn != "SMECH") {
         handleParsingWarning("PSOLID fctn " + fctn + " Not implemented", tok, model);
     }
-    Continuum continuum(*model, *modelType, elemId);
+    Continuum continuum(model, *modelType, elemId);
     continuum.assignMaterial(material_id);
     continuum.assignCellGroup(getOrCreateCellGroup(elemId, model, "PSOLID"));
-    model->add(continuum);
+    model.add(continuum);
 }
 
-void NastranParser::parseRBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseRBAR(NastranTokenizer& tok, Model& model) {
     int original_id=tok.nextInt();
     int ga = tok.nextInt();
     int gb = tok.nextInt();
@@ -2609,17 +2606,17 @@ void NastranParser::parseRBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
         cna = 123456;
     }
     if (cna != 0) {
-        QuasiRigidConstraint qrc = QuasiRigidConstraint(*model, DOFS::nastranCodeToDOFS(cna), HomogeneousConstraint::UNAVAILABLE_MASTER, original_id);
-        qrc.addSlave(ga);
-        qrc.addSlave(gb);
-        model->add(qrc);
-        model->addConstraintIntoConstraintSet(qrc, model->commonConstraintSet);
+        const auto& qrc = make_shared<QuasiRigidConstraint>(model, DOFS::nastranCodeToDOFS(cna), HomogeneousConstraint::UNAVAILABLE_MASTER, original_id);
+        qrc->addSlave(ga);
+        qrc->addSlave(gb);
+        model.add(qrc);
+        model.addConstraintIntoConstraintSet(*qrc, model.commonConstraintSet);
     } else if (cnb != 0) {
-        QuasiRigidConstraint qrc = QuasiRigidConstraint(*model, DOFS::nastranCodeToDOFS(cnb), HomogeneousConstraint::UNAVAILABLE_MASTER, original_id);
-        qrc.addSlave(ga);
-        qrc.addSlave(gb);
-        model->add(qrc);
-        model->addConstraintIntoConstraintSet(qrc, model->commonConstraintSet);
+        const auto& qrc = make_shared<QuasiRigidConstraint>(model, DOFS::nastranCodeToDOFS(cnb), HomogeneousConstraint::UNAVAILABLE_MASTER, original_id);
+        qrc->addSlave(ga);
+        qrc->addSlave(gb);
+        model.add(qrc);
+        model.addConstraintIntoConstraintSet(*qrc, model.commonConstraintSet);
     }
     if (cma != 0 || cmb != 0) {
         handleParsingWarning("cma or cmb not supported.", tok, model);
@@ -2632,17 +2629,17 @@ void NastranParser::parseRBAR(NastranTokenizer& tok, shared_ptr<Model> model) {
 
 }
 
-void NastranParser::parseRBAR1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseRBAR1(NastranTokenizer& tok, Model& model) {
     int original_id=tok.nextInt();
     int ga = tok.nextInt();
     int gb = tok.nextInt();
     int cna = tok.nextInt(true, 0);
 
-    QuasiRigidConstraint qrc = QuasiRigidConstraint(*model, DOFS::nastranCodeToDOFS(cna), HomogeneousConstraint::UNAVAILABLE_MASTER, original_id);
-    qrc.addSlave(ga);
-    qrc.addSlave(gb);
-    model->add(qrc);
-    model->addConstraintIntoConstraintSet(qrc, model->commonConstraintSet);
+    const auto& qrc = make_shared<QuasiRigidConstraint>(model, DOFS::nastranCodeToDOFS(cna), HomogeneousConstraint::UNAVAILABLE_MASTER, original_id);
+    qrc->addSlave(ga);
+    qrc->addSlave(gb);
+    model.add(qrc);
+    model.addConstraintIntoConstraintSet(*qrc, model.commonConstraintSet);
 
     double alpha = tok.nextDouble(true);
     if (!is_equal(alpha, Globals::UNAVAILABLE_DOUBLE)) {
@@ -2652,7 +2649,7 @@ void NastranParser::parseRBAR1(NastranTokenizer& tok, shared_ptr<Model> model) {
 
 }
 
-void NastranParser::parseRBE2(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseRBE2(NastranTokenizer& tok, Model& model) {
     int original_id = tok.nextInt();
     int masterId = tok.nextInt();
     int dofs = tok.nextInt();
@@ -2660,12 +2657,12 @@ void NastranParser::parseRBE2(NastranTokenizer& tok, shared_ptr<Model> model) {
         handleParsingWarning("QuasiRigid constraint not supported.",tok, model);
     }
 
-    RigidConstraint qrc(*model, masterId, original_id);
+    const auto& qrc = make_shared<RigidConstraint>(model, masterId, original_id);
     while (tok.isNextInt()) {
-        qrc.addSlave(tok.nextInt());
+        qrc->addSlave(tok.nextInt());
     }
-    model->add(qrc);
-    model->addConstraintIntoConstraintSet(qrc, model->commonConstraintSet);
+    model.add(qrc);
+    model.addConstraintIntoConstraintSet(*qrc, model.commonConstraintSet);
 
     double alpha = tok.nextDouble(true);
     if (!is_equal(alpha, Globals::UNAVAILABLE_DOUBLE)) {
@@ -2674,27 +2671,27 @@ void NastranParser::parseRBE2(NastranTokenizer& tok, shared_ptr<Model> model) {
     }
 }
 
-void NastranParser::parseRBE3(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseRBE3(NastranTokenizer& tok, Model& model) {
     int original_id = tok.nextInt();
     tok.skip(1); // ignoring blank
     int masterId = tok.nextInt();
     int nastranDofs = tok.nextInt();
-    DOFS dofs = DOFS::nastranCodeToDOFS(nastranDofs);
-    RBE3 rbe3(*model, masterId, dofs, original_id);
+    const DOFS& dofs = DOFS::nastranCodeToDOFS(nastranDofs);
+    const auto& rbe3 = make_shared<RBE3>(model, masterId, dofs, original_id);
     while (tok.isNextDouble()) {
         double coef = tok.nextDouble();
         int nastranSDofs = tok.nextInt();
-        DOFS sdofs = DOFS::nastranCodeToDOFS(nastranSDofs);
+        const DOFS& sdofs = DOFS::nastranCodeToDOFS(nastranSDofs);
         while (tok.isNextInt()) {
             int slaveId = tok.nextInt();
-            rbe3.addSlave(slaveId, sdofs, coef);
+            rbe3->addSlave(slaveId, sdofs, coef);
         }
     }
-    model->add(rbe3);
-    model->addConstraintIntoConstraintSet(rbe3, model->commonConstraintSet);
+    model.add(rbe3);
+    model.addConstraintIntoConstraintSet(*rbe3, model.commonConstraintSet);
 }
 
-void NastranParser::parseRFORCE(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseRFORCE(NastranTokenizer& tok, Model& model) {
     // RFORCE  2       1               200.    0.0     0.0     1.0     2
     int sid = tok.nextInt();
     int g = tok.nextInt();
@@ -2727,19 +2724,19 @@ void NastranParser::parseRFORCE(NastranTokenizer& tok, shared_ptr<Model> model) 
         handleParsingWarning(message, tok, model);
     }
 
-    RotationNode rotation(*model, a, g, r1, r2, r3);
+    RotationNode rotation(model, a, g, r1, r2, r3);
 
-    model->add(rotation);
+    model.add(rotation);
     Reference<vega::LoadSet> loadset_ref(LoadSet::Type::LOAD, sid);
-    model->addLoadingIntoLoadSet(rotation, loadset_ref);
-    if (!model->find(loadset_ref)) {
-        LoadSet loadSet(*model, LoadSet::Type::LOAD, sid);
-        model->add(loadSet);
+    model.addLoadingIntoLoadSet(rotation, loadset_ref);
+    if (!model.find(loadset_ref)) {
+        LoadSet loadSet(model, LoadSet::Type::LOAD, sid);
+        model.add(loadSet);
     }
 
 }
 
-void NastranParser::parseRLOAD1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseRLOAD1(NastranTokenizer& tok, Model& model) {
     int loadset_id = tok.nextInt();
     int darea_set_id = tok.nextInt();
 
@@ -2771,53 +2768,53 @@ void NastranParser::parseRLOAD1(NastranTokenizer& tok, shared_ptr<Model> model) 
 
     Reference<NamedValue> dynaDelay_ref = Reference<NamedValue>(Value::Type::DYNA_PHASE, delay_id);
     if (delay_id == 0) {
-        DynaPhase dynadelay(*model, -2*M_PI*delay);
-        model->add(dynadelay);
+        DynaPhase dynadelay(model, -2*M_PI*delay);
+        model.add(dynadelay);
         dynaDelay_ref = Reference<NamedValue>(dynadelay);
     }
     Reference<NamedValue> dynaPhase_ref = Reference<NamedValue>(Value::Type::DYNA_PHASE, dphase_id);
     if (dphase_id == 0) {
-        DynaPhase dynaphase(*model, dphase);
-        model->add(dynaphase);
+        DynaPhase dynaphase(model, dphase);
+        model.add(dynaphase);
         dynaPhase_ref = Reference<NamedValue>(dynaphase);
     }
     Reference<NamedValue> functionTableC_ref(Value::Type::FUNCTION_TABLE, functionTableC_original_id);
     Reference<NamedValue> functionTableD_ref(Value::Type::FUNCTION_TABLE, functionTableD_original_id);
 
     // If needed, creates a LoadSet EXCITEID for the DynamicExcitation
-    LoadSet darea(*model, LoadSet::Type::EXCITEID, darea_set_id);
+    LoadSet darea(model, LoadSet::Type::EXCITEID, darea_set_id);
     Reference<LoadSet> darea_ref(darea);
-    if (!model->find(darea_ref)){
-       model->add(darea);
+    if (!model.find(darea_ref)){
+       model.add(darea);
     }
 
     // if loadSet DLOAD does not exist (was not declared in the bulk), loadset_id become the original id of DynamicExcitation
     // else DynamicExcitation is created without original_id and is mapped to this loadSet
     int original_id;
     Reference<LoadSet> loadSetReference(LoadSet::Type::DLOAD, loadset_id);
-    if (model->find(loadSetReference))
+    if (model.find(loadSetReference))
         original_id = Loading::NO_ORIGINAL_ID;
     else
         original_id = loadset_id;
 
-    DynamicExcitation dynamicExcitation(*model, dynaDelay_ref, dynaPhase_ref, functionTableC_ref, functionTableD_ref, darea_ref,
+    DynamicExcitation dynamicExcitation(model, dynaDelay_ref, dynaPhase_ref, functionTableC_ref, functionTableD_ref, darea_ref,
             original_id);
-    model->add(dynamicExcitation);
+    model.add(dynamicExcitation);
 
-    model->addLoadingIntoLoadSet(dynamicExcitation, loadSetReference);
-    if (!model->find(loadSetReference)) {
-        LoadSet loadSet(*model, LoadSet::Type::DLOAD, loadset_id);
-        model->add(loadSet);
+    model.addLoadingIntoLoadSet(dynamicExcitation, loadSetReference);
+    if (!model.find(loadSetReference)) {
+        LoadSet loadSet(model, LoadSet::Type::DLOAD, loadset_id);
+        model.add(loadSet);
     }
 
     // PlaceHolder to complete the Value attribute paraX of FunctionTable
-    model->add(dynamicExcitation.getFunctionTableBPlaceHolder());
+    model.add(dynamicExcitation.getFunctionTableBPlaceHolder());
     if (functionTableD_original_id>0){
-        model->add(dynamicExcitation.getFunctionTablePPlaceHolder());
+        model.add(dynamicExcitation.getFunctionTablePPlaceHolder());
     }
 }
 
-void NastranParser::parseRLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseRLOAD2(NastranTokenizer& tok, Model& model) {
     int loadset_id = tok.nextInt();
     int darea_set_id = tok.nextInt();
 
@@ -2847,14 +2844,14 @@ void NastranParser::parseRLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) 
 
     Reference<NamedValue> dynaDelay_ref = Reference<NamedValue>(Value::Type::DYNA_PHASE, delay_id);
     if (delay_id == 0) {
-        DynaPhase dynadelay(*model, -2*M_PI*delay);
-        model->add(dynadelay);
+        DynaPhase dynadelay(model, -2*M_PI*delay);
+        model.add(dynadelay);
         dynaDelay_ref = Reference<NamedValue>(dynadelay);
     }
     Reference<NamedValue> dynaPhase_ref = Reference<NamedValue>(Value::Type::DYNA_PHASE, dphase_id);
     if (dphase_id == 0) {
-        DynaPhase dynaphase(*model, dphase);
-        model->add(dynaphase);
+        DynaPhase dynaphase(model, dphase);
+        model.add(dynaphase);
         dynaPhase_ref = Reference<NamedValue>(dynaphase);
     }
     Reference<NamedValue> functionTableB_ref(Value::Type::FUNCTION_TABLE, functionTableB_original_id);
@@ -2864,64 +2861,64 @@ void NastranParser::parseRLOAD2(NastranTokenizer& tok, shared_ptr<Model> model) 
 
 
     Reference<LoadSet> excitRef{LoadSet::Type::EXCITEID, darea_set_id};
-    if (model->loadSets.contains(LoadSet::Type::LOADSET) and not model->find(excitRef)) {
+    if (model.loadSets.contains(LoadSet::Type::LOADSET) and not model.find(excitRef)) {
         // If there is a LOADSET request in the Case Control, then the model will reference static and thermal load set entries specified by the LID or TID field in the selected LSEQ entries corresponding to the EXCITEID.
-        auto loadsets = model->loadSets.filter(LoadSet::Type::LOADSET); // Hack should look for the indicated LOADSEQ context parameter
+        auto loadsets = model.loadSets.filter(LoadSet::Type::LOADSET); // Hack should look for the indicated LOADSEQ context parameter
         const auto& lseq = loadsets[0];
 //        const Reference<LoadSet>& dareaSetId = lseq->embedded_loadsets[0].first; // What about .second ?
 //        handleParsingWarning("Hack in resolving RLOAD2->LSEQ->(darea id)->LOAD : " + to_string(dareaSetId.original_id) + " versus " + to_string(darea_set_id),
 //                tok, model); // Hack, should seek the corresponding darea
         Reference<LoadSet> loadId = lseq->embedded_loadsets[0].first; // What about .second ?
         excitRef = loadId; // HACK?
-    } else if (model->find(Reference<LoadSet>{LoadSet::Type::LOAD, darea_set_id})) {
+    } else if (model.find(Reference<LoadSet>{LoadSet::Type::LOAD, darea_set_id})) {
         excitRef = Reference<LoadSet>{LoadSet::Type::LOAD, darea_set_id};
     }
     // If needed, creates a LoadSet EXCITEID for the DynamicExcitation
-//    LoadSet darea(*model, LoadSet::Type::EXCITEID, darea_set_id);
+//    LoadSet darea(model, LoadSet::Type::EXCITEID, darea_set_id);
 //    Reference<LoadSet> darea_ref(darea);
-//    if (!model->find(darea_ref)){
-//       model->add(darea);
+//    if (!model.find(darea_ref)){
+//       model.add(darea);
 //    }
 
     // if loadSet DLOAD does not exist (was not declared in the bulk), loadset_id become the original id of DynamicExcitation
     // else DynamicExcitation is created without original_id and is mapped to this loadSet
     int original_id;
     Reference<LoadSet> loadSetReference(LoadSet::Type::DLOAD, loadset_id);
-    if (model->find(loadSetReference))
+    if (model.find(loadSetReference))
         original_id = Loading::NO_ORIGINAL_ID;
     else
         original_id = loadset_id;
 
-    DynamicExcitation dynamicExcitation(*model, dynaDelay_ref, dynaPhase_ref, functionTableB_ref, functionTableP_ref, excitRef,
+    DynamicExcitation dynamicExcitation(model, dynaDelay_ref, dynaPhase_ref, functionTableB_ref, functionTableP_ref, excitRef,
             original_id);
-    model->add(dynamicExcitation);
+    model.add(dynamicExcitation);
 
-    model->addLoadingIntoLoadSet(dynamicExcitation, loadSetReference);
-    if (!model->find(loadSetReference)) {
-        LoadSet loadSet(*model, LoadSet::Type::DLOAD, loadset_id);
-        model->add(loadSet);
+    model.addLoadingIntoLoadSet(dynamicExcitation, loadSetReference);
+    if (!model.find(loadSetReference)) {
+        LoadSet loadSet(model, LoadSet::Type::DLOAD, loadset_id);
+        model.add(loadSet);
     }
 
     // PlaceHolder to complete the Value attribute paraX of FunctionTable
-    model->add(dynamicExcitation.getFunctionTableBPlaceHolder());
+    model.add(dynamicExcitation.getFunctionTableBPlaceHolder());
     if (functionTableP_original_id>0){
-        model->add(dynamicExcitation.getFunctionTablePPlaceHolder());
+        model.add(dynamicExcitation.getFunctionTablePPlaceHolder());
     }
 }
 
-void NastranParser::parseSET3(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseSET3(NastranTokenizer& tok, Model& model) {
     // page 2457 Labeled Set Definition, defines a list of grids, elements or points.
     int sid = tok.nextInt();
     string name = string("SET") + "_" + to_string(sid);
     string des = tok.nextString();
 
     if (des == "GRID") {
-        shared_ptr<NodeGroup> nodeGroup = model->mesh->findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SET");
+        shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SET");
         while (tok.isNextInt()) {
             nodeGroup->addNodeId(tok.nextInt());
         }
     } else if (des == "ELEM") {
-        shared_ptr<CellGroup> cellGroup = model->mesh->createCellGroup(name,CellGroup::NO_ORIGINAL_ID,"SET");
+        shared_ptr<CellGroup> cellGroup = model.mesh.createCellGroup(name,CellGroup::NO_ORIGINAL_ID,"SET");
         while (tok.isNextInt()) {
             cellGroup->addCellId(tok.nextInt());
         }
@@ -2933,29 +2930,29 @@ void NastranParser::parseSET3(NastranTokenizer& tok, shared_ptr<Model> model) {
 
 //FIXME: SLOAD uses the CID of the Grid point to determine X... Not sure it's done here.
 // The "scalar" DOF is supposed to be DOF::DX
-void NastranParser::parseSLOAD(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseSLOAD(NastranTokenizer& tok, Model& model) {
     int loadset_id = tok.nextInt();
     Reference<vega::LoadSet> loadset_ref(LoadSet::Type::LOAD, loadset_id);
 
     while (tok.isNextInt()) {
         int grid_id = tok.nextInt();
         double magnitude = tok.nextDouble();
-        NodalForce force1(*model, magnitude, 0., 0., 0., 0., 0., Loading::NO_ORIGINAL_ID);
+        NodalForce force1(model, magnitude, 0., 0., 0., 0., 0., Loading::NO_ORIGINAL_ID);
         force1.addNodeId(grid_id);
-        model->add(force1);
-        model->addLoadingIntoLoadSet(force1, loadset_ref);
+        model.add(force1);
+        model.addLoadingIntoLoadSet(force1, loadset_ref);
     }
 
-    if (!model->find(loadset_ref)) {
-        LoadSet loadSet(*model, LoadSet::Type::LOAD, loadset_id);
-        model->add(loadSet);
+    if (!model.find(loadset_ref)) {
+        LoadSet loadSet(model, LoadSet::Type::LOAD, loadset_id);
+        model.add(loadSet);
     }
 
 }
-void NastranParser::parseSPC(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseSPC(NastranTokenizer& tok, Model& model) {
     int spcSet_id = tok.nextInt();
     string name = string("SPC") + "_" + to_string(spcSet_id);
-    shared_ptr<NodeGroup> spcNodeGroup = model->mesh->findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPC");
+    shared_ptr<NodeGroup> spcNodeGroup = model.mesh.findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPC");
 
     while (tok.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_FIELD) {
         const int nodeId = tok.nextInt(true);
@@ -2965,44 +2962,43 @@ void NastranParser::parseSPC(NastranTokenizer& tok, shared_ptr<Model> model) {
         }
         const int gi = tok.nextInt(true, 123456);
         const double displacement = tok.nextDouble(true, 0.0);
-        SinglePointConstraint spc = SinglePointConstraint(*model, DOFS::nastranCodeToDOFS(gi), displacement);
-        spc.addNodeId(nodeId);
+        const auto& spc = make_shared<SinglePointConstraint>(model, DOFS::nastranCodeToDOFS(gi), displacement);
+        spc->addNodeId(nodeId);
         spcNodeGroup->addNodeId(nodeId);
 
-        model->add(spc);
-        model->addConstraintIntoConstraintSet(spc,
+        model.add(spc);
+        model.addConstraintIntoConstraintSet(*spc,
                 Reference<ConstraintSet>(ConstraintSet::Type::SPC, spcSet_id));
     }
 }
 
-void NastranParser::parseSPC1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseSPC1(NastranTokenizer& tok, Model& model) {
     int set_id = tok.nextInt();
     const int dofInt = tok.nextInt();
 
-    // We create a constraint
-    SinglePointConstraint spc = SinglePointConstraint(*model, DOFS::nastranCodeToDOFS(dofInt), 0.0);
+    const auto& spc = make_shared<SinglePointConstraint>(model, DOFS::nastranCodeToDOFS(dofInt), 0.0);
 
     // Nodes are added to the constraint Node Group
     string name = string("SPC1") + "_" + to_string(set_id);
-    shared_ptr<NodeGroup> spcNodeGroup = model->mesh->findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPC1");
+    shared_ptr<NodeGroup> spcNodeGroup = model.mesh.findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPC1");
 
     // Parsing Nodes
     for(int gridId : tok.nextInts()) {
         spcNodeGroup->addNodeId(gridId);
-        spc.addNodeId(gridId);
+        spc->addNodeId(gridId);
     }
 
     // Adding the constraint to the model
-    model->add(spc);
-    model->addConstraintIntoConstraintSet(spc,
+    model.add(spc);
+    model.addConstraintIntoConstraintSet(*spc,
             Reference<ConstraintSet>(ConstraintSet::Type::SPC, set_id));
 
 }
 
-void NastranParser::parseSPCADD(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseSPCADD(NastranTokenizer& tok, Model& model) {
     int set_id = tok.nextInt();
     // retrieve the ConstraintSet that was created in the executive section
-    shared_ptr<ConstraintSet> constraintSet_ptr = model->find(
+    shared_ptr<ConstraintSet> constraintSet_ptr = model.find(
             Reference<ConstraintSet>(ConstraintSet::Type::SPC, set_id));
 
     if (!constraintSet_ptr)
@@ -3015,20 +3011,20 @@ void NastranParser::parseSPCADD(NastranTokenizer& tok, shared_ptr<Model> model) 
             // Example: case of SPC in local coordinate system replaced by MPCs
             // Possible alternative: make sure that these SPCs are found also with methods like
             // Model.getConstraintsByConstraintSet() etc. which seems not to be the case now
-            ConstraintSet constraintSet(*model, ConstraintSet::Type::SPC, constraintSet_id);
-            model->add(constraintSet);
+            ConstraintSet constraintSet(model, ConstraintSet::Type::SPC, constraintSet_id);
+            model.add(constraintSet);
             Reference<ConstraintSet> constraintSetReference(ConstraintSet::Type::SPC, constraintSet_id);
             constraintSet_ptr->add(constraintSetReference);
         }
     }
 }
 
-void NastranParser::parseSPCD(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseSPCD(NastranTokenizer& tok, Model& model) {
     int set_id = tok.nextInt();
     const int g1 = tok.nextInt();
     const int c1 = tok.nextInt();
     const double d1 = tok.nextDouble();
-    //int g1pos = model->mesh->findNodePosition(g1);
+    //int g1pos = model.mesh.findNodePosition(g1);
     int g2 = -1;
     int c2 = -1;
     double d2 = -1;
@@ -3037,33 +3033,33 @@ void NastranParser::parseSPCD(NastranTokenizer& tok, shared_ptr<Model> model) {
         g2 = tok.nextInt();
         c2 = tok.nextInt();
         d2 = tok.nextDouble();
-        //g2pos = model->mesh->findNodePosition(g2);
+        //g2pos = model.mesh.findNodePosition(g2);
     }
     Reference<LoadSet> loadingSetReference(LoadSet::Type::LOAD, set_id);
-    if (!model->find(loadingSetReference)) {
-        LoadSet loadingSet(*model, LoadSet::Type::LOAD, set_id);
-        model->add(loadingSet);
+    if (!model.find(loadingSetReference)) {
+        LoadSet loadingSet(model, LoadSet::Type::LOAD, set_id);
+        model.add(loadingSet);
     }
 
-    ImposedDisplacement spcd = ImposedDisplacement(*model, DOFS::nastranCodeToDOFS(c1), d1);
+    ImposedDisplacement spcd = ImposedDisplacement(model, DOFS::nastranCodeToDOFS(c1), d1);
     spcd.addNodeId(g1);
-    model->add(spcd);
-    model->addLoadingIntoLoadSet(spcd, loadingSetReference);
+    model.add(spcd);
+    model.addLoadingIntoLoadSet(spcd, loadingSetReference);
     if (g2 != -1 and c2 != -1) {
-        ImposedDisplacement spcd2 = ImposedDisplacement(*model, DOFS::nastranCodeToDOFS(c2), d2);
+        ImposedDisplacement spcd2 = ImposedDisplacement(model, DOFS::nastranCodeToDOFS(c2), d2);
         spcd.addNodeId(g2);
-        model->add(spcd2);
-        model->addLoadingIntoLoadSet(spcd2, loadingSetReference);
+        model.add(spcd2);
+        model.addLoadingIntoLoadSet(spcd2, loadingSetReference);
     }
 }
 
-void NastranParser::parseTABDMP1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseTABDMP1(NastranTokenizer& tok, Model& model) {
     int original_id = tok.nextInt();
     string type = tok.nextString(true, "G");
     if (type != "CRIT"){
         handleParsingError("Only CRIT type supported.", tok, model);
     }
-    vega::FunctionTable functionTable(*model, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::LINEAR,
+    vega::FunctionTable functionTable(model, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::LINEAR,
             FunctionTable::Interpolation::NONE, FunctionTable::Interpolation::CONSTANT);
 
     // The next 6 fields are empty (but not in free syntax).
@@ -3111,13 +3107,13 @@ void NastranParser::parseTABDMP1(NastranTokenizer& tok, shared_ptr<Model> model)
 
     functionTable.setParaX(Function::ParaName::FREQ);
     functionTable.setParaY(Function::ParaName::AMOR);
-    vega::ModalDamping modalDamping(*model, functionTable, original_id);
+    vega::ModalDamping modalDamping(model, functionTable, original_id);
 
-    model->add(functionTable);
-    model->add(modalDamping);
+    model.add(functionTable);
+    model.add(modalDamping);
 }
 
-void NastranParser::parseTABLED1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseTABLED1(NastranTokenizer& tok, Model& model) {
     int original_id = tok.nextInt();
     string interpolation = tok.nextString(true, "LINEAR");
     FunctionTable::Interpolation parameter =
@@ -3126,7 +3122,7 @@ void NastranParser::parseTABLED1(NastranTokenizer& tok, shared_ptr<Model> model)
     FunctionTable::Interpolation value =
             (interpolation == "LINEAR") ? FunctionTable::Interpolation::LINEAR : FunctionTable::Interpolation::LOGARITHMIC;
 
-    vega::FunctionTable functionTable(*model, parameter, value, FunctionTable::Interpolation::NONE,
+    vega::FunctionTable functionTable(model, parameter, value, FunctionTable::Interpolation::NONE,
             FunctionTable::Interpolation::NONE, original_id);
 
     // The next 5 fields are empty (but not in the free syntax).
@@ -3172,14 +3168,14 @@ void NastranParser::parseTABLED1(NastranTokenizer& tok, shared_ptr<Model> model)
         functionTable.setXY(x, y);
     }
 
-    model->add(functionTable);
+    model.add(functionTable);
 
 }
 
-void NastranParser::parseTABLES1(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseTABLES1(NastranTokenizer& tok, Model& model) {
     int original_id = tok.nextInt();
 
-    FunctionTable functionTable(*model, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::LINEAR,
+    FunctionTable functionTable(model, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::LINEAR,
             FunctionTable::Interpolation::LINEAR, original_id);
     functionTable.setParaX(Function::ParaName::STRAIN);
     functionTable.setParaY(Function::ParaName::STRESS);
@@ -3221,46 +3217,46 @@ void NastranParser::parseTABLES1(NastranTokenizer& tok, shared_ptr<Model> model)
         functionTable.setXY(x, y);
     }
 
-    model->add(functionTable);
+    model.add(functionTable);
 
 }
 
-void NastranParser::parseTEMP(NastranTokenizer& tok, shared_ptr<Model> model) {
+void NastranParser::parseTEMP(NastranTokenizer& tok, Model& model) {
     int sid = tok.nextInt();
     Reference<vega::LoadSet> loadset_ref(LoadSet::Type::LOAD, sid);
     int g1 = tok.nextInt();
     double t1 = tok.nextDouble();
-    InitialTemperature temp1(*model, t1);
+    InitialTemperature temp1(model, t1);
     temp1.addNodeId(g1);
-    model->add(temp1);
-    model->addLoadingIntoLoadSet(temp1, loadset_ref);
+    model.add(temp1);
+    model.addLoadingIntoLoadSet(temp1, loadset_ref);
 
     if (tok.isNextInt()) {
         int g2 = tok.nextInt();
         double t2 = tok.nextDouble();
-        InitialTemperature temp2(*model, t2);
+        InitialTemperature temp2(model, t2);
         temp2.addNodeId(g2);
-        model->add(temp2);
-        model->addLoadingIntoLoadSet(temp2, loadset_ref);
+        model.add(temp2);
+        model.addLoadingIntoLoadSet(temp2, loadset_ref);
     }
 
     if (tok.isNextInt()) {
         int g3 = tok.nextInt();
         double t3 = tok.nextDouble();
-        InitialTemperature temp3(*model, t3);
+        InitialTemperature temp3(model, t3);
         temp3.addNodeId(g3);
-        model->add(temp3);
-        model->addLoadingIntoLoadSet(temp3, loadset_ref);
+        model.add(temp3);
+        model.addLoadingIntoLoadSet(temp3, loadset_ref);
     }
 
-    if (!model->find(loadset_ref)) {
-        LoadSet loadSet(*model, LoadSet::Type::LOAD, sid);
-        model->add(loadSet);
+    if (!model.find(loadset_ref)) {
+        LoadSet loadSet(model, LoadSet::Type::LOAD, sid);
+        model.add(loadSet);
     }
 }
 
 
-int NastranParser::parseDOF(NastranTokenizer& tok, shared_ptr<Model> model, bool returnDefaultIfNotFoundOrBlank, int defaultValue){
+int NastranParser::parseDOF(NastranTokenizer& tok, Model& model, bool returnDefaultIfNotFoundOrBlank, int defaultValue){
 
     int dofread = tok.nextInt(returnDefaultIfNotFoundOrBlank, defaultValue);
 

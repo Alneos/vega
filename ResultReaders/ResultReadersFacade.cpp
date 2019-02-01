@@ -12,6 +12,7 @@
 #include <ciso646>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/make_unique.hpp>
 #include <stdexcept>
 
 namespace vega {
@@ -24,17 +25,17 @@ ResultReadersFacade::ResultReadersFacade() {
 
 }
 
-shared_ptr<ResultReader> ResultReadersFacade::getResultReader(
+unique_ptr<ResultReader> ResultReadersFacade::getResultReader(
 		const ConfigurationParameters& configuration) {
-	shared_ptr<ResultReader> result;
+	unique_ptr<ResultReader> result;
 	if (!configuration.resultFile.empty()) {
 		fs::path ext = configuration.resultFile.extension();
 		if (!ext.empty()) {
 			string ext_str = boost::algorithm::to_lower_copy(ext.string());
 			if (ext_str == ".f06") {
-				result = make_shared<F06Parser>();
+				result = boost::make_unique<F06Parser>();
 			} else if (ext_str == ".csv") {
-				result = make_shared<CSVResultReader>();
+				result = boost::make_unique<CSVResultReader>();
 			} else {
 				cerr << "Can't determine the type of the result file. " << endl;
 				cerr << "allowed types are .f06, .csv" << endl;

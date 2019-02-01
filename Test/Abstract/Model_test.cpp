@@ -22,6 +22,7 @@
 
 #define BOOST_TEST_MODULE model_test
 #include <boost/test/unit_test.hpp>
+#include <boost/make_unique.hpp>
 
 using namespace std;
 using namespace vega;
@@ -35,33 +36,31 @@ using namespace vega;
 // }
 
 BOOST_AUTO_TEST_CASE( test_model_spc ) {
-	Model model("inputfile", "10.3", SolverName::NASTRAN);
+	Model model{"inputfile", "10.3", SolverName::NASTRAN};
 	double coords[18] = { 0.0, 0.0, 0.0, 0.3, 0.0, 0.0, 0.75, 0.0, 0.0, 1.0, 0.0, 0.0, 1.4, 0.0,
 			0.0, 1.3, 0.0, 0.0 };
 	for (int i = 0; i < 18; i += 3) {
-		model.mesh->addNode(i, coords[i], coords[i + 1], coords[i + 2]);
+		model.mesh.addNode(i, coords[i], coords[i + 1], coords[i + 2]);
 	}
-	model.mesh->addCell(27, CellType::SEG2, {0, 1});
-	model.mesh->addCell(28, CellType::SEG2, {1, 2});
-	model.mesh->addCell(29, CellType::SEG2, {2, 3});
-	model.mesh->addCell(30, CellType::SEG2, {3, 4});
-	model.mesh->addCell(31, CellType::POINT1, {1});
-	shared_ptr<vega::NodeGroup> gn1 = model.mesh->findOrCreateNodeGroup("GN1");
+	model.mesh.addCell(27, CellType::SEG2, {0, 1});
+	model.mesh.addCell(28, CellType::SEG2, {1, 2});
+	model.mesh.addCell(29, CellType::SEG2, {2, 3});
+	model.mesh.addCell(30, CellType::SEG2, {3, 4});
+	model.mesh.addCell(31, CellType::POINT1, {1});
+	shared_ptr<vega::NodeGroup> gn1 = model.mesh.findOrCreateNodeGroup("GN1");
 	gn1->addNodeId(0);
 	gn1->addNodeId(6);
-	shared_ptr<vega::CellGroup> gm1 = model.mesh->createCellGroup("GM1");
+	shared_ptr<vega::CellGroup> gm1 = model.mesh.createCellGroup("GM1");
 	gm1->addCellId(31);
-	shared_ptr<vega::CellGroup> gm2 = model.mesh->createCellGroup("GM2");
+	shared_ptr<vega::CellGroup> gm2 = model.mesh.createCellGroup("GM2");
 	gm2->addCellId(28);
 	gm2->addCellId(30);
-	//SinglePointConstraint spc1 = SinglePointConstraint(model, true, true, true, false, false, false,
-	//		0.0, gn1);
-	SinglePointConstraint spc1 = SinglePointConstraint(model,array<ValueOrReference, 3>{{ 0, 0, 0 }}, gn1);
+	const auto& spc1 = make_shared<SinglePointConstraint>(model,array<ValueOrReference, 3>{{ 0, 0, 0 }}, gn1);
 	model.add(spc1);
 	model.finish();
 
 	shared_ptr<SinglePointConstraint> spc1_ptr = dynamic_pointer_cast<SinglePointConstraint>(
-			model.find(Reference<Constraint>(spc1)));
+			model.find(spc1->getReference()));
 	BOOST_CHECK(spc1_ptr);
 	DOFS spc_dofs = spc1_ptr->getDOFSForNode(0);
 	BOOST_CHECK(spc1_ptr->hasReferences() == false);
@@ -70,56 +69,56 @@ BOOST_AUTO_TEST_CASE( test_model_spc ) {
 }
 
 BOOST_AUTO_TEST_CASE( test_cells_iterator ) {
-	Model model("inputfile", "10.3", SolverName::NASTRAN);
+	Model model{"inputfile", "10.3", SolverName::NASTRAN};
 	BOOST_TEST_CHECKPOINT("Mesh start");
-	model.mesh->addCell(27, CellType::SEG2, {0, 1});
-	model.mesh->addCell(28, CellType::SEG2, {1, 2});
-	model.mesh->addCell(29, CellType::SEG2, {2, 3});
-	model.mesh->addCell(30, CellType::TRI3, {3, 4, 5});
-	model.mesh->addCell(31, CellType::POINT1, {1});
+	model.mesh.addCell(27, CellType::SEG2, {0, 1});
+	model.mesh.addCell(28, CellType::SEG2, {1, 2});
+	model.mesh.addCell(29, CellType::SEG2, {2, 3});
+	model.mesh.addCell(30, CellType::TRI3, {3, 4, 5});
+	model.mesh.addCell(31, CellType::POINT1, {1});
 	double coords[18] = { 0.0, 0.0, 0.0, 0.3, 0.0, 0.0, 0.75, 0.0, 0.0, 1.0, 0.0, 0.0, 1.4, 0.0,
 			0.0, 1.3, 0.0, 1.0 };
 	int i;
 	for (i = 0; i < 18; i += 3) {
-		model.mesh->addNode(i / 3, coords[i], coords[i + 1], coords[i + 2]);
+		model.mesh.addNode(i / 3, coords[i], coords[i + 1], coords[i + 2]);
 	}
 	BOOST_TEST_CHECKPOINT("Mesh finish");
-	model.mesh->finish();
+	model.mesh.finish();
 
-	CellIterator cellIterator = model.mesh->cells.cells_begin(CellType::TRI3);
+	CellIterator cellIterator = model.mesh.cells.cells_begin(CellType::TRI3);
 	BOOST_TEST_CHECKPOINT("Iteration begin1");
 //C++ style
-	for (i = 0; cellIterator != model.mesh->cells.cells_end(CellType::TRI3); cellIterator++) {
+	for (i = 0; cellIterator != model.mesh.cells.cells_end(CellType::TRI3); cellIterator++) {
 		i++;
 		Cell cell(*(cellIterator));
 		cout << cell << endl;
 	}
 	BOOST_CHECK_EQUAL(1, i);
 	BOOST_TEST_CHECKPOINT("Iteration begin2");
-	CellIterator cellIterator2 = model.mesh->cells.cells_begin(CellType::SEG2);
+	CellIterator cellIterator2 = model.mesh.cells.cells_begin(CellType::SEG2);
 	for (i = 0; cellIterator2.hasNext(); i++) {
 		Cell cell = cellIterator2.next();
 		cout << cell << endl;
 	}
 	BOOST_CHECK_EQUAL(3, i);
-	BOOST_CHECK_EQUAL(3, model.mesh->countCells(CellType::SEG2));
-	BOOST_CHECK_EQUAL(1, model.mesh->countCells(CellType::POINT1));
-	//BOOST_CHECK_EQUAL(0, model.mesh->countCells(CellType::POLYL));
+	BOOST_CHECK_EQUAL(3, model.mesh.countCells(CellType::SEG2));
+	BOOST_CHECK_EQUAL(1, model.mesh.countCells(CellType::POINT1));
+	//BOOST_CHECK_EQUAL(0, model.mesh.countCells(CellType::POLYL));
 
 }
 
 BOOST_AUTO_TEST_CASE( test_Elements ) {
-	Model model("inputfile", "10.3", SolverName::NASTRAN);
+	Model model{"inputfile", "10.3", SolverName::NASTRAN};
 	double coords[12] = { -433., 250., 0., 433., 250., 0., 0., -500., 0., 0., 0., 1000. };
 	int j = 1;
 	for (int i = 0; i < 12; i += 3) {
-		model.mesh->addNode(j, coords[i], coords[i + 1], coords[i + 2]);
+		model.mesh.addNode(j, coords[i], coords[i + 1], coords[i + 2]);
 		j++;
 	}
-	model.mesh->addCell(1, CellType::SEG2, {1, 4});
-	model.mesh->addCell(2, CellType::SEG2, {2, 4});
-	model.mesh->addCell(3, CellType::SEG2, {3, 4});
-	shared_ptr<vega::CellGroup> cn1 = model.mesh->createCellGroup("GM1");
+	model.mesh.addCell(1, CellType::SEG2, {1, 4});
+	model.mesh.addCell(2, CellType::SEG2, {2, 4});
+	model.mesh.addCell(3, CellType::SEG2, {3, 4});
+	shared_ptr<vega::CellGroup> cn1 = model.mesh.createCellGroup("GM1");
 	cn1->addCellId(1);
 	cn1->addCellId(2);
 	BOOST_TEST_CHECKPOINT("after addcells");
@@ -128,7 +127,7 @@ BOOST_AUTO_TEST_CASE( test_Elements ) {
 	rectangularSectionBeam.assignMaterial(1);
 	model.add(rectangularSectionBeam);
 	model.getOrCreateMaterial(1)->addNature(ElasticNature(model, 1, 0));
-	cout << "NODES:" << model.mesh->countNodes() << endl;
+	cout << "NODES:" << model.mesh.countNodes() << endl;
 	model.finish();
 	BOOST_CHECK(model.validate());
 	const vector<shared_ptr<ElementSet>> beams = model.elementSets.filter(ElementSet::Type::RECTANGULAR_SECTION_BEAM);
@@ -147,11 +146,11 @@ BOOST_AUTO_TEST_CASE( test_Elements ) {
 
 }
 
-shared_ptr<Model> createModelWith1HEXA8() {
+unique_ptr<Model> createModelWith1HEXA8() {
     ModelConfiguration configuration;
     configuration.virtualDiscrets = true;
     configuration.createSkin = true;
-	shared_ptr<Model> model = make_shared<Model>("inputfile", "10.3", SolverName::NASTRAN,
+	unique_ptr<Model> model = boost::make_unique<Model>("inputfile", "10.3", SolverName::NASTRAN,
 					configuration);
 	double coords[24] = {
 			0., 0., 0.,
@@ -166,10 +165,10 @@ shared_ptr<Model> createModelWith1HEXA8() {
 
 	vector<int> nodeIds = { 50, 51, 52, 53, 54, 55, 56, 57 };
 	for (int i = 0; i < 8; i ++) {
-		model->mesh->addNode(nodeIds[i], coords[i*3], coords[i*3 + 1], coords[i*3 + 2]);
+		model->mesh.addNode(nodeIds[i], coords[i*3], coords[i*3 + 1], coords[i*3 + 2]);
 	}
-	int cellPosition = model->mesh->addCell(1, CellType::HEXA8, nodeIds);
-	const Cell& hexa = model->mesh->findCell(cellPosition);
+	int cellPosition = model->mesh.addCell(1, CellType::HEXA8, nodeIds);
+	const Cell& hexa = model->mesh.findCell(cellPosition);
 	BOOST_CHECK_EQUAL_COLLECTIONS(hexa.nodeIds.begin(), hexa.nodeIds.end(), nodeIds.begin(),
 			nodeIds.end());
 	BOOST_CHECK_EQUAL(hexa.id, 1);
@@ -177,7 +176,7 @@ shared_ptr<Model> createModelWith1HEXA8() {
 	vector<int> expectedFace1NodeIds = { 50, 51, 52, 53 };
 	BOOST_CHECK_EQUAL_COLLECTIONS(face1NodeIds.begin(), face1NodeIds.end(),
 			expectedFace1NodeIds.begin(), expectedFace1NodeIds.end());
-	shared_ptr<vega::CellGroup> cn1 = model->mesh->createCellGroup("GM1");
+	shared_ptr<vega::CellGroup> cn1 = model->mesh.createCellGroup("GM1");
 	cn1->addCellId(1);
 	BOOST_TEST_CHECKPOINT("after addcells");
 	Continuum continuum(*model, ModelType::TRIDIMENSIONAL_SI, 1);
@@ -189,7 +188,7 @@ shared_ptr<Model> createModelWith1HEXA8() {
 }
 
  BOOST_AUTO_TEST_CASE( test_VirtualElements ) {
-     shared_ptr<Model> model = createModelWith1HEXA8();
+     unique_ptr<Model> model = createModelWith1HEXA8();
      LoadSet loadSet1(*model, LoadSet::Type::LOAD, 1);
      //moment on x axis on node 51
      NodalForce f1(*model, 0, 0, 0, 1.0, 0, 0);
@@ -205,8 +204,8 @@ shared_ptr<Model> createModelWith1HEXA8() {
      f3.addNodeId(53);
      model->addLoadingIntoLoadSet(f3, loadSet1);
      model->add(f3);
-     LinearMecaStat analysis(*model);
-     analysis.add(loadSet1);
+     const auto& analysis = make_shared<LinearMecaStat>(*model);
+     analysis->add(loadSet1);
      model->add(analysis);
      model->finish(); // Should add constraints, discretes to add dofs
      BOOST_CHECK(model->validate());
@@ -214,15 +213,15 @@ shared_ptr<Model> createModelWith1HEXA8() {
      BOOST_CHECK(model->analyses.contains(Analysis::Type::LINEAR_MECA_STAT));
 
      //two virtual elements
-     auto& discrets = model->elementSets.filter(ElementSet::Type::DISCRETE_0D);
+     const auto& discrets = model->elementSets.filter(ElementSet::Type::DISCRETE_0D);
      BOOST_CHECK_EQUAL(1, discrets.size());
      BOOST_CHECK(model->elementSets.contains(ElementSet::Type::DISCRETE_0D));
 
-     const Node& node51 = model->mesh->findNode(model->mesh->findNodePosition(51));
+     const Node& node51 = model->mesh.findNode(model->mesh.findNodePosition(51));
      BOOST_CHECK(node51.dofs == DOFS::ALL_DOFS);
-     const Node& node52 = model->mesh->findNode(model->mesh->findNodePosition(52));
+     const Node& node52 = model->mesh.findNode(model->mesh.findNodePosition(52));
      BOOST_CHECK(node52.dofs == DOFS::TRANSLATIONS);
-     const Node& node53 = model->mesh->findNode(model->mesh->findNodePosition(53));
+     const Node& node53 = model->mesh.findNode(model->mesh.findNodePosition(53));
      BOOST_CHECK(node53.dofs == DOFS::ALL_DOFS);
 
      BOOST_CHECK_EQUAL(2, model->constraintSets.size());
@@ -233,7 +232,7 @@ shared_ptr<Model> createModelWith1HEXA8() {
 
 
 BOOST_AUTO_TEST_CASE( test_create_skin2d ) {
-	shared_ptr<Model> model = createModelWith1HEXA8();
+	unique_ptr<Model> model = createModelWith1HEXA8();
 	vega::ForceSurfaceTwoNodes forceSurfaceTwoNodes = ForceSurfaceTwoNodes(*model, 50, 52,
 			VectorialValue(0, 0, 1.0), VectorialValue(0, 0, 0));
 
@@ -252,35 +251,35 @@ BOOST_AUTO_TEST_CASE( test_create_skin2d ) {
 	model->finish();
 	//BOOST_CHECK_EQUAL(model->materials.size(), 2 /* skin adds a virtual material */);
 	BOOST_CHECK(model->validate());
-	BOOST_REQUIRE_EQUAL(1, model->mesh->countCells(CellType::QUAD4));
-	Cell cell = model->mesh->cells.cells_begin(CellType::QUAD4).next();
+	BOOST_REQUIRE_EQUAL(1, model->mesh.countCells(CellType::QUAD4));
+	Cell cell = model->mesh.cells.cells_begin(CellType::QUAD4).next();
 	BOOST_CHECK_EQUAL_COLLECTIONS(cell.nodeIds.begin(), cell.nodeIds.end(),
 			expectedFace1NodeIds.begin(), expectedFace1NodeIds.end());
 }
 
 BOOST_AUTO_TEST_CASE(test_Analysis) {
-	Model model("inputfile", "10.3", SolverName::NASTRAN);
+	Model model{"inputfile", "10.3", SolverName::NASTRAN};
 	double coords[12] = { -433., 250., 0., 433., 250., 0., 0., -500., 0., 0., 0., 1000. };
 	int j = 1;
 	for (int i = 0; i < 12; i += 3) {
-		model.mesh->addNode(j, coords[i], coords[i + 1], coords[i + 2]);
+		model.mesh.addNode(j, coords[i], coords[i + 1], coords[i + 2]);
 		j++;
 	}
 
-	LinearMecaStat analysis(model);
+	const auto& analysis = make_shared<LinearMecaStat>(model);
 
 	LoadSet loadSet1(model, LoadSet::Type::LOAD, 1);
 	model.add(loadSet1);
 	Reference<LoadSet> loadSetRef = Reference<LoadSet>(loadSet1);
 	cout << loadSetRef << endl;
-	analysis.add(loadSetRef);
-	BOOST_CHECK(analysis.contains(loadSetRef));
+	analysis->add(loadSetRef);
+	BOOST_CHECK(analysis->contains(loadSetRef));
 	//CHECK getReference constructor and == operator
 	BOOST_CHECK(loadSetRef == loadSet1.getReference());
 
 	LoadSet loadSet2(model, LoadSet::Type::LOAD, 2);
 	//model.add(loadSet2);
-	analysis.add(loadSet2);
+	analysis->add(loadSet2);
 
 	model.add(analysis);
 
@@ -299,12 +298,12 @@ BOOST_AUTO_TEST_CASE(test_Analysis) {
 	BOOST_TEST_CHECKPOINT("after finish");
 // LoadSet2 is missing in the model
 	BOOST_CHECK_EQUAL(1, model.loadSets.size());
-	BOOST_CHECK_EQUAL(static_cast<size_t>(2), analysis.getLoadSets().size());
-	for (shared_ptr<LoadSet> ls : analysis.getLoadSets()) {
+	BOOST_CHECK_EQUAL(static_cast<size_t>(2), analysis->getLoadSets().size());
+	for (shared_ptr<LoadSet> ls : analysis->getLoadSets()) {
 		if (ls != nullptr)
 			cout << "Found loadset:" << *ls << endl;
 	}
-	BOOST_CHECK(!analysis.validate());
+	BOOST_CHECK(!analysis->validate());
 	BOOST_CHECK(!model.validate());
 
 	set<shared_ptr<Loading>> loadings = model.getLoadingsByLoadSet(loadSet1);
@@ -315,45 +314,45 @@ BOOST_AUTO_TEST_CASE(test_Analysis) {
 }
 
 BOOST_AUTO_TEST_CASE( test_find_methods ) {
-	Model model("inputfile", "10.3", SolverName::NASTRAN);
-	model.mesh->addCell(27, CellType::SEG2, {0, 1});
-	model.mesh->addCell(28, CellType::SEG2, {1, 2});
-	model.mesh->addCell(29, CellType::SEG2, {2, 3});
-	model.mesh->addCell(30, CellType::SEG2, {3, 4});
-	model.mesh->addCell(31, CellType::POINT1, {1});
+	Model model{"inputfile", "10.3", SolverName::NASTRAN};
+	model.mesh.addCell(27, CellType::SEG2, {0, 1});
+	model.mesh.addCell(28, CellType::SEG2, {1, 2});
+	model.mesh.addCell(29, CellType::SEG2, {2, 3});
+	model.mesh.addCell(30, CellType::SEG2, {3, 4});
+	model.mesh.addCell(31, CellType::POINT1, {1});
 	double coords[18] = { 0.0, 0.0, 0.0, 0.3, 0.0, 0.0, 0.75, 0.0, 0.0, 1.0, 0.0, 0.0, 1.4, 0.0,
 			0.0, 1.3, 0.0, 0.0 };
 	int i;
 	for (i = 0; i < 18; i += 3) {
-		model.mesh->addNode(i / 3, coords[i], coords[i + 1], coords[i + 2]);
+		model.mesh.addNode(i / 3, coords[i], coords[i + 1], coords[i + 2]);
 	}
-	shared_ptr<vega::NodeGroup> gn1 = model.mesh->findOrCreateNodeGroup("GN1");
+	shared_ptr<vega::NodeGroup> gn1 = model.mesh.findOrCreateNodeGroup("GN1");
 	BOOST_TEST_CHECKPOINT("find_methods: before add Node 0");
 	gn1->addNodeId(0);
 	BOOST_TEST_CHECKPOINT("find_methods: before add Node 5");
 	gn1->addNodeId(5);
-	shared_ptr<vega::CellGroup> gm1 = model.mesh->createCellGroup("GM1");
+	shared_ptr<vega::CellGroup> gm1 = model.mesh.createCellGroup("GM1");
 	gm1->addCellId(31);
-	shared_ptr<vega::CellGroup> gm2 = model.mesh->createCellGroup("GM2");
+	shared_ptr<vega::CellGroup> gm2 = model.mesh.createCellGroup("GM2");
 	gm2->addCellId(28);
 	gm2->addCellId(30);
-	shared_ptr<vega::CellGroup> gm3 = model.mesh->createCellGroup("GM3");
+	shared_ptr<vega::CellGroup> gm3 = model.mesh.createCellGroup("GM3");
 	gm3->addCellId(28);
 	gm3->addCellId(30);
 	model.finish();
 	BOOST_TEST_CHECKPOINT("find_methods: model completed");
-	BOOST_CHECK_EQUAL(gn1, model.mesh->findGroup("GN1"));
-	BOOST_CHECK(model.mesh->findGroup("DONT-EXIST") == nullptr);
+	BOOST_CHECK_EQUAL(gn1, model.mesh.findGroup("GN1"));
+	BOOST_CHECK(model.mesh.findGroup("DONT-EXIST") == nullptr);
 }
 
 BOOST_AUTO_TEST_CASE( combined_loadset1 ) {
     ModelConfiguration configuration;
     configuration.replaceCombinedLoadSets = true;
     configuration.logLevel = LogLevel::DEBUG;
-	Model model("inputfile", "10.3", SolverName::NASTRAN, configuration);
+	Model model{"inputfile", "10.3", SolverName::NASTRAN, configuration};
 	LoadSet loadSet1(model, LoadSet::Type::LOAD, 1);
 	LoadSet loadSet3(model, LoadSet::Type::LOAD, 3);
-	model.mesh->addNode(1, 0.0, 0.0, 0.0);
+	model.mesh.addNode(1, 0.0, 0.0, 0.0);
 	NodalForce force1 = NodalForce(model, 1, 1.0);
 	model.add(force1);
 	model.addLoadingIntoLoadSet(force1, loadSet1);
@@ -378,11 +377,11 @@ BOOST_AUTO_TEST_CASE(auto_analysis_linst) {
     ModelConfiguration configuration;
     configuration.autoDetectAnalysis = true;
     configuration.logLevel = LogLevel::DEBUG;
-	Model model("inputfile", "10.3", SolverName::NASTRAN, configuration);
+	Model model{"inputfile", "10.3", SolverName::NASTRAN, configuration};
 	model.finish();
 	BOOST_CHECK(model.validate());
 	BOOST_CHECK_EQUAL(model.analyses.size(), 1);
-	const auto& analysis = *model.analyses.begin();
+	const auto& analysis = model.analyses.first();
 	BOOST_CHECK(analysis->type == Analysis::Type::LINEAR_MECA_STAT);
 }
 
@@ -390,13 +389,13 @@ BOOST_AUTO_TEST_CASE(auto_analysis_nonlin) {
     ModelConfiguration configuration;
     configuration.autoDetectAnalysis = true;
     configuration.logLevel = LogLevel::DEBUG;
-	Model model("inputfile", "10.3", SolverName::NASTRAN, configuration);
+	Model model{"inputfile", "10.3", SolverName::NASTRAN, configuration};
     NonLinearStrategy nls(model, 1);
 	model.add(nls);
 	model.finish();
 	BOOST_CHECK(model.validate());
 	BOOST_CHECK_EQUAL(model.analyses.size(), 1);
-	const auto& analysis = *model.analyses.begin();
+	const auto& analysis = model.analyses.first();
 	BOOST_CHECK(analysis->type == Analysis::Type::NONLINEAR_MECA_STAT);
 }
 
@@ -464,79 +463,79 @@ BOOST_AUTO_TEST_CASE( reference_str ) {
 }
 
 BOOST_AUTO_TEST_CASE(test_ineffective_assertions_removed) {
-	// Two NodalDisplacementAssertion are added to a model.
+	// Two NodalDisplacementAssertion are added to a model->
 	// The first one is on a node DX but the node don't have that degree of freedom. It must be
 	// removed by the finish.
-	shared_ptr<Model> model = createModelWith1HEXA8();
-	LinearMecaStat analysis(*model);
+	unique_ptr<Model> model = createModelWith1HEXA8();
+	const auto& analysis = make_shared<LinearMecaStat>(*model);
 	NodalDisplacementAssertion nda(*model, 0.0001, 50, DOF::DZ, 1., 1);
-	analysis.add(nda);
+	analysis->add(nda);
 	model->add(nda);
 
 	NodalDisplacementAssertion nda2(*model, 0.0001, 51, DOF::RX, 1., 1);
-	analysis.add(nda2);
+	analysis->add(nda2);
 	model->add(nda2);
 	model->add(analysis);
 	BOOST_CHECK_EQUAL(2, model->objectives.size());
 	model->finish();
-	BOOST_CHECK(analysis.validate());
+	BOOST_CHECK(analysis->validate());
 	BOOST_CHECK(model->validate());
 	BOOST_CHECK_EQUAL(model->analyses.size(), 1);
 	BOOST_CHECK_EQUAL(model->objectives.size(), 1);
-	vector<shared_ptr<Assertion>> assertions = (*model->analyses.begin())->getAssertions();
+	const auto& assertions = model->analyses.first()->getAssertions();
 	BOOST_CHECK_EQUAL(assertions.size(), static_cast<size_t>(1));
 }
 
 BOOST_AUTO_TEST_CASE(test_rbe3_assertions_not_removed) {
-	Model model("fakemodelfortest", "10.3", SolverName::NASTRAN);
-	model.mesh->addNode(100, 0.0, 0.0, 0.0);
-	model.mesh->addNode(101, 1.0, 1.0, 1.0);
-	RBE3 rbe3(model, 100, DOFS::ALL_DOFS);
-	rbe3.addSlave(101, DOFS::ALL_DOFS, 42.0);
+	Model model{"fakemodelfortest", "10.3", SolverName::NASTRAN};
+	model.mesh.addNode(100, 0.0, 0.0, 0.0);
+	model.mesh.addNode(101, 1.0, 1.0, 1.0);
+	const auto& rbe3 = make_shared<RBE3>(model, 100, DOFS::ALL_DOFS);
+	rbe3->addSlave(101, DOFS::ALL_DOFS, 42.0);
 	model.add(rbe3);
-	model.addConstraintIntoConstraintSet(rbe3, model.commonConstraintSet);
-	LinearMecaStat analysis(model);
+	model.addConstraintIntoConstraintSet(*rbe3, model.commonConstraintSet);
+	const auto& analysis = make_shared<LinearMecaStat>(model);
 	NodalDisplacementAssertion nda(model, 0.0001, 100, DOF::DZ, 1., 1);
-	analysis.add(nda);
+	analysis->add(nda);
 	model.add(nda);
 
 	NodalDisplacementAssertion nda2(model, 0.0001, 101, DOF::RX, 1., 1);
-	analysis.add(nda2);
+	analysis->add(nda2);
 	model.add(nda2);
 	model.add(analysis);
 	BOOST_CHECK_EQUAL(2, model.objectives.size());
 	model.finish();
-	BOOST_CHECK(analysis.validate());
+	BOOST_CHECK(analysis->validate());
 	BOOST_CHECK(model.validate());
 	BOOST_CHECK_EQUAL(model.analyses.size(), 1);
 	BOOST_CHECK_EQUAL(model.objectives.size(), 2);
-	vector<shared_ptr<Assertion>> assertions = (*model.analyses.begin())->getAssertions();
+	vector<shared_ptr<Assertion>> assertions = model.analyses.first()->getAssertions();
 	BOOST_CHECK_EQUAL(assertions.size(), static_cast<size_t>(2));
 }
 
 BOOST_AUTO_TEST_CASE(test_spc_dof_remove) {
-	shared_ptr<Model> model = createModelWith1HEXA8();
-	LinearMecaStat analysis1(*model);
-	SinglePointConstraint spc(*model, DOFS::ALL_DOFS, 0.0);
-	spc.addNodeId(50);
+	unique_ptr<Model> model = createModelWith1HEXA8();
+	const auto& analysis1 = make_shared<LinearMecaStat>(*model);
+	const auto& spc = make_shared<SinglePointConstraint>(*model, DOFS::ALL_DOFS, 0.0);
+	spc->addNodeId(50);
 	model->add(spc);
-	model->addConstraintIntoConstraintSet(spc, model->commonConstraintSet);
+	model->addConstraintIntoConstraintSet(*spc, model->commonConstraintSet);
 	model->add(analysis1);
-	LinearMecaStat analysis2(*model);
+	const auto& analysis2 = make_shared<LinearMecaStat>(*model);
 	model->add(analysis2);
 	BOOST_CHECK_EQUAL(model->commonConstraintSet.getConstraints().size(), 1);
-	int nodePosition = model->mesh->findNodePosition(50);
-	BOOST_CHECK_EQUAL(spc.nodePositions().size(), 1);
-	BOOST_CHECK_EQUAL(spc.getDOFSForNode(nodePosition), DOFS::ALL_DOFS);
-	BOOST_CHECK_EQUAL(model->getConstraintSetsByConstraint(spc).size(), 1);
+	int nodePosition = model->mesh.findNodePosition(50);
+	BOOST_CHECK_EQUAL(spc->nodePositions().size(), 1);
+	BOOST_CHECK_EQUAL(spc->getDOFSForNode(nodePosition), DOFS::ALL_DOFS);
+	BOOST_CHECK_EQUAL(model->getConstraintSetsByConstraint(*spc).size(), 1);
 	BOOST_CHECK_EQUAL(model->constraintSets.size(), 1);
 	BOOST_TEST_CHECKPOINT("model filled");
-	analysis1.removeSPCNodeDofs(spc, nodePosition, DOF::DZ);
-	BOOST_CHECK_EQUAL(spc.getDOFSForNode(nodePosition), DOFS::ALL_DOFS);
+	analysis1->removeSPCNodeDofs(*spc, nodePosition, DOF::DZ);
+	BOOST_CHECK_EQUAL(spc->getDOFSForNode(nodePosition), DOFS::ALL_DOFS);
 	BOOST_CHECK_EQUAL(model->commonConstraintSet.getConstraints().size(), 2);
-	BOOST_CHECK_EQUAL(spc.nodePositions().size(), 0);
-	for(auto& constraint : model->commonConstraintSet.getConstraints()) {
-		if (*constraint == spc) {
+	BOOST_CHECK_EQUAL(spc->nodePositions().size(), 0);
+	for(const auto& constraint : model->commonConstraintSet.getConstraints()) {
+		if (*constraint == *spc) {
 			continue;
 		}
 		cout << *constraint;
@@ -544,15 +543,15 @@ BOOST_AUTO_TEST_CASE(test_spc_dof_remove) {
 		BOOST_CHECK_EQUAL(constraint->nodePositions().size(), 1);
 	}
 	BOOST_CHECK_EQUAL(model->constraintSets.size(), 2);
-	BOOST_CHECK_EQUAL(model->find(analysis1.getReference())->getConstraintSets().size(), 1);
-	auto constraintSets2 = model->find(analysis2.getReference())->getConstraintSets();
+	BOOST_CHECK_EQUAL(model->find(analysis1->getReference())->getConstraintSets().size(), 1);
+	auto constraintSets2 = model->find(analysis2->getReference())->getConstraintSets();
 	BOOST_CHECK_EQUAL(constraintSets2.size(), 2);
-	for(auto& constraintSet : constraintSets2) {
+	for(const auto& constraintSet : constraintSets2) {
 		if (*constraintSet == model->commonConstraintSet) {
 			continue;
 		}
 		BOOST_CHECK_EQUAL(constraintSet->getConstraints().size(), 1);
-		for(auto& constraint : constraintSet->getConstraints()) {
+		for(const auto& constraint : constraintSet->getConstraints()) {
 			cout << *constraint;
 			BOOST_CHECK_EQUAL(constraint->getDOFSForNode(nodePosition), DOF::DZ);
 			BOOST_CHECK_EQUAL(constraint->nodePositions().size(), 1);
@@ -564,10 +563,10 @@ BOOST_AUTO_TEST_CASE(test_spc_dof_remove) {
 BOOST_AUTO_TEST_CASE( test_cdnoanalysis )
 {
     // https://github.com/Alneos/vega/issues/15
-    Model model("github_issue_15", "10.3", SolverName::NASTRAN);
-    CartesianCoordinateSystem coordinateSystem(*model.mesh);
-    model.mesh->add(coordinateSystem);
-    model.mesh->addNode(7, 0.0, 0.0, 0.0, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, coordinateSystem.getOriginalId());
+    Model model{"github_issue_15", "10.3", SolverName::NASTRAN};
+    CartesianCoordinateSystem coordinateSystem(model.mesh);
+    model.mesh.add(coordinateSystem);
+    model.mesh.addNode(7, 0.0, 0.0, 0.0, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, coordinateSystem.getOriginalId());
     BOOST_CHECK_EQUAL(model.analyses.size(), 0);
 
 }
@@ -575,7 +574,7 @@ BOOST_AUTO_TEST_CASE( test_cdnoanalysis )
 BOOST_AUTO_TEST_CASE( test_globalcs_force )
 {
     // https://github.com/Alneos/vega/issues/15
-    Model model("cs test model", "10.3", SolverName::NASTRAN);
+    Model model{"cs test model", "10.3", SolverName::NASTRAN};
     NodalForce force1(model, 42.0, 43.0, 44.0, 0., 0., 0., Loading::NO_ORIGINAL_ID,
             Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, 0));
     BOOST_CHECK_EQUAL(force1.csref, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM);

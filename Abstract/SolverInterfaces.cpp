@@ -144,7 +144,7 @@ void Tokenizer::handleParsingError(const string& message) {
         vega::stacktrace();
         exit(2);
     case ConfigurationParameters::TranslationMode::MESH_AT_LEAST:
-        //model->onlyMesh = true;
+        //model.onlyMesh = true;
         cerr << ParsingMessageException(message, fileName, lineNumber, currentKeyword) << endl;
         throw std::string("skipCommand");
         break;
@@ -169,13 +169,13 @@ Parser::Parser(){
 }
 
 void Parser::handleParsingError(const string& message, Tokenizer& tok,
-        shared_ptr<Model> model) {
+        Model& model) {
 
     switch (translationMode) {
     case ConfigurationParameters::TranslationMode::MODE_STRICT:
         throw ParsingException(message, tok.fileName, tok.lineNumber, tok.currentKeyword);
     case ConfigurationParameters::TranslationMode::MESH_AT_LEAST:
-        model->onlyMesh = true;
+        model.onlyMesh = true;
         cerr << ParsingMessageException(message, tok.fileName, tok.lineNumber, tok.currentKeyword) << endl;
         throw std::string("skipCommand");
         break;
@@ -190,7 +190,7 @@ void Parser::handleParsingError(const string& message, Tokenizer& tok,
 }
 
 void Parser::handleParsingWarning(const string& message, Tokenizer& tok,
-        shared_ptr<Model> model) {
+        Model& model) {
     UNUSEDV(model);
     cerr << ParsingMessageWarning(message, tok.fileName, tok.lineNumber, tok.currentKeyword) << endl;
 }

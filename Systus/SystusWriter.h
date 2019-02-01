@@ -340,7 +340,7 @@ private:
      *    - adding the lagrangian/rotation node
      *    - computing the Rigidity.
      */
-    void generateRBEs(const SystusModel&, const ConfigurationParameters&);
+    void generateRBEs(SystusModel&, const ConfigurationParameters&);
     /** Following a user-defined list, we regroup analyzes in order to build
      *  multi-loadcases Subcases.
      *  Default result is "each analysis on its own subcase".
@@ -432,11 +432,11 @@ private:
 
 
 public:
-    SystusWriter();
+    SystusWriter() = default;
+    SystusWriter(const SystusWriter& that) = delete;
     virtual ~SystusWriter();
 
-    std::string writeModel(const std::shared_ptr<Model> model, const ConfigurationParameters&)
-    override;
+    std::string writeModel(Model& model, const ConfigurationParameters&) override;
 };
 
 } // namespace systus

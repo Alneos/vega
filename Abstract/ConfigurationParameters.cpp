@@ -84,8 +84,8 @@ ConfigurationParameters::~ConfigurationParameters() {
 }
 
 const boost::bimap<SolverName, string> Solver::SOLVERNAME_BY_SOLVER = assign::list_of<
-        boost::bimap<SolverName, string>::relation>(SolverName::NASTRAN, string("NASTRAN"))(SolverName::CODE_ASTER,
-        string("ASTER"))(SolverName::SYSTUS, string("SYSTUS"))(SolverName::OPTISTRUCT, string("OPTISTRUCT"));
+        boost::bimap<SolverName, string>::relation>(SolverName::NASTRAN, "NASTRAN")(SolverName::CODE_ASTER,
+        "ASTER")(SolverName::SYSTUS, "SYSTUS")(SolverName::OPTISTRUCT, "OPTISTRUCT");
 
 ostream &operator<<(ostream &out, const Solver& solver) {
     out << Solver::SOLVERNAME_BY_SOLVER.left.find(solver.solverName)->second;
@@ -107,7 +107,7 @@ Solver Solver::fromString(string name) {
     }
     auto solverIterator = Solver::SOLVERNAME_BY_SOLVER.right.find(normalizedSolverName);
     if (solverIterator == Solver::SOLVERNAME_BY_SOLVER.right.end()) {
-        throw invalid_argument(string("Solver name : ") + name + " not recognized.");
+        throw invalid_argument("Solver name : " + name + " not recognized.");
     }
     return Solver(solverIterator->second);
 }

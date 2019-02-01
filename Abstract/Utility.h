@@ -23,6 +23,7 @@
 // Avoid tons of warnings with the following code
 #pragma GCC system_header
 #endif
+
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/matrix.hpp>

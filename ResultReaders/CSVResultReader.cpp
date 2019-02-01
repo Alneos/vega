@@ -58,7 +58,7 @@ using namespace std;
 
 struct CsvGrammar: qi::grammar<stream_iterator_type, void(), qi::locals<vector<LineItems>>,
 		qi::blank_type> {
-	CsvGrammar(shared_ptr<Model> _model, const ConfigurationParameters& _configuration) :
+	CsvGrammar(Model& _model, const ConfigurationParameters& _configuration) :
 			CsvGrammar::base_type(start), model(_model), configuration(_configuration) {
 		using namespace qi;
 
@@ -120,15 +120,15 @@ struct CsvGrammar: qi::grammar<stream_iterator_type, void(), qi::locals<vector<L
 		UNUSEDV(num_step);
 		i = 0;
 		assert(result_number != -1);
-		shared_ptr<Analysis> analysis = model->analyses.find(result_number);
+		shared_ptr<Analysis> analysis = model.analyses.find(result_number);
 		for (LineItems position : positions) {
 			auto it = dofPosition_by_lineItemEnum.find(position);
 			if (it != dofPosition_by_lineItemEnum.end()) {
 				double value = atof(columns[i].c_str());
 				assert(nodeId != Node::UNAVAILABLE_NODE);
-				NodalDisplacementAssertion nda(*model, configuration.testTolerance, nodeId,
+				NodalDisplacementAssertion nda(model, configuration.testTolerance, nodeId,
 						DOF::findByPosition(it->second), value, time);
-				model->add(nda);
+				model.add(nda);
 				if (analysis) {
 					analysis->add(nda);
 				}
@@ -145,7 +145,7 @@ struct CsvGrammar: qi::grammar<stream_iterator_type, void(), qi::locals<vector<L
 	qi::rule<stream_iterator_type, string()> quoted;
 	qi::rule<stream_iterator_type, qi::blank_type> empty;
 	qi::rule<stream_iterator_type> comment;
-	shared_ptr<Model> model;
+	Model& model;
 	const ConfigurationParameters configuration;
 	//visual studio 2013 refuses to compile initializer list
 	unordered_map<LineItems, int, std::hash<int>> dofPosition_by_lineItemEnum =
@@ -154,12 +154,8 @@ struct CsvGrammar: qi::grammar<stream_iterator_type, void(), qi::locals<vector<L
 					4)(LineItems::DRZ, 5);
 };
 
-CSVResultReader::CSVResultReader() {
-
-}
-
 void CSVResultReader::add_assertions(const ConfigurationParameters& configuration,
-		shared_ptr<Model> model) {
+		Model& model) {
 
 	if (!configuration.resultFile.empty()) {
 		ifstream in(configuration.resultFile.string());

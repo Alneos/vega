@@ -28,8 +28,8 @@ BOOST_AUTO_TEST_CASE(optistruct_contact) {
 		PROJECT_BASE_DIR "/testdata/unitTest/optistructparser/contact.nas").make_preferred().string();
 	optistruct::OptistructParser parser;
 	try {
-		const shared_ptr<Model> model = parser.parse(
-			ConfigurationParameters(testLocation, SolverName::CODE_ASTER, "", ""));
+		const unique_ptr<Model> model = parser.parse(
+			ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
         BOOST_CHECK_EQUAL(model->targets.size(), 2);
         BOOST_CHECK_EQUAL(model->constraints.size(), 1);
         //auto& master = model->find(Reference<Target>(Target::Type::BOUNDARY_ELEMENTFACE, 1));
@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(optistruct_contact) {
         //auto& slave = model->find(Reference<Target>(Target::Type::BOUNDARY_ELEMENTFACE, 2));
         //BOOST_CHECK_NE(slave, nullptr);
         model->finish();
-        //BOOST_CHECK((*model->analyses.begin())->type == Analysis::Type::NONLINEAR_MECA_STAT);
+        //BOOST_CHECK((model->analyses.first())->type == Analysis::Type::NONLINEAR_MECA_STAT);
 	}
 	catch (exception& e) {
 		cerr << e.what() << endl;
@@ -52,13 +52,13 @@ BOOST_AUTO_TEST_CASE(optistruct_contact_cpenta) {
 		PROJECT_BASE_DIR "/testdata/unitTest/optistructparser/contact2.nas").make_preferred().string();
 	optistruct::OptistructParser parser;
 	try {
-		const shared_ptr<Model> model = parser.parse(
-			ConfigurationParameters(testLocation, SolverName::CODE_ASTER, "", ""));
+		const unique_ptr<Model> model = parser.parse(
+			ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
         BOOST_CHECK_EQUAL(model->targets.size(), 2);
         BOOST_CHECK_EQUAL(model->constraints.size(), 1);
         BOOST_CHECK_EQUAL(model->analyses.size(), 1);
         model->finish();
-        //BOOST_CHECK((*model->analyses.begin())->type == Analysis::Type::NONLINEAR_MECA_STAT);
+        //BOOST_CHECK((*model.analyses.begin())->type == Analysis::Type::NONLINEAR_MECA_STAT);
 	}
 	catch (exception& e) {
 		cerr << e.what() << endl;
@@ -73,11 +73,11 @@ BOOST_AUTO_TEST_CASE(optistruct_pload4) {
 		PROJECT_BASE_DIR "/testdata/unitTest/optistructparser/pload4.nas").make_preferred().string();
 	optistruct::OptistructParser parser;
 	try {
-		const shared_ptr<Model> model = parser.parse(
-			ConfigurationParameters(testLocation, SolverName::CODE_ASTER, "", ""));
+		const unique_ptr<Model> model = parser.parse(
+			ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
         model->finish();
         BOOST_CHECK_EQUAL(model->analyses.size(), 1);
-        auto analysis = model->analyses.first();
+        const auto& analysis = model->analyses.first();
         //BOOST_CHECK(not analysis->isLinear());
         BOOST_CHECK_EQUAL(analysis->getConstraintSets().size(), 2);
 	}
@@ -94,11 +94,11 @@ BOOST_AUTO_TEST_CASE(optistruct_rbe2) {
 		PROJECT_BASE_DIR "/testdata/unitTest/optistructparser/rbe2.nas").make_preferred().string();
 	optistruct::OptistructParser parser;
 	try {
-		const shared_ptr<Model> model = parser.parse(
-			ConfigurationParameters(testLocation, SolverName::CODE_ASTER, "", ""));
+		const unique_ptr<Model> model = parser.parse(
+			ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
         model->finish();
         BOOST_CHECK_EQUAL(model->analyses.size(), 1);
-        auto analysis = model->analyses.first();
+        const auto& analysis = model->analyses.first();
         BOOST_CHECK(analysis->isLinear());
         BOOST_CHECK_EQUAL(analysis->getConstraintSets().size(), 1);
 	}
@@ -115,8 +115,8 @@ BOOST_AUTO_TEST_CASE(optistruct_pbushrigid) {
 		PROJECT_BASE_DIR "/testdata/unitTest/optistructparser/pbushrigid.nas").make_preferred().string();
 	optistruct::OptistructParser parser;
 	try {
-		const shared_ptr<Model> model = parser.parse(
-			ConfigurationParameters(testLocation, SolverName::CODE_ASTER, "", ""));
+		const unique_ptr<Model> model = parser.parse(
+			ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
         BOOST_CHECK_EQUAL(model->elementSets.size(), 1);
         BOOST_CHECK_EQUAL(model->constraintSets.size(), 0);
         model->finish();

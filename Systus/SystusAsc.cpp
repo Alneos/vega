@@ -128,9 +128,6 @@ ostream& operator<<(ostream& os, const SystusMatrix & sm)
 
 // Start of SystusMatrices
 
-SystusMatrices::SystusMatrices(){
-}
-
 SystusMatrices::~SystusMatrices(){
 }
 

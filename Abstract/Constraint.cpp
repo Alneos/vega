@@ -30,7 +30,7 @@ namespace vega {
 
 using namespace std;
 
-Constraint::Constraint(const Model& model, Type type, int original_id) :
+Constraint::Constraint(Model& model, Type type, int original_id) :
         Identifiable(original_id), model(model), type(type) {
 }
 
@@ -62,7 +62,7 @@ const string Constraint::to_str() const{
         return typePair->second;
 }
 
-ConstraintSet::ConstraintSet(const Model& model, Type type, int original_id) :
+ConstraintSet::ConstraintSet(Model& model, Type type, int original_id) :
         Identifiable(original_id), model(model), type(type) {
 }
 
@@ -140,10 +140,10 @@ HomogeneousConstraint::HomogeneousConstraint(Model& model, Type type, const DOFS
         int masterId, int original_id, const set<int>& slaveIds) :
         Constraint(model, type, original_id), dofs(dofs), //
 
-        slavePositions(model.mesh->findOrReserveNodes(slaveIds) //
+        slavePositions(model.mesh.findOrReserveNodes(slaveIds) //
                 ) {
     if (masterId != UNAVAILABLE_MASTER) {
-        this->masterPosition = model.mesh->findOrReserveNode(masterId);
+        this->masterPosition = model.mesh.findOrReserveNode(masterId);
     } else {
         this->masterPosition = UNAVAILABLE_MASTER;
     }
@@ -163,7 +163,7 @@ const DOFS HomogeneousConstraint::getDOFS() const {
 }
 
 void HomogeneousConstraint::addSlave(int slaveId) {
-    this->slavePositions.insert(model.mesh->findOrReserveNode(slaveId));
+    this->slavePositions.insert(model.mesh.findOrReserveNode(slaveId));
 }
 
 set<int> HomogeneousConstraint::nodePositions() const {
@@ -237,7 +237,7 @@ RBE3::RBE3(Model& model, int masterId, const DOFS dofs, int original_id) :
 }
 
 void RBE3::addSlave(int slaveId, DOFS slaveDOFS, double slaveCoef) {
-    int nodePosition = model.mesh->findOrReserveNode(slaveId);
+    int nodePosition = model.mesh.findOrReserveNode(slaveId);
     slavePositions.insert(nodePosition);
     slaveDofsByPosition[nodePosition] = slaveDOFS;
     slaveCoefByPosition[nodePosition] = slaveCoef;
@@ -274,19 +274,19 @@ shared_ptr<Constraint> RBE3::clone() const {
 
 const ValueOrReference& SinglePointConstraint::NO_SPC = ValueOrReference::EMPTY_VALUE;
 
-SinglePointConstraint::SinglePointConstraint(const Model& _model,
+SinglePointConstraint::SinglePointConstraint(Model& _model,
         const array<ValueOrReference, 6>& _spcs, shared_ptr<Group> _group, int original_id) :
         Constraint(_model, Constraint::Type::SPC, original_id), spcs(_spcs), group(_group) {
 }
 
-SinglePointConstraint::SinglePointConstraint(const Model& _model,
+SinglePointConstraint::SinglePointConstraint(Model& _model,
         const array<ValueOrReference, 3>& _spcs, shared_ptr<Group> _group, int original_id) :
         Constraint(_model, Constraint::Type::SPC, original_id), spcs( { { NO_SPC, NO_SPC, NO_SPC, NO_SPC, NO_SPC,
                 NO_SPC } }), group(_group) {
     copy_n(_spcs.begin(), 3, spcs.begin());
 }
 
-SinglePointConstraint::SinglePointConstraint(const Model& _model, DOFS dofs, double value, shared_ptr<Group> _group,
+SinglePointConstraint::SinglePointConstraint(Model& _model, DOFS dofs, double value, shared_ptr<Group> _group,
         int original_id) :
         Constraint(_model, Constraint::Type::SPC, original_id), spcs( { { NO_SPC, NO_SPC, NO_SPC, NO_SPC, NO_SPC,
                 NO_SPC } }), group(_group) {
@@ -295,7 +295,7 @@ SinglePointConstraint::SinglePointConstraint(const Model& _model, DOFS dofs, dou
     }
 }
 
-SinglePointConstraint::SinglePointConstraint(const Model& _model, shared_ptr<Group> _group, int original_id) :
+SinglePointConstraint::SinglePointConstraint(Model& _model, shared_ptr<Group> _group, int original_id) :
         Constraint(_model, Constraint::Type::SPC, original_id), group(_group) {
 }
 
@@ -310,7 +310,7 @@ void SinglePointConstraint::setDOFS(const DOFS& dofs, const ValueOrReference& va
 }
 
 void SinglePointConstraint::addNodeId(int nodeId) {
-    int nodePosition = model.mesh->findOrReserveNode(nodeId);
+    int nodePosition = model.mesh.findOrReserveNode(nodeId);
     if (group == nullptr) {
         _nodePositions.insert(nodePosition);
     } else {
@@ -421,7 +421,7 @@ shared_ptr<Constraint> LinearMultiplePointConstraint::clone() const {
 
 void LinearMultiplePointConstraint::addParticipation(int nodeId, double dx, double dy, double dz,
         double rx, double ry, double rz) {
-    int nodePosition = model.mesh->findOrReserveNode(nodeId);
+    int nodePosition = model.mesh.findOrReserveNode(nodeId);
     auto it = dofCoefsByNodePosition.find(nodePosition);
     if (it == dofCoefsByNodePosition.end())
         dofCoefsByNodePosition[nodePosition] = DOFCoefs(dx, dy, dz, rx, ry, rz);
@@ -491,7 +491,7 @@ std::vector<int> LinearMultiplePointConstraint::sortNodePositionByCoefs() const{
     return indices;
 }
 
-Contact::Contact(const Model& model, Type type, int original_id) :
+Contact::Contact(Model& model, Type type, int original_id) :
         Constraint(model, type, original_id) {
 }
 
@@ -508,8 +508,8 @@ shared_ptr<Constraint> GapTwoNodes::clone() const {
 }
 
 void GapTwoNodes::addGapNodes(int constrainedNodeId, int directionNodeId) {
-    int constrainedNodePosition = model.mesh->findOrReserveNode(constrainedNodeId);
-    int directionNodePosition = model.mesh->findOrReserveNode(directionNodeId);
+    int constrainedNodePosition = model.mesh.findOrReserveNode(constrainedNodeId);
+    int directionNodePosition = model.mesh.findOrReserveNode(directionNodeId);
     directionNodePositionByconstrainedNodePosition[constrainedNodePosition] = directionNodePosition;
 }
 
@@ -517,8 +517,8 @@ vector<shared_ptr<Gap::GapParticipation>> GapTwoNodes::getGaps() const {
     vector<shared_ptr<Gap::GapParticipation>> result;
     result.reserve(directionNodePositionByconstrainedNodePosition.size());
     for (const auto& it : directionNodePositionByconstrainedNodePosition) {
-        const Node& constrainedNode = model.mesh->findNode(it.first);
-        const Node& directionNode = model.mesh->findNode(it.second);
+        const Node& constrainedNode = model.mesh.findNode(it.first);
+        const Node& directionNode = model.mesh.findNode(it.second);
         VectorialValue direction(directionNode.x - constrainedNode.x,
                 directionNode.y - constrainedNode.y, directionNode.z - constrainedNode.z);
         shared_ptr<GapParticipation> gp = make_shared<GapParticipation>(constrainedNode.position, direction.normalized());
@@ -547,8 +547,8 @@ const DOFS GapTwoNodes::getDOFSForNode(int nodePosition) const {
     const auto& it = directionNodePositionByconstrainedNodePosition.find(nodePosition);
     DOFS dofs(DOFS::NO_DOFS);
     if (it != directionNodePositionByconstrainedNodePosition.end()) {
-        const Node& constrainedNode = model.mesh->findNode(it->first);
-        const Node& directionNode = model.mesh->findNode(it->second);
+        const Node& constrainedNode = model.mesh.findNode(it->first);
+        const Node& directionNode = model.mesh.findNode(it->second);
         VectorialValue direction(directionNode.x - constrainedNode.x,
                 directionNode.y - constrainedNode.y, directionNode.z - constrainedNode.z);
         if (!is_zero(direction.x()))
@@ -571,7 +571,7 @@ shared_ptr<Constraint> GapNodeDirection::clone() const {
 
 void GapNodeDirection::addGapNodeDirection(int constrainedNodeId, double directionX,
         double directionY, double directionZ) {
-    int constrainedNodePosition = model.mesh->findOrReserveNode(constrainedNodeId);
+    int constrainedNodePosition = model.mesh.findOrReserveNode(constrainedNodeId);
     directionBynodePosition[constrainedNodePosition] = VectorialValue(directionX, directionY,
             directionZ);
 }
@@ -651,14 +651,14 @@ set<int> SlideContact::nodePositions() const {
         throw logic_error("Cannot find master node list");
     }
     for (int nodeId : masterLine->nodeids) {
-        result.insert(model.mesh->findNodePosition(nodeId));
+        result.insert(model.mesh.findNodePosition(nodeId));
     }
     const auto& slaveLine = dynamic_pointer_cast<BoundaryNodeLine>(model.find(slave));
     if (slaveLine== nullptr) {
         throw logic_error("Cannot find slave node list");
     }
     for (int nodeId : slaveLine->nodeids) {
-        result.insert(model.mesh->findNodePosition(nodeId));
+        result.insert(model.mesh.findNodePosition(nodeId));
     }
     return result;
 }
@@ -694,14 +694,14 @@ set<int> SurfaceContact::nodePositions() const {
         throw logic_error("Cannot find master node list");
     }
     for (int nodeId : masterSurface->nodeids) {
-        result.insert(model.mesh->findNodePosition(nodeId));
+        result.insert(model.mesh.findNodePosition(nodeId));
     }
     const auto& slaveSurface = dynamic_pointer_cast<BoundaryNodeSurface>(model.find(slave));
     if (slaveSurface== nullptr) {
         throw logic_error("Cannot find slave node list");
     }
     for (int nodeId : slaveSurface->nodeids) {
-        result.insert(model.mesh->findNodePosition(nodeId));
+        result.insert(model.mesh.findNodePosition(nodeId));
     }
     return result;
 }

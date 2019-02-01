@@ -381,9 +381,9 @@ shared_ptr<CellGroup> Mesh::getOrCreateCellGroupForCS(int cspos){
 		string gmaName;
 		string id = to_string(cellGroupNameByCspos.size() + 1);
 		if (id.length() > 7) {
-			gmaName = string("C") + id.substr(id.length() - 7, 7);
+			gmaName = "C" + id.substr(id.length() - 7, 7);
 		} else {
-			gmaName = string("C") + id;
+			gmaName = "C" + id;
 		}
 		cellGroupNameByCspos[cspos] = gmaName;
 		result = createCellGroup(gmaName, CellGroup::NO_ORIGINAL_ID, "Orientation of coordinate system: " + to_string(cspos));
@@ -423,7 +423,7 @@ int Mesh::addOrFindOrientation(const OrientationCoordinateSystem & ocs){
 
 int Mesh::findOrientation(const OrientationCoordinateSystem & ocs) const{
 	int posOrientation=0;
-	for (auto& coordinateSystemEntry : this->coordinateSystemStorage.coordinateSystemByRef) {
+	for (const auto& coordinateSystemEntry : this->coordinateSystemStorage.coordinateSystemByRef) {
         shared_ptr<CoordinateSystem> coordinateSystem = coordinateSystemEntry.second;
 		if (coordinateSystem->type==CoordinateSystem::Type::RELATIVE){
 			std::shared_ptr<OrientationCoordinateSystem> mocs = std::dynamic_pointer_cast<OrientationCoordinateSystem>(coordinateSystem);
