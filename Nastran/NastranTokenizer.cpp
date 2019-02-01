@@ -445,7 +445,7 @@ int NastranTokenizer::nextInt(bool returnDefaultIfNotFoundOrBlank, int defaultVa
 		result = lexical_cast<int>(value);
 	} catch (boost::bad_lexical_cast &) {
 		string currentFieldstr =
-				currentField == 0 ? "LAST" : (lexical_cast<string>(currentField - 1));
+				currentField == 0 ? "LAST" : to_string(currentField - 1);
 		string message = "Value [" + value + "] can't be converted to int. Field Num: "
 				+ currentFieldstr;
 		handleParsingError(message);
@@ -495,7 +495,7 @@ double NastranTokenizer::nextDouble(bool returnDefaultIfNotFoundOrBlank, double 
 	    if (returnDefaultIfNotFoundOrBlank){
 	        return defaultValue;
 	    }else{
-	        string message = "Missing Double value for Field Number " + lexical_cast<string>(currentField - 1);
+	        string message = "Missing Double value for Field Number " + to_string(currentField - 1);
 	        handleParsingError(message);
 	    }
 	}
@@ -511,7 +511,7 @@ double NastranTokenizer::nextDouble(bool returnDefaultIfNotFoundOrBlank, double 
 		result = lexical_cast<double>(value);
 	} catch (boost::bad_lexical_cast &) {
 		string currentFieldstr =
-				currentField == 0 ? string("LAST") : (lexical_cast<string>(currentField - 1));
+				currentField == 0 ? "LAST" : to_string(currentField - 1);
 		string message = "Value [" + value + "] can't be converted to double. Field Num: "
 				+ currentFieldstr;
 		handleParsingError(message);

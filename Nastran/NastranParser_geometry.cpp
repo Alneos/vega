@@ -24,7 +24,6 @@
 //#include <boost/unordered_map.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/assign.hpp>
 #include <iostream>
 #include <string>
@@ -34,7 +33,6 @@
 using namespace std;
 namespace alg = boost::algorithm;
 using boost::assign::list_of;
-using boost::lexical_cast;
 using boost::to_upper;
 using namespace boost::assign;
 
@@ -106,7 +104,7 @@ void NastranParser::parseGRID(NastranTokenizer& tok, Model& model) {
         const auto& spc = make_shared<SinglePointConstraint>(model, DOFS::nastranCodeToDOFS(ps));
         spc->addNodeId(id);
         model.add(spc);
-        model.addConstraintIntoConstraintSet(*spc, model.commonConstraintSet);
+        model.addConstraintIntoConstraintSet(*spc, *model.commonConstraintSet);
     }
 
     if (this->logLevel >= LogLevel::TRACE) {
@@ -324,11 +322,11 @@ void NastranParser::parseCDAMP1(NastranTokenizer& tok, Model& model) {
     // Creates or update the ElementSet defined by the PELAS key.
     shared_ptr<ElementSet> elementSet = model.elementSets.find(pid);
     if (elementSet == nullptr){
-        ScalarSpring scalarSpring(model, pid);
-        scalarSpring.assignCellGroup(cellGroup);
-        scalarSpring.addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
+        const auto& scalarSpring = make_shared<ScalarSpring>(model, pid);
+        scalarSpring->assignCellGroup(cellGroup);
+        scalarSpring->addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
         model.add(scalarSpring);
-    }else{
+    } else {
         if (elementSet->type == ElementSet::Type::SCALAR_SPRING){
             shared_ptr<ScalarSpring> springElementSet = dynamic_pointer_cast<ScalarSpring>(elementSet);
             springElementSet->addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
@@ -370,9 +368,9 @@ void NastranParser::parseCELAS1(NastranTokenizer& tok, Model& model) {
     // Creates or update the ElementSet defined by the PELAS key.
     shared_ptr<ElementSet> elementSet = model.elementSets.find(pid);
     if (elementSet == nullptr){
-        ScalarSpring scalarSpring(model, pid);
-        scalarSpring.assignCellGroup(cellGroup);
-        scalarSpring.addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
+        const auto& scalarSpring = make_shared<ScalarSpring>(model, pid);
+        scalarSpring->assignCellGroup(cellGroup);
+        scalarSpring->addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
         model.add(scalarSpring);
     }else{
         if (elementSet->type == ElementSet::Type::SCALAR_SPRING){
@@ -409,9 +407,9 @@ void NastranParser::parseCELAS2(NastranTokenizer& tok, Model& model) {
     springGroup->addCellId(model.mesh.findCellId(cellPosition));
 
     // Create ElementSet
-    ScalarSpring scalarSpring(model, eid, k ,ge);
-    scalarSpring.assignCellGroup(springGroup);
-    scalarSpring.addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
+    const auto& scalarSpring = make_shared<ScalarSpring>(model, eid, k ,ge);
+    scalarSpring->assignCellGroup(springGroup);
+    scalarSpring->addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
     model.add(scalarSpring);
 }
 
@@ -429,9 +427,9 @@ void NastranParser::parseCELAS4(NastranTokenizer& tok, Model& model) {
     springGroup->addCellId(model.mesh.findCell(cellPosition).id);
 
     // Create ElementSet
-    ScalarSpring scalarSpring(model, eid, k);
-    scalarSpring.assignCellGroup(springGroup);
-    scalarSpring.addSpring(cellPosition, DOF::DX, DOF::DX);
+    const auto& scalarSpring = make_shared<ScalarSpring>(model, eid, k);
+    scalarSpring->assignCellGroup(springGroup);
+    scalarSpring->addSpring(cellPosition, DOF::DX, DOF::DX);
     model.add(scalarSpring);
 }
 
@@ -482,7 +480,7 @@ void NastranParser::parseCGAP(NastranTokenizer& tok, Model& model) {
         const auto& gapConstraint = make_shared<GapTwoNodes>(model, pid);
         gapConstraint->addGapNodes(ga, gb);
         model.add(gapConstraint);
-        model.addConstraintIntoConstraintSet(*gapConstraint, model.commonConstraintSet);
+        model.addConstraintIntoConstraintSet(*gapConstraint, *model.commonConstraintSet);
     } else {
         shared_ptr<GapTwoNodes> gapConstraint = dynamic_pointer_cast<GapTwoNodes>(gapPtr);
         gapConstraint->addGapNodes(ga, gb);
@@ -501,8 +499,8 @@ void NastranParser::parseCMASS2(NastranTokenizer& tok, Model& model) {
     int c1 = tok.nextInt(); // Nastran coordinate goes from 1 to 6, VEGA from 0 to 5.
     int g2 = tok.nextInt();
     int c2 = tok.nextInt(); // Nastran coordinate goes from 1 to 6, VEGA from 0 to 5.
-    MassMatrix matrix(model, eid);
-    matrix.addComponent(g1, DOF::findByPosition(c1-1), g2, DOF::findByPosition(c2-1), m);
+    const auto& matrix = make_shared<MassMatrix>(model, eid);
+    matrix->addComponent(g1, DOF::findByPosition(c1-1), g2, DOF::findByPosition(c2-1), m);
     model.add(matrix);
 }
 
@@ -716,7 +714,7 @@ void NastranParser::parseSPOINT(NastranTokenizer& tok, Model& model) {
 
     // Adding the constraint to the model
     model.add(spc);
-    model.addConstraintIntoConstraintSet(*spc, model.commonConstraintSet);
+    model.addConstraintIntoConstraintSet(*spc, *model.commonConstraintSet);
 }
 
 

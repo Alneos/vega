@@ -1927,6 +1927,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		for (shared_ptr<ConstraintSet> constraintSet : linearMecaStat.getConstraintSets()) {
 			//GC: dirty fix for #801, a deeper analysis must be done
 			if (constraintSet->getConstraints().size() > 0) {
+                cout << "constraintSet:" << *constraintSet << " AsterName: " << asternameByConstraintSet[constraintSet->getReference()] << "Size:" << constraintSet->size() << endl;
 				out << "                           _F(CHARGE=" << asternameByConstraintSet[constraintSet->getReference()] << "),"
 						<< endl;
 			}

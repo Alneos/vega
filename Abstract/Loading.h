@@ -95,6 +95,7 @@ public:
 	static const std::string name;
 	static const std::map<Type, std::string> stringByType;
 	int size() const;
+	inline bool empty() const { return size() == 0;};
 	const std::set<std::shared_ptr<Loading> > getLoadings() const;
 	const std::set<std::shared_ptr<Loading> > getLoadingsByType(Loading::Type) const;
 	bool validate() const override;
@@ -439,8 +440,8 @@ public:
     std::shared_ptr<FunctionTable> getFunctionTableB() const;
     std::shared_ptr<FunctionTable> getFunctionTableP() const;
     std::shared_ptr<LoadSet> getLoadSet() const;
-    const FunctionPlaceHolder getFunctionTableBPlaceHolder() const;
-    const FunctionPlaceHolder getFunctionTablePPlaceHolder() const;
+    const std::shared_ptr<FunctionPlaceHolder> getFunctionTableBPlaceHolder() const;
+    const std::shared_ptr<FunctionPlaceHolder> getFunctionTablePPlaceHolder() const;
     std::set<int> nodePositions() const override;
     const DOFS getDOFSForNode(const int nodePosition) const override;
     void scale(const double factor) override;

@@ -10,7 +10,6 @@
 
 #include "Loading.h"
 #include "Model.h"
-#include <boost/lexical_cast.hpp>
 //if with "or" and "and" under windows
 #include <ciso646>
 
@@ -551,8 +550,8 @@ void CellLoading::createSkin() {
         // LD : Workaround for Aster problem : MODELISA6_96
         //  les 1 mailles imprimées ci-dessus n'appartiennent pas au modèle et pourtant elles ont été affectées dans le mot-clé facteur : !
         //   ! FORCE_FACE
-        Continuum skin(model, model.modelType);
-        skin.assignCellGroup(cellGrp);
+        const auto& skin = make_shared<Continuum>(model, model.modelType);
+        skin->assignCellGroup(cellGrp);
         model.add(skin);
         //this->add(*mappl);
     }
@@ -745,12 +744,12 @@ shared_ptr<LoadSet> DynamicExcitation::getLoadSet() const {
     return model.find(loadSet);
 }
 
-const FunctionPlaceHolder DynamicExcitation::getFunctionTableBPlaceHolder() const {
-    return FunctionPlaceHolder(model, functionTableB.type, functionTableB.original_id, Function::ParaName::FREQ);
+const shared_ptr<FunctionPlaceHolder> DynamicExcitation::getFunctionTableBPlaceHolder() const {
+    return make_shared<FunctionPlaceHolder>(model, functionTableB.type, functionTableB.original_id, Function::ParaName::FREQ);
 }
 
-const FunctionPlaceHolder DynamicExcitation::getFunctionTablePPlaceHolder() const {
-    return FunctionPlaceHolder(model, functionTableP.type, functionTableP.original_id, Function::ParaName::FREQ);
+const shared_ptr<FunctionPlaceHolder> DynamicExcitation::getFunctionTablePPlaceHolder() const {
+    return make_shared<FunctionPlaceHolder>(model, functionTableP.type, functionTableP.original_id, Function::ParaName::FREQ);
 }
 
 set<int> DynamicExcitation::nodePositions() const {

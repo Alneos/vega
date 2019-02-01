@@ -64,8 +64,6 @@ class MedWriter {
 private:
     friend Mesh;
     friend NodeData;
-	void createFamilies(long int fid, const char meshname[],
-			const std::vector<Family>& families);
 public:
     MedWriter() = default;
 	MedWriter(const MedWriter& that) = delete;

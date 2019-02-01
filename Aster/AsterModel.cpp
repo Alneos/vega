@@ -25,7 +25,6 @@
 #include "../Abstract/Model.h"
 
 #include <boost/filesystem.hpp>
-#include <boost/lexical_cast.hpp>
 
 namespace vega {
 namespace aster {

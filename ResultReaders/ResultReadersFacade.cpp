@@ -12,7 +12,6 @@
 #include <ciso646>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/make_unique.hpp>
 #include <stdexcept>
 
 namespace vega {
@@ -33,9 +32,9 @@ unique_ptr<ResultReader> ResultReadersFacade::getResultReader(
 		if (!ext.empty()) {
 			string ext_str = boost::algorithm::to_lower_copy(ext.string());
 			if (ext_str == ".f06") {
-				result = boost::make_unique<F06Parser>();
+				result = make_unique<F06Parser>();
 			} else if (ext_str == ".csv") {
-				result = boost::make_unique<CSVResultReader>();
+				result = make_unique<CSVResultReader>();
 			} else {
 				cerr << "Can't determine the type of the result file. " << endl;
 				cerr << "allowed types are .f06, .csv" << endl;

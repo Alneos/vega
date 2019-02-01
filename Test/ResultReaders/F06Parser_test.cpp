@@ -15,7 +15,6 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/pointer_cast.hpp>
 #include <boost/assign.hpp>
-#include <boost/make_unique.hpp>
 #include <string>
 
 using namespace std;
@@ -30,7 +29,7 @@ BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 			LogLevel::DEBUG, ConfigurationParameters::TranslationMode::BEST_EFFORT, testLocation, 0.0003);
 	F06Parser f06parser;
 
-	unique_ptr<Model> model = boost::make_unique<Model>("mname", "unknown", SolverName::NASTRAN);
+	unique_ptr<Model> model = make_unique<Model>("mname", "unknown", SolverName::NASTRAN);
 	model->mesh.addNode(1, 2, 3, 4);
 	model->mesh.addNode(2, 2, 3, 4);
 	model->mesh.addNode(3, 2, 3, 4);
@@ -43,8 +42,8 @@ BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 	shared_ptr<CellGroup> cn1 = model->mesh.createCellGroup("GM1");
 	cn1->addCellId(1);
 	cn1->addCellId(2);
-	Shell shell(*model, 1.1);
-	shell.assignCellGroup(cn1);
+	const auto& shell = make_shared<Shell>(*model, 1.1);
+	shell->assignCellGroup(cn1);
 	model->add(shell);
 	//node 10 outside mesh, number of assertion = 6 nodes * 6 dofs
 	model->add(make_shared<LinearMecaStat>(*model, "", 1));
@@ -81,11 +80,11 @@ BOOST_AUTO_TEST_CASE(node_not_in_elements) {
 
 	string testLocation(
 	PROJECT_BASE_DIR "/testdata/nastran/caw/prob6/prob6.f06");
-	ConfigurationParameters confParams("inputFile", SolverName::CODE_ASTER, "..", "vega", ".",
-			LogLevel::INFO, ConfigurationParameters::TranslationMode::BEST_EFFORT, testLocation, 0.0003);
+	ConfigurationParameters confParams{"inputFile", SolverName::CODE_ASTER, "..", "vega", ".",
+			LogLevel::INFO, ConfigurationParameters::TranslationMode::BEST_EFFORT, testLocation, 0.0003};
 	F06Parser f06parser;
 
-	unique_ptr<Model> model = boost::make_unique<Model>("mname", "unknown", SolverName::NASTRAN);
+	unique_ptr<Model> model = make_unique<Model>("mname", "unknown", SolverName::NASTRAN);
 	model->mesh.addNode(1, 2, 3, 4);
 	model->mesh.addNode(2, 2.2, 3.2, 4.2);
 	model->mesh.addNode(3, 2.3, 3.3, 4.3);
@@ -119,7 +118,7 @@ BOOST_AUTO_TEST_CASE(test_4a) {
 	ConfigurationParameters confParams{"inputFile", SolverName::CODE_ASTER, "..", "vega", ".",
 			LogLevel::INFO, ConfigurationParameters::TranslationMode::BEST_EFFORT, testLocation, 0.0003};
 
-	unique_ptr<Model> model = boost::make_unique<Model>("unittest4a", "unknown", SolverName::NASTRAN);
+	unique_ptr<Model> model = make_unique<Model>("unittest4a", "unknown", SolverName::NASTRAN);
 	model->mesh.addNode(1, 2, 3, 4);
 	model->mesh.addNode(2, 2.2, 3.2, 4.2);
 	model->mesh.addNode(3, 2.3, 3.3, 4.3);
@@ -133,13 +132,13 @@ BOOST_AUTO_TEST_CASE(test_4a) {
 	model->mesh.addCell(2, CellType::POINT1, { 9 });
 	shared_ptr<CellGroup> cn1 = model->mesh.createCellGroup("GM1");
 	cn1->addCellId(1);
-	Continuum continuum{*model, ModelType::TRIDIMENSIONAL_SI, 1};
-	continuum.assignCellGroup(cn1);
+	const auto& continuum = make_shared<Continuum>(*model, ModelType::TRIDIMENSIONAL_SI, 1);
+	continuum->assignCellGroup(cn1);
 	model->add(continuum);
 	shared_ptr<CellGroup> cn2 = model->mesh.createCellGroup("GM2");
 	cn2->addCellId(2);
-	DiscretePoint discrete(*model, { });
-	discrete.assignCellGroup(cn2);
+	const auto& discrete = make_shared<DiscretePoint>(*model);
+	discrete->assignCellGroup(cn2);
 	model->add(discrete);
 	model->add(make_shared<LinearMecaStat>(*model, "", 1));
 

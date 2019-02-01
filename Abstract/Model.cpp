@@ -23,6 +23,9 @@ using namespace std;
 
 namespace vega {
 
+constexpr int LoadSet::COMMON_SET_ID; // required for C++11
+constexpr int ConstraintSet::COMMON_SET_ID; // required for C++11
+
 Model::Model(string name, string inputSolverVersion, SolverName inputSolver,
         const ModelConfiguration configuration, const vega::ConfigurationParameters::TranslationMode translationMode) :
         name(name), inputSolverVersion(inputSolverVersion), //
@@ -30,8 +33,8 @@ Model::Model(string name, string inputSolverVersion, SolverName inputSolver,
         modelType(ModelType::TRIDIMENSIONAL_SI), //
         mesh{configuration.logLevel, name},
         configuration(configuration), translationMode(translationMode), //
-        commonLoadSet(*this, LoadSet::Type::ALL, LoadSet::COMMON_SET_ID), //
-		commonConstraintSet(*this, ConstraintSet::Type::ALL, ConstraintSet::COMMON_SET_ID) {
+        commonLoadSet(make_shared<LoadSet>(*this, LoadSet::Type::ALL, LoadSet::COMMON_SET_ID)), //
+		commonConstraintSet(make_shared<ConstraintSet>(*this, ConstraintSet::Type::ALL, ConstraintSet::COMMON_SET_ID)) {
     //this->mesh = make_shared<Mesh>(configuration.logLevel, name);
     this->finished = false;
     this->onlyMesh = false;
@@ -48,7 +51,7 @@ void Model::Container<T>::add(const T& t) {
 
 template<class T>
 void Model::Container<T>::add(shared_ptr<T> ptr) {
-    if (find(ptr->getReference())) {
+    if (find(ptr->getReference()) != nullptr) {
         ostringstream oss;
         oss << *ptr << " is already in the model";
         throw runtime_error(oss.str());
@@ -56,13 +59,6 @@ void Model::Container<T>::add(shared_ptr<T> ptr) {
     by_id[ptr->getId()] = ptr;
     if (ptr->isOriginal())
         by_original_ids_by_type[ptr->type][ptr->getOriginalId()] = ptr;
-}
-
-template<class T>
-void Model::Container<T>::erase(const Reference<T> ref) {
-    by_id.erase(ref.id);
-    if (ref.has_original_id())
-        by_original_ids_by_type[ref.type].erase(ref.original_id);
 }
 
 /*
@@ -148,23 +144,23 @@ shared_ptr<T> Model::Container<T>::get(int id) const {
 
 
 
-void Model::add(const shared_ptr<Analysis> analysis) {
+void Model::add(const shared_ptr<Analysis>& analysis) {
     if (configuration.logLevel >= LogLevel::DEBUG) {
         cout << "Adding " << *analysis << endl;
     }
     analyses.add(analysis);
 }
 
-void Model::add(const Loading& loading) {
+void Model::add(const shared_ptr<Loading>& loading) {
     if (configuration.logLevel >= LogLevel::DEBUG) {
-        cout << "Adding " << loading << endl;
+        cout << "Adding " << *loading << endl;
     }
     loadings.add(loading);
 }
 
-void Model::add(const LoadSet& loadSet) {
+void Model::add(const std::shared_ptr<LoadSet>& loadSet) {
     if (configuration.logLevel >= LogLevel::DEBUG) {
-        cout << "Adding " << loadSet << endl;
+        cout << "Adding " << *loadSet << endl;
     }
     loadSets.add(loadSet);
 }
@@ -172,49 +168,49 @@ void Model::add(const LoadSet& loadSet) {
 // This "add" function used shared_ptr because adding an object
 // clone it, which does not keep the original id.
 //TODO: same type of "add" than the other ?
-void Model::add(const shared_ptr<Material> material) {
+void Model::add(const shared_ptr<Material>& material) {
     if (configuration.logLevel >= LogLevel::DEBUG) {
         cout << "Adding " << *material << endl;
     }
     materials.add(material);
 }
 
-void Model::add(const shared_ptr<Constraint> constraint) {
+void Model::add(const shared_ptr<Constraint>& constraint) {
     if (configuration.logLevel >= LogLevel::DEBUG) {
         cout << "Adding " << *constraint << endl;
     }
     constraints.add(constraint);
 }
 
-void Model::add(const ConstraintSet& constraintSet) {
+void Model::add(const shared_ptr<ConstraintSet>& constraintSet) {
     if (configuration.logLevel >= LogLevel::DEBUG) {
-        cout << "Adding " << constraintSet << endl;
+        cout << "Adding " << *constraintSet << endl;
     }
     constraintSets.add(constraintSet);
 }
 
-void Model::add(const Objective& objective) {
+void Model::add(const shared_ptr<Objective>& objective) {
     if (configuration.logLevel >= LogLevel::TRACE) {
-        cout << "Adding " << objective << endl;
+        cout << "Adding " << *objective << endl;
     }
     objectives.add(objective);
 }
 
-void Model::add(const NamedValue& value) {
+void Model::add(const shared_ptr<NamedValue>& value) {
     if (configuration.logLevel >= LogLevel::DEBUG) {
-        cout << "Adding " << value << endl;
+        cout << "Adding " << *value << endl;
     }
     values.add(value);
 }
 
-void Model::add(const ElementSet& elementSet) {
+void Model::add(const shared_ptr<ElementSet>& elementSet) {
     if (configuration.logLevel >= LogLevel::DEBUG) {
-        cout << "Adding " << elementSet << endl;
+        cout << "Adding " << *elementSet << endl;
     }
     elementSets.add(elementSet);
 }
 
-void Model::add(const shared_ptr<Target> target) {
+void Model::add(const shared_ptr<Target>& target) {
     if (configuration.logLevel >= LogLevel::DEBUG) {
         cout << "Adding " << *target << endl;
     }
@@ -461,10 +457,10 @@ void Model::addLoadingIntoLoadSet(const Reference<Loading>& loadingReference,
     if (loadSetReference.has_original_id())
         loadingReferences_by_loadSet_original_ids_by_loadSet_type[loadSetReference.type][loadSetReference.original_id].insert(
                 loadingReference_ptr);
-    if (loadSetReference == commonLoadSet.getReference() && !find(commonLoadSet.getReference()))
+    if (loadSetReference == commonLoadSet->getReference() && find(commonLoadSet->getReference()) == nullptr)
         add(commonLoadSet); // commonLoadSet is added to the model if needed
-    if (!this->find(loadSetReference)) {
-        LoadSet loadSet(*this, loadSetReference.type, loadSetReference.original_id);
+    if (this->find(loadSetReference) == nullptr) {
+        const auto& loadSet = make_shared<LoadSet>(*this, loadSetReference.type, loadSetReference.original_id);
         this->add(loadSet);
     }
 }
@@ -522,8 +518,8 @@ void Model::addConstraintIntoConstraintSet(const Reference<Constraint>& constrai
     if (constraintSetReference.has_original_id())
         constraintReferences_by_constraintSet_original_ids_by_constraintSet_type[constraintSetReference.type][constraintSetReference.original_id].insert(
                 constraintReference_ptr);
-    if (constraintSetReference == commonConstraintSet.getReference()
-            && !find(commonConstraintSet.getReference()))
+    if (constraintSetReference == commonConstraintSet->getReference()
+            and find(commonConstraintSet->getReference()) == nullptr)
         add(commonConstraintSet); // commonConstraintSet is added to the model if needed
 }
 
@@ -688,13 +684,13 @@ void Model::generateDiscrets() {
                 //extra dofs added by the DISCRET. They need to be blocked.
                 addedDOFS = DOFS::ALL_DOFS - node.dofs - missingDOFS;
                 if (virtualDiscretTRGroup == nullptr) {
-                    DiscretePoint virtualDiscretTR(*this, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+                    const auto& virtualDiscretTR = make_shared<DiscretePoint>(*this, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
                     ostringstream oss;
                     oss << "created by generateDiscrets() because missing DOFs: " << missingDOFS << " and node: " << node;
                     virtualDiscretTRGroup = mesh.createCellGroup("VDiscrTR", Group::NO_ORIGINAL_ID, oss.str());
-                    virtualDiscretTR.assignCellGroup(virtualDiscretTRGroup);
+                    virtualDiscretTR->assignCellGroup(virtualDiscretTRGroup);
                     if (this->configuration.addVirtualMaterial) {
-                        virtualDiscretTR.assignMaterial(getVirtualMaterial());
+                        virtualDiscretTR->assignMaterial(getVirtualMaterial());
                     }
                     this->add(virtualDiscretTR);
                 }
@@ -707,13 +703,13 @@ void Model::generateDiscrets() {
             } else {
                 addedDOFS = DOFS::TRANSLATIONS - node.dofs - missingDOFS;
                 if (virtualDiscretTGroup == nullptr) {
-                    DiscretePoint virtualDiscretT(*this, 0.0, 0.0, 0.0);
+                    const auto& virtualDiscretT = make_shared<DiscretePoint>(*this, 0.0, 0.0, 0.0);
                     ostringstream oss;
                     oss << "created by generateDiscrets() because missing DOFs: " << missingDOFS << " and node: " << node;
                     virtualDiscretTGroup = mesh.createCellGroup("VDiscrT", Group::NO_ORIGINAL_ID, oss.str());
-                    virtualDiscretT.assignCellGroup(virtualDiscretTGroup);
+                    virtualDiscretT->assignCellGroup(virtualDiscretTGroup);
                     if (this->configuration.addVirtualMaterial) {
-                        virtualDiscretT.assignMaterial(getVirtualMaterial());
+                        virtualDiscretT->assignMaterial(getVirtualMaterial());
                     }
                     this->add(virtualDiscretT);
                 }
@@ -734,7 +730,7 @@ void Model::generateDiscrets() {
                 if (extraDOFS != DOFS::NO_DOFS) {
                     if (spcSet == nullptr) {
                         spcSet = make_shared<ConstraintSet>(*this, ConstraintSet::Type::SPC);
-                        add(*spcSet);
+                        add(spcSet);
                     }
                     const auto& spc = make_shared<SinglePointConstraint>(*this, extraDOFS);
                     spc->addNodeId(node.id);
@@ -943,14 +939,14 @@ void Model::generateBeamsToDisplayHomogeneousConstraint() {
             switch (constraint->type) {
             case Constraint::Type::RIGID: {
                 if (!virtualGroupRigid) {
-                    CircularSectionBeam virtualBeam(*this, 0.001, Beam::BeamModel::EULER, 0.0);
+                    const auto& virtualBeam = make_shared<CircularSectionBeam>(*this, 0.001, Beam::BeamModel::EULER, 0.0);
                     if (this->configuration.addVirtualMaterial) {
-                        virtualBeam.assignMaterial(getVirtualMaterial());
+                        virtualBeam->assignMaterial(getVirtualMaterial());
                     }
                     ostringstream oss;
                     oss << "created by generateBeamsToDisplayHomogeneousConstraint() because of rigid constraint: " << constraint;
                     virtualGroupRigid = mesh.createCellGroup("VRigid", Group::NO_ORIGINAL_ID, oss.str());
-                    virtualBeam.assignCellGroup(virtualGroupRigid);
+                    virtualBeam->assignCellGroup(virtualGroupRigid);
                     this->add(virtualBeam);
                 }
                 shared_ptr<RigidConstraint> rigid = dynamic_pointer_cast<RigidConstraint>(
@@ -968,14 +964,14 @@ void Model::generateBeamsToDisplayHomogeneousConstraint() {
             }
             case Constraint::Type::RBE3: {
                 if (!virtualGroupRBE3) {
-                    CircularSectionBeam virtualBeam(*this, 0.001, Beam::BeamModel::EULER, 0.0);
+                    const auto& virtualBeam = make_shared<CircularSectionBeam>(*this, 0.001, Beam::BeamModel::EULER, 0.0);
                     if (configuration.addVirtualMaterial) {
-                        virtualBeam.assignMaterial(getVirtualMaterial());
+                        virtualBeam->assignMaterial(getVirtualMaterial());
                     }
                     ostringstream oss;
                     oss << "created by generateBeamsToDisplayHomogeneousConstraint() because of rbe3 constraint: " << constraint;
                     virtualGroupRBE3 = mesh.createCellGroup("VRBE3", Group::NO_ORIGINAL_ID, oss.str());
-                    virtualBeam.assignCellGroup(virtualGroupRBE3);
+                    virtualBeam->assignCellGroup(virtualGroupRBE3);
                     this->add(virtualBeam);
                 }
                 shared_ptr<RBE3> rbe3 = dynamic_pointer_cast<RBE3>(constraint);
@@ -1118,7 +1114,7 @@ void Model::replaceCombinedLoadSets() {
                 shared_ptr<Loading> newLoading = loading->clone();
                 newLoading->resetId();
                 newLoading->scale(coefficient);
-                this->add(*newLoading);
+                this->add(newLoading);
                 this->addLoadingIntoLoadSet(*newLoading, *loadSet);
                 if (configuration.logLevel >= LogLevel::DEBUG) {
                     cout << "Cloned " << *loading << " into " << *newLoading << " and scaled by "
@@ -1212,7 +1208,7 @@ void Model::replaceDirectMatrices()
                 const int nodeId = mesh.findNodeId(nodePosition);
                 DOFS requiredDofs = requiredDofsByNode.find(nodePosition)->second;
                 shared_ptr<DOFMatrix> submatrix = matrix->findSubmatrix(nodePosition, nodePosition);
-                DiscretePoint discrete(*this, {});
+                const auto& discrete = make_shared<DiscretePoint>(*this);
                 for (const auto& kv : submatrix->componentByDofs) {
                     double value = kv.second;
                     const vega::DOF& dof1 = kv.first.first;
@@ -1220,7 +1216,7 @@ void Model::replaceDirectMatrices()
                     if (!is_equal(value, 0)) {
                         switch (matrix->type) {
                         case ElementSet::Type::STIFFNESS_MATRIX:
-                            discrete.addStiffness(dof1, dof2, value);
+                            discrete->addStiffness(dof1, dof2, value);
                             break;
                         default:
                             throw logic_error("Not yet implemented");
@@ -1230,17 +1226,17 @@ void Model::replaceDirectMatrices()
                     }
                 }
                 if (configuration.addVirtualMaterial) {
-                    discrete.assignMaterial(getVirtualMaterial());
+                    discrete->assignMaterial(getVirtualMaterial());
                 }
                 matrix_count++;
                 ostringstream oss;
                 oss << "created by replaceDirectMatrices() because of matrix element on same node: " << matrix;
                 shared_ptr<CellGroup> matrixGroup = mesh.createCellGroup(
                         "MTN" + to_string(matrix_count), Group::NO_ORIGINAL_ID, oss.str());
-                discrete.assignCellGroup(matrixGroup);
+                discrete->assignCellGroup(matrixGroup);
                 int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, { nodeId }, true);
                 matrixGroup->addCellPosition(cellPosition);
-                if (discrete.hasRotations()) {
+                if (discrete->hasRotations()) {
                     addedDofsByNode[nodePosition] = DOFS::ALL_DOFS;
                     mesh.allowDOFS(nodePosition, DOFS::ALL_DOFS);
                 } else {
@@ -1248,7 +1244,7 @@ void Model::replaceDirectMatrices()
                     mesh.allowDOFS(nodePosition, DOFS::TRANSLATIONS);
                 }
                 if (this->configuration.logLevel >= LogLevel::DEBUG) {
-                    cout << "Creating discrete : " << discrete << " over node id : "
+                    cout << "Creating discrete : " << *discrete << " over node id : "
                             << to_string(nodeId) << endl;
                 }
                 this->add(discrete);
@@ -1261,7 +1257,7 @@ void Model::replaceDirectMatrices()
                 DOFS requiredRowDofs = requiredDofsByNode.find(rowNodePosition)->second;
                 DOFS requiredColDofs = requiredDofsByNode.find(colNodePosition)->second;
 
-                DiscreteSegment discrete(*this);
+                const auto& discrete = make_shared<DiscreteSegment>(*this);
                 ostringstream oss;
                 oss << "created by replaceDirectMatrices() because of matrix element on node couple: " << matrix;
                 shared_ptr<CellGroup> matrixGroup = mesh.createCellGroup(
@@ -1271,10 +1267,10 @@ void Model::replaceDirectMatrices()
                         colNodeId }, true);
                 matrixGroup->addCellPosition(cellPosition);
                 if (configuration.addVirtualMaterial) {
-                    discrete.assignMaterial(getVirtualMaterial());
+                    discrete->assignMaterial(getVirtualMaterial());
                 }
-                discrete.assignCellGroup(matrixGroup);
-                if (discrete.hasRotations()) {
+                discrete->assignCellGroup(matrixGroup);
+                if (discrete->hasRotations()) {
                     addedDofsByNode[rowNodePosition] = DOFS::ALL_DOFS;
                     mesh.allowDOFS(rowNodePosition, DOFS::ALL_DOFS);
                     addedDofsByNode[colNodePosition] = DOFS::ALL_DOFS;
@@ -1309,7 +1305,7 @@ void Model::replaceDirectMatrices()
                             if (!is_equal(value, 0)) {
                                 switch (matrix->type) {
                                 case ElementSet::Type::STIFFNESS_MATRIX:
-                                    discrete.addStiffness(row_index, col_index, rowDof, colDof,
+                                    discrete->addStiffness(row_index, col_index, rowDof, colDof,
                                             value);
                                     break;
                                 default:
@@ -1322,7 +1318,7 @@ void Model::replaceDirectMatrices()
                     }
                 }
                 if (this->configuration.logLevel >= LogLevel::DEBUG) {
-                    cout << "Creating discrete : " << discrete << " over node ids : "
+                    cout << "Creating discrete : " << *discrete << " over node ids : "
                             << to_string(rowNodeId) << " and : " << to_string(colNodeId) << endl;
                 }
                 this->add(discrete);
@@ -1367,7 +1363,7 @@ void Model::replaceDirectMatrices()
             const auto& spc = make_shared<SinglePointConstraint>(*this, extra);
             spc->addNodeId(nodeId);
             add(spc);
-            addConstraintIntoConstraintSet(*spc, commonConstraintSet);
+            addConstraintIntoConstraintSet(*spc, *commonConstraintSet);
             if (configuration.logLevel >= LogLevel::DEBUG) {
                 cout << "Adding virtual spc on node id: " << nodeId << "for " << extra
                         << endl;
@@ -1393,7 +1389,7 @@ void Model::replaceRigidSegments()
             const set<int> nodeIds{cell.nodeIds.begin(), cell.nodeIds.end()};
             const auto& rigid = make_shared<RigidConstraint>(*this, RigidConstraint::UNAVAILABLE_MASTER, RigidConstraint::NO_ORIGINAL_ID, nodeIds);
             this->add(rigid);
-            addConstraintIntoConstraintSet(*rigid, commonConstraintSet);
+            addConstraintIntoConstraintSet(*rigid, *commonConstraintSet);
             if (configuration.logLevel >= LogLevel::DEBUG) {
                 cout << "Added contraint: " << *rigid << " to replace a cell of: " << *segment << endl;
             }
@@ -1609,7 +1605,7 @@ void Model::splitDirectMatrices(const unsigned int sizeMax){
 
     // We add the elementSets corresponding to small matrices
     for (const auto& es : esToAdd){
-        this->add(*es);
+        this->add(es);
     }
 }
 
@@ -1693,10 +1689,10 @@ void Model::makeCellsFromLMPC(){
                         this->add(materialLMPC);
                     }
                     group = mesh.createCellGroup("MPC_"+to_string(analysis->bestId())+"_"+to_string(constraint->bestId()), CellGroup::NO_ORIGINAL_ID, "MPC");
-                    Lmpc elementsetLMPC(*this, analysis->getId());
-                    elementsetLMPC.assignCellGroup(group);
-                    elementsetLMPC.assignMaterial(materialLMPC);
-                    elementsetLMPC.assignDofCoefs(sortedCoefs);
+                    const auto& elementsetLMPC = make_shared<Lmpc>(*this, analysis->getId());
+                    elementsetLMPC->assignCellGroup(group);
+                    elementsetLMPC->assignMaterial(materialLMPC);
+                    elementsetLMPC->assignDofCoefs(sortedCoefs);
                     this->add(elementsetLMPC);
                     groupBySetOfCoefs[sortedCoefs]= group;
                 }
@@ -1756,9 +1752,9 @@ void Model::makeCellsFromRBE(){
             this->add(materialRBE2);
 
             shared_ptr<CellGroup> group = mesh.createCellGroup("RBE2_"+to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBE2");
-            Rbar elementsetRbe2(*this, mesh.findNodeId(rbe2->getMaster()));
-            elementsetRbe2.assignCellGroup(group);
-            elementsetRbe2.assignMaterial(materialRBE2);
+            const auto& elementsetRbe2 = make_shared<Rbar>(*this, mesh.findNodeId(rbe2->getMaster()));
+            elementsetRbe2->assignCellGroup(group);
+            elementsetRbe2->assignMaterial(materialRBE2);
             this->add(elementsetRbe2);
 
             // Creating cells and adding them to the CellGroup
@@ -1798,9 +1794,9 @@ void Model::makeCellsFromRBE(){
             const int slaveNodeId = mesh.findNodeId(*rbar->getSlaves().rbegin());
             shared_ptr<CellGroup> group = mesh.createCellGroup("RBAR_"+to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBAR");
 
-            Rbar elementsetRBAR(*this, masterNodeId);
-            elementsetRBAR.assignCellGroup(group);
-            elementsetRBAR.assignMaterial(materialRBAR);
+            const auto& elementsetRBAR = make_shared<Rbar>(*this, masterNodeId);
+            elementsetRBAR->assignCellGroup(group);
+            elementsetRBAR->assignMaterial(materialRBAR);
             this->add(elementsetRBAR);
 
             // Creating a cell and adding it to the CellGroup
@@ -1856,9 +1852,9 @@ void Model::makeCellsFromRBE(){
                     this->add(materialRBE3);
 
                     shared_ptr<CellGroup> group = mesh.createCellGroup("RBE3_"+to_string(nbParts)+"_"+to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBE3");
-                    Rbe3 elementsetRbe3(*this, masterId, mDOFS, sDOFS);
-                    elementsetRbe3.assignCellGroup(group);
-                    elementsetRbe3.assignMaterial(materialRBE3);
+                    const auto& elementsetRbe3 = make_shared<Rbe3>(*this, masterId, mDOFS, sDOFS);
+                    elementsetRbe3->assignCellGroup(group);
+                    elementsetRbe3->assignMaterial(materialRBE3);
                     this->add(elementsetRbe3);
 
                     if (configuration.logLevel >= LogLevel::DEBUG){
@@ -1866,7 +1862,7 @@ void Model::makeCellsFromRBE(){
                     }
                     groupByCoefByDOFS[sDOFS][sCoef]= group;
                 }
-                groupRBE3=groupByCoefByDOFS[sDOFS][sCoef];
+                groupRBE3 = groupByCoefByDOFS[sDOFS][sCoef];
                 groupRBE3->addCellPosition(cellPosition);
             }
 
@@ -1897,8 +1893,8 @@ void Model::makeCellsFromSurfaceSlide() {
         vector<shared_ptr<Constraint>> toBeRemoved;
         for (const auto& constraint : constraints) {
             shared_ptr<CellGroup> group = mesh.createCellGroup("SURF_"+to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "SURF");
-            SurfaceSlideSet elementsetSlide(*this);
-            elementsetSlide.assignCellGroup(group);
+            const auto& elementsetSlide = make_shared<SurfaceSlideSet>(*this);
+            elementsetSlide->assignCellGroup(group);
             this->add(elementsetSlide);
 
             shared_ptr<const SurfaceSlide> surface = dynamic_pointer_cast<const SurfaceSlide>(constraint);
@@ -1968,7 +1964,7 @@ void Model::makeCellsFromSurfaceSlide() {
 
 void Model::splitElementsByDOFS(){
 
-    vector<ScalarSpring> elementSetsToAdd;
+    vector<shared_ptr<ScalarSpring>> elementSetsToAdd;
     vector<shared_ptr<ElementSet>> elementSetsToRemove;
 
     for (const auto& elementSet : elementSets) {
@@ -2005,11 +2001,11 @@ void Model::splitElementsByDOFS(){
                 if (configuration.logLevel >= LogLevel::DEBUG)
                     cout<< *elementSet << " spring must be split."<<endl;
                 for (const auto & it : ss->getCellPositionByDOFS()){
-                    ScalarSpring scalarSpring(*this, Identifiable<ElementSet>::NO_ORIGINAL_ID, stiffness, damping);
+                    const auto& scalarSpring = make_shared<ScalarSpring>(*this, Identifiable<ElementSet>::NO_ORIGINAL_ID, stiffness, damping);
                     shared_ptr<CellGroup> cellGroup = this->mesh.createCellGroup(name+"_"+to_string(i), Group::NO_ORIGINAL_ID, comment);
-                    scalarSpring.assignCellGroup(cellGroup);
+                    scalarSpring->assignCellGroup(cellGroup);
                     for (const int cellPosition : it.second){
-                        scalarSpring.addSpring(cellPosition, it.first.first, it.first.second);
+                        scalarSpring->addSpring(cellPosition, it.first.first, it.first.second);
                         cellGroup->addCellPosition(cellPosition);
                     }
                     elementSetsToAdd.push_back(scalarSpring);

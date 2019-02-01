@@ -368,7 +368,7 @@ private:
 public:
 	DiscretePoint(Model&, double x, double y, double z, double rx = NOT_BOUNDED, double ry =
 			NOT_BOUNDED, double rz = NOT_BOUNDED, bool symmetric = true, int original_id = NO_ORIGINAL_ID);
-	DiscretePoint(Model&, std::vector<double> components = std::vector<double>(), bool symmetric = true, int original_id =
+	DiscretePoint(Model&, std::vector<double> components = {}, bool symmetric = true, int original_id =
 			NO_ORIGINAL_ID);
 	bool hasTranslations() const override;
 	bool hasRotations() const override;

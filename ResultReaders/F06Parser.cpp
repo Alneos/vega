@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <exception>
 #include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
 #include <ciso646>
 #include "../Abstract/Model.h"
 #include "../Abstract/ConfigurationParameters.h"
@@ -33,7 +32,6 @@ namespace result {
 
 using boost::algorithm::trim;
 using boost::algorithm::trim_copy;
-using boost::lexical_cast;
 
 F06Parser::F06Parser() {
 	lineNumber = 0;
@@ -106,7 +104,7 @@ int F06Parser::readDisplacementSection(Model& model,
 		string message("Error ");
 		message += string(e.what()) + " parsing:";
 		message += configuration.resultFile.string();
-		message += " Line number " + lexical_cast<string>(currentLine);
+		message += " Line number " + to_string(lineNumber);
 		message += " Line: " + currentLine;
 		cerr << message << endl;
 		if (ConfigurationParameters::TranslationMode::MODE_STRICT == configuration.translationMode) {
@@ -158,7 +156,7 @@ void F06Parser::readEigenvalueSection(Model& model,
 		string message("Error ");
 		message += string(e.what()) + " parsing:";
 		message += configuration.resultFile.string();
-		message += " Line number " + lexical_cast<string>(currentLine);
+		message += " Line number " + to_string(lineNumber);
 		message += " Line: " + currentLine;
 		cerr << message << endl;
 		if (ConfigurationParameters::TranslationMode::MODE_STRICT == configuration.translationMode) {
@@ -225,7 +223,7 @@ int F06Parser::readComplexDisplacementSection(Model& model,
 		string message("Error ");
 		message += string(e.what()) + " parsing:";
 		message += configuration.resultFile.string();
-		message += " Line number " + lexical_cast<string>(currentLine);
+		message += " Line number " + to_string(lineNumber);
 		message += " Line: " + currentLine;
 		cerr << message << endl;
 		if (ConfigurationParameters::TranslationMode::MODE_STRICT == configuration.translationMode) {
@@ -254,7 +252,7 @@ int F06Parser::addAssertionsToModel(int currentSubcase, double loadStep, Model &
 	}
 	for (const auto& assertion : assertions) {
 		if (analysis != nullptr) {
-			model.add(*assertion);
+			model.add(assertion);
 			analysis->add(assertion->getReference());
 			if (model.configuration.logLevel >= LogLevel::TRACE) {
 				cout << "Adding NodalDisplacementAssertion : " << *assertion << " to subcase: "
@@ -289,7 +287,7 @@ void F06Parser::addFrequencyAssertionsToModel(int currentSubCase, Model& model,
 	}
 	for (const auto& assertion : assertions) {
 		if (analysis != nullptr) {
-			model.add(*assertion);
+			model.add(assertion);
 			analysis->add(Reference<Objective>(*assertion));
 			if (model.configuration.logLevel >= LogLevel::TRACE) {
 				cout << "Adding FrequencyAssertion : " << *assertion << " to subcase: "
@@ -321,8 +319,8 @@ int F06Parser::addComplexAssertionsToModel(int currentSubCase, double frequency,
 	}
 	for (const auto& assertion : assertions) {
 		if (analysis != nullptr) {
-			model.add(*assertion);
-			analysis->add(Reference<Objective>(*assertion));
+			model.add(assertion);
+			analysis->add(assertion->getReference());
 			if (model.configuration.logLevel >= LogLevel::TRACE) {
 				cout << "Adding Complex Displacement Assertion : " << *assertion << " to subcase: "
 						<< currentSubCase << endl;

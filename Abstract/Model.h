@@ -156,8 +156,8 @@ public:
         STRUCTURAL_DAMPING,
         FREQUENCY_OF_INTEREST_RADIANS
     };
-    const LoadSet commonLoadSet;
-    const ConstraintSet commonConstraintSet;
+    const std::shared_ptr<LoadSet> commonLoadSet;
+    const std::shared_ptr<ConstraintSet> commonConstraintSet;
 
 private:
     std::unordered_map<LoadSet::Type, std::map<int, std::set<std::shared_ptr<Reference<Loading>>> > ,EnumClassHash>
@@ -213,7 +213,11 @@ private:
         bool empty() const {return by_id.size() == 0;}
         void add(const T&);
         void add(std::shared_ptr<T> T_ptr);
-        void erase(const Reference<T>);
+        void erase(const Reference<T> ref) {
+            by_id.erase(ref.id);
+            if (ref.has_original_id())
+                by_original_ids_by_type[ref.type].erase(ref.original_id);
+        }
         std::shared_ptr<T> find(const Reference<T>&) const;
         std::shared_ptr<T> find(int) const; /**< Find an object by its Original Id **/
         std::shared_ptr<T> get(int) const; /**< Return an object by its Vega Id **/
@@ -290,16 +294,16 @@ private:
          */
         //TODO : make and use a template, does not work because of inherited objects, or, better, avoid need to add altogether (object creation should implicitily add)
         //template<typename T> void add(const T&);
-        void add(const std::shared_ptr<Analysis>);
-        void add(const Loading&);
-        void add(const LoadSet&);
-        void add(const std::shared_ptr<Constraint>);
-        void add(const ConstraintSet&);
-        void add(const Objective&);
-        void add(const NamedValue&);
-        void add(const ElementSet&);
-        void add(const std::shared_ptr<Target>);
-        void add(const std::shared_ptr<Material>);
+        void add(const std::shared_ptr<Analysis>&);
+        void add(const std::shared_ptr<Loading>&);
+        void add(const std::shared_ptr<LoadSet>&);
+        void add(const std::shared_ptr<Constraint>&);
+        void add(const std::shared_ptr<ConstraintSet>&);
+        void add(const std::shared_ptr<Objective>&);
+        void add(const std::shared_ptr<NamedValue>&);
+        void add(const std::shared_ptr<ElementSet>&);
+        void add(const std::shared_ptr<Target>&);
+        void add(const std::shared_ptr<Material>&);
 
         // Get functions : get object by their VEGA Id.
         // Mainly here in order to instanciate all template type for the Container template functions

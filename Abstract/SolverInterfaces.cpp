@@ -24,7 +24,6 @@
 #include "SolverInterfaces.h"
 #include "Model.h"
 #include "ConfigurationParameters.h"
-#include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
 #include <stdio.h>
 #if defined VDEBUG && defined __GNUC__ && !defined(_WIN32)
@@ -34,7 +33,6 @@
 namespace vega {
 
 namespace fs = boost::filesystem;
-using boost::lexical_cast;
 using namespace std;
 
 

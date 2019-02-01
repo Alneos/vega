@@ -10,7 +10,6 @@
 #include "../../Abstract/Model.h"
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/make_unique.hpp>
 #include <string>
 
 using namespace std;
@@ -24,7 +23,7 @@ BOOST_AUTO_TEST_CASE(read_tut_01_csv) {
 			string("."), LogLevel::INFO,
 			ConfigurationParameters::TranslationMode::BEST_EFFORT, resultPath};
 	result::CSVResultReader reader;
-	unique_ptr<Model> model = boost::make_unique<Model>("tut_01", "", SolverName::CODE_ASTER,
+	unique_ptr<Model> model = make_unique<Model>("tut_01", "", SolverName::CODE_ASTER,
 					params.getModelConfiguration());
 	reader.add_assertions(params, *model);
 	BOOST_CHECK_EQUAL(model->objectives.size(), 126);

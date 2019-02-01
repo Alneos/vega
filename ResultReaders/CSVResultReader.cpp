@@ -126,11 +126,11 @@ struct CsvGrammar: qi::grammar<stream_iterator_type, void(), qi::locals<vector<L
 			if (it != dofPosition_by_lineItemEnum.end()) {
 				double value = atof(columns[i].c_str());
 				assert(nodeId != Node::UNAVAILABLE_NODE);
-				NodalDisplacementAssertion nda(model, configuration.testTolerance, nodeId,
+				const auto& nda = make_shared<NodalDisplacementAssertion>(model, configuration.testTolerance, nodeId,
 						DOF::findByPosition(it->second), value, time);
 				model.add(nda);
 				if (analysis) {
-					analysis->add(nda);
+					analysis->add(*nda);
 				}
 			}
 			i++;

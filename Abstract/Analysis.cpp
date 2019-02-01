@@ -67,11 +67,13 @@ void Analysis::add(const Reference<LoadSet>& loadSetReference) {
 
 const vector<shared_ptr<LoadSet>> Analysis::getLoadSets() const {
     vector<shared_ptr<LoadSet>> result;
-    shared_ptr<LoadSet> commonLoadSet = model.find(model.commonLoadSet.getReference());
-    if (commonLoadSet)
+    shared_ptr<LoadSet> commonLoadSet = model.commonLoadSet;
+    if (commonLoadSet != nullptr and not commonLoadSet->empty())
         result.push_back(commonLoadSet);
     for (const auto& loadSetReference : this->loadSet_references) {
-        result.push_back(model.find(*loadSetReference));
+        const auto& loadSet = model.find(*loadSetReference);
+        if (loadSet != nullptr)
+            result.push_back(loadSet);
     }
     return result;
 }
@@ -195,9 +197,8 @@ bool Analysis::contains(const Objective::Type type) const {
 
 const vector<shared_ptr<ConstraintSet>> Analysis::getConstraintSets() const {
     vector<shared_ptr<ConstraintSet>> result;
-    shared_ptr<ConstraintSet> commonConstraintSet = model.find(
-            model.commonConstraintSet.getReference());
-    if (commonConstraintSet)
+    shared_ptr<ConstraintSet> commonConstraintSet = model.commonConstraintSet;
+    if (commonConstraintSet != nullptr and not commonConstraintSet->empty())
         result.push_back(commonConstraintSet);
     for (const auto& constraintSetReference : this->constraintSet_references) {
         result.push_back(model.find(*constraintSetReference));
@@ -308,7 +309,7 @@ void Analysis::removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition,  
         }
     }
     if (model.analyses.size() >= 2) {
-        ConstraintSet otherAnalysesCS(model, ConstraintSet::Type::SPC);
+        const auto& otherAnalysesCS = make_shared<ConstraintSet>(model, ConstraintSet::Type::SPC);
         model.add(otherAnalysesCS);
         const auto& otherAnalysesSpc = make_shared<SinglePointConstraint>(this->model);
         otherAnalysesSpc->addNodeId(nodeId);
@@ -316,7 +317,7 @@ void Analysis::removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition,  
             otherAnalysesSpc->setDOF(removedDof, spc.getDoubleForDOF(removedDof));
         }
         model.add(otherAnalysesSpc);
-        model.addConstraintIntoConstraintSet(*otherAnalysesSpc, otherAnalysesCS);
+        model.addConstraintIntoConstraintSet(*otherAnalysesSpc, *otherAnalysesCS);
         if (this->model.configuration.logLevel >= LogLevel::DEBUG) {
             cout << "Created spc : " << *otherAnalysesSpc << " for node id : "
                     << nodeId
@@ -330,7 +331,7 @@ void Analysis::removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition,  
                 if (affectedConstraintSets.find(constraintSet) == affectedConstraintSets.end()) {
                     continue;
                 }
-                otherAnalysis->add(otherAnalysesCS);
+                otherAnalysis->add(*otherAnalysesCS);
                 break;
             }
         }

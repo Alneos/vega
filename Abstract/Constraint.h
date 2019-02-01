@@ -79,8 +79,8 @@ public:
 	static const std::string name;
 	static const std::map<Type, std::string> stringByType;
 	void add(const Reference<ConstraintSet>&);
-	const std::set<std::shared_ptr<Constraint> > getConstraints() const;
-	const std::set<std::shared_ptr<Constraint> > getConstraintsByType(Constraint::Type) const;
+	const std::set<std::shared_ptr<Constraint>> getConstraints() const;
+	const std::set<std::shared_ptr<Constraint>> getConstraintsByType(Constraint::Type) const;
 	int size() const;
 	inline bool empty() const {return size() == 0;};
 	std::shared_ptr<ConstraintSet> clone() const;

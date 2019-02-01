@@ -32,6 +32,9 @@ namespace aster {
 
 using namespace std;
 
+// Declaration to avoid Wmissing-declarations error
+void createFamilies(med_idt fid, const char meshname[], const std::vector<Family>& families);
+
 NodeGroup2Families::NodeGroup2Families(int nnodes, const vector<shared_ptr<NodeGroup>> nodeGroups) {
 	int currentFamilyId = 0;
 	unordered_map<int, int> newFamilyByOldfamily;
@@ -154,7 +157,7 @@ const unordered_map<CellType::Code, shared_ptr<vector<int>>, EnumClassHash>& Cel
 	return this->cellFamiliesByType;
 }
 
-void MedWriter::createFamilies(long int fid, const char meshname[],
+void createFamilies(med_idt fid, const char meshname[],
 		const vector<Family>& families) {
 	for (const auto& family : families) {
 		const unsigned int ngroups = static_cast<unsigned int>(family.groups.size());

@@ -15,7 +15,6 @@
 #endif
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/lexical_cast.hpp>
 #include "Model.h"
 #include <stdio.h>
 #include <string.h>
@@ -36,7 +35,6 @@
 namespace vega {
 
 using namespace std;
-using boost::lexical_cast;
 namespace fs = boost::filesystem;
 
 const double NodeStorage::RESERVED_POSITION = -DBL_MAX;

@@ -27,7 +27,6 @@
 #include <fstream>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/make_unique.hpp>
 #include <iterator>
 #include <ciso646>
 
@@ -64,16 +63,16 @@ unordered_map<VegaCommandLine::ExitCode, string, EnumClassHash> VegaCommandLine:
 };
 
 VegaCommandLine::VegaCommandLine() {
-    parserBySolverName[SolverName::NASTRAN] = boost::make_unique<nastran::NastranParser>();
-    parserBySolverName[SolverName::OPTISTRUCT] = boost::make_unique<optistruct::OptistructParser>();
+    parserBySolverName[SolverName::NASTRAN] = make_unique<nastran::NastranParser>();
+    parserBySolverName[SolverName::OPTISTRUCT] = make_unique<optistruct::OptistructParser>();
 #if ENABLE_ASTER
-    writersBySolverName[SolverName::CODE_ASTER] = boost::make_unique<aster::AsterWriter>();
-    runnerBySolverType[SolverName::CODE_ASTER] = boost::make_unique<aster::AsterRunner>();
+    writersBySolverName[SolverName::CODE_ASTER] = make_unique<aster::AsterWriter>();
+    runnerBySolverType[SolverName::CODE_ASTER] = make_unique<aster::AsterRunner>();
 #endif
-    writersBySolverName[SolverName::NASTRAN] = boost::make_unique<nastran::NastranWriter>();
-    writersBySolverName[SolverName::SYSTUS] = boost::make_unique<systus::SystusWriter>();
-    runnerBySolverType[SolverName::NASTRAN] = boost::make_unique<nastran::NastranRunner>();
-    runnerBySolverType[SolverName::SYSTUS] = boost::make_unique<systus::SystusRunner>();
+    writersBySolverName[SolverName::NASTRAN] = make_unique<nastran::NastranWriter>();
+    writersBySolverName[SolverName::SYSTUS] = make_unique<systus::SystusWriter>();
+    runnerBySolverType[SolverName::NASTRAN] = make_unique<nastran::NastranRunner>();
+    runnerBySolverType[SolverName::SYSTUS] = make_unique<systus::SystusRunner>();
 }
 
 VegaCommandLine::ExitCode VegaCommandLine::convertStudy(

@@ -26,7 +26,6 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/tokenizer.hpp>
-#include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -92,13 +91,13 @@ void OptistructParser::parseCONTACT(nastran::NastranTokenizer& tok, Model& model
 
     Reference<ConstraintSet> constraintSetReference(ConstraintSet::Type::CONTACT, ctid);
     if (!model.find(constraintSetReference)) {
-        ConstraintSet constraintSet(model, ConstraintSet::Type::CONTACT, ctid);
+        const auto& constraintSet = make_shared<ConstraintSet>(model, ConstraintSet::Type::CONTACT, ctid);
         model.add(constraintSet);
     }
     const auto& surface = make_shared<SurfaceSlide>(model, Reference<Target>(Target::Type::BOUNDARY_ELEMENTFACE, msid), Reference<Target>(Target::Type::BOUNDARY_ELEMENTFACE, ssid));
     model.add(surface);
     //model.addConstraintIntoConstraintSet(surface, constraintSetReference);
-    model.addConstraintIntoConstraintSet(*surface, model.commonConstraintSet);
+    model.addConstraintIntoConstraintSet(*surface, *model.commonConstraintSet);
 }
 
 void OptistructParser::parseSET(nastran::NastranTokenizer& tok, Model& model) {
@@ -140,9 +139,9 @@ void OptistructParser::parseSET(nastran::NastranTokenizer& tok, Model& model) {
             tok.skipToNotEmpty();
         }
         tok.skipToNextKeyword();
-        ListValue<double> frequencyValue(model, values);
+        const auto& frequencyValue = make_shared<ListValue<double>>(model, values);
         model.add(frequencyValue);
-        FrequencySearch frequencyRange(model, FrequencySearch::FrequencyType::LIST, frequencyValue, FrequencySearch::NormType::MASS, sid);
+        const auto& frequencyRange = make_shared<FrequencySearch>(model, FrequencySearch::FrequencyType::LIST, *frequencyValue, FrequencySearch::NormType::MASS, sid);
         model.add(frequencyRange);
     } else {
         throw logic_error("Unsupported TYPE value in SET");
