@@ -211,228 +211,336 @@ private:
         std::shared_ptr<T> last() const {return by_id.rbegin()->second;};
         int size() const {return static_cast<int>(by_id.size());}
         bool empty() const {return by_id.size() == 0;}
-        void add(const T&);
         void add(std::shared_ptr<T> T_ptr);
-        void erase(const Reference<T> ref) {
-            by_id.erase(ref.id);
-            if (ref.has_original_id())
-                by_original_ids_by_type[ref.type].erase(ref.original_id);
-        }
+        void erase(const Reference<T> ref);
         std::shared_ptr<T> find(const Reference<T>&) const;
         std::shared_ptr<T> find(int) const; /**< Find an object by its Original Id **/
         std::shared_ptr<T> get(int) const; /**< Return an object by its Vega Id **/
-        const std::vector<std::shared_ptr<T>> filter(const typename T::Type type) const {
-            std::vector<std::shared_ptr<T>> result;
-            for (const auto& id_obj_pair: by_id) {
-                if (id_obj_pair.second->type == type) {
-                    result.push_back(id_obj_pair.second);
-                }
-            }
-            return result;
-        }; /**< Choose objects based on their type */
-        bool contains(const typename T::Type type) const {
-            for (const auto& id_obj_pair: by_id) {
-                if (id_obj_pair.second->type == type) {
-                    return true;
-                }
-            }
-            return false;
-        }; /**< Ask if objects of a given type are contained */
-        bool validate(){
-            bool isValid = true;
-            std::vector<std::shared_ptr<T>> toBeRemoved;
-            for (iterator it = this->begin(); it != this->end(); ++it) {
-                std::shared_ptr<T> t = *it;
-                if (!t->validate()) {
-                    isValid = false;
-                    std::cerr << *t << " is not valid" << std::endl;
-
-                    switch (model.translationMode) {
-                    case vega::ConfigurationParameters::TranslationMode::MODE_STRICT:
-                        // Shouldn't do any cleanup in STRICT mode
-                        break;
-                    case vega::ConfigurationParameters::TranslationMode::MESH_AT_LEAST:
-                    case vega::ConfigurationParameters::TranslationMode::BEST_EFFORT:
-                        toBeRemoved.push_back(t);
-                        break;
-                    default:
-                        throw std::logic_error("Unknown enum class in Translation mode");
-                    }
-                }
-            }
-            for(const auto& t: toBeRemoved) {
-                this->erase(*t);
-            }
-            return isValid;
-        };
+        bool contains(const typename T::Type type) const; /**< Ask if objects of a given type exist inside */
+        const std::vector<std::shared_ptr<T>> filter(const typename T::Type type) const; /**< Choose objects based on their type */
+        bool validate(); /**< Says if model parts are coherent (no unresolved references, etc.) AND SOMETIMES IT TRIES TO FIX THEM :( */
         Container(const Container& that) = delete; /**< Containers should never be copied */
-        }; /* Container class */
-        std::unordered_map<int,CellContainer> material_assignment_by_material_id;
-    public:
-        Container<Analysis> analyses{*this};
-        Container<Objective> objectives{*this};
-        Container<NamedValue> values{*this};
-        Container<Loading> loadings{*this};
-        Container<LoadSet> loadSets{*this};
-        Container<Constraint> constraints{*this};
-        Container<ConstraintSet> constraintSets{*this};
-        Container<ElementSet> elementSets{*this};
-        Container<Material> materials{*this};
-        Container<Target> targets{*this};
-        std::map<Parameter, double> parameters;
-        bool onlyMesh;
+    }; /* Container class */
+    std::unordered_map<int,CellContainer> material_assignment_by_material_id;
+public:
+    Container<Analysis> analyses{*this};
+    Container<Objective> objectives{*this};
+    Container<NamedValue> values{*this};
+    Container<Loading> loadings{*this};
+    Container<LoadSet> loadSets{*this};
+    Container<Constraint> constraints{*this};
+    Container<ConstraintSet> constraintSets{*this};
+    Container<ElementSet> elementSets{*this};
+    Container<Material> materials{*this};
+    Container<Target> targets{*this};
+    std::map<Parameter, double> parameters;
+    bool onlyMesh;
 
-        Model(std::string name, std::string inputSolverVersion = "UNKNOWN",
-                SolverName inputSolver = SolverName::NASTRAN,
-                const ModelConfiguration configuration = ModelConfiguration(),
-                const vega::ConfigurationParameters::TranslationMode translationMode = vega::ConfigurationParameters::TranslationMode::BEST_EFFORT);
-        Model(const Model& that) = delete; /** bad bad things happens if you ever try to copy a Model (back references to model are not up to date). */
-        virtual ~Model();
+    Model(std::string name, std::string inputSolverVersion = "UNKNOWN",
+            SolverName inputSolver = SolverName::NASTRAN,
+            const ModelConfiguration configuration = ModelConfiguration(),
+            const vega::ConfigurationParameters::TranslationMode translationMode = vega::ConfigurationParameters::TranslationMode::BEST_EFFORT);
+    Model(const Model& that) = delete; /** bad bad things happens if you ever try to copy a Model (back references to model are not up to date). */
+    virtual ~Model();
 
-        /**
-         * Add any kind of object to the model.
-         */
-        //TODO : make and use a template, does not work because of inherited objects, or, better, avoid need to add altogether (object creation should implicitily add)
-        //template<typename T> void add(const T&);
-        void add(const std::shared_ptr<Analysis>&);
-        void add(const std::shared_ptr<Loading>&);
-        void add(const std::shared_ptr<LoadSet>&);
-        void add(const std::shared_ptr<Constraint>&);
-        void add(const std::shared_ptr<ConstraintSet>&);
-        void add(const std::shared_ptr<Objective>&);
-        void add(const std::shared_ptr<NamedValue>&);
-        void add(const std::shared_ptr<ElementSet>&);
-        void add(const std::shared_ptr<Target>&);
-        void add(const std::shared_ptr<Material>&);
+    /**
+     * Add any kind of object to the model.
+     */
+    //TODO : make and use a template, does not work because of inherited objects, or, better, avoid need to add altogether (object creation should implicitily add)
+    //template<typename T> void add(const T&);
+    void add(const std::shared_ptr<Analysis>&);
+    void add(const std::shared_ptr<Loading>&);
+    void add(const std::shared_ptr<LoadSet>&);
+    void add(const std::shared_ptr<Constraint>&);
+    void add(const std::shared_ptr<ConstraintSet>&);
+    void add(const std::shared_ptr<Objective>&);
+    void add(const std::shared_ptr<NamedValue>&);
+    void add(const std::shared_ptr<ElementSet>&);
+    void add(const std::shared_ptr<Target>&);
+    void add(const std::shared_ptr<Material>&);
 
-        // Get functions : get object by their VEGA Id.
-        // Mainly here in order to instanciate all template type for the Container template functions
-        std::shared_ptr<Analysis> getAnalysis(int id) const; /**< Return an Analysis by its Vega Id **/
-        std::shared_ptr<Loading> getLoading(int id) const;   /**< Return a Loading by its Vega Id **/
-        std::shared_ptr<LoadSet> getLoadSet(int id) const;   /**< Return a LoadSet by its Vega Id **/
-        std::shared_ptr<Constraint> getConstraint(int id) const; /**< Return a Constraint by its Vega Id **/
-        std::shared_ptr<ConstraintSet> getConstraintSet(int id) const; /**< Return a ConstraintSet by its Vega Id **/
-        std::shared_ptr<Objective> getObjective(int id) const; /**< Return an Objective by its Vega Id **/
-        std::shared_ptr<NamedValue> getValue(int id) const; /**< Return a Value by its Vega Id **/
-        std::shared_ptr<ElementSet> getElementSet(int id) const; /**< Return an ElementSet by its Vega Id **/
-        std::shared_ptr<Material> getMaterial(int id) const; /**< Return a Material by its Vega Id **/
-        std::shared_ptr<Target> getTarget(int id) const; /**< Return a Material by its Vega Id **/
+    // Get functions : get object by their VEGA Id.
+    // Mainly here in order to instanciate all template type for the Container template functions
+    std::shared_ptr<Analysis> getAnalysis(int id) const; /**< Return an Analysis by its Vega Id **/
+    std::shared_ptr<Loading> getLoading(int id) const;   /**< Return a Loading by its Vega Id **/
+    std::shared_ptr<LoadSet> getLoadSet(int id) const;   /**< Return a LoadSet by its Vega Id **/
+    std::shared_ptr<Constraint> getConstraint(int id) const; /**< Return a Constraint by its Vega Id **/
+    std::shared_ptr<ConstraintSet> getConstraintSet(int id) const; /**< Return a ConstraintSet by its Vega Id **/
+    std::shared_ptr<Objective> getObjective(int id) const; /**< Return an Objective by its Vega Id **/
+    std::shared_ptr<NamedValue> getValue(int id) const; /**< Return a Value by its Vega Id **/
+    std::shared_ptr<ElementSet> getElementSet(int id) const; /**< Return an ElementSet by its Vega Id **/
+    std::shared_ptr<Material> getMaterial(int id) const; /**< Return a Material by its Vega Id **/
+    std::shared_ptr<Target> getTarget(int id) const; /**< Return a Material by its Vega Id **/
 
-        std::shared_ptr<LoadSet> getOrCreateLoadSet(int loadset_id, vega::LoadSet::Type loadset_type); /**< Return or create a LoadSet by its real Id **/
+    std::shared_ptr<LoadSet> getOrCreateLoadSet(int loadset_id, vega::LoadSet::Type loadset_type); /**< Return or create a LoadSet by its real Id **/
 
 
-        /* Get the Id of all elements belonging to set */
-        //TODO: make a template, general function?
-        const std::vector<int> getMaterialsId() const;
-        const std::vector<int> getElementSetsId() const;
-        /**
-         * Remove any kind of object from the model, by giving a reference.
-         * Very time consuming when the list is big : restrict use to the minimum
-         */
-        template<typename T>
-        void remove(const Reference<T>);
+    /* Get the Id of all elements belonging to set */
+    //TODO: make a template, general function?
+    const std::vector<int> getMaterialsId() const;
+    const std::vector<int> getElementSetsId() const;
+    /**
+     * Remove any kind of object from the model, by giving a reference.
+     * Very time consuming when the list is big : restrict use to the minimum
+     */
+    template<typename T>
+    void remove(const Reference<T>);
 
-        /**
-         * Remove a constraint from a known reference set when we already know some informations
-         */
-        void remove(const Reference<Constraint> , const int, const int, const ConstraintSet::Type);
-        /**
-         * Retrieve any kind of object from the model, by giving a reference.
-         * Return 0 if the object is not found in the model.
-         */
-        template<typename T>
-        const std::shared_ptr<T> find(const Reference<T>) const;
+    /**
+     * Remove a constraint from a known reference set when we already know some informations
+     */
+    void remove(const Reference<Constraint> , const int, const int, const ConstraintSet::Type);
+    /**
+     * Retrieve any kind of object from the model, by giving a reference.
+     * Return 0 if the object is not found in the model.
+     */
+    template<typename T>
+    const std::shared_ptr<T> find(const Reference<T>) const;
 
-        /**
-         * Add a Loading reference into a LoadSet reference.
-         * If needed, create and add the LoadSet reference to the model.
-         */
-        void addLoadingIntoLoadSet(const Reference<Loading>&, const Reference<LoadSet>&);
+    /**
+     * Add a Loading reference into a LoadSet reference.
+     * If needed, create and add the LoadSet reference to the model.
+     */
+    void addLoadingIntoLoadSet(const Reference<Loading>&, const Reference<LoadSet>&);
 
-        /**
-         * Retrieve all the Loadings corresponding to a given LoadSet.
-         */
-        const std::set<std::shared_ptr<Loading>> getLoadingsByLoadSet(const Reference<LoadSet>&) const;
+    /**
+     * Retrieve all the Loadings corresponding to a given LoadSet.
+     */
+    const std::set<std::shared_ptr<Loading>> getLoadingsByLoadSet(const Reference<LoadSet>&) const;
 
-        /**
-         * Create a material
-         */
-        std::shared_ptr<Material> getOrCreateMaterial(
-                int materialId, bool createIfNotExists = true);
+    /**
+     * Create a material
+     */
+    std::shared_ptr<Material> getOrCreateMaterial(
+            int materialId, bool createIfNotExists = true);
 
-        /**
-         * Get all the cells assigned to a specific material. This inspects
-         * both the elementSets with a material assigned and the materials assigned
-         * directly.
-         *
-         * If no assigment is found it returns an empty cell container.
-         */
-        const CellContainer getMaterialAssignment(int materialId) const;
-        /**
-         * Assign a material to a group of cells. There are two ways of assigning
-         * a material: either trough this method or with an ElementSet.
-         * Choose the one appropriate to your input model.
-         */
-        void assignMaterial(int materialId, const CellContainer& cellsToAssign);
+    /**
+     * Get all the cells assigned to a specific material. This inspects
+     * both the elementSets with a material assigned and the materials assigned
+     * directly.
+     *
+     * If no assigment is found it returns an empty cell container.
+     */
+    const CellContainer getMaterialAssignment(int materialId) const;
+    /**
+     * Assign a material to a group of cells. There are two ways of assigning
+     * a material: either trough this method or with an ElementSet.
+     * Choose the one appropriate to your input model.
+     */
+    void assignMaterial(int materialId, const CellContainer& cellsToAssign);
 
-        /**
-         * Add a Constraint reference into a ConstraintSet reference.
-         */
-        void addConstraintIntoConstraintSet(const Reference<Constraint>&, const Reference<ConstraintSet>&);
+    /**
+     * Add a Constraint reference into a ConstraintSet reference.
+     */
+    void addConstraintIntoConstraintSet(const Reference<Constraint>&, const Reference<ConstraintSet>&);
 
-        /**
-         * Retrieve all the Constraints corresponding to a given ConstraintSet.
-         */
-        const std::set<std::shared_ptr<Constraint>> getConstraintsByConstraintSet(const Reference<ConstraintSet>&) const;
+    /**
+     * Retrieve all the Constraints corresponding to a given ConstraintSet.
+     */
+    const std::set<std::shared_ptr<Constraint>> getConstraintsByConstraintSet(const Reference<ConstraintSet>&) const;
 
-        /**
-         * Retrieve all the ConstraintSet containing a corresponding Constraint.
-         */
-        const std::set<std::shared_ptr<ConstraintSet>> getConstraintSetsByConstraint(const Reference<Constraint>& constraintReference) const;
+    /**
+     * Retrieve all the ConstraintSet containing a corresponding Constraint.
+     */
+    const std::set<std::shared_ptr<ConstraintSet>> getConstraintSetsByConstraint(const Reference<Constraint>& constraintReference) const;
 
-        /**
-         * Retrieve all the ConstraintSet of the model that are at least referenced by one analysis
-         */
-        const std::vector<std::shared_ptr<ConstraintSet>> getActiveConstraintSets() const;
+    /**
+     * Retrieve all the ConstraintSet of the model that are at least referenced by one analysis
+     */
+    const std::vector<std::shared_ptr<ConstraintSet>> getActiveConstraintSets() const;
 
-        /**
-         * Retrieve all the LoadSet of the model that are at least referenced by one analysis
-         */
-        const std::vector<std::shared_ptr<LoadSet>> getActiveLoadSets() const;
-        /**
-         * Retrieve all the ConstraintSet of the model that are common to all analysis
-         */
-        const std::vector<std::shared_ptr<ConstraintSet>> getCommonConstraintSets() const;
+    /**
+     * Retrieve all the LoadSet of the model that are at least referenced by one analysis
+     */
+    const std::vector<std::shared_ptr<LoadSet>> getActiveLoadSets() const;
+    /**
+     * Retrieve all the ConstraintSet of the model that are common to all analysis
+     */
+    const std::vector<std::shared_ptr<ConstraintSet>> getCommonConstraintSets() const;
 
-        /**
-         * Retrieve all the LoadSet of the model that are are common to all analysis
-         */
-        const std::vector<std::shared_ptr<LoadSet>> getCommonLoadSets() const;
-        /**
-         * Retrieve all the ConstraintSet of the model that are active but not common to all analysis
-         */
-        const std::set<std::shared_ptr<ConstraintSet>> getUncommonConstraintSets() const;
-        /**
-         * Retrieve all the ConstraintSet of the model that are active but not common to all analysis
-         */
-        const std::set<std::shared_ptr<LoadSet>> getUncommonLoadSets() const;
+    /**
+     * Retrieve all the LoadSet of the model that are are common to all analysis
+     */
+    const std::vector<std::shared_ptr<LoadSet>> getCommonLoadSets() const;
+    /**
+     * Retrieve all the ConstraintSet of the model that are active but not common to all analysis
+     */
+    const std::set<std::shared_ptr<ConstraintSet>> getUncommonConstraintSets() const;
+    /**
+     * Retrieve all the ConstraintSet of the model that are active but not common to all analysis
+     */
+    const std::set<std::shared_ptr<LoadSet>> getUncommonLoadSets() const;
 
-        const std::vector<std::shared_ptr<Beam>> getBeams() const;
-        const std::vector<std::shared_ptr<Beam>> getBars() const;
-        bool needsLargeDisplacements() const;
+    const std::vector<std::shared_ptr<Beam>> getBeams() const;
+    const std::vector<std::shared_ptr<Beam>> getBars() const;
+    bool needsLargeDisplacements() const;
 
-        /**
-         * Method that is called when parsing is complete.
-         */
-        void finish();
-        /**
-         * This method should be called after finish to check if the model
-         * is correct. Validation results are printed to stdout/stderr.
-         */
-        bool validate();
+    /**
+     * Method that is called when parsing is complete.
+     */
+    void finish();
+    /**
+     * This method should be called after finish to check if the model
+     * is correct. Validation results are printed to stdout/stderr.
+     */
+    bool validate();
 
-    };
+};
 
+/*
+ * Template implementations need to stay in header
+ */
+
+template<class T>
+void Model::Container<T>::erase(const Reference<T> ref) {
+    by_id.erase(ref.id);
+    if (ref.has_original_id())
+        by_original_ids_by_type[ref.type].erase(ref.original_id);
 }
-                    /* namespace abstract */
+
+template<class T>
+const std::vector<std::shared_ptr<T>> Model::Container<T>::filter(const typename T::Type type) const {
+    std::vector<std::shared_ptr<T>> result;
+    for (const auto& id_obj_pair: by_id) {
+        if (id_obj_pair.second->type == type) {
+            result.push_back(id_obj_pair.second);
+        }
+    }
+    return result;
+}
+
+template<class T>
+bool Model::Container<T>::contains(const typename T::Type type) const {
+    for (const auto& id_obj_pair: by_id) {
+        if (id_obj_pair.second->type == type) {
+            return true;
+        }
+    }
+    return false;
+}
+
+template<class T>
+bool Model::Container<T>::validate() {
+    bool isValid = true;
+    std::vector<std::shared_ptr<T>> toBeRemoved;
+    for (iterator it = this->begin(); it != this->end(); ++it) {
+        std::shared_ptr<T> t = *it;
+        if (!t->validate()) {
+            isValid = false;
+            std::cerr << *t << " is not valid" << std::endl;
+
+            switch (model.translationMode) {
+            case vega::ConfigurationParameters::TranslationMode::MODE_STRICT:
+                // Shouldn't do any cleanup in STRICT mode
+                break;
+            case vega::ConfigurationParameters::TranslationMode::MESH_AT_LEAST:
+            case vega::ConfigurationParameters::TranslationMode::BEST_EFFORT:
+                toBeRemoved.push_back(t);
+                break;
+            default:
+                throw std::logic_error("Unknown enum class in Translation mode");
+            }
+        }
+    }
+    for(const auto& t: toBeRemoved) {
+        this->erase(*t);
+    }
+    return isValid;
+}
+
+/*
+ * Redefining method add for Value to take into account placeHolder
+ */
+template<>
+inline void Model::Container<NamedValue>::add(std::shared_ptr<NamedValue> ptr) {
+    std::shared_ptr<NamedValue> ptr_old = find(ptr->getReference());
+    if (ptr_old != nullptr) {
+        if (ptr->isPlaceHolder()) { // TODO : make a merge function for placeHolder
+            std::shared_ptr<Function> funPtr = std::dynamic_pointer_cast<Function>(ptr);
+            std::shared_ptr<Function> funptr_old = std::dynamic_pointer_cast<Function>(ptr_old);
+            if (funPtr->hasParaX())
+                funptr_old->setParaX(funPtr->getParaX());
+            if (funPtr->hasParaY())
+                funptr_old->setParaY(funPtr->getParaY());
+            ptr = ptr_old;
+        } else if (ptr_old->isPlaceHolder()) {
+            std::shared_ptr<Function> funPtr = std::dynamic_pointer_cast<Function>(ptr);
+            std::shared_ptr<Function> funptr_old = std::dynamic_pointer_cast<Function>(ptr_old);
+            if (funptr_old->hasParaX())
+                funPtr->setParaX(funptr_old->getParaX());
+            if (funptr_old->hasParaY())
+                funPtr->setParaY(funptr_old->getParaY());
+        } else {
+            std::ostringstream oss;
+            oss << ptr->getReference() << " is already in the model";
+            throw std::runtime_error(oss.str());
+        }
+    }
+    if (!ptr->isPlaceHolder()) {
+        by_id[ptr->getId()] = ptr;
+    }
+    if (ptr->isOriginal()) {
+        by_original_ids_by_type[ptr->type][ptr->getOriginalId()] = ptr;
+    }
+}
+
+template<class T>
+void Model::Container<T>::add(std::shared_ptr<T> ptr) {
+    if (this->find(ptr->getReference()) != nullptr) {
+        std::ostringstream oss;
+        oss << *ptr << " is already in the model";
+        throw std::runtime_error(oss.str());
+    }
+    by_id[ptr->getId()] = ptr;
+    if (ptr->isOriginal())
+        by_original_ids_by_type[ptr->type][ptr->getOriginalId()] = ptr;
+}
+
+template<class T>
+std::shared_ptr<T> Model::Container<T>::find(const Reference<T>& reference) const {
+    std::shared_ptr<T> t;
+    if (reference.has_original_id()) {
+        auto it = by_original_ids_by_type.find(reference.type);
+        if (it != by_original_ids_by_type.end()) {
+            auto it2 = it->second.find(reference.original_id);
+            if (it2 != it->second.end()) {
+                t = it2->second;
+            }
+        }
+    } else if (reference.has_id()) {
+        auto it = by_id.find(reference.id);
+        if (it != by_id.end()) {
+            t = it->second;
+        }
+    } else {
+        throw std::logic_error("Reference is not valid:" + to_str(reference));
+    }
+
+    return t;
+}
+
+template<class T>
+std::shared_ptr<T> Model::Container<T>::find(int original_id) const {
+    std::shared_ptr<T> t;
+    for (const auto& it : by_original_ids_by_type) {
+        const auto& it2 = it.second.find(original_id);
+        if (it2 != it.second.end()) {
+            t = it2->second;
+        }
+    }
+    return t;
+}
+
+template<class T>
+std::shared_ptr<T> Model::Container<T>::get(int id) const {
+    std::shared_ptr<T> t = nullptr;
+    auto it = by_id.find(id);
+    if (it != by_id.end()) {
+    	t = it->second;
+    }
+    return t;
+}
+
+} /* namespace vega */
+
 #endif /* MODEL_H_ */

@@ -35,14 +35,6 @@ namespace po = boost::program_options;
 using boost::to_upper;
 using namespace std;
 
-
-// A helper function to simplify the main part.
-template<class T>
-ostream& operator<<(ostream& os, const vector<T>& v) {
-    copy(v.begin(), v.end(), ostream_iterator<T>(cout, " "));
-    return os;
-}
-
 namespace vega {
 
 unordered_map<VegaCommandLine::ExitCode, string, EnumClassHash> VegaCommandLine::failureReason_by_ExitCode = {

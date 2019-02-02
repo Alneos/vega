@@ -1737,6 +1737,7 @@ shared_ptr<NonLinearStrategy> AsterWriter::getNonLinearStrategy(
 void AsterWriter::writeAssemblage(const AsterModel& asterModel, Analysis& analysis,
 		ostream& out) {
     bool hasDynamicExcit = asterModel.model.loadSets.contains(LoadSet::Type::DLOAD);
+    bool isBuckling = analysis.type == Analysis::Type::LINEAR_BUCKLING;
     out << "ASSEMBLAGE(MODELE=MODMECA," << endl;
     if (asterModel.model.materials.size() >= 1) {
         out << "           CHAM_MATER=CHMAT," << endl;
@@ -1750,10 +1751,15 @@ void AsterWriter::writeAssemblage(const AsterModel& asterModel, Analysis& analys
     out << "           NUME_DDL=CO('NUMDDL" << analysis.getId() << "')," << endl;
     out << "           MATR_ASSE=(_F(OPTION='RIGI_MECA', MATRICE=CO('RIGI"
             << analysis.getId() << "'),)," << endl;
-    out << "                      _F(OPTION='MASS_MECA', MATRICE=CO('MASS"
-            << analysis.getId() << "'),)," << endl;
-    out << "                      _F(OPTION='AMOR_MECA', MATRICE=CO('AMOR"
-            << analysis.getId() << "'),)," << endl;
+    if (isBuckling) {
+        out << "                      _F(OPTION='RIGI_GEOM', MATRICE=CO('RIGE"
+                << analysis.getId() << "',SIEF_ELGA=FSIG" << analysis.getId() << "),)," << endl;
+    } else {
+        out << "                      _F(OPTION='MASS_MECA', MATRICE=CO('MASS"
+                << analysis.getId() << "'),)," << endl;
+        out << "                      _F(OPTION='AMOR_MECA', MATRICE=CO('AMOR"
+                << analysis.getId() << "'),)," << endl;
+    }
     out << "                      )," << endl;
     if (hasDynamicExcit) {
         out << "           VECT_ASSE=(" << endl;
@@ -2289,35 +2295,16 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
     case Analysis::Type::LINEAR_BUCKLING: {
         LinearBuckling& linearBuckling = dynamic_cast<LinearBuckling&>(analysis);
 
-        out << "SMEC" << linearBuckling.getId() << " = CALC_MATR_ELEM(OPTION = 'RIGI_MECA'," << endl;
-        out << "                 MODELE = MODMECA," << endl;
-        out << "                 CHARGE=(" << endl;
-        for (shared_ptr<ConstraintSet> constraintSet : analysis.getConstraintSets()) {
-            out << "                   BL" << constraintSet->getId() << "," << endl;
-        }
-        out << "                   )," << endl;
-        out << "                 CARA_ELEM=CAEL," << endl;
-        out << "                 CHAM_MATER = CHMAT," << endl;
-        out << "                )" << endl << endl;
-
         out << "FSIG" << linearBuckling.getId() << " = CREA_CHAMP(OPERATION='EXTR'," << endl;
         out << "            TYPE_CHAM='ELGA_SIEF_R'," << endl;
         out << "            RESULTAT=RESU" << linearBuckling.previousAnalysis->getId() << "," << endl;
         //out << "            NUME_ORDRE=1," << endl;
         out << "            NOM_CHAM='SIEF_ELGA',)" << endl << endl;
 
-        out << "SGEO" << linearBuckling.getId() << " = CALC_MATR_ELEM(OPTION='RIGI_GEOM'," << endl;
-        out << "               MODELE=MODMECA," << endl;
-        out << "               CARA_ELEM=CAEL," << endl;
-        out << "               CHAM_MATER = CHMAT," << endl;
-        out << "               SIEF_ELGA=FSIG" << linearBuckling.getId() << ",)" << endl << endl;
+        writeAssemblage(asterModel, analysis, out);
 
-        out << "NDDL" << linearBuckling.getId() << " = NUME_DDL(MATR_RIGI=SMEC" << linearBuckling.getId() << ")" << endl;
-        out << "SAMEC" << linearBuckling.getId() << " = ASSE_MATRICE(NUME_DDL=NDDL" << linearBuckling.getId() << ",MATR_ELEM=SMEC" << linearBuckling.getId() << ",)" << endl;
-        out << "SAGEO" << linearBuckling.getId() << " = ASSE_MATRICE(NUME_DDL=NDDL" << linearBuckling.getId() << ",MATR_ELEM=SGEO" << linearBuckling.getId() << ",)" << endl;
-
-        out << "RESU" << linearBuckling.getId() << "=CALC_MODES(MATR_RIGI=SAMEC" << linearBuckling.getId() << "," << endl;
-        out << "                 MATR_RIGI_GEOM=SAGEO" << linearBuckling.getId() << "," << endl;
+        out << "RESU" << linearBuckling.getId() << "=CALC_MODES(MATR_RIGI=RIGI" << linearBuckling.getId() << "," << endl;
+        out << "                 MATR_RIGI_GEOM=RIGE" << linearBuckling.getId() << "," << endl;
         out << "                 TYPE_RESU='MODE_FLAMB'," << endl;
 		if (linearBuckling.use_power_iteration) {
             out << "                       SOLVEUR_MODAL=_F(OPTION_INV='DIRECT')," << endl;

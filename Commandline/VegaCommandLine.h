@@ -22,6 +22,15 @@ namespace vega {
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 
+/**
+  * Helper function to simplify the main part.
+  */
+template<class T>
+std::ostream& operator<<(std::ostream& os, const std::vector<T>& v) {
+    std::copy(v.begin(), v.end(), std::ostream_iterator<T>(std::cout, " "));
+    return os;
+}
+
 class VegaCommandLine {
 public:
     /**
