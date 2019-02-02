@@ -3157,11 +3157,6 @@ void NastranParser::parseTABLED1(NastranTokenizer& tok, Model& model) {
         functionTable->setXY(x, y);
     }
 
-//    const auto& functionPlaceHolder = dynamic_pointer_cast<FunctionPlaceHolder>(model.find(functionTable->getReference()));
-//    if (functionPlaceHolder != nullptr) {
-//        functionTable->setParaX(functionPlaceHolder->getParaX());
-//        model.values.erase(functionPlaceHolder->getReference());
-//    }
     model.add(functionTable);
 
 }

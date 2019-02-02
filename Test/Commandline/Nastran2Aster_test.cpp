@@ -26,7 +26,7 @@ namespace tests {
 
 using namespace std;
 
-/*BOOST_AUTO_TEST_CASE( prob19 ) {
+BOOST_AUTO_TEST_CASE( prob19 ) {
 	CommandLineUtils::nastranStudy2Aster("/caw/prob19/prob19.dat", RUN_ASTER, true, 0.001);
 }
 
@@ -61,13 +61,13 @@ BOOST_AUTO_TEST_CASE( cbush ) {
 
 BOOST_AUTO_TEST_CASE( cbush1 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/cbush1/cbush1.bdf", RUN_ASTER, true, 0.00001);
-}*/
+}
 
 BOOST_AUTO_TEST_CASE( cbush1b ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/cbush1b/cbush1b.bdf", RUN_ASTER, true, 0.00001);
 }
 
-/*BOOST_AUTO_TEST_CASE( ssll11a ) {
+BOOST_AUTO_TEST_CASE( ssll11a ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/ssll11a/ssll11a.nas", RUN_ASTER, true, 0.000001);
 }
 
@@ -185,7 +185,7 @@ BOOST_AUTO_TEST_CASE( test_2dof108 ) {
 
 BOOST_AUTO_TEST_CASE( truss1 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/truss1/truss1.nas", RUN_ASTER, true, 0.000001);
-}*/
+}
 
 } /* namespace test */
 } /* namespace vega */

@@ -1753,7 +1753,7 @@ void AsterWriter::writeAssemblage(const AsterModel& asterModel, Analysis& analys
             << analysis.getId() << "'),)," << endl;
     if (isBuckling) {
         out << "                      _F(OPTION='RIGI_GEOM', MATRICE=CO('RIGE"
-                << analysis.getId() << "',SIEF_ELGA=FSIG" << analysis.getId() << "),)," << endl;
+                << analysis.getId() << "'),SIEF_ELGA=FSIG" << analysis.getId() << ",)," << endl;
     } else {
         out << "                      _F(OPTION='MASS_MECA', MATRICE=CO('MASS"
                 << analysis.getId() << "'),)," << endl;
