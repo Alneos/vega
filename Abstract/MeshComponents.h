@@ -359,8 +359,6 @@ public:
     inline static const std::string MedName(const int position) {
         return "M" + std::to_string(position + 1);
     }
-
-    virtual ~Cell();
 };
 
 class CellGroup final: public Group {

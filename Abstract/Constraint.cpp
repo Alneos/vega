@@ -127,13 +127,6 @@ ostream &operator<<(ostream &out, const ConstraintSet& constraintSet) {
     return out;
 }
 
-shared_ptr<ConstraintSet> ConstraintSet::clone() const {
-    return make_shared<ConstraintSet>(*this);
-}
-
-ConstraintSet::~ConstraintSet() {
-}
-
 const int HomogeneousConstraint::UNAVAILABLE_MASTER = INT_MIN;
 
 HomogeneousConstraint::HomogeneousConstraint(Model& model, Type type, const DOFS& dofs,
@@ -205,16 +198,10 @@ set<int> HomogeneousConstraint::getSlaves() const {
     }
 }
 
-HomogeneousConstraint::~HomogeneousConstraint() {
-}
-
 QuasiRigidConstraint::QuasiRigidConstraint(Model& model, const DOFS& dofs, int masterId,
         int constraintGroup, const set<int>& slaveIds) :
         HomogeneousConstraint(model, Constraint::Type::QUASI_RIGID, dofs, masterId, constraintGroup, slaveIds) {
 
-}
-shared_ptr<Constraint> QuasiRigidConstraint::clone() const {
-    return make_shared<QuasiRigidConstraint>(*this);
 }
 
 set<int> QuasiRigidConstraint::getSlaves() const {
@@ -226,10 +213,6 @@ set<int> QuasiRigidConstraint::getSlaves() const {
 RigidConstraint::RigidConstraint(Model& model, int masterId, int constraintGroup,
         const set<int>& slaveIds) :
         HomogeneousConstraint(model, Constraint::Type::RIGID, DOFS::ALL_DOFS, masterId, constraintGroup, slaveIds) {
-}
-
-shared_ptr<Constraint> RigidConstraint::clone() const {
-    return make_shared<RigidConstraint>(*this);
 }
 
 RBE3::RBE3(Model& model, int masterId, const DOFS dofs, int original_id) :
@@ -266,10 +249,6 @@ const DOFS RBE3::getDOFSForNode(int nodePosition) const {
             result = it->second;
     }
     return result;
-}
-
-shared_ptr<Constraint> RBE3::clone() const {
-    return make_shared<RBE3>(*this);
 }
 
 const ValueOrReference& SinglePointConstraint::NO_SPC = ValueOrReference::EMPTY_VALUE;
@@ -321,10 +300,6 @@ void SinglePointConstraint::addNodeId(int nodeId) {
             throw logic_error("SPC:: addNodeId on unknown group type");
         }
     }
-}
-
-shared_ptr<Constraint> SinglePointConstraint::clone() const {
-    return make_shared<SinglePointConstraint>(*this);
 }
 
 set<int> SinglePointConstraint::nodePositions() const {
@@ -415,10 +390,6 @@ LinearMultiplePointConstraint::LinearMultiplePointConstraint(Model& model, doubl
         Constraint(model, Constraint::Type::LMPC, original_id), coef_impo(coef_impo) {
 }
 
-shared_ptr<Constraint> LinearMultiplePointConstraint::clone() const {
-    return make_shared<LinearMultiplePointConstraint>(*this);
-}
-
 void LinearMultiplePointConstraint::addParticipation(int nodeId, double dx, double dy, double dz,
         double rx, double ry, double rz) {
     int nodePosition = model.mesh.findOrReserveNode(nodeId);
@@ -503,10 +474,6 @@ GapTwoNodes::GapTwoNodes(Model& model, int original_id) :
         Gap(model, original_id) {
 }
 
-shared_ptr<Constraint> GapTwoNodes::clone() const {
-    return make_shared<GapTwoNodes>(*this);
-}
-
 void GapTwoNodes::addGapNodes(int constrainedNodeId, int directionNodeId) {
     int constrainedNodePosition = model.mesh.findOrReserveNode(constrainedNodeId);
     int directionNodePosition = model.mesh.findOrReserveNode(directionNodeId);
@@ -563,10 +530,6 @@ const DOFS GapTwoNodes::getDOFSForNode(int nodePosition) const {
 
 GapNodeDirection::GapNodeDirection(Model& model, int original_id) :
         Gap(model, original_id) {
-}
-
-shared_ptr<Constraint> GapNodeDirection::clone() const {
-    return make_shared<GapNodeDirection>(*this);
 }
 
 void GapNodeDirection::addGapNodeDirection(int constrainedNodeId, double directionX,
@@ -640,10 +603,6 @@ double SlideContact::getFriction() const {
     }
 }
 
-shared_ptr<Constraint> SlideContact::clone() const {
-    return make_shared<SlideContact>(*this);
-}
-
 set<int> SlideContact::nodePositions() const {
     set<int> result;
     const auto& masterLine = dynamic_pointer_cast<BoundaryNodeLine>(model.find(master));
@@ -681,10 +640,6 @@ const DOFS SlideContact::getDOFSForNode(int nodePosition) const {
 
 SurfaceContact::SurfaceContact(Model& model, Reference<Target> master, Reference<Target> slave, int original_id) :
     Contact(model, Constraint::Type::SURFACE_CONTACT, original_id), master(master), slave(slave) {
-}
-
-shared_ptr<Constraint> SurfaceContact::clone() const {
-    return make_shared<SurfaceContact>(*this);
 }
 
 set<int> SurfaceContact::nodePositions() const {
@@ -726,9 +681,6 @@ ZoneContact::ZoneContact(Model& model, Reference<Target> master, Reference<Targe
     Contact(model, Constraint::Type::ZONE_CONTACT, original_id), master(master), slave(slave) {
 }
 
-shared_ptr<Constraint> ZoneContact::clone() const {
-    return make_shared<ZoneContact>(*this);
-}
 
 set<int> ZoneContact::nodePositions() const {
     set<int> result;
@@ -787,10 +739,6 @@ const DOFS ZoneContact::getDOFSForNode(int nodePosition) const {
 
 SurfaceSlide::SurfaceSlide(Model& model, Reference<Target> master, Reference<Target> slave, int original_id) :
     Constraint(model, Constraint::Type::SURFACE_SLIDE_CONTACT, original_id), master(master), slave(slave) {
-}
-
-shared_ptr<Constraint> SurfaceSlide::clone() const {
-    return make_shared<SurfaceSlide>(*this);
 }
 
 set<int> SurfaceSlide::nodePositions() const {

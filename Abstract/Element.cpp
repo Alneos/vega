@@ -723,9 +723,6 @@ double NodalMass::getMassAsForce() const {
 	return m;
 }
 
-NodalMass::~NodalMass() {
-}
-
 ISectionBeam::ISectionBeam(Model& model, double upper_flange_width_p, double lower_flange_width,
 		double upper_flange_thickness_p, double lower_flange_thickness, double beam_height,
 		double web_thickness, BeamModel beamModel, double additional_mass, int original_id) :

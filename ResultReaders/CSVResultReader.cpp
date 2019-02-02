@@ -24,7 +24,6 @@
 #include <fstream>
 #include <iostream>
 #include <unordered_map>
-#include <boost/assign/list_of.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
@@ -148,10 +147,14 @@ struct CsvGrammar: qi::grammar<stream_iterator_type, void(), qi::locals<vector<L
 	Model& model;
 	const ConfigurationParameters configuration;
 	//visual studio 2013 refuses to compile initializer list
-	unordered_map<LineItems, int, std::hash<int>> dofPosition_by_lineItemEnum =
-			boost::assign::map_list_of(LineItems::DX, 0)(LineItems::DY, 1)(
-					LineItems::DZ, 2)(LineItems::DRX, 3)(LineItems::DRY,
-					4)(LineItems::DRZ, 5);
+	unordered_map<LineItems, int, std::hash<int>> dofPosition_by_lineItemEnum = {
+        {LineItems::DX, 0}, //
+        {LineItems::DY, 1}, //
+        {LineItems::DZ, 2}, //
+        {LineItems::DRX, 3}, //
+        {LineItems::DRY, 4}, //
+        {LineItems::DRZ, 5}
+    };
 };
 
 void CSVResultReader::add_assertions(const ConfigurationParameters& configuration,

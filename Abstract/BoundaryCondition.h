@@ -21,7 +21,8 @@ namespace vega {
 
 class BoundaryCondition {
 public:
-	BoundaryCondition();
+	BoundaryCondition() = default;
+    virtual ~BoundaryCondition() = default;
 	virtual bool ineffective() const {
 		throw std::logic_error("boundary condition ineffective() used but not implemented");
 	}

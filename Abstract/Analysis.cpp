@@ -372,25 +372,14 @@ void Analysis::copyInto(Analysis& other) const {
     }
 }
 
-Analysis::~Analysis() {
-}
-
 Combination::Combination(Model& model, const string original_label, const int original_id) :
         Analysis(model, Analysis::Type::COMBINATION, original_label, original_id) {
 }
-
-//shared_ptr<Analysis> Combination::clone() const {
-//    return make_shared<Combination>(*this);
-//}
 
 LinearMecaStat::LinearMecaStat(Model& model, const string original_label, const int original_id) :
         Analysis(model, Analysis::Type::LINEAR_MECA_STAT, original_label, original_id) {
 
 }
-
-//shared_ptr<Analysis> LinearMecaStat::clone() const {
-//    return make_shared<LinearMecaStat>(*this);
-//}
 
 NonLinearMecaStat::NonLinearMecaStat(Model& model, const int strategy_id,
         const string original_label, const int original_id) :
@@ -398,10 +387,6 @@ NonLinearMecaStat::NonLinearMecaStat(Model& model, const int strategy_id,
                 Objective::Type::NONLINEAR_STRATEGY, strategy_id) {
 
 }
-
-//shared_ptr<Analysis> NonLinearMecaStat::clone() const {
-//    return make_shared<NonLinearMecaStat>(*this);
-//}
 
 bool NonLinearMecaStat::validate() const {
     return Analysis::validate();
@@ -422,10 +407,6 @@ shared_ptr<FrequencySearch> LinearModal::getFrequencySearch() const {
     return dynamic_pointer_cast<FrequencySearch>(model.find(frequencySearchRef));
 }
 
-//shared_ptr<Analysis> LinearModal::clone() const {
-//    return make_shared<LinearModal>(*this);
-//}
-
 bool LinearModal::validate() const {
     bool isValid = Analysis::validate();
     if (!getFrequencySearch()) {
@@ -441,10 +422,6 @@ LinearBuckling::LinearBuckling(Model& model, const Reference<Objective>& frequen
         const string original_label, const int original_id) :
         LinearModal(model, frequencySearchRef, original_label, original_id, Type::LINEAR_BUCKLING) {
 }
-
-//shared_ptr<Analysis> LinearBuckling::clone() const {
-//    return make_shared<LinearBuckling>(*this);
-//}
 
 LinearDynaModalFreq::LinearDynaModalFreq(Model& model, const int frequency_band_original_id,
         const int modal_damping_original_id, const int frequency_value_original_id,
@@ -462,10 +439,6 @@ shared_ptr<ModalDamping> LinearDynaModalFreq::getModalDamping() const {
 shared_ptr<FrequencyExcit> LinearDynaModalFreq::getExcitationFrequencies() const {
     return dynamic_pointer_cast<FrequencyExcit>(model.find(frequencyExcitationRef));
 }
-
-//shared_ptr<Analysis> LinearDynaModalFreq::clone() const {
-//    return make_shared<LinearDynaModalFreq>(*this);
-//}
 
 bool LinearDynaModalFreq::validate() const {
     bool isValid = Analysis::validate();
@@ -489,10 +462,6 @@ LinearDynaDirectFreq::LinearDynaDirectFreq(Model& model,
 shared_ptr<FrequencyExcit> LinearDynaDirectFreq::getExcitationFrequencies() const {
     return dynamic_pointer_cast<FrequencyExcit>(model.find(frequencyExcitationRef));
 }
-
-//shared_ptr<Analysis> LinearDynaDirectFreq::clone() const {
-//    return make_shared<LinearDynaDirectFreq>(*this);
-//}
 
 bool LinearDynaDirectFreq::validate() const {
     bool isValid = Analysis::validate();

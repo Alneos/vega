@@ -105,10 +105,6 @@ set<int> FrequencyAssertion::nodePositions() const {
     return set<int>();
 }
 
-shared_ptr<Objective> FrequencyAssertion::clone() const {
-    return make_shared<FrequencyAssertion>(*this);
-}
-
 AnalysisParameter::AnalysisParameter(Model& model, Type type, int original_id) :
         Objective(model, type, original_id) {
 }
@@ -125,10 +121,6 @@ const FunctionPlaceHolder FrequencySearch::getValueRangePlaceHolder() const {
     return FunctionPlaceHolder(model, namedValue.type, namedValue.original_id, Function::ParaName::FREQ);
 }
 
-shared_ptr<Objective> FrequencySearch::clone() const {
-    return make_shared<FrequencySearch>(*this);
-}
-
 FrequencyExcit::FrequencyExcit(Model& model, const FrequencyType frequencyType, const NamedValue& namedValue, NormType norm, int original_id) :
         AnalysisParameter(model, Objective::Type::FREQUENCY_EXCIT, original_id), namedValue(namedValue), frequencyType(frequencyType), norm(norm) {
 }
@@ -139,10 +131,6 @@ const shared_ptr<NamedValue> FrequencyExcit::getValue() const {
 
 const FunctionPlaceHolder FrequencyExcit::getValueRangePlaceHolder() const {
     return FunctionPlaceHolder(model, namedValue.type, namedValue.original_id, Function::ParaName::FREQ);
-}
-
-shared_ptr<Objective> FrequencyExcit::clone() const {
-    return make_shared<FrequencyExcit>(*this);
 }
 
 ModalDamping::ModalDamping(Model& model, const FunctionTable& function_table, int original_id) :
@@ -163,25 +151,13 @@ const FunctionPlaceHolder ModalDamping::getFunctionTablePlaceHolder() const {
     return FunctionPlaceHolder(model, function_table.type, function_table.original_id, Function::ParaName::FREQ);
 }
 
-shared_ptr<Objective> ModalDamping::clone() const {
-    return make_shared<ModalDamping>(*this);
-}
-
 NonLinearStrategy::NonLinearStrategy(Model& model, int number_of_increments, int original_id) :
         AnalysisParameter(model, Objective::Type::NONLINEAR_STRATEGY, original_id), number_of_increments(
                 number_of_increments) {
 }
 
-shared_ptr<Objective> NonLinearStrategy::clone() const {
-    return make_shared<NonLinearStrategy>(*this);
-}
-
 ArcLengthMethod::ArcLengthMethod(Model& model, const Reference<Objective>& strategy_reference, int original_id) :
         AnalysisParameter(model, Objective::Type::ARC_LENGTH_METHOD, original_id), strategy_reference(strategy_reference) {
-}
-
-shared_ptr<Objective> ArcLengthMethod::clone() const {
-    return make_shared<ArcLengthMethod>(*this);
 }
 
 } /* namespace vega */

@@ -89,10 +89,6 @@ BandRange::BandRange(const Model& model, double start, int maxsearch, double end
         ValueRange(model, Value::Type::BAND_RANGE, original_id), start(start), maxsearch(maxsearch), end(end) {
 }
 
-shared_ptr<NamedValue> BandRange::clone() const {
-    return make_shared<BandRange>(*this);
-}
-
 bool BandRange::iszero() const {
     return is_equal(start, end);
 }
@@ -120,10 +116,6 @@ StepRange::StepRange(const Model& model, double start, double step, int count, i
     end = start + step * count;
 }
 
-shared_ptr<NamedValue> StepRange::clone() const {
-    return make_shared<StepRange>(*this);
-}
-
 bool StepRange::iszero() const {
     return is_equal(start, end) || count == 0 || is_equal(step, 0);
 }
@@ -136,10 +128,6 @@ void StepRange::scale(double factor) {
 SpreadRange::SpreadRange(const Model& model, double start, int count, double end, double spread, int original_id) :
 		ValueRange(model, Value::Type::SPREAD_RANGE, original_id), start(start), count(count), end(end), spread(spread) {
     assert(end > start);
-}
-
-shared_ptr<NamedValue> SpreadRange::clone() const {
-    return make_shared<SpreadRange>(*this);
 }
 
 bool SpreadRange::iszero() const {
@@ -159,10 +147,6 @@ FunctionPlaceHolder::FunctionPlaceHolder(const Model& model, Type type, int orig
         Function(model, type, original_id, paraX, paraY) {
 }
 
-shared_ptr<NamedValue> FunctionPlaceHolder::clone() const {
-    return make_shared<FunctionPlaceHolder>(*this);
-}
-
 FunctionTable::FunctionTable(const Model& model, Interpolation parameter, Interpolation value,
         Interpolation left, Interpolation right, int original_id) :
         Function(model, Value::Type::FUNCTION_TABLE, original_id), parameter(parameter), value(value), left(
@@ -179,10 +163,6 @@ const vector<pair<double, double>>::const_iterator FunctionTable::getBeginValues
 
 const vector<pair<double, double>>::const_iterator FunctionTable::getEndValuesXY() const {
     return valuesXY.end();
-}
-
-shared_ptr<NamedValue> FunctionTable::clone() const {
-    return make_shared<FunctionTable>(*this);
 }
 
 bool FunctionTable::iszero() const {

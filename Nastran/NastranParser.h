@@ -384,7 +384,7 @@ private:
     /**
      *  Generic function for parsing Element keywords.
      */
-    void parseElem(NastranTokenizer& tok, Model& model, std::vector<CellType>);//in NastranParser_geometry.cpp
+    void parseElem(NastranTokenizer& tok, Model& model, const std::vector<CellType>&);//in NastranParser_geometry.cpp
 
     /**
      * Parse the FORCE keyword (page 1549 of MDN Nastran 2006 Quick Reference Guide.)

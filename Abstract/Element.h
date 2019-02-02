@@ -21,7 +21,7 @@ namespace vega {
 
 class Model;
 
-class ModelType {
+class ModelType final {
 private:
 	std::string name;
 	SpaceDimension dimension;
@@ -70,14 +70,13 @@ protected:
     ElementSet(Model&, Type, const ModelType& modelType = ModelType::TRIDIMENSIONAL,
             int original_id = NO_ORIGINAL_ID);
 public:
+    virtual ~ElementSet() = default;
     static const std::string name;
     static const std::map<Type, std::string> stringByType;
     const Type type;
     const ModelType& modelType;
     std::shared_ptr<CellGroup> cellGroup;
     std::shared_ptr<Material> material;
-    virtual ~ElementSet() {
-    }
     void assignMaterial(int materialId);
     void assignMaterial(std::shared_ptr<Material> material) {
         this->material = std::move(material);
@@ -132,11 +131,12 @@ public:
 		TRUSS
 	};
 	BeamModel beamModel;
-	protected:
+protected:
 	double additional_mass;
 	Beam(Model&, Type type, const ModelType& modelType = ModelType::TRIDIMENSIONAL, BeamModel beamModel = BeamModel::EULER,
 			double additionalMass = 0.0, int original_id = NO_ORIGINAL_ID);
-	public:
+public:
+    virtual ~Beam() = default;
     std::vector<RecoveryPoint> recoveryPoints;
 	double getAdditionalRho() const override {
 		return additional_mass / std::max(getAreaCrossSection(), DBL_MIN);
@@ -154,9 +154,6 @@ public:
 	virtual double getShearAreaFactorY() const = 0;
 	virtual double getShearAreaFactorZ() const = 0;
 	const DOFS getDOFSForNode(const int nodePosition) const override final;
-	virtual ~Beam() {
-	}
-
 };
 
 class CircularSectionBeam: public Beam {
@@ -232,8 +229,6 @@ public:
 	double getTorsionalConstant() const override;
 	double getShearAreaFactorY() const override;
 	double getShearAreaFactorZ() const override;
-	virtual ~RectangularSectionBeam() {
-	}
 };
 
 /**
@@ -267,8 +262,6 @@ public:
 	double getTorsionalConstant() const override;
 	double getShearAreaFactorY() const override;
 	double getShearAreaFactorZ() const override;
-	virtual ~ISectionBeam() {
-	}
 };
 
 class Shell: public ElementSet {
@@ -289,8 +282,6 @@ public:
 		return true;
 	}
 	const DOFS getDOFSForNode(const int nodePosition) const override final;
-	virtual ~Shell() {
-	}
 };
 
 class Composite;
@@ -328,8 +319,6 @@ class Composite: public ElementSet {
 		return true;
 	}
 	const DOFS getDOFSForNode(const int nodePosition) const override final;
-	virtual ~Composite() {
-	}
 };
 
 class Continuum: public ElementSet {
@@ -340,8 +329,6 @@ public:
 		return std::make_shared<Continuum>(*this);
 	}
 	const DOFS getDOFSForNode(const int nodePosition) const override final;
-	virtual ~Continuum() {
-	}
 };
 
 class Discrete: public ElementSet {
@@ -356,8 +343,6 @@ public:
 	virtual bool hasRotations() const = 0;
 	const DOFS getDOFSForNode(const int nodePosition) const override final;
 	virtual const std::vector<double> asStiffnessVector(bool) const = 0;
-	virtual ~Discrete() {
-	}
 };
 
 class DiscretePoint final: public Discrete {
@@ -455,8 +440,6 @@ class NodalMass: public ElementSet {
 	bool hasTranslations() const;
 	bool hasRotations() const;
 
-	~NodalMass();
-
 	inline std::shared_ptr<ElementSet> clone() const override {
 		return std::make_shared<NodalMass>(*this);
 	}
@@ -484,8 +467,6 @@ public:
 	}
 	virtual bool validate() const override {
 		return true;
-	}
-	virtual ~MatrixElement() {
 	}
 };
 
@@ -521,10 +502,11 @@ public:
  * like RBAR and RBE3.
  */
 class RigidSet: public ElementSet {
-public:
+protected:
     RigidSet(Model&, Type type, int master_id, int original_id = NO_ORIGINAL_ID);
+public:
+    virtual ~RigidSet() = default;
     const DOFS getDOFSForNode(const int nodePosition) const override final;
-    virtual ~RigidSet() {}
     int masterId;
 };
 
@@ -532,8 +514,6 @@ class Rbar: public RigidSet {
 public:
     Rbar(Model&, int master_id, int original_id = NO_ORIGINAL_ID);
     std::shared_ptr<ElementSet> clone() const override;
-    virtual ~Rbar() {}
-
 };
 
 class Rbe3: public RigidSet {
@@ -542,7 +522,6 @@ public:
     const DOFS mdofs;
     const DOFS sdofs;
     std::shared_ptr<ElementSet> clone() const override;
-    virtual ~Rbe3() {}
 };
 
 /**
@@ -555,7 +534,6 @@ public:
     std::shared_ptr<ElementSet> clone() const override;
     std::vector<DOFCoefs> dofCoefs;
     void assignDofCoefs(const std::vector<DOFCoefs>);
-    virtual ~Lmpc() {}
 };
 
 /**
@@ -565,7 +543,6 @@ class SurfaceSlideSet: public RigidSet {
 public:
     SurfaceSlideSet(Model&, int original_id = NO_ORIGINAL_ID);
     std::shared_ptr<ElementSet> clone() const override;
-    virtual ~SurfaceSlideSet() {}
 };
 
 /**
@@ -604,7 +581,6 @@ public:
         return true;
     }
     std::shared_ptr<ElementSet> clone() const override;
-    virtual ~ScalarSpring() {}
 };
 
 } /* namespace vega */

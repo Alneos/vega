@@ -49,12 +49,13 @@ public:
 protected:
 	Model& model;
 	Constraint(Model&, Type, int original_id = NO_ORIGINAL_ID);
+    Constraint(const Constraint& that) = delete;
 public:
+    virtual ~Constraint() = default;
 	const Type type;
 	static const std::string name;
 	static const std::map<Type, std::string> stringByType;
 	const std::string to_str() const;
-	virtual std::shared_ptr<Constraint> clone() const = 0;
 	virtual bool isContact() const {
 	    return false;
 	}
@@ -74,6 +75,8 @@ public:
 		SPC, MPC, ALL, CONTACT
 	};
 	ConstraintSet(Model&, Type type = Type::SPC, int original_id = NO_ORIGINAL_ID);
+    ConstraintSet(const ConstraintSet& that) = delete;
+	virtual ~ConstraintSet() = default;
 	static constexpr int COMMON_SET_ID = 0;
 	const Type type;
 	static const std::string name;
@@ -86,7 +89,6 @@ public:
 	std::shared_ptr<ConstraintSet> clone() const;
 	bool hasFunctions() const;
 	bool hasContacts() const;
-	virtual ~ConstraintSet();
 };
 
 class HomogeneousConstraint: public Constraint {
@@ -98,6 +100,7 @@ protected:
 			UNAVAILABLE_MASTER, int original_id = NO_ORIGINAL_ID, const std::set<int>& slaveIds =
 			std::set<int>());
 public:
+    virtual ~HomogeneousConstraint() = default;
 	static const int UNAVAILABLE_MASTER;
 	virtual void addSlave(int slaveId);
 	virtual int getMaster() const;
@@ -107,7 +110,6 @@ public:
 	const DOFS getDOFS() const;
 	void removeNode(int nodePosition) override;
 	bool ineffective() const override;
-	virtual ~HomogeneousConstraint();
 };
 
 /**
@@ -119,13 +121,10 @@ class QuasiRigidConstraint: public HomogeneousConstraint {
 public:
 	QuasiRigidConstraint(Model& model, const DOFS& dofs, int masterId = UNAVAILABLE_MASTER,
 			int original_id = NO_ORIGINAL_ID, const std::set<int>& slaveIds = std::set<int>());
-	std::shared_ptr<Constraint> clone() const override;
 	inline bool isCompletelyRigid() const {
 		return this->dofs == DOFS::ALL_DOFS;
 	}
 	std::set<int> getSlaves() const override; /** Get the two nodes bound by this Quasi-Rigid constraint */
-	virtual ~QuasiRigidConstraint() {
-	}
 };
 
 class RigidConstraint: public HomogeneousConstraint {
@@ -133,9 +132,6 @@ class RigidConstraint: public HomogeneousConstraint {
 public:
 	RigidConstraint(Model& model, int masterId = UNAVAILABLE_MASTER, int original_id =
 			NO_ORIGINAL_ID, const std::set<int>& slaveIds = std::set<int>());
-	std::shared_ptr<Constraint> clone() const override;
-	virtual ~RigidConstraint() {
-	}
 };
 
 class RBE3: public HomogeneousConstraint {
@@ -147,9 +143,6 @@ public:
 	void addSlave(int slaveId, DOFS slaveDOFS = DOFS::ALL_DOFS, double slaveCoef = 1);
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	double getCoefForNode(int nodePosition) const;
-	std::shared_ptr<Constraint> clone() const override;
-	virtual ~RBE3() {
-	}
 };
 
 class SinglePointConstraint: public Constraint {
@@ -184,7 +177,6 @@ public:
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	bool hasReferences() const;
 	bool ineffective() const override;
-	std::shared_ptr<Constraint> clone() const override;
 };
 
 
@@ -195,7 +187,6 @@ public:
     const double coef_impo;
     LinearMultiplePointConstraint(Model& model, double coef_impo = 0, int original_id =
             NO_ORIGINAL_ID);
-    std::shared_ptr<Constraint> clone() const override;
     void addParticipation(int nodeId, double dx = 0, double dy = 0, double dz = 0, double rx = 0,
             double ry = 0, double rz = 0);
     DOFCoefs getDoFCoefsForNode(int nodePosition) const;
@@ -229,6 +220,7 @@ public:
 		const VectorialValue direction;
 	};
 	Gap(Model&, int original_id = NO_ORIGINAL_ID);
+	virtual ~Gap() = default;
 	double initial_gap_opening = 0;
 	virtual std::vector<std::shared_ptr<GapParticipation>> getGaps() const = 0;
 };
@@ -238,7 +230,6 @@ private:
 	std::map<int, int> directionNodePositionByconstrainedNodePosition;
 public:
 	GapTwoNodes(Model& model, int original_id = NO_ORIGINAL_ID);
-	std::shared_ptr<Constraint> clone() const override;
 	void addGapNodes(int constrainedNodeId, int directionNodeId);
 	std::set<int> nodePositions() const override;
 	const DOFS getDOFSForNode(int nodePosition) const override;
@@ -252,7 +243,6 @@ private:
 	std::map<int, VectorialValue> directionBynodePosition;
 public:
 	GapNodeDirection(Model& model, int original_id = NO_ORIGINAL_ID);
-	std::shared_ptr<Constraint> clone() const override;
 	void addGapNodeDirection(int constrainedNodeId, double directionX, double directionY = 0,
 			double directionZ = 0);
 	std::set<int> nodePositions() const override;
@@ -276,7 +266,6 @@ public:
     std::shared_ptr<CellGroup> masterCellGroup = nullptr;
     std::shared_ptr<CellGroup> slaveCellGroup = nullptr;
     int coordinateSystemPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
-	std::shared_ptr<Constraint> clone() const override;
 	std::set<int> nodePositions() const override;
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	void removeNode(int nodePosition) override;
@@ -293,7 +282,6 @@ public:
     const Reference<Target> slave;
     std::shared_ptr<CellGroup> masterCellGroup = nullptr;
     std::shared_ptr<CellGroup> slaveCellGroup = nullptr;
-	std::shared_ptr<Constraint> clone() const override;
 	std::set<int> nodePositions() const override;
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	void removeNode(int nodePosition) override;
@@ -308,7 +296,6 @@ public:
 	ZoneContact(Model& model, Reference<Target> master, Reference<Target> slave, int original_id = NO_ORIGINAL_ID);
     const Reference<Target> master;
     const Reference<Target> slave;
-	std::shared_ptr<Constraint> clone() const override;
 	std::set<int> nodePositions() const override;
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	void removeNode(int nodePosition) override;
@@ -323,7 +310,6 @@ public:
 	SurfaceSlide(Model& model, Reference<Target> master, Reference<Target> slave, int original_id = NO_ORIGINAL_ID);
     const Reference<Target> master;
     const Reference<Target> slave;
-	std::shared_ptr<Constraint> clone() const override;
 	std::set<int> nodePositions() const override;
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	void removeNode(int nodePosition) override;

@@ -590,51 +590,50 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 		out << "M" << material->getId() << "=DEFI_MATERIAU(" << endl;
 		const shared_ptr<Nature> enature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
 		if (enature) {
-			const ElasticNature& elasticNature = dynamic_cast<ElasticNature&>(*enature);
+			const auto& elasticNature = dynamic_pointer_cast<ElasticNature>(enature);
 			out << "                 ELAS=_F(" << endl;
-			out << "                         E=" << elasticNature.getE() << "," << endl;
-			out << "                         NU=" << elasticNature.getNu() << "," << endl;
-			out << "                         RHO=" << elasticNature.getRho() << "," << endl;
-			if (not is_equal(elasticNature.getGE(), Globals::UNAVAILABLE_DOUBLE)) {
-                out << "                         AMOR_HYST=" << elasticNature.getGE() << "," << endl;
+			out << "                         E=" << elasticNature->getE() << "," << endl;
+			out << "                         NU=" << elasticNature->getNu() << "," << endl;
+			out << "                         RHO=" << elasticNature->getRho() << "," << endl;
+			if (not is_equal(elasticNature->getGE(), Globals::UNAVAILABLE_DOUBLE)) {
+                out << "                         AMOR_HYST=" << elasticNature->getGE() << "," << endl;
 			}
 			out << "                         )," << endl;
 		}
 		const shared_ptr<Nature> hynature = material->findNature(Nature::NatureType::NATURE_HYPERELASTIC);
 		if (hynature) {
-			const HyperElasticNature& hyperElasticNature = dynamic_cast<HyperElasticNature&>(*hynature);
+			const auto& hyperElasticNature = dynamic_pointer_cast<HyperElasticNature>(hynature);
 			out << "                 ELAS_HYPER=_F(" << endl;
-			out << "                         C10=" << hyperElasticNature.c10 << "," << endl;
-			out << "                         C01=" << hyperElasticNature.c01 << "," << endl;
-			out << "                         C20=" << hyperElasticNature.c20 << "," << endl;
-			out << "                         RHO=" << hyperElasticNature.rho << "," << endl;
-			out << "                         K=" << hyperElasticNature.k << "," << endl;
+			out << "                         C10=" << hyperElasticNature->c10 << "," << endl;
+			out << "                         C01=" << hyperElasticNature->c01 << "," << endl;
+			out << "                         C20=" << hyperElasticNature->c20 << "," << endl;
+			out << "                         RHO=" << hyperElasticNature->rho << "," << endl;
+			out << "                         K=" << hyperElasticNature->k << "," << endl;
 			out << "                         )," << endl;
 		}
 		const shared_ptr<Nature> onature = material->findNature(Nature::NatureType::NATURE_ORTHOTROPIC);
 		if (onature) {
-			const OrthotropicNature& orthoNature = dynamic_cast<OrthotropicNature&>(*onature);
+			const auto& orthoNature = dynamic_pointer_cast<OrthotropicNature>(onature);
 			out << "                 ELAS_ORTH=_F(" << endl;
-			out << "                         E_L=" << orthoNature.getE_longitudinal() << "," << endl;
-            out << "                         E_T=" << orthoNature.getE_transverse() << "," << endl;
-            out << "                         G_LT=" << orthoNature.getG_longitudinal_transverse() << "," << endl;
-            if (!is_equal(orthoNature.getG_transverse_normal(),Globals::UNAVAILABLE_DOUBLE)){
-                out << "                         G_TN=" << orthoNature.getG_transverse_normal() << "," << endl;
+			out << "                         E_L=" << orthoNature->getE_longitudinal() << "," << endl;
+            out << "                         E_T=" << orthoNature->getE_transverse() << "," << endl;
+            out << "                         G_LT=" << orthoNature->getG_longitudinal_transverse() << "," << endl;
+            if (!is_equal(orthoNature->getG_transverse_normal(),Globals::UNAVAILABLE_DOUBLE)){
+                out << "                         G_TN=" << orthoNature->getG_transverse_normal() << "," << endl;
             }
-            if (!is_equal(orthoNature.getG_longitudinal_normal(),Globals::UNAVAILABLE_DOUBLE)){
-                out << "                         G_LN=" << orthoNature.getG_longitudinal_normal() << "," << endl;
+            if (!is_equal(orthoNature->getG_longitudinal_normal(),Globals::UNAVAILABLE_DOUBLE)){
+                out << "                         G_LN=" << orthoNature->getG_longitudinal_normal() << "," << endl;
             }
-			out << "                         NU_LT=" << orthoNature.getNu_longitudinal_transverse() << "," << endl;
+			out << "                         NU_LT=" << orthoNature->getNu_longitudinal_transverse() << "," << endl;
 			out << "                         )," << endl;
 		}
 		const shared_ptr<Nature> binature = material->findNature(Nature::NatureType::NATURE_BILINEAR_ELASTIC);
 		if (binature) {
-			const BilinearElasticNature& bilinearNature =
-					dynamic_cast<BilinearElasticNature&>(*binature);
+			const auto& bilinearNature = dynamic_pointer_cast<BilinearElasticNature>(binature);
 			out << "                 ECRO_LINE=_F(" << endl;
-			out << "                         D_SIGM_EPSI=" << bilinearNature.secondary_slope << ","
+			out << "                         D_SIGM_EPSI=" << bilinearNature->secondary_slope << ","
 					<< endl;
-			out << "                         SY=" << bilinearNature.elastic_limit << "," << endl;
+			out << "                         SY=" << bilinearNature->elastic_limit << "," << endl;
 			out << "                         )," << endl;
 		}
 		out << "                 );" << endl << endl;

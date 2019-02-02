@@ -1540,7 +1540,7 @@ void NastranParser::parseMAT1(NastranTokenizer& tok, Model& model) {
         handleParsingWarning("mcsid value ignored " + to_string(mcsid), tok, model);
     }
     shared_ptr<Material> material = model.getOrCreateMaterial(material_id);
-    material->addNature(ElasticNature(model, e, nu, g, rho, a, tref, ge));
+    material->addNature(make_shared<ElasticNature>(model, e, nu, g, rho, a, tref, ge));
 }
 
 void NastranParser::parseMAT8(NastranTokenizer& tok, Model& model) {
@@ -1552,7 +1552,7 @@ void NastranParser::parseMAT8(NastranTokenizer& tok, Model& model) {
     double g1Z = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
     double g2Z = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
     shared_ptr<Material> material = model.getOrCreateMaterial(material_id);
-    material->addNature(OrthotropicNature(model, e1, e2, nu12, g12, g2Z, g1Z));
+    material->addNature(make_shared<OrthotropicNature>(model, e1, e2, nu12, g12, g2Z, g1Z));
 }
 
 void NastranParser::parseMATHP(NastranTokenizer& tok, Model& model) {
@@ -1578,7 +1578,7 @@ void NastranParser::parseMATHP(NastranTokenizer& tok, Model& model) {
     }
     tok.skip(5);
     double a20 = tok.nextDouble(true, 0.0);
-    material->addNature(HyperElasticNature(model, a10, a01, a20, d1, rho));
+    material->addNature(make_shared<HyperElasticNature>(model, a10, a01, a20, d1, rho));
 }
 
 void NastranParser::parseMATS1(NastranTokenizer& tok, Model& model) {
@@ -1592,20 +1592,19 @@ void NastranParser::parseMATS1(NastranTokenizer& tok, Model& model) {
     double limit1 = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
     double limit2 = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
     if (type == "NLELAST") {
-        NonLinearElasticNature nonLinearElasticNature = NonLinearElasticNature(model, tid);
-        material->addNature(nonLinearElasticNature);
+        material->addNature(make_shared<NonLinearElasticNature>(model, tid));
     } else if (type == "PLASTIC") {
         if (tid == 0) {
-            BilinearElasticNature biNature = BilinearElasticNature(model);
-            biNature.elastic_limit = limit1;
+            const auto& biNature = make_shared<BilinearElasticNature>(model);
+            biNature->elastic_limit = limit1;
             if (!is_equal(limit2, Globals::UNAVAILABLE_DOUBLE)) {
                 handleParsingError("MATS1 limit2 " + to_string(yf) + " not yet implemented.", tok,
                         model);
             }
-            biNature.secondary_slope = h;
+            biNature->secondary_slope = h;
             switch (hr) {
             case 1:
-                biNature.hardening_rule_isotropic = true;
+                biNature->hardening_rule_isotropic = true;
                 break;
             default:
                 handleParsingError("MATS1 hr " + to_string(hr) + " not yet implemented.", tok,
@@ -1614,7 +1613,7 @@ void NastranParser::parseMATS1(NastranTokenizer& tok, Model& model) {
             }
             switch (yf) {
             case 1:
-                biNature.yield_function_von_mises = true;
+                biNature->yield_function_von_mises = true;
                 break;
             default:
                 handleParsingError("MATS1 yf " + to_string(yf) + " not yet implemented.", tok,

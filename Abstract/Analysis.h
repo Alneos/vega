@@ -70,6 +70,7 @@ protected:
     Analysis(const Analysis& that) = delete;
 
 public:
+    virtual ~Analysis() = default;
     Model& model;
     const Type type;
     static const std::string name;     /**< String conversion of the object, i.e "Analysis" **/
@@ -121,7 +122,6 @@ public:
     const std::set<int> boundaryNodePositions() const;
     void copyInto(Analysis& other) const;
 
-//    virtual std::shared_ptr<Analysis> clone() const =0;
     virtual bool isStatic() const {
         return false;
     }
@@ -130,8 +130,6 @@ public:
     }
     bool validate() const override;
     std::map<std::string, std::string> to_map() const override;
-    virtual ~Analysis();
-
 };
 
 class Combination: public Analysis {
@@ -144,7 +142,6 @@ public:
     bool isLinear() const override {
         return true;
     }
-//    std::shared_ptr<Analysis> clone() const override;
 };
 
 class LinearMecaStat: public Analysis {
@@ -156,7 +153,6 @@ public:
     bool isLinear() const override {
         return true;
     }
-//    std::shared_ptr<Analysis> clone() const override;
 };
 
 class NonLinearMecaStat: public Analysis {
@@ -169,7 +165,6 @@ public:
     bool isStatic() const override {
         return true;
     }
-//    std::shared_ptr<Analysis> clone() const override;
     bool validate() const override;
 };
 
@@ -182,7 +177,6 @@ public:
     LinearModal(Model&, const int frequency_band_original_id, const std::string original_label = "",
             const int original_id = NO_ORIGINAL_ID, const Type type = Type::LINEAR_MODAL);
     std::shared_ptr<FrequencySearch> getFrequencySearch() const;
-//    std::shared_ptr<Analysis> clone() const override;
     bool use_power_iteration = false;
     bool validate() const override;
     bool isLinear() const override {
@@ -194,7 +188,6 @@ class LinearBuckling: public LinearModal {
 public:
     LinearBuckling(Model&, const Reference<Objective>&, const std::string original_label = "",
             const int original_id = NO_ORIGINAL_ID);
-//    std::shared_ptr<Analysis> clone() const override;
     bool isLinear() const override {
         return true;
     }
@@ -219,7 +212,6 @@ public:
     const bool residual_vector;
     std::shared_ptr<ModalDamping> getModalDamping() const;
     std::shared_ptr<FrequencyExcit> getExcitationFrequencies() const;
-//    std::shared_ptr<Analysis> clone() const override;
     bool validate() const override;
 };
 
@@ -235,7 +227,6 @@ public:
             const int frequency_value_original_id,
             const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     std::shared_ptr<FrequencyExcit> getExcitationFrequencies() const;
-//    std::shared_ptr<Analysis> clone() const override;
     bool validate() const override;
 };
 

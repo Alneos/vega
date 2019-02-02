@@ -677,7 +677,7 @@ void Model::assignMaterial(int material_id, const CellContainer& materialAssign)
 shared_ptr<Material> Model::getVirtualMaterial() {
     if (!virtualMaterial) {
         virtualMaterial = this->getOrCreateMaterial(Material::NO_ORIGINAL_ID);
-        virtualMaterial->addNature(ElasticNature(*this, 1e-12, 0.0));
+        virtualMaterial->addNature(make_shared<ElasticNature>(*this, 1e-12, 0.0));
     }
     return virtualMaterial;
 }
@@ -799,13 +799,13 @@ void Model::emulateAdditionalMass() {
     for (const auto& elementSet : elementSets) {
         double rho = elementSet->getAdditionalRho();
         if (!is_zero(rho)) {
-            // create new elementSet
-            shared_ptr<ElementSet> newElementSet = elementSet->clone();
+            // copy elementSet
+            const auto& newElementSet = elementSet->clone();
             newElementSet->resetId();
             newElementSets.push_back(newElementSet);
             // assign new material
             shared_ptr<Material> newMaterial = make_shared<Material>(*this);
-            newMaterial->addNature(ElasticNature(*this, 0, 0, 0, rho));
+            newMaterial->addNature(make_shared<ElasticNature>(*this, 0, 0, 0, rho));
             materials.add(newMaterial);
             newElementSet->assignMaterial(newMaterial);
             // copy and assign new cellGroup
@@ -1583,8 +1583,8 @@ void Model::makeCellsFromLMPC(){
                 }else{
                     // If not found, creating an ElementSet, a CellGroup and a (single) dummy rigid material
                     if (materialLMPC==nullptr){
-                        materialLMPC= make_shared<Material>(*this);
-                        materialLMPC->addNature(RigidNature(*this, 1));
+                        materialLMPC = make_shared<Material>(*this);
+                        materialLMPC->addNature(make_shared<RigidNature>(*this, 1));
                         this->add(materialLMPC);
                     }
                     group = mesh.createCellGroup("MPC_"+to_string(analysis->bestId())+"_"+to_string(constraint->bestId()), CellGroup::NO_ORIGINAL_ID, "MPC");
@@ -1647,7 +1647,7 @@ void Model::makeCellsFromRBE(){
 
             // Creating an elementset, a CellGroup and a dummy rigid material
             shared_ptr<Material> materialRBE2 = make_shared<Material>(*this);
-            materialRBE2->addNature(RigidNature(*this, 1));
+            materialRBE2->addNature(make_shared<RigidNature>(*this, 1));
             this->add(materialRBE2);
 
             shared_ptr<CellGroup> group = mesh.createCellGroup("RBE2_"+to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBE2");
@@ -1685,7 +1685,7 @@ void Model::makeCellsFromRBE(){
 
             // Creating an elementset, a CellGroup and a dummy rigid material
             shared_ptr<Material> materialRBAR = make_shared<Material>(*this);
-            materialRBAR->addNature(RigidNature(*this, 1));
+            materialRBAR->addNature(make_shared<RigidNature>(*this, 1));
             this->add(materialRBAR);
 
             // Master Node : first one. Slave Node : second and last one
@@ -1747,7 +1747,7 @@ void Model::makeCellsFromRBE(){
                     // Creating an elementset, a CellGroup and a dummy rigid material
                     nbParts++;
                     shared_ptr<Material> materialRBE3 = make_shared<Material>(*this);
-                    materialRBE3->addNature(RigidNature(*this, Nature::UNAVAILABLE_DOUBLE, sCoef));
+                    materialRBE3->addNature(make_shared<RigidNature>(*this, Nature::UNAVAILABLE_DOUBLE, sCoef));
                     this->add(materialRBE3);
 
                     shared_ptr<CellGroup> group = mesh.createCellGroup("RBE3_"+to_string(nbParts)+"_"+to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBE3");

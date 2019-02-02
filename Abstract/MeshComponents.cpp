@@ -13,13 +13,11 @@
 #include "Model.h"
 #include <string>
 #include <initializer_list>
-#include <boost/assign.hpp>
 #if defined VDEBUG && defined __GNUC__  && !defined(_WIN32)
 #include <valgrind/memcheck.h>
 #endif
 
 namespace vega {
-using boost::assign::list_of;
 using namespace std;
 unordered_map<SpaceDimension::Code, SpaceDimension*, EnumClassHash> SpaceDimension::dimensionByCode =
 		init_map();
@@ -436,29 +434,33 @@ const unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::F
 // http://www.code-aster.org/outils/med/html/connectivites.html
 // https://hammi.extra.cea.fr/static/MED/web_med/logiciels/medV2.1.4_doc_html/html/modele_de_donnees.html
 unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::init_faceByCelltype() {
-	vector<vector<int> > hexa8list = list_of<vector<int>>( //
-			list_of(1)(2)(3)(4)) //
-			(list_of(5)(6)(7)(8)) //
-			(list_of(1)(2)(6)(5)) //
-			(list_of(2)(3)(7)(6)) //
-			(list_of(3)(7)(8)(4)) //
-			(list_of(1)(4)(8)(5)); //
-	vector<vector<int> > tetra4list = list_of<vector<int>>( //
-			list_of(1)(2)(3)) //
-			(list_of(1)(4)(2)) //
-			(list_of(1)(4)(3)) //
-			(list_of(2)(3)(4)); //
-	vector<vector<int> > penta6list = list_of<vector<int>>( //
-			list_of(1)(2)(3)) //
-			(list_of(4)(5)(6)) //
-			(list_of(1)(2)(5)(4)) //
-			(list_of(1)(3)(6)(4)) //
-			(list_of(2)(3)(6)(5)); //
+	vector<vector<int> > hexa8list = { //
+        {1,2,3,4}, //
+        {5,6,7,8}, //
+        {1,2,6,5}, //
+        {2,3,7,6}, //
+        {3,7,8,4}, //
+        {1,4,8,5} //
+    };
+	vector<vector<int> > tetra4list = { //
+        {1,2,3}, //
+        {1,4,2}, //
+        {1,4,3}, //
+        {2,3,4} //
+    };
+	vector<vector<int> > penta6list = { //
+        {1,2,3}, //
+        {4,5,6}, //
+        {1,2,5,4}, //
+        {1,3,6,4}, //
+        {2,3,6,5} //
+    };
 
-	unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > result =
-			boost::assign::map_list_of(CellType::HEXA8.code, hexa8list) //Hexa8
-			(CellType::TETRA4.code, tetra4list) //Tetra4
-			(CellType::PENTA6.code, penta6list); //Penta6
+	unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > result = {
+        {CellType::HEXA8.code, hexa8list}, //Hexa8
+        {CellType::TETRA4.code, tetra4list}, //Tetra4
+        {CellType::PENTA6.code, penta6list}
+    }; //Penta6
 	return result;
 }
 
@@ -469,9 +471,6 @@ Cell::Cell(int id, const CellType &type, const std::vector<int> &nodeIds, int po
 		id(id), position(position), hasOrientation(cspos!=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID), type(type),
 				nodeIds(nodeIds), nodePositions(nodePositions), isvirtual(isvirtual), elementId(
 						element_id), cellTypePosition(cellTypePosition), cspos(cspos), orientation(orientation) {
-}
-
-Cell::~Cell() {
 }
 
 int Cell::findNodeIdPosition(int node_id2) const {

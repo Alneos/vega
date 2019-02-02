@@ -124,6 +124,12 @@ if(COMPILER_SUPPORTS_SUGGEST_OVERRIDE)
   add_compile_options(-Wsuggest-override)
 endif()
 
+# Preparing for Weffc++
+CHECK_CXX_COMPILER_FLAG(-Wnon-virtual-dtor COMPILER_SUPPORTS_NON_VIRTUAL_DTOR)
+if(COMPILER_SUPPORTS_NON_VIRTUAL_DTOR)
+  add_compile_options(-Wnon-virtual-dtor)
+endif()
+
 # boost variant constructor uses this see ValueOrReference
 #CHECK_CXX_COMPILER_FLAG(-Wzero-as-null-pointer-constant COMPILER_SUPPORTS_ZERO_AS_NULL_POINTER_CONSTANT)
 #if(COMPILER_SUPPORTS_ZERO_AS_NULL_POINTER_CONSTANT)

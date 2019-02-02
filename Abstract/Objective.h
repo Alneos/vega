@@ -60,8 +60,9 @@ public:
     static const std::map<Type, std::string> stringByType;
 protected:
     Objective(Model&, Objective::Type, int original_id = NO_ORIGINAL_ID);
+    Objective(const Objective& that) = delete;
 public:
-    virtual std::shared_ptr<Objective> clone() const=0;
+    virtual ~Objective() = default;
     virtual bool isAssertion() const {
         return false;
     }
@@ -97,9 +98,6 @@ public:
     NodalDisplacementAssertion(Model&, double tolerance, int nodeId, DOF dof,
             double value, double instant, int original_id = NO_ORIGINAL_ID);
     friend std::ostream& operator<<(std::ostream&, const NodalDisplacementAssertion&);
-    std::shared_ptr<Objective> clone() const override {
-        return std::make_shared<NodalDisplacementAssertion>(*this);
-    }
 };
 
 class NodalComplexDisplacementAssertion: public NodalAssertion {
@@ -109,9 +107,6 @@ public:
     NodalComplexDisplacementAssertion(Model&, double tolerance, int nodeId, DOF dof,
             std::complex<double> value, double frequency, int original_id = NO_ORIGINAL_ID);
     friend std::ostream& operator<<(std::ostream&, const NodalComplexDisplacementAssertion&);
-    std::shared_ptr<Objective> clone() const override {
-        return std::make_shared<NodalComplexDisplacementAssertion>(*this);
-    }
 };
 
 class FrequencyAssertion: public Assertion {
@@ -122,7 +117,6 @@ public:
     const double eigenValue;
     FrequencyAssertion(Model&, int number, double cycles, double eigenValue, double tolerance, int original_id =
             NO_ORIGINAL_ID);
-    std::shared_ptr<Objective> clone() const override;
     const DOFS getDOFSForNode(const int nodePosition) const override final;
     std::set<int> nodePositions() const override final;
 };
@@ -153,7 +147,6 @@ public:
     const NormType norm;  /**< Method for normalizing eigenvectors: MASS or MAX **/
     const std::shared_ptr<NamedValue> getValue() const;
     const FunctionPlaceHolder getValueRangePlaceHolder() const;
-    std::shared_ptr<Objective> clone() const override;
 };
 
 class FrequencyExcit: public AnalysisParameter {
@@ -177,7 +170,6 @@ public:
     const NormType norm;  /**< Method for normalizing eigenvectors: MASS or MAX **/
     const std::shared_ptr<NamedValue> getValue() const;
     const FunctionPlaceHolder getValueRangePlaceHolder() const;
-    std::shared_ptr<Objective> clone() const override;
 };
 
 class ModalDamping: public AnalysisParameter {
@@ -190,7 +182,6 @@ public:
     ModalDamping(Model& model, int function_table_id, int original_id = NO_ORIGINAL_ID);
     const std::shared_ptr<FunctionTable> getFunctionTable() const;
     const FunctionPlaceHolder getFunctionTablePlaceHolder() const;
-    std::shared_ptr<Objective> clone() const override;
 };
 
 class NonLinearStrategy: public AnalysisParameter {
@@ -198,14 +189,12 @@ public:
     const int number_of_increments;
     NonLinearStrategy(Model& model, const int number_of_increments, int original_id =
             NO_ORIGINAL_ID);
-    std::shared_ptr<Objective> clone() const override;
 };
 
 class ArcLengthMethod: public AnalysisParameter {
 public:
     ArcLengthMethod(Model& model, const Reference<Objective>& strategy_reference, int original_id = NO_ORIGINAL_ID);
     const Reference<Objective>& strategy_reference;
-    std::shared_ptr<Objective> clone() const override;
 };
 
 } /* namespace vega */

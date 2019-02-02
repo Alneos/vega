@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE( test_Elements ) {
 	rectangularSectionBeam->assignCellGroup(cn1);
 	rectangularSectionBeam->assignMaterial(1);
 	model.add(rectangularSectionBeam);
-	model.getOrCreateMaterial(1)->addNature(ElasticNature(model, 1, 0));
+	model.getOrCreateMaterial(1)->addNature(make_shared<ElasticNature>(model, 1, 0));
 	cout << "NODES:" << model.mesh.countNodes() << endl;
 	model.finish();
 	BOOST_CHECK(model.validate());
@@ -182,7 +182,7 @@ unique_ptr<Model> createModelWith1HEXA8() {
 	continuum->assignCellGroup(cn1);
 	continuum->assignMaterial(1);
 	model->add(continuum);
-	model->getOrCreateMaterial(1)->addNature(ElasticNature(*model, 1, 0));
+	model->getOrCreateMaterial(1)->addNature(make_shared<ElasticNature>(*model, 1, 0));
 	return model;
 }
 

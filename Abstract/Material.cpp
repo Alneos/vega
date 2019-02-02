@@ -39,10 +39,6 @@ Material::Material(Model& model, int original_id) :
 		Identifiable(original_id), model(model) {
 }
 
-shared_ptr<Material> Material::clone() const {
-	return make_shared<Material>(*this);
-}
-
 bool Material::validate() const {
 	bool validMaterial = nature_by_type.size() > 0;
 	if (!validMaterial) {
@@ -51,12 +47,11 @@ bool Material::validate() const {
 	return validMaterial;
 }
 
-void Material::addNature(const Nature &nature) {
-	if (findNature(nature.type)) {
-		string message = "Nature already in use " + static_cast<size_t>(nature.type);
-		throw invalid_argument(message);
+void Material::addNature(const shared_ptr<Nature>& nature) {
+	if (findNature(nature->type)) {
+		throw invalid_argument("Nature already in use " + to_str(*nature));
 	}
-	nature_by_type[nature.type] = nature.clone();
+	nature_by_type[nature->type] = nature;
 }
 
 const shared_ptr<Nature> Material::findNature(const Nature::NatureType natureType) const {
@@ -101,10 +96,6 @@ std::string to_str(const Nature& nature){
 
     oss << Nature::name << "{" << type << "}";
     return oss.str();
-}
-
-shared_ptr<Nature> ElasticNature::clone() const {
-	return make_shared<ElasticNature>(*this);
 }
 
 ElasticNature::ElasticNature(const Model& model, const double e, const double nu, const double g,
@@ -166,10 +157,6 @@ double ElasticNature::getGE() const {
     return ge;
 }
 
-shared_ptr<Nature> OrthotropicNature::clone() const {
-	return make_shared<OrthotropicNature>(*this);
-}
-
 OrthotropicNature::OrthotropicNature(const Model& model, const double e_longitudinal, const double e_transverse,
                                      const double nu_longitudinal_transverse, const double g_longitudinal_transverse,
                                      const double g_transverse_normal, const double g_longitudinal_normal) :
@@ -213,20 +200,8 @@ BilinearElasticNature::BilinearElasticNature(const Model& model) :
 		Nature(model, Nature::NatureType::NATURE_BILINEAR_ELASTIC) {
 }
 
-shared_ptr<Nature> BilinearElasticNature::clone() const {
-	return make_shared<BilinearElasticNature>(*this);
-}
-
 HyperElasticNature::HyperElasticNature(const Model& model, double c10, double c01, double c20, double k, double rho) :
 		Nature(model, Nature::NatureType::NATURE_HYPERELASTIC), c10(c10), c01(c01), c20(c20), k(k), rho(rho) {
-}
-
-shared_ptr<Nature> HyperElasticNature::clone() const {
-	return make_shared<HyperElasticNature>(*this);
-}
-
-shared_ptr<Nature> NonLinearElasticNature::clone() const {
-	return make_shared<NonLinearElasticNature>(*this);
 }
 
 NonLinearElasticNature::NonLinearElasticNature(const Model& model,
@@ -242,11 +217,6 @@ NonLinearElasticNature::NonLinearElasticNature(const Model& model,
 
 shared_ptr<FunctionTable> NonLinearElasticNature::getStressStrainFunction() const {
 	return dynamic_pointer_cast<FunctionTable>(model.find(stress_strain_function_ref));
-}
-
-
-shared_ptr<Nature> RigidNature::clone() const {
-    return make_shared<RigidNature>(*this);
 }
 
 RigidNature::RigidNature(const Model&, const double rigidity, const double lagrangian) :

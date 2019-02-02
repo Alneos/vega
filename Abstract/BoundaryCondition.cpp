@@ -14,8 +14,4 @@
 namespace vega {
 using namespace std;
 
-BoundaryCondition::BoundaryCondition() {
-
-}
-
 }

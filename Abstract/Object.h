@@ -106,6 +106,12 @@ public:
 template<class T> const int Identifiable<T>::NO_ORIGINAL_ID = INT_MIN;
 template<class T> int Identifiable<T>::auto_id = 0;
 
+
+template<class T>
+std::string to_str(const std::shared_ptr<T>& ptr) {
+    return to_str(*ptr);
+}
+
 template<class T>
 std::string to_str(const T& t) {
     std::ostringstream oss;

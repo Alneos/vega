@@ -115,7 +115,7 @@ public:
      */
 	//TODO: Do a difference of treatment in case of a "very-strict" conversion.
 	void handleParsingWarning(const std::string& message, Tokenizer& tok, Model& model);
-
+	virtual ~Parser() = default;
 };
 
 class WritingException: public std::exception {
@@ -137,6 +137,7 @@ private:
 	 */
 	virtual const std::string toString() const = 0;
 public:
+    virtual ~Writer() = default;
 	ConfigurationParameters::TranslationMode translationMode = ConfigurationParameters::TranslationMode::BEST_EFFORT;
 	/**
 	 * Write a model to the disk.

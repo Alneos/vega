@@ -24,7 +24,6 @@
 //#include <boost/unordered_map.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
-#include <boost/assign.hpp>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -32,9 +31,7 @@
 
 using namespace std;
 namespace alg = boost::algorithm;
-using boost::assign::list_of;
 using boost::to_upper;
-using namespace boost::assign;
 
 namespace vega {
 
@@ -302,8 +299,6 @@ void NastranParser::parseCDAMP1(NastranTokenizer& tok, Model& model) {
 
     // Creates cell
     // If G2 is undefined, it is considered a fictitious grounded point, and c2=c1
-    vector<int> connectivity;
-    connectivity += g1;
     if (g2 == Globals::UNAVAILABLE_INT or g2 == 0){
         c2= c1;
         const auto& spc = make_shared<SinglePointConstraint>(model, DOFS::ALL_DOFS, 0.0);
@@ -313,11 +308,10 @@ void NastranParser::parseCDAMP1(NastranTokenizer& tok, Model& model) {
         spc->addNodeId(g2);
         model.add(spc);
     }
-    connectivity += g2;
 
-    int cellPosition= model.mesh.addCell(eid, CellType::SEG2, connectivity);
+    int cellPosition= model.mesh.addCell(eid, CellType::SEG2, {g1, g2});
     shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model, "CDAMP1");
-    cellGroup->addCellId(model.mesh.findCell(cellPosition).id);
+    cellGroup->addCellPosition(cellPosition);
 
     // Creates or update the ElementSet defined by the PELAS key.
     shared_ptr<ElementSet> elementSet = model.elementSets.find(pid);
@@ -348,8 +342,6 @@ void NastranParser::parseCELAS1(NastranTokenizer& tok, Model& model) {
 
     // Creates cell
     // If G2 is undefined, it is considered a fictitious grounded point, and c2=c1
-    vector<int> connectivity;
-    connectivity += g1;
     CellType cellType =  CellType::SEG2;
     if (g2 == Globals::UNAVAILABLE_INT or g2 == 0){
         c2= c1;
@@ -360,10 +352,9 @@ void NastranParser::parseCELAS1(NastranTokenizer& tok, Model& model) {
         spc->addNodeId(g2);
         model.add(spc);
     }
-    connectivity += g2;
-    int cellPosition= model.mesh.addCell(eid, cellType, connectivity);
+    int cellPosition= model.mesh.addCell(eid, cellType, {g1, g2});
     shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model, "CELAS1");
-    cellGroup->addCellId(model.mesh.findCell(cellPosition).id);
+    cellGroup->addCellPosition(cellPosition);
 
     // Creates or update the ElementSet defined by the PELAS key.
     shared_ptr<ElementSet> elementSet = model.elementSets.find(pid);
@@ -404,7 +395,7 @@ void NastranParser::parseCELAS2(NastranTokenizer& tok, Model& model) {
     // Create a Cell and a cellgroup
     shared_ptr<CellGroup> springGroup = model.mesh.createCellGroup("CELAS2_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS2");
     int cellPosition= model.mesh.addCell(eid, CellType::SEG2, {g1, g2});
-    springGroup->addCellId(model.mesh.findCellId(cellPosition));
+    springGroup->addCellPosition(cellPosition);
 
     // Create ElementSet
     const auto& scalarSpring = make_shared<ScalarSpring>(model, eid, k ,ge);
@@ -424,7 +415,7 @@ void NastranParser::parseCELAS4(NastranTokenizer& tok, Model& model) {
     // Create a Cell and a cellgroup
     shared_ptr<CellGroup> springGroup = model.mesh.createCellGroup("CELAS4_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS4");
     int cellPosition= model.mesh.addCell(eid, CellType::SEG2, {s1, s2});
-    springGroup->addCellId(model.mesh.findCell(cellPosition).id);
+    springGroup->addCellPosition(cellPosition);
 
     // Create ElementSet
     const auto& scalarSpring = make_shared<ScalarSpring>(model, eid, k);
@@ -434,11 +425,11 @@ void NastranParser::parseCELAS4(NastranTokenizer& tok, Model& model) {
 }
 
 void NastranParser::parseElem(NastranTokenizer& tok, Model& model,
-                                  vector<CellType> cellTypes) {
+                                  const vector<CellType>& cellTypes) {
     int cell_id = tok.nextInt();
     int property_id = tok.nextInt(true, cell_id);
     auto it = cellTypes.begin();
-    CellType& cellType = *it;
+    CellType cellType = *it;
     vector<int> nastranConnect;
     unsigned int i = 0;
     while (tok.isNextInt()) {

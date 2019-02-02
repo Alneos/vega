@@ -59,11 +59,11 @@ public:
     };
 protected:
     Value(Value::Type);
+    //Value(const Value& that) = delete; // Because of returned VectorialValue etc
 public:
+    virtual ~Value() = default;
     static const std::map<Type, std::string> stringByType;
     const Value::Type type;
-public:
-
     //virtual const std::string str() const = 0;
     virtual bool isPlaceHolder() const {
         return false;
@@ -96,7 +96,6 @@ protected:
 public:
     const Keyword keyword;
     const std::string str() const;// override;
-    virtual std::shared_ptr<KeywordValue> clone() const =0;
 };
 
 /**
@@ -111,8 +110,6 @@ public:
     static const std::string name;
 protected:
     NamedValue(const Model&, Type, int original_id = NO_ORIGINAL_ID);
-public:
-    virtual std::shared_ptr<NamedValue> clone() const =0;
 };
 
 class ListValueBase: public NamedValue {
@@ -140,9 +137,6 @@ public:
     bool empty() const {
         return alist.size() == 0;
     }
-    std::shared_ptr<NamedValue> clone() const override {
-        return std::make_shared<ListValue<T>>(*this);
-    }
     void scale(double factor) override {
         std::transform(alist.begin(), alist.end(), alist.begin(), [factor](T d) -> T { return static_cast<T>(d * factor); });
     }
@@ -160,9 +154,6 @@ public:
         NamedValue(model, Value::Type::SCALAR, original_id), number(number) {
     }
     T number;
-    std::shared_ptr<NamedValue> clone() const override{
-        return std::make_shared<ScalarValue<T>>(*this);
-    }
     void scale(T factor) override {
         number *= factor;
     }
@@ -188,7 +179,6 @@ public:
 public:
     BandRange(const Model& model, double start, int searchcount, double end, int original_id =
             NO_ORIGINAL_ID);
-    std::shared_ptr<NamedValue> clone() const override;
     void scale(double factor) override;
     bool iszero() const override;
 };
@@ -206,7 +196,6 @@ public:
             NO_ORIGINAL_ID);
     StepRange(const Model& model, double start, double step, int count, int original_id =
             NO_ORIGINAL_ID);
-    std::shared_ptr<NamedValue> clone() const override;
     void scale(double factor) override;
     bool iszero() const override;
 };
@@ -224,7 +213,6 @@ public:
 public:
     SpreadRange(const Model& model, double start, int count, double end, double spread, int original_id =
             NO_ORIGINAL_ID);
-    std::shared_ptr<NamedValue> clone() const override;
     void scale(double factor) override;
     bool iszero() const override;
 };
@@ -283,7 +271,6 @@ public:
     bool isPlaceHolder() const override {
         return true;
     };
-    std::shared_ptr<NamedValue> clone() const override;
     bool iszero() const override {
         throw std::logic_error("Should not check placeholders for being zero");
     }
@@ -316,7 +303,6 @@ public:
     void setXY(const double X, const double Y);
     const std::vector<std::pair<double, double> >::const_iterator getBeginValuesXY() const;
     const std::vector<std::pair<double, double> >::const_iterator getEndValuesXY() const;
-    std::shared_ptr<NamedValue> clone() const override;
     bool iszero() const override;
     void scale(double factor) override;
 };
@@ -340,10 +326,6 @@ public:
 class DynaPhase: public ConstantValue {
 public:
     DynaPhase(const Model&, double value, int original_id = NO_ORIGINAL_ID);
-    std::shared_ptr<NamedValue> clone() const override {
-        return std::make_shared<DynaPhase>(*this);
-    }
-
 };
 
 /*
@@ -438,9 +420,6 @@ public:
     inline Function& z() const { return _fz;};
     void scale(double factor) override;
     bool iszero() const override;
-    std::shared_ptr<NamedValue> clone() const override {
-        return std::make_shared<VectorialFunction>(*this);
-    }
 };
 
 } /* namespace vega */

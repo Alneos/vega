@@ -36,6 +36,7 @@ public:
     static const std::map<Type, std::string> stringByType;
 protected:
     Target(Model&, Target::Type, int original_id = NO_ORIGINAL_ID);
+    Target(const Target& that) = delete;
 public:
 	virtual bool isNodeTarget() const {
 		return false;
@@ -43,7 +44,6 @@ public:
 	virtual bool isCellTarget() const {
 		return false;
 	}
-    virtual std::shared_ptr<Target> clone() const=0;
     const std::string to_str() const;
 };
 
@@ -64,7 +64,6 @@ public:
     BoundaryNodeCloud(Model& model, std::list<int> nodeids, int original_id =
             NO_ORIGINAL_ID);
     std::list<int> nodeids;
-    std::shared_ptr<Target> clone() const override;
 };
 
 /**
@@ -75,7 +74,6 @@ public:
     BoundaryNodeLine(Model& model, std::list<int> nodeids, int original_id =
             NO_ORIGINAL_ID);
     std::list<int> nodeids;
-    std::shared_ptr<Target> clone() const override;
 };
 
 /**
@@ -86,7 +84,6 @@ public:
     BoundaryNodeSurface(Model& model, std::list<int> nodeids, int original_id =
             NO_ORIGINAL_ID);
     std::list<int> nodeids;
-    std::shared_ptr<Target> clone() const override;
 };
 
 class CellTarget: public Target {
@@ -106,7 +103,6 @@ class BoundarySurface: public CellTarget, public CellContainer {
 public:
     BoundarySurface(Model& model, int original_id =
             NO_ORIGINAL_ID);
-    std::shared_ptr<Target> clone() const override;
     void createSkin() override { /* Already a skin */ };
 };
 
@@ -118,7 +114,6 @@ public:
     ContactBody(Model& model, Reference<Target> boundary, int original_id =
             NO_ORIGINAL_ID);
     Reference<Target> boundary;
-    std::shared_ptr<Target> clone() const override;
 };
 
 /**
@@ -139,7 +134,6 @@ public:
     std::shared_ptr<CellGroup> surfaceCellGroup;
     std::shared_ptr<CellGroup> elementCellGroup;
     std::list<ElementFaceByTwoNodes> faceInfos;
-    std::shared_ptr<Target> clone() const override;
     void createSkin() override;
 };
 

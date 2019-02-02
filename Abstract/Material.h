@@ -59,7 +59,7 @@ public:
 
     const NatureType type;
     Nature(const Model&, NatureType);
-    virtual std::shared_ptr<Nature> clone() const = 0;
+    virtual ~Nature() = default;
 };
 
 class ElasticNature: public Nature {
@@ -96,8 +96,6 @@ public:
      */
     double getTref() const;
 
-    std::shared_ptr<Nature> clone() const override;
-
 };
 
 class OrthotropicNature: public Nature {
@@ -117,7 +115,6 @@ public:
     double getG_longitudinal_transverse() const;
     double getG_transverse_normal() const;
     double getG_longitudinal_normal() const;
-    virtual std::shared_ptr<Nature> clone() const override;
 
 };
 
@@ -129,7 +126,6 @@ public:
     bool hardening_rule_isotropic = true;
     BilinearElasticNature(const Model&, const double elastic_limit, const double secondary_slope);
     BilinearElasticNature(const Model&);
-    virtual std::shared_ptr<Nature> clone() const override;
 };
 
 class HyperElasticNature: public Nature {
@@ -140,7 +136,6 @@ public:
     double k; //< See u4.43.01 ELAS_HYPER
     double rho;
     HyperElasticNature(const Model&, double c10, double c01, double c20, double k, double rho = 0.0);
-    virtual std::shared_ptr<Nature> clone() const override;
 };
 
 class NonLinearElasticNature: public Nature {
@@ -149,7 +144,6 @@ public:
     NonLinearElasticNature(const Model&, const FunctionTable& stress_strain_function);
     NonLinearElasticNature(const Model&, const int stress_strain_function_id);
     std::shared_ptr<FunctionTable> getStressStrainFunction() const;
-    virtual std::shared_ptr<Nature> clone() const override;
  };
 
 /**
@@ -167,8 +161,6 @@ public:
     double getLagrangian() const;
     void setLagrangian(double lagrangian);
 
-    virtual std::shared_ptr<Nature> clone() const override;
-
 };
 
 
@@ -176,10 +168,11 @@ public:
  * Base class for materials
  */
 class Material: public Identifiable<Material> {
+protected:
     Model& model;
     std::map<Nature::NatureType, std::shared_ptr<Nature>> nature_by_type;
-
 public:
+    virtual ~Material() = default;
     friend std::ostream &operator<<(std::ostream&, const Material&);    //output
     //dummy type to fit in a container class
     enum class Type {
@@ -189,10 +182,9 @@ public:
     static const std::string name;
     static const std::map<Type, std::string> stringByType;
     Material(Model& model, int material_id = NO_ORIGINAL_ID);
-    void addNature(const Nature& nature);
+    void addNature(const std::shared_ptr<Nature>& nature);
     const std::shared_ptr<Nature> findNature(Nature::NatureType) const;
     virtual bool validate() const override;
-    virtual std::shared_ptr<Material> clone() const;
     /**
      * Get all the cells assigned to a specific material. This inspects
      * both the elementSets with a material assigned and the materials assigned

@@ -64,24 +64,12 @@ BoundaryNodeCloud::BoundaryNodeCloud(Model& model, list<int> nodeids, int origin
         NodeTarget(model, Target::Type::BOUNDARY_NODECLOUD, original_id), nodeids{nodeids} {
 }
 
-shared_ptr<Target> BoundaryNodeCloud::clone() const {
-    return make_shared<BoundaryNodeCloud>(*this);
-}
-
 BoundaryNodeLine::BoundaryNodeLine(Model& model, list<int> nodeids, int original_id) :
         NodeTarget(model, Target::Type::BOUNDARY_NODELINE, original_id), nodeids{nodeids} {
 }
 
-shared_ptr<Target> BoundaryNodeLine::clone() const {
-    return make_shared<BoundaryNodeLine>(*this);
-}
-
 BoundaryNodeSurface::BoundaryNodeSurface(Model& model, list<int> nodeids, int original_id) :
         NodeTarget(model, Target::Type::BOUNDARY_NODESURFACE, original_id), nodeids{nodeids} {
-}
-
-shared_ptr<Target> BoundaryNodeSurface::clone() const {
-    return make_shared<BoundaryNodeSurface>(*this);
 }
 
 CellTarget::CellTarget(Model& model, Target::Type type, int original_id) :
@@ -92,16 +80,8 @@ BoundarySurface::BoundarySurface(Model& model, int original_id) :
         CellTarget(model, Target::Type::BOUNDARY_SURFACE, original_id), CellContainer(model.mesh) {
 }
 
-shared_ptr<Target> BoundarySurface::clone() const {
-    return make_shared<BoundarySurface>(*this);
-}
-
 ContactBody::ContactBody(Model& model, Reference<Target> boundary, int original_id) :
         Target(model, Target::Type::CONTACT_BODY, original_id), boundary{boundary} {
-}
-
-shared_ptr<Target> ContactBody::clone() const {
-    return make_shared<ContactBody>(*this);
 }
 
 BoundaryElementFace::ElementFaceByTwoNodes::ElementFaceByTwoNodes(int cellId, int nodeid1, int nodeid2, bool swapNormal):
@@ -111,10 +91,6 @@ BoundaryElementFace::ElementFaceByTwoNodes::ElementFaceByTwoNodes(int cellId, in
 BoundaryElementFace::BoundaryElementFace(Model& model, list<ElementFaceByTwoNodes> faceInfos, int original_id):
     CellTarget(model, Target::Type::BOUNDARY_ELEMENTFACE, original_id), faceInfos(faceInfos) {
 
-}
-
-shared_ptr<Target> BoundaryElementFace::clone() const {
-    return make_shared<BoundaryElementFace>(*this);
 }
 
 void BoundaryElementFace::createSkin() {
