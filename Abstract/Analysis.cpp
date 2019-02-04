@@ -46,6 +46,7 @@ const map<Analysis::Type, string> Analysis::stringByType = {
         { Analysis::Type::LINEAR_DYNA_DIRECT_FREQ, "LINEAR_DYNA_DIRECT_FREQ" },
         { Analysis::Type::LINEAR_DYNA_MODAL_FREQ, "LINEAR_DYNA_MODAL_FREQ" },
         { Analysis::Type::NONLINEAR_MECA_STAT, "NONLINEAR_MECA_STAT" },
+        { Analysis::Type::COMBINATION, "COMBINATION" },
         { Analysis::Type::UNKNOWN, "UNKNOWN" }
 };
 

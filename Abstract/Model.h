@@ -172,10 +172,10 @@ private:
     constraintReferences_by_constraintSet_ids;
 
     template<class T> class Container final {
+    private:
         std::map<int, std::shared_ptr<T>> by_id;
         std::unordered_map< typename T::Type, std::map<int, std::shared_ptr<T>>,
         EnumClassHash> by_original_ids_by_type;
-    private:
         Model& model;
     public:
         Container(Model& model): model(model) {}
@@ -492,6 +492,10 @@ void Model::Container<T>::add(std::shared_ptr<T> ptr) {
         throw std::runtime_error(oss.str());
     }
     by_id[ptr->getId()] = ptr;
+    auto it = by_original_ids_by_type.find(ptr->type);
+    if (it == by_original_ids_by_type.end()) {
+        by_original_ids_by_type[ptr->type] = {};
+    }
     if (ptr->isOriginal())
         by_original_ids_by_type[ptr->type][ptr->getOriginalId()] = ptr;
 }

@@ -111,6 +111,7 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 		for (const auto& it : asterModel.model.analyses) {
 			const Analysis& analysis = *it;
 			switch (analysis.type) {
+            case (Analysis::Type::COMBINATION):
 			case (Analysis::Type::LINEAR_MECA_STAT): {
 				out << "                _F(RESULTAT=RESU" << analysis.getId()
 						<< ", NOM_CHAM='DEPL'," << " VALE_MAX='OUI'," << " VALE_MIN='OUI',),"
@@ -152,6 +153,7 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 		for (const auto& it : asterModel.model.analyses) {
 			const Analysis& analysis = *it;
 			switch (analysis.type) {
+            case (Analysis::Type::COMBINATION):
 			case (Analysis::Type::LINEAR_MECA_STAT): {
 				out << "                _F(RESULTAT=RESU" << analysis.getId()
 						<< ", NOM_CHAM=('DEPL'";
@@ -191,6 +193,7 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 
 			out << "RETB" << analysis.getId() << "=CREA_TABLE(RESU=(" << endl;
 			switch (analysis.type) {
+            case (Analysis::Type::COMBINATION):
             case (Analysis::Type::LINEAR_MODAL):
             case (Analysis::Type::LINEAR_BUCKLING):
             case (Analysis::Type::NONLINEAR_MECA_STAT):
@@ -1902,7 +1905,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
             out << "                _F(TOUT='OUI'," << endl;
             out << "                   CHAM_GD=D" << combination.getId() << "_" << subPair.first.id << "," << endl;
             out << "                   CUMUL='OUI'," << endl;
-            out << "                   COEF_R=" << subPair.second << "," << endl;
+            out << "                   COEF_R=" << subPair.second << ",)," << endl;
         }
         out << "                )," << endl;
         out << "          )" << endl << endl;

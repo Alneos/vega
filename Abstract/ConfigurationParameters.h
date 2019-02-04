@@ -57,7 +57,7 @@ private:
     friend std::ostream &operator<<(std::ostream &out, const Solver& solver); //output
     SolverName solverName;
     const static boost::bimap<SolverName, std::string> SOLVERNAME_BY_SOLVER;
-    public:
+public:
     Solver(SolverName name);
     SolverName getSolverName() const;
     static Solver fromString(std::string solverTypeName);

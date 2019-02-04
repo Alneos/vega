@@ -3374,6 +3374,11 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
 
         break;
     }
+    case Analysis::Type::COMBINATION: {
+
+        out << "# Ignoring COMBINATION Analysis : " << *analysis << "(for now, to be implemented)." << endl;
+        break;
+    }
     default:
         handleWritingError(
                 "Analysis " + Analysis::stringByType.at(analysis->type) + " not (yet) implemented");

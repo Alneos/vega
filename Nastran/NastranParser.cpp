@@ -732,9 +732,15 @@ void NastranParser::addCombinationAnalysis(NastranTokenizer& tok, Model& model, 
     const auto& subseq = context.find("SUBSEQ");
     vector<string> coefStrings(model.analyses.size());
     boost::split(coefStrings,subseq->second,boost::is_any_of(","));
-    int i = 0;
-    for (const auto& analysis : model.analyses) {
-        combination->coefByAnalysis[analysis->getReference()] = stod(coefStrings[i++]);
+    for (size_t i = 0; i < coefStrings.size(); i++) {
+        auto it = model.analyses.begin();
+        advance(it, i);
+        const auto& analysis = *it;
+        double coef = stod(coefStrings[i++]);
+        if (model.configuration.logLevel >= LogLevel::TRACE) {
+            cout << "Assigning analysis " << *analysis << " to combination " << *combination << " with coefficient " << to_string(coef) << endl;
+        }
+        combination->coefByAnalysis[analysis->getReference()] = coef;
     }
 
     model.add(combination);
