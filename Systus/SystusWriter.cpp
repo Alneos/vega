@@ -453,7 +453,8 @@ void SystusWriter::getSystusAutomaticOption(const SystusModel& systusModel, Syst
         case ElementSet::Type::I_SECTION_BEAM:
         case ElementSet::Type::RECTANGULAR_SECTION_BEAM: {
             const auto& beam = dynamic_pointer_cast<const Beam>(elementSet);
-            has1DOr2DElements = has1DOr2DElements or not beam->isBar();
+            //has1DOr2DElements = has1DOr2DElements or not beam->isBar();
+            has1DOr2DElements=true;
             break;
         }
         case ElementSet::Type::SHELL:{
@@ -3444,9 +3445,9 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
 
 void SystusWriter::writeNodalDisplacementAssertion(Assertion& assertion, ostream& out) {
     NodalDisplacementAssertion& nda = dynamic_cast<NodalDisplacementAssertion&>(assertion);
-    if (systusOption == SystusOption::CONTINUOUS and nda.dof.isRotation) {
-        return;
-    }
+//    if (systusOption == SystusOption::CONTINUOUS and nda.dof.isRotation) {
+//        return;
+//    }
     if (!is_equal(nda.instant, -1))
         handleWritingError("Instant in NodalDisplacementAssertion not supported");
     int nodePos = getAscNodeId(nda.nodePosition);
