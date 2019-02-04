@@ -1713,7 +1713,6 @@
 		</Unit>
 		<Unit filename="Dockerfile" />
 		<Unit filename="Dockerfile_centos7" />
-		<Unit filename="Dockerfile_gitlab" />
 		<Unit filename="Dockerfile_jenkins" />
 		<Unit filename="Dockerfile_xcompile" />
 		<Unit filename="Dockerfile_xgitlab" />

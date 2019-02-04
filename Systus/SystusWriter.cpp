@@ -451,7 +451,11 @@ void SystusWriter::getSystusAutomaticOption(const SystusModel& systusModel, Syst
         case ElementSet::Type::CIRCULAR_SECTION_BEAM:
         case ElementSet::Type::GENERIC_SECTION_BEAM:
         case ElementSet::Type::I_SECTION_BEAM:
-        case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
+        case ElementSet::Type::RECTANGULAR_SECTION_BEAM: {
+            const auto& beam = dynamic_pointer_cast<const Beam>(elementSet);
+            has1DOr2DElements = has1DOr2DElements or not beam->isBar();
+            break;
+        }
         case ElementSet::Type::SHELL:{
             has1DOr2DElements=true;
             break; // -Wimplicit-fallthrough
@@ -2673,19 +2677,22 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                     writeMaterialField(SMF::ALPHA, 2*elasticNature.getGE(), nbElementsMaterial, omat);
 
                     switch (elementSet->type) {
+                    case (ElementSet::Type::TUBE_SECTION_BEAM):
+                    case (ElementSet::Type::I_SECTION_BEAM):
                     case (ElementSet::Type::GENERIC_SECTION_BEAM): {
-                        shared_ptr<const GenericSectionBeam> genericBeam = dynamic_pointer_cast<
-                                const GenericSectionBeam>(elementSet);
+                        shared_ptr<const Beam> genericBeam = dynamic_pointer_cast<const Beam>(elementSet);
                         const double S= genericBeam->getAreaCrossSection();
                         writeMaterialField(SMF::S, S, nbElementsMaterial, omat);
 
-                        // VEGA stocks the inverse of our needed Shear Area Factors.
-                        writeMaterialField(SMF::AY, S*genericBeam->getShearAreaFactorY(), nbElementsMaterial, omat);
-                        writeMaterialField(SMF::AZ, S*genericBeam->getShearAreaFactorZ(), nbElementsMaterial, omat);
+                        if (not genericBeam->isBar()) {
+                            // VEGA stocks the inverse of our needed Shear Area Factors.
+                            writeMaterialField(SMF::AY, S*genericBeam->getShearAreaFactorY(), nbElementsMaterial, omat);
+                            writeMaterialField(SMF::AZ, S*genericBeam->getShearAreaFactorZ(), nbElementsMaterial, omat);
 
-                        writeMaterialField(SMF::IX, genericBeam->getTorsionalConstant(), nbElementsMaterial, omat);
-                        writeMaterialField(SMF::IY, genericBeam->getMomentOfInertiaY(), nbElementsMaterial, omat);
-                        writeMaterialField(SMF::IZ, genericBeam->getMomentOfInertiaZ(), nbElementsMaterial, omat);
+                            writeMaterialField(SMF::IX, genericBeam->getTorsionalConstant(), nbElementsMaterial, omat);
+                            writeMaterialField(SMF::IY, genericBeam->getMomentOfInertiaY(), nbElementsMaterial, omat);
+                            writeMaterialField(SMF::IZ, genericBeam->getMomentOfInertiaZ(), nbElementsMaterial, omat);
+                        }
                         break;
                     }
                     case (ElementSet::Type::CIRCULAR_SECTION_BEAM): {
@@ -2694,12 +2701,14 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                         const double S= circularBeam->getAreaCrossSection();
 
                         writeMaterialField(SMF::S, S, nbElementsMaterial, omat);
-                        writeMaterialField(SMF::AY, S*circularBeam->getShearAreaFactorY(), nbElementsMaterial, omat);
-                        writeMaterialField(SMF::AZ, S*circularBeam->getShearAreaFactorZ(), nbElementsMaterial, omat);
+                        if (not circularBeam->isBar()) {
+                            writeMaterialField(SMF::AY, S*circularBeam->getShearAreaFactorY(), nbElementsMaterial, omat);
+                            writeMaterialField(SMF::AZ, S*circularBeam->getShearAreaFactorZ(), nbElementsMaterial, omat);
 
-                        writeMaterialField(SMF::IX, circularBeam->getTorsionalConstant(), nbElementsMaterial, omat);
-                        writeMaterialField(SMF::IY, circularBeam->getMomentOfInertiaY(), nbElementsMaterial, omat);
-                        writeMaterialField(SMF::IZ, circularBeam->getMomentOfInertiaZ(), nbElementsMaterial, omat);
+                            writeMaterialField(SMF::IX, circularBeam->getTorsionalConstant(), nbElementsMaterial, omat);
+                            writeMaterialField(SMF::IY, circularBeam->getMomentOfInertiaY(), nbElementsMaterial, omat);
+                            writeMaterialField(SMF::IZ, circularBeam->getMomentOfInertiaZ(), nbElementsMaterial, omat);
+                        }
                         break;
                     }
                     case (ElementSet::Type::RECTANGULAR_SECTION_BEAM): {
@@ -2707,13 +2716,15 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                                 const RectangularSectionBeam>(elementSet);
                         const double S= rectangularBeam->getAreaCrossSection();
 
-                        writeMaterialField(SMF::S, S, nbElementsMaterial, omat);
-                        writeMaterialField(SMF::AY, S*rectangularBeam->getShearAreaFactorY(), nbElementsMaterial, omat);
-                        writeMaterialField(SMF::AZ, S*rectangularBeam->getShearAreaFactorZ(), nbElementsMaterial, omat);
+                        if (not rectangularBeam->isBar()) {
+                            writeMaterialField(SMF::S, S, nbElementsMaterial, omat);
+                            writeMaterialField(SMF::AY, S*rectangularBeam->getShearAreaFactorY(), nbElementsMaterial, omat);
+                            writeMaterialField(SMF::AZ, S*rectangularBeam->getShearAreaFactorZ(), nbElementsMaterial, omat);
 
-                        writeMaterialField(SMF::IX, rectangularBeam->getTorsionalConstant(), nbElementsMaterial, omat);
-                        writeMaterialField(SMF::IY, rectangularBeam->getMomentOfInertiaY(), nbElementsMaterial, omat);
-                        writeMaterialField(SMF::IZ, rectangularBeam->getMomentOfInertiaZ(), nbElementsMaterial, omat);
+                            writeMaterialField(SMF::IX, rectangularBeam->getTorsionalConstant(), nbElementsMaterial, omat);
+                            writeMaterialField(SMF::IY, rectangularBeam->getMomentOfInertiaY(), nbElementsMaterial, omat);
+                            writeMaterialField(SMF::IZ, rectangularBeam->getMomentOfInertiaZ(), nbElementsMaterial, omat);
+                        }
                         break;
                     }
 
@@ -3395,7 +3406,6 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         out << endl;
     }
 
-
     vector<shared_ptr<Assertion>> assertions = analysis->getAssertions();
     if (!assertions.empty()) {
         out << "LANGAGE" << endl;
@@ -3434,7 +3444,9 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
 
 void SystusWriter::writeNodalDisplacementAssertion(Assertion& assertion, ostream& out) {
     NodalDisplacementAssertion& nda = dynamic_cast<NodalDisplacementAssertion&>(assertion);
-
+    if (systusOption == SystusOption::CONTINUOUS and nda.dof.isRotation) {
+        return;
+    }
     if (!is_equal(nda.instant, -1))
         handleWritingError("Instant in NodalDisplacementAssertion not supported");
     int nodePos = getAscNodeId(nda.nodePosition);

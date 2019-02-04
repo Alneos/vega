@@ -47,6 +47,11 @@ BOOST_AUTO_TEST_CASE( cbush ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/cbush/cbush.inp", RUN_SYSTUS, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( truss1 ) {
+	CommandLineUtils::nastranStudy2Systus("/irt/truss1/truss1.nas", RUN_SYSTUS, true, 0.001);
+}
+
+
 //BOOST_AUTO_TEST_CASE( cbush1 ) {
 //  Missing DIRECT solver
 //	CommandLineUtils::nastranStudy2Systus("/irt/cbush1/cbush1.bdf", RUN_SYSTUS, true, 0.00001);
