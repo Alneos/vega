@@ -183,11 +183,16 @@ BOOST_AUTO_TEST_CASE( test_2dof108 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/2dof108/2dof108.bdf", false, true, 0.05);
 }
 
+BOOST_AUTO_TEST_CASE( rbe3 ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/rbe3/rbe3.nas", RUN_ASTER, true, 0.000001);
+}
+
 BOOST_AUTO_TEST_CASE( truss1 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/truss1/truss1.nas", RUN_ASTER, true, 0.000001);
 }
 
 BOOST_AUTO_TEST_CASE( truss5 ) {
+    // NOOK on first subcase ?
 	CommandLineUtils::nastranStudy2Aster("/irt/truss5/truss5.nas", RUN_ASTER, true, 0.000001);
 }
 

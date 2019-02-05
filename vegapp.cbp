@@ -1940,6 +1940,9 @@
 		<Unit filename="testdata/nastran/irt/nas103prob9/nas103prob9.dat" />
 		<Unit filename="testdata/nastran/irt/nas103prob9/nas103prob9.f06" />
 		<Unit filename="testdata/nastran/irt/nas103prob9/readme.txt" />
+		<Unit filename="testdata/nastran/irt/rbe3/rbe3.f06" />
+		<Unit filename="testdata/nastran/irt/rbe3/rbe3.nas" />
+		<Unit filename="testdata/nastran/irt/rbe3/readme.txt" />
 		<Unit filename="testdata/nastran/irt/ssll11a/readme.txt" />
 		<Unit filename="testdata/nastran/irt/ssll11a/ssll11a.f06" />
 		<Unit filename="testdata/nastran/irt/ssll11a/ssll11a.nas" />

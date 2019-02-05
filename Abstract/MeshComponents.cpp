@@ -313,11 +313,19 @@ CellGroup::CellGroup(Mesh& mesh, const string& name, int groupId, const string& 
 }
 
 void CellGroup::addCellId(int cellId) {
-	this->_cellPositions.insert(this->mesh.findCellPosition(cellId));
+	_cellPositions.insert(mesh.findCellPosition(cellId));
 }
 
 void CellGroup::addCellPosition(int cellPosition) {
-	this->_cellPositions.insert(cellPosition);
+	_cellPositions.insert(cellPosition);
+}
+
+bool CellGroup::containsCellPosition(int cellPosition) const {
+	return _cellPositions.find(cellPosition) != _cellPositions.end();
+}
+
+void CellGroup::removeCellPosition(int cellPosition) {
+	_cellPositions.erase(cellPosition);
 }
 
 const vector<Cell> CellGroup::getCells() {

@@ -253,9 +253,8 @@ int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &node
 		cells.nodepositionsByCelltype[cellType] = make_shared<deque<int>>(deque<int>());
 	}
 	shared_ptr<deque<int>> nodePositionsPtr = cells.nodepositionsByCelltype[cellType];
-	for (unsigned int i = 0; i < nodeIds.size(); i++) {
-		int nodePosition = findOrReserveNode(nodeIds[i]);
-		nodePositionsPtr->push_back(nodePosition);
+	for (const auto& nodeId : nodeIds) {
+		nodePositionsPtr->push_back(findOrReserveNode(nodeId));
 	}
 	if (cpos != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
 		std::shared_ptr<CellGroup> coordinateSystemCellGroup = this->getOrCreateCellGroupForCS(cpos);
@@ -268,11 +267,11 @@ int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &node
 
 int Mesh::updateCell(int id, const CellType &cellType, const std::vector<int> &nodeIds,
         bool virtualCell, const int cpos, int elementId) {
-
+    int oldCellPosition = findCellPosition(id);
     if (id == Cell::AUTO_ID) {
         throw invalid_argument("Can't update a cell with AUTO_ID.");
     }
-    if (findCellPosition(id)== Cell::UNAVAILABLE_CELL){
+    if (oldCellPosition == Cell::UNAVAILABLE_CELL){
         throw invalid_argument("Can't update a cell which does not exist yet.");
     }
     if (cellType.numNodes == 0) {
@@ -313,16 +312,24 @@ int Mesh::updateCell(int id, const CellType &cellType, const std::vector<int> &n
         cells.nodepositionsByCelltype[cellType] = make_shared<deque<int>>(deque<int>());
     }
     shared_ptr<deque<int>> nodePositionsPtr = cells.nodepositionsByCelltype[cellType];
-    for (unsigned int i = 0; i < nodeIds.size(); i++) {
-        int nodePosition = findOrReserveNode(nodeIds[i]);
-        nodePositionsPtr->push_back(nodePosition);
-    }
+	for (const auto& nodeId : nodeIds) {
+		nodePositionsPtr->push_back(findOrReserveNode(nodeId));
+	}
     if (cpos != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-        std::shared_ptr<CellGroup> coordinateSystemCellGroup = this->getOrCreateCellGroupForCS(cpos);
+        shared_ptr<CellGroup> coordinateSystemCellGroup = this->getOrCreateCellGroupForCS(cpos);
         coordinateSystemCellGroup->addCellId(id);
         cellData.csPos = cpos;
-        }
+    }
     cells.cellDatas.push_back(cellData);
+
+    // Update cell groups
+    for (auto& kv : groupById) {
+        shared_ptr<CellGroup> cellGroup = dynamic_pointer_cast<CellGroup>(kv.second);
+        if (cellGroup != nullptr and cellGroup->containsCellPosition(oldCellPosition)) {
+            cellGroup->removeCellPosition(oldCellPosition);
+            cellGroup->addCellPosition(cellPosition);
+        }
+    }
 
     return cellPosition;
 }

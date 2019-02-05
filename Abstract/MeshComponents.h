@@ -370,6 +370,8 @@ public:
 
     void addCellId(int cellId);
     void addCellPosition(int cellPosition);
+    bool containsCellPosition(int cellPosition) const;
+    void removeCellPosition(int cellPosition);
     const std::vector<Cell> getCells();
     const std::vector<int> cellPositions();
     const std::vector<int> cellIds();
