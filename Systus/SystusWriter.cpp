@@ -452,7 +452,7 @@ void SystusWriter::getSystusAutomaticOption(const SystusModel& systusModel, Syst
         case ElementSet::Type::GENERIC_SECTION_BEAM:
         case ElementSet::Type::I_SECTION_BEAM:
         case ElementSet::Type::RECTANGULAR_SECTION_BEAM: {
-            const auto& beam = dynamic_pointer_cast<const Beam>(elementSet);
+            //const auto& beam = dynamic_pointer_cast<const Beam>(elementSet);
             //has1DOr2DElements = has1DOr2DElements or not beam->isBar();
             has1DOr2DElements=true;
             break;
@@ -3375,9 +3375,10 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         break;
     }
     case Analysis::Type::COMBINATION: {
-
-        out << "# Ignoring COMBINATION Analysis : " << *analysis << "(for now, to be implemented)." << endl;
-        break;
+        string message = "Ignoring COMBINATION Analysis : " + to_str(analysis) + "(for now, to be implemented).";
+        out << "#" << message << endl;
+        handleWritingWarning(message);
+        return; // Do not try to post process for now to avoid errors
     }
     default:
         handleWritingError(
