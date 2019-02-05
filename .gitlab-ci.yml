@@ -62,7 +62,7 @@ xbuilding:
     - vegapp.exe
     expire_in: 1 day
 
-.hidden.esiqual:
+.esiqual:
   stage: test
   tags:
     - shell

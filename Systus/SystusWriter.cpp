@@ -759,15 +759,11 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
                     break;
                 }
                 case (3):{
-                    int newCellPosition = mesh.updateCell(cell.id, CellType::POLY3, nodes, true);
-                    cellGroup->removeCellPosition(cell.position);
-                    cellGroup->addCellPosition(newCellPosition);
+                    mesh.updateCell(cell.id, CellType::POLY3, nodes, true);
                     break;
                 }
                 case(4):{
-                    int newCellPosition = mesh.updateCell(cell.id, CellType::POLY4, nodes, true);
-                    cellGroup->removeCellPosition(cell.position);
-                    cellGroup->addCellPosition(newCellPosition);
+                    mesh.updateCell(cell.id, CellType::POLY4, nodes, true);
                     break;
                 }
                 default:
@@ -840,15 +836,11 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
 
                 switch (nodes.size()){
                 case (3):{
-                    int newCellPosition = mesh.updateCell(cell.id, CellType::POLY3, nodes, true);
-                    cellGroup->removeCellPosition(cell.position);
-                    cellGroup->addCellPosition(newCellPosition);
+                    mesh.updateCell(cell.id, CellType::POLY3, nodes, true);
                     break;
                 }
                 case(5):{
-                    int newCellPosition = mesh.updateCell(cell.id, CellType::POLY5, nodes, true);
-                    cellGroup->removeCellPosition(cell.position);
-                    cellGroup->addCellPosition(newCellPosition);
+                    mesh.updateCell(cell.id, CellType::POLY5, nodes, true);
                     break;
                 }
                 default:
@@ -898,9 +890,7 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
                     int first_lagr_position = mesh.addNode(Node::AUTO_ID, first.lx, first.ly, first.lz, first.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
                     int first_lagr_id = mesh.findNodeId(first_lagr_position);
                     nodes.push_back(first_lagr_id);
-                    int newCellPosition = mesh.updateCell(cell.id, CellType::polyType(static_cast<unsigned int>(nodes.size())), nodes, true);
-                    cellGroup->removeCellPosition(cell.position);
-                    cellGroup->addCellPosition(newCellPosition);
+                    mesh.updateCell(cell.id, CellType::polyType(static_cast<unsigned int>(nodes.size())), nodes, true);
                 }
             }
             break;

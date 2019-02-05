@@ -323,7 +323,7 @@ int Mesh::updateCell(int id, const CellType &cellType, const std::vector<int> &n
     cells.cellDatas.push_back(cellData);
 
     // Update cell groups
-    for (auto& kv : groupById) {
+    for (auto& kv : groupByName) {
         shared_ptr<CellGroup> cellGroup = dynamic_pointer_cast<CellGroup>(kv.second);
         if (cellGroup != nullptr and cellGroup->containsCellPosition(oldCellPosition)) {
             cellGroup->removeCellPosition(oldCellPosition);
