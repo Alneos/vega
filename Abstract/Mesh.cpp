@@ -709,9 +709,10 @@ const MeshStatistics Mesh::calcStats() {
             }
         }
         const auto mm = minmax_element(squareDistances.begin(), squareDistances.end());
-        minSquareDistance = min(minSquareDistance, *(mm.first));
+        if (minSquareDistance > 0)
+            minSquareDistance = min(minSquareDistance, *(mm.first));
         maxSquareDistance = max(maxSquareDistance, *(mm.second));
-        squareDistances.erase(remove_if(squareDistances.begin(), squareDistances.end(), [](double x){return iszero(x);}), squareDistances.end());
+        squareDistances.erase(remove_if(squareDistances.begin(), squareDistances.end(), [](double x){return is_zero(x);}), squareDistances.end());
         const auto mmnz = min_element(squareDistances.begin(), squareDistances.end());
         double sum = accumulate( squareDistances.begin(), squareDistances.end(), 0.0);
         minSquareDistanceNonZero = min(minSquareDistanceNonZero, *mmnz);
