@@ -5,17 +5,51 @@
 
 #define BOOST_TEST_MODULE mesh_test
 #include <boost/test/unit_test.hpp>
+#include <boost/geometry/algorithms/comparable_distance.hpp>
+
 #include "../../Abstract/MeshComponents.h"
 #include "../../Abstract/Mesh.h"
 
 using namespace std;
 using namespace vega;
 
+BOOST_AUTO_TEST_CASE( test_node_distance ) {
+    Mesh mesh(LogLevel::INFO, "test_node_distance");
+    int nodepos1 = mesh.addNode(1, 0.0, 0.0, 0.0);
+    int nodepos2 = mesh.addNode(2, 10.0, 0.0, 0.0);
+    const Node& node1 = mesh.findNode(nodepos1);
+    const Node& node2 = mesh.findNode(nodepos2);
+    BOOST_CHECK_EQUAL(node1.distance(node2), 10);
+    BOOST_CHECK_EQUAL(node2.distance(node1), 10);
+    BOOST_CHECK_EQUAL(boost::geometry::comparable_distance(node1, node2), 100);
+}
+
+BOOST_AUTO_TEST_CASE( test_mesh_stats ) {
+    Mesh mesh(LogLevel::INFO, "test_mesh_stats");
+    mesh.addNode(1, 0.0, 0.0, 0.0);
+    mesh.addNode(2, 0.0, 10.0, 0.0);
+    mesh.addNode(3, 20.0, 10.0, 0.0);
+    mesh.addNode(4, 20.0, 0.0, 0.0);
+    mesh.addNode(5, 20.0, 0.0, 0.0);
+    mesh.addCell(101, CellType::SEG2, {1, 2});
+    mesh.addCell(102, CellType::SEG2, {2, 3});
+    mesh.addCell(103, CellType::SEG2, {3, 4});
+    mesh.addCell(104, CellType::SEG2, {3, 4});
+    mesh.addCell(105, CellType::SEG2, {4, 5});
+    const auto& stats = mesh.calcStats();
+    BOOST_CHECK_EQUAL(stats.minLength, 0);
+    BOOST_CHECK_EQUAL(stats.minNonzeroLength, 10);
+    BOOST_CHECK_EQUAL(stats.maxLength, 20);
+    BOOST_CHECK(stats.quadraticMeanLength > 10);
+    BOOST_CHECK(stats.quadraticMeanLength < 20);
+    const auto& stats2 = mesh.calcStats();
+    BOOST_CHECK_EQUAL(stats2.maxLength, 20);
+}
+
 BOOST_AUTO_TEST_CASE( test_faceIds )
 {
-    vector<int> nodeIds = { 101, 102, 103, 104, 105, 106, 107, 108 };
     Mesh mesh(LogLevel::INFO, "test");
-    int cellPosition = mesh.addCell(1, CellType::HEXA8, nodeIds);
+    int cellPosition = mesh.addCell(1, CellType::HEXA8, { 101, 102, 103, 104, 105, 106, 107, 108 });
     const Cell&& hexa = mesh.findCell(cellPosition);
     vector<int> face1NodeIds = hexa.faceids_from_two_nodes(101, 104);
     vector<int> expectedFace1NodeIds = { 101, 102, 103, 104 };

@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_CASE( test_model_spc ) {
 	BOOST_CHECK(spc1_ptr);
 	DOFS spc_dofs = spc1_ptr->getDOFSForNode(0);
 	BOOST_CHECK(spc1_ptr->hasReferences() == false);
-	BOOST_CHECK(spc_dofs == DOFS::TRANSLATIONS);
+	BOOST_CHECK_EQUAL(spc_dofs, DOFS::TRANSLATIONS);
 	BOOST_CHECK(spc1_ptr->nodePositions().size() == 2);
 }
 
@@ -102,6 +102,7 @@ BOOST_AUTO_TEST_CASE( test_cells_iterator ) {
 	BOOST_CHECK_EQUAL(3, i);
 	BOOST_CHECK_EQUAL(3, model.mesh.countCells(CellType::SEG2));
 	BOOST_CHECK_EQUAL(1, model.mesh.countCells(CellType::POINT1));
+	BOOST_CHECK_EQUAL(static_cast<size_t>(3), model.mesh.cells.cellTypes().size());
 	//BOOST_CHECK_EQUAL(0, model.mesh.countCells(CellType::POLYL));
 
 }

@@ -13,6 +13,8 @@
 #include "Model.h"
 #include <string>
 #include <initializer_list>
+#include <boost/geometry/algorithms/distance.hpp>
+#include <boost/geometry/algorithms/comparable_distance.hpp>
 #if defined VDEBUG && defined __GNUC__  && !defined(_WIN32)
 #include <valgrind/memcheck.h>
 #endif
@@ -373,6 +375,10 @@ int Node::auto_node_id = 9999999;
 Node::Node(int id, double lx, double ly, double lz, int position1, DOFS inElement1, double gx, double gy, double gz, int _positionCS, int _displacementCS) :
 		id(id), position(position1), lx(lx), ly(ly), lz(lz), dofs(inElement1), x(gx), y(gy), z(gz),
 		positionCS(_positionCS), displacementCS(_displacementCS) {
+}
+
+double Node::distance(const Node& other) const {
+    return boost::geometry::distance(*this, other);
 }
 
 ostream &operator<<(ostream &out, const Node& node) {

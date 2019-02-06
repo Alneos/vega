@@ -277,6 +277,7 @@ public:
         }
         return "N" + std::to_string(nodePosition + 1);
     }
+    double distance(const Node& other) const;
     ~Node() {
     }
 };

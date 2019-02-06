@@ -96,8 +96,17 @@ public:
 	CellStorage(Mesh& mesh, LogLevel logLevel);
 	CellIterator cells_begin(const CellType &type) const;
 	CellIterator cells_end(const CellType &type) const;
+	const std::vector<CellType> cellTypes() const;
 
 	bool validate() const;
+};
+
+class MeshStatistics final {
+public:
+    double minLength;
+    double minNonzeroLength;
+    double maxLength;
+    double quadraticMeanLength;
 };
 
 class Mesh final {
@@ -121,6 +130,8 @@ private:
 	std::map<int, std::shared_ptr<Group>> groupById;
 
 	std::shared_ptr<CellGroup> getOrCreateCellGroupForCS(const int cspos);
+
+	std::unique_ptr<MeshStatistics> stats = nullptr;
 public:
 	std::map<CellType, std::vector<int>> cellPositionsByType;
 	std::map<int, std::string> cellGroupNameByCspos; /**< mapping position->group name **/
@@ -230,6 +241,8 @@ public:
 	 * Cells must have been previously defined.
 	 */
 	void assignElementId(const CellContainer&, int elementId);
+
+	const MeshStatistics calcStats();
 
 	void finish();
 	bool validate() const;

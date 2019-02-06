@@ -15,17 +15,19 @@
 #endif
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/geometry/algorithms/distance.hpp>
+#include <boost/geometry/algorithms/comparable_distance.hpp>
 #include "Model.h"
-#include <stdio.h>
-#include <string.h>
 #include <algorithm>
 #include <cstddef>
+#include <cfloat>
 #include <utility>
 #include <iostream>
 #include <iterator>
 #include <map>
 #include <memory>
 #include <new>
+#include <numeric>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -87,6 +89,40 @@ bool NodeStorage::validate() const {
 		cout << "All the reserved nodes have been defined." << endl;
 	}
 	return validNodes;
+}
+
+/******************************************************************************
+ * CellStorage class
+ ******************************************************************************/
+
+CellStorage::CellStorage(Mesh& mesh, LogLevel logLevel) :
+		logLevel(logLevel), mesh(mesh) {
+}
+
+CellIterator CellStorage::cells_begin(const CellType &type) const {
+	if (type.numNodes == 0) {
+		throw logic_error(
+				"Iteration on " + type.description + " not yet implemented");
+	}
+
+	return CellIterator(this, type, CellIterator::POSITION_BEGIN);
+}
+
+CellIterator CellStorage::cells_end(const CellType &type) const {
+	if (type.numNodes == 0) {
+		throw logic_error(
+				"Iteration on " + type.description + " not yet implemented");
+	}
+	return CellIterator(this, type, CellIterator::POSITION_END);
+}
+
+const vector<CellType> CellStorage::cellTypes() const {
+    vector<CellType> keys;
+    keys.reserve(nodepositionsByCelltype.size());
+    for (const auto kv : nodepositionsByCelltype) {
+        keys.push_back(kv.first);
+    }
+	return keys;
 }
 
 /******************************************************************************
@@ -445,27 +481,6 @@ std::shared_ptr<vega::CoordinateSystem> Mesh::getCoordinateSystemByPosition(cons
 	return coordinateSystemStorage.findByPosition(pos);
 }
 
-CellStorage::CellStorage(Mesh& mesh, LogLevel logLevel) :
-		logLevel(logLevel), mesh(mesh) {
-}
-
-CellIterator CellStorage::cells_begin(const CellType &type) const {
-	if (type.numNodes == 0) {
-		throw logic_error(
-				"Iteration on " + type.description + " not yet implemented");
-	}
-
-	return CellIterator(this, type, CellIterator::POSITION_BEGIN);
-}
-
-CellIterator CellStorage::cells_end(const CellType &type) const {
-	if (type.numNodes == 0) {
-		throw logic_error(
-				"Iteration on " + type.description + " not yet implemented");
-	}
-	return CellIterator(this, type, CellIterator::POSITION_END);
-}
-
 const string Mesh::getName() const {
     return name;
 }
@@ -666,6 +681,49 @@ int Mesh::findCellPosition(int cellId) const {
 
 bool Mesh::validate() const {
 	return nodes.validate();
+}
+
+const MeshStatistics Mesh::calcStats() {
+    if (stats != nullptr) {
+        return *stats;
+    }
+    stats = make_unique<MeshStatistics>();
+    double minSquareDistance = DBL_MAX;
+    double minSquareDistanceNonZero = DBL_MAX;
+    double maxSquareDistance = 0;
+    double sumSquareDistance = 0;
+    size_t countSquareDistance = 0;
+    for (const CellType& cellType : cells.cellTypes()) {
+        if (cellType.numNodes < 2)
+            continue;
+        vector<double> squareDistances;
+        squareDistances.reserve(cellType.numNodes * (cellType.numNodes - 1) / 2);
+        for (auto cellit = cells.cells_begin(cellType); cellit != cells.cells_end(cellType); cellit++) {
+            const Cell& cell = *cellit;
+            for (unsigned i = 0; i < cellType.numNodes - 1; i++) {
+                for (unsigned j = i; j < cellType.numNodes; j++) {
+                    const Node& n1 = findNode(cell.nodePositions[i]);
+                    const Node& n2 = findNode(cell.nodePositions[j]);
+                    squareDistances.push_back(boost::geometry::comparable_distance(n1, n2));
+                }
+            }
+        }
+        const auto mm = minmax_element(squareDistances.begin(), squareDistances.end());
+        minSquareDistance = min(minSquareDistance, *(mm.first));
+        maxSquareDistance = max(maxSquareDistance, *(mm.second));
+        squareDistances.erase(remove_if(squareDistances.begin(), squareDistances.end(), [](double x){return iszero(x);}), squareDistances.end());
+        const auto mmnz = min_element(squareDistances.begin(), squareDistances.end());
+        double sum = accumulate( squareDistances.begin(), squareDistances.end(), 0.0);
+        minSquareDistanceNonZero = min(minSquareDistanceNonZero, *mmnz);
+        sumSquareDistance += sum;
+        countSquareDistance += squareDistances.size();
+        squareDistances.clear();
+    }
+    stats->minLength = sqrt(minSquareDistance);
+    stats->minNonzeroLength = sqrt(minSquareDistanceNonZero);
+    stats->maxLength = sqrt(maxSquareDistance);
+    stats->quadraticMeanLength = sqrt(sumSquareDistance / static_cast<double>(countSquareDistance));
+    return *stats;
 }
 
 } /* namespace vega */

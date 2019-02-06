@@ -1954,6 +1954,8 @@
 		<Unit filename="testdata/nastran/irt/ssnv129a/ssnv129a.f06" />
 		<Unit filename="testdata/nastran/irt/t01331/readme.txt" />
 		<Unit filename="testdata/nastran/irt/t01331/t01331a.inp" />
+		<Unit filename="testdata/nastran/irt/truss5/readme.txt" />
+		<Unit filename="testdata/nastran/irt/truss5/truss5.nas" />
 		<Unit filename="testdata/optistruct/caw/prob6/prob6.dat" />
 		<Unit filename="testdata/optistruct/caw/prob6/prob6.f06" />
 		<Unit filename="testdata/unitTest/nastranparser/README.TXT" />
