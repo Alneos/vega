@@ -704,7 +704,8 @@ const MeshStatistics Mesh::calcStats() {
                 for (unsigned j = i; j < cellType.numNodes; j++) {
                     const Node& n1 = findNode(cell.nodePositions[i]);
                     const Node& n2 = findNode(cell.nodePositions[j]);
-                    squareDistances.push_back(boost::geometry::comparable_distance(n1, n2));
+                    //squareDistances.push_back(boost::geometry::comparable_distance(n1, n2));
+                    squareDistances.push_back(n1.square_distance(n2));
                 }
             }
         }
