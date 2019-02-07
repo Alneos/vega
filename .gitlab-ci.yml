@@ -67,6 +67,7 @@ esiqual:
     - shell
     - irt
     - linux
+    - systus
   script:
     - export TOPAZE_PATH=/opt/TOP/ESI/topaze
     - source /opt/TOP/ESI/topazerc.sh
@@ -83,6 +84,7 @@ nightly_systus:
     - shell
     - irt
     - linux
+    - systus
   only:
     - schedules
   before_script:
@@ -93,6 +95,7 @@ nightly_systus:
     - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/systus /srv/data/input/v02_K9Kgen6_simplif/original/v02_K9Kgen6_simplif.fem optistruct systus
     - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/systus /srv/data/input/Safran_AB_RadiusBlock_v1.fem optistruct systus
     - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/systus /srv/data/input/SMOTRenault/SMOTRENAULT.fem optistruct systus
+    - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/systus /srv/data/input/v02_K9Kgen6_rebuild/v02_K9Kgen6_rebuild.fem optistruct systus
 
 K9Kgen6_simplif_aster:
   stage: test
@@ -138,3 +141,18 @@ SMOT_aster:
     - mkdir -p /srv/data/$OUTDIR; mkdir -p /srv/data/$OUTDIR/aster; mkdir -p /srv/data/$OUTDIR/systus
   script:
     - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/aster /srv/data/input/SMOTRenault/SMOTRENAULT.fem optistruct aster
+
+K9Kgen6_rebuild_aster:
+  stage: test
+  tags:
+    - shell
+    - irt
+    - linux
+  only:
+    - schedules
+  before_script:
+    - export OUTDIR=$(LC_ALL=en_US.utf8 date +%a)
+    - export PATH=$PATH:/opt/TOP/ESI/sysworld/v2018.0/GB/
+    - mkdir -p /srv/data/$OUTDIR; mkdir -p /srv/data/$OUTDIR/aster; mkdir -p /srv/data/$OUTDIR/systus
+  script:
+    - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/aster /srv/data/input/v02_K9Kgen6_rebuild/v02_K9Kgen6_rebuild.fem optistruct aster
