@@ -197,6 +197,9 @@ string NastranParser::parseSubcase(NastranTokenizer& tok, Model& model,
                 sep="_";
             }
             context[nextKeyword] = line;
+            if (model.configuration.logLevel >= LogLevel::TRACE) {
+                cout << "Put into context :" << nextKeyword << "=" << line << endl;
+            }
         } else {
             bParseSubcase=false;
         }
@@ -531,11 +534,12 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
         auto it = context.find("ANALYSIS");
         if (it != context.end()) {
             string analysis_label = trim_copy(it->second);
+            cout << it->first << "=" << it->second << endl;
             auto label_entry = ANALYSIS_BY_LABEL.find(analysis_label);
             if (label_entry != ANALYSIS_BY_LABEL.end())
                 analysis_type = label_entry->second;
             else {
-                handleParsingError("DESOPT analysis " + analysis_label + " Not implemented", tok, model);
+                analysis_type = NastranAnalysis::STATIC; // default with empty ANALYSIS keyword (happened in SMOT)
             }
         } else
             analysis_type = NastranAnalysis::STATIC;

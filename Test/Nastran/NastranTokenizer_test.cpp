@@ -78,31 +78,30 @@ BOOST_AUTO_TEST_CASE(nastran_short_with_tabs) {
     BOOST_CHECK_EQUAL(tokenizer.nextString(true,""), string(""));
     BOOST_CHECK_EQUAL(tokenizer.nextString(), string("1234567"));
 }
-/*
-BOOST_AUTO_TEST_CASE(comments_and_empty_lines) {
-    //this is a bug under windows
-    string nastranLine = "$comnent comment \nKEYWORD 12345\n$ comment\n\n$ comment\n\n";
-    istringstream istr(nastranLine);
 
-    NastranTokenizer tokenizer(istr);
-    tokenizer.bulkSection();
-    try{
-    BOOST_CHECK(tokenizer.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_KEYWORD);
-    BOOST_CHECK_EQUAL(tokenizer.nextString(), string("KEYWORD"));
-    BOOST_CHECK(tokenizer.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_FIELD);
-
-        BOOST_CHECK_EQUAL(tokenizer.nextString(), string("12345"));
-    }
-    catch (exception &e){
-        string message = string("Reading field threw exception: ") + e.what();
-        BOOST_FAIL(message);
-    }
-    BOOST_CHECK(tokenizer.nextSymbolType == NastranTokenizer::SYMBOL_EOF);
-    //BOOST_CHECK_EQUAL(tokenizer.nextString(), string("123"));
-    //BOOST_CHECK(tokenizer.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_FIELD);
-    //BOOST_CHECK_EQUAL(tokenizer.nextString(), string("1234567"));
-}
-      */
+//BOOST_AUTO_TEST_CASE(comments_and_empty_lines) {
+//    //this is a bug under windows
+//    string nastranLine = "$comnent comment \nKEYWORD 12345\n$ comment\n\n$ comment\n\n";
+//    istringstream istr(nastranLine);
+//
+//    NastranTokenizer tokenizer(istr);
+//    tokenizer.bulkSection();
+//    try{
+//    BOOST_CHECK(tokenizer.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_KEYWORD);
+//    BOOST_CHECK_EQUAL(tokenizer.nextString(), string("KEYWORD"));
+//    BOOST_CHECK(tokenizer.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_FIELD);
+//
+//        BOOST_CHECK_EQUAL(tokenizer.nextString(), string("12345"));
+//    }
+//    catch (exception &e){
+//        string message = string("Reading field threw exception: ") + e.what();
+//        BOOST_FAIL(message);
+//    }
+//    BOOST_CHECK(tokenizer.nextSymbolType == NastranTokenizer::SYMBOL_EOF);
+//    //BOOST_CHECK_EQUAL(tokenizer.nextString(), string("123"));
+//    //BOOST_CHECK(tokenizer.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_FIELD);
+//    //BOOST_CHECK_EQUAL(tokenizer.nextString(), string("1234567"));
+//}
 
 BOOST_AUTO_TEST_CASE(nastran_short_2_line_incomplete_line) {
     string nastranLine = "$comment comment \nKEYWORD 12345\n        01234567";
@@ -397,4 +396,28 @@ BOOST_AUTO_TEST_CASE(nastran_HM_comment) {
     NastranTokenizer tokenizer(istr);
     tokenizer.bulkSection();
     tokenizer.nextLine();
+    BOOST_CHECK_EQUAL(1, tokenizer.labelByCommentTypeAndId.size());
 }
+
+BOOST_AUTO_TEST_CASE(nastran_HM_nonint_comment) {
+    //                    12345678123456781234567812345678 1234567812345 6781234567812345678
+    string nastranLine = "$HMNAME BEAMSECTS  RESULTS_AREA 28.27433";
+    istringstream istr(nastranLine);
+    NastranTokenizer tokenizer(istr);
+    tokenizer.bulkSection();
+    tokenizer.nextLine();
+    BOOST_CHECK_EQUAL(0, tokenizer.labelByCommentTypeAndId.size());
+}
+
+BOOST_AUTO_TEST_CASE(nastran_DESOPT_ANALYSIS) {
+    //                    12345678123456781234567812345678 1234567812345 6781234567812345678
+    string nastranLine = "ANALYSIS STATICS";
+    istringstream istr(nastranLine);
+    NastranTokenizer tokenizer(istr);
+    tokenizer.executiveControlSection();
+    tokenizer.nextLine();
+    BOOST_CHECK_EQUAL(2, tokenizer.currentDataLine().size());
+    BOOST_CHECK_EQUAL("ANALYSIS", tokenizer.currentDataLine()[0]);
+    BOOST_CHECK_EQUAL("STATICS", tokenizer.currentDataLine()[1]);
+}
+

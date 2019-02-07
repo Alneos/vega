@@ -144,9 +144,10 @@ bool NastranTokenizer::readLineSkipComment(string& line) {
 		    vector<string> commentParts;
 		    boost::split(commentParts, line, boost::is_any_of(" \""), boost::token_compress_on);
             if (commentParts.size() >= 3) {
+                bool isPart2Int = all_of(commentParts[1].begin(), commentParts[1].end(), ::isdigit);
                 auto result = commentTypeByString.find(commentParts[0]);
-                if (result != commentTypeByString.end()) {
-                    labelByCommentTypeAndId[make_pair(result->second, std::stoi(commentParts[1]))] = commentParts[2];
+                if (isPart2Int and result != commentTypeByString.end()) {
+                    labelByCommentTypeAndId[make_pair(result->second, stoi(commentParts[1]))] = commentParts[2];
                 }
             }
 		}
