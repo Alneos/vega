@@ -379,13 +379,13 @@ Node::Node(int id, double lx, double ly, double lz, int position1, DOFS inElemen
 }
 
 double Node::distance(const Node& other) const {
-    //return boost::geometry::distance(*this, other);
-    return sqrt(pow(x - other.x, 2) + pow(y - other.y, 2) + pow(z - other.z, 2));
+    return boost::geometry::distance(*this, other);
+    //return sqrt(pow(x - other.x, 2) + pow(y - other.y, 2) + pow(z - other.z, 2));
 }
 
 double Node::square_distance(const Node& other) const {
-    //return boost::geometry::comparable_distance(*this, other);
-    return pow(x - other.x, 2) + pow(y - other.y, 2) + pow(z - other.z, 2);
+    return boost::geometry::comparable_distance(*this, other);
+    //return pow(x - other.x, 2) + pow(y - other.y, 2) + pow(z - other.z, 2);
 }
 
 ostream &operator<<(ostream &out, const Node& node) {
