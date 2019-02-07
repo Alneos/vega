@@ -78,7 +78,7 @@ esiqual:
     - ./QUALIF_VEGANOOK.csh
     - 'grep "Nombre de fichiers passes avec succes :   0" /srv/data/BDTest_VEGA/BASE_DETESTS/RES_ANG/RAP_ANG/ANG_linux86_64_VEGANOOK_Sysworld_V19.0-new.RAPQ'
 
-.tests:
+1/4 nightly:
   stage: test
   tags:
     - shell
@@ -87,29 +87,53 @@ esiqual:
   only:
     - schedules
   before_script:
-    - whoami
-    - pwd
     - export OUTDIR=$(LC_ALL=en_US.utf8 date +%a)
     - export PATH=$PATH:/opt/TOP/ESI/sysworld/v2018.0/GB/
     - mkdir -p /srv/data/$OUTDIR; mkdir -p /srv/data/$OUTDIR/aster; mkdir -p /srv/data/$OUTDIR/systus
-    - ls /srv/data
-
-1/4 nightly:
-  extends: .tests
   script:
     - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/systus /srv/data/input/v02_K9Kgen6_simplif/original/v02_K9Kgen6_simplif.fem optistruct systus
 
 2/4 nightly:
-  extends: .tests
+  stage: test
+  tags:
+    - shell
+    - irt
+    - linux
+  only:
+    - schedules
+  before_script:
+    - export OUTDIR=$(LC_ALL=en_US.utf8 date +%a)
+    - export PATH=$PATH:/opt/TOP/ESI/sysworld/v2018.0/GB/
+    - mkdir -p /srv/data/$OUTDIR; mkdir -p /srv/data/$OUTDIR/aster; mkdir -p /srv/data/$OUTDIR/systus
   script:
     - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/systus /srv/data/input/Safran_AB_RadiusBlock_v1.fem optistruct systus
 
 3/4 nightly:
-  extends: .tests
+  stage: test
+  tags:
+    - shell
+    - irt
+    - linux
+  only:
+    - schedules
+  before_script:
+    - export OUTDIR=$(LC_ALL=en_US.utf8 date +%a)
+    - export PATH=$PATH:/opt/TOP/ESI/sysworld/v2018.0/GB/
+    - mkdir -p /srv/data/$OUTDIR; mkdir -p /srv/data/$OUTDIR/aster; mkdir -p /srv/data/$OUTDIR/systus
   script:
     - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/aster /srv/data/input/v02_K9Kgen6_simplif/original/v02_K9Kgen6_simplif.fem optistruct aster
 
 4/4 nightly:
-  extends: .tests
+  stage: test
+  tags:
+    - shell
+    - irt
+    - linux
+  only:
+    - schedules
+  before_script:
+    - export OUTDIR=$(LC_ALL=en_US.utf8 date +%a)
+    - export PATH=$PATH:/opt/TOP/ESI/sysworld/v2018.0/GB/
+    - mkdir -p /srv/data/$OUTDIR; mkdir -p /srv/data/$OUTDIR/aster; mkdir -p /srv/data/$OUTDIR/systus
   script:
     - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/aster /srv/data/input/Safran_AB_RadiusBlock_v1.fem optistruct aster
