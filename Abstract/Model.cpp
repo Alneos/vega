@@ -1285,8 +1285,9 @@ void Model::replaceRigidSegments()
             continue;
         }
         for (const auto& cell : segment->cellGroup->getCells()) {
-            const set<int> nodeIds{cell.nodeIds.begin(), cell.nodeIds.end()};
-            const auto& rigid = make_shared<RigidConstraint>(*this, RigidConstraint::UNAVAILABLE_MASTER, RigidConstraint::NO_ORIGINAL_ID, nodeIds);
+            const int masterId = cell.nodeIds.front();
+            const set<int> slaveNodeIds{cell.nodeIds.begin()+1, cell.nodeIds.end()};
+            const auto& rigid = make_shared<RigidConstraint>(*this, masterId, RigidConstraint::NO_ORIGINAL_ID, slaveNodeIds);
             this->add(rigid);
             addConstraintIntoConstraintSet(*rigid, *commonConstraintSet);
             if (configuration.logLevel >= LogLevel::DEBUG) {
@@ -1650,7 +1651,7 @@ void Model::makeCellsFromRBE(){
             materialRBE2->addNature(make_shared<RigidNature>(*this, 1));
             this->add(materialRBE2);
 
-            shared_ptr<CellGroup> group = mesh.createCellGroup("RBE2_"+to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBE2");
+            shared_ptr<CellGroup> group = mesh.createCellGroup("RBE2_"+to_string(constraint->bestId()), CellGroup::NO_ORIGINAL_ID, "RBE2");
             const auto& elementsetRbe2 = make_shared<Rbar>(*this, mesh.findNodeId(rbe2->getMaster()));
             elementsetRbe2->assignCellGroup(group);
             elementsetRbe2->assignMaterial(materialRBE2);
@@ -1691,7 +1692,7 @@ void Model::makeCellsFromRBE(){
             // Master Node : first one. Slave Node : second and last one
             const int masterNodeId = mesh.findNodeId(*rbar->getSlaves().begin());
             const int slaveNodeId = mesh.findNodeId(*rbar->getSlaves().rbegin());
-            shared_ptr<CellGroup> group = mesh.createCellGroup("RBAR_"+to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBAR");
+            shared_ptr<CellGroup> group = mesh.createCellGroup("RBAR_"+to_string(constraint->bestId()), CellGroup::NO_ORIGINAL_ID, "RBAR");
 
             const auto& elementsetRBAR = make_shared<Rbar>(*this, masterNodeId);
             elementsetRBAR->assignCellGroup(group);
@@ -1750,7 +1751,7 @@ void Model::makeCellsFromRBE(){
                     materialRBE3->addNature(make_shared<RigidNature>(*this, Nature::UNAVAILABLE_DOUBLE, sCoef));
                     this->add(materialRBE3);
 
-                    shared_ptr<CellGroup> group = mesh.createCellGroup("RBE3_"+to_string(nbParts)+"_"+to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "RBE3");
+                    shared_ptr<CellGroup> group = mesh.createCellGroup("RBE3_"+to_string(nbParts)+"_"+to_string(constraint->bestId()), CellGroup::NO_ORIGINAL_ID, "RBE3");
                     const auto& elementsetRbe3 = make_shared<Rbe3>(*this, masterId, mDOFS, sDOFS);
                     elementsetRbe3->assignCellGroup(group);
                     elementsetRbe3->assignMaterial(materialRBE3);
@@ -1791,7 +1792,7 @@ void Model::makeCellsFromSurfaceSlide() {
 
         vector<shared_ptr<Constraint>> toBeRemoved;
         for (const auto& constraint : constraints) {
-            shared_ptr<CellGroup> group = mesh.createCellGroup("SURF_"+to_string(constraint->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "SURF");
+            shared_ptr<CellGroup> group = mesh.createCellGroup("SURF_"+to_string(constraint->bestId()), CellGroup::NO_ORIGINAL_ID, "SURF");
             const auto& elementsetSlide = make_shared<SurfaceSlideSet>(*this);
             elementsetSlide->assignCellGroup(group);
             this->add(elementsetSlide);
@@ -1935,8 +1936,8 @@ void Model::makeBoundarySegments() {
         auto constraints = constraintSet->getConstraintsByType(Constraint::Type::SLIDE);
         for (const auto& constraint : constraints) {
             shared_ptr<SlideContact> slide = dynamic_pointer_cast<SlideContact>(constraint);
-            shared_ptr<CellGroup> masterCellGroup = mesh.createCellGroup("SLIDE_M_"+to_string(slide->getOriginalId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySegments() for the master in a SLIDE contact");
-            shared_ptr<CellGroup> slaveCellGroup = mesh.createCellGroup("SLIDE_S_"+to_string(slide->getOriginalId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySegments() for the slave in a SLIDE contact");
+            shared_ptr<CellGroup> masterCellGroup = mesh.createCellGroup("SLIDE_M_"+to_string(slide->bestId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySegments() for the master in a SLIDE contact");
+            shared_ptr<CellGroup> slaveCellGroup = mesh.createCellGroup("SLIDE_S_"+to_string(slide->bestId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySegments() for the slave in a SLIDE contact");
             shared_ptr<BoundaryNodeLine> masterNodeLine = dynamic_pointer_cast<BoundaryNodeLine>(this->find(slide->master));
             const list<int>& masterNodeIds = masterNodeLine->nodeids;
             auto it = masterNodeIds.begin();
@@ -1966,8 +1967,8 @@ void Model::makeBoundarySurfaces() {
         auto constraints = constraintSet->getConstraintsByType(Constraint::Type::SURFACE_CONTACT);
         for (const auto& constraint : constraints) {
             shared_ptr<SurfaceContact> surface = dynamic_pointer_cast<SurfaceContact>(constraint);
-            shared_ptr<CellGroup> masterCellGroup = mesh.createCellGroup("SURFCONT_M_"+to_string(surface->getOriginalId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySurfaces() for the master in a SURFACE_CONTACT");
-            shared_ptr<CellGroup> slaveCellGroup = mesh.createCellGroup("SURFCONT_S_"+to_string(surface->getOriginalId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySurfaces() for the master in a SURFACE_CONTACT");
+            shared_ptr<CellGroup> masterCellGroup = mesh.createCellGroup("SURFCONT_M_"+to_string(surface->bestId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySurfaces() for the master in a SURFACE_CONTACT");
+            shared_ptr<CellGroup> slaveCellGroup = mesh.createCellGroup("SURFCONT_S_"+to_string(surface->bestId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySurfaces() for the master in a SURFACE_CONTACT");
             shared_ptr<BoundaryNodeSurface> slaveNodeSurface = dynamic_pointer_cast<BoundaryNodeSurface>(this->find(surface->slave));
             if (slaveNodeSurface == nullptr) {
                 throw logic_error("Cannot find master node list");

@@ -31,11 +31,13 @@ BOOST_AUTO_TEST_CASE( beam ) {
 }
 
 //BOOST_AUTO_TEST_CASE( tcid_contact_qvol ) {
+//    // TODO : PCONT keyword https://www.sharcnet.ca/Software/Hyperworks/help/hwsolvers/hwsolvers.htm?pcont.htm
 //	CommandLineUtils::optistructStudy2Systus("/irt/tcid_contact_qvol/tcid_contact_qvol.fem", RUN_SYSTUS, true, 0.02);
 //}
 
+
 //BOOST_AUTO_TEST_CASE( bigtest ) {
-//	CommandLineUtils::optistructStudy2Aster("/../../../../tmp/bigtest.fem", false, true, 0.03);
+//	CommandLineUtils::optistructStudy2Systus("/../../../../tmp/bigtest.fem", false, true, 0.03);
 //}
 
 } /* namespace test */

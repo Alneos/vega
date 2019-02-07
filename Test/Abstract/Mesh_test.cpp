@@ -5,6 +5,7 @@
 
 #define BOOST_TEST_MODULE mesh_test
 #include <boost/test/unit_test.hpp>
+#include <boost/geometry.hpp>
 #include <boost/geometry/algorithms/comparable_distance.hpp>
 
 #include "../../Abstract/MeshComponents.h"
@@ -21,7 +22,7 @@ BOOST_AUTO_TEST_CASE( test_node_distance ) {
     const Node& node2 = mesh.findNode(nodepos2);
     BOOST_CHECK_EQUAL(node1.distance(node2), 10);
     BOOST_CHECK_EQUAL(node2.distance(node1), 10);
-    //BOOST_CHECK_EQUAL(boost::geometry::comparable_distance(node1, node2), 100);
+    BOOST_CHECK_EQUAL(boost::geometry::comparable_distance(node1, node2), 100);
     BOOST_CHECK_EQUAL(node1.square_distance(node2), 100);
 }
 

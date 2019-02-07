@@ -194,7 +194,7 @@ set<int> HomogeneousConstraint::getSlaves() const {
     if (this->masterPosition != HomogeneousConstraint::UNAVAILABLE_MASTER) {
         return this->slavePositions;
     } else {
-        throw logic_error("getMaster: automatic resolution of master id not implemented");
+        throw logic_error("getSlaves: automatic resolution of master id not implemented");
     }
 }
 

@@ -13,6 +13,7 @@
 #include "Model.h"
 #include <string>
 #include <initializer_list>
+#include <boost/geometry.hpp>
 #include <boost/geometry/algorithms/distance.hpp>
 #include <boost/geometry/algorithms/comparable_distance.hpp>
 #if defined VDEBUG && defined __GNUC__  && !defined(_WIN32)
