@@ -247,9 +247,6 @@ string NastranParser::parseSubcom(NastranTokenizer& tok, Model& model,
     return nextKeyword;
 }
 
-NastranParser::~NastranParser() {
-}
-
 void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
         map<string, string>& context) {
     bool canContinue = true;

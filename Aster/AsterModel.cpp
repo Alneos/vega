@@ -65,12 +65,7 @@ const vector<string> AsterModel::DofByPosition = {
 };
 
 AsterModel::AsterModel(const vega::Model& model, const vega::ConfigurationParameters &configuration) :
-        model(model), configuration(configuration) {
-    this->phenomene = "MECANIQUE";
-}
-
-AsterModel::~AsterModel() {
-
+        model(model), configuration(configuration), phenomene{"MECANIQUE"} {
 }
 
 const string AsterModel::getOutputFileName(string extension, bool absolute) const {

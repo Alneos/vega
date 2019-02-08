@@ -183,8 +183,5 @@ void CSVResultReader::add_assertions(const ConfigurationParameters& configuratio
 	}
 }
 
-CSVResultReader::~CSVResultReader() {
-}
-
 }
 } /* namespace vega */

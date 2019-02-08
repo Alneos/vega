@@ -38,7 +38,7 @@ class Mesh;
 
 class CoordinateSystem: public Identifiable<CoordinateSystem> {
     friend std::ostream& operator<<(std::ostream&, const CoordinateSystem&);
-    public:
+public:
     static constexpr int GLOBAL_COORDINATE_SYSTEM_ID = 0;
     static const Reference<CoordinateSystem> GLOBAL_COORDINATE_SYSTEM;
     enum class Type {
@@ -57,17 +57,17 @@ class CoordinateSystem: public Identifiable<CoordinateSystem> {
     const Type type;
     const CoordinateType coordType;
 
-    protected:
+protected:
     VectorialValue origin; /** local origin */
     VectorialValue ex; /** local X axis */
     VectorialValue ey; /** local Y axis */
     const Reference<CoordinateSystem> rcs; /** Identification of a coordinate system that is defined independently from this coordinate system. */
     VectorialValue ez; /** internally computed as cross product of ex and ey */
     bool isVirtual = false;
-    std::vector<int> nodesId;
+    std::vector<int> nodesId{};
     boost::numeric::ublas::matrix<double> inverseMatrix;
 
-    public:
+public:
     static const std::string name;
     static const std::map<Type, std::string> stringByType;
     static const std::map<CoordinateType, std::string> stringByCoordinateSystemType;
@@ -144,7 +144,7 @@ public:
                 const VectorialValue v, const Reference<CoordinateSystem> rcs = GLOBAL_COORDINATE_SYSTEM, int original_id = NO_ORIGINAL_ID);
 
 protected:
-    VectorialValue v; /**< Orientation vector */
+    VectorialValue v{}; /**< Orientation vector */
 
 public:
     void build() override; /**< Build (O,ex,ey,ez) from the node and v */
@@ -168,7 +168,7 @@ public:
 class CylindricalCoordinateSystem: public CoordinateSystem {
     VectorialValue ur;
     VectorialValue utheta;
-    public:
+public:
     CylindricalCoordinateSystem(const Mesh&, const VectorialValue origin, const VectorialValue ex,
             const VectorialValue ey, const Reference<CoordinateSystem> rcs = GLOBAL_COORDINATE_SYSTEM, int original_id = NO_ORIGINAL_ID);
 
@@ -238,14 +238,13 @@ class CylindricalCoordinateSystem: public CoordinateSystem {
  *  When the CS is reserved, we associate its user ID to the POSITION.
  *  */
 class CoordinateSystemStorage final {
-private:
     friend Mesh;
     friend CoordinateSystem;
     static int cs_next_position;          /**< Static token for the next CS Position. */
     //static constexpr int UNAVAILABLE_ID = -INT_MAX;
     static constexpr int UNAVAILABLE_POSITION = -INT_MAX;
     const LogLevel logLevel;
-    std::map<int, Reference<CoordinateSystem>> refByPosition;  /**< A map < Position, Original Id > to keep track of coordinate System. */
+    std::map<int, Reference<CoordinateSystem>> refByPosition{};  /**< A map < Position, Original Id > to keep track of coordinate System. */
 
     /**
      * Reserve a CS position given a user id (input model id).
@@ -254,7 +253,7 @@ private:
     const Mesh& mesh;
     CoordinateSystemStorage(const Mesh&, LogLevel logLevel);
 public:
-    std::map<Reference<CoordinateSystem>, std::shared_ptr<CoordinateSystem>> coordinateSystemByRef;
+    std::map<Reference<CoordinateSystem>, std::shared_ptr<CoordinateSystem>> coordinateSystemByRef{};
 
     /** Find the Position related to the input user id.
      *  Return UNAVAILABLE_POSITION if nothing is found.

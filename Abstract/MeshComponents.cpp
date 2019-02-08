@@ -52,9 +52,8 @@ unordered_map<CellType::Code, CellType*, EnumClassHash> CellType::typeByCode;
 
 CellType::CellType(CellType::Code code, int numNodes, SpaceDimension dimension,
 		const string& description) :
-		code(code), numNodes(numNodes), dimension(dimension), description(description) {
+		code(code), numNodes(numNodes), dimension(dimension), description(description), specificSize{numNodes>0} {
 	typeByCode.insert(make_pair(code, this));
-	specificSize= (numNodes>0);
 }
 
 CellType::CellType(const CellType& other) :
@@ -237,8 +236,7 @@ const CellType CellType::polyType(unsigned int nbNodes) {
 }
 
 Group::Group(Mesh& mesh, const string& name, Type type, int _id, const string& comment) :
-                Identifiable(_id), mesh(mesh), name(name), type(type), comment(comment) {
-    isUseful=false;
+                Identifiable(_id), mesh(mesh), name(name), type(type), comment(comment), isUseful(false) {
 }
 
 const string& Group::getName() const {
@@ -365,9 +363,6 @@ bool CellGroup::empty() const {
 	return _cellPositions.size() == 0;
 }
 
-CellGroup::~CellGroup() {
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 /*                  Node                                                     */
 ///////////////////////////////////////////////////////////////////////////////
@@ -395,8 +390,7 @@ ostream &operator<<(ostream &out, const Node& node) {
 }
 
 NodeIterator::NodeIterator(const NodeStorage *nodeStorage, int position) :
-		nodeStorage(nodeStorage), position(position) {
-	this->endPosition = nodeStorage->mesh.countNodes();
+		nodeStorage(nodeStorage), position(position), endPosition(nodeStorage->mesh.countNodes()) {
 }
 
 void NodeIterator::increment() {
@@ -747,7 +741,7 @@ void CellContainer::addCellId(int cellId) {
 void CellContainer::addCellGroup(const string& groupName) {
 	shared_ptr<Group> group = mesh.findGroup(groupName);
 	if (group == nullptr) {
-		throw logic_error(string("Group name: ") + groupName + "not found.");
+		throw logic_error("Group name: " + groupName + "not found.");
 	}
 	this->groupNames.insert(groupName);
 }

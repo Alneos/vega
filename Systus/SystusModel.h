@@ -45,7 +45,7 @@ public:
     const std::string getSystusVersionString() const;
 
 private:
-    double systusVersion;
+    double systusVersion = 2016.0;
 };
 
 } // namespace systus

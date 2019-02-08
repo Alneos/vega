@@ -59,8 +59,7 @@ protected:
 	std::string currentKeyword; /**< Current Keyword: only used for printout and error managment. **/
 
 public:
-	virtual ~Tokenizer() {
-	}
+	virtual ~Tokenizer() = default;
 	inline vega::LogLevel getLogLevel()const {return logLevel;};
 	inline std::string getFileName() const {return fileName;};
 	//inline vega::ConfigurationParameters::TranslationMode getTranslationMode() const {return translationMode;};
@@ -91,9 +90,10 @@ public:
 class Parser {
 
 protected:
-	Parser();
+	Parser() = default;
 public:
-	ConfigurationParameters::TranslationMode translationMode;
+	virtual ~Parser() = default;
+	ConfigurationParameters::TranslationMode translationMode = ConfigurationParameters::TranslationMode::BEST_EFFORT;
 	/**
 	 * Read a model from a specific file format.
 	 *
@@ -115,7 +115,6 @@ public:
      */
 	//TODO: Do a difference of treatment in case of a "very-strict" conversion.
 	void handleParsingWarning(const std::string& message, Tokenizer& tok, Model& model);
-	virtual ~Parser() = default;
 };
 
 class WritingException: public std::exception {

@@ -131,15 +131,9 @@ const int HomogeneousConstraint::UNAVAILABLE_MASTER = INT_MIN;
 
 HomogeneousConstraint::HomogeneousConstraint(Model& model, Type type, const DOFS& dofs,
         int masterId, int original_id, const set<int>& slaveIds) :
-        Constraint(model, type, original_id), dofs(dofs), //
-
-        slavePositions(model.mesh.findOrReserveNodes(slaveIds) //
-                ) {
-    if (masterId != UNAVAILABLE_MASTER) {
-        this->masterPosition = model.mesh.findOrReserveNode(masterId);
-    } else {
-        this->masterPosition = UNAVAILABLE_MASTER;
-    }
+        Constraint(model, type, original_id), dofs(dofs),
+        masterPosition{masterId == UNAVAILABLE_MASTER ? UNAVAILABLE_MASTER : model.mesh.findOrReserveNode(masterId)},
+        slavePositions(model.mesh.findOrReserveNodes(slaveIds)) {
 }
 
 int HomogeneousConstraint::getMaster() const {
@@ -275,7 +269,8 @@ SinglePointConstraint::SinglePointConstraint(Model& _model, DOFS dofs, double va
 }
 
 SinglePointConstraint::SinglePointConstraint(Model& _model, shared_ptr<Group> _group, int original_id) :
-        Constraint(_model, Constraint::Type::SPC, original_id), group(_group) {
+        Constraint(_model, Constraint::Type::SPC, original_id), spcs( { { NO_SPC, NO_SPC, NO_SPC, NO_SPC, NO_SPC,
+                NO_SPC } }), group(_group) {
 }
 
 void SinglePointConstraint::setDOF(const DOF& dof, const ValueOrReference& value) {

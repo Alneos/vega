@@ -70,8 +70,8 @@ private:
     static const std::map<std::string, CommentType> commentTypeByString;
 
     unsigned int currentField;   /**< Current position of the Tokenizer, i.e, the next field to be interpreted **/
-    std::vector<std::string> currentLineVector;
-    std::string currentLine;
+    std::vector<std::string> currentLineVector{};
+    std::string currentLine = "";
 
     NastranTokenizer::LineType getLineType(const std::string& line); /**< Determine the LineType of the line.**/
     void replaceTabs(std::string &line, bool longFormat); /**< Replace all tabulation by the needed number of space. **/
@@ -104,12 +104,12 @@ public:
 
     SectionType currentSection;
     SymbolType nextSymbolType;
-    std::map<std::pair<CommentType, int>, std::string> labelByCommentTypeAndId;
+    std::map<std::pair<CommentType, int>, std::string> labelByCommentTypeAndId{};
 
     NastranTokenizer(std::istream& stream, vega::LogLevel logLevel = vega::LogLevel::INFO,
             const std::string fileName = "UNKNOWN",
             const vega::ConfigurationParameters::TranslationMode translationMode = vega::ConfigurationParameters::TranslationMode::BEST_EFFORT);
-    virtual ~NastranTokenizer();
+    virtual ~NastranTokenizer() = default;
     NastranTokenizer(const NastranTokenizer& that) = delete;
 
     /**

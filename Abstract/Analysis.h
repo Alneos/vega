@@ -49,7 +49,7 @@ class ModelConfiguration;
 class Analysis: public Identifiable<Analysis> {
 private:
     friend std::ostream &operator<<(std::ostream &out, const Analysis& analysis);    //output
-    std::map<int, char> boundaryDOFSByNodePosition;
+    std::map<int, char> boundaryDOFSByNodePosition{};
     const std::string label;         /**< User defined label for this instance of Analysis. **/
 public:
     enum class Type {
@@ -63,9 +63,9 @@ public:
         UNKNOWN,
     };
 protected:
-    std::list<std::shared_ptr<Reference<LoadSet>>>loadSet_references;
-    std::list<std::shared_ptr<Reference<ConstraintSet>>> constraintSet_references;
-    std::list<std::shared_ptr<Reference<Objective>>> objectiveReferences;
+    std::list<std::shared_ptr<Reference<LoadSet>>>loadSet_references{};
+    std::list<std::shared_ptr<Reference<ConstraintSet>>> constraintSet_references{};
+    std::list<std::shared_ptr<Reference<Objective>>> objectiveReferences{};
     Analysis(Model& model, const Type Type, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     Analysis(const Analysis& that) = delete;
 
@@ -75,7 +75,7 @@ public:
     const Type type;
     static const std::string name;     /**< String conversion of the object, i.e "Analysis" **/
     static const std::map<Type,std::string> stringByType;
-    std::shared_ptr<Analysis> previousAnalysis;
+    std::shared_ptr<Analysis> previousAnalysis = nullptr;
 
     void add(const Reference<LoadSet>&);
     void add(const Reference<ConstraintSet>&);
@@ -135,7 +135,7 @@ public:
 class Combination: public Analysis {
 public:
     Combination(Model& model, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
-    std::map<Reference<Analysis>,double> coefByAnalysis;
+    std::map<Reference<Analysis>,double> coefByAnalysis{};
     bool isStatic() const override {
         return true;
     }

@@ -50,7 +50,9 @@ NodeGroup2Families::NodeGroup2Families(int nnodes, const vector<shared_ptr<NodeG
 				if (newFamilyPair == newFamilyByOldfamily.end()) {
 					//family not found, create one
 					currentFamilyId++;
+                    newFamilyId = currentFamilyId;
 					Family fam;
+					fam.num = currentFamilyId;
 					auto oldFamilyPair = familyByFamilyId.find(oldFamilyId);
 					if (oldFamilyPair != familyByFamilyId.end()) {
 						Family& oldFamily = oldFamilyPair->second;
@@ -63,7 +65,6 @@ NodeGroup2Families::NodeGroup2Families(int nnodes, const vector<shared_ptr<NodeG
 					} else {
 						fam.name = nodeGroup->getName();
 					}
-					newFamilyId = fam.num = currentFamilyId;
 					fam.groups.push_back(nodeGroup);
 					newFamilyByOldfamily.insert(make_pair(oldFamilyId, currentFamilyId));
 					familyByFamilyId.insert(make_pair(currentFamilyId, fam));
@@ -113,7 +114,9 @@ CellGroup2Families::CellGroup2Families(
 			if (newFamilyPair == newFamilyByOldfamily.end()) {
 				//family not found, create one
 				currentFamilyId--;
-				Family fam;
+                newFamilyId = currentFamilyId;
+                Family fam;
+                fam.num = currentFamilyId;
 				auto oldFamilyPair = familyByFamilyId.find(oldFamilyId);
 				if (oldFamilyPair != familyByFamilyId.end()) {
 					Family& oldFamily = oldFamilyPair->second;
@@ -126,7 +129,6 @@ CellGroup2Families::CellGroup2Families(
 				} else {
 					fam.name = cellGroup->getName();
 				}
-				newFamilyId = fam.num = currentFamilyId;
 				fam.groups.push_back(cellGroup);
 				newFamilyByOldfamily[oldFamilyId] = currentFamilyId;
 				familyByFamilyId[currentFamilyId] = fam;

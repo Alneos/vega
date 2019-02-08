@@ -33,13 +33,12 @@ enum LineItems {
 	DRZ
 };
 
-class CSVResultReader: public vega::ResultReader {
+class CSVResultReader final: public vega::ResultReader {
 public:
 	CSVResultReader() = default;
 	CSVResultReader(const CSVResultReader& that) = delete;
-	virtual void add_assertions(const ConfigurationParameters& configuration,
+	void add_assertions(const ConfigurationParameters& configuration,
 			Model& model) override;
-	virtual ~CSVResultReader();
 };
 
 }

@@ -97,9 +97,8 @@ string WritingMessageWarning(string arg, string key, string fname){
 }
 
 
-ParsingException::ParsingException(string arg, string fname, int lineNum, string key) {
-
-    msg.append(ParsingMessageException(arg, fname, lineNum, key));
+ParsingException::ParsingException(string arg, string fname, int lineNum, string key) :
+    msg{ParsingMessageException(arg, fname, lineNum, key)} {
 }
 
 ParsingException::operator const char*() const {
@@ -113,8 +112,8 @@ const char* ParsingException::what() const throw () {
 ParsingException::~ParsingException() throw () {
 }
 
-WritingException::WritingException(string arg, string key, string fname) {
-    msg.append(WritingMessageException(arg, key, fname));
+WritingException::WritingException(string arg, string key, string fname) :
+    msg{WritingMessageException(arg, key, fname)} {
 }
 
 WritingException::operator const char*() const {
@@ -158,12 +157,6 @@ void Tokenizer::handleParsingError(const string& message) {
 
 void Tokenizer::handleParsingWarning(const string& message) {
     cerr << ParsingMessageWarning(message, fileName, lineNumber, currentKeyword);
-}
-
-
-
-Parser::Parser(){
-    this->translationMode= ConfigurationParameters::TranslationMode::BEST_EFFORT;
 }
 
 void Parser::handleParsingError(const string& message, Tokenizer& tok,

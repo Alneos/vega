@@ -131,8 +131,8 @@ public:
     };
     BoundaryElementFace(Model& model, std::list<ElementFaceByTwoNodes> faceInfos, int original_id =
             NO_ORIGINAL_ID);
-    std::shared_ptr<CellGroup> surfaceCellGroup;
-    std::shared_ptr<CellGroup> elementCellGroup;
+    std::shared_ptr<CellGroup> surfaceCellGroup = nullptr;
+    std::shared_ptr<CellGroup> elementCellGroup = nullptr;
     std::list<ElementFaceByTwoNodes> faceInfos;
     void createSkin() override;
 };

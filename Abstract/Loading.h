@@ -77,7 +77,6 @@ public:
  * Set of loadings that are often referenced by an analysis.
  */
 class LoadSet: public Identifiable<LoadSet> {
-private:
 	Model& model;
 	friend std::ostream &operator<<(std::ostream&, const LoadSet&);
 public:
@@ -90,7 +89,7 @@ public:
 	};
 	LoadSet(Model&, Type type = Type::LOAD, int original_id = NO_ORIGINAL_ID);
 	static constexpr int COMMON_SET_ID = 0;
-	std::vector<std::pair<Reference<LoadSet>, double>> embedded_loadsets;
+	std::vector<std::pair<Reference<LoadSet>, double>> embedded_loadsets{};
 	const Type type;
 	static const std::string name;
 	static const std::map<Type, std::string> stringByType;

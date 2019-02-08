@@ -54,9 +54,9 @@ private:
         int ps;
         int seid;
     };
-    GrdSet grdSet;
+    GrdSet grdSet{};
 
-    std::unordered_map<std::string, std::shared_ptr<Reference<ElementSet>>> directMatrixByName;
+    std::unordered_map<std::string, std::shared_ptr<Reference<ElementSet>>> directMatrixByName{};
     enum class NastranAnalysis {
         STATIC = 101,
         MODES = 103,
@@ -845,7 +845,7 @@ private:
 public:
     NastranParser() = default;
     NastranParser(const NastranParser& that) = delete;
-    virtual ~NastranParser();
+    virtual ~NastranParser() = default;
     std::unique_ptr<Model> parse(const ConfigurationParameters& configuration) override;
 };
 

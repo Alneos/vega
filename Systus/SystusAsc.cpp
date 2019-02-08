@@ -37,10 +37,7 @@ string SystusTableLabelToString(const SystusTableLabel stl){
 
 
 SystusTable::SystusTable(systus_ascid_t id, SystusTableLabel label, systus_ascid_t type) :
-        id(id), label(label), type(type){
-}
-
-SystusTable::~SystusTable(){
+        id(id), label(label), type(type) {
 }
 
 ostream& operator<<(ostream& os, const SystusTable & st)
@@ -74,8 +71,7 @@ void SystusTable::add(const double value){
 // Start of Systus Matrix
 
 SystusMatrix::SystusMatrix(systus_ascid_t id, int nbDOFS, int nbNodes ) :
-        id(id), nbDOFS(nbDOFS), nbNodes(nbNodes){
-    this->size=nbNodes*nbNodes*nbDOFS*nbDOFS;
+        id(id), nbDOFS(nbDOFS), nbNodes(nbNodes), size{nbNodes*nbNodes*nbDOFS*nbDOFS} {
     this->values.resize(this->size, 0.0);
 
 }

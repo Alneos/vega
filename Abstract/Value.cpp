@@ -99,21 +99,16 @@ void BandRange::scale(double factor) {
 }
 
 StepRange::StepRange(const Model& model, double start, double step, double end, int original_id) :
-        ValueRange(model, Value::Type::STEP_RANGE, original_id), start(start), step(step), end(end) {
-    assert(step > 0);
-    count = int((end - start) / step);
+        ValueRange(model, Value::Type::STEP_RANGE, original_id), start(start), step(step),
+        count{static_cast<int>((end - start) / step)}, end(end) {
 }
 
 StepRange::StepRange(const Model& model, double start, int count, double end, int original_id) :
-        ValueRange(model, Value::Type::STEP_RANGE, original_id), start(start), count(count), end(end) {
-    if (count <= 0) {
-        throw logic_error("Count should be positive in steprange");
-    }
-    step = (end - start) / count;
+        ValueRange(model, Value::Type::STEP_RANGE, original_id), start(start), step{(end - start) / count}, count(count), end(end) {
 }
 StepRange::StepRange(const Model& model, double start, double step, int count, int original_id) :
-        ValueRange(model, Value::Type::STEP_RANGE, original_id), start(start), step(step), count(count) {
-    end = start + step * count;
+        ValueRange(model, Value::Type::STEP_RANGE, original_id), start(start), step(step), count(count),
+        end{start + step * count} {
 }
 
 bool StepRange::iszero() const {

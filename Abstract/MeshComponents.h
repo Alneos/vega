@@ -273,7 +273,7 @@ public:
     const int displacementCS; /**< Vega Position of the CS used to compute displacement, loadings, etc. **/
     inline static const std::string MedName(const int nodePosition) {
         if (nodePosition == Node::UNAVAILABLE_NODE) {
-          throw std::logic_error(std::string("Node position ") + std::to_string(nodePosition) + " not found.");
+          throw std::logic_error("Node position " + std::to_string(nodePosition) + " not found.");
         }
         return "N" + std::to_string(nodePosition + 1);
     }
@@ -287,7 +287,7 @@ class NodeGroup final : public Group {
 private:
     friend Mesh;
     // Positions of the nodes participating to the group
-    std::set<int> _nodePositions;
+    std::set<int> _nodePositions{};
     NodeGroup(Mesh& mesh, const std::string& name, int groupId, const std::string& comment="    ");
 public:
     // Add a node using its numerical id. If the node hasn't been yet defined it reserve position in the model.
@@ -364,12 +364,11 @@ public:
 };
 
 class CellGroup final: public Group {
-private:
     friend Mesh;
+    std::set<int> _cellPositions{};
     CellGroup(Mesh& mesh, const std::string & name, int id = NO_ORIGINAL_ID, const std::string & comment = "");
-    std::set<int> _cellPositions;
+    CellGroup(const CellGroup& that) = delete;
 public:
-
     void addCellId(int cellId);
     void addCellPosition(int cellPosition);
     bool containsCellPosition(int cellPosition) const;
@@ -379,8 +378,6 @@ public:
     const std::vector<int> cellIds();
     const std::set<int> nodePositions() const override;
     bool empty() const override;
-    virtual ~CellGroup();
-    CellGroup(const CellGroup& that) = delete;
 };
 
 class NodeIterator final: public std::iterator<std::input_iterator_tag, const Node> {
@@ -437,10 +434,12 @@ public:
 class NodeContainer {
 protected:
     const Mesh& mesh;
-    std::unordered_set<int> nodeIds;
-    std::unordered_set<std::string> groupNames;
+    std::unordered_set<int> nodeIds{};
+    std::unordered_set<std::string> groupNames{};
 public:
     NodeContainer(const Mesh& mesh);
+    virtual ~NodeContainer() = default;
+
     /*
      * Adds a nodeId to the current set
      */
@@ -464,8 +463,6 @@ public:
     void clear();
     // True if the cellContainer contains some spare nodes, not inserted in any group.
     bool hasNodes() const;
-    virtual ~NodeContainer() {
-    }
 };
 
 /**
@@ -476,10 +473,12 @@ public:
 class CellContainer {
 protected:
     const Mesh& mesh;
-    std::unordered_set<int> cellIds;
-    std::unordered_set<std::string> groupNames;
+    std::unordered_set<int> cellIds{};
+    std::unordered_set<std::string> groupNames{};
 public:
     CellContainer(const Mesh& mesh);
+    virtual ~CellContainer() = default;
+
     /**
      * Adds a cellId to the current set
      */
@@ -515,8 +514,6 @@ public:
      */
     bool hasCells() const;
     const std::vector<std::shared_ptr<CellGroup>> getCellGroups() const;
-    virtual ~CellContainer() {
-    }
 };
 
 } /* namespace vega */

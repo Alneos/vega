@@ -35,11 +35,8 @@ namespace nastran {
 NastranTokenizer::NastranTokenizer(istream& stream, vega::LogLevel logLevel, const string fileName,
 		const vega::ConfigurationParameters::TranslationMode translationMode) :
 		Tokenizer(stream, logLevel, fileName, translationMode),
-		currentField(0), currentSection(SectionType::SECTION_EXECUTIVE) {
-	this->nextSymbolType = SymbolType::SYMBOL_KEYWORD;
-}
-
-NastranTokenizer::~NastranTokenizer() {
+		currentField(0), currentSection(SectionType::SECTION_EXECUTIVE),
+		nextSymbolType{SymbolType::SYMBOL_KEYWORD} {
 }
 
 const string NastranTokenizer::HM_COMMENT_START = "$HMNAME ";

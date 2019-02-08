@@ -159,7 +159,7 @@ private:
 		bool symmetric;
 public:
 		std::unordered_map<std::pair<DOF, DOF>, double,
-				boost::hash<std::pair<int, int>>>componentByDofs;
+				boost::hash<std::pair<int, int>>>componentByDofs{};
 		DOFMatrix(bool it2 = false);
 		void addComponent(const DOF dof1, const DOF dof2, const double value);
 		double findComponent(const DOF dof1, const DOF dof2) const;

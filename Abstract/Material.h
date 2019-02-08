@@ -170,7 +170,7 @@ public:
 class Material: public Identifiable<Material> {
 protected:
     Model& model;
-    std::map<Nature::NatureType, std::shared_ptr<Nature>> nature_by_type;
+    std::map<Nature::NatureType, std::shared_ptr<Nature>> nature_by_type{};
 public:
     virtual ~Material() = default;
     friend std::ostream &operator<<(std::ostream&, const Material&);    //output

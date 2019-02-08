@@ -176,7 +176,7 @@ class ModalDamping: public AnalysisParameter {
 protected:
     Reference<NamedValue> function_table;
 public:
-    std::shared_ptr<Value> function;
+    std::shared_ptr<Value> function = nullptr;
     ModalDamping(Model& model, const FunctionTable& function_table, int original_id =
             NO_ORIGINAL_ID);
     ModalDamping(Model& model, int function_table_id, int original_id = NO_ORIGINAL_ID);

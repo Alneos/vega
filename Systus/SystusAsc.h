@@ -53,17 +53,17 @@ std::string SystusTableLabelToString(const SystusTableLabel stl);
 /**
  * Generic class for a Systus Table. Only the STANDARD type is really supported, all the others are unused and untested
  */
-class SystusTable{
+class SystusTable {
 public:
     systus_ascid_t id;
 
     SystusTableLabel label;
     systus_ascid_t type;
-    std::vector<double> values;
+    std::vector<double> values{};
 
     SystusTable(systus_ascid_t id, SystusTableLabel label=SystusTableLabel::TL_STANDARD, systus_ascid_t type=1);
     //SystusTable(const SystusTable& that) = delete;
-    virtual ~SystusTable();
+    virtual ~SystusTable() = default;
 
     void add(double value);
     friend std::ostream &operator<<(std::ostream &out, const SystusTable& st);
@@ -81,7 +81,7 @@ public:
     int nbDOFS;
     int nbNodes;
     int size;
-    std::vector<double> values;
+    std::vector<double> values{};
 
     SystusMatrix(systus_ascid_t id, int nbNodes, int nbDOFS);
     //SystusMatrix(const SystusMatrix& that) = delete;

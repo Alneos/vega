@@ -40,9 +40,6 @@ Model::Model(string name, string inputSolverVersion, SolverName inputSolver,
     this->onlyMesh = false;
 }
 
-Model::~Model() {
-}
-
 void Model::add(const shared_ptr<Analysis>& analysis) {
     if (configuration.logLevel >= LogLevel::DEBUG) {
         cout << "Adding " << *analysis << endl;

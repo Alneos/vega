@@ -136,6 +136,12 @@ endif()
 #  add_compile_options(-Wzero-as-null-pointer-constant)
 #endif()
 
+# boost::qi seems to prefer to initialize things inside constructor, see CSVResultReader
+#CHECK_CXX_COMPILER_FLAG(-Weffc++ COMPILER_SUPPORTS_EFF_CPP)
+#if(COMPILER_SUPPORTS_EFF_CPP)
+#  add_compile_options(-Weffc++)
+#endif()
+
 if(MSVC)
     # Patch for MSVC10 generator, 64 bit
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHa /MP")

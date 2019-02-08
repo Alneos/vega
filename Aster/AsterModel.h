@@ -20,14 +20,13 @@ class ElementSet;
 
 namespace aster {
 
-class AsterModel {
+class AsterModel final {
 public:
 	const vega::Model& model;
 	const vega::ConfigurationParameters configuration;
 	std::string phenomene;
 	AsterModel(const vega::Model& model, const vega::ConfigurationParameters &configuration);
 	AsterModel(const AsterModel& that) = delete;
-	virtual ~AsterModel();
 	const std::string getOutputFileName(std::string extension, bool absolute = true) const;
 	const std::string getAsterVersion() const;
 	double getMemjeveux() const;
