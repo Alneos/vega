@@ -1792,6 +1792,21 @@ void AsterWriter::writeCalcFreq(const AsterModel& asterModel, LinearModal& linea
         suffix = "FREQ";
     }
     FrequencySearch& frequencySearch = *(linearModal.getFrequencySearch());
+    if (not isBuckling) {
+        switch (frequencySearch.norm) {
+        case(FrequencySearch::NormType::MASS): {
+            out << "                       NORM_MODE=_F(NORME='MASS_GENE')," << endl;
+            break;
+        }
+        case(FrequencySearch::NormType::MAX): {
+            out << "                       NORM_MODE=_F(NORME='TRAN_ROTA')," << endl;
+            break;
+        }
+        default:
+            handleWritingError(
+                    "Norm for frequency search " + to_string(static_cast<int>(frequencySearch.frequencyType)) + " not (yet) implemented");
+        }
+    }
     switch(frequencySearch.frequencyType) {
     case FrequencySearch::FrequencyType::BAND: {
         BandRange band = dynamic_cast<BandRange&>(*frequencySearch.getValue());
@@ -2118,7 +2133,6 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		}
         writeCalcFreq(asterModel, linearModal, out);
 		out << "                       VERI_MODE=_F(STOP_ERREUR='NON',)," << endl;
-		out << "                       NORM_MODE=_F(NORME='MASS_GENE')," << endl;
 		//out << "                       IMPRESSION=_F(CUMUL='OUI',CRIT_EXTR='MASS_EFFE_UN',TOUT_PARA='OUI')," << endl;
 		out << "                       SOLVEUR=_F(METHODE='MUMPS'," << endl;
 		out << "                                  RENUM='PORD'," << endl;
@@ -2323,8 +2337,8 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
         out << "             SOLVEUR=_F(METHODE='MUMPS',)," << endl;
         out << "       )" << endl << endl;
 
-        out << "RESUN" << linearBuckling.getId() << " = NORM_MODE(MODE=RESU" << linearBuckling.getId() << ",NORME='TRAN',)" << endl;
-        out << "TBCRT" << linearBuckling.getId() << " = RECU_TABLE(CO=RESUN" << linearBuckling.getId() << ",NOM_PARA='CHAR_CRIT')" << endl;
+        out << "RESU" << linearBuckling.getId() << " = NORM_MODE(reuse=RESU"<< linearBuckling.getId() << ",MODE=RESU" << linearBuckling.getId() << ",NORME='TRAN_ROTA',)" << endl;
+        out << "TBCRT" << linearBuckling.getId() << " = RECU_TABLE(CO=RESU" << linearBuckling.getId() << ",NOM_PARA='CHAR_CRIT')" << endl;
 
         break;
     }
@@ -2404,13 +2418,18 @@ void AsterWriter::writeFrequencyAssertion(const Analysis& analysis, const Assert
         out << "                     VALE_CALC = " << frequencyAssertion.generalizedMass << "," << endl;
         out << "                     TOLE_MACHINE = " << frequencyAssertion.tolerance << "," << endl;
         out << "                     )," << endl;
-        out << "                  _F(RESULTAT=" << resuName << "," << endl;
-        out << "                     CRITERE = " << critere << endl;
-        out << "                     PARA = 'RIGI_GENE'," << endl;
-        out << "                     NUME_MODE = " << frequencyAssertion.number << "," << endl;
-        out << "                     VALE_CALC = " << frequencyAssertion.generalizedStiffness << "," << endl;
-        out << "                     TOLE_MACHINE = " << frequencyAssertion.tolerance << "," << endl;
-        out << "                     )," << endl;
+        if (not is_equal(frequencyAssertion.generalizedMass, 1.0)) {
+            // Do not check generalized stiffness k_g when generalize mass m_g is normalized
+            // since it is the same as checking the frequency : (2*pi*f)**2=k_g/m_g
+            // but the error would be squared
+            out << "                  _F(RESULTAT=" << resuName << "," << endl;
+            out << "                     CRITERE = " << critere << endl;
+            out << "                     PARA = 'RIGI_GENE'," << endl;
+            out << "                     NUME_MODE = " << frequencyAssertion.number << "," << endl;
+            out << "                     VALE_CALC = " << frequencyAssertion.generalizedStiffness << "," << endl;
+            out << "                     TOLE_MACHINE = " << frequencyAssertion.tolerance << "," << endl;
+            out << "                     )," << endl;
+        }
     }
 
 }
