@@ -147,10 +147,12 @@ void F06Parser::readEigenvalueSection(Model& model,
 			int number = stoi(tokens.at(0));
 			double eigenValue = stod(tokens.at(2));
 			double cycles = stod(tokens.at(4));
+			double generalizedMass = stod(tokens.at(5));
+			double generalizedStiffness = stod(tokens.at(6));
 			if (abs(cycles) < 1e-12)
 				cycles = 0.;
 			assertions.push_back(
-					make_shared<FrequencyAssertion>(model, number, cycles, eigenValue, configuration.testTolerance));
+					make_shared<FrequencyAssertion>(model, number, cycles, eigenValue, generalizedMass, generalizedStiffness, configuration.testTolerance));
 		}
 	} catch (const exception &e) {
 		string message("Error ");

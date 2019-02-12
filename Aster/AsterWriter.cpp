@@ -120,7 +120,7 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 			}
 			case (Analysis::Type::LINEAR_MODAL): {
 				out << "                _F(RESULTAT=RESU" << analysis.getId()
-						<< ", NOM_PARA='FREQ', TOUT_CHAM='NON')," << endl;
+						<< ", TOUT_PARA='OUI', TOUT_CHAM='NON')," << endl;
 				break;
 			}
             case (Analysis::Type::LINEAR_BUCKLING): {
@@ -324,21 +324,19 @@ void AsterWriter::writeAnalyses(const AsterModel& asterModel, ostream& out) {
 				case Objective::Type::NODAL_DISPLACEMENT_ASSERTION:
 					out << "                  _F(RESULTAT=RESU" << analysis.getId() << "," << endl;
 					writeNodalDisplacementAssertion(asterModel, *assertion, out);
+                    out << "                     )," << endl;
 					break;
 				case Objective::Type::FREQUENCY_ASSERTION:
-					out << "                  _F(RESULTAT="
-							<< ((analysis.type == Analysis::Type::LINEAR_MODAL or analysis.type == Analysis::Type::LINEAR_BUCKLING) ? "RESU" : "MODES")
-							<< analysis.getId() << "," << endl;
 					writeFrequencyAssertion(analysis, *assertion, out);
 					break;
 				case Objective::Type::NODAL_COMPLEX_DISPLACEMENT_ASSERTION:
 					out << "                  _F(RESULTAT=RESU" << analysis.getId() << "," << endl;
 					writeNodalComplexDisplacementAssertion(asterModel, *assertion, out);
+                    out << "                     )," << endl;
 					break;
 				default:
 					handleWritingError(string("Not implemented"));
 				}
-				out << "                     )," << endl;
 			}
 			out << "                  )" << endl;
 			out << "          );" << endl << endl;
@@ -2105,11 +2103,12 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 
 		LinearModal& linearModal = dynamic_cast<LinearModal&>(analysis);
 
+		string resuName;
 		if (analysis.type == Analysis::Type::LINEAR_MODAL)
-			out << "RESU";
+			resuName = "RESU" + to_string(linearModal.getId());
 		else
-			out << "MODES";
-		out << linearModal.getId() << "=CALC_MODES(MATR_RIGI=RIGI" << linearModal.getId()
+			resuName = "MODES" + to_string(linearModal.getId());
+		out << resuName << "=CALC_MODES(MATR_RIGI=RIGI" << linearModal.getId()
 				<< "," << endl;
 		out << "                       MATR_MASS=MASS" << linearModal.getId() << "," << endl;
 		if (linearModal.use_power_iteration) {
@@ -2119,11 +2118,17 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		}
         writeCalcFreq(asterModel, linearModal, out);
 		out << "                       VERI_MODE=_F(STOP_ERREUR='NON',)," << endl;
+		out << "                       NORM_MODE=_F(NORME='MASS_GENE')," << endl;
+		//out << "                       IMPRESSION=_F(CUMUL='OUI',CRIT_EXTR='MASS_EFFE_UN',TOUT_PARA='OUI')," << endl;
 		out << "                       SOLVEUR=_F(METHODE='MUMPS'," << endl;
 		out << "                                  RENUM='PORD'," << endl;
 		out << "                                  NPREC=8," << endl;
 		out << "                                  )," << endl;
-		out << "                       );" << endl << endl;
+		out << "                       )" << endl << endl;
+
+		out << "I" << resuName << "=RECU_TABLE(CO=" << resuName << ",NOM_PARA = ('FREQ','MASS_GENE','RIGI_GENE','AMOR_GENE'))" << endl;
+        out << "IMPR_TABLE(TABLE=I" << resuName << ")" << endl << endl;
+
 		if (analysis.type == Analysis::Type::LINEAR_MODAL)
 			break;
 
@@ -2375,9 +2380,10 @@ void AsterWriter::writeNodalComplexDisplacementAssertion(const AsterModel& aster
 void AsterWriter::writeFrequencyAssertion(const Analysis& analysis, const Assertion& assertion, ostream& out) const {
 	const FrequencyAssertion& frequencyAssertion = dynamic_cast<const FrequencyAssertion&>(assertion);
 	bool isBuckling = analysis.type == Analysis::Type::LINEAR_BUCKLING;
-
-	out << "                     CRITERE = "
-			<< (!is_zero(frequencyAssertion.cycles) ? "'RELATIF'," : "'ABSOLU',") << endl;
+	string resuName = ((analysis.type == Analysis::Type::LINEAR_MODAL or analysis.type == Analysis::Type::LINEAR_BUCKLING) ? "RESU" : "MODES") + to_string(analysis.getId());
+	string critere = (!is_zero(frequencyAssertion.cycles) ? "'RELATIF'," : "'ABSOLU',");
+    out << "                  _F(RESULTAT=" << resuName << "," << endl;
+	out << "                     CRITERE = " << critere << endl;
     if (isBuckling) {
         out << "                     PARA = 'CHAR_CRIT'," << endl;
         out << "                     NUME_MODE = " << analysis.getAssertions().size() - frequencyAssertion.number + 1 << "," << endl;
@@ -2388,6 +2394,24 @@ void AsterWriter::writeFrequencyAssertion(const Analysis& analysis, const Assert
         out << "                     VALE_CALC = " << frequencyAssertion.cycles << "," << endl;
     }
 	out << "                     TOLE_MACHINE = " << frequencyAssertion.tolerance << "," << endl;
+    out << "                     )," << endl;
+
+    if (not isBuckling) {
+        out << "                  _F(RESULTAT=" << resuName << "," << endl;
+        out << "                     CRITERE = " << critere << endl;
+        out << "                     PARA = 'MASS_GENE'," << endl;
+        out << "                     NUME_MODE = " << frequencyAssertion.number << "," << endl;
+        out << "                     VALE_CALC = " << frequencyAssertion.generalizedMass << "," << endl;
+        out << "                     TOLE_MACHINE = " << frequencyAssertion.tolerance << "," << endl;
+        out << "                     )," << endl;
+        out << "                  _F(RESULTAT=" << resuName << "," << endl;
+        out << "                     CRITERE = " << critere << endl;
+        out << "                     PARA = 'RIGI_GENE'," << endl;
+        out << "                     NUME_MODE = " << frequencyAssertion.number << "," << endl;
+        out << "                     VALE_CALC = " << frequencyAssertion.generalizedStiffness << "," << endl;
+        out << "                     TOLE_MACHINE = " << frequencyAssertion.tolerance << "," << endl;
+        out << "                     )," << endl;
+    }
 
 }
 }

@@ -115,7 +115,9 @@ public:
     const int number;
     const double cycles;
     const double eigenValue;
-    FrequencyAssertion(Model&, int number, double cycles, double eigenValue, double tolerance, int original_id =
+    const double generalizedMass;
+    const double generalizedStiffness;
+    FrequencyAssertion(Model&, int number, double cycles, double eigenValue, double generalizedMass, double generalizedStiffness, double tolerance, int original_id =
             NO_ORIGINAL_ID);
     const DOFS getDOFSForNode(const int nodePosition) const override final;
     std::set<int> nodePositions() const override final;

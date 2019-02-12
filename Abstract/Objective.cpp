@@ -92,9 +92,9 @@ ostream &operator<<(ostream &out, const NodalComplexDisplacementAssertion& objec
     return out;
 }
 
-FrequencyAssertion::FrequencyAssertion(Model& model, int number, double cycles, double eigenValue,
+FrequencyAssertion::FrequencyAssertion(Model& model, int number, double cycles, double eigenValue, double generalizedMass, double generalizedStiffness,
         double tolerance, int original_id) :
-        Assertion(model, Objective::Type::FREQUENCY_ASSERTION, tolerance, original_id), number(number), cycles(cycles), eigenValue(eigenValue) {
+        Assertion(model, Objective::Type::FREQUENCY_ASSERTION, tolerance, original_id), number(number), cycles(cycles), eigenValue(eigenValue), generalizedMass(generalizedMass), generalizedStiffness(generalizedStiffness) {
 }
 
 const DOFS FrequencyAssertion::getDOFSForNode(const int nodePosition) const {

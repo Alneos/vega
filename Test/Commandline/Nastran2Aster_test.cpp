@@ -27,7 +27,7 @@ namespace tests {
 using namespace std;
 
 BOOST_AUTO_TEST_CASE( prob19 ) {
-	CommandLineUtils::nastranStudy2Aster("/caw/prob19/prob19.dat", RUN_ASTER, true, 0.001);
+	CommandLineUtils::nastranStudy2Aster("/caw/prob19/prob19.dat", RUN_ASTER, true, 0.002);
 }
 
 BOOST_AUTO_TEST_CASE( prob30c ) {
@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE( rod1freeforce ) {
 }
 
 BOOST_AUTO_TEST_CASE( fixedcircularplate ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/fixed_circular_plate/fixed_circular_plate.dat", RUN_ASTER, true, 0.1);
+	CommandLineUtils::nastranStudy2Aster("/irt/fixed_circular_plate/fixed_circular_plate.dat", RUN_ASTER, true, 0.2);
 }
 
 BOOST_AUTO_TEST_CASE( t01331a ) {
@@ -114,7 +114,7 @@ BOOST_AUTO_TEST_CASE( nas101prob5 ) {
 }
 
 BOOST_AUTO_TEST_CASE( nas101prob6 ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob6/nas101prob6.nas", RUN_ASTER, true, 0.05);
+	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob6/nas101prob6.nas", RUN_ASTER, true, 0.09);
 }
 
 BOOST_AUTO_TEST_CASE( nas101prob7 ) {
@@ -135,11 +135,11 @@ BOOST_AUTO_TEST_CASE( nas102prob5 ) {
 }
 
 BOOST_AUTO_TEST_CASE( nas102prob6 ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/nas102prob6/nas102prob6.nas", RUN_ASTER, true, 0.02);
+	CommandLineUtils::nastranStudy2Aster("/irt/nas102prob6/nas102prob6.nas", RUN_ASTER, true, 0.03);
 }
 
 BOOST_AUTO_TEST_CASE( nas102prob14a ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/nas102prob14a/nas102prob14a.nas", RUN_ASTER, true, 0.003);
+	CommandLineUtils::nastranStudy2Aster("/irt/nas102prob14a/nas102prob14a.nas", RUN_ASTER, true, 0.006);
 }
 
 BOOST_AUTO_TEST_CASE( nas103prob1c ) {
