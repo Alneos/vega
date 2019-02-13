@@ -34,7 +34,7 @@ using namespace vega;
 // VALGRIND_CHECK_VALUE_IS_DEFINED(cell);
 // }
 
-BOOST_AUTO_TEST_CASE( test_model_spc ) {
+/*BOOST_AUTO_TEST_CASE( test_model_spc ) {
 	Model model{"inputfile", "10.3", SolverName::NASTRAN};
 	double coords[18] = { 0.0, 0.0, 0.0, 0.3, 0.0, 0.0, 0.75, 0.0, 0.0, 1.0, 0.0, 0.0, 1.4, 0.0,
 			0.0, 1.3, 0.0, 0.0 };
@@ -144,7 +144,7 @@ BOOST_AUTO_TEST_CASE( test_Elements ) {
 	BOOST_CHECK(assignment.hasCellGroups());
 	BOOST_CHECK_EQUAL(assignment.getCellGroups()[0]->getName(), "GM1");
 
-}
+}*/
 
 unique_ptr<Model> createModelWith1HEXA8() {
     ModelConfiguration configuration;
@@ -187,7 +187,16 @@ unique_ptr<Model> createModelWith1HEXA8() {
 	return model;
 }
 
- BOOST_AUTO_TEST_CASE( test_VirtualElements ) {
+BOOST_AUTO_TEST_CASE( test_graph ) {
+    unique_ptr<Model> model = createModelWith1HEXA8();
+	const auto& spc = make_shared<SinglePointConstraint>(*model, DOFS::ALL_DOFS, 0.0);
+	spc->addNodeId(50);
+	model->add(spc);
+	model->addConstraintIntoConstraintSet(spc->getReference(), model->commonConstraintSet->getReference());
+    model->createGraph();
+}
+
+ /*BOOST_AUTO_TEST_CASE( test_VirtualElements ) {
      unique_ptr<Model> model = createModelWith1HEXA8();
      const auto& loadSet1 = make_shared<LoadSet>(*model, LoadSet::Type::LOAD, 1);
      //model->add(loadSet1);
@@ -250,7 +259,7 @@ BOOST_AUTO_TEST_CASE( test_create_skin2d ) {
 	BOOST_CHECK_EQUAL_COLLECTIONS(applicationFace.begin(), applicationFace.end(),
 			expectedFace1NodeIds.begin(), expectedFace1NodeIds.end());
 	model->finish();
-	//BOOST_CHECK_EQUAL(model->materials.size(), 2 /* skin adds a virtual material */);
+	//BOOST_CHECK_EQUAL(model->materials.size(), 2 ); // 2 because skin adds a virtual material
 	BOOST_CHECK(model->validate());
 	BOOST_REQUIRE_EQUAL(1, model->mesh.countCells(CellType::QUAD4));
 	Cell cell = model->mesh.cells.cells_begin(CellType::QUAD4).next();
@@ -581,6 +590,6 @@ BOOST_AUTO_TEST_CASE( test_globalcs_force )
     NodalForce force1(model, 42.0, 43.0, 44.0, 0., 0., 0., Loading::NO_ORIGINAL_ID,
             Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, 0));
     BOOST_CHECK_EQUAL(force1.csref, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM);
-}
+}*/
 //____________________________________________________________________________//
 

@@ -380,6 +380,53 @@ shared_ptr<Value> SinglePointConstraint::getReferenceForDOF(const DOF& dof) cons
     return model.find(spcVal.getReference());
 }
 
+void SinglePointConstraint::emulateLocalDisplacementConstraint() {
+    set<shared_ptr<LinearMultiplePointConstraint>> lmpcs;
+    for (int nodePosition : this->nodePositions()) {
+        const Node& node = model.mesh.findNode(nodePosition);
+        if (node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+            shared_ptr<CoordinateSystem> coordSystem = model.mesh.getCoordinateSystemByPosition(node.displacementCS);
+            // TODO LD: this should be done differently: is used to compute different nodes but every this it changes the coordinate system instance!
+            coordSystem->updateLocalBase(VectorialValue(node.x, node.y, node.z));
+            DOFS dofs = this->getDOFSForNode(nodePosition);
+            if (model.configuration.logLevel >= LogLevel::DEBUG)
+                cout << "Replacing local spc " << *this << " for: " << node << ",dofs " << this->getDOFSForNode(nodePosition) << endl;
+            for (int i = 0; i < 6; i++) {
+                DOF currentDOF = *DOF::dofByPosition[i];
+                if (dofs.contains(currentDOF)) {
+                    VectorialValue participation = coordSystem->vectorToGlobal(
+                            VectorialValue::XYZ[i % 3]);
+                    shared_ptr<LinearMultiplePointConstraint> lmpc =
+                            make_shared<LinearMultiplePointConstraint>(model,
+                                    this->getDoubleForDOF(currentDOF));
+                    if (i < 3) {
+                        lmpc->addParticipation(node.id, participation.x(),
+                                participation.y(), participation.z());
+                    } else {
+                        lmpc->addParticipation(node.id, 0, 0, 0, participation.x(),
+                                participation.y(), participation.z());
+                    }
+                    if (model.configuration.logLevel >= LogLevel::DEBUG)
+                        cout << "Adding: " << node << ", current dof:" << currentDOF << ", participation:" << participation << ", coef:" << lmpc->coef_impo << endl;
+                    lmpcs.insert(lmpc);
+                }
+            }
+            this->removeNode(nodePosition);
+        }
+    }
+    const set<shared_ptr<ConstraintSet>> constraintSets = model.getConstraintSetsByConstraint(
+                this->getReference());
+    for (const auto& linearMultiplePointConstraint : lmpcs) {
+        model.add(linearMultiplePointConstraint);
+        for (const auto& constraintSet : constraintSets) {
+            if (model.configuration.logLevel >= LogLevel::DEBUG)
+                cout << "Adding Local emulation constraint:" << *linearMultiplePointConstraint << " to constraintset: " << *constraintSet << ";" << endl;
+            model.addConstraintIntoConstraintSet(linearMultiplePointConstraint->getReference(),
+                    constraintSet->getReference());
+        }
+    }
+}
+
 LinearMultiplePointConstraint::LinearMultiplePointConstraint(Model& model, double coef_impo,
         int original_id) :
         Constraint(model, Constraint::Type::LMPC, original_id), coef_impo(coef_impo) {

@@ -174,6 +174,7 @@ public:
 	virtual std::set<int> nodePositions() const override;
 	void removeNode(int nodePosition) override;
 	const DOFS getDOFSForNode(int nodePosition) const override;
+	void emulateLocalDisplacementConstraint();
 	bool hasReferences() const;
 	bool ineffective() const override;
 };

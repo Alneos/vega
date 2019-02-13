@@ -96,7 +96,7 @@ public:
     virtual bool isBeam() const {
         return false;
     }
-    virtual bool isBar() const {
+    virtual bool isTruss() const {
         return false;
     }
     virtual bool isShell() const {
@@ -128,7 +128,7 @@ public:
 	enum class BeamModel {
 		EULER,
 		TIMOSHENKO,
-		TRUSS
+		TRUSS /**< Element with no rotational stiffness in linear static analysis, also called PROD (Nastran) or BARRE (Aster) */
 	};
 	BeamModel beamModel;
 protected:
@@ -141,10 +141,16 @@ public:
 	double getAdditionalRho() const override {
 		return additional_mass / std::max(getAreaCrossSection(), DBL_MIN);
 	}
+	/**
+	 * True only for elements having rotational stiffness in linear static analysis, false for Truss elements (also see isTruss() method )
+	 */
 	bool isBeam() const override final {
 		return beamModel != BeamModel::TRUSS;
 	}
-    bool isBar() const override final {
+	/**
+	 * True only for elements with no rotational stiffness in linear static analysis, also called PROD (Nastran) or BARRE (Aster)
+	 */
+    bool isTruss() const override final {
 		return beamModel == BeamModel::TRUSS;
 	}
 	virtual double getAreaCrossSection() const = 0;

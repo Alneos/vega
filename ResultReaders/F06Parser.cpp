@@ -285,7 +285,7 @@ void F06Parser::addFrequencyAssertionsToModel(int currentSubCase, Model& model,
 		// LD If no subcase indicated, the first one is used.
 		// FIXME: what if the model don't have an analysis and the default one is
 		// created inside the finish()? GC
-		analysis = *model.analyses.begin();
+		analysis = model.analyses.first();
 	}
 	for (const auto& assertion : assertions) {
 		if (analysis != nullptr) {

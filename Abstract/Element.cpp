@@ -108,7 +108,7 @@ Beam::Beam(Model& model, Type type, const ModelType& modelType, BeamModel beamMo
 
 const DOFS Beam::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
-	if (this->isBar()) {
+	if (this->isTruss()) {
 	    return DOFS::TRANSLATIONS;
 	}
 

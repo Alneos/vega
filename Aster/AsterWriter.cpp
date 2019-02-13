@@ -809,7 +809,7 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 			out << "                             )," << endl;
 		}
 		vector<shared_ptr<Beam>> poutres = asterModel.model.getBeams();
-        vector<shared_ptr<Beam>> barres = asterModel.model.getBars();
+        vector<shared_ptr<Beam>> barres = asterModel.model.getTrusses();
 		out << "                    # writing " << poutres.size() << " poutres" << endl;
 		out << "                    # writing " << barres.size() << " barres" << endl;
 		if (poutres.size() > 0 or (asterModel.model.needsLargeDisplacements() and barres.size() > 0)) {
@@ -940,14 +940,14 @@ void AsterWriter::writeAffeCaraElemPoutre(const AsterModel& asterModel, const El
 		const Beam& beam =
 				static_cast<const Beam&>(elementSet);
 		out << "                               SECTION='GENERALE'," << endl;
-		if (not beam.isBar() or asterModel.model.needsLargeDisplacements()) {
+		if (not beam.isTruss() or asterModel.model.needsLargeDisplacements()) {
 		    out << "                               CARA=('A','IY','IZ','JX','AY','AZ',)," << endl;
 		} else {
 		    out << "                               CARA=('A',)," << endl;
 		}
 
 		out << "                               VALE=(";
-        if (not beam.isBar() or asterModel.model.needsLargeDisplacements()) {
+        if (not beam.isTruss() or asterModel.model.needsLargeDisplacements()) {
             out << max(std::numeric_limits<double>::epsilon(), beam.getAreaCrossSection()) << ","
 				<< max(std::numeric_limits<double>::epsilon(), beam.getMomentOfInertiaY()) << "," << max(std::numeric_limits<double>::epsilon(), beam.getMomentOfInertiaZ())
 				<< "," << max(std::numeric_limits<double>::epsilon(), beam.getTorsionalConstant()) << ",";
@@ -2035,7 +2035,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
                 } else if (hyelas) {
                     out << "RELATION='ELAS_HYPER',";
                     out << "DEFORMATION='GROT_GDEP',";
-                } else if (asterModel.model.needsLargeDisplacements() and (elementSet->isBeam() or elementSet->isBar())) {
+                } else if (asterModel.model.needsLargeDisplacements() and (elementSet->isBeam() or elementSet->isTruss())) {
                     out << "RELATION='ELAS_POUTRE_GR',";
                     out << "DEFORMATION='GROT_GDEP',";
                 } else {

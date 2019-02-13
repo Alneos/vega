@@ -369,9 +369,30 @@ public:
      */
     const std::set<std::shared_ptr<LoadSet>> getUncommonLoadSets() const;
 
+    /**
+	 * Retrieves only 1D elements having rotational stiffness in linear static analysis, false for Truss elements (also see getTrusses() method )
+	 */
     const std::vector<std::shared_ptr<Beam>> getBeams() const;
-    const std::vector<std::shared_ptr<Beam>> getBars() const;
+
+    /**
+	 * Retrieves only 1D elements having no rotational stiffness in linear static analysis (also see getBeams() method )
+	 */
+    const std::vector<std::shared_ptr<Beam>> getTrusses() const;
     bool needsLargeDisplacements() const;
+
+    /**
+     * Create a connection graph to find and block free mechanisms
+     * See https://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/19950020950.pdf
+     * A Verification Procedure for MSC/NASTRAN Finite Element Models
+     * Alan E. Stockweil
+     *
+     * 3.2.4 Mechanisms
+     * Mechanisms lead to stiffness matrix singularities involving two or more grid points. An
+     * example of a mechanism is a section of a structure that is capable of rigid-body motion in
+     * one or more directions. MSC/NASTRAN automatically checks for mechanisms every time
+     * it performs a decomposition using the DCMP module
+     */
+    void createGraph();
 
     /**
      * Method that is called when parsing is complete.

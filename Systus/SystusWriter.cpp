@@ -2685,7 +2685,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                         const double S= genericBeam->getAreaCrossSection();
                         writeMaterialField(SMF::S, S, nbElementsMaterial, omat);
 
-                        if (not genericBeam->isBar()) {
+                        if (not genericBeam->isTruss()) {
                             // VEGA stocks the inverse of our needed Shear Area Factors.
                             writeMaterialField(SMF::AY, S*genericBeam->getShearAreaFactorY(), nbElementsMaterial, omat);
                             writeMaterialField(SMF::AZ, S*genericBeam->getShearAreaFactorZ(), nbElementsMaterial, omat);
@@ -2702,7 +2702,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                         const double S= circularBeam->getAreaCrossSection();
 
                         writeMaterialField(SMF::S, S, nbElementsMaterial, omat);
-                        if (not circularBeam->isBar()) {
+                        if (not circularBeam->isTruss()) {
                             writeMaterialField(SMF::AY, S*circularBeam->getShearAreaFactorY(), nbElementsMaterial, omat);
                             writeMaterialField(SMF::AZ, S*circularBeam->getShearAreaFactorZ(), nbElementsMaterial, omat);
 
@@ -2717,7 +2717,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                                 const RectangularSectionBeam>(elementSet);
                         const double S= rectangularBeam->getAreaCrossSection();
 
-                        if (not rectangularBeam->isBar()) {
+                        if (not rectangularBeam->isTruss()) {
                             writeMaterialField(SMF::S, S, nbElementsMaterial, omat);
                             writeMaterialField(SMF::AY, S*rectangularBeam->getShearAreaFactorY(), nbElementsMaterial, omat);
                             writeMaterialField(SMF::AZ, S*rectangularBeam->getShearAreaFactorZ(), nbElementsMaterial, omat);

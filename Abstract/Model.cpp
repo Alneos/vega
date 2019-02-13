@@ -17,6 +17,9 @@
 #include <boost/geometry.hpp>
 #include <boost/geometry/index/rtree.hpp>
 #include <boost/geometry/geometries/geometries.hpp>
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/graphviz.hpp>
 #include <ciso646>
 
 using namespace std;
@@ -690,10 +693,10 @@ const vector<shared_ptr<Beam>> Model::getBeams() const {
     return result;
 }
 
-const vector<shared_ptr<Beam>> Model::getBars() const {
+const vector<shared_ptr<Beam>> Model::getTrusses() const {
     vector<shared_ptr<Beam>> result;
     for (const auto& elementSet : elementSets) {
-        if (elementSet->isBar()) {
+        if (elementSet->isTruss()) {
             shared_ptr<Beam> bar = dynamic_pointer_cast<Beam>(elementSet);
             result.push_back(bar);
         }
@@ -731,64 +734,17 @@ void Model::generateSkin() {
 }
 
 void Model::emulateLocalDisplacementConstraint() {
-    unordered_map<shared_ptr<Constraint>, set<shared_ptr<LinearMultiplePointConstraint>>> linearMultiplePointConstraintsByConstraint;
     // first pass : create LinearMultiplePoint constraints for each constraint that need it
     for (const auto& constraint : constraints) {
         if (constraint->type == Constraint::Type::SPC) {
             shared_ptr<SinglePointConstraint> spc = dynamic_pointer_cast<SinglePointConstraint>(
                     constraint);
-            for (int nodePosition : spc->nodePositions()) {
-                const Node& node = mesh.findNode(nodePosition);
-                if (node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-                    shared_ptr<CoordinateSystem> coordSystem = mesh.getCoordinateSystemByPosition(node.displacementCS);
-                    // TODO LD: this should be done differently: is used to compute different nodes but every this it changes the coordinate system instance!
-                    coordSystem->updateLocalBase(VectorialValue(node.x, node.y, node.z));
-                    DOFS dofs = constraint->getDOFSForNode(nodePosition);
-                    if (configuration.logLevel >= LogLevel::DEBUG)
-                        cout << "Replacing local spc " << *spc << " for: " << node << ",dofs " << constraint->getDOFSForNode(nodePosition) << endl;
-                    for (int i = 0; i < 6; i++) {
-                        vega::DOF currentDOF = *DOF::dofByPosition[i];
-                        if (dofs.contains(currentDOF)) {
-                            VectorialValue participation = coordSystem->vectorToGlobal(
-                                    VectorialValue::XYZ[i % 3]);
-                            shared_ptr<LinearMultiplePointConstraint> lmpc =
-                                    make_shared<LinearMultiplePointConstraint>(*this,
-                                            spc->getDoubleForDOF(currentDOF));
-                            if (i < 3) {
-                                lmpc->addParticipation(node.id, participation.x(),
-                                        participation.y(), participation.z());
-                            } else {
-                                lmpc->addParticipation(node.id, 0, 0, 0, participation.x(),
-                                        participation.y(), participation.z());
-                            }
-                            if (configuration.logLevel >= LogLevel::DEBUG)
-                                cout << "Adding: " << node << ", current dof:" << currentDOF << ", participation:" << participation << ", coef:" << lmpc->coef_impo << endl;
-                            linearMultiplePointConstraintsByConstraint[constraint].insert(lmpc);
-                        }
-                    }
-                    constraint->removeNode(nodePosition);
-                }
-            }
+            spc->emulateLocalDisplacementConstraint();
+            if (spc->nodePositions().size() == 0)
+                this->remove(spc->getReference());
         }
     }
 
-    // second pass : insert the new LinearMultiplePointConstraints into the model and the constraintSets
-    for (const auto& kv : linearMultiplePointConstraintsByConstraint) {
-        shared_ptr<Constraint> constraint = kv.first;
-        const set<shared_ptr<ConstraintSet>> constraintSets = getConstraintSetsByConstraint(
-                constraint->getReference());
-        for (const auto& linearMultiplePointConstraint : kv.second) {
-            add(linearMultiplePointConstraint);
-            for (const auto& constraintSet : constraintSets) {
-                if (configuration.logLevel >= LogLevel::DEBUG)
-                    cout << "Adding Local emulation constraint:" << *linearMultiplePointConstraint << " to constraintset: " << *constraintSet << ";" << endl;
-                addConstraintIntoConstraintSet(linearMultiplePointConstraint->getReference(),
-                        constraintSet->getReference());
-            }
-        }
-        if (constraint->nodePositions().size() == 0)
-            remove(constraint->getReference());
-    }
 }
 
 void Model::emulateAdditionalMass() {
@@ -1864,59 +1820,29 @@ void Model::splitElementsByDOFS(){
     vector<shared_ptr<ScalarSpring>> elementSetsToAdd;
     vector<shared_ptr<ElementSet>> elementSetsToRemove;
 
-    for (const auto& elementSet : elementSets) {
-
-        switch (elementSet->type){
-        case ElementSet::Type::DISCRETE_0D:
-        case ElementSet::Type::DISCRETE_1D:
-        case ElementSet::Type::NODAL_MASS:
-        case ElementSet::Type::CIRCULAR_SECTION_BEAM:
-        case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
-        case ElementSet::Type::I_SECTION_BEAM:
-        case ElementSet::Type::GENERIC_SECTION_BEAM:
-        case ElementSet::Type::STRUCTURAL_SEGMENT:
-        case ElementSet::Type::SHELL:
-        case ElementSet::Type::CONTINUUM:
-        case ElementSet::Type::STIFFNESS_MATRIX:
-        case ElementSet::Type::MASS_MATRIX:
-        case ElementSet::Type::DAMPING_MATRIX:
-        case ElementSet::Type::RIGIDSET:
-        case ElementSet::Type::RBAR:
-        case ElementSet::Type::RBE3:
-        case ElementSet::Type::LMPC:{
-            continue;
-        }
-
-        case ElementSet::Type::SCALAR_SPRING:{
-            shared_ptr<ScalarSpring> ss = dynamic_pointer_cast<ScalarSpring>(elementSet);
-            if (ss->getNbDOFSSpring()>1){
-                int i =1;
-                const double stiffness = ss->getStiffness();
-                const double damping = ss->getDamping();
-                const string name = ss->cellGroup->getName();
-                const string comment = ss->cellGroup->getComment();
-                if (configuration.logLevel >= LogLevel::DEBUG)
-                    cout<< *elementSet << " spring must be split."<<endl;
-                for (const auto & it : ss->getCellPositionByDOFS()){
-                    const auto& scalarSpring = make_shared<ScalarSpring>(*this, Identifiable<ElementSet>::NO_ORIGINAL_ID, stiffness, damping);
-                    shared_ptr<CellGroup> cellGroup = this->mesh.createCellGroup(name+"_"+to_string(i), Group::NO_ORIGINAL_ID, comment);
-                    scalarSpring->assignCellGroup(cellGroup);
-                    for (const int cellPosition : it.second){
-                        scalarSpring->addSpring(cellPosition, it.first.first, it.first.second);
-                        cellGroup->addCellPosition(cellPosition);
-                    }
-                    elementSetsToAdd.push_back(scalarSpring);
-                    i++;
+    for (const auto& elementSet : elementSets.filter(ElementSet::Type::SCALAR_SPRING)) {
+        shared_ptr<ScalarSpring> ss = static_pointer_cast<ScalarSpring>(elementSet);
+        if (ss->getNbDOFSSpring()>1) {
+            int i =1;
+            const double stiffness = ss->getStiffness();
+            const double damping = ss->getDamping();
+            const string name = ss->cellGroup->getName();
+            const string comment = ss->cellGroup->getComment();
+            if (configuration.logLevel >= LogLevel::DEBUG)
+                cout<< *elementSet << " spring must be split."<<endl;
+            for (const auto & it : ss->getCellPositionByDOFS()){
+                const auto& scalarSpring = make_shared<ScalarSpring>(*this, Identifiable<ElementSet>::NO_ORIGINAL_ID, stiffness, damping);
+                shared_ptr<CellGroup> cellGroup = this->mesh.createCellGroup(name+"_"+to_string(i), Group::NO_ORIGINAL_ID, comment);
+                scalarSpring->assignCellGroup(cellGroup);
+                for (const int cellPosition : it.second){
+                    scalarSpring->addSpring(cellPosition, it.first.first, it.first.second);
+                    cellGroup->addCellPosition(cellPosition);
                 }
-                elementSetsToRemove.push_back(elementSet);
-                this->mesh.removeGroup(name);
+                elementSetsToAdd.push_back(scalarSpring);
+                i++;
             }
-            break;
-        }
-        default: {
-            //TODO : throw ModelException("ElementSet type not supported");
-            cerr << "Warning in splitElementsByDOFS: " << *elementSet << " not supported" << endl;
-        }
+            elementSetsToRemove.push_back(elementSet);
+            this->mesh.removeGroup(name);
         }
     }
 
@@ -2029,6 +1955,33 @@ void Model::addAutoAnalysis() {
         const auto& analysis = make_shared<LinearMecaStat>(*this);
         this->add(analysis);
     }
+}
+
+void Model::createGraph() {
+    struct VertexProps { std::string name; };
+    struct EdgeProps   { std::string name; };
+    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, VertexProps, EdgeProps> Graph;
+
+    Graph g;
+
+    for (auto& elementSet : elementSets) {
+        long unsigned vpos = boost::add_vertex(g);
+        auto v = g[vpos];
+        v.name = to_str(*elementSet);
+    }
+
+    for (auto& constraintSet : constraintSets) {
+        long unsigned vpos = boost::add_vertex(g);
+        auto v = g[vpos];
+        v.name = to_str(*constraintSet);
+    }
+
+    // Add edges
+//    g.add_edge(v0, v1);
+//    g.add_edge(v1, v2);
+    boost::write_graphviz(cout, g, boost::make_label_writer(get(&VertexProps::name, g)),
+            boost::make_label_writer(get(&EdgeProps::name, g)));
+    std::cerr << "Graph node name:" << g[0].name << "\n";
 }
 
 void Model::finish() {
