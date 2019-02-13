@@ -54,10 +54,6 @@ public:
     bool has_id() const {
         return id != NO_ID;
     }
-    std::shared_ptr<Reference<T>> clone() const;
-    ~Reference() {
-    }
-    ;
 };
 
 template<class T>
@@ -124,12 +120,6 @@ template<class T>
 std::ostream &operator<<(std::ostream &out, const Reference<T>& reference) {
 	out << to_str(reference);
 	return out;
-}
-
-
-template<class T>
-std::shared_ptr<Reference<T>> Reference<T>::clone() const {
-    return std::make_shared<Reference<T>>(*this);
 }
 
 }/* namespace vega */

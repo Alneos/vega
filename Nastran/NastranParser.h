@@ -56,7 +56,7 @@ private:
     };
     GrdSet grdSet{};
 
-    std::unordered_map<std::string, std::shared_ptr<Reference<ElementSet>>> directMatrixByName{};
+    std::unordered_map<std::string, Reference<ElementSet>> directMatrixByName{};
     enum class NastranAnalysis {
         STATIC = 101,
         MODES = 103,

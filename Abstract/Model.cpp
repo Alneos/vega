@@ -176,7 +176,7 @@ template<>
 void Model::remove(const Reference<Constraint> constraintReference) {
     for (const auto& it : constraintReferences_by_constraintSet_ids) {
         for (const auto& it2 : it.second) {
-            if (*it2 == constraintReference) {
+            if (it2 == constraintReference) {
                 constraintReferences_by_constraintSet_ids[it.first].erase(it2);
                 break; // iterator is invalid now
             }
@@ -185,7 +185,7 @@ void Model::remove(const Reference<Constraint> constraintReference) {
     for (const auto& it : constraintReferences_by_constraintSet_original_ids_by_constraintSet_type) {
         for (const auto& it2 : it.second) {
             for (const auto& it3 : it2.second) {
-                if (*it3 == constraintReference) {
+                if (it3 == constraintReference) {
                     constraintReferences_by_constraintSet_original_ids_by_constraintSet_type[it.first][it2.first].erase(
                             it3);
                     break; // iterator is invalid now
@@ -201,7 +201,7 @@ void Model::remove(const Reference<Constraint> refC, const int idCS, const int o
 
     const auto & cR = constraintReferences_by_constraintSet_ids[idCS];
     for (const auto& it2 : cR) {
-        if (*it2 == refC){
+        if (it2 == refC){
             constraintReferences_by_constraintSet_ids[idCS].erase(it2);
             break; // iterator is invalid now
         }
@@ -209,7 +209,7 @@ void Model::remove(const Reference<Constraint> refC, const int idCS, const int o
     if (originalIdCS!= Identifiable<ConstraintSet>::NO_ORIGINAL_ID){
         const auto & cR2 = constraintReferences_by_constraintSet_original_ids_by_constraintSet_type[csT][originalIdCS];
         for (const auto& it3 : cR2) {
-            if (*it3 == refC){
+            if (it3 == refC){
                 constraintReferences_by_constraintSet_original_ids_by_constraintSet_type[csT][originalIdCS].erase(it3);
                 break; // iterator is invalid now
             }
@@ -222,7 +222,7 @@ template<>
 void Model::remove(const Reference<Loading> loadingReference) {
     for (const auto& it : loadingReferences_by_loadSet_ids) {
         for (const auto& it2 : it.second) {
-            if (*it2 == loadingReference) {
+            if (it2 == loadingReference) {
                 loadingReferences_by_loadSet_ids[it.first].erase(it2);
                 break; // iterator is invalid now
             }
@@ -231,7 +231,7 @@ void Model::remove(const Reference<Loading> loadingReference) {
     for (const auto& it : loadingReferences_by_loadSet_original_ids_by_loadSet_type) {
         for (const auto& it2 : it.second) {
             for (const auto& it3 : it2.second) {
-                if (*it3 == loadingReference) {
+                if (it3 == loadingReference) {
                     loadingReferences_by_loadSet_original_ids_by_loadSet_type[it.first][it2.first].erase(
                             it3);
                             break; // iterator is invalid now
@@ -318,7 +318,7 @@ const shared_ptr<ConstraintSet> Model::find(const Reference<ConstraintSet> refer
 template<>
 const shared_ptr<Analysis> Model::find(const Reference<Analysis> reference) const {
     shared_ptr<Analysis> analysis;
-    if (reference.type == Analysis::Type::UNKNOWN && reference.id == Reference<Analysis>::NO_ID)
+    if (reference.type == Analysis::Type::UNKNOWN and reference.id == Reference<Analysis>::NO_ID)
         // retrieve by original_id
         analysis = analyses.find(reference.original_id);
     else
@@ -329,7 +329,7 @@ const shared_ptr<Analysis> Model::find(const Reference<Analysis> reference) cons
 template<>
 const shared_ptr<ElementSet> Model::find(const Reference<ElementSet> reference) const {
     shared_ptr<ElementSet> elementSet;
-    if (reference.type == ElementSet::Type::UNKNOWN && reference.id == Reference<ElementSet>::NO_ID)
+    if (reference.type == ElementSet::Type::UNKNOWN and reference.id == Reference<ElementSet>::NO_ID)
         // retrieve by original_id
         elementSet = elementSets.find(reference.original_id);
     else
@@ -350,12 +350,11 @@ const shared_ptr<Target> Model::find(const Reference<Target> reference) const {
 
 void Model::addLoadingIntoLoadSet(const Reference<Loading>& loadingReference,
         const Reference<LoadSet>& loadSetReference) {
-    shared_ptr<Reference<Loading>> loadingReference_ptr = loadingReference.clone();
     if (loadSetReference.has_id())
-        loadingReferences_by_loadSet_ids[loadSetReference.id].insert(loadingReference_ptr);
+        loadingReferences_by_loadSet_ids[loadSetReference.id].insert(loadingReference);
     if (loadSetReference.has_original_id())
         loadingReferences_by_loadSet_original_ids_by_loadSet_type[loadSetReference.type][loadSetReference.original_id].insert(
-                loadingReference_ptr);
+                loadingReference);
     if (loadSetReference == commonLoadSet->getReference() && find(commonLoadSet->getReference()) == nullptr)
         add(commonLoadSet); // commonLoadSet is added to the model if needed
     if (this->find(loadSetReference) == nullptr) {
@@ -384,9 +383,9 @@ const set<shared_ptr<Loading>> Model::getLoadingsByLoadSet(
     auto itm = loadingReferences_by_loadSet_ids.find(loadSetReference.id);
     if (itm != loadingReferences_by_loadSet_ids.end()) {
         for (const auto& itm2 : itm->second) {
-            shared_ptr<Loading> loading = find(*itm2);
+            shared_ptr<Loading> loading = find(itm2);
             if (loading == nullptr) {
-                throw logic_error("Missing loading declared in loadingSet : " + to_str(*itm2));
+                throw logic_error("Missing loading declared in loadingSet : " + to_str(itm2));
             }
             result.insert(loading);
         }
@@ -397,9 +396,9 @@ const set<shared_ptr<Loading>> Model::getLoadingsByLoadSet(
         auto itm3 = itm2->second.find(loadSetReference.original_id);
         if (itm3 != itm2->second.end()) {
             for (const auto& itm4 : itm3->second) {
-                shared_ptr<Loading> loading = find(*itm4);
+                shared_ptr<Loading> loading = find(itm4);
             if (loading == nullptr) {
-                throw logic_error("Missing loading declared in loadingSet : " + to_str(*itm4));
+                throw logic_error("Missing loading declared in loadingSet : " + to_str(itm4));
             }
                 result.insert(loading);
             }
@@ -410,13 +409,12 @@ const set<shared_ptr<Loading>> Model::getLoadingsByLoadSet(
 
 void Model::addConstraintIntoConstraintSet(const Reference<Constraint>& constraintReference,
         const Reference<ConstraintSet>& constraintSetReference) {
-    shared_ptr<Reference<Constraint>> constraintReference_ptr = constraintReference.clone();
     if (constraintSetReference.has_id())
         constraintReferences_by_constraintSet_ids[constraintSetReference.id].insert(
-                constraintReference_ptr);
+                constraintReference);
     if (constraintSetReference.has_original_id())
         constraintReferences_by_constraintSet_original_ids_by_constraintSet_type[constraintSetReference.type][constraintSetReference.original_id].insert(
-                constraintReference_ptr);
+                constraintReference);
     if (constraintSetReference == commonConstraintSet->getReference()
             and find(commonConstraintSet->getReference()) == nullptr)
         add(commonConstraintSet); // commonConstraintSet is added to the model if needed
@@ -428,7 +426,7 @@ const set<shared_ptr<Constraint>> Model::getConstraintsByConstraintSet(
     auto itm = constraintReferences_by_constraintSet_ids.find(constraintSetReference.id);
     if (itm != constraintReferences_by_constraintSet_ids.end()) {
         for (const auto& itm2 : itm->second) {
-            result.insert(find(*itm2));
+            result.insert(find(itm2));
         }
     }
     auto itm2 = constraintReferences_by_constraintSet_original_ids_by_constraintSet_type.find(
@@ -437,7 +435,7 @@ const set<shared_ptr<Constraint>> Model::getConstraintsByConstraintSet(
         auto itm3 = itm2->second.find(constraintSetReference.original_id);
         if (itm3 != itm2->second.end()) {
             for (const auto& itm4 : itm3->second) {
-                result.insert(find(*itm4));
+                result.insert(find(itm4));
             }
         }
     }
@@ -537,7 +535,7 @@ const set<shared_ptr<ConstraintSet>> Model::getUncommonConstraintSets() const {
     }
     for (const auto& constraintSet : constraintSets) {
         auto it = map.find(constraintSet);
-        if (it != map.end() && it->second < analyses.size())
+        if (it != map.end() and it->second < analyses.size())
             result.insert(constraintSet);
     }
     return result;
@@ -553,7 +551,7 @@ const set<shared_ptr<LoadSet>> Model::getUncommonLoadSets() const {
     }
     for (const auto& loadSet : loadSets) {
         auto it = map.find(loadSet);
-        if ((it != map.end() && it->second < analyses.size()) && loadSet->type != LoadSet::Type::DLOAD)
+        if ((it != map.end() and it->second < analyses.size()) and loadSet->type != LoadSet::Type::DLOAD)
             result.insert(loadSet);
     }
     return result;
@@ -573,7 +571,7 @@ void Model::generateDiscrets() {
 
             const DOFS& requiredDOFS = analysis->findBoundaryDOFS(node.position);
             if (!node.dofs.containsAll(requiredDOFS)) {
-                missingDOFS = missingDOFS + requiredDOFS - node.dofs;
+                missingDOFS += requiredDOFS - node.dofs;
             }
         }
 
@@ -648,7 +646,7 @@ void Model::generateDiscrets() {
 
 shared_ptr<Material> Model::getOrCreateMaterial(int material_id, bool createIfNotExists) {
     shared_ptr<Material> result = materials.find(material_id);
-    if (!result && createIfNotExists) {
+    if (not result and createIfNotExists) {
         result = make_shared<Material>(*this, material_id);
         this->add(result);
     }
@@ -675,7 +673,7 @@ void Model::assignMaterial(int material_id, const CellContainer& materialAssign)
 }
 
 shared_ptr<Material> Model::getVirtualMaterial() {
-    if (!virtualMaterial) {
+    if (not virtualMaterial) {
         virtualMaterial = this->getOrCreateMaterial(Material::NO_ORIGINAL_ID);
         virtualMaterial->addNature(make_shared<ElasticNature>(*this, 1e-12, 0.0));
     }

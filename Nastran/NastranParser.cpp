@@ -294,7 +294,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                     throw logic_error("set references not yet implemented " + to_string(num));
                 }
                 const auto& matrix = make_shared<DampingMatrix>(model); // LD : TODO string identifier here
-                directMatrixByName[line] = matrix->getReference().clone();
+                directMatrixByName.insert(make_pair(line, matrix->getReference()));
                 model.add(matrix);
             } else if (keyword == "CEND") {
                 //Nothing to do
@@ -326,7 +326,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                     throw logic_error("set references not yet implemented " + to_string(num));
                 }
                 const auto& matrix = make_shared<StiffnessMatrix>(model); // LD : TODO string identifier here
-                directMatrixByName[line] = matrix->getReference().clone();
+                directMatrixByName.insert(make_pair(line,matrix->getReference()));
                 model.add(matrix);
             } else if (keyword == "M2GG") {
                 // Selects direct input mass matrix or matrices.
@@ -355,7 +355,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                     throw logic_error("set references not yet implemented " + to_string(num));
                 }
                 const auto& matrix = make_shared<MassMatrix>(model); // LD : TODO string identifier here
-                directMatrixByName[line] = matrix->getReference().clone();
+                directMatrixByName.insert(make_pair(line,matrix->getReference()));
                 model.add(matrix);
             } else if (keyword == "SUBCASE") {
                 keyword = parseSubcase(tok, model, context);
@@ -1132,7 +1132,7 @@ void NastranParser::parseDMIG(NastranTokenizer& tok, Model& model) {
     }
 
     shared_ptr<MatrixElement> matrix = dynamic_pointer_cast<MatrixElement>(
-                model.find(*(it->second)));
+                model.find(it->second));
 
 
     int gj = headerIndicator;

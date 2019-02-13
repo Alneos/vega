@@ -63,9 +63,9 @@ public:
         UNKNOWN,
     };
 protected:
-    std::list<std::shared_ptr<Reference<LoadSet>>>loadSet_references{};
-    std::list<std::shared_ptr<Reference<ConstraintSet>>> constraintSet_references{};
-    std::list<std::shared_ptr<Reference<Objective>>> objectiveReferences{};
+    std::list<Reference<LoadSet>>loadSet_references{};
+    std::list<Reference<ConstraintSet>> constraintSet_references{};
+    std::list<Reference<Objective>> objectiveReferences{};
     Analysis(Model& model, const Type Type, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     Analysis(const Analysis& that) = delete;
 

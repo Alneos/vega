@@ -63,7 +63,7 @@ ostream &operator<<(ostream &out, const Analysis& analysis) {
 }
 
 void Analysis::add(const Reference<LoadSet>& loadSetReference) {
-    this->loadSet_references.push_back(loadSetReference.clone());
+    this->loadSet_references.push_back(loadSetReference);
 }
 
 const vector<shared_ptr<LoadSet>> Analysis::getLoadSets() const {
@@ -72,7 +72,7 @@ const vector<shared_ptr<LoadSet>> Analysis::getLoadSets() const {
     if (commonLoadSet != nullptr and not commonLoadSet->empty())
         result.push_back(commonLoadSet);
     for (const auto& loadSetReference : this->loadSet_references) {
-        const auto& loadSet = model.find(*loadSetReference);
+        const auto& loadSet = model.find(loadSetReference);
         if (loadSet != nullptr)
             result.push_back(loadSet);
     }
@@ -105,13 +105,13 @@ const vector<shared_ptr<BoundaryCondition>> Analysis::getBoundaryConditions() co
 }
 
 void Analysis::add(const Reference<ConstraintSet>& constraintSetReference) {
-    this->constraintSet_references.push_back(constraintSetReference.clone());
+    this->constraintSet_references.push_back(constraintSetReference);
 }
 
 void Analysis::remove(const Reference<LoadSet> loadSetReference) {
     auto it = loadSet_references.begin();
     while (it != loadSet_references.end()) {
-        if (**it == loadSetReference) {
+        if (*it == loadSetReference) {
             it = loadSet_references.erase(it);
         } else {
             ++it;
@@ -122,7 +122,7 @@ void Analysis::remove(const Reference<LoadSet> loadSetReference) {
 void Analysis::remove(const Reference<ConstraintSet> constraintSetReference) {
     auto it = constraintSet_references.begin();
     while (it != constraintSet_references.end()) {
-        if (**it == constraintSetReference) {
+        if (*it == constraintSetReference) {
             it = constraintSet_references.erase(it);
         } else {
             ++it;
@@ -133,7 +133,7 @@ void Analysis::remove(const Reference<ConstraintSet> constraintSetReference) {
 void Analysis::remove(const Reference<Objective> objectiveReference) {
     auto it = objectiveReferences.begin();
     while (it != objectiveReferences.end()) {
-        if (**it == objectiveReference) {
+        if (*it == objectiveReference) {
             it = objectiveReferences.erase(it);
         } else {
             ++it;
@@ -202,20 +202,20 @@ const vector<shared_ptr<ConstraintSet>> Analysis::getConstraintSets() const {
     if (commonConstraintSet != nullptr and not commonConstraintSet->empty())
         result.push_back(commonConstraintSet);
     for (const auto& constraintSetReference : this->constraintSet_references) {
-        result.push_back(model.find(*constraintSetReference));
+        result.push_back(model.find(constraintSetReference));
     }
 
     return result;
 }
 
 void Analysis::add(const Reference<Objective>& assertionReference) {
-    objectiveReferences.push_back(assertionReference.clone());
+    objectiveReferences.push_back(assertionReference);
 }
 
 const vector<shared_ptr<Assertion>> Analysis::getAssertions() const {
     vector<shared_ptr<Assertion>> assertions;
     for (const auto& assertion_reference : objectiveReferences) {
-        shared_ptr<Objective> objective = model.find(*assertion_reference);
+        shared_ptr<Objective> objective = model.find(assertion_reference);
         if (not objective->isAssertion()) continue;
         assertions.push_back(dynamic_pointer_cast<Assertion>(objective));
     }
@@ -225,7 +225,7 @@ const vector<shared_ptr<Assertion>> Analysis::getAssertions() const {
 const vector<shared_ptr<Objective>> Analysis::getObjectives() const {
     vector<shared_ptr<Objective>> objectives;
     for (const auto& objective_reference : objectiveReferences) {
-        shared_ptr<Objective> objective = model.find(*objective_reference);
+        shared_ptr<Objective> objective = model.find(objective_reference);
         objectives.push_back(objective);
     }
     return objectives;
@@ -234,7 +234,7 @@ const vector<shared_ptr<Objective>> Analysis::getObjectives() const {
 bool Analysis::hasSPC() const{
 
     vector<std::shared_ptr<ConstraintSet>> allcs = this->getConstraintSets();
-    for (const auto & cs : allcs){
+    for (const auto& cs : allcs){
 
         switch(cs->type){
 
@@ -268,17 +268,17 @@ bool Analysis::hasSPC() const{
 bool Analysis::validate() const {
     bool result = true;
     for (const auto& constraintSetReference : this->constraintSet_references) {
-        if (model.find(*constraintSetReference) == nullptr) {
+        if (model.find(constraintSetReference) == nullptr) {
             if (model.configuration.logLevel >= LogLevel::INFO) {
-                cout << "Missing constraintset reference:" << *constraintSetReference << endl;
+                cout << "Missing constraintset reference:" << constraintSetReference << endl;
             }
             result = false;
         }
     }
     for (const auto& loadSetReference : this->loadSet_references) {
-        if (model.find(*loadSetReference) == nullptr) {
+        if (model.find(loadSetReference) == nullptr) {
             if (model.configuration.logLevel >= LogLevel::INFO) {
-                cout << "Missing loadset reference:" << *loadSetReference << endl;
+                cout << "Missing loadset reference:" << loadSetReference << endl;
             }
             result = false;
         }
@@ -363,13 +363,13 @@ const set<int> Analysis::boundaryNodePositions() const {
 
 void Analysis::copyInto(Analysis& other) const {
     for(const auto& loadSetRef : loadSet_references) {
-        other.add(*loadSetRef);
+        other.add(loadSetRef);
     }
     for(const auto& constraintSetRef : constraintSet_references) {
-        other.add(*constraintSetRef);
+        other.add(constraintSetRef);
     }
     for(const auto& objectiveRef : objectiveReferences) {
-        other.add(*objectiveRef);
+        other.add(objectiveRef);
     }
 }
 

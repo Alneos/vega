@@ -159,15 +159,15 @@ public:
     const std::shared_ptr<ConstraintSet> commonConstraintSet;
 
 private:
-    std::unordered_map<LoadSet::Type, std::map<int, std::set<std::shared_ptr<Reference<Loading>>> > ,EnumClassHash>
+    std::unordered_map<LoadSet::Type, std::map<int, std::set<Reference<Loading>> > ,EnumClassHash>
     loadingReferences_by_loadSet_original_ids_by_loadSet_type{};
-    std::unordered_map<int, std::set<std::shared_ptr<Reference<Loading>>> >
+    std::unordered_map<int, std::set<Reference<Loading>> >
     loadingReferences_by_loadSet_ids{};
 
     std::unordered_map< ConstraintSet::Type,
-    std::map<int, std::set<std::shared_ptr<Reference<Constraint>>>>,EnumClassHash>
+    std::map<int, std::set<Reference<Constraint>>>,EnumClassHash>
     constraintReferences_by_constraintSet_original_ids_by_constraintSet_type{};
-    std::map< int, std::set<std::shared_ptr<Reference<Constraint>>>>
+    std::map< int, std::set<Reference<Constraint>>>
     constraintReferences_by_constraintSet_ids{};
 
     template<class T> class Container final {

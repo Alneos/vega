@@ -1850,55 +1850,24 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
     }
 
     // Build tables for linear multipoint constraints
-    for (const auto& elementSet : systusModel.model.elementSets) {
+    for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::LMPC)) {
 
-        switch (elementSet->type) {
-        // None of these elements are LMPC
-        //HELP: We keep the list to raise warnings for unknown ElementSet
-        case ElementSet::Type::CIRCULAR_SECTION_BEAM:
-        case ElementSet::Type::GENERIC_SECTION_BEAM:
-        case ElementSet::Type::I_SECTION_BEAM:
-        case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
-        case ElementSet::Type::STRUCTURAL_SEGMENT:
-        case ElementSet::Type::SHELL:
-        case ElementSet::Type::CONTINUUM:
-        case ElementSet::Type::NODAL_MASS:
-        case ElementSet::Type::RBAR:
-        case ElementSet::Type::RBE3:
-        case ElementSet::Type::DISCRETE_0D:
-        case ElementSet::Type::DISCRETE_1D:
-        case ElementSet::Type::SCALAR_SPRING:
-        case ElementSet::Type::STIFFNESS_MATRIX:
-        case ElementSet::Type::MASS_MATRIX:
-        case ElementSet::Type::DAMPING_MATRIX:{
+        // If the LMPC is not relevant to the current subcase, we skip it
+        shared_ptr<Lmpc> lmpc = dynamic_pointer_cast<Lmpc>(elementSet);
+        vector<int> analysisOfSubcase =  systusSubcases[idSubcase];
+        if (std::find(analysisOfSubcase.begin(), analysisOfSubcase.end(), lmpc->analysisId) == analysisOfSubcase.end()){
             continue;
         }
-
-        case ElementSet::Type::LMPC:{
-
-            // If the LMPC is not relevant to the current subcase, we skip it
-            shared_ptr<Lmpc> lmpc = dynamic_pointer_cast<Lmpc>(elementSet);
-            vector<int> analysisOfSubcase =  systusSubcases[idSubcase];
-            if (std::find(analysisOfSubcase.begin(), analysisOfSubcase.end(), lmpc->analysisId) == analysisOfSubcase.end()){
-                continue;
+        // The Table for Lmpc is simply the list of coef by dof by nodes
+        systus_ascid_t tId= tables.size()+1;
+        SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
+        for (DOFCoefs dofCoefs : lmpc->dofCoefs){
+            for (int i =0; i< nbDOFS; i++){
+                aTable.add(dofCoefs[i]);
             }
-            // The Table for Lmpc is simply the list of coef by dof by nodes
-            systus_ascid_t tId= tables.size()+1;
-            SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
-            for (DOFCoefs dofCoefs : lmpc->dofCoefs){
-                for (int i =0; i< nbDOFS; i++){
-                    aTable.add(dofCoefs[i]);
-                }
-            }
-            tables.push_back(aTable);
-            tableByElementSet[elementSet->getId()]=tId;
-            break;
         }
-
-        default: {
-            handleWritingWarning(to_str(*elementSet) +" not supported", "Table");
-        }
-        }
+        tables.push_back(aTable);
+        tableByElementSet[elementSet->getId()]=tId;
     }
 
 

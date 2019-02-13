@@ -388,13 +388,13 @@ void SinglePointConstraint::emulateLocalDisplacementConstraint() {
             shared_ptr<CoordinateSystem> coordSystem = model.mesh.getCoordinateSystemByPosition(node.displacementCS);
             // TODO LD: this should be done differently: is used to compute different nodes but every this it changes the coordinate system instance!
             coordSystem->updateLocalBase(VectorialValue(node.x, node.y, node.z));
-            DOFS dofs = this->getDOFSForNode(nodePosition);
+            const DOFS& dofs = this->getDOFSForNode(nodePosition);
             if (model.configuration.logLevel >= LogLevel::DEBUG)
                 cout << "Replacing local spc " << *this << " for: " << node << ",dofs " << this->getDOFSForNode(nodePosition) << endl;
             for (int i = 0; i < 6; i++) {
-                DOF currentDOF = *DOF::dofByPosition[i];
+                const DOF& currentDOF = *DOF::dofByPosition[i];
                 if (dofs.contains(currentDOF)) {
-                    VectorialValue participation = coordSystem->vectorToGlobal(
+                    const VectorialValue& participation = coordSystem->vectorToGlobal(
                             VectorialValue::XYZ[i % 3]);
                     shared_ptr<LinearMultiplePointConstraint> lmpc =
                             make_shared<LinearMultiplePointConstraint>(model,
