@@ -1963,7 +1963,7 @@ void Model::createGraph() {
     Graph g;
 
     for (auto& elementSet : elementSets) {
-        long unsigned vpos = boost::add_vertex(g);
+        auto vpos = boost::add_vertex(g);
         auto v = g[vpos];
         v.name = to_str(*elementSet);
     }
