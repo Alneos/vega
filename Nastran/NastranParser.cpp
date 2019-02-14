@@ -502,6 +502,30 @@ string NastranParser::defaultAnalysis() const {
     return ""; // instead of "101": see github #15
 }
 
+NastranParser::NastranAnalysis NastranParser::autoSubcaseAnalysis(map<string, string> &context) const {
+    for (const auto& contextEntry: context) {
+        if (contextEntry.first.find("NLPARM") != string::npos) {
+            return NastranAnalysis::NLSTATIC;
+        }
+    }
+    bool hasMethod = false;
+    for (const auto& contextEntry: context) {
+        if (contextEntry.first.find("METHOD") != string::npos) {
+            hasMethod = true;
+            break;
+        }
+    }
+    if (hasMethod) {
+        for (const auto& contextEntry: context) {
+            if (contextEntry.first.find("SDAMPING") != string::npos) {
+                return NastranAnalysis::MFREQ;
+            }
+        }
+        return NastranAnalysis::MODES;
+    }
+    return NastranAnalysis::STATIC;
+}
+
 void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string, string> &context,
         int analysis_id) {
 
@@ -536,10 +560,10 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
             if (label_entry != ANALYSIS_BY_LABEL.end())
                 analysis_type = label_entry->second;
             else {
-                analysis_type = NastranAnalysis::STATIC; // default with empty ANALYSIS keyword (happened in SMOT)
+                analysis_type = autoSubcaseAnalysis(context); // when empty ANALYSIS keyword (happened in SMOT)
             }
         } else
-            analysis_type = NastranAnalysis::STATIC;
+            analysis_type = autoSubcaseAnalysis(context); // no analysis keyword
     }
 
     shared_ptr<Analysis> analysis = nullptr;
@@ -904,7 +928,7 @@ void NastranParser::parseCONROD(NastranTokenizer& tok, Model& model) {
 }
 
 void NastranParser::parseCONM2(NastranTokenizer& tok, Model& model) {
-    int elemId = tok.nextInt();
+    int eid = tok.nextInt();
     int g = tok.nextInt(); // Grid point identification number
     int ci = tok.nextInt(true, 0);
     if (ci == -1) {
@@ -932,11 +956,11 @@ void NastranParser::parseCONM2(NastranTokenizer& tok, Model& model) {
     const double i32 = tok.nextDouble(true, 0.0);
     const double i33 = tok.nextDouble(true, 0.0);
 
-    const auto& nodalMass = make_shared<NodalMass>(model, mass, i11, i22, i33, -i21, -i31, -i32, x1, x2, x3, elemId);
+    const auto& nodalMass = make_shared<NodalMass>(model, mass, i11, i22, i33, -i21, -i31, -i32, x1, x2, x3, eid);
 
-    int cellPosition = model.mesh.addCell(elemId, CellType::POINT1, { g });
-    string mn = string("CONM2_") + to_string(elemId);
-    auto mnodale = model.mesh.createCellGroup(mn, CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
+    int cpos = ci == 0 ? CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID : ci;
+    int cellPosition = model.mesh.addCell(eid, CellType::POINT1, { g }, false, cpos);
+    auto mnodale = model.mesh.createCellGroup("CONM2_" + to_string(eid), CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
     mnodale->addCellId(model.mesh.findCell(cellPosition).id);
     nodalMass->assignCellGroup(mnodale);
 

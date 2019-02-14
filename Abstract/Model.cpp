@@ -564,6 +564,7 @@ void Model::generateDiscrets() {
 
     shared_ptr<CellGroup> virtualDiscretTGroup = nullptr;
 
+    // LD TODO : possible optimisation, only "altered nodes" (nodes with rotations, nodes with boundary conditions)
     for (const Node& node : this->mesh.nodes) {
         DOFS missingDOFS;
 
@@ -1969,7 +1970,7 @@ void Model::createGraph() {
     }
 
     for (auto& constraintSet : constraintSets) {
-        long unsigned vpos = boost::add_vertex(g);
+        auto vpos = boost::add_vertex(g);
         auto v = g[vpos];
         v.name = to_str(*constraintSet);
     }
@@ -2001,23 +2002,6 @@ void Model::finish() {
     if (this->configuration.autoDetectAnalysis and analyses.size() == 0) {
         addAutoAnalysis();
     }
-//    if (this->configuration.autoDetectAnalysis and analyses.size() == 0) {
-//        addAutoAnalysis();
-//    } else {
-//        int i = 1;
-//        for (shared_ptr<Analysis> analysis : analyses) {
-//            if (analysis->isLinear() and analysis->isStatic() and constraintSets.contains(ConstraintSet::Type::CONTACT)) {
-//                cout << "Transforming linear static analysis " + to_str(*analysis) + " in non-linear because of contact.";
-//                NonLinearStrategy nonLinearStrategy(*this, 1, i++);
-//                this->add(nonLinearStrategy);
-//                NonLinearMecaStat nonLinAnalysis(*this, nonLinearStrategy.getOriginalId());
-//                analysis->copyInto(nonLinAnalysis);
-//                this->add(nonLinAnalysis);
-//
-//                this->analyses.erase(analysis->getReference());
-//            }
-//        }
-//    }
 
     if (this->configuration.createSkin) {
         generateSkin();

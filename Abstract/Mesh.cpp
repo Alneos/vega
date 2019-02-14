@@ -42,13 +42,16 @@ namespace fs = boost::filesystem;
 
 const double NodeStorage::RESERVED_POSITION = -DBL_MAX;
 
-NodeData::NodeData(int id, const DOFS& dofs, double x, double y, double z, int cpPos, int cdPos) :
-    id(id), dofs(dofs), x(x), y(y), z(z), cpPos(cpPos), cdPos(cdPos) {
+NodeData::NodeData(int id, const DOFS& dofs, double x, double y, double z, int cpPos, int cdPos, int nodePart) :
+    id(id), dofs(dofs), x(x), y(y), z(z), cpPos(cpPos), cdPos(cdPos), nodePart(nodePart) {
 }
 
 /**
  * Node Container class
  */
+
+int NodeStorage::currentNodePart = 0;
+
 NodeStorage::NodeStorage(Mesh& mesh, LogLevel logLevel) :
 		logLevel(logLevel), mesh(mesh) {
 	nodeDatas.reserve(4096);
@@ -62,9 +65,21 @@ NodeIterator NodeStorage::end() const {
 	return NodeIterator(this, static_cast<int>(nodeDatas.size()));
 }
 
-int NodeStorage::reserveNodePosition(int nodeId) {
+int NodeStorage::reserveNodePosition(int nodeId, int cellPartId) {
+    int nodePart = 0;
+//    UNUSEDV(cellPartId);
+    if (cellPartId != Globals::UNAVAILABLE_INT) {
+        auto nodePartsEntry = nodePartsByCellPart.find(cellPartId);
+        if (nodePartsEntry != nodePartsByCellPart.end()) {
+            // LD Arbitrarily assigning to the first node part
+            nodePart = *(nodePartsEntry->second.begin());
+        } else {
+            nodePart = ++currentNodePart;
+            nodePartsByCellPart[cellPartId] = {nodePart};
+        }
+    }
 	int nodePosition = mesh.addNode(nodeId, RESERVED_POSITION, RESERVED_POSITION,
-			RESERVED_POSITION);
+			RESERVED_POSITION, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, nodePart);
 	nodepositionById[nodeId] = nodePosition;
 	if (this->logLevel >= LogLevel::TRACE) {
 		cout << "Reserve node id:" << nodeId << " position:" << nodePosition << endl;
@@ -142,7 +157,7 @@ Mesh::Mesh(LogLevel logLevel, const string& modelName) :
 	}
 }
 
-int Mesh::addNode(int id, double x, double y, double z, int cpPos, int cdPos) {
+int Mesh::addNode(int id, double x, double y, double z, int cpPos, int cdPos, int nodePart) {
 	int nodePosition;
 
 	// In auto mode, we assign the first free node, starting from the biggest possible number
@@ -155,7 +170,7 @@ int Mesh::addNode(int id, double x, double y, double z, int cpPos, int cdPos) {
 	auto positionIterator = nodes.nodepositionById.find(id);
 	if (positionIterator == nodes.nodepositionById.end()) {
 		nodePosition = static_cast<int>(nodes.nodeDatas.size());
-		NodeData nodeData(id, DOFS::NO_DOFS, x, y, z, cpPos, cdPos);
+		NodeData nodeData(id, DOFS::NO_DOFS, x, y, z, cpPos, cdPos, nodePart);
 		nodes.nodeDatas.push_back(nodeData);
 		nodes.nodepositionById[id] = nodePosition;
 	} else {
@@ -204,10 +219,26 @@ const Node Mesh::findNode(const int nodePosition) const {
 	}
 }
 
-int Mesh::findOrReserveNode(int nodeId) {
+int Mesh::findOrReserveNode(int nodeId, int cellPartId) {
 
 	int nodePosition = findNodePosition(nodeId);
-	return nodePosition != Node::UNAVAILABLE_NODE ? nodePosition : nodes.reserveNodePosition(nodeId);
+	if (nodePosition == Node::UNAVAILABLE_NODE)
+        return nodes.reserveNodePosition(nodeId, cellPartId);
+//    UNUSEDV(cellPartId);
+    if (cellPartId != Globals::UNAVAILABLE_INT) {
+        if (nodes.nodePartsByCellPart.find(cellPartId) == nodes.nodePartsByCellPart.end()) {
+            nodes.nodePartsByCellPart[cellPartId] = {++(nodes.currentNodePart)};
+        }
+        auto& nodeParts = nodes.nodePartsByCellPart[cellPartId];
+        auto& nodeData = nodes.nodeDatas[nodePosition];
+        if (nodeData.nodePart == 0) {
+            // LD Arbitrarily assigning to the first node part
+            nodeData.nodePart = *(nodeParts.begin());
+        } else {
+            nodeParts.insert(nodeData.nodePart);
+        }
+    }
+	return nodePosition;
 
 }
 
@@ -291,7 +322,7 @@ int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &node
 	}
 	shared_ptr<deque<int>> nodePositionsPtr = cells.nodepositionsByCelltype[cellType];
 	for (const auto& nodeId : nodeIds) {
-		nodePositionsPtr->push_back(findOrReserveNode(nodeId));
+		nodePositionsPtr->push_back(findOrReserveNode(nodeId, elementId));
 	}
 	if (cpos != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
 		std::shared_ptr<CellGroup> coordinateSystemCellGroup = this->getOrCreateCellGroupForCS(cpos);
