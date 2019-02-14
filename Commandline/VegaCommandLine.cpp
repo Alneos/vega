@@ -229,24 +229,43 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
             throw invalid_argument("Systus RBE2 Translation Mode must be either lagrangian or penalty (default).");
         }
     }
-    double systusRBE2Rigidity=Globals::UNAVAILABLE_DOUBLE;
+
+   // Deprecated options: retro-compatiblity
+    double systusRBEStiffness=Globals::UNAVAILABLE_DOUBLE;
+    double systusRBECoefficient;
+    if (vm.count("systus.RBELagrangian")){
+        cout<< "systus.RBELagrangian option is deprecated. Will translate using systus.RBEStiffness and systus.RBECoefficient."<<endl;
+        systusRBEStiffness=1.0;
+        systusRBECoefficient=vm["systus.RBELagrangian"].as<double>();
+    }
     if ((vm.count("systus.RBE2Rigidity")) && (systusRBE2TranslationMode=="penalty")){
-        systusRBE2Rigidity = vm["systus.RBE2Rigidity"].as<double>();
-        if ((!is_equal(systusRBE2Rigidity,Globals::UNAVAILABLE_DOUBLE)) && (systusRBE2Rigidity<=0.0)){
-            throw invalid_argument("Systus RBE2 Rigidity must be positive.");
+        cout<< "systus.RBE2Rigidity option is deprecated. Will translate using systus.RBEStiffness and systus.RBECoefficient."<<endl;
+        systusRBEStiffness=vm["systus.RBE2Rigidity"].as<double>();
+        systusRBECoefficient=1.0;
+    }
+
+    if (vm.count("systus.RBEStiffness")){
+        systusRBEStiffness = vm["systus.RBEStiffness"].as<double>();
+    }
+    if (is_equal(systusRBECoefficient,Globals::UNAVAILABLE_DOUBLE){
+        if (systusRBE2TranslationMode=="penalty"){
+            systusRBECoefficient=10;
+        }else{
+            systusRBECoefficient=1000;
         }
     }
-    double systusRBELagrangian=vm["systus.RBELagrangian"].as<double>();
-
+    if (vm.count("systus.RBECoefficient")){
+        systusRBECoefficient = vm["systus.RBECoefficient"].as<double>();
+    }
 
     string systusOptionAnalysis="auto";
     if (vm.count("systus.OptionAnalysis")){
-    	systusOptionAnalysis = vm["systus.OptionAnalysis"].as<string>();
-    	set<string> availableTranlation { "auto", "3D", "shell", "shell-multi" };
-    	set<string>::iterator it = availableTranlation.find(systusOptionAnalysis);
-    	if (it == availableTranlation.end()) {
-    		throw invalid_argument("Systus OPTION analysis must be either auto (default), 3D, shell or shell-multi");
-    	}
+        systusOptionAnalysis = vm["systus.OptionAnalysis"].as<string>();
+        set<string> availableTranlation { "auto", "3D", "shell", "shell-multi" };
+        set<string>::iterator it = availableTranlation.find(systusOptionAnalysis);
+        if (it == availableTranlation.end()) {
+            throw invalid_argument("Systus OPTION analysis must be either auto (default), 3D, shell or shell-multi");
+        }
     }
     string systusOutputProduct="systus";
     if (vm.count("systus.OutputProduct")){
@@ -333,8 +352,8 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
         cout << "\t Output directory: "<< outputDir << endl;
         cout << "\t Verbosity: "<< static_cast<int>(logLevel) << endl;
         cout << "\t Systus RBE2 Translation Mode: "<< systusRBE2TranslationMode << endl;
-        cout << "\t Systus RBE2 Rigidity (for penalty mode only): " << (is_equal(systusRBE2Rigidity, Globals::UNAVAILABLE_DOUBLE) ? "auto" : to_string(systusRBE2Rigidity)) << endl;
-        cout << "\t Systus RBE Lagrangian (for RBE2 lagrangian mode and RBE3): " << systusRBELagrangian << endl;
+        cout << "\t Systus RBE Stiffness: " << (is_equal(systusRBEStiffness, Globals::UNAVAILABLE_DOUBLE) ? "auto" : to_string(systusRBEStiffness)) << endl;
+        cout << "\t Systus RBE Coefficient: " << systusRBECoefficient << endl;
         cout << "\t Systus OPTION analysis: " << systusOptionAnalysis << endl;
         cout << "\t Systus Dynamic method: " << systusDynamicMethod << endl;
         cout << "\t Systus Output product: " << systusOutputProduct << endl;
@@ -352,7 +371,7 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     ConfigurationParameters configuration = ConfigurationParameters(inputFile.string(), solver,
             solverVersion, modelName, outputDir, logLevel, translationMode, testFnamePath,
             tolerance, runSolver, solverServer, solverCommand,
-            systusRBE2TranslationMode, systusRBE2Rigidity, systusRBELagrangian, systusOptionAnalysis, systusOutputProduct,
+            systusRBE2TranslationMode, systusRBEStiffness, systusRBECoefficient, systusOptionAnalysis, systusOutputProduct,
             systusSubcases, systusOutputMatrix, systusSizeMatrix, systusDynamicMethod);
     return configuration;
 }
@@ -450,9 +469,13 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
         ("systus.RBE2TranslationMode",po::value<string>()->default_value("penalty"),
                 "Translation mode of RBE2 from Nastran To Systus: lagrangian or penalty.") //
         ("systus.RBE2Rigidity", po::value<double>(),
-                "Rigidity of RBE2 (if you don't want the automatic penalty translation only).") //
-        ("systus.RBELagrangian", po::value<double>()->default_value(1.0),
-                "Lagrange coefficients for RBE2 (Lagrange Translation) and RBE3.") //
+                "(deprecated) Rigidity of RBE2 (if you don't want the automatic penalty translation only).") //
+        ("systus.RBELagrangian", po::value<double>(),
+                "(deprecated) Lagrange coefficients for RBE2 (Lagrange Translation) and RBE3.") //
+        ("systus.RBEStiffness", po::value<double>(),
+                "Stiffness of RBE. Let blank for automatic value.") //
+        ("systus.RBECoefficient", po::value<double>(),
+                "Multiplicative coefficient for RBE. Let blank for automatic value.") //
         ("systus.Subcase", po::value<std::vector<std::string>>(),
                 "'auto' (default), 'single' or lists 'n1,n2,...,nN' of analysis numbers belonging to the same subcase.") //
         ("systus.OptionAnalysis",po::value<string>()->default_value("auto"),

@@ -575,9 +575,7 @@ void SystusWriter::getSystusInformations(const SystusModel& systusModel, const C
     }
 }
 
-double SystusWriter::generateRbarRigidity(const SystusModel& systusModel, const shared_ptr<Rbar> rbar){
-
-    const Mesh& mesh = systusModel.model.mesh;
+double SystusWriter::generateRbarStiffness(const SystusModel& systusModel){
 
     // We access the maximum of the Young Modulus of the model. No need to do it twice
     if (is_equal(maxYoungModulus,Globals::UNAVAILABLE_DOUBLE)){
@@ -595,68 +593,58 @@ double SystusWriter::generateRbarRigidity(const SystusModel& systusModel, const 
     }
 
     // Master node is the same for all cells
-    const int masterId = rbar->masterId;
-    const int masterPosition = mesh.findNodePosition(masterId);
-    const Node& mN = mesh.findNode(masterPosition);
-
-    double maxLength=0.0;
-    for (const Cell& cell : rbar->cellGroup->getCells()) {
-       vector<int> nodes = cell.nodeIds;
-       const Node& sN = mesh.findNode(cell.nodePositions[1]);
-       double lengthRbar = sqrt( pow(mN.x-sN.x,2) +pow(mN.y-sN.y,2) + pow(mN.z-sN.z,2));
-       maxLength=max(maxLength, lengthRbar);
+    Mesh& mesh = systusModel.model.mesh;
+    const MeshStatistics mS=mesh.calcStats();
+    double quadraticMeanLength=mS.quadraticMeanLength;
+    if (is_zero(quadraticMeanLength)){
+        handleWritingWarning("Characteristic length of Rigid Element was null and raised to 1","Rbar Stiffness");
+        quadraticMeanLength=1.0;
     }
 
-    double rigidity = maxYoungModulus*maxLength;
-    if (is_zero(rigidity)){
-        handleWritingWarning("Computed rigidity for "+to_str(*rbar)+" was null and raised to 1","Rbar Rigidity");
-        rigidity=1.0;
-    }
-
-    return rigidity;
+    return maxYoungModulus*quadraticMeanLength;
 }
 
 //TODO: create a single function to compute penalty
-double SystusWriter::generateLmpcRigidity(const SystusModel& systusModel, const shared_ptr<Lmpc> lmpc){
-
-    const Mesh& mesh = systusModel.model.mesh;
-
-    // We access the maximum of the Young Modulus of the model. No need to do it twice
-    if (is_equal(maxYoungModulus,Globals::UNAVAILABLE_DOUBLE)){
-        maxYoungModulus=0.0;
-        for (const auto& elementSet : systusModel.model.elementSets) {
-            const auto& material = elementSet->material;
-            if ((elementSet->cellGroup != nullptr)&&(material != nullptr)){
-                const shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
-                if (nature) {
-                    const ElasticNature& elasticNature = dynamic_cast<ElasticNature&>(*nature);
-                    maxYoungModulus= max(maxYoungModulus, elasticNature.getE());
-                }
-            }
-        }
-    }
-
-    // Master node is the same for all cells
-    double maxLength=0.0;
-    for (const Cell& cell : lmpc->cellGroup->getCells()) {
-        // The reference one is the first one. Why ? Why not ?
-        // TODO: a much much better formulation
-        const Node& mN = mesh.findNode(cell.nodePositions[0]);
-        for (unsigned int i=1;i<cell.nodePositions.size();i++){
-            const Node& sN = mesh.findNode(cell.nodePositions[i]);
-            double lengthLmpc = sqrt( pow(mN.x-sN.x,2) +pow(mN.y-sN.y,2) + pow(mN.z-sN.z,2));
-           maxLength=max(maxLength, lengthLmpc);
-        }
-    }
-
-    double rigidity = maxYoungModulus*maxLength;
-    if (is_zero(rigidity)){
-        handleWritingWarning("Computed rigidity for "+to_str(*lmpc)+" was null and raised to 1","LMPC Rigidity");
-        rigidity=1.0;
-    }
-
-    return rigidity;
-}
+//double SystusWriter::generateLmpcRigidity(const SystusModel& systusModel, const shared_ptr<Lmpc> lmpc){
+//
+//    const Mesh& mesh = systusModel.model.mesh;
+//
+//    // We access the maximum of the Young Modulus of the model. No need to do it twice
+//    if (is_equal(maxYoungModulus,Globals::UNAVAILABLE_DOUBLE)){
+//        maxYoungModulus=0.0;
+//        for (const auto& elementSet : systusModel.model.elementSets) {
+//            const auto& material = elementSet->material;
+//            if ((elementSet->cellGroup != nullptr)&&(material != nullptr)){
+//                const shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
+//                if (nature) {
+//                    const ElasticNature& elasticNature = dynamic_cast<ElasticNature&>(*nature);
+//                    maxYoungModulus= max(maxYoungModulus, elasticNature.getE());
+//                }
+//            }
+//        }
+//    }
+//
+//    // Master node is the same for all cells
+//    double maxLength=0.0;
+//    for (const Cell& cell : lmpc->cellGroup->getCells()) {
+//        // The reference one is the first one. Why ? Why not ?
+//        // TODO: a much much better formulation
+//        const Node& mN = mesh.findNode(cell.nodePositions[0]);
+//        for (unsigned int i=1;i<cell.nodePositions.size();i++){
+//            const Node& sN = mesh.findNode(cell.nodePositions[i]);
+//            double lengthLmpc = sqrt( pow(mN.x-sN.x,2) +pow(mN.y-sN.y,2) + pow(mN.z-sN.z,2));
+//           maxLength=max(maxLength, lengthLmpc);
+//        }
+//    }
+//
+//    double rigidity = maxYoungModulus*maxLength;
+//    if (is_zero(rigidity)){
+//        handleWritingWarning("Computed rigidity for "+to_str(*lmpc)+" was null and raised to 1","LMPC Rigidity");
+//        rigidity=1.0;
+//    }
+//
+//    return rigidity;
+//}
 
 
 void SystusWriter::generateRBEs(SystusModel& systusModel,
@@ -702,18 +690,17 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
             }
 
             // We update the material with the needed value
+            double stiffness;
+            if (is_equal(configuration.systusRBEStiffness, Globals::UNAVAILABLE_DOUBLE)){
+                stiffness= this->generateRbarStiffness(systusModel);
+            }else{
+                stiffness= configuration.systusRBEStiffness;
+            }
             RigidNature& rigidNature = dynamic_cast<RigidNature&>(*nature);
             if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-                if (is_equal(configuration.systusRBELagrangian, Globals::UNAVAILABLE_DOUBLE)){
-                    throw logic_error("Error: ElementSet::RBAR were not provided with a lagrangian.");
-                }
-                rigidNature.setLagrangian(configuration.systusRBELagrangian);
+                rigidNature.setLagrangian(configuration.systusRBECoefficient);
             }else{
-               if (is_equal(configuration.systusRBE2Rigidity, Globals::UNAVAILABLE_DOUBLE)){
-                   rigidNature.setRigidity(generateRbarRigidity(systusModel, rbars));
-               }else{
-                   rigidNature.setRigidity(configuration.systusRBE2Rigidity);
-               }
+                rigidNature.setRigidity(configuration.systusRBECoefficient*stiffness);
             }
 
 
@@ -866,18 +853,17 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
             }
 
             // We update the material with the needed value
+            double stiffness;
+            if (is_equal(configuration.systusRBEStiffness, Globals::UNAVAILABLE_DOUBLE)){
+                stiffness= this->generateRbarStiffness(systusModel);
+            }else{
+                stiffness= configuration.systusRBEStiffness;
+            }
             RigidNature& rigidNature = dynamic_cast<RigidNature&>(*nature);
             if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-                if (is_equal(configuration.systusRBELagrangian, Globals::UNAVAILABLE_DOUBLE)){
-                    throw logic_error("Error: ElementSet::Lmpc were not provided with a lagrangian.");
-                }
-                rigidNature.setLagrangian(configuration.systusRBELagrangian);
+                rigidNature.setLagrangian(configuration.systusRBECoefficient);
             }else{
-               if (is_equal(configuration.systusRBE2Rigidity, Globals::UNAVAILABLE_DOUBLE)){
-                   rigidNature.setRigidity(generateLmpcRigidity(systusModel, lmpc));
-               }else{
-                   rigidNature.setRigidity(configuration.systusRBE2Rigidity);
-               }
+                rigidNature.setRigidity(configuration.systusRBECoefficient*stiffness);
             }
 
             // With a Lagrangian formulation, we add a Lagrange node.

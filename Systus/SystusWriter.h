@@ -332,8 +332,8 @@ private:
      *       L_j the length of the j-th segment of the current Rbar.
      *
      */
-    double generateRbarRigidity(const SystusModel&, const std::shared_ptr<Rbar>);
-    double generateLmpcRigidity(const SystusModel&, const std::shared_ptr<Lmpc>);
+    double generateRbarStiffness(const SystusModel&);
+    //double generateLmpcRigidity(const SystusModel&, const std::shared_ptr<Lmpc>);
 
     /**
      *  Generate RBE from Rbars and Rbe3 ElementSet:
