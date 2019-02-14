@@ -180,8 +180,8 @@ public:
             LogLevel::INFO, TranslationMode translationMode = TranslationMode::BEST_EFFORT, fs::path resultFile = "",
             double testTolerance = 0.02, bool runSolver = false, std::string solverServer = "",
             std::string solverCommand = "",
-            std::string systusRBE2TranslationMode = "lagrangian", double systusRBE2Rigidity= 0.0,
-            double systusRBELagrangian= 1.0,
+            std::string systusRBE2TranslationMode = "lagrangian", double systusRBEStiffness= 0.0,
+            double systusRBECoefficient= 0.0,
             std::string systusOptionAnalysis="auto", std::string systusOutputProduct="systus",
             std::vector< std::vector<int> > systusSubcases = {},
             std::string systusOutputMatrix="table", int systusSizeMatrix=9,
@@ -202,8 +202,8 @@ public:
     const std::string solverServer;
     const std::string solverCommand;
     const std::string systusRBE2TranslationMode;
-    const double systusRBE2Rigidity;
-    const double systusRBELagrangian;
+    const double systusRBEStiffness;
+    const double systusRBECoefficient;
     const std::string systusOptionAnalysis;
     const std::string systusOutputProduct;
     const std::vector< std::vector<int> > systusSubcases;
