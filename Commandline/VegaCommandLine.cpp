@@ -232,7 +232,7 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
 
    // Deprecated options: retro-compatiblity
     double systusRBEStiffness=Globals::UNAVAILABLE_DOUBLE;
-    double systusRBECoefficient;
+    double systusRBECoefficient=Globals::UNAVAILABLE_DOUBLE;
     if (vm.count("systus.RBELagrangian")){
         cout<< "systus.RBELagrangian option is deprecated. Will translate using systus.RBEStiffness and systus.RBECoefficient."<<endl;
         systusRBEStiffness=1.0;
@@ -247,7 +247,7 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     if (vm.count("systus.RBEStiffness")){
         systusRBEStiffness = vm["systus.RBEStiffness"].as<double>();
     }
-    if (is_equal(systusRBECoefficient,Globals::UNAVAILABLE_DOUBLE){
+    if (is_equal(systusRBECoefficient,Globals::UNAVAILABLE_DOUBLE)){
         if (systusRBE2TranslationMode=="penalty"){
             systusRBECoefficient=10;
         }else{
