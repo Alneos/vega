@@ -577,7 +577,7 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
 	default:
 		handleWritingError(string("NamedValue not yet implemented"));
 	}
-	asternameByValue[value.getReference()] = concept_name;
+	asternameByValue[value] = concept_name;
 
 	return concept_name;
 }
@@ -1001,7 +1001,7 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
                 out << asterName << "=AFFE_CHAR_MECA(MODELE=MODMECA," << endl;
             } else
                 continue;
-            asternameByConstraintSet[constraintSet.getReference()] = asterName;
+            asternameByConstraintSet[constraintSet] = asterName;
 
             writeSPC(asterModel, constraintSet, out);
             writeLIAISON_SOLIDE(asterModel, constraintSet, out);
@@ -1039,7 +1039,7 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
                 out << asterName << "=AFFE_CHAR_MECA(MODELE=MODMECA," << endl;
             } else
                 continue;
-            asternameByLoadSet[loadSet.getReference()] = asterName;
+            asternameByLoadSet[loadSet] = asterName;
             writeSPCD(asterModel, loadSet, out);
             writePression(loadSet, out);
             writeForceCoque(loadSet, out);
@@ -1098,7 +1098,7 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 			}
 		}
 		string asterName = string("CN") + to_string(constraintSet.getId());
-		asternameByConstraintSet[constraintSet.getReference()] = asterName;
+		asternameByConstraintSet[constraintSet] = asterName;
 		if (constraintSet.isOriginal()) {
             out << "# ConstraintSet original id:" << constraintSet.getOriginalId() << endl;
 		}

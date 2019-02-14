@@ -489,7 +489,7 @@ int Mesh::addOrFindOrientation(const OrientationCoordinateSystem & ocs){
 	int posOrientation = findOrientation(ocs);
 	if (posOrientation==0){
 		this->add(ocs);
-		posOrientation = coordinateSystemStorage.findPosition(ocs.getReference());
+		posOrientation = coordinateSystemStorage.findPosition(ocs);
 	}
 	return posOrientation;
 }

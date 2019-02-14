@@ -141,27 +141,27 @@ void Analysis::remove(const Reference<Objective> objectiveReference) {
     }
 }
 
-bool Analysis::contains(const Reference<LoadSet> reference) const {
+bool Analysis::contains(const Reference<LoadSet> loadSetRef) const {
     for (const auto& loadset : getLoadSets()) {
-        if (reference == loadset->getReference()) {
+        if (loadSetRef == loadset->getReference()) {
             return true;
         }
     }
     return false;
 }
 
-bool Analysis::contains(const Reference<ConstraintSet> reference) const {
+bool Analysis::contains(const Reference<ConstraintSet> constraintSetRef) const {
     for (const auto& constraintset : getConstraintSets()) {
-        if (reference == constraintset->getReference()) {
+        if (constraintSetRef == constraintset->getReference()) {
             return true;
         }
     }
     return false;
 }
 
-bool Analysis::contains(const Reference<Objective> reference) const {
+bool Analysis::contains(const Reference<Objective> objectiveRef) const {
     for (const auto& objective: getObjectives()) {
-        if (reference == objective->getReference()) {
+        if (objectiveRef == objective->getReference()) {
             return true;
         }
     }
@@ -325,7 +325,7 @@ void Analysis::removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition,  
                     << " to handle dofs : " << dofsToRemove << endl;
         }
         for (const auto& otherAnalysis : this->model.analyses) {
-            if (*this == *otherAnalysis) {
+            if (this->getReference() == otherAnalysis->getReference()) {
                 continue;
             }
             for (const auto& constraintSet : otherAnalysis->getConstraintSets()) {

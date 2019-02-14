@@ -144,7 +144,7 @@ int operator==(const Identifiable<T>& left, const Identifiable<T>& right) {
 
 template<class T>
 int operator <(const Identifiable<T>& left, const Identifiable<T>& right) {
-    return left.getReference() < right.getReference();
+    return left < right;
 }
 
 } /* namespace vega */

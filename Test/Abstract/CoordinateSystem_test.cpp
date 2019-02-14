@@ -166,7 +166,7 @@ BOOST_AUTO_TEST_CASE( test_chaining_CoordinateSystem ) {
 
     VectorialValue O2(15., 25., 35.);
 
-    CartesianCoordinateSystem cs2(model.mesh, O2, X, Y, cs1.getReference());
+    CartesianCoordinateSystem cs2(model.mesh, O2, X, Y, cs1);
     model.mesh.add(cs2);
 
     VectorialValue O(0., 0., 0.);

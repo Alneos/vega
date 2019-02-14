@@ -491,7 +491,7 @@ inline void Model::Container<NamedValue>::add(std::shared_ptr<NamedValue> ptr) {
                 funPtr->setParaY(funptr_old->getParaY());
         } else {
             std::ostringstream oss;
-            oss << ptr->getReference() << " is already in the model";
+            oss << *ptr << " is already in the model";
             throw std::runtime_error(oss.str());
         }
     }

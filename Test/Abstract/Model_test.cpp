@@ -59,7 +59,7 @@ using namespace vega;
 	model.finish();
 
 	shared_ptr<SinglePointConstraint> spc1_ptr = dynamic_pointer_cast<SinglePointConstraint>(
-			model.find(spc1->getReference()));
+			model.find(spc1));
 	BOOST_CHECK(spc1_ptr);
 	DOFS spc_dofs = spc1_ptr->getDOFSForNode(0);
 	BOOST_CHECK(spc1_ptr->hasReferences() == false);
@@ -204,18 +204,18 @@ BOOST_AUTO_TEST_CASE( test_graph ) {
      const auto& f1 = make_shared<NodalForce>(*model, 0, 0, 0, 1.0, 0, 0);
      f1->addNodeId(51);
      model->add(f1);
-     model->addLoadingIntoLoadSet(f1->getReference(), loadSet1->getReference());
+     model->addLoadingIntoLoadSet(f1, loadSet1);
      //force on x axis on node 52
      const auto& f2 = make_shared<NodalForce>(*model, 1.0, 0, 0, 0.0, 0, 0);
      f2->addNodeId(52);
      model->add(f2);
-     model->addLoadingIntoLoadSet(f2->getReference(), loadSet1->getReference());
+     model->addLoadingIntoLoadSet(f2, loadSet1);
      const auto& f3 = make_shared<NodalForce>(*model, 0.0, 0.0, 0.0, 1.0, 0, 1.0);
      f3->addNodeId(53);
-     model->addLoadingIntoLoadSet(f3->getReference(), loadSet1->getReference());
+     model->addLoadingIntoLoadSet(f3, loadSet1);
      model->add(f3);
      const auto& analysis = make_shared<LinearMecaStat>(*model);
-     analysis->add(loadSet1->getReference());
+     analysis->add(loadSet1);
      model->add(analysis);
      model->finish(); // Should add constraints, discretes to add dofs
      BOOST_CHECK(model->validate());
@@ -285,7 +285,7 @@ BOOST_AUTO_TEST_CASE(test_Analysis) {
 	analysis->add(loadSetRef);
 	BOOST_CHECK(analysis->contains(loadSetRef));
 	//CHECK getReference constructor and == operator
-	BOOST_CHECK(loadSetRef == loadSet1->getReference());
+	BOOST_CHECK(loadSetRef == loadSet1);
 
 	LoadSet loadSet2(model, LoadSet::Type::LOAD, 2);
 	//model.add(loadSet2);
@@ -295,11 +295,11 @@ BOOST_AUTO_TEST_CASE(test_Analysis) {
 
 	const auto& force1 = make_shared<NodalForce>(model, 1, 0.0, 1.0);
 	model.add(force1);
-	model.addLoadingIntoLoadSet(force1->getReference(), loadSet1->getReference());
+	model.addLoadingIntoLoadSet(force1, loadSet1);
 
 	const auto& force2 = make_shared<NodalForce>(model, 2, 0.0, 1.0);
 	model.add(force2);
-	model.addLoadingIntoLoadSet(force2->getReference(), loadSet1->getReference());
+	model.addLoadingIntoLoadSet(force2, loadSet1);
 
 	const auto& force3 = make_shared<NodalForce>(model, 2, 0.0, 1.0);
 	model.add(force3);
@@ -316,7 +316,7 @@ BOOST_AUTO_TEST_CASE(test_Analysis) {
 	BOOST_CHECK(not analysis->validate());
 	BOOST_CHECK(not model.validate());
 
-	set<shared_ptr<Loading>> loadings = model.getLoadingsByLoadSet(loadSet1->getReference());
+	set<shared_ptr<Loading>> loadings = model.getLoadingsByLoadSet(loadSet1);
 	BOOST_CHECK_EQUAL(static_cast<size_t>(2), loadings.size());
 	for (shared_ptr<Loading> loading : loadings) {
 		BOOST_CHECK(loading->getId() == force1->getId() or loading->getId() == force2->getId());
@@ -367,22 +367,22 @@ BOOST_AUTO_TEST_CASE( combined_loadset1 ) {
 	model.mesh.addNode(1, 0.0, 0.0, 0.0);
 	const auto& force1 = make_shared<NodalForce>(model, 1, 1.0);
 	model.add(force1);
-	model.addLoadingIntoLoadSet(force1->getReference(), loadSet1->getReference());
+	model.addLoadingIntoLoadSet(force1, loadSet1);
 	const auto& force3 = make_shared<NodalForce>(model, 1, 3.0);
 	model.add(force3);
-	model.addLoadingIntoLoadSet(force3->getReference(), loadSet1->getReference());
+	model.addLoadingIntoLoadSet(force3, loadSet1);
 	const auto& force2 = make_shared<NodalForce>(model, 1, 2.0);
 	model.add(force2);
-	model.addLoadingIntoLoadSet(force2->getReference(), loadSet3->getReference());
+	model.addLoadingIntoLoadSet(force2, loadSet3);
 	const auto& combination = make_shared<LoadSet>(model, LoadSet::Type::LOAD, 10);
 	combination->embedded_loadsets.push_back(
-			pair<Reference<LoadSet>, double>(loadSet1->getReference(), 5.0));
+			pair<Reference<LoadSet>, double>(loadSet1, 5.0));
 	combination->embedded_loadsets.push_back(
-			pair<Reference<LoadSet>, double>(loadSet3->getReference(), 7.0));
+			pair<Reference<LoadSet>, double>(loadSet3, 7.0));
 	BOOST_CHECK_EQUAL(combination->embedded_loadsets.size(), static_cast<size_t>(2));
 	model.add(combination);
 	model.finish();
-	BOOST_CHECK_EQUAL(model.getLoadingsByLoadSet(combination->getReference()).size(), static_cast<size_t>(3));
+	BOOST_CHECK_EQUAL(model.getLoadingsByLoadSet(combination).size(), static_cast<size_t>(3));
 }
 
 BOOST_AUTO_TEST_CASE(auto_analysis_linst) {
@@ -481,11 +481,11 @@ BOOST_AUTO_TEST_CASE(test_ineffective_assertions_removed) {
 	unique_ptr<Model> model = createModelWith1HEXA8();
 	const auto& analysis = make_shared<LinearMecaStat>(*model);
 	const auto& nda = make_shared<NodalDisplacementAssertion>(*model, 0.0001, 50, DOF::DZ, 1., 1);
-	analysis->add(nda->getReference());
+	analysis->add(nda);
 	model->add(nda);
 
 	const auto& nda2 = make_shared<NodalDisplacementAssertion>(*model, 0.0001, 51, DOF::RX, 1., 1);
-	analysis->add(nda2->getReference());
+	analysis->add(nda2);
 	model->add(nda2);
 	model->add(analysis);
 	BOOST_CHECK_EQUAL(2, model->objectives.size());
@@ -505,14 +505,14 @@ BOOST_AUTO_TEST_CASE(test_rbe3_assertions_not_removed) {
 	const auto& rbe3 = make_shared<RBE3>(model, 100, DOFS::ALL_DOFS);
 	rbe3->addSlave(101, DOFS::ALL_DOFS, 42.0);
 	model.add(rbe3);
-	model.addConstraintIntoConstraintSet(rbe3->getReference(), model.commonConstraintSet->getReference());
+	model.addConstraintIntoConstraintSet(rbe3, model.commonConstraintSet);
 	const auto& analysis = make_shared<LinearMecaStat>(model);
 	const auto& nda = make_shared<NodalDisplacementAssertion>(model, 0.0001, 100, DOF::DZ, 1., 1);
-	analysis->add(nda->getReference());
+	analysis->add(nda);
 	model.add(nda);
 
 	const auto& nda2 = make_shared<NodalDisplacementAssertion>(model, 0.0001, 101, DOF::RX, 1., 1);
-	analysis->add(nda2->getReference());
+	analysis->add(nda2);
 	model.add(nda2);
 	model.add(analysis);
 	BOOST_CHECK_EQUAL(2, model.objectives.size());
@@ -531,7 +531,7 @@ BOOST_AUTO_TEST_CASE(test_spc_dof_remove) {
 	const auto& spc = make_shared<SinglePointConstraint>(*model, DOFS::ALL_DOFS, 0.0);
 	spc->addNodeId(50);
 	model->add(spc);
-	model->addConstraintIntoConstraintSet(spc->getReference(), model->commonConstraintSet->getReference());
+	model->addConstraintIntoConstraintSet(spc, model->commonConstraintSet);
 	model->add(analysis1);
 	const auto& analysis2 = make_shared<LinearMecaStat>(*model);
 	model->add(analysis2);
@@ -539,7 +539,7 @@ BOOST_AUTO_TEST_CASE(test_spc_dof_remove) {
 	int nodePosition = model->mesh.findNodePosition(50);
 	BOOST_CHECK_EQUAL(spc->nodePositions().size(), 1);
 	BOOST_CHECK_EQUAL(spc->getDOFSForNode(nodePosition), DOFS::ALL_DOFS);
-	BOOST_CHECK_EQUAL(model->getConstraintSetsByConstraint(spc->getReference()).size(), 1);
+	BOOST_CHECK_EQUAL(model->getConstraintSetsByConstraint(spc).size(), 1);
 	BOOST_CHECK_EQUAL(model->constraintSets.size(), 1);
 	BOOST_TEST_CHECKPOINT("model filled");
 	analysis1->removeSPCNodeDofs(*spc, nodePosition, DOF::DZ);
@@ -555,11 +555,11 @@ BOOST_AUTO_TEST_CASE(test_spc_dof_remove) {
 		BOOST_CHECK_EQUAL(constraint->nodePositions().size(), 1);
 	}
 	BOOST_CHECK_EQUAL(model->constraintSets.size(), 2);
-	BOOST_CHECK_EQUAL(model->find(analysis1->getReference())->getConstraintSets().size(), 1);
-	auto constraintSets2 = model->find(analysis2->getReference())->getConstraintSets();
+	BOOST_CHECK_EQUAL(model->find(analysis1)->getConstraintSets().size(), 1);
+	auto constraintSets2 = model->find(analysis2)->getConstraintSets();
 	BOOST_CHECK_EQUAL(constraintSets2.size(), 2);
 	for(const auto& constraintSet : constraintSets2) {
-		if (constraintSet->getReference() == model->commonConstraintSet->getReference()) {
+		if (constraintSet == model->commonConstraintSet) {
 			continue;
 		}
 		BOOST_CHECK_EQUAL(constraintSet->getConstraints().size(), 1);

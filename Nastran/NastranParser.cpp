@@ -326,7 +326,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                     throw logic_error("set references not yet implemented " + to_string(num));
                 }
                 const auto& matrix = make_shared<StiffnessMatrix>(model); // LD : TODO string identifier here
-                directMatrixByName.insert(make_pair(line,matrix->getReference()));
+                directMatrixByName.insert(make_pair(line, matrix->getReference()));
                 model.add(matrix);
             } else if (keyword == "M2GG") {
                 // Selects direct input mass matrix or matrices.
@@ -355,7 +355,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                     throw logic_error("set references not yet implemented " + to_string(num));
                 }
                 const auto& matrix = make_shared<MassMatrix>(model); // LD : TODO string identifier here
-                directMatrixByName.insert(make_pair(line,matrix->getReference()));
+                directMatrixByName.insert(make_pair(line, matrix->getReference()));
                 model.add(matrix);
             } else if (keyword == "SUBCASE") {
                 keyword = parseSubcase(tok, model, context);
@@ -1451,7 +1451,7 @@ void NastranParser::parseGRAV(NastranTokenizer& tok, Model& model) {
 
     model.add(gravity);
     Reference<LoadSet> loadset_ref(LoadSet::Type::LOAD, sid);
-    model.addLoadingIntoLoadSet(*gravity, loadset_ref);
+    model.addLoadingIntoLoadSet(gravity->getReference(), loadset_ref);
     if (model.find(loadset_ref) == nullptr) {
         const auto& loadSet = make_shared<LoadSet>(model, LoadSet::Type::LOAD, sid);
         model.add(loadSet);
@@ -1679,7 +1679,7 @@ void NastranParser::parseMOMENT(NastranTokenizer& tok, Model& model) {
     force1->addNodeId(node_id);
     model.add(force1);
     Reference<vega::LoadSet> loadset_ref(LoadSet::Type::LOAD, loadset_id);
-    model.addLoadingIntoLoadSet(*force1, loadset_ref);
+    model.addLoadingIntoLoadSet(force1->getReference(), loadset_ref);
     if (model.find(loadset_ref) == nullptr) {
         const auto& loadSet = make_shared<LoadSet>(model, LoadSet::Type::LOAD, loadset_id);
         model.add(loadSet);

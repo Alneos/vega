@@ -17,9 +17,9 @@
 #include <boost/geometry.hpp>
 #include <boost/geometry/index/rtree.hpp>
 #include <boost/geometry/geometries/geometries.hpp>
-#include <boost/graph/graph_traits.hpp>
+/*#include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graphviz.hpp>
+#include <boost/graph/graphviz.hpp>*/
 #include <ciso646>
 
 using namespace std;
@@ -926,13 +926,13 @@ void Model::removeIneffectives() {
     // remove empty elementSets from the model
     vector<shared_ptr<ElementSet>> elementSetsToRemove;
     for (const auto& elementSet : elementSets) {
-        if (elementSet->cellGroup and elementSet->cellGroup->empty())
+        if (elementSet->cellGroup != nullptr and elementSet->cellGroup->empty())
             elementSetsToRemove.push_back(elementSet);
     }
     for (const auto& elementSet : elementSetsToRemove) {
         if (configuration.logLevel >= LogLevel::DEBUG)
             cout << "Removed empty " << *elementSet << endl;
-        this->elementSets.erase(Reference<ElementSet>(*elementSet));
+        this->elementSets.erase(elementSet->getReference());
     }
 }
 
@@ -949,7 +949,7 @@ void Model::removeUnassignedMaterials() {
     for (const auto& material : materialsToRemove) {
         if (configuration.logLevel >= LogLevel::DEBUG)
             cout << "Removed unassigned " << *material << endl;
-        this->materials.erase(Reference<Material>(*material));
+        this->materials.erase(material->getReference());
     }
 }
 
@@ -1957,7 +1957,7 @@ void Model::addAutoAnalysis() {
 }
 
 void Model::createGraph() {
-    struct VertexProps { std::string name; };
+    /*struct VertexProps { std::string name; };
     struct EdgeProps   { std::string name; };
     typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, VertexProps, EdgeProps> Graph;
 
@@ -1980,7 +1980,7 @@ void Model::createGraph() {
 //    g.add_edge(v1, v2);
     boost::write_graphviz(cout, g, boost::make_label_writer(get(&VertexProps::name, g)),
             boost::make_label_writer(get(&EdgeProps::name, g)));
-    std::cerr << "Graph node name:" << g[0].name << "\n";
+    std::cerr << "Graph node name:" << g[0].name << "\n";*/
 }
 
 void Model::finish() {
