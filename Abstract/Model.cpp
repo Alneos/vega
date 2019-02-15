@@ -17,9 +17,9 @@
 #include <boost/geometry.hpp>
 #include <boost/geometry/index/rtree.hpp>
 #include <boost/geometry/geometries/geometries.hpp>
-/*#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graphviz.hpp>*/
+#include <boost/graph/graphviz.hpp>
 #include <ciso646>
 
 using namespace std;
@@ -1956,7 +1956,7 @@ void Model::addAutoAnalysis() {
 }
 
 void Model::createGraph() {
-    /*struct VertexProps { std::string name; };
+    struct VertexProps { std::string name; };
     struct EdgeProps   { std::string name; };
     typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, VertexProps, EdgeProps> Graph;
 
@@ -1979,7 +1979,7 @@ void Model::createGraph() {
 //    g.add_edge(v1, v2);
     boost::write_graphviz(cout, g, boost::make_label_writer(get(&VertexProps::name, g)),
             boost::make_label_writer(get(&EdgeProps::name, g)));
-    std::cerr << "Graph node name:" << g[0].name << "\n";*/
+    std::cerr << "Graph node name:" << g[0].name << "\n";
 }
 
 void Model::finish() {
