@@ -75,7 +75,9 @@ struct CsvGrammar: qi::grammar<stream_iterator_type, void(), qi::locals<vector<L
 		column = quoted | *~char_(",\n");
 		quoted = '"' >> *("\"\"" | ~char_("\"\n")) >> '"';
 		comment = ("#" >> *~char_("\n") > qi::eol) | qi::eol;
-		BOOST_SPIRIT_DEBUG_NODES((header)(column)(quoted)(comment)(line));
+		if (model.configuration.logLevel >= LogLevel::TRACE) {
+            BOOST_SPIRIT_DEBUG_NODES((header)(column)(quoted)(comment)(line));
+		}
 	}
 
 	void convertFunc(const vector<string>& columns, const vector<LineItems>& positions) {

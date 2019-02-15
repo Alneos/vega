@@ -1885,53 +1885,9 @@ void Model::makeBoundarySegments() {
 
 void Model::makeBoundarySurfaces() {
     for (const auto& constraintSet : this->getCommonConstraintSets()) {
-        auto constraints = constraintSet->getConstraintsByType(Constraint::Type::SURFACE_CONTACT);
-        for (const auto& constraint : constraints) {
+        for (const auto& constraint : constraintSet->getConstraintsByType(Constraint::Type::SURFACE_CONTACT)) {
             shared_ptr<SurfaceContact> surface = dynamic_pointer_cast<SurfaceContact>(constraint);
-            shared_ptr<CellGroup> masterCellGroup = mesh.createCellGroup("SURFCONT_M_"+to_string(surface->bestId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySurfaces() for the master in a SURFACE_CONTACT");
-            shared_ptr<CellGroup> slaveCellGroup = mesh.createCellGroup("SURFCONT_S_"+to_string(surface->bestId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySurfaces() for the master in a SURFACE_CONTACT");
-            shared_ptr<BoundaryNodeSurface> slaveNodeSurface = dynamic_pointer_cast<BoundaryNodeSurface>(this->find(surface->slave));
-            if (slaveNodeSurface == nullptr) {
-                throw logic_error("Cannot find master node list");
-            }
-            const list<int>& slaveNodeIds = slaveNodeSurface->nodeids;
-            auto it2 = slaveNodeIds.begin();
-            for(unsigned int i = 0; i < slaveNodeIds.size();i+=4) {
-                int nodeId1 = *(it2++);
-                int nodeId2 = *(it2++);
-                int nodeId3 = *(it2++);
-                int nodeId4 = *(it2++);
-                vector<int> connectivity {nodeId1, nodeId2, nodeId3};
-                CellType cellType {CellType::TRI3};
-                if (nodeId4 != 0) {
-                    connectivity.push_back(nodeId4);
-                    cellType = CellType::QUAD4;
-                }
-                int cellPosition = mesh.addCell(Cell::AUTO_ID, cellType, connectivity, true);
-                slaveCellGroup->addCellPosition(cellPosition);
-            }
-            surface->slaveCellGroup = slaveCellGroup;
-            shared_ptr<BoundaryNodeSurface> masterNodeSurface = dynamic_pointer_cast<BoundaryNodeSurface>(this->find(surface->master));
-            if (masterNodeSurface == nullptr) {
-                throw logic_error("Cannot find master node list");
-            }
-            const list<int>& masterNodeIds = masterNodeSurface->nodeids;
-            auto it = masterNodeIds.begin();
-            for(unsigned int i = 0; i < masterNodeIds.size();i+=4) {
-                int nodeId1 = *(it++);
-                int nodeId2 = *(it++);
-                int nodeId3 = *(it++);
-                int nodeId4 = *(it++);
-                vector<int> connectivity {nodeId1, nodeId2, nodeId3};
-                CellType cellType {CellType::TRI3};
-                if (nodeId4 != 0) {
-                    connectivity.push_back(nodeId4);
-                    cellType = CellType::QUAD4;
-                }
-                int cellPosition = mesh.addCell(Cell::AUTO_ID, cellType, connectivity, true);
-                masterCellGroup->addCellPosition(cellPosition);
-            }
-            surface->masterCellGroup = masterCellGroup;
+            surface->makeBoundarySurfaces();
         }
     }
 }

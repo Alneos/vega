@@ -285,6 +285,7 @@ public:
 	std::set<int> nodePositions() const override;
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	void removeNode(int nodePosition) override;
+	void makeBoundarySurfaces();
 	bool ineffective() const override;
 };
 
