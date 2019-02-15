@@ -315,6 +315,7 @@ public:
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	void removeNode(int nodePosition) override;
 	bool ineffective() const override;
+	void makeCellsFromSurfaceSlide() const;
 };
 
 } /* namespace vega */

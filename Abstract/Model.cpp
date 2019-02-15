@@ -13,10 +13,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-#include <boost/assign.hpp>
-#include <boost/geometry.hpp>
-#include <boost/geometry/index/rtree.hpp>
-#include <boost/geometry/geometries/geometries.hpp>
+//#include <boost/assign.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
@@ -1728,12 +1725,6 @@ void Model::makeCellsFromRBE(){
 }
 
 void Model::makeCellsFromSurfaceSlide() {
-    namespace bg = boost::geometry;
-    namespace bgi = boost::geometry::index;
-    using node_point = bg::model::point<double, 3, bg::cs::cartesian>;
-    using node_polygon = bg::model::polygon<node_point >;
-    using node_box = bg::model::box<node_point>;
-    using value = pair<node_box, size_t>;
     for (const auto& constraintSet : this->getCommonConstraintSets()) {
 
         const int idConstraintSet = constraintSet->getId();
@@ -1743,66 +1734,8 @@ void Model::makeCellsFromSurfaceSlide() {
 
         vector<shared_ptr<Constraint>> toBeRemoved;
         for (const auto& constraint : constraints) {
-            shared_ptr<CellGroup> group = mesh.createCellGroup("SURF_"+to_string(constraint->bestId()), CellGroup::NO_ORIGINAL_ID, "SURF");
-            const auto& elementsetSlide = make_shared<SurfaceSlideSet>(*this);
-            elementsetSlide->assignCellGroup(group);
-            this->add(elementsetSlide);
-
             shared_ptr<const SurfaceSlide> surface = dynamic_pointer_cast<const SurfaceSlide>(constraint);
-		    shared_ptr<const BoundaryElementFace> masterSurface = dynamic_pointer_cast<const BoundaryElementFace>(this->find(surface->master));
-		    vector<node_polygon> masterFaces;
-		    vector<vector<int>> masterFaceNodeIds;
-		    bgi::rtree< value, bgi::rstar<16> > rtree;
-		    for (const auto& faceInfo : masterSurface->faceInfos) {
-                const Cell& masterCell = this->mesh.findCell(this->mesh.findCellPosition(faceInfo.cellId));
-                const vector<int>& faceIds = masterCell.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
-                if (faceIds.size() > 0) {
-                    node_polygon masterFace;
-                    for (const int faceId : faceIds) {
-                        int nodePosition = this->mesh.findNodePosition(faceId);
-                        const Node& node = this->mesh.findNode(nodePosition);
-                        const node_point np{node.x, node.y, node.z};
-                        masterFace.outer().push_back(np);
-                    }
-                    masterFaces.push_back(masterFace);
-                    masterFaceNodeIds.push_back(faceIds);
-                    for (size_t i = 0 ; i < masterFaces.size() ; ++i) {
-                        node_box b = bg::return_envelope<node_box>(masterFaces[i]);
-                        rtree.insert(std::make_pair(b, i));
-                    }
-                }
-		    }
-		    shared_ptr<const BoundaryElementFace> slaveSurface = dynamic_pointer_cast<const BoundaryElementFace>(this->find(surface->slave));
-            for (const auto& faceInfo : slaveSurface->faceInfos) {
-                const Cell& slaveCell = this->mesh.findCell(this->mesh.findCellPosition(faceInfo.cellId));
-                const vector<int>& faceIds = slaveCell.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
-                for (const int faceId : faceIds) {
-                    int nodePosition = this->mesh.findNodePosition(faceId);
-                    const Node& node = this->mesh.findNode(nodePosition);
-                    vector<value> result_n;
-                    rtree.query(bgi::nearest(node_point{node.x, node.y, node.z}, 1), std::back_inserter(result_n));
-                    size_t masterFaceIndex = result_n[0].second;
-                    const node_polygon& masterFace = masterFaces[masterFaceIndex];
-                    vector<int> contactNodeIds = masterFaceNodeIds[masterFaceIndex];
-                    contactNodeIds.push_back(faceId);
-                    size_t num_master_points = bg::num_points(masterFace);
-                    switch(num_master_points) {
-                    case 3: {
-                        int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::TETRA4, contactNodeIds , true);
-                        group->addCellPosition(cellPosition);
-                        break;
-                    }
-                    case 4: {
-                        int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::PYRA5, contactNodeIds , true);
-                        group->addCellPosition(cellPosition);
-                        break;
-                    }
-                    default:
-                        throw logic_error("Slide element not yet implemented:" + to_string(num_master_points));
-                    }
-
-                }
-		    }
+            surface->makeCellsFromSurfaceSlide();
 
             toBeRemoved.push_back(constraint);
         }

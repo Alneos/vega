@@ -25,6 +25,9 @@
 #include "Model.h"
 #include <ciso646>
 #include <string>
+#include <boost/geometry.hpp>
+#include <boost/geometry/index/rtree.hpp>
+#include <boost/geometry/geometries/geometries.hpp>
 
 namespace vega {
 
@@ -874,6 +877,75 @@ bool SurfaceSlide::ineffective() const {
 const DOFS SurfaceSlide::getDOFSForNode(int nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::TRANSLATIONS;
+}
+
+void SurfaceSlide::makeCellsFromSurfaceSlide() const {
+    namespace bg = boost::geometry;
+    namespace bgi = boost::geometry::index;
+    using node_point = bg::model::point<double, 3, bg::cs::cartesian>;
+    using node_polygon = bg::model::polygon<node_point >;
+    using node_box = bg::model::box<node_point>;
+    using value = pair<node_box, size_t>;
+
+    shared_ptr<CellGroup> group = model.mesh.createCellGroup("SURF_"+to_string(this->bestId()), CellGroup::NO_ORIGINAL_ID, "SURF");
+    const auto& elementsetSlide = make_shared<SurfaceSlideSet>(model);
+    elementsetSlide->assignCellGroup(group);
+    model.add(elementsetSlide);
+
+    shared_ptr<const BoundaryElementFace> masterSurface = dynamic_pointer_cast<const BoundaryElementFace>(model.find(this->master));
+    vector<node_polygon> masterFaces;
+    vector<vector<int>> masterFaceNodeIds;
+    bgi::rtree< value, bgi::rstar<16> > rtree;
+    for (const auto& faceInfo : masterSurface->faceInfos) {
+        const Cell& masterCell = model.mesh.findCell(model.mesh.findCellPosition(faceInfo.cellId));
+        const vector<int>& faceIds = masterCell.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
+        if (faceIds.size() > 0) {
+            node_polygon masterFace;
+            for (const int faceId : faceIds) {
+                int nodePosition = model.mesh.findNodePosition(faceId);
+                const Node& node = model.mesh.findNode(nodePosition);
+                const node_point np{node.x, node.y, node.z};
+                masterFace.outer().push_back(np);
+            }
+            masterFaces.push_back(masterFace);
+            masterFaceNodeIds.push_back(faceIds);
+            for (size_t i = 0 ; i < masterFaces.size() ; ++i) {
+                node_box b = bg::return_envelope<node_box>(masterFaces[i]);
+                rtree.insert(std::make_pair(b, i));
+            }
+        }
+    }
+    shared_ptr<const BoundaryElementFace> slaveSurface = dynamic_pointer_cast<const BoundaryElementFace>(model.find(this->slave));
+    for (const auto& faceInfo : slaveSurface->faceInfos) {
+        const Cell& slaveCell = model.mesh.findCell(model.mesh.findCellPosition(faceInfo.cellId));
+        const vector<int>& faceIds = slaveCell.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
+        for (const int faceId : faceIds) {
+            int nodePosition = model.mesh.findNodePosition(faceId);
+            const Node& node = model.mesh.findNode(nodePosition);
+            vector<value> result_n;
+            rtree.query(bgi::nearest(node_point{node.x, node.y, node.z}, 1), std::back_inserter(result_n));
+            size_t masterFaceIndex = result_n[0].second;
+            const node_polygon& masterFace = masterFaces[masterFaceIndex];
+            vector<int> contactNodeIds = masterFaceNodeIds[masterFaceIndex];
+            contactNodeIds.push_back(faceId);
+            size_t num_master_points = bg::num_points(masterFace);
+            switch(num_master_points) {
+            case 3: {
+                int cellPosition = model.mesh.addCell(Cell::AUTO_ID, CellType::TETRA4, contactNodeIds , true);
+                group->addCellPosition(cellPosition);
+                break;
+            }
+            case 4: {
+                int cellPosition = model.mesh.addCell(Cell::AUTO_ID, CellType::PYRA5, contactNodeIds , true);
+                group->addCellPosition(cellPosition);
+                break;
+            }
+            default:
+                throw logic_error("Slide element not yet implemented:" + to_string(num_master_points));
+            }
+
+        }
+    }
 }
 
 } // namespace vega
