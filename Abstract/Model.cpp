@@ -733,14 +733,13 @@ void Model::generateSkin() {
 }
 
 void Model::emulateLocalDisplacementConstraint() {
-    // first pass : create LinearMultiplePoint constraints for each constraint that need it
-    for (const auto& constraint : constraints) {
-        if (constraint->type == Constraint::Type::SPC) {
-            shared_ptr<SinglePointConstraint> spc = dynamic_pointer_cast<SinglePointConstraint>(
-                    constraint);
-            spc->emulateLocalDisplacementConstraint();
-            if (spc->nodePositions().size() == 0)
-                this->remove(spc->getReference());
+
+    for (const auto& constraint : constraints.filter(Constraint::Type::SPC)) {
+        shared_ptr<SinglePointConstraint> spc = dynamic_pointer_cast<SinglePointConstraint>(
+                constraint);
+        spc->emulateLocalDisplacementConstraint();
+        if (spc->nodePositions().size() == 0) {
+            this->remove(spc->getReference());
         }
     }
 
