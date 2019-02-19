@@ -13,7 +13,6 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-//#include <boost/assign.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
@@ -61,9 +60,6 @@ void Model::add(const std::shared_ptr<LoadSet>& loadSet) {
     loadSets.add(loadSet);
 }
 
-// This "add" function used shared_ptr because adding an object
-// clone it, which does not keep the original id.
-//TODO: same type of "add" than the other ?
 void Model::add(const shared_ptr<Material>& material) {
     if (configuration.logLevel >= LogLevel::DEBUG) {
         cout << "Adding " << *material << endl;
@@ -456,6 +452,28 @@ const set<shared_ptr<ConstraintSet>> Model::getConstraintSetsByConstraint(
         }
         if (found) {
             result.insert(it);
+        }
+    }
+    return result;
+}
+
+const set<shared_ptr<Objective>> Model::getObjectivesByObjectiveSet(
+        const Reference<ObjectiveSet>& objectiveSetReference) const {
+    set<shared_ptr<Objective>> result;
+    auto itm = objectiveReferences_by_objectiveSet_ids.find(objectiveSetReference.id);
+    if (itm != objectiveReferences_by_objectiveSet_ids.end()) {
+        for (const auto& itm2 : itm->second) {
+            result.insert(find(itm2));
+        }
+    }
+    auto itm2 = objectiveReferences_by_objectiveSet_original_ids_by_objectiveSet_type.find(
+            objectiveSetReference.type);
+    if (itm2 != objectiveReferences_by_objectiveSet_original_ids_by_objectiveSet_type.end()) {
+        auto itm3 = itm2->second.find(objectiveSetReference.original_id);
+        if (itm3 != itm2->second.end()) {
+            for (const auto& itm4 : itm3->second) {
+                result.insert(find(itm4));
+            }
         }
     }
     return result;
@@ -1054,7 +1072,7 @@ void Model::replaceDirectMatrices()
                 int nodePosition = pair.first;
                 const int nodeId = mesh.findNodeId(nodePosition);
                 DOFS requiredDofs = requiredDofsByNode.find(nodePosition)->second;
-                shared_ptr<DOFMatrix> submatrix = matrix->findSubmatrix(nodePosition, nodePosition);
+                shared_ptr<const DOFMatrix> submatrix = matrix->findSubmatrix(nodePosition, nodePosition);
                 const auto& discrete = make_shared<DiscretePoint>(*this);
                 for (const auto& kv : submatrix->componentByDofs) {
                     double value = kv.second;
@@ -1142,7 +1160,7 @@ void Model::replaceDirectMatrices()
                         } else {
                             colNodePosition2 = colNodePosition;
                         }
-                        shared_ptr<DOFMatrix> submatrix = matrix->findSubmatrix(rowNodePosition2,
+                        shared_ptr<const DOFMatrix> submatrix = matrix->findSubmatrix(rowNodePosition2,
                                 colNodePosition2);
                         for (const auto& kv : submatrix->componentByDofs) {
                             // We are disassembling the matrix, so we must divide the value by the segments
@@ -1429,7 +1447,7 @@ void Model::splitDirectMatrices(const unsigned int sizeMax){
 
             // We copy the values
             shared_ptr<MatrixElement> nM = dynamic_pointer_cast<MatrixElement>(newElementSet);
-            shared_ptr<DOFMatrix> dM = matrix->findSubmatrix(np.first, np.second);
+            shared_ptr<const DOFMatrix> dM = matrix->findSubmatrix(np.first, np.second);
             for (const auto dof: dM->componentByDofs){
                 nM->addComponent(nodeIdOfElement[np.first], dof.first.first, nodeIdOfElement[np.second], dof.first.second, dof.second);
             }

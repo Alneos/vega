@@ -463,7 +463,7 @@ public:
 	 * Clear all nodes and submatrices of the Matrix.
 	 */
 	void clear();
-	const std::shared_ptr<DOFMatrix> findSubmatrix(const int nodePosition1, const int nodePosition2) const;
+	const std::shared_ptr<const DOFMatrix> findSubmatrix(const int nodePosition1, const int nodePosition2) const;
 	const std::set<int> nodePositions() const override;
 	const std::set<std::pair<int, int>> nodePairs() const;
 	const std::set<std::pair<int, int>> findInPairs(int nodePosition) const;

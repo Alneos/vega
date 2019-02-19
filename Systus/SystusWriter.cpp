@@ -583,9 +583,9 @@ double SystusWriter::generateRbarStiffness(const SystusModel& systusModel){
         for (const auto& elementSet : systusModel.model.elementSets) {
             const auto& material = elementSet->material;
             if ((elementSet->cellGroup != nullptr)&&(material != nullptr)){
-                const shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
+                const auto& nature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
                 if (nature) {
-                    const ElasticNature& elasticNature = dynamic_cast<ElasticNature&>(*nature);
+                    const ElasticNature& elasticNature = dynamic_cast<const ElasticNature&>(*nature);
                     maxYoungModulus= max(maxYoungModulus, elasticNature.getE());
                 }
             }
@@ -684,8 +684,8 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
             if (material == nullptr){
                 throw logic_error("Error: ElementSet::RBAR have no material.");
             }
-            shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_RIGID);
-            if (!nature) {
+            const auto& nature = material->findNature(Nature::NatureType::NATURE_RIGID);
+            if (nature == nullptr) {
                 throw logic_error("Error: ElementSet::RBAR have no RIGID nature.");
             }
 
@@ -1762,7 +1762,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
                 // Building the table
                 for (const auto np : sm->nodePairs()){
                     int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
-                    shared_ptr<DOFMatrix> dM = sm->findSubmatrix(np.first, np.second);
+                    shared_ptr<const DOFMatrix> dM = sm->findSubmatrix(np.first, np.second);
                     for (const auto dof: dM->componentByDofs){
                         int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
                         aTable.add(pairCode+dofCode);
@@ -1789,7 +1789,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
                 // Building the table
                 for (const auto np : mm->nodePairs()){
                     int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
-                    shared_ptr<DOFMatrix> dM = mm->findSubmatrix(np.first, np.second);
+                    shared_ptr<const DOFMatrix> dM = mm->findSubmatrix(np.first, np.second);
                     for (const auto dof: dM->componentByDofs){
                         int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
                         aTable.add(pairCode+dofCode);
@@ -1816,7 +1816,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
                 // Building the table
                 for (const auto np : dm->nodePairs()){
                     int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
-                    shared_ptr<DOFMatrix> dM = dm->findSubmatrix(np.first, np.second);
+                    shared_ptr<const DOFMatrix> dM = dm->findSubmatrix(np.first, np.second);
                     for (const auto dof: dM->componentByDofs){
                         int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
                         aTable.add(pairCode+dofCode);
@@ -2022,7 +2022,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
                 for (const auto np : dam->nodePairs()){
                     int nI = positionToSytusNumber[np.first];
                     int nJ = positionToSytusNumber[np.second];
-                    const shared_ptr<DOFMatrix>& dM = dam->findSubmatrix(np.first, np.second);
+                    const shared_ptr<const DOFMatrix>& dM = dam->findSubmatrix(np.first, np.second);
                     for (const auto dof: dM->componentByDofs){
                         int dofI = DOFToInt(dof.first.first);
                         int dofJ = DOFToInt(dof.first.second);
@@ -2054,7 +2054,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
                 for (const auto np : mm->nodePairs()){
                     int nI = positionToSytusNumber[np.first];
                     int nJ = positionToSytusNumber[np.second];
-                    shared_ptr<DOFMatrix> dM = mm->findSubmatrix(np.first, np.second);
+                    shared_ptr<const DOFMatrix> dM = mm->findSubmatrix(np.first, np.second);
                     for (const auto dof: dM->componentByDofs){
                         int dofI = DOFToInt(dof.first.first);
                         int dofJ = DOFToInt(dof.first.second);
@@ -2086,7 +2086,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
                 for (const auto np : sm->nodePairs()){
                     int nI = positionToSytusNumber[np.first];
                     int nJ = positionToSytusNumber[np.second];
-                    shared_ptr<DOFMatrix> dM = sm->findSubmatrix(np.first, np.second);
+                    shared_ptr<const DOFMatrix> dM = sm->findSubmatrix(np.first, np.second);
                     for (const auto dof: dM->componentByDofs){
                         int dofI = DOFToInt(dof.first.first);
                         int dofJ = DOFToInt(dof.first.second);

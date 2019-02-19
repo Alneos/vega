@@ -153,7 +153,8 @@ public:
         UPPER_CUTOFF_FREQUENCY,
         ELEMENT_QUALITY_CHECK,
         STRUCTURAL_DAMPING,
-        FREQUENCY_OF_INTEREST_RADIANS
+        FREQUENCY_OF_INTEREST_RADIANS,
+        SHELL_NORMAL_STIFFNESS_FACTOR
     };
     const std::shared_ptr<LoadSet> commonLoadSet;
     const std::shared_ptr<ConstraintSet> commonConstraintSet;
@@ -167,8 +168,15 @@ private:
     std::unordered_map< ConstraintSet::Type,
     std::map<int, std::set<Reference<Constraint>>>,EnumClassHash>
     constraintReferences_by_constraintSet_original_ids_by_constraintSet_type{};
+
+    std::unordered_map< ObjectiveSet::Type,
+    std::map<int, std::set<Reference<Objective>>>,EnumClassHash>
+    objectiveReferences_by_objectiveSet_original_ids_by_objectiveSet_type{};
+
     std::map< int, std::set<Reference<Constraint>>>
     constraintReferences_by_constraintSet_ids{};
+    std::map< int, std::set<Reference<Objective>>>
+    objectiveReferences_by_objectiveSet_ids{};
 
     template<class T> class Container final {
     private:
@@ -351,6 +359,12 @@ public:
      * Retrieve all the LoadSet of the model that are at least referenced by one analysis
      */
     const std::vector<std::shared_ptr<LoadSet>> getActiveLoadSets() const;
+
+    /**
+     * Retrieve all the Objectives corresponding to a given ObjectiveSet.
+     */
+    const std::set<std::shared_ptr<Objective>> getObjectivesByObjectiveSet(const Reference<ObjectiveSet>&) const;
+
     /**
      * Retrieve all the ConstraintSet of the model that are common to all analysis
      */

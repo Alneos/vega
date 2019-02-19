@@ -119,8 +119,8 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 				break;
 			}
 			case (Analysis::Type::LINEAR_MODAL): {
-				out << "                _F(RESULTAT=RESU" << analysis.getId()
-						<< ", TOUT_PARA='OUI', TOUT_CHAM='NON')," << endl;
+				//out << "                _F(RESULTAT=RESU" << analysis.getId()
+				//		<< ", TOUT_PARA='OUI', TOUT_CHAM='NON')," << endl;
 				break;
 			}
             case (Analysis::Type::LINEAR_BUCKLING): {
@@ -215,19 +215,20 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 			}
 			out << "),)" << endl << endl;
 
+			int unit = 10 + analysis.getId();
 			out << "DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
-			out << "             UNITE=26," << endl;
+			out << "             UNITE=" << unit << "," << endl;
 			out << "             FICHIER='REPE_OUT/tbresu_" << analysis.getId() << ".csv')" << endl
 					<< endl;
 
 			out << "IMPR_TABLE(TABLE=RETB" << analysis.getId() << "," << endl;
 			out << "           FORMAT='TABLEAU'," << endl;
-			out << "           UNITE=26," << endl;
+			out << "           UNITE=" << unit << "," << endl;
 			out << "           SEPARATEUR=' ,'," << endl;
 			out << "           TITRE='RESULTS',)" << endl << endl;
 
 			out << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
-			out << "             UNITE=26)" << endl << endl;
+			out << "             UNITE=" << unit << ")" << endl << endl;
 		}
 
 		for (const auto& analysis : asterModel.model.analyses) {
@@ -284,18 +285,19 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
             out << "                    )" << endl;
 			out << "            )" << endl;
 
+			int unit = 10 + analysis->getId();
             out << "DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
-			out << "             UNITE=26," << endl;
+			out << "             UNITE=" << unit << "," << endl;
 			out << "             FICHIER='REPE_OUT/tbrecup_" << analysis->getId() << ".csv')" << endl << endl;
 
             out << "IMPR_TABLE(TABLE=RCTB" << analysis->getId() << "," << endl;
 			out << "           FORMAT='TABLEAU'," << endl;
-			out << "           UNITE=26," << endl;
+			out << "           UNITE=" << unit << "," << endl;
 			out << "           SEPARATEUR=' ,'," << endl;
 			out << "           TITRE='RESULTS',)" << endl << endl;
 
             out << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
-			out << "             UNITE=26)" << endl << endl;
+			out << "             UNITE=" << unit << ")" << endl << endl;
 		}
 	}
 }
@@ -589,9 +591,9 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 			out << "# Material original id " << material->getOriginalId() << endl;
 		}
 		out << "M" << material->getId() << "=DEFI_MATERIAU(" << endl;
-		const shared_ptr<Nature> enature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
+		const shared_ptr<const Nature> enature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
 		if (enature) {
-			const auto& elasticNature = dynamic_pointer_cast<ElasticNature>(enature);
+			const auto& elasticNature = dynamic_pointer_cast<const ElasticNature>(enature);
 			out << "                 ELAS=_F(" << endl;
 			out << "                         E=" << elasticNature->getE() << "," << endl;
 			out << "                         NU=" << elasticNature->getNu() << "," << endl;
@@ -601,9 +603,9 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 			}
 			out << "                         )," << endl;
 		}
-		const shared_ptr<Nature> hynature = material->findNature(Nature::NatureType::NATURE_HYPERELASTIC);
+		const shared_ptr<const Nature> hynature = material->findNature(Nature::NatureType::NATURE_HYPERELASTIC);
 		if (hynature) {
-			const auto& hyperElasticNature = dynamic_pointer_cast<HyperElasticNature>(hynature);
+			const auto& hyperElasticNature = dynamic_pointer_cast<const HyperElasticNature>(hynature);
 			out << "                 ELAS_HYPER=_F(" << endl;
 			out << "                         C10=" << hyperElasticNature->c10 << "," << endl;
 			out << "                         C01=" << hyperElasticNature->c01 << "," << endl;
@@ -612,9 +614,9 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 			out << "                         K=" << hyperElasticNature->k << "," << endl;
 			out << "                         )," << endl;
 		}
-		const shared_ptr<Nature> onature = material->findNature(Nature::NatureType::NATURE_ORTHOTROPIC);
+		const shared_ptr<const Nature> onature = material->findNature(Nature::NatureType::NATURE_ORTHOTROPIC);
 		if (onature) {
-			const auto& orthoNature = dynamic_pointer_cast<OrthotropicNature>(onature);
+			const auto& orthoNature = dynamic_pointer_cast<const OrthotropicNature>(onature);
 			out << "                 ELAS_ORTH=_F(" << endl;
 			out << "                         E_L=" << orthoNature->getE_longitudinal() << "," << endl;
             out << "                         E_T=" << orthoNature->getE_transverse() << "," << endl;
@@ -628,9 +630,9 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 			out << "                         NU_LT=" << orthoNature->getNu_longitudinal_transverse() << "," << endl;
 			out << "                         )," << endl;
 		}
-		const shared_ptr<Nature> binature = material->findNature(Nature::NatureType::NATURE_BILINEAR_ELASTIC);
+		const shared_ptr<const Nature> binature = material->findNature(Nature::NatureType::NATURE_BILINEAR_ELASTIC);
 		if (binature) {
-			const auto& bilinearNature = dynamic_pointer_cast<BilinearElasticNature>(binature);
+			const auto& bilinearNature = dynamic_pointer_cast<const BilinearElasticNature>(binature);
 			out << "                 ECRO_LINE=_F(" << endl;
 			out << "                         D_SIGM_EPSI=" << bilinearNature->secondary_slope << ","
 					<< endl;
@@ -1620,7 +1622,7 @@ void AsterWriter::writeForceLine(const LoadSet& loadset, ostream& out) {
             default:
                 throw logic_error("DOF not yet handled");
             }
-            out << "=" << asternameByValue[forceLine->force->getReference()] << ",";
+            out << "=" << asternameByValue[forceLine->force] << ",";
             writeCellContainer(*forceLine, out);
             out << "          )," << endl;
 		}
@@ -1943,13 +1945,13 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		out << "                    CARA_ELEM=CAEL," << endl;
 		out << "                    EXCIT=(" << endl;
 		for (shared_ptr<LoadSet> loadSet : linearMecaStat.getLoadSets()) {
-			out << "                           _F(CHARGE=" << asternameByLoadSet[loadSet->getReference()] << ")," << endl;
+			out << "                           _F(CHARGE=" << asternameByLoadSet[loadSet] << ")," << endl;
 		}
 		for (shared_ptr<ConstraintSet> constraintSet : linearMecaStat.getConstraintSets()) {
 			//GC: dirty fix for #801, a deeper analysis must be done
 			if (constraintSet->getConstraints().size() > 0) {
-                cout << "constraintSet:" << *constraintSet << " AsterName: " << asternameByConstraintSet[constraintSet->getReference()] << "Size:" << constraintSet->size() << endl;
-				out << "                           _F(CHARGE=" << asternameByConstraintSet[constraintSet->getReference()] << "),"
+                cout << "constraintSet:" << *constraintSet << " AsterName: " << asternameByConstraintSet[constraintSet] << "Size:" << constraintSet->size() << endl;
+				out << "                           _F(CHARGE=" << asternameByConstraintSet[constraintSet] << "),"
 						<< endl;
 			}
 		}
@@ -1988,12 +1990,12 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		out << "                    EXCIT=(" << endl;
 		if (nonLinAnalysis.previousAnalysis) {
 			for (shared_ptr<LoadSet> loadSet : nonLinAnalysis.previousAnalysis->getLoadSets()) {
-				out << "                           _F(CHARGE=" << asternameByLoadSet[loadSet->getReference()]
+				out << "                           _F(CHARGE=" << asternameByLoadSet[loadSet]
 						<< ",FONC_MULT=IRAMP" << nonLinAnalysis.getId() << ")," << "# Original id:" << loadSet->getOriginalId() << endl;
 			}
 		}
 		for (shared_ptr<LoadSet> loadSet : nonLinAnalysis.getLoadSets()) {
-			out << "                           _F(CHARGE=" << asternameByLoadSet[loadSet->getReference()]
+			out << "                           _F(CHARGE=" << asternameByLoadSet[loadSet]
 					<< ",FONC_MULT=RAMP" << nonLinAnalysis.getId() << ")," << "# Original id:" << loadSet->getOriginalId() << endl;
 		}
 		for (shared_ptr<ConstraintSet> constraintSet : nonLinAnalysis.getConstraintSets()) {
@@ -2002,7 +2004,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 			}
 			//GC: dirty fix for #801, a deeper analysis must be done
 			if (constraintSet->getConstraints().size() >= 1) {
-				out << "                           _F(CHARGE=" << asternameByConstraintSet[constraintSet->getReference()] << "),"
+				out << "                           _F(CHARGE=" << asternameByConstraintSet[constraintSet] << "),"
 						 << "# Original id:" << constraintSet->getOriginalId() << endl;
 			}
 		}
@@ -2015,18 +2017,18 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 			if (not constraintSet->hasContacts()) {
 				continue;
 			}
-			out << "                    CONTACT=" << asternameByConstraintSet[constraintSet->getReference()] << "," << "# Original id:" << constraintSet->getOriginalId() << endl;
+			out << "                    CONTACT=" << asternameByConstraintSet[constraintSet] << "," << "# Original id:" << constraintSet->getOriginalId() << endl;
 		}
 		out << "                    COMPORTEMENT=(" << endl;
 		for (const auto& elementSet : asterModel.model.elementSets) {
 			if (elementSet->material != nullptr && elementSet->cellGroup != nullptr) {
 				out << "                          _F(GROUP_MA='" << elementSet->cellGroup->getName()
 						<< "',";
-                const shared_ptr<Nature> hyelas = elementSet->material->findNature(
+                const shared_ptr<const Nature> hyelas = elementSet->material->findNature(
                         Nature::NatureType::NATURE_HYPERELASTIC);
-                const shared_ptr<Nature> binature = elementSet->material->findNature(
+                const shared_ptr<const Nature> binature = elementSet->material->findNature(
                         Nature::NatureType::NATURE_BILINEAR_ELASTIC);
-                const shared_ptr<Nature> nlelas = elementSet->material->findNature(
+                const shared_ptr<const Nature> nlelas = elementSet->material->findNature(
                         Nature::NatureType::NATURE_NONLINEAR_ELASTIC);
                 if (binature) {
                     out << "RELATION='VMIS_ISOT_LINE',";
@@ -2142,6 +2144,8 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 
 		out << "I" << resuName << "=RECU_TABLE(CO=" << resuName << ",NOM_PARA = ('FREQ','MASS_GENE','RIGI_GENE','AMOR_GENE'))" << endl;
         out << "IMPR_TABLE(TABLE=I" << resuName << ")" << endl << endl;
+        out << "J" << resuName << "=POST_ELEM(RESULTAT=" << resuName << ", MASS_INER=_F(TOUT='OUI'))" << endl;
+        out << "IMPR_TABLE(TABLE=J" << resuName << ")" << endl << endl;
 
 		if (analysis.type == Analysis::Type::LINEAR_MODAL)
 			break;

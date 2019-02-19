@@ -47,7 +47,8 @@ public:
     int original_id;
     int id;
     Reference(const typename T::Type type, const int original_id = NO_ID, const int id = NO_ID);
-    Reference(const T& t);
+    Reference(const T&);
+    Reference(const std::shared_ptr<T>&);
     bool has_original_id() const {
         return original_id != NO_ID;
     }
@@ -64,6 +65,11 @@ Reference<T>::Reference(const typename T::Type type, const int original_id, cons
 template<class T>
 Reference<T>::Reference(const T& t) :
         type(t.type), original_id(t.getOriginalId()), id(t.getId()) {
+}
+
+template<class T>
+Reference<T>::Reference(const std::shared_ptr<T>& ptr) :
+        type(ptr->type), original_id(ptr->getOriginalId()), id(ptr->getId()) {
 }
 
 template<class T>

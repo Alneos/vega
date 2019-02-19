@@ -135,6 +135,7 @@ void NastranParser::parseParamK6ROT(NastranTokenizer& tok, Model& model) {
                 "Non zero parameter K6ROT : " + to_string(val),
                 tok, model);
     }
+    model.parameters[Model::Parameter::SHELL_NORMAL_STIFFNESS_FACTOR] = val;
 }
 
 void NastranParser::parseParamLFREQ(NastranTokenizer& tok, Model& model) {

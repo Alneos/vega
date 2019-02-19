@@ -235,9 +235,9 @@ void NastranWriter::writeMaterials(const Model& model, ofstream& out) const
 	for (const auto& material : model.materials) {
 		Line mat1("MAT1");
 		mat1.add(material->bestId());
-		const shared_ptr<Nature> enature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
+		const auto& enature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
 		if (enature) {
-			const ElasticNature& elasticNature = dynamic_cast<ElasticNature&>(*enature);
+			const ElasticNature& elasticNature = dynamic_cast<const ElasticNature&>(*enature);
 			mat1.add(elasticNature.getE());
 			mat1.add(elasticNature.getG());
 			mat1.add(elasticNature.getNu());

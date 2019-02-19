@@ -65,7 +65,7 @@ public:
 /**
  * Set of constraints that are often referenced by an analysis.
  */
-class ConstraintSet: public Identifiable<ConstraintSet> {
+class ConstraintSet final: public Identifiable<ConstraintSet> {
 	Model& model;
 	std::vector<Reference<ConstraintSet>> constraintSetReferences{};
 	friend std::ostream &operator<<(std::ostream&, const ConstraintSet&);
@@ -73,9 +73,8 @@ public:
 	enum class Type {
 		SPC, MPC, ALL, CONTACT
 	};
-	ConstraintSet(Model&, Type type = Type::SPC, int original_id = NO_ORIGINAL_ID);
+	ConstraintSet(Model&, Type type, int original_id = NO_ORIGINAL_ID);
     ConstraintSet(const ConstraintSet& that) = delete;
-	virtual ~ConstraintSet() = default;
 	static constexpr int COMMON_SET_ID = 0;
 	const Type type;
 	static const std::string name;

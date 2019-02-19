@@ -364,7 +364,7 @@ public:
 class ForceLine: public CellLoading {
 public:
 
-	std::shared_ptr<NamedValue> force;
+	const std::shared_ptr<NamedValue> force;
 	DOF dof;
     ForceLine(Model&, const std::shared_ptr<NamedValue> force, DOF component,
 			const int original_id = NO_ORIGINAL_ID);
