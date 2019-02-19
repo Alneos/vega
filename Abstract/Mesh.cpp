@@ -50,7 +50,7 @@ NodeData::NodeData(int id, const DOFS& dofs, double x, double y, double z, int c
  * Node Container class
  */
 
-int NodeStorage::currentNodePart = 0;
+int NodeStorage::lastNodePart = 0;
 
 NodeStorage::NodeStorage(Mesh& mesh, LogLevel logLevel) :
 		logLevel(logLevel), mesh(mesh) {
@@ -63,28 +63,6 @@ NodeIterator NodeStorage::begin() const {
 
 NodeIterator NodeStorage::end() const {
 	return NodeIterator(this, static_cast<int>(nodeDatas.size()));
-}
-
-int NodeStorage::reserveNodePosition(int nodeId, int cellPartId) {
-    int nodePart = 0;
-//    UNUSEDV(cellPartId);
-    if (cellPartId != Globals::UNAVAILABLE_INT) {
-        auto nodePartsEntry = nodePartsByCellPart.find(cellPartId);
-        if (nodePartsEntry != nodePartsByCellPart.end()) {
-            // LD Arbitrarily assigning to the first node part
-            nodePart = *(nodePartsEntry->second.begin());
-        } else {
-            nodePart = ++currentNodePart;
-            nodePartsByCellPart[cellPartId] = {nodePart};
-        }
-    }
-	int nodePosition = mesh.addNode(nodeId, RESERVED_POSITION, RESERVED_POSITION,
-			RESERVED_POSITION, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, nodePart);
-	nodepositionById[nodeId] = nodePosition;
-	if (this->logLevel >= LogLevel::TRACE) {
-		cout << "Reserve node id:" << nodeId << " position:" << nodePosition << endl;
-	}
-	return nodePosition;
 }
 
 CellData::CellData(int id, const CellType& type, bool isvirtual, int elementId, int cellTypePosition) :
@@ -221,21 +199,52 @@ const Node Mesh::findNode(const int nodePosition) const {
 
 int Mesh::findOrReserveNode(int nodeId, int cellPartId) {
 
-	int nodePosition = findNodePosition(nodeId);
-	if (nodePosition == Node::UNAVAILABLE_NODE)
-        return nodes.reserveNodePosition(nodeId, cellPartId);
-//    UNUSEDV(cellPartId);
+    int mainNodePart = 0;
     if (cellPartId != Globals::UNAVAILABLE_INT) {
-        if (nodes.nodePartsByCellPart.find(cellPartId) == nodes.nodePartsByCellPart.end()) {
-            nodes.nodePartsByCellPart[cellPartId] = {++(nodes.currentNodePart)};
+        if (nodes.mainNodePartByCellPart.find(cellPartId) == nodes.mainNodePartByCellPart.end()) {
+            // Never seen this cellPart, registering a new main node part
+            mainNodePart = ++(nodes.lastNodePart);
+            nodes.mainNodePartByCellPart[cellPartId] = mainNodePart;
+            nodes.cellPartsByNodePart[mainNodePart] = {cellPartId};
+        } else {
+            mainNodePart = nodes.mainNodePartByCellPart[cellPartId];
         }
-        auto& nodeParts = nodes.nodePartsByCellPart[cellPartId];
+    }
+
+	int nodePosition = findNodePosition(nodeId);
+	if (nodePosition == Node::UNAVAILABLE_NODE) {
+
+        nodePosition = addNode(nodeId, NodeStorage::RESERVED_POSITION, NodeStorage::RESERVED_POSITION,
+                NodeStorage::RESERVED_POSITION, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, mainNodePart);
+        nodes.nodepositionById[nodeId] = nodePosition;
+        if (this->logLevel >= LogLevel::TRACE) {
+            cout << "Reserve node id:" << nodeId << " position:" << nodePosition << endl;
+        }
+	} else if (cellPartId != Globals::UNAVAILABLE_INT) {
         auto& nodeData = nodes.nodeDatas[nodePosition];
         if (nodeData.nodePart == 0) {
-            // LD Arbitrarily assigning to the first node part
-            nodeData.nodePart = *(nodeParts.begin());
-        } else {
-            nodeParts.insert(nodeData.nodePart);
+            // Node exists but this is the first cell containing it
+            nodeData.nodePart = mainNodePart;
+        } else if (nodeData.nodePart != mainNodePart) {
+            // Node exists and already has a nodePart which is from another cell part
+            auto& currentCellParts = nodes.cellPartsByNodePart[nodeData.nodePart];
+            if (currentCellParts.find(cellPartId) != currentCellParts.end()) {
+                // Current nodePart did not include this cellPart : interface node
+                set<int> newCellParts{currentCellParts};
+                newCellParts.insert(cellPartId);
+                const auto& interfaceEntry = nodes.interfaceNodePartByCellParts.find(newCellParts);
+                if (interfaceEntry == nodes.interfaceNodePartByCellParts.end()) {
+                    // Never seen this cellpart set, registering a new interface node part
+                    int interfaceNodePart = ++(nodes.lastNodePart);
+                    nodes.interfaceNodePartByCellParts[newCellParts] = interfaceNodePart;
+                    // Changing node part for this node
+                    nodeData.nodePart = interfaceNodePart;
+                    nodes.cellPartsByNodePart[interfaceNodePart] = newCellParts;
+                } else {
+                    // Updating nodepart to the interface
+                    nodeData.nodePart = interfaceEntry->second;
+                }
+            }
         }
     }
 	return nodePosition;

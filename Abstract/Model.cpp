@@ -1863,27 +1863,46 @@ void Model::addAutoAnalysis() {
 }
 
 void Model::createGraph() {
-    struct VertexProps { std::string name; };
+    struct VertexProps { int id; std::string name; };
     struct EdgeProps   { std::string name; };
     typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, VertexProps, EdgeProps> Graph;
+    typedef boost::graph_traits<Graph>::vertex_descriptor vertex_descriptor;
+    //typedef boost::graph_traits<Graph>::edge_descriptor edge_descriptor;
 
     Graph g;
-
+    map<int,vertex_descriptor> vertexPosByElementId{};
     for (auto& elementSet : elementSets) {
-        auto vpos = boost::add_vertex(g);
-        auto v = g[vpos];
+        vertex_descriptor vpos = boost::add_vertex(g);
+        auto& v = g[vpos];
+        v.id = elementSet->getId();
         v.name = to_str(*elementSet);
+        vertexPosByElementId[v.id] = vpos;
     }
 
-    for (auto& constraintSet : constraintSets) {
-        auto vpos = boost::add_vertex(g);
-        auto v = g[vpos];
+    for (auto& entry : mesh.nodes.cellPartsByNodePart) {
+        int nodePart = entry.first;
+        vertex_descriptor vnpos = boost::add_vertex(g);
+        auto& v = g[vnpos];
+        v.id = nodePart;
+        v.name = "Nodal connexion";
+        for (int cellPartId: entry.second) {
+            vertex_descriptor vepos = vertexPosByElementId[cellPartId];
+            boost::add_edge(vnpos, vepos, g);
+        }
+    }
+
+    for (const auto& constraintSet : constraintSets) {
+        vertex_descriptor vpos = boost::add_vertex(g);
+        auto& v = g[vpos];
         v.name = to_str(*constraintSet);
+        set<int> nodeParts{};
+//        for(const auto& constraint : constraintSet->getConstraints()) {
+//            for(int nodePosition : nodePositions()) {
+//
+//            }
+//        }
     }
 
-    // Add edges
-//    g.add_edge(v0, v1);
-//    g.add_edge(v1, v2);
     boost::write_graphviz(cout, g, boost::make_label_writer(get(&VertexProps::name, g)),
             boost::make_label_writer(get(&EdgeProps::name, g)));
     std::cerr << "Graph node name:" << g[0].name << "\n";

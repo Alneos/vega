@@ -70,6 +70,7 @@ ConstraintSet::ConstraintSet(Model& model, Type type, int original_id) :
 }
 
 void ConstraintSet::add(const Reference<ConstraintSet>& constraintSetReference) {
+    // LD Hack : see parseSPCADD
     constraintSetReferences.push_back(constraintSetReference);
 }
 

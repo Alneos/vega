@@ -154,7 +154,7 @@ public:
         ELEMENT_QUALITY_CHECK,
         STRUCTURAL_DAMPING,
         FREQUENCY_OF_INTEREST_RADIANS,
-        SHELL_NORMAL_STIFFNESS_FACTOR
+        SHELL_NORMAL_STIFFNESS_FACTOR /**< see Nastran K6ROT, Aster COEF_RIGI_DRZ http://eric.cabrol.free.fr/CalculEF/params_Nastran.html */
     };
     const std::shared_ptr<LoadSet> commonLoadSet;
     const std::shared_ptr<ConstraintSet> commonConstraintSet;
@@ -186,6 +186,7 @@ private:
         Model& model;
     public:
         Container(Model& model): model(model) {}
+        Container(const Container& that) = delete; /**< Containers should never be copied */
         class iterator;
         friend class iterator;
         class iterator : public std::iterator< std::input_iterator_tag,T,ptrdiff_t> {
@@ -226,7 +227,6 @@ private:
         bool contains(const typename T::Type type) const; /**< Ask if objects of a given type exist inside */
         const std::vector<std::shared_ptr<T>> filter(const typename T::Type type) const; /**< Choose objects based on their type */
         bool validate(); /**< Says if model parts are coherent (no unresolved references, etc.) AND SOMETIMES IT TRIES TO FIX THEM :( */
-        Container(const Container& that) = delete; /**< Containers should never be copied */
     }; /* Container class */
     std::unordered_map<int,CellContainer> material_assignment_by_material_id{};
 public:
