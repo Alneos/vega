@@ -247,7 +247,7 @@ private:
     static int auto_node_id;
     Node(int id, double lx, double ly, double lz, int position, DOFS dofs,
             double gx, double gy, double gz, int positionCS = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
-            int displacementCS = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+            int displacementCS = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int nodePartId = 0);
 public:
     static const int AUTO_ID = INT_MIN;
     static const int UNAVAILABLE_NODE = INT_MIN;
@@ -257,6 +257,7 @@ public:
      *  Unique by mesh.
      **/
     const int id;
+    const int nodepartId;
     /** Position, or VEGA id, of the node in the model.
      *  Unique by mesh.
      **/

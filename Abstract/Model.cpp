@@ -1892,15 +1892,41 @@ void Model::createGraph() {
     }
 
     for (const auto& constraintSet : constraintSets) {
-        vertex_descriptor vpos = boost::add_vertex(g);
-        auto& v = g[vpos];
+        vertex_descriptor vcpos = boost::add_vertex(g);
+        auto& v = g[vcpos];
         v.name = to_str(*constraintSet);
-        set<int> nodeParts{};
-//        for(const auto& constraint : constraintSet->getConstraints()) {
-//            for(int nodePosition : nodePositions()) {
-//
-//            }
-//        }
+        for(const auto& constraint : constraintSet->getConstraints()) {
+            set<int> nodeParts{};
+            for(int nodePosition : constraint->nodePositions()) {
+                nodeParts.insert(mesh.findNodePartId(nodePosition));
+            }
+            for(int nodePart : nodeParts) {
+                const auto& cellParts = mesh.nodes.cellPartsByNodePart[nodePart];
+                for(int cellPartId : cellParts) {
+                    vertex_descriptor vepos = vertexPosByElementId[cellPartId];
+                    boost::add_edge(vcpos, vepos, g);
+                }
+            }
+        }
+    }
+
+    for (const auto& loadSet : loadSets) {
+        vertex_descriptor vlpos = boost::add_vertex(g);
+        auto& v = g[vlpos];
+        v.name = to_str(*loadSet);
+        for(const auto& loading : loadSet->getLoadings()) {
+            set<int> nodeParts{};
+            for(int nodePosition : loading->nodePositions()) {
+                nodeParts.insert(mesh.findNodePartId(nodePosition));
+            }
+            for(int nodePart : nodeParts) {
+                const auto& cellParts = mesh.nodes.cellPartsByNodePart[nodePart];
+                for(int cellPartId : cellParts) {
+                    vertex_descriptor vepos = vertexPosByElementId[cellPartId];
+                    boost::add_edge(vlpos, vepos, g);
+                }
+            }
+        }
     }
 
     boost::write_graphviz(cout, g, boost::make_label_writer(get(&VertexProps::name, g)),

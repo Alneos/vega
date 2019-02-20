@@ -207,6 +207,12 @@ public:
 	 * @return Node::UNAVAILABLE_NODE if not found
 	 */
 	int findNodePosition(const int nodeId) const;
+
+    /**
+	 * given an internal node position returns the nodepartId
+	 * @return Node::UNAVAILABLE_NODE if not found
+	 */
+	int findNodePartId(const int nodePosition) const;
 	int findOrReserveNode(const int nodeId, const int cellPartId = Globals::UNAVAILABLE_INT);
 	//returns a set of nodePositions
 	std::set<int> findOrReserveNodes(const std::set<int>& nodeIds);

@@ -368,8 +368,8 @@ bool CellGroup::empty() const {
 ///////////////////////////////////////////////////////////////////////////////
 int Node::auto_node_id = 9999999;
 
-Node::Node(int id, double lx, double ly, double lz, int position1, DOFS inElement1, double gx, double gy, double gz, int _positionCS, int _displacementCS) :
-		id(id), position(position1), lx(lx), ly(ly), lz(lz), dofs(inElement1), x(gx), y(gy), z(gz),
+Node::Node(int id, double lx, double ly, double lz, int position1, DOFS inElement1, double gx, double gy, double gz, int _positionCS, int _displacementCS, int _nodepartId) :
+		id(id), nodepartId(_nodepartId), position(position1), lx(lx), ly(ly), lz(lz), dofs(inElement1), x(gx), y(gy), z(gz),
 		positionCS(_positionCS), displacementCS(_displacementCS) {
 }
 

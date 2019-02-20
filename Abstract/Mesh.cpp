@@ -177,7 +177,7 @@ const Node Mesh::findNode(const int nodePosition) const {
 	if (nodeData.cpPos == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
       // Should always be an "unnamed return" to avoid useless copies
       return Node(nodeData.id, nodeData.x, nodeData.y, nodeData.z, nodePosition, nodeData.dofs,
-          nodeData.x, nodeData.y, nodeData.z, nodeData.cpPos, nodeData.cdPos);
+          nodeData.x, nodeData.y, nodeData.z, nodeData.cpPos, nodeData.cdPos, nodeData.nodePart);
 	} else {
       shared_ptr<CoordinateSystem> coordSystem = this->getCoordinateSystemByPosition(nodeData.cpPos);
       if (!coordSystem) {
@@ -266,6 +266,14 @@ int Mesh::findNodeId(const int nodePosition) const {
 				"Node position " + to_string(nodePosition) + " not found.");
 	}
 	return nodes.nodeDatas[nodePosition].id;
+}
+
+int Mesh::findNodePartId(const int nodePosition) const {
+	if (nodePosition == Node::UNAVAILABLE_NODE) {
+		throw invalid_argument(
+				"Node position " + to_string(nodePosition) + " not found.");
+	}
+	return nodes.nodeDatas[nodePosition].nodePart;
 }
 
 int Mesh::findNodePosition(const int nodeId) const {
