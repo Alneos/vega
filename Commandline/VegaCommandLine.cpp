@@ -181,6 +181,12 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
         translationMode = ConfigurationParameters::TranslationMode::MODE_STRICT;
     }
 
+    bool createGraph = false;
+    if (vm.count("graph") > 0) {
+        cout << "Graph requested. " << endl;
+        createGraph = true;
+    }
+
 
     // Choice of output solver, and options related to it
     #if ENABLE_ASTER
@@ -370,7 +376,7 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
 
     ConfigurationParameters configuration = ConfigurationParameters(inputFile.string(), solver,
             solverVersion, modelName, outputDir, logLevel, translationMode, testFnamePath,
-            tolerance, runSolver, solverServer, solverCommand,
+            tolerance, runSolver, createGraph, solverServer, solverCommand,
             systusRBE2TranslationMode, systusRBEStiffness, systusRBECoefficient, systusOptionAnalysis, systusOutputProduct,
             systusSubcases, systusOutputMatrix, systusSizeMatrix, systusDynamicMethod);
     return configuration;
@@ -458,6 +464,7 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
                 " otherwise it is translated only the mesh.") //
         ("strict,s", "Stops translation at the first "
                 "unrecognized keyword or parameter.")//
+        ("graph,g", "Creates a graph of the study") //
         ("verbosity", po::value<string>(), "Verbosity of VEGA. From low to high: ERROR, WARN, INFO, DEBUG, TRACE"); //
 
         // Systus specific options

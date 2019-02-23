@@ -21,7 +21,7 @@ namespace vega {
 
 ConfigurationParameters::ConfigurationParameters(string inputFile, Solver outputSolver,
         string solverVersion, string outputFile, string outputPath, LogLevel logLevel,
-        TranslationMode translationMode, fs::path resultFile, double tolerance, bool runSolver,
+        TranslationMode translationMode, fs::path resultFile, double tolerance, bool runSolver, bool createGraph,
         string solverServer, string solverCommand,
         string systusRBE2TranslationMode, double systusRBEStiffness, double systusRBECoefficient,
         string systusOptionAnalysis, string systusOutputProduct, vector<vector<int> > systusSubcases,
@@ -29,7 +29,7 @@ ConfigurationParameters::ConfigurationParameters(string inputFile, Solver output
                 inputFile(inputFile), outputSolver(outputSolver), solverVersion(solverVersion), outputFile(
                 outputFile), outputPath(outputPath), logLevel(logLevel), translationMode(
                 translationMode), resultFile(resultFile), testTolerance(tolerance), runSolver(
-                runSolver), solverServer(solverServer), solverCommand(solverCommand),
+                runSolver), createGraph(createGraph), solverServer(solverServer), solverCommand(solverCommand),
                 systusRBE2TranslationMode(systusRBE2TranslationMode), systusRBEStiffness(systusRBEStiffness),
                 systusRBECoefficient(systusRBECoefficient), systusOptionAnalysis(systusOptionAnalysis),
                 systusOutputProduct(systusOutputProduct), systusSubcases(systusSubcases),
@@ -78,9 +78,6 @@ const ModelConfiguration ConfigurationParameters::getModelConfiguration() const 
         throw logic_error(" solver not yet implemented");
     }
     return configuration;
-}
-
-ConfigurationParameters::~ConfigurationParameters() {
 }
 
 const boost::bimap<SolverName, string> Solver::SOLVERNAME_BY_SOLVER = assign::list_of<

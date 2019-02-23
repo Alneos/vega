@@ -33,7 +33,7 @@ const string AsterWriter::toString() const {
 }
 
 string AsterWriter::writeModel(Model& model,
-		const vega::ConfigurationParameters &configuration) {
+		const ConfigurationParameters &configuration) {
 	AsterModel asterModel(model, configuration);
 //string currentOutFile = asterModel.getOutputFileName();
 
@@ -50,6 +50,18 @@ string AsterWriter::writeModel(Model& model,
     fs::path testFile = asterModel.configuration.resultFile;
 	if (fs::exists(testFile)) {
 		fs::copy_file(testFile, fs::absolute(path) / testFile.filename(), fs::copy_option::overwrite_if_exists);
+	}
+
+	if (configuration.createGraph) {
+	    string graphviz_path = asterModel.getOutputFileName(".dot");
+	    string png_path = asterModel.getOutputFileName(".png");
+	    ofstream graphviz_file_ofs;
+        graphviz_file_ofs.open(graphviz_path.c_str(), ios::out | ios::trunc);
+        model.createGraph(graphviz_file_ofs);
+        if (boost::filesystem::exists( DOXYGEN_DOT_EXECUTABLE )) {
+            string dot_cmd = string(DOXYGEN_DOT_EXECUTABLE) + " -Tpng " + graphviz_path + " -o " + png_path;
+            system(dot_cmd.c_str());
+        }
 	}
 
 	string exp_path = asterModel.getOutputFileName(".export");

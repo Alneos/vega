@@ -1862,9 +1862,9 @@ void Model::addAutoAnalysis() {
     }
 }
 
-void Model::createGraph() {
-    struct VertexProps { int id; std::string name; };
-    struct EdgeProps   { std::string name; };
+void Model::createGraph(ostream& dot_ofs) {
+    struct VertexProps { int id; string name; };
+    struct EdgeProps   { string name; };
     typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, VertexProps, EdgeProps> Graph;
     typedef boost::graph_traits<Graph>::vertex_descriptor vertex_descriptor;
     //typedef boost::graph_traits<Graph>::edge_descriptor edge_descriptor;
@@ -1895,17 +1895,17 @@ void Model::createGraph() {
         vertex_descriptor vcpos = boost::add_vertex(g);
         auto& v = g[vcpos];
         v.name = to_str(*constraintSet);
+        set<int> nodeParts{};
         for(const auto& constraint : constraintSet->getConstraints()) {
-            set<int> nodeParts{};
             for(int nodePosition : constraint->nodePositions()) {
                 nodeParts.insert(mesh.findNodePartId(nodePosition));
             }
-            for(int nodePart : nodeParts) {
-                const auto& cellParts = mesh.nodes.cellPartsByNodePart[nodePart];
-                for(int cellPartId : cellParts) {
-                    vertex_descriptor vepos = vertexPosByElementId[cellPartId];
-                    boost::add_edge(vcpos, vepos, g);
-                }
+        }
+        for(int nodePart : nodeParts) {
+            const auto& cellParts = mesh.nodes.cellPartsByNodePart[nodePart];
+            for(int cellPartId : cellParts) {
+                vertex_descriptor vepos = vertexPosByElementId[cellPartId];
+                boost::add_edge(vcpos, vepos, g);
             }
         }
     }
@@ -1914,22 +1914,22 @@ void Model::createGraph() {
         vertex_descriptor vlpos = boost::add_vertex(g);
         auto& v = g[vlpos];
         v.name = to_str(*loadSet);
+        set<int> nodeParts{};
         for(const auto& loading : loadSet->getLoadings()) {
-            set<int> nodeParts{};
             for(int nodePosition : loading->nodePositions()) {
                 nodeParts.insert(mesh.findNodePartId(nodePosition));
             }
-            for(int nodePart : nodeParts) {
-                const auto& cellParts = mesh.nodes.cellPartsByNodePart[nodePart];
-                for(int cellPartId : cellParts) {
-                    vertex_descriptor vepos = vertexPosByElementId[cellPartId];
-                    boost::add_edge(vlpos, vepos, g);
-                }
+        }
+        for(int nodePart : nodeParts) {
+            const auto& cellParts = mesh.nodes.cellPartsByNodePart[nodePart];
+            for(int cellPartId : cellParts) {
+                vertex_descriptor vepos = vertexPosByElementId[cellPartId];
+                boost::add_edge(vlpos, vepos, g);
             }
         }
     }
 
-    boost::write_graphviz(cout, g, boost::make_label_writer(get(&VertexProps::name, g)),
+    boost::write_graphviz(dot_ofs, g, boost::make_label_writer(get(&VertexProps::name, g)),
             boost::make_label_writer(get(&EdgeProps::name, g)));
     std::cerr << "Graph node name:" << g[0].name << "\n";
 }

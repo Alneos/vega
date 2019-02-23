@@ -193,7 +193,7 @@ BOOST_AUTO_TEST_CASE( test_graph ) {
 	spc->addNodeId(50);
 	model->add(spc);
 	model->addConstraintIntoConstraintSet(spc->getReference(), model->commonConstraintSet->getReference());
-    model->createGraph();
+    model->createGraph(cout);
 }
 
  BOOST_AUTO_TEST_CASE( test_VirtualElements ) {

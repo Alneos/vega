@@ -406,7 +406,7 @@ public:
      * one or more directions. MSC/NASTRAN automatically checks for mechanisms every time
      * it performs a decomposition using the DCMP module
      */
-    void createGraph();
+    void createGraph(std::ostream& dot_ofs);
 
     /**
      * Method that is called when parsing is complete.
