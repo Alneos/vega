@@ -228,7 +228,7 @@ int Mesh::findOrReserveNode(int nodeId, int cellPartId) {
         } else if (nodeData.nodePart != mainNodePart) {
             // Node exists and already has a nodePart which is from another cell part
             auto& currentCellParts = nodes.cellPartsByNodePart[nodeData.nodePart];
-            if (currentCellParts.find(cellPartId) != currentCellParts.end()) {
+            if (currentCellParts.find(cellPartId) == currentCellParts.end()) {
                 // Current nodePart did not include this cellPart : interface node
                 set<int> newCellParts{currentCellParts};
                 newCellParts.insert(cellPartId);

@@ -1874,12 +1874,13 @@ void Model::createGraph(ostream& dot_ofs) {
     for (auto& elementSet : elementSets) {
         vertex_descriptor vpos = boost::add_vertex(g);
         auto& v = g[vpos];
-        v.id = elementSet->getId();
+        v.id = elementSet->getOriginalId();
         v.name = to_str(*elementSet);
         vertexPosByElementId[v.id] = vpos;
     }
 
     for (auto& entry : mesh.nodes.cellPartsByNodePart) {
+        if (entry.second.size() == 1) continue;
         int nodePart = entry.first;
         vertex_descriptor vnpos = boost::add_vertex(g);
         auto& v = g[vnpos];
@@ -1901,12 +1902,14 @@ void Model::createGraph(ostream& dot_ofs) {
                 nodeParts.insert(mesh.findNodePartId(nodePosition));
             }
         }
+        set<int> cellParts{};
         for(int nodePart : nodeParts) {
-            const auto& cellParts = mesh.nodes.cellPartsByNodePart[nodePart];
-            for(int cellPartId : cellParts) {
-                vertex_descriptor vepos = vertexPosByElementId[cellPartId];
-                boost::add_edge(vcpos, vepos, g);
-            }
+            const auto& cellParts2 = mesh.nodes.cellPartsByNodePart[nodePart];
+            cellParts.insert(cellParts2.begin(), cellParts2.end());
+        }
+        for(int cellPartId : cellParts) {
+            vertex_descriptor vepos = vertexPosByElementId[cellPartId];
+            boost::add_edge(vcpos, vepos, g);
         }
     }
 
@@ -1920,12 +1923,14 @@ void Model::createGraph(ostream& dot_ofs) {
                 nodeParts.insert(mesh.findNodePartId(nodePosition));
             }
         }
+        set<int> cellParts{};
         for(int nodePart : nodeParts) {
-            const auto& cellParts = mesh.nodes.cellPartsByNodePart[nodePart];
-            for(int cellPartId : cellParts) {
-                vertex_descriptor vepos = vertexPosByElementId[cellPartId];
-                boost::add_edge(vlpos, vepos, g);
-            }
+            const auto& cellParts2 = mesh.nodes.cellPartsByNodePart[nodePart];
+            cellParts.insert(cellParts2.begin(), cellParts2.end());
+        }
+        for(int cellPartId : cellParts) {
+            vertex_descriptor vepos = vertexPosByElementId[cellPartId];
+            boost::add_edge(vlpos, vepos, g);
         }
     }
 
