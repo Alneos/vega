@@ -53,14 +53,16 @@ string AsterWriter::writeModel(Model& model,
 	}
 
 	if (configuration.createGraph) {
-	    string graphviz_path = asterModel.getOutputFileName(".dot");
-	    string png_path = asterModel.getOutputFileName(".png");
-	    ofstream graphviz_file_ofs;
-        graphviz_file_ofs.open(graphviz_path.c_str(), ios::out | ios::trunc);
-        model.createGraph(graphviz_file_ofs);
-        if (boost::filesystem::exists( DOXYGEN_DOT_EXECUTABLE )) {
-            string dot_cmd = string(DOXYGEN_DOT_EXECUTABLE) + " -Tpng " + graphviz_path + " -o " + png_path;
-            system(dot_cmd.c_str());
+        for (const auto& analysis : asterModel.model.analyses) {
+            string graphviz_path = to_string(analysis->getId()) + asterModel.getOutputFileName(".dot");
+            string png_path = to_string(analysis->getId()) + asterModel.getOutputFileName(".png");
+            ofstream graphviz_file_ofs;
+            graphviz_file_ofs.open(graphviz_path.c_str(), ios::out | ios::trunc);
+            analysis->createGraph(graphviz_file_ofs);
+            if (boost::filesystem::exists( DOXYGEN_DOT_EXECUTABLE )) {
+                string dot_cmd = string(DOXYGEN_DOT_EXECUTABLE) + " -Tpng " + graphviz_path + " -o " + png_path;
+                system(dot_cmd.c_str());
+            }
         }
 	}
 
@@ -99,7 +101,7 @@ void AsterWriter::writeExport(AsterModel &model, ostream& out) {
 	out << "P actions make_etude" << endl;
 	out << "P mem_aster 100.0" << endl;
 	out << "P mode interactif" << endl;
-	if (model.model.analyses.size() == 0) {
+	if (model.model.analyses.empty()) {
 		out << "P copy_result_alarm no" << endl;
 	}
 	out << "P nomjob " << model.model.name << endl;
@@ -117,7 +119,7 @@ void AsterWriter::writeExport(AsterModel &model, ostream& out) {
 }
 
 void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out) {
-	if (asterModel.model.analyses.size() > 0) {
+	if (asterModel.model.analyses.empty()) {
 		out << "IMPR_RESU(FORMAT='RESULTAT'," << endl;
 		out << "          RESU=(" << endl;
 		for (const auto& it : asterModel.model.analyses) {

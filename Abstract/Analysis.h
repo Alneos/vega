@@ -129,7 +129,21 @@ public:
         return false;
     }
     bool validate() const override;
+
     std::map<std::string, std::string> to_map() const override;
+    /**
+     * Create a connection graph to find and block free mechanisms
+     * See https://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/19950020950.pdf
+     * A Verification Procedure for MSC/NASTRAN Finite Element Models
+     * Alan E. Stockweil
+     *
+     * 3.2.4 Mechanisms
+     * Mechanisms lead to stiffness matrix singularities involving two or more grid points. An
+     * example of a mechanism is a section of a structure that is capable of rigid-body motion in
+     * one or more directions. MSC/NASTRAN automatically checks for mechanisms every time
+     * it performs a decomposition using the DCMP module
+     */
+    void createGraph(std::ostream& dot_ofs);
 };
 
 class Combination: public Analysis {

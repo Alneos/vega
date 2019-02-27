@@ -193,7 +193,10 @@ BOOST_AUTO_TEST_CASE( test_graph ) {
 	spc->addNodeId(50);
 	model->add(spc);
 	model->addConstraintIntoConstraintSet(spc->getReference(), model->commonConstraintSet->getReference());
-    model->createGraph(cout);
+
+    const auto& analysis = make_shared<LinearMecaStat>(*model);
+    model->add(analysis);
+    analysis->createGraph(cout);
 }
 
  BOOST_AUTO_TEST_CASE( test_VirtualElements ) {
