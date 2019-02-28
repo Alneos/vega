@@ -59,6 +59,10 @@ find_program(ASTER_EXEC NAMES as_run as_run.sh as_run.exe as_run.bat)
 set(RUN_ASTER ASTER_EXEC CACHE BOOL "Run tests using Aster executable")
 mark_as_advanced(RUN_ASTER)
 
+find_program(NASTRAN_EXEC NAMES nastran)
+set(RUN_NASTRAN NASTRAN_EXEC CACHE BOOL "Run tests using Nastran executable")
+mark_as_advanced(RUN_NASTRAN)
+
 # Debug and Release are reserved words for cmake see https://cmake.org/cmake/help/v3.0/variable/CMAKE_BUILD_TYPE.html
 IF(CMAKE_BUILD_TYPE MATCHES "^[Dd][Ee][Bb][Uu][Gg]")
     message(STATUS "Debug mode selected")

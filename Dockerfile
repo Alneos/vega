@@ -1,9 +1,9 @@
-FROM alpine:latest
+FROM alpine:3.7
 #FROM frolvlad/alpine-glibc:alpine-3.6
 
 MAINTAINER Alter Ego Engineering <contact@aego.ai>
 
-RUN echo "@testing http://nl.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && apk add --update --no-cache libexecinfo-dev make gettext gfortran g++ py-pip python-dev zlib-dev bison flex cmake swig lapack-dev curl xterm vim ca-certificates tk boost-dev bash openmpi@testing openmpi-dev@testing && pip install numpy==1.9
+RUN apk add --update --no-cache libexecinfo-dev make gettext gfortran g++ py-pip python-dev zlib-dev bison flex cmake swig lapack-dev curl xterm vim ca-certificates tk boost-dev bash && pip install numpy==1.9
 
 WORKDIR /root
 #COPY ./dockerdata/aster-full-src-13.4.0-3.noarch.tar.gz /root
@@ -24,19 +24,28 @@ ENV PATH=$PATH:$MFRONT_INSTALL/bin
 
 RUN echo "vers : STABLE:/opt/aster/13.4/share/aster" >> $ASTER_INSTALL/etc/codeaster/aster
 
-FROM alpine:latest
-RUN echo "@testing http://nl.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories &&  apk add --update --no-cache g++ git sudo libexecinfo-dev make gettext-libs libgfortran py-pip python2 python2-dev zlib-dev cmake lapack boost-dev bash openmpi@testing openmpi-dev@testing valgrind-dev libunwind-dev doxygen graphviz ttf-ubuntu-font-family ttf-freefont && pip install numpy==1.9 && apk del py-pip python2-dev
+RUN curl -SLk https://github.com/ldallolio/NASTRAN-95/archive/v0.1.95.tar.gz | tar -xzC /root
+ENV NASTRAN_BUILD=/root/NASTRAN-95-0.1.95
+ENV NASTRAN_INSTALL=/opt/nastran
+WORKDIR $NASTRAN_BUILD
+RUN ./bootstrap && ./configure --prefix=$NASTRAN_INSTALL && make && make install
+
+FROM alpine:3.7
+RUN apk add --update --no-cache g++ git sudo libexecinfo-dev make gettext-libs libgfortran py-pip python2 python2-dev zlib-dev cmake lapack boost-dev bash valgrind-dev libunwind-dev doxygen graphviz ttf-ubuntu-font-family ttf-freefont && pip install numpy==1.9 && apk del py-pip python2-dev
 
 WORKDIR /opt/aster
 COPY --from=0 /opt/aster .
+WORKDIR /opt/nastran
+COPY --from=0 /opt/nastran .
 
 ENV ASTER_INSTALL=/opt/aster
+ENV NASTRAN_INSTALL=/opt/nastran
 ENV MED_INSTALL=$ASTER_INSTALL/public/med-3.2.1
 ENV HDF_INSTALL=$ASTER_INSTALL/public/hdf5-1.8.14
 ENV CXXFLAGS="-isystem $MED_INSTALL/include -isystem $HDF_INSTALL/include"
 RUN sudo ln -s $ASTER_INSTALL/bin/as_run /usr/local/bin && ln -s $MED_INSTALL/lib/libmed.so.1.8.0 /usr/lib/libmed.so && ln -s $MED_INSTALL/lib/libmedC.so.1.8.0 /usr/lib/libmedC.so && ln -s $MED_INSTALL/lib/libmedimport.so.1.8.0 /usr/lib/libmedimport.so && ln -s $MED_INSTALL/lib/libmed.so.1.8.0 /usr/lib/libmed.so.1 && ln -s $MED_INSTALL/lib/libmedC.so.1.8.0 /usr/lib/libmedC.so.1 && ln -s $HDF_INSTALL/lib/libhdf5.so.9.0.0 /usr/lib/libhdf5.so && ln -s $HDF_INSTALL/lib/libhdf5_hl.so.9.0.0 /usr/lib/libhdf5_hl.so && ln -s $MED_INSTALL/lib/libmed.a /usr/lib/libmed.a && ln -s $MED_INSTALL/lib/libmedC.a /usr/lib/libmedC.a && ln -s $MED_INSTALL/lib/libmedimport.a /usr/lib/libmedimport.a && ldconfig /usr/lib
 ENV HDF5_ROOT=$HDF_INSTALL
 
-RUN addgroup -g 1777 vega && adduser -s /bin/bash -u 1777 -G vega -D vega && echo "vega ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && echo 'export PATH=$ASTER_INSTALL/bin:$PATH' >> /home/vega/.bashrc
+RUN addgroup -g 1777 vega && adduser -s /bin/bash -u 1777 -G vega -D vega && echo "vega ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && echo 'export PATH=$ASTER_INSTALL/bin:$NASTRAN_INSTALL/bin:$PATH' >> /home/vega/.bashrc
 USER vega
 WORKDIR /home/vega

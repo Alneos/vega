@@ -18,4 +18,5 @@
 #cmakedefine01 RUN_ASTER
 #cmakedefine01 ENABLE_ASTER
 #cmakedefine01 RUN_SYSTUS
+#cmakedefine01 RUN_NASTRAN
 #endif

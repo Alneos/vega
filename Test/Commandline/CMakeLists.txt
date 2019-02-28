@@ -55,6 +55,22 @@ target_link_libraries(
 
 add_test(NAME Nastran2Nastran_test COMMAND Nastran2Nastran_test)
 
+add_executable(
+ Optistruct2Nastran_test
+ Optistruct2Nastran_test.cpp
+)
+
+SET_TARGET_PROPERTIES(Optistruct2Nastran_test PROPERTIES LINK_SEARCH_START_STATIC ${STATIC_LINKING})
+SET_TARGET_PROPERTIES(Optistruct2Nastran_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINKING})
+
+target_link_libraries(
+ Optistruct2Nastran_test
+ command_line_test_utils
+ commandline
+)
+
+add_test(NAME Optistruct2Nastran_test COMMAND Optistruct2Nastran_test)
+
 if(ENABLE_ASTER)
     add_executable(
      Optistruct2Aster_test
