@@ -31,7 +31,7 @@ using namespace std;
 //}
 
 BOOST_AUTO_TEST_CASE( beam ) {
-	CommandLineUtils::optistructStudy2Nastran("/irt/beam/beam.fem", RUN_NASTRAN, true, 0.02);
+	CommandLineUtils::optistructStudy2Nastran("/irt/beam/beam.fem", false, true, 0.02);
 }
 
 } /* namespace test */
