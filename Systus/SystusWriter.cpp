@@ -1177,6 +1177,34 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                     break;
                 }
 
+                case Loading::Type::FORCE_SURFACE: {
+                    shared_ptr<ForceSurface> forceSurface = dynamic_pointer_cast<ForceSurface>(loading);
+                    VectorialValue force = forceSurface->getForce();
+                    VectorialValue moment = forceSurface->getMoment();
+                    vector<double> vec;
+                    double normvec = 0.0;
+                    vec.push_back(1);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(force.x()); normvec=max(normvec, abs(force.x()));
+                    vec.push_back(force.y()); normvec=max(normvec, abs(force.y()));
+                    vec.push_back(force.z()); normvec=max(normvec, abs(force.z()));
+                    if (systusOption == SystusOption::SHELL) {
+                        vec.push_back(moment.x()); normvec=max(normvec, abs(moment.x()));
+                        vec.push_back(moment.y()); normvec=max(normvec, abs(moment.y()));
+                        vec.push_back(moment.z()); normvec=max(normvec, abs(moment.z()));
+                    }
+                    if (!is_zero(normvec)){
+                        vectors[vectorId]=vec;
+                        loadingVectorIdByLocalLoading[idLoadCase]= vectorId;
+                        vectorId++;
+                    }
+                    break;
+                }
+
                 case Loading::Type::DYNAMIC_EXCITATION:{
                     shared_ptr<DynamicExcitation> dE = dynamic_pointer_cast<DynamicExcitation>(loading);
                     shared_ptr<LoadSet> dEL = dE->getLoadSet();

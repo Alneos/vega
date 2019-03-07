@@ -173,6 +173,7 @@ public:
 		bool isMaxDiagonal() const;
 		bool isSymmetric() const;
 		bool isEmpty() const;
+		bool isZero() const;
 };
 
 

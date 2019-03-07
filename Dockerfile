@@ -29,6 +29,8 @@ ENV NASTRAN_BUILD=/root/NASTRAN-95-0.1.95
 ENV NASTRAN_INSTALL=/opt/nastran
 WORKDIR $NASTRAN_BUILD
 RUN ./bootstrap && ./configure --prefix=$NASTRAN_INSTALL && make && make install
+RUN mv $NASTRAN_INSTALL/bin/nastran $NASTRAN_INSTALL/bin/nast-run && cp -R ./rf  $NASTRAN_INSTALL/share
+COPY ./dockerdata/nastran $NASTRAN_INSTALL/bin
 
 FROM alpine:3.7
 RUN apk add --update --no-cache g++ git sudo libexecinfo-dev make gettext-libs libgfortran py-pip python2 python2-dev zlib-dev cmake lapack boost-dev bash valgrind-dev libunwind-dev doxygen graphviz ttf-ubuntu-font-family ttf-freefont && pip install numpy==1.9 && apk del py-pip python2-dev

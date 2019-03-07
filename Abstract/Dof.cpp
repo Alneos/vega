@@ -339,7 +339,7 @@ bool DOFMatrix::hasTranslations() const {
 bool DOFMatrix::isDiagonal() const {
 	bool isDiagonal = true;
 	for (const auto& kv : componentByDofs) {
-		if (kv.first.first != kv.first.second and !is_equal(kv.second, 0)) {
+		if (kv.first.first != kv.first.second and !is_zero(kv.second)) {
 			isDiagonal = false;
 			break;
 		}
@@ -350,7 +350,7 @@ bool DOFMatrix::isDiagonal() const {
 bool DOFMatrix::isMaxDiagonal() const {
 	bool isMaxDiagonal = true;
 	for (const auto& kv : componentByDofs) {
-		if ((kv.first.first != kv.first.second and !is_equal(kv.second, 0)) or !is_equal(kv.second, DBL_MAX)) {
+		if ((kv.first.first != kv.first.second and !is_zero(kv.second)) or !is_equal(kv.second, DBL_MAX)) {
 			isMaxDiagonal = false;
 			break;
 		}
@@ -364,6 +364,17 @@ bool DOFMatrix::isSymmetric() const {
 
 bool DOFMatrix::isEmpty() const {
 	return componentByDofs.empty();
+}
+
+bool DOFMatrix::isZero() const {
+    bool isZero = true;
+	for (const auto& kv : componentByDofs) {
+		if (not is_zero(kv.second)) {
+			isZero = false;
+			break;
+		}
+	}
+	return isZero;
 }
 
 DOFCoefs::DOFCoefs(double dx, double dy, double dz, double rx, double ry, double rz) {
