@@ -144,7 +144,10 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
             fs::remove(outputPath / (stem.string() + "_DATA1.ASC"));
             break;
         case SolverName::NASTRAN:
-            fs::remove(outputPath / (stem.string() + ".dat"));
+            fs::remove(outputPath / (stem.string() + "_vg.nas"));
+            fs::remove(outputPath / (stem.string() + "_vg.nas.out"));
+            fs::remove(outputPath / (stem.string() + "_vg.nas.log"));
+            fs::remove(outputPath / (stem.string() + ".6"));
             fs::remove(outputPath / (stem.string() + ".f04"));
             fs::remove(outputPath / (stem.string() + ".f06"));
             fs::remove(outputPath / (stem.string() + ".log"));
@@ -217,7 +220,7 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
             }
             break;
         case SolverName::NASTRAN:
-            BOOST_CHECK(fs::exists(outputPath / (stem.string() + ".dat")));
+            BOOST_CHECK(fs::exists(outputPath / (stem.string() + ".nas")));
             if (hasTests) {
             }
             break;

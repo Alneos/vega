@@ -186,7 +186,7 @@ void Parser::handleParsingWarning(const string& message, Tokenizer& tok,
     cerr << ParsingMessageWarning(message, tok.fileName, tok.lineNumber, tok.currentKeyword) << endl;
 }
 
-void Writer::handleWritingError(const string& message, const string& keyword, const string& file) {
+void Writer::handleWritingError(const string& message, const string& keyword, const string& file) const {
     switch (translationMode) {
     case ConfigurationParameters::TranslationMode::MODE_STRICT:
         throw WritingException(message, keyword, file);
@@ -201,7 +201,7 @@ void Writer::handleWritingError(const string& message, const string& keyword, co
     }
 }
 
-void Writer::handleWritingWarning(const string& message, const string& keyword, const string& file){
+void Writer::handleWritingWarning(const string& message, const string& keyword, const string& file) const {
     cerr << WritingMessageWarning(message, keyword, file) << endl;
 }
 

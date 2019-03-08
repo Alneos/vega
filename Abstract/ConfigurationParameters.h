@@ -185,7 +185,7 @@ public:
             std::string systusOptionAnalysis="auto", std::string systusOutputProduct="systus",
             std::vector< std::vector<int> > systusSubcases = {},
             std::string systusOutputMatrix="table", int systusSizeMatrix=9,
-            std::string systusDynamicMethod="direct");
+            std::string systusDynamicMethod="direct", std::string nastranOutputDialect="cosmic95");
     const ModelConfiguration getModelConfiguration() const;
 
     const std::string inputFile;
@@ -221,6 +221,10 @@ public:
      * Choice of Dynamic method : either a direct or a modal one
      */
     const std::string systusDynamicMethod;
+    /**
+     * Nastran syntax that should be written: cosmic95 or modern
+     */
+    const std::string nastranOutputDialect;
 };
 
 }

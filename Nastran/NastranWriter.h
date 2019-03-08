@@ -46,13 +46,18 @@ public:
 std::ostream &operator<<(std::ostream &out, const Line& line);
 
 class NastranWriter final : public Writer {
+    enum class Dialect {
+        COSMIC95,
+        MODERN,
+    };
 public:
     NastranWriter() = default;
 	NastranWriter(const NastranWriter& that) = delete;
 	std::string writeModel(Model&, const ConfigurationParameters&) override;
     const std::string toString() const override;
 private:
-	std::string getDatFilename(const Model& model, const std::string& outputPath) const;
+    Dialect dialect;
+	std::string getNasFilename(const Model& model, const std::string& outputPath) const;
 	void writeSOL(const Model& model, std::ofstream& out) const;
 	void writeCells(const Model& model, std::ofstream& out) const;
 	void writeNodes(const Model& model, std::ofstream& out) const;

@@ -152,14 +152,14 @@ public:
      * Throw a WritingException in strict mode, which shuts the program.
      * Otherwise, print a message in cerr.
      */
-	void handleWritingError(const std::string& message, const std::string& keyword="", const std::string& file="");
+	void handleWritingError(const std::string& message, const std::string& keyword="", const std::string& file="") const;
 
     /**
      * Generic handler for namespace vega {writing warnings.
      * Print a warning message
      */
 	//TODO: Decide of a politic for warning.
-	void handleWritingWarning(const std::string& message, const std::string& keyword="", const std::string& file="");
+	void handleWritingWarning(const std::string& message, const std::string& keyword="", const std::string& file="") const;
 };
 
 class Runner {

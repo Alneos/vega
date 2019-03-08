@@ -72,6 +72,7 @@ const unordered_map<CellType::Code, vector<int>, EnumClassHash> SystusWriter::sy
         { CellType::Code::TETRA10_CODE, { 0, 6, 2, 5, 1, 4, 7, 9, 8, 3 } },
         { CellType::Code::PENTA6_CODE, { 0, 2, 1, 3, 5, 4 } },
         { CellType::Code::PENTA15_CODE, { 0, 8, 2, 7, 1, 6, 12, 14, 13, 3, 11, 5, 10, 4, 9 } },
+        { CellType::Code::PYRA5_CODE, { 0, 3, 2, 1, 4, 4, 4, 4 } },
         { CellType::Code::HEXA8_CODE, { 0, 3, 2, 1, 4, 7, 6, 5 } },
         { CellType::Code::HEXA20_CODE, { 0, 11, 3, 10, 2, 9, 1, 8, 16, 19, 18, 17, 4, 15, 7, 14,
                 6, 13, 5, 12 } },
@@ -2550,8 +2551,8 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
             vector<int> systus2medNodeConnect = systus2med_it->second;
             vector<int> medConnect = cell.nodeIds;
             vector<int> systusConnect;
-            for (unsigned int i = 0; i < cell.type.numNodes; i++)
-                systusConnect.push_back(medConnect[systus2medNodeConnect[i]]);
+            for (unsigned int medId : systus2medNodeConnect)
+                systusConnect.push_back(medConnect[medId]);
 
             if (elementSet->type==ElementSet::Type::STRUCTURAL_SEGMENT){
                 dim = (cell.nodeIds.size()==2) ? 1 : 0 ;

@@ -54,8 +54,8 @@ string AsterWriter::writeModel(Model& model,
 
 	if (configuration.createGraph) {
         for (const auto& analysis : asterModel.model.analyses) {
-            string graphviz_path = to_string(analysis->getId()) + asterModel.getOutputFileName(".dot");
-            string png_path = to_string(analysis->getId()) + asterModel.getOutputFileName(".png");
+            string graphviz_path = asterModel.getOutputFileName("_" + to_string(analysis->getId()) + ".dot");
+            string png_path = asterModel.getOutputFileName("_" + to_string(analysis->getId()) + ".png");
             ofstream graphviz_file_ofs;
             graphviz_file_ofs.open(graphviz_path.c_str(), ios::out | ios::trunc);
             analysis->createGraph(graphviz_file_ofs);

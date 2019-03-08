@@ -10,6 +10,7 @@
 
 #include "build_properties.h"
 #include "../Abstract/Model.h"
+#include "NastranWriter.h"
 #include <cstdlib>
 #include <iostream>
 #include <iomanip>
@@ -17,10 +18,9 @@
 #include <string>
 #include <fstream>
 #include <limits>
-
 #include <ciso646>
-#include "NastranWriter.h"
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 
 namespace fs = boost::filesystem;
@@ -48,10 +48,10 @@ ostream &operator<<(ostream &out, const Line& line) {
 Line::Line(string _keyword) : keyword(_keyword) {
 	if (boost::algorithm::ends_with(keyword, "*")) {
 		fieldLength = 16;
-		fieldNum = 4;
+		fieldNum = 5;
 	} else {
 		fieldLength = 8;
-		fieldNum = 8;
+		fieldNum = 10;
 	}
 }
 
@@ -62,7 +62,25 @@ Line& Line::add() {
 
 Line& Line::add(double value) {
 	std::ostringstream strs;
-	strs << boost::format("%8.7g") % value;
+	if (is_zero(value)) {
+        strs << "0.";
+	} else {
+	    // https://github.com/SteveDoyle2/pyNastran/blob/master/pyNastran/bdf/field_writer_8.py
+	    string str1 = str(boost::format("%8.11e") % value);
+	    boost::algorithm::trim(str1);
+	    size_t pos = str1.find("e");
+	    double mant = stod(str1.substr(0, pos));
+	    string exp2 = to_string(stoi(str1.substr(pos + 1))); // "00" becomes 0, "01" becomes 1 etc.
+	    boost::algorithm::trim_left_if(exp2, boost::is_any_of("-+"));
+	    char sign = abs(value) < 1. ? '-' : '+';
+	    size_t leftover = 5 - exp2.size();
+	    leftover -= value < 0 ? 1 : 0;
+	    const string fmt = str(boost::format("%%1.%sf") % leftover);
+        string svalue3 = str(boost::format(fmt) % mant);
+        boost::algorithm::trim_if(svalue3, boost::is_any_of("0"));
+        strs << boost::format("%8s") % (svalue3 + sign + exp2);
+	}
+	//strs << boost::format("%.5f") % value;
 	string gnum = strs.str();
 	strs.str("");
 	strs.clear();
@@ -119,7 +137,7 @@ const string NastranWriter::toString() const {
 	return string("NastranWriter");
 }
 
-string NastranWriter::getDatFilename(const Model& model,
+string NastranWriter::getNasFilename(const Model& model,
 		const string& outputPath) const
 		{
 	string outputFileName;
@@ -132,7 +150,7 @@ string NastranWriter::getDatFilename(const Model& model,
 			outputFileName = outputFileName.substr(0, period_idx);
 		}
 	}
-	string modelPath = outputFileName + ".dat";
+	string modelPath = outputFileName + "_vg.nas";
 	bool absolute = true;
 	if (absolute) {
 		modelPath = (fs::absolute(outputPath) / modelPath).string();
@@ -143,30 +161,56 @@ string NastranWriter::getDatFilename(const Model& model,
 void NastranWriter::writeSOL(const Model& model, ofstream& out) const
 		{
 	auto& firstAnalysis = *model.analyses.begin();
-	switch (firstAnalysis->type) {
-	case (Analysis::Type::LINEAR_MECA_STAT):
-		{
-		out << "SOL 101" << endl;
-		break;
-	}
-	case (Analysis::Type::LINEAR_MODAL):
-		{
-		out << "SOL 103" << endl;
-		break;
-	}
-	case (Analysis::Type::LINEAR_DYNA_MODAL_FREQ):
-		{
-		out << "SOL 111" << endl;
-		break;
-	}
-	case (Analysis::Type::NONLINEAR_MECA_STAT):
-		{
-		out << "SOL 106" << endl;
-		break;
-	}
+	string analysisLabel;
+	switch(dialect) {
+    case(Dialect::COSMIC95): {
+        switch (firstAnalysis->type) {
+        case (Analysis::Type::LINEAR_MECA_STAT): {
+            analysisLabel = "1,1";
+            break;
+        }
+        case (Analysis::Type::LINEAR_MODAL): {
+            analysisLabel = "1,3";
+            break;
+        }
+        case (Analysis::Type::NONLINEAR_MECA_STAT): {
+            analysisLabel = "1,6";
+            break;
+        }
+        default:
+            out << "$ WARN analysis " << firstAnalysis << " not supported. Skipping." << endl;
+        }
+
+        break;
+    }
+    case(Dialect::MODERN): {
+        switch (firstAnalysis->type) {
+        case (Analysis::Type::LINEAR_MECA_STAT): {
+            analysisLabel = "101";
+            break;
+        }
+        case (Analysis::Type::LINEAR_MODAL): {
+            analysisLabel = "103";
+            break;
+        }
+        case (Analysis::Type::LINEAR_DYNA_MODAL_FREQ): {
+            analysisLabel = "111";
+            break;
+        }
+        case (Analysis::Type::NONLINEAR_MECA_STAT): {
+            analysisLabel = "106";
+            break;
+        }
+        default:
+            out << "$ WARN analysis " << firstAnalysis << " not supported. Skipping." << endl;
+        }
+        break;
+    }
 	default:
-		out << "$ WARN analysis " << firstAnalysis << " not supported. Skipping." << endl;
+		handleWritingError("Unsupported dialect");
 	}
+
+	out << "SOL " << analysisLabel << endl;
 }
 
 void NastranWriter::writeCells(const Model& model, ofstream& out) const
@@ -198,20 +242,36 @@ void NastranWriter::writeCells(const Model& model, ofstream& out) const
 				default:
 					throw logic_error("Unimplemented type");
 				}
-			} else
-			if (elementSet->type == ElementSet::Type::CONTINUUM) {
-				switch (cell.type.code) {
-				case CellType::Code::HEXA8_CODE:
-                case CellType::Code::HEXA20_CODE:
-					keyword = "CHEXA";
-					break;
-				case CellType::Code::TETRA4_CODE:
-                case CellType::Code::TETRA10_CODE:
-					keyword = "CTETRA";
-					break;
-				default:
-					throw logic_error("Unimplemented type");
-				}
+			} else if (elementSet->type == ElementSet::Type::CONTINUUM) {
+			    if (dialect == Dialect::COSMIC95) {
+                    switch (cell.type.code) {
+                    case CellType::Code::HEXA8_CODE:
+                        keyword = "IHEX1";
+                        break;
+                    case CellType::Code::HEXA20_CODE:
+                        keyword = "IHEX2";
+                        break;
+                    case CellType::Code::TETRA4_CODE:
+                    case CellType::Code::TETRA10_CODE:
+                        keyword = "CTETRA";
+                        break;
+                    default:
+                        throw logic_error("Unimplemented type");
+                    }
+			    } else {
+                    switch (cell.type.code) {
+                    case CellType::Code::HEXA8_CODE:
+                    case CellType::Code::HEXA20_CODE:
+                        keyword = "CHEXA";
+                        break;
+                    case CellType::Code::TETRA4_CODE:
+                    case CellType::Code::TETRA10_CODE:
+                        keyword = "CTETRA";
+                        break;
+                    default:
+                        throw logic_error("Unimplemented type");
+                    }
+			    }
 			}
 
 			out << Line(keyword).add(cell.id).add(elementSet->bestId()).add(cell.nodeIds);
@@ -380,23 +440,32 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 string NastranWriter::writeModel(Model& model,
 		const vega::ConfigurationParameters &configuration) {
 
+    if (configuration.nastranOutputDialect == "cosmic95") {
+        dialect = Dialect::COSMIC95;
+    } else {
+        dialect = Dialect::MODERN;
+    }
+
 	string outputPath = configuration.outputPath;
 	if (!fs::exists(outputPath)) {
 		throw iostream::failure("Directory " + outputPath + " don't exist.");
 	}
 
-	string datPath = getDatFilename(model, outputPath);
+	string nasPath = getNasFilename(model, outputPath);
 	ofstream out;
 	out.precision(DBL_DIG);
-	out.open(datPath.c_str(), ios::out | ios::trunc);
+	out.open(nasPath.c_str(), ios::out | ios::trunc);
 	if (!out.is_open()) {
-		string message = string("Can't open file ") + datPath + " for writing.";
+		string message = string("Can't open file ") + nasPath + " for writing.";
 		throw ios::failure(message);
 	}
 
 	out << "$ " << model.name << endl;
+	out << "ID " << model.name << "," << "NASTRAN" << endl;
 	writeSOL(model, out);
-	out << "TIME 10000" << endl;
+	out << "APP   DISP" << endl;
+	out << "TIME  10000" << endl;
+	out << "CEND" << endl;
 	for (const auto& analysis : model.analyses) {
 		out << "SUBCASE " << analysis->bestId() << endl;
 		for (shared_ptr<LoadSet> loadSet : analysis->getLoadSets()) {
@@ -408,7 +477,6 @@ string NastranWriter::writeModel(Model& model,
 			out << "  " << typeName << "=" << constraintSet->bestId() << endl;
 		}
 	}
-	out << "CEND" << endl;
 	out << "$" << endl;
 	out << "TITLE=Vega Exported Model" << endl;
 	out << "BEGIN BULK" << endl;
@@ -553,7 +621,7 @@ string NastranWriter::writeModel(Model& model,
 	out << "ENDDATA" << endl;
 
 	out.close();
-	return datPath;
+	return nasPath;
 }
 
 } //end of namespace nastran
