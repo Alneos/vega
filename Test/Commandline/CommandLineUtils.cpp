@@ -220,7 +220,7 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
             }
             break;
         case SolverName::NASTRAN:
-            BOOST_CHECK(fs::exists(outputPath / (stem.string() + ".nas")));
+            BOOST_CHECK(fs::exists(outputPath / (stem.string() + "_vg.nas")));
             if (hasTests) {
             }
             break;

@@ -25,7 +25,7 @@ namespace vega {
 namespace nastran {
 
 class Line {
-private:
+    static int newlineCounter;
 	friend std::ostream &operator<<(std::ostream &out, const Line& line);
 	unsigned int fieldLength = 0;
 	unsigned int fieldNum = 0;
@@ -56,6 +56,7 @@ public:
 	std::string writeModel(Model&, const ConfigurationParameters&) override;
     const std::string toString() const override;
 private:
+    static const std::unordered_map<CellType::Code, std::vector<int>, EnumClassHash> med2nastranNodeConnectByCellType; /**< see NastranParser.h */
     Dialect dialect;
 	std::string getNasFilename(const Model& model, const std::string& outputPath) const;
 	void writeSOL(const Model& model, std::ofstream& out) const;

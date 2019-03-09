@@ -29,6 +29,8 @@ using namespace std;
 namespace vega {
 namespace nastran {
 
+int Line::newlineCounter = 0;
+
 ostream &operator<<(ostream &out, const Line& line) {
 	out << left << setw(8);
 	out << line.keyword;
@@ -36,8 +38,9 @@ ostream &operator<<(ostream &out, const Line& line) {
 	for(const auto& field : line.fields) {
 		fieldCount++;
 		if (fieldCount % line.fieldNum == 0) {
-			out << endl;
-			out << setw(line.fieldLength) << "";
+            string newlinesep = "+" + to_string(++Line::newlineCounter);
+			out << newlinesep << endl;
+			out << setw(line.fieldLength) << newlinesep;
 		}
 		out << field;
 	}
@@ -51,7 +54,7 @@ Line::Line(string _keyword) : keyword(_keyword) {
 		fieldNum = 5;
 	} else {
 		fieldLength = 8;
-		fieldNum = 10;
+		fieldNum = 9;
 	}
 }
 
@@ -132,6 +135,24 @@ Line& Line::add(const VectorialValue vector) {
 	this->add(vector.z());
 	return *this;
 }
+
+const unordered_map<CellType::Code, vector<int>, EnumClassHash> NastranWriter::med2nastranNodeConnectByCellType =
+        {
+                { CellType::Code::TRI3_CODE, { 0, 2, 1 } },
+                { CellType::Code::TRI6_CODE, { 0, 2, 1, 5, 4, 3 } },
+                { CellType::Code::QUAD4_CODE, { 0, 3, 2, 1 } },
+                { CellType::Code::QUAD8_CODE, { 0, 3, 2, 1, 7, 6, 5, 4 } },
+                { CellType::Code::QUAD9_CODE, { 0, 3, 2, 1, 7, 6, 5, 4, 8 } },
+                { CellType::Code::TETRA4_CODE, { 0, 2, 1, 3 } },
+                { CellType::Code::TETRA10_CODE, { 0, 2, 1, 3, 6, 5, 4, 7, 9, 8 } },
+                { CellType::Code::PYRA5_CODE, { 0, 3, 2, 1, 4 } },
+                { CellType::Code::PYRA13_CODE, { 0, 3, 2, 1, 4, 8, 7, 6, 5, 9, 12, 11, 10 } },
+                { CellType::Code::PENTA6_CODE, { 0, 2, 1, 3, 5, 4 } },
+                { CellType::Code::PENTA15_CODE, { 0, 2, 1, 3, 5, 4, 8, 7, 6, 12, 14, 13, 11, 10, 9 } },
+                { CellType::Code::HEXA8_CODE, { 0, 3, 2, 1, 4, 7, 6, 5 } },
+                { CellType::Code::HEXA20_CODE, { 0, 3, 2, 1, 4, 7, 6, 5, 11, 10, 9, 8, 16, 19, 18, 17, 15,
+                        14, 13, 12 } }
+        };
 
 const string NastranWriter::toString() const {
 	return string("NastranWriter");
@@ -246,10 +267,10 @@ void NastranWriter::writeCells(const Model& model, ofstream& out) const
 			    if (dialect == Dialect::COSMIC95) {
                     switch (cell.type.code) {
                     case CellType::Code::HEXA8_CODE:
-                        keyword = "IHEX1";
+                        keyword = "CIHEX1";
                         break;
                     case CellType::Code::HEXA20_CODE:
-                        keyword = "IHEX2";
+                        keyword = "CIHEX2";
                         break;
                     case CellType::Code::TETRA4_CODE:
                     case CellType::Code::TETRA10_CODE:
@@ -273,8 +294,17 @@ void NastranWriter::writeCells(const Model& model, ofstream& out) const
                     }
 			    }
 			}
-
-			out << Line(keyword).add(cell.id).add(elementSet->bestId()).add(cell.nodeIds);
+            vector<int> nasConnect;
+            auto entry = med2nastranNodeConnectByCellType.find(cell.type.code);
+            if (entry == med2nastranNodeConnectByCellType.end()) {
+                nasConnect = cell.nodeIds;
+            } else {
+                vector<int> med2nastranNodeConnectByCellType = entry->second;
+                nasConnect.resize(cell.type.numNodes);
+                for (unsigned int i2 = 0; i2 < cell.type.numNodes; i2++)
+                    nasConnect[med2nastranNodeConnectByCellType[i2]] = cell.nodeIds[i2];
+            }
+			out << Line(keyword).add(cell.id).add(elementSet->bestId()).add(nasConnect);
 		}
 	}
 }
@@ -399,6 +429,32 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
 					pload4.add(0);
 					pload4.add(forceSurface->getForce().normalized());
 				}
+				out << pload4;
+			}
+		}
+
+		const set<shared_ptr<Loading> > nodalForces = loadingSet->getLoadingsByType(
+				Loading::Type::NODAL_FORCE);
+		if (nodalForces.size() > 0) {
+			for (shared_ptr<Loading> loading : nodalForces) {
+				shared_ptr<NodalForce> nodalForce = dynamic_pointer_cast<NodalForce>(loading);
+				Line force("FORCE");
+				force.add(loadingSet->bestId());
+				if (nodalForce->nodePositions().size() != 1) {
+                    throw logic_error("Multiple nodes in nodal force, not yet implemented (but easy)");
+				}
+				int nodePosition = *(nodalForce->nodePositions().begin());
+				force.add(model.mesh.findNodeId(nodePosition));
+				force.add(0);
+				const auto& forceVector = nodalForce->getForceInGlobalCS(nodePosition);
+				force.add(1.0);
+				force.add(forceVector.x());
+				force.add(forceVector.y());
+				force.add(forceVector.z());
+				if (!nodalForce->getMomentInGlobalCS(nodePosition).iszero()) {
+					throw logic_error("Unimplemented moment in FORCE");
+				}
+                out << force;
 			}
 		}
 	}
@@ -430,7 +486,8 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 		out << pshell;
 	}
 	for (shared_ptr<ElementSet> continuum : model.elementSets.filter(ElementSet::Type::CONTINUUM)) {
-		Line psolid("PSOLID");
+	    string keyword = dialect == Dialect::COSMIC95 ? "PIHEX" : "PSOLID";
+		Line psolid(keyword);
 		psolid.add(continuum->bestId());
 		psolid.add(continuum->material->bestId());
 		out << psolid;
@@ -480,6 +537,8 @@ string NastranWriter::writeModel(Model& model,
 	out << "$" << endl;
 	out << "TITLE=Vega Exported Model" << endl;
 	out << "BEGIN BULK" << endl;
+	out << "PARAM,PRGPST,NO" << endl;
+	out << "PARAM,AUTOSPC,1" << endl;
 
 	for (const auto& coordinateSystemEntry : model.mesh.coordinateSystemStorage.coordinateSystemByRef) {
         shared_ptr<CoordinateSystem> coordinateSystem = coordinateSystemEntry.second;
