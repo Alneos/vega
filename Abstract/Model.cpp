@@ -44,7 +44,7 @@ void Model::add(const shared_ptr<Analysis>& analysis) {
 }
 
 void Model::add(const shared_ptr<Loading>& loading) {
-    if (configuration.logLevel >= LogLevel::DEBUG) {
+    if (configuration.logLevel >= LogLevel::TRACE) {
         cout << "Adding " << *loading << endl;
     }
     loadings.add(loading);
@@ -65,7 +65,7 @@ void Model::add(const shared_ptr<Material>& material) {
 }
 
 void Model::add(const shared_ptr<Constraint>& constraint) {
-    if (configuration.logLevel >= LogLevel::DEBUG) {
+    if (configuration.logLevel >= LogLevel::TRACE) {
         cout << "Adding " << *constraint << endl;
     }
     constraints.add(constraint);

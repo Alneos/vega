@@ -1376,86 +1376,66 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
 
         // Add constraint Vectors
         for (const auto& loadset : analysis->getLoadSets()){
-            for (const auto& loading : loadset->getLoadings()) {
+            for (const auto& loading : loadset->getLoadingsByType(Loading::Type::IMPOSED_DISPLACEMENT)) {
+                shared_ptr<ImposedDisplacement> spc = dynamic_pointer_cast<ImposedDisplacement>(loading);
+                vector<double> vec;
+                double normvec = initSystusAscConstraintVector(vec);
 
-                switch (loading->type) {
+                for (DOF dof : availableDOFS){
+                    double value = spc->getDoubleForDOF(dof);
+                    if (is_equal(value, Globals::UNAVAILABLE_DOUBLE)){
+                        value=0.0;
+                    }
 
-                // These loadings are translated via loading vectors
-                // Nothing to do here
-                case Loading::Type::NODAL_FORCE:
-                case Loading::Type::GRAVITY:
-                case Loading::Type::DYNAMIC_EXCITATION:{
-                    break;
+                    normvec = max(normvec, abs(value));
+                    vec.push_back(value);
                 }
 
-                // This loading is translated via a constraint vector.
-                case Loading::Type::IMPOSED_DISPLACEMENT:{
-                    shared_ptr<ImposedDisplacement> spc = dynamic_pointer_cast<ImposedDisplacement>(loading);
-                    vector<double> vec;
-                    double normvec = initSystusAscConstraintVector(vec);
+                if (!is_zero(normvec)){
+                    vectors[vectorId]=vec;
+                    for (const auto& it : localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]){
+                        for (int nodePosition : spc->nodePositions()){
+                            constraintVectorsIdByLocalLoadingByNodePosition[nodePosition][it.second].push_back(vectorId);
+                        }
+                    }
+                    vectorId++;
+                }
 
-                    for (DOF dof : availableDOFS){
+                // Rigid Body Element in option 3D.
+                // We report the constraints from the master node to the master rotational node.
+                // Todo: factorize this part
+                if (systusOption==SystusOption::CONTINUOUS){
+
+                    // Rotation vector
+                    normvec=initSystusAscConstraintVector(vec);
+                    for (DOF dof : DOFS::ROTATIONS){
+                        //double value = (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0);
                         double value = spc->getDoubleForDOF(dof);
                         if (is_equal(value, Globals::UNAVAILABLE_DOUBLE)){
                             value=0.0;
                         }
-
                         normvec = max(normvec, abs(value));
                         vec.push_back(value);
                     }
 
                     if (!is_zero(normvec)){
-                        vectors[vectorId]=vec;
-                        for (const auto& it : localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]){
-                            for (int nodePosition : spc->nodePositions()){
-                                constraintVectorsIdByLocalLoadingByNodePosition[nodePosition][it.second].push_back(vectorId);
-                            }
-                        }
-                        vectorId++;
-                    }
-
-                    // Rigid Body Element in option 3D.
-                    // We report the constraints from the master node to the master rotational node.
-                    // Todo: factorize this part
-                    if (systusOption==SystusOption::CONTINUOUS){
-
-                        // Rotation vector
-                        normvec=initSystusAscConstraintVector(vec);
-                        for (DOF dof : DOFS::ROTATIONS){
-                            //double value = (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0);
-                            double value = spc->getDoubleForDOF(dof);
-                            if (is_equal(value, Globals::UNAVAILABLE_DOUBLE)){
-                                value=0.0;
-                            }
-                            normvec = max(normvec, abs(value));
-                            vec.push_back(value);
-                        }
-
-                        if (!is_zero(normvec)){
-                            bool firstTime=true;
-                            for (int nodePosition : spc->nodePositions()){
-                                int nid = systusModel.model.mesh.findNodeId(nodePosition);
-                                const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
-                                if (it!=rotationNodeIdByTranslationNodeId.end()){
-                                    int rotNodePosition= systusModel.model.mesh.findNodePosition(it->second);
-                                    for (const auto & it2 : localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]){
-                                        constraintVectorsIdByLocalLoadingByNodePosition[rotNodePosition][it2.second].push_back(vectorId);
-                                    }
-                                    if (firstTime){
-                                        vectors[vectorId]=vec;
-                                        vectorId++;
-                                        firstTime = false;
-                                    }
+                        bool firstTime=true;
+                        for (int nodePosition : spc->nodePositions()){
+                            int nid = systusModel.model.mesh.findNodeId(nodePosition);
+                            const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
+                            if (it!=rotationNodeIdByTranslationNodeId.end()){
+                                int rotNodePosition= systusModel.model.mesh.findNodePosition(it->second);
+                                for (const auto & it2 : localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]){
+                                    constraintVectorsIdByLocalLoadingByNodePosition[rotNodePosition][it2.second].push_back(vectorId);
+                                }
+                                if (firstTime){
+                                    vectors[vectorId]=vec;
+                                    vectorId++;
+                                    firstTime = false;
                                 }
                             }
                         }
                     }
-                    break;
-                }
-
-                default: {
-                    handleWritingWarning(to_str(*loading) +" not supported.", "Constraint vectors");
-                }
                 }
             }
         }
