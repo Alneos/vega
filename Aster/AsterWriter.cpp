@@ -1719,7 +1719,7 @@ void AsterWriter::writeCellContainer(const CellContainer& cellContainer, ostream
     }
     if (cellContainer.hasCells()) {
       out << "MAILLE=(";
-      for (int cellPosition : cellContainer.getCellPositions()) {
+      for (int cellPosition : cellContainer.getCellPositions(false)) {
         celem++;
         out << "'" << Cell::MedName(cellPosition) << "',";
         if (celem % 6 == 0) {

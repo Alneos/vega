@@ -23,7 +23,7 @@ namespace tests {
 
 using namespace std;
 
-BOOST_AUTO_TEST_CASE( test4a ) {
+/*BOOST_AUTO_TEST_CASE( test4a ) {
 	CommandLineUtils::nastranStudy2Systus("/alneos/test4a/test4a.dat", RUN_SYSTUS, true, 0.00001);
 }
 
@@ -53,13 +53,13 @@ BOOST_AUTO_TEST_CASE( truss1 ) {
 
 BOOST_AUTO_TEST_CASE( truss5 ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/truss5/truss5.nas", RUN_SYSTUS, true, 0.001);
-}
+}*/
 
 BOOST_AUTO_TEST_CASE( pload4 ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/pload4/pload4.nas", RUN_SYSTUS, true, 0.00001);
 }
 
-BOOST_AUTO_TEST_CASE( rbe3 ) {
+/*BOOST_AUTO_TEST_CASE( rbe3 ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/rbe3/rbe3.nas", RUN_SYSTUS, true, 0.000001);
 }
 
@@ -112,7 +112,7 @@ BOOST_AUTO_TEST_CASE( nas101probA ) {
 
 BOOST_AUTO_TEST_CASE( nas101probB ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/nas101probB/nas101probB.nas", RUN_SYSTUS, true, 0.1);
-}
+}*/
 
 } /* namespace test */
 } /* namespace vega */

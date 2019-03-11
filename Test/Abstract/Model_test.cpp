@@ -250,7 +250,7 @@ BOOST_AUTO_TEST_CASE( test_create_skin2d ) {
 			VectorialValue(0, 0, 1.0), VectorialValue(0, 0, 0));
 
 	forceSurfaceTwoNodes->addCellId(1);
-	vector<Cell> cells = forceSurfaceTwoNodes->getCells();
+	vector<Cell> cells = forceSurfaceTwoNodes->getCells(false);
 	BOOST_CHECK_EQUAL(cells.size(), static_cast<size_t>(1));
 	Cell hexa = cells[0];
 	BOOST_CHECK_EQUAL(hexa.id, 1);

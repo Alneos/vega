@@ -491,18 +491,18 @@ public:
     /**
      * @param all: if true include also the cells inside all the cellGroups
      */
-    const std::vector<Cell> getCells(bool all = false) const;
+    const std::vector<Cell> getCells(bool all) const;
     /**
      * Returns the cellIds contained into the Container
      * @param all: if true include also the cells inside all the cellGroups
      */
-    const std::vector<int> getCellIds(bool all = false) const;
+    const std::vector<int> getCellIds(bool all) const;
 
-    const std::vector<int> getCellPositions(bool all = false) const;
+    const std::vector<int> getCellPositions(bool all) const;
 
     const std::set<int> nodePositions() const;
 
-    bool containsCells(const CellType& cellType, bool all = false);
+    bool containsCells(const CellType& cellType, bool all);
     /**
      * True if the container contains some cellGroup
      */

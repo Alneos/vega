@@ -616,7 +616,7 @@ ForceSurfaceTwoNodes::ForceSurfaceTwoNodes(Model& model, int nodeId1, int nodeId
 }
 
 vector<int> ForceSurfaceTwoNodes::getApplicationFaceNodeIds() const {
-	vector<Cell> cells = getCells();
+	vector<Cell> cells = getCells(true);
 	if (cells.size() != 1) {
 		throw logic_error("More than one cell specified for a ForceSurfaceTwoNodes");
 	}
@@ -701,7 +701,7 @@ NormalPressionFaceTwoNodes::NormalPressionFaceTwoNodes(Model& model, int nodeId1
 }
 
 vector<int> NormalPressionFaceTwoNodes::getApplicationFaceNodeIds() const {
-	vector<Cell> cells = getCells();
+	vector<Cell> cells = getCells(true);
 	if (cells.size() != 1) {
 		throw logic_error("More than one cell specified for a NormalPressionFaceTwoNodes");
 	}

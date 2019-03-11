@@ -1168,7 +1168,7 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                     vec.push_back(-npf->intensity);
                     if (!is_zero(npf->intensity)){
                         vectors[vectorId]=vec;
-                        for (const int cellId : npf->getCellIds()){
+                        for (const int cellId : npf->getCellIds(true)){
                           loadingVectorsIdByLocalLoadingByCellId[cellId][idLoadCase].push_back(vectorId);
                         }
                         vectorId++;
@@ -1227,7 +1227,9 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                     }
                     if (!is_zero(normvec)){
                         vectors[vectorId]=vec;
-                        loadingVectorIdByLocalLoading[idLoadCase]= vectorId;
+                        for (const int cellId : forceSurface->getCellIds(true)){
+                          loadingVectorsIdByLocalLoadingByCellId[cellId][idLoadCase].push_back(vectorId);
+                        }
                         vectorId++;
                     }
                     break;
