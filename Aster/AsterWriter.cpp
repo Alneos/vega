@@ -119,7 +119,7 @@ void AsterWriter::writeExport(AsterModel &model, ostream& out) {
 }
 
 void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out) {
-	if (asterModel.model.analyses.empty()) {
+	if (not asterModel.model.analyses.empty()) {
 		out << "IMPR_RESU(FORMAT='RESULTAT'," << endl;
 		out << "          RESU=(" << endl;
 		for (const auto& it : asterModel.model.analyses) {
