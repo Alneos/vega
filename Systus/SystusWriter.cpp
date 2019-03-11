@@ -1062,7 +1062,7 @@ void SystusWriter::fillLoads(const SystusModel& systusModel, const int idSubcase
     }
 }
 
-void SystusWriter::writeNodalForce(const SystusModel& systusModel, shared_ptr<NodalForce> nodalForce, const int idLoadCase, systus_ascid_t& vectorId) {
+void SystusWriter::writeNodalForceVector(const SystusModel& systusModel, shared_ptr<NodalForce> nodalForce, const int idLoadCase, systus_ascid_t& vectorId) {
 
     for(const int nodePosition : nodalForce->nodePositions()) {
         const VectorialValue& force = nodalForce->getForceInGlobalCS(nodePosition);
@@ -1146,9 +1146,36 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                 switch (loading->type) {
                 case Loading::Type::NODAL_FORCE: {
                     shared_ptr<NodalForce> nodalForce = dynamic_pointer_cast<NodalForce>(loading);
-                    writeNodalForce(systusModel, nodalForce, idLoadCase, vectorId);
+                    writeNodalForceVector(systusModel, nodalForce, idLoadCase, vectorId);
                     break;
                 }
+
+                case Loading::Type::NORMAL_PRESSION_FACE: {
+                    shared_ptr<NormalPressionFace> npf = static_pointer_cast<NormalPressionFace>(loading);
+                    //writeNodalForceVector(systusModel, nodalForce, idLoadCase, vectorId);
+                    //VectorialValue force = npf->getForce();
+                    //VectorialValue moment = npf->getMoment();
+                    vector<double> vec;
+                    //double normvec = 0.0;
+                    vec.push_back(1);
+                    vec.push_back(0);
+                    vec.push_back(1); // This is a force normal to the surface of the element
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0.0);
+                    vec.push_back(0.0);
+                    vec.push_back(-npf->intensity);
+                    if (!is_zero(npf->intensity)){
+                        vectors[vectorId]=vec;
+                        for (const int cellId : npf->getCellIds()){
+                          loadingVectorsIdByLocalLoadingByCellId[cellId][idLoadCase].push_back(vectorId);
+                        }
+                        vectorId++;
+                    }
+                    break;
+                }
+
 
                 case Loading::Type::GRAVITY: {
                     shared_ptr<Gravity> gravity = dynamic_pointer_cast<Gravity>(loading);
@@ -1249,7 +1276,7 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                         }
 
                         shared_ptr<NodalForce> nodalForce = dynamic_pointer_cast<NodalForce>(dLoading);
-                        writeNodalForce(systusModel, nodalForce, idLoadCase, vectorId);
+                        writeNodalForceVector(systusModel, nodalForce, idLoadCase, vectorId);
                     }
 
                     break;
@@ -1636,6 +1663,20 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const int idSubcase
     // Building lists for Loading on nodes
     for (const auto& it : loadingVectorsIdByLocalLoadingByNodePosition){
         loadingListIdByNodePosition[it.first] = idSystusList;
+        vector<systus_ascid_t> sl;
+        for (const auto & it2 : it.second){
+            for (const systus_ascid_t vectorId : it2.second){
+                sl.push_back(it2.first);
+                sl.push_back(vectorId);
+            }
+        }
+        lists[idSystusList]= sl;
+        idSystusList++;
+    }
+
+    // Building lists for Loading on cells
+    for (const auto& it : loadingVectorsIdByLocalLoadingByCellId){
+        loadingListIdByCellId[it.first] = idSystusList;
         vector<systus_ascid_t> sl;
         for (const auto & it2 : it.second){
             for (const systus_ascid_t vectorId : it2.second){
@@ -2137,11 +2178,13 @@ void SystusWriter::clear(){
     localVectorIdByNodePosition.clear();
     loadingVectorIdByLocalLoading.clear();
     loadingVectorsIdByLocalLoadingByNodePosition.clear();
+    loadingVectorsIdByLocalLoadingByCellId.clear();
     constraintVectorsIdByLocalLoadingByNodePosition.clear();
 
     // Clear lists
     lists.clear();
     loadingListIdByNodePosition.clear();
+    loadingListIdByCellId.clear();
     constraintListIdByNodePosition.clear();
 
     // Clear tables
@@ -2547,7 +2590,13 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
 
             //TODO: We should write here the Material Id: we use the elementSet id which SHOULD be the same
             out << " " << elementSet->getId(); // Material Id (it's an ugly fix)
-            out << " 0"; // Loading List:  index that describes solicitation list (not supported yet)
+
+            // Loading List: index that describes sollicitation list (not supported yet)
+            int isol = 0;
+            auto it2 = loadingListIdByCellId.find(cell.id);
+            if (it2 != loadingListIdByCellId.end())
+                isol = it2->second;
+            out << " " << isol;
 
             // Local Orientation
             if (cell.hasOrientation){

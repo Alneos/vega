@@ -107,9 +107,11 @@ private:
     std::map<int, std::map<int, int>> localLoadingIdByLoadsetIdByAnalysisId;
     std::map<int, systus_ascid_t> loadingVectorIdByLocalLoading;
     std::map<int, std::map<int, std::vector<systus_ascid_t>>> loadingVectorsIdByLocalLoadingByNodePosition;
+    std::map<int, std::map<int, std::vector<systus_ascid_t>>> loadingVectorsIdByLocalLoadingByCellId;
     std::map<int, std::map<int, std::vector<systus_ascid_t>>> constraintVectorsIdByLocalLoadingByNodePosition;
     std::map<int, systus_ascid_t> localVectorIdByNodePosition;  /**< nodePosition, vectorId> for all Coordinate Systems Vectors. **/
     std::map<int, int> loadingListIdByNodePosition;
+    std::map<int, int> loadingListIdByCellId;
     std::map<int, std::string> localLoadingListName;
     std::map<int, int> constraintListIdByNodePosition;
     std::map<int, char> constraintByNodePosition;
@@ -417,7 +419,7 @@ private:
     void writeNodalDisplacementAssertion(Assertion& assertion, std::ostream& out);
     void writeNodalComplexDisplacementAssertion(Assertion& assertion, std::ostream& out);
     void writeFrequencyAssertion(Assertion& assertion, std::ostream& out);
-    void writeNodalForce(const SystusModel& systusModel, std::shared_ptr<NodalForce> nodalForce, const int idLoadCase, systus_ascid_t& vectorId);
+    void writeNodalForceVector(const SystusModel& systusModel, std::shared_ptr<NodalForce> nodalForce, const int idLoadCase, systus_ascid_t& vectorId);
 
     const std::string toString() const override {
         return std::string("SystusWriter");

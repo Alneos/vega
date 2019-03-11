@@ -55,6 +55,10 @@ BOOST_AUTO_TEST_CASE( truss5 ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/truss5/truss5.nas", RUN_SYSTUS, true, 0.001);
 }
 
+BOOST_AUTO_TEST_CASE( pload4 ) {
+	CommandLineUtils::nastranStudy2Systus("/irt/pload4/pload4.nas", RUN_SYSTUS, true, 0.00001);
+}
+
 BOOST_AUTO_TEST_CASE( rbe3 ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/rbe3/rbe3.nas", RUN_SYSTUS, true, 0.000001);
 }
