@@ -72,6 +72,7 @@ const unordered_map<CellType::Code, vector<int>, EnumClassHash> SystusWriter::sy
         { CellType::Code::TETRA10_CODE, { 0, 6, 2, 5, 1, 4, 7, 9, 8, 3 } },
         { CellType::Code::PENTA6_CODE, { 0, 2, 1, 3, 5, 4 } },
         { CellType::Code::PENTA15_CODE, { 0, 8, 2, 7, 1, 6, 12, 14, 13, 3, 11, 5, 10, 4, 9 } },
+        { CellType::Code::PYRA5_CODE, { 0, 3, 2, 1, 4, 4, 4, 4 } },
         { CellType::Code::HEXA8_CODE, { 0, 3, 2, 1, 4, 7, 6, 5 } },
         { CellType::Code::HEXA20_CODE, { 0, 11, 3, 10, 2, 9, 1, 8, 16, 19, 18, 17, 4, 15, 7, 14,
                 6, 13, 5, 12 } },
@@ -1149,6 +1150,33 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                     break;
                 }
 
+                case Loading::Type::NORMAL_PRESSION_FACE: {
+                    shared_ptr<NormalPressionFace> npf = static_pointer_cast<NormalPressionFace>(loading);
+                    //writeNodalForceVector(systusModel, nodalForce, idLoadCase, vectorId);
+                    //VectorialValue force = npf->getForce();
+                    //VectorialValue moment = npf->getMoment();
+                    vector<double> vec;
+                    //double normvec = 0.0;
+                    vec.push_back(1);
+                    vec.push_back(0);
+                    vec.push_back(1); // This is a force normal to the surface of the element
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0.0);
+                    vec.push_back(0.0);
+                    vec.push_back(-npf->intensity);
+                    if (!is_zero(npf->intensity)){
+                        vectors[vectorId]=vec;
+                        for (const int cellId : npf->getCellIds(true)){
+                          loadingVectorsIdByLocalLoadingByCellId[cellId][idLoadCase].push_back(vectorId);
+                        }
+                        vectorId++;
+                    }
+                    break;
+                }
+
+
                 case Loading::Type::GRAVITY: {
                     shared_ptr<Gravity> gravity = dynamic_pointer_cast<Gravity>(loading);
                     VectorialValue acceleration = gravity->getAccelerationVector();
@@ -1173,6 +1201,36 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                             loadingVectorIdByLocalLoading[idLoadCase]= vectorId;
                             vectorId++;
                         }
+                    }
+                    break;
+                }
+
+                case Loading::Type::FORCE_SURFACE: {
+                    shared_ptr<ForceSurface> forceSurface = dynamic_pointer_cast<ForceSurface>(loading);
+                    VectorialValue force = forceSurface->getForce();
+                    VectorialValue moment = forceSurface->getMoment();
+                    vector<double> vec;
+                    double normvec = 0.0;
+                    vec.push_back(1);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(force.x()); normvec=max(normvec, abs(force.x()));
+                    vec.push_back(force.y()); normvec=max(normvec, abs(force.y()));
+                    vec.push_back(force.z()); normvec=max(normvec, abs(force.z()));
+                    if (systusOption == SystusOption::SHELL) {
+                        vec.push_back(moment.x()); normvec=max(normvec, abs(moment.x()));
+                        vec.push_back(moment.y()); normvec=max(normvec, abs(moment.y()));
+                        vec.push_back(moment.z()); normvec=max(normvec, abs(moment.z()));
+                    }
+                    if (!is_zero(normvec)){
+                        vectors[vectorId]=vec;
+                        for (const int cellId : forceSurface->getCellIds(true)){
+                          loadingVectorsIdByLocalLoadingByCellId[cellId][idLoadCase].push_back(vectorId);
+                        }
+                        vectorId++;
                     }
                     break;
                 }
@@ -1355,6 +1413,8 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
                 // Nothing to do here
                 case Loading::Type::NODAL_FORCE:
                 case Loading::Type::GRAVITY:
+		case Loading::Type::NORMAL_PRESSION_FACE:
+		case Loading::Type::FORCE_SURFACE:
                 case Loading::Type::DYNAMIC_EXCITATION:{
                     break;
                 }
@@ -1627,6 +1687,20 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const int idSubcase
     // Building lists for Loading on nodes
     for (const auto& it : loadingVectorsIdByLocalLoadingByNodePosition){
         loadingListIdByNodePosition[it.first] = idSystusList;
+        vector<systus_ascid_t> sl;
+        for (const auto & it2 : it.second){
+            for (const systus_ascid_t vectorId : it2.second){
+                sl.push_back(it2.first);
+                sl.push_back(vectorId);
+            }
+        }
+        lists[idSystusList]= sl;
+        idSystusList++;
+    }
+
+    // Building lists for Loading on cells
+    for (const auto& it : loadingVectorsIdByLocalLoadingByCellId){
+        loadingListIdByCellId[it.first] = idSystusList;
         vector<systus_ascid_t> sl;
         for (const auto & it2 : it.second){
             for (const systus_ascid_t vectorId : it2.second){
@@ -2159,11 +2233,13 @@ void SystusWriter::clear(){
     localVectorIdByNodePosition.clear();
     loadingVectorIdByLocalLoading.clear();
     loadingVectorsIdByLocalLoadingByNodePosition.clear();
+    loadingVectorsIdByLocalLoadingByCellId.clear();
     constraintVectorsIdByLocalLoadingByNodePosition.clear();
 
     // Clear lists
     lists.clear();
     loadingListIdByNodePosition.clear();
+    loadingListIdByCellId.clear();
     constraintListIdByNodePosition.clear();
 
     // Clear tables
@@ -2553,8 +2629,8 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
             vector<int> systus2medNodeConnect = systus2med_it->second;
             vector<int> medConnect = cell.nodeIds;
             vector<int> systusConnect;
-            for (unsigned int i = 0; i < cell.type.numNodes; i++)
-                systusConnect.push_back(medConnect[systus2medNodeConnect[i]]);
+            for (unsigned int medId : systus2medNodeConnect)
+                systusConnect.push_back(medConnect[medId]);
 
             if (elementSet->type==ElementSet::Type::STRUCTURAL_SEGMENT){
                 dim = (cell.nodeIds.size()==2) ? 1 : 0 ;
@@ -2569,7 +2645,13 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
 
             //TODO: We should write here the Material Id: we use the elementSet id which SHOULD be the same
             out << " " << elementSet->getId(); // Material Id (it's an ugly fix)
-            out << " 0"; // Loading List:  index that describes solicitation list (not supported yet)
+
+            // Loading List: index that describes sollicitation list (not supported yet)
+            int isol = 0;
+            auto it2 = loadingListIdByCellId.find(cell.id);
+            if (it2 != loadingListIdByCellId.end())
+                isol = it2->second;
+            out << " " << isol;
 
             // Local Orientation
             if (cell.hasOrientation){
