@@ -144,6 +144,16 @@ if(COMPILER_SUPPORTS_SUGGEST_OVERRIDE)
   add_compile_options(-Wsuggest-override)
 endif()
 
+CHECK_CXX_COMPILER_FLAG(-Wsuggest-final-methods COMPILER_SUPPORTS_SUGGEST_FINAL_METHODS)
+if(COMPILER_SUPPORTS_SUGGEST_FINAL_METHODS)
+  add_compile_options(-Wsuggest-final-methods)
+endif()
+
+CHECK_CXX_COMPILER_FLAG(-Wsuggest-final-types COMPILER_SUPPORTS_SUGGEST_FINAL_TYPES)
+if(COMPILER_SUPPORTS_SUGGEST_FINAL_TYPES)
+  add_compile_options(-Wsuggest-final-types)
+endif()
+
 CHECK_CXX_COMPILER_FLAG(-Wnon-virtual-dtor COMPILER_SUPPORTS_NON_VIRTUAL_DTOR)
 if(COMPILER_SUPPORTS_NON_VIRTUAL_DTOR)
   add_compile_options(-Wnon-virtual-dtor)

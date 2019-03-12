@@ -851,7 +851,7 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 		vector<shared_ptr<ElementSet>> shells = asterModel.model.elementSets.filter(ElementSet::Type::SHELL);
 		vector<shared_ptr<ElementSet>> composites = asterModel.model.elementSets.filter(ElementSet::Type::COMPOSITE);
 		out << "                    # writing " << shells.size()+composites.size() << " shells (ou composites)" << endl;
-		if (shells.size() + +composites.size() > 0) {
+		if (shells.size() + composites.size() > 0) {
 			calc_sigm = true;
 			out << "                    COQUE=(" << endl;
 			for (shared_ptr<ElementSet> shell : shells) {
@@ -885,7 +885,10 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 		}
 		vector<shared_ptr<ElementSet>> solids = asterModel.model.elementSets.filter(
 				ElementSet::Type::CONTINUUM);
+        vector<shared_ptr<ElementSet>> skins = asterModel.model.elementSets.filter(
+				ElementSet::Type::SKIN);
 		out << "                    # writing " << solids.size() << " solids" << endl;
+		out << "                    # writing " << skins.size() << " skins" << endl;
 		if (solids.size() > 0) {
 			out << "                    MASSIF=(" << endl;
 			for (shared_ptr<ElementSet> solid : solids) {
@@ -895,6 +898,15 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 					out << "                               ANGL_REP=(0.,0.,0.,),)," << endl;
 				} else
 					out << "# WARN Finite Element : MASSIF ignored because its GROUP_MA is empty."
+							<< endl;
+			}
+			for (shared_ptr<ElementSet> skin : skins) {
+				if (skin->cellGroup != nullptr) {
+					out << "                            _F(GROUP_MA='"
+							<< skin->cellGroup->getName() << "'," << endl;
+					out << "                               ANGL_REP=(0.,0.,0.,),)," << endl;
+				} else
+					out << "# WARN Finite Element : MASSIF (skin) ignored because its GROUP_MA is empty."
 							<< endl;
 			}
 			out << "                            )," << endl;

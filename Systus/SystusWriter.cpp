@@ -478,6 +478,7 @@ void SystusWriter::getSystusAutomaticOption(const SystusModel& systusModel, Syst
         }
 
         // Those are solid elements: only 3DDLs needed.
+        case ElementSet::Type::SKIN:
         case ElementSet::Type::CONTINUUM:{
             has3DElements=true;
             break; // -Wimplicit-fallthrough
@@ -664,6 +665,7 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
         case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
         case ElementSet::Type::STRUCTURAL_SEGMENT:
         case ElementSet::Type::SHELL:
+        case ElementSet::Type::SKIN:
         case ElementSet::Type::CONTINUUM:
         case ElementSet::Type::NODAL_MASS:
         case ElementSet::Type::DISCRETE_0D:
@@ -1722,6 +1724,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
             case ElementSet::Type::STRUCTURAL_SEGMENT:
             case ElementSet::Type::SHELL:
+            case ElementSet::Type::SKIN:
             case ElementSet::Type::CONTINUUM:
             case ElementSet::Type::NODAL_MASS:
             case ElementSet::Type::RBAR:
@@ -1991,6 +1994,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
             case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
             case ElementSet::Type::STRUCTURAL_SEGMENT:
             case ElementSet::Type::SHELL:
+            case ElementSet::Type::SKIN:
             case ElementSet::Type::CONTINUUM:
             case ElementSet::Type::LMPC:
             case ElementSet::Type::NODAL_MASS:
@@ -2514,11 +2518,16 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
             }
             break;
         }
+        case ElementSet::Type::SKIN: {
+            dim = 2;
+            break;
+        }
         case ElementSet::Type::SHELL: {
             dim = 2;
             typecell=4;
             break;
         }
+        case ElementSet::Type::SURFACE_SLIDE_CONTACT:
         case ElementSet::Type::CONTINUUM: {
             dim = 3;
             break;
@@ -2693,9 +2702,9 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                     writeMaterialField(SMF::ALPHA, 2*elasticNature.getGE(), nbElementsMaterial, omat);
 
                     switch (elementSet->type) {
-                    case (ElementSet::Type::TUBE_SECTION_BEAM):
-                    case (ElementSet::Type::I_SECTION_BEAM):
-                    case (ElementSet::Type::GENERIC_SECTION_BEAM): {
+                    case ElementSet::Type::TUBE_SECTION_BEAM:
+                    case ElementSet::Type::I_SECTION_BEAM:
+                    case ElementSet::Type::GENERIC_SECTION_BEAM: {
                         shared_ptr<const Beam> genericBeam = dynamic_pointer_cast<const Beam>(elementSet);
                         const double S= genericBeam->getAreaCrossSection();
                         writeMaterialField(SMF::S, S, nbElementsMaterial, omat);
@@ -2711,7 +2720,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                         }
                         break;
                     }
-                    case (ElementSet::Type::CIRCULAR_SECTION_BEAM): {
+                    case ElementSet::Type::CIRCULAR_SECTION_BEAM: {
                         shared_ptr<const CircularSectionBeam> circularBeam = dynamic_pointer_cast<
                                 const CircularSectionBeam>(elementSet);
                         const double S= circularBeam->getAreaCrossSection();
@@ -2727,7 +2736,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                         }
                         break;
                     }
-                    case (ElementSet::Type::RECTANGULAR_SECTION_BEAM): {
+                    case ElementSet::Type::RECTANGULAR_SECTION_BEAM: {
                         shared_ptr<const RectangularSectionBeam> rectangularBeam = dynamic_pointer_cast<
                                 const RectangularSectionBeam>(elementSet);
                         const double S= rectangularBeam->getAreaCrossSection();
@@ -2744,12 +2753,13 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                         break;
                     }
 
-                    case (ElementSet::Type::SHELL): {
+                    case ElementSet::Type::SHELL: {
                         shared_ptr<const Shell> shell = dynamic_pointer_cast<const Shell>(elementSet);
                         writeMaterialField(SMF::H, shell->thickness, nbElementsMaterial, omat);
                         break;
                     }
-                    case (ElementSet::Type::CONTINUUM): {
+                    case ElementSet::Type::SKIN:
+                    case ElementSet::Type::CONTINUUM: {
                         break;
                     }
 
@@ -2758,7 +2768,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                         handleWritingWarning(to_str(*elementSet) +" not supported", "Elastic Material");
 
                     }
-                }else{
+                } else {
 
                     const shared_ptr<Nature> nature2 = material->findNature(Nature::NatureType::NATURE_RIGID);
                     if (nature2) {
