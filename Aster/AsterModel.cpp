@@ -113,6 +113,7 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
     ModelType modelType = elementSet->getModelType();
     string result;
     switch (elementSet->type) {
+    case ElementSet::Type::SKIN:
     case ElementSet::Type::CONTINUUM: {
         if (modelType == ModelType::TRIDIMENSIONAL_SI and not model.analyses.contains(Analysis::Type::NONLINEAR_MECA_STAT)) {
             result = "('3D', '3D_SI')";

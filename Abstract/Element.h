@@ -53,6 +53,7 @@ public:
         STRUCTURAL_SEGMENT,
         SHELL,
         CONTINUUM,
+        SKIN,
         STIFFNESS_MATRIX,
         MASS_MATRIX,
         DAMPING_MATRIX,
@@ -327,6 +328,16 @@ public:
 	Continuum(Model&, const ModelType& modelType, int original_id = NO_ORIGINAL_ID);
 	std::shared_ptr<ElementSet> clone() const override {
 		return std::make_shared<Continuum>(*this);
+	}
+	const DOFS getDOFSForNode(const int nodePosition) const override final;
+};
+
+class Skin: public ElementSet {
+
+public:
+	Skin(Model&, const ModelType& modelType, int original_id = NO_ORIGINAL_ID);
+	std::shared_ptr<ElementSet> clone() const override {
+		return std::make_shared<Skin>(*this);
 	}
 	const DOFS getDOFSForNode(const int nodePosition) const override final;
 };

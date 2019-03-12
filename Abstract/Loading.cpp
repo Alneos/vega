@@ -550,7 +550,7 @@ void CellLoading::createSkin() {
         // LD : Workaround for Aster problem : MODELISA6_96
         //  les 1 mailles imprimées ci-dessus n'appartiennent pas au modèle et pourtant elles ont été affectées dans le mot-clé facteur : !
         //   ! FORCE_FACE
-        const auto& skin = make_shared<Continuum>(model, model.modelType);
+        const auto& skin = make_shared<Skin>(model, model.modelType);
         skin->assignCellGroup(cellGrp);
         model.add(skin);
         //this->add(*mappl);

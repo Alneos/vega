@@ -52,6 +52,7 @@ const map<ElementSet::Type, string> ElementSet::stringByType = {
         { ElementSet::Type::SHELL, "SHELL" },
         { ElementSet::Type::COMPOSITE, "COMPOSITE" },
         { ElementSet::Type::CONTINUUM, "CONTINUUM" },
+        { ElementSet::Type::SKIN, "SKIN" },
         { ElementSet::Type::STIFFNESS_MATRIX, "STIFFNESS_MATRIX" },
         { ElementSet::Type::MASS_MATRIX, "MASS_MATRIX" },
         { ElementSet::Type::DAMPING_MATRIX, "DAMPING_MATRIX" },
@@ -98,6 +99,21 @@ bool ElementSet::validate() const {
 Continuum::Continuum(Model& model, const ModelType& modelType, int original_id) :
 		ElementSet(model, ElementSet::Type::CONTINUUM, modelType, original_id) {
 
+}
+
+const DOFS Continuum::getDOFSForNode(const int nodePosition) const {
+	UNUSEDV(nodePosition);
+	return DOFS::TRANSLATIONS;
+}
+
+Skin::Skin(Model& model, const ModelType& modelType, int original_id) :
+		ElementSet(model, ElementSet::Type::SKIN, modelType, original_id) {
+
+}
+
+const DOFS Skin::getDOFSForNode(const int nodePosition) const {
+	UNUSEDV(nodePosition);
+	return DOFS::TRANSLATIONS;
 }
 
 Beam::Beam(Model& model, Type type, const ModelType& modelType, BeamModel beamModel,
@@ -333,11 +349,6 @@ double Composite::getTotalThickness() {
 const DOFS Composite::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
 	return DOFS::ALL_DOFS;
-}
-
-const DOFS Continuum::getDOFSForNode(const int nodePosition) const {
-	UNUSEDV(nodePosition);
-	return DOFS::TRANSLATIONS;
 }
 
 Discrete::Discrete(Model& model, ElementSet::Type type, bool symmetric, int original_id) :
