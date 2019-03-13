@@ -1167,7 +1167,7 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                     vec.push_back(0);
                     vec.push_back(0.0);
                     vec.push_back(0.0);
-                    vec.push_back(-npf->intensity);
+                    vec.push_back(npf->intensity);
                     if (!is_zero(npf->intensity)){
                         vectors[vectorId]=vec;
                         for (const int cellId : npf->getCellIds(true)){
