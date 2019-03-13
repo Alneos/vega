@@ -451,7 +451,6 @@ int Mesh::generateSkinCell(const vector<int>& faceIds, const SpaceDimension& dim
             break;
         }
     }
-    vector<int> externalFaceIds;
     if (cellTypeFound == nullptr) {
         throw logic_error(
                 "CellType not found connections:"

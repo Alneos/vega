@@ -451,31 +451,39 @@ const unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::F
 unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::init_faceByCelltype() {
 	vector<vector<int> > hexa8list = { //
         {1,2,3,4}, //
-        {5,6,7,8}, //
-        {1,2,6,5}, //
-        {2,3,7,6}, //
+        {5,8,7,6}, //
+        {1,5,6,2}, //
+        {2,6,7,3}, //
         {3,7,8,4}, //
         {1,4,8,5} //
     };
 	vector<vector<int> > tetra4list = { //
         {1,2,3}, //
         {1,4,2}, //
-        {1,4,3}, //
-        {2,3,4} //
+        {1,3,4}, //
+        {2,4,3} //
+    };
+    vector<vector<int> > pyra5list = { //
+        {1,2,3,4}, //
+        {1,5,2}, //
+        {1,4,5}, //
+        {4,3,5}, //
+        {2,5,3}, //
     };
 	vector<vector<int> > penta6list = { //
         {1,2,3}, //
-        {4,5,6}, //
-        {1,2,5,4}, //
+        {4,6,5}, //
+        {1,4,5,2}, //
         {1,3,6,4}, //
-        {2,3,6,5} //
+        {2,5,6,3} //
     };
 
 	unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > result = {
-        {CellType::HEXA8.code, hexa8list}, //Hexa8
-        {CellType::TETRA4.code, tetra4list}, //Tetra4
-        {CellType::PENTA6.code, penta6list}
-    }; //Penta6
+        {CellType::HEXA8.code, hexa8list}, //
+        {CellType::TETRA4.code, tetra4list}, //
+        {CellType::PYRA5.code, pyra5list}, //
+        {CellType::PENTA6.code, penta6list}, //
+    };
 	return result;
 }
 
@@ -502,7 +510,7 @@ int Cell::findNodeIdPosition(int node_id2) const {
 	return static_cast<int>(node2connectivityPos);
 }
 
-vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
+const vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
 	int node1connectivityPos = findNodeIdPosition(nodeId1);
     int node2connectivityPos = Globals::UNAVAILABLE_INT;
 	if (nodeId2 != Globals::UNAVAILABLE_INT) {
