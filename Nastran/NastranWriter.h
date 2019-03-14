@@ -30,7 +30,7 @@ class Line {
 	unsigned int fieldLength = 0;
 	unsigned int fieldNum = 0;
 	const std::string keyword = "";
-	std::vector<std::string> fields{};
+	std::vector<std::string> fields;
 public:
 	Line(std::string);
 	Line& add();

@@ -64,10 +64,10 @@ const unordered_map<CellType::Code, vector<int>, EnumClassHash> SystusWriter::sy
         { CellType::Code::POINT1_CODE, { 0 } },
         { CellType::Code::SEG2_CODE, { 0, 1 } },
         { CellType::Code::SEG3_CODE, { 0, 2, 1 } },
-        { CellType::Code::TRI3_CODE, { 0, 2, 1 } },
-        { CellType::Code::TRI6_CODE, { 0, 5, 2, 4, 1, 3 } },
-        { CellType::Code::QUAD4_CODE, { 0, 3, 2, 1 } },
-        { CellType::Code::QUAD8_CODE, { 0, 7, 3, 6, 2, 5, 1, 4 } },
+        { CellType::Code::TRI3_CODE, { 0, 1, 2 } },
+        { CellType::Code::TRI6_CODE, { 0, 3, 1, 4, 2, 5 } },
+        { CellType::Code::QUAD4_CODE, { 0, 1, 2, 3 } },
+        { CellType::Code::QUAD8_CODE, { 0, 4, 1, 5, 2, 6, 3, 7 } },
         { CellType::Code::TETRA4_CODE, { 0, 2, 1, 3 } },
         { CellType::Code::TETRA10_CODE, { 0, 6, 2, 5, 1, 4, 7, 9, 8, 3 } },
         { CellType::Code::PENTA6_CODE, { 0, 2, 1, 3, 5, 4 } },
@@ -1041,7 +1041,7 @@ void SystusWriter::fillLoads(const SystusModel& systusModel, const int idSubcase
             cerr << "Warning in Filling Loads : wrong analysis number ("<< analysisId[i]<<") Analysis dismissed"<<endl;
             break;
         }
-        localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]= {};
+        localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]={};
         const vector<shared_ptr<LoadSet>> analysisLoadSets = analysis->getLoadSets();
         int idSystusLoadByAnalysis=0;
         for (const auto& loadSet : analysisLoadSets) {
@@ -2640,7 +2640,7 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
      *  - NodalMass groups, as they are not cells in Systus
      *  - Orientation groups, as they are not parts.
      */
-    set<int> pids= {};
+    set<int> pids={};
     for (const auto& cellGroup : cellGroups) {
         if (cellGroup->isUseful){
             nbGroups++;

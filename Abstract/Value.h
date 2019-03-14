@@ -282,7 +282,7 @@ public:
 
 class FunctionTable: public Function {
 protected:
-    std::vector<std::pair<double, double> > valuesXY{};
+    std::vector<std::pair<double, double> > valuesXY;
     public:
     enum class Interpolation {
         LINEAR,

@@ -64,7 +64,7 @@ protected:
     const Reference<CoordinateSystem> rcs; /** Identification of a coordinate system that is defined independently from this coordinate system. */
     VectorialValue ez; /** internally computed as cross product of ex and ey */
     bool isVirtual = false;
-    std::vector<int> nodesId{};
+    std::vector<int> nodesId;
     boost::numeric::ublas::matrix<double> inverseMatrix;
 
 public:
@@ -144,7 +144,7 @@ public:
                 const VectorialValue v, const Reference<CoordinateSystem> rcs = GLOBAL_COORDINATE_SYSTEM, int original_id = NO_ORIGINAL_ID);
 
 protected:
-    VectorialValue v{}; /**< Orientation vector */
+    VectorialValue v; /**< Orientation vector */
 
 public:
     void build() override; /**< Build (O,ex,ey,ez) from the node and v */
@@ -244,7 +244,7 @@ class CoordinateSystemStorage final {
     //static constexpr int UNAVAILABLE_ID = -INT_MAX;
     static constexpr int UNAVAILABLE_POSITION = -INT_MAX;
     const LogLevel logLevel;
-    std::map<int, Reference<CoordinateSystem>> refByPosition{};  /**< A map < Position, Original Id > to keep track of coordinate System. */
+    std::map<int, Reference<CoordinateSystem>> refByPosition;  /**< A map < Position, Original Id > to keep track of coordinate System. */
 
     /**
      * Reserve a CS position given a user id (input model id).
@@ -253,7 +253,7 @@ class CoordinateSystemStorage final {
     const Mesh& mesh;
     CoordinateSystemStorage(const Mesh&, LogLevel logLevel);
 public:
-    std::map<Reference<CoordinateSystem>, std::shared_ptr<CoordinateSystem>> coordinateSystemByRef{};
+    std::map<Reference<CoordinateSystem>, std::shared_ptr<CoordinateSystem>> coordinateSystemByRef;
 
     /** Find the Position related to the input user id.
      *  Return UNAVAILABLE_POSITION if nothing is found.

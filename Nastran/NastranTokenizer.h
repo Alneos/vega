@@ -70,7 +70,7 @@ private:
     static const std::map<std::string, CommentType> commentTypeByString;
 
     unsigned int currentField;   /**< Current position of the Tokenizer, i.e, the next field to be interpreted **/
-    std::vector<std::string> currentLineVector{};
+    std::vector<std::string> currentLineVector;
     std::string currentLine = "";
 
     NastranTokenizer::LineType getLineType(const std::string& line); /**< Determine the LineType of the line.**/
@@ -104,7 +104,7 @@ public:
 
     SectionType currentSection;
     SymbolType nextSymbolType;
-    std::map<std::pair<CommentType, int>, std::string> labelByCommentTypeAndId{};
+    std::map<std::pair<CommentType, int>, std::string> labelByCommentTypeAndId;
 
     NastranTokenizer(std::istream& stream, vega::LogLevel logLevel = vega::LogLevel::INFO,
             const std::string fileName = "UNKNOWN",

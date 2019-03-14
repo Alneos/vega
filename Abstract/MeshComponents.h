@@ -288,7 +288,7 @@ class NodeGroup final : public Group {
 private:
     friend Mesh;
     // Positions of the nodes participating to the group
-    std::set<int> _nodePositions{};
+    std::set<int> _nodePositions;
     NodeGroup(Mesh& mesh, const std::string& name, int groupId, const std::string& comment="    ");
 public:
     // Add a node using its numerical id. If the node hasn't been yet defined it reserve position in the model.
@@ -366,7 +366,7 @@ public:
 
 class CellGroup final: public Group {
     friend Mesh;
-    std::set<int> _cellPositions{};
+    std::set<int> _cellPositions;
     CellGroup(Mesh& mesh, const std::string & name, int id = NO_ORIGINAL_ID, const std::string & comment = "");
     CellGroup(const CellGroup& that) = delete;
 public:
@@ -435,8 +435,8 @@ public:
 class NodeContainer {
 protected:
     const Mesh& mesh;
-    std::unordered_set<int> nodeIds{};
-    std::unordered_set<std::string> groupNames{};
+    std::unordered_set<int> nodeIds;
+    std::unordered_set<std::string> groupNames;
 public:
     NodeContainer(const Mesh& mesh);
     virtual ~NodeContainer() = default;
@@ -474,8 +474,8 @@ public:
 class CellContainer {
 protected:
     const Mesh& mesh;
-    std::unordered_set<int> cellIds{};
-    std::unordered_set<std::string> groupNames{};
+    std::unordered_set<int> cellIds;
+    std::unordered_set<std::string> groupNames;
 public:
     CellContainer(const Mesh& mesh);
     virtual ~CellContainer() = default;
@@ -562,7 +562,8 @@ namespace boost {
                 typedef cs::cartesian type;
             };
 
-            template<> struct dimension<vega::Node> : boost::mpl::int_<3> {};
+            template<> struct dimension<vega::Node> : boost::mpl::int_<3> {
+            };
 
             template<>
             struct access<vega::Node, 0> {

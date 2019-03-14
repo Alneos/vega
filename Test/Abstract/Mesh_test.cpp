@@ -63,6 +63,17 @@ BOOST_AUTO_TEST_CASE( test_faceIds )
                                   expectedFace2NodeIds.begin(), expectedFace2NodeIds.end());
 }
 
+BOOST_AUTO_TEST_CASE( test_faceIds_pload4 )
+{
+    Mesh mesh(LogLevel::INFO, "pload4");
+    int cellPosition = mesh.addCell(1, CellType::HEXA8, { 101, 105, 106, 102, 103, 107, 108, 104 });
+    const Cell&& hexa = mesh.findCell(cellPosition);
+    vector<int> face1NodeIds = hexa.faceids_from_two_nodes(105, 108);
+    vector<int> expectedFace1NodeIds = { 105, 107, 108, 106 };
+    BOOST_CHECK_EQUAL_COLLECTIONS(face1NodeIds.begin(), face1NodeIds.end(),
+                                  expectedFace1NodeIds.begin(), expectedFace1NodeIds.end());
+}
+
 BOOST_AUTO_TEST_CASE( test_NodeGroup )
 {
     Mesh mesh(LogLevel::INFO, "test");

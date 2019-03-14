@@ -384,7 +384,7 @@ void Analysis::createGraph(ostream& dot_ofs) {
     //typedef boost::graph_traits<Graph>::edge_descriptor edge_descriptor;
 
     Graph g;
-    map<int,vertex_descriptor> vertexPosByElementId{};
+    map<int,vertex_descriptor> vertexPosByElementId;
     for (auto& elementSet : model.elementSets) {
         vertex_descriptor vpos = boost::add_vertex(g);
         auto& v = g[vpos];
@@ -410,13 +410,13 @@ void Analysis::createGraph(ostream& dot_ofs) {
         vertex_descriptor vcpos = boost::add_vertex(g);
         auto& v = g[vcpos];
         v.name = to_str(*constraintSet);
-        set<int> nodeParts{};
+        set<int> nodeParts;
         for(const auto& constraint : constraintSet->getConstraints()) {
             for(int nodePosition : constraint->nodePositions()) {
                 nodeParts.insert(model.mesh.findNodePartId(nodePosition));
             }
         }
-        set<int> cellParts{};
+        set<int> cellParts;
         for(int nodePart : nodeParts) {
             const auto& cellParts2 = model.mesh.nodes.cellPartsByNodePart[nodePart];
             cellParts.insert(cellParts2.begin(), cellParts2.end());
@@ -431,13 +431,13 @@ void Analysis::createGraph(ostream& dot_ofs) {
         vertex_descriptor vlpos = boost::add_vertex(g);
         auto& v = g[vlpos];
         v.name = to_str(*loadSet);
-        set<int> nodeParts{};
+        set<int> nodeParts;
         for(const auto& loading : loadSet->getLoadings()) {
             for(int nodePosition : loading->nodePositions()) {
                 nodeParts.insert(model.mesh.findNodePartId(nodePosition));
             }
         }
-        set<int> cellParts{};
+        set<int> cellParts;
         for(int nodePart : nodeParts) {
             const auto& cellParts2 = model.mesh.nodes.cellPartsByNodePart[nodePart];
             cellParts.insert(cellParts2.begin(), cellParts2.end());

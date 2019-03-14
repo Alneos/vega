@@ -65,9 +65,9 @@ private:
         int ps;
         int seid;
     };
-    GrdSet grdSet{};
+    GrdSet grdSet;
 
-    std::unordered_map<std::string, Reference<ElementSet>> directMatrixByName{};
+    std::unordered_map<std::string, Reference<ElementSet>> directMatrixByName;
     static const std::unordered_map<std::string, NastranAnalysis> ANALYSIS_BY_LABEL;
     static const std::unordered_map<std::string, parseElementFPtr> PARSE_FUNCTION_BY_KEYWORD;
     static const std::unordered_map<std::string, parseElementFPtr> PARSEPARAM_FUNCTION_BY_KEYWORD;

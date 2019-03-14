@@ -73,7 +73,7 @@ public:
  */
 class ObjectiveSet final: public Identifiable<ObjectiveSet> {
 	Model& model;
-	std::vector<Reference<ObjectiveSet>> objectiveSetReferences{};
+	std::vector<Reference<ObjectiveSet>> objectiveSetReferences;
 	friend std::ostream &operator<<(std::ostream&, const ObjectiveSet&);
 public:
 	enum class Type {

@@ -46,15 +46,15 @@ private:
 	friend NodeGroup;
 
 	const LogLevel logLevel;
-	std::vector<NodeData> nodeDatas{};
-	std::map<int, int> nodepositionById{};
+	std::vector<NodeData> nodeDatas;
+	std::map<int, int> nodepositionById;
 	static const double RESERVED_POSITION;
 	static int lastNodePart;
 public:
 	Mesh& mesh;
-	std::map<int, int> mainNodePartByCellPart{};
-	std::map<int, std::set<int>> cellPartsByNodePart{};
-	std::map<std::set<int>, int> interfaceNodePartByCellParts{};
+	std::map<int, int> mainNodePartByCellPart;
+	std::map<int, std::set<int>> cellPartsByNodePart;
+	std::map<std::set<int>, int> interfaceNodePartByCellParts;
 
 	NodeStorage(Mesh& mesh, LogLevel logLevel);
 	NodeIterator begin() const;
@@ -83,9 +83,9 @@ private:
 	friend CellGroup;
 
 	const LogLevel logLevel;
-	std::vector<CellData> cellDatas{};
-	std::map<int, int> cellpositionById{};
-	std::map<CellType, std::shared_ptr<std::deque<int>>> nodepositionsByCelltype{};
+	std::vector<CellData> cellDatas;
+	std::map<int, int> cellpositionById;
+	std::map<CellType, std::shared_ptr<std::deque<int>>> nodepositionsByCelltype;
 	/*
 	 * Reserve a cell position given an id
 	 */
@@ -120,21 +120,21 @@ private:
 	const std::string name;
 	bool finished = false;
 
-	std::map<std::string, std::shared_ptr<Group>> groupByName{};
+	std::map<std::string, std::shared_ptr<Group>> groupByName;
 
 	/**
 	 * Groups ordered by the id provided by the input solver. Since inputSolver may not provide
 	 * this id this map may not contain all the groups.
 	 */
-	std::map<int, std::shared_ptr<Group>> groupById{};
+	std::map<int, std::shared_ptr<Group>> groupById;
 
 	std::shared_ptr<CellGroup> getOrCreateCellGroupForCS(const int cspos);
 
 	std::unique_ptr<MeshStatistics> stats = nullptr;
 public:
-	std::map<CellType, std::vector<int>> cellPositionsByType{};
-	std::map<int, std::string> cellGroupNameByCspos{}; /**< mapping position->group name **/
-	std::map<int, std::string> cellGroupNameByMaterialOrientationTimes100{};
+	std::map<CellType, std::vector<int>> cellPositionsByType;
+	std::map<int, std::string> cellGroupNameByCspos; /**< mapping position->group name **/
+	std::map<int, std::string> cellGroupNameByMaterialOrientationTimes100;
 	Mesh(LogLevel logLevel, const std::string& name);
 	NodeStorage nodes;
 	CellStorage cells;

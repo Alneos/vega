@@ -67,7 +67,7 @@ public:
  */
 class ConstraintSet final: public Identifiable<ConstraintSet> {
 	Model& model;
-	std::vector<Reference<ConstraintSet>> constraintSetReferences{};
+	std::vector<Reference<ConstraintSet>> constraintSetReferences;
 	friend std::ostream &operator<<(std::ostream&, const ConstraintSet&);
 public:
 	enum class Type {
@@ -133,8 +133,8 @@ public:
 };
 
 class RBE3: public HomogeneousConstraint {
-	std::map<int, DOFS> slaveDofsByPosition{};
-	std::map<int, double> slaveCoefByPosition{};
+	std::map<int, DOFS> slaveDofsByPosition;
+	std::map<int, double> slaveCoefByPosition;
 public:
 	RBE3(Model& model, int masterId, const DOFS dofs = DOFS::ALL_DOFS, int original_id =
 			NO_ORIGINAL_ID);
@@ -144,7 +144,7 @@ public:
 };
 
 class SinglePointConstraint: public Constraint {
-	std::set<int> _nodePositions{};
+	std::set<int> _nodePositions;
 	std::array<ValueOrReference, 6> spcs;
 public:
 	//GC: static initialization order is undefined. A reference is needed here to
@@ -181,7 +181,7 @@ public:
 
 class LinearMultiplePointConstraint: public Constraint {
 private:
-    std::map<int, DOFCoefs> dofCoefsByNodePosition{};
+    std::map<int, DOFCoefs> dofCoefsByNodePosition;
 public:
     const double coef_impo;
     LinearMultiplePointConstraint(Model& model, double coef_impo = 0, int original_id =
@@ -226,7 +226,7 @@ public:
 
 class GapTwoNodes: public Gap {
 private:
-	std::map<int, int> directionNodePositionByconstrainedNodePosition{};
+	std::map<int, int> directionNodePositionByconstrainedNodePosition;
 public:
 	GapTwoNodes(Model& model, int original_id = NO_ORIGINAL_ID);
 	void addGapNodes(int constrainedNodeId, int directionNodeId);
@@ -239,7 +239,7 @@ public:
 
 class GapNodeDirection: public Gap {
 private:
-	std::map<int, VectorialValue> directionBynodePosition{};
+	std::map<int, VectorialValue> directionBynodePosition;
 public:
 	GapNodeDirection(Model& model, int original_id = NO_ORIGINAL_ID);
 	void addGapNodeDirection(int constrainedNodeId, double directionX, double directionY = 0,

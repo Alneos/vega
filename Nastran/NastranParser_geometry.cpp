@@ -39,11 +39,11 @@ namespace nastran {
 
 const unordered_map<CellType::Code, vector<int>, EnumClassHash> NastranParser::nastran2medNodeConnectByCellType =
         {
-                { CellType::Code::TRI3_CODE, { 0, 2, 1 } },
-                { CellType::Code::TRI6_CODE, { 0, 2, 1, 5, 4, 3 } },
-                { CellType::Code::QUAD4_CODE, { 0, 3, 2, 1 } },
-                { CellType::Code::QUAD8_CODE, { 0, 3, 2, 1, 7, 6, 5, 4 } },
-                { CellType::Code::QUAD9_CODE, { 0, 3, 2, 1, 7, 6, 5, 4, 8 } },
+                { CellType::Code::TRI3_CODE, { 0, 1, 2 } },
+                { CellType::Code::TRI6_CODE, { 0, 1, 2, 3, 4, 5 } },
+                { CellType::Code::QUAD4_CODE, { 0, 1, 2, 3 } },
+                { CellType::Code::QUAD8_CODE, { 0, 1, 2, 3, 4, 5, 6, 7 } },
+                { CellType::Code::QUAD9_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8 } },
                 { CellType::Code::TETRA4_CODE, { 0, 2, 1, 3 } },
                 { CellType::Code::TETRA10_CODE, { 0, 2, 1, 3, 6, 5, 4, 7, 9, 8 } },
                 { CellType::Code::PYRA5_CODE, { 0, 3, 2, 1, 4 } },
