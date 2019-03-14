@@ -1925,6 +1925,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
         case ElementSet::Type::STRUCTURAL_SEGMENT:
         case ElementSet::Type::SHELL:
         case ElementSet::Type::CONTINUUM:
+        case ElementSet::Type::SKIN:
         case ElementSet::Type::NODAL_MASS:
         case ElementSet::Type::RBAR:
         case ElementSet::Type::RBE3:
@@ -2969,6 +2970,12 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                         }
                         writeMaterialField(SMF::E, double(it2->second), nbElementsMaterial, omat);
                     }
+                    break;
+                }
+
+                // Skin elements, usually used to support surfacic load, don't need material
+                // So we only store an id.
+                case ElementSet::Type::SKIN:{
                     break;
                 }
 

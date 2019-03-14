@@ -160,21 +160,21 @@ public:
 
 private:
     std::unordered_map<LoadSet::Type, std::map<int, std::set<std::shared_ptr<Reference<Loading>>> > ,EnumClassHash>
-    loadingReferences_by_loadSet_original_ids_by_loadSet_type{};
+    loadingReferences_by_loadSet_original_ids_by_loadSet_type;
     std::unordered_map<int, std::set<std::shared_ptr<Reference<Loading>>> >
-    loadingReferences_by_loadSet_ids{};
+    loadingReferences_by_loadSet_ids;
 
     std::unordered_map< ConstraintSet::Type,
     std::map<int, std::set<std::shared_ptr<Reference<Constraint>>>>,EnumClassHash>
-    constraintReferences_by_constraintSet_original_ids_by_constraintSet_type{};
+    constraintReferences_by_constraintSet_original_ids_by_constraintSet_type;
     std::map< int, std::set<std::shared_ptr<Reference<Constraint>>>>
-    constraintReferences_by_constraintSet_ids{};
+    constraintReferences_by_constraintSet_ids;
 
     template<class T> class Container final {
     private:
-        std::map<int, std::shared_ptr<T>> by_id{};
+        std::map<int, std::shared_ptr<T>> by_id;
         std::unordered_map< typename T::Type, std::map<int, std::shared_ptr<T>>,
-        EnumClassHash> by_original_ids_by_type{};
+        EnumClassHash> by_original_ids_by_type;
         Model& model;
     public:
         Container(Model& model): model(model) {}
@@ -220,7 +220,7 @@ private:
         bool validate(); /**< Says if model parts are coherent (no unresolved references, etc.) AND SOMETIMES IT TRIES TO FIX THEM :( */
         Container(const Container& that) = delete; /**< Containers should never be copied */
     }; /* Container class */
-    std::unordered_map<int,CellContainer> material_assignment_by_material_id{};
+    std::unordered_map<int,CellContainer> material_assignment_by_material_id;
 public:
     Container<Analysis> analyses{*this};
     Container<Objective> objectives{*this};
@@ -232,7 +232,7 @@ public:
     Container<ElementSet> elementSets{*this};
     Container<Material> materials{*this};
     Container<Target> targets{*this};
-    std::map<Parameter, double> parameters{};
+    std::map<Parameter, double> parameters;
     bool onlyMesh = false;
 
     Model(std::string name, std::string inputSolverVersion = "UNKNOWN",
