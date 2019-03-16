@@ -1731,18 +1731,18 @@ void AsterWriter::writeCellContainer(const CellContainer& cellContainer, ostream
     }
     if (cellContainer.hasCells()) {
         // Creating single cell groups to avoid using MAILLE
-      //out << "MAILLE=(";
-      out << "GROUP_MA=(";
+      out << "MAILLE=(";
+      //out << "GROUP_MA=(";
       for (int cellPosition : cellContainer.getCellPositions(false)) {
         celem++;
-        const string& groupName = Cell::MedName(cellPosition);
-        auto entry = singleGroupCellPositions.find(cellPosition);
-        if (entry == end(singleGroupCellPositions)) {
-            auto singleCellGroup = asterModel->model.mesh.createCellGroup(groupName);
-            singleCellGroup->addCellPosition(cellPosition);
-            singleGroupCellPositions.insert(cellPosition);
-        }
-        out << "'" << groupName << "',";
+//        const string& groupName = Cell::MedName(cellPosition);
+//        auto entry = singleGroupCellPositions.find(cellPosition);
+//        if (entry == end(singleGroupCellPositions)) {
+//            auto singleCellGroup = asterModel->model.mesh.createCellGroup(groupName);
+//            singleCellGroup->addCellPosition(cellPosition);
+//            singleGroupCellPositions.insert(cellPosition);
+//        }
+        out << "'" << Cell::MedName(cellPosition) << "',";
         if (celem % 6 == 0) {
           out << endl << "                             ";
         }

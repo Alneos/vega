@@ -32,7 +32,7 @@ class AsterWriter final : public Writer {
 	std::map<Reference<NamedValue>, std::string> asternameByValue;
 	std::map<Reference<LoadSet>, std::string> asternameByLoadSet;
 	std::map<Reference<ConstraintSet>, std::string> asternameByConstraintSet;
-	std::set<int> singleGroupCellPositions;
+//	std::set<int> singleGroupCellPositions;
 	static constexpr double SMALLEST_RELATIVE_COMPARISON = 1e-7;
 
 	void writeExport(AsterModel& model, std::ostream&);
