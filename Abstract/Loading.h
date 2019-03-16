@@ -337,7 +337,8 @@ public:
 	SpaceDimension getLoadingDimension() const override {
 		return SpaceDimension::DIMENSION_2D;
 	}
-	std::vector<int> getApplicationFaceNodeIds() const override {
+	virtual std::vector<int> getApplicationFaceNodeIds() const override {
+	    std::cout << "ForceSurface getApplicationFaceNodeIds() called" << std::endl;
 	    return {};
     }
 	bool validate() const override;
@@ -354,7 +355,7 @@ public:
 
 	ForceSurfaceTwoNodes(Model&, int nodeId1, int nodeId2, const VectorialValue& force,
 			const VectorialValue& moment, const int original_id = NO_ORIGINAL_ID);
-	std::vector<int> getApplicationFaceNodeIds() const override;
+	virtual std::vector<int> getApplicationFaceNodeIds() const override;
 	std::shared_ptr<Loading> clone() const override;
 };
 
@@ -400,8 +401,8 @@ public:
 	std::shared_ptr<Loading> clone() const override;
 	void scale(const double factor) override;
 	bool ineffective() const override;
-	std::vector<int> getApplicationFaceNodeIds() const override {
-		return std::vector<int>();
+	virtual std::vector<int> getApplicationFaceNodeIds() const override {
+		return {};
 	}
 //	void createSkin() override;
 };
@@ -415,7 +416,7 @@ public:
 	const int nodePosition1;
 	const int nodePosition2;
 	NormalPressionFaceTwoNodes(Model&, int nodeId1, int nodeId2, double intensity, const int original_id = NO_ORIGINAL_ID);
-	std::vector<int> getApplicationFaceNodeIds() const override;
+	virtual std::vector<int> getApplicationFaceNodeIds() const override;
 	std::shared_ptr<Loading> clone() const override;
 };
 

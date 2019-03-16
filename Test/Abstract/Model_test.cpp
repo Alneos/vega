@@ -261,6 +261,12 @@ BOOST_AUTO_TEST_CASE( test_create_skin2d ) {
 	vector<int> applicationFace = forceSurfaceTwoNodes->getApplicationFaceNodeIds();
 	BOOST_CHECK_EQUAL_COLLECTIONS(applicationFace.begin(), applicationFace.end(),
 			expectedFace1NodeIds.begin(), expectedFace1NodeIds.end());
+
+    // Same check but using base class
+    const auto& cellLoading = dynamic_pointer_cast<CellLoading>(forceSurfaceTwoNodes);
+	vector<int> applicationFace2 = cellLoading->getApplicationFaceNodeIds();
+	BOOST_CHECK_EQUAL_COLLECTIONS(applicationFace2.begin(), applicationFace2.end(),
+			expectedFace1NodeIds.begin(), expectedFace1NodeIds.end());
 	model->finish();
 	//BOOST_CHECK_EQUAL(model->materials.size(), 2 ); // 2 because skin adds a virtual material
 	BOOST_CHECK(model->validate());
@@ -504,7 +510,7 @@ BOOST_AUTO_TEST_CASE(test_rbe3_assertions_not_removed) {
 	model.mesh.addNode(100, 0.0, 0.0, 0.0);
 	model.mesh.addNode(101, 1.0, 1.0, 1.0);
 	const auto& rbe3 = make_shared<RBE3>(model, 100, DOFS::ALL_DOFS);
-	rbe3->addSlave(101, DOFS::ALL_DOFS, 42.0);
+	rbe3->addRBE3Slave(101, DOFS::ALL_DOFS, 42.0);
 	model.add(rbe3);
 	model.addConstraintIntoConstraintSet(rbe3->getReference(), model.commonConstraintSet->getReference());
 	const auto& analysis = make_shared<LinearMecaStat>(model);

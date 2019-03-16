@@ -159,6 +159,11 @@ if(COMPILER_SUPPORTS_NON_VIRTUAL_DTOR)
   add_compile_options(-Wnon-virtual-dtor)
 endif()
 
+CHECK_CXX_COMPILER_FLAG(-Woverloaded-virtual COMPILER_SUPPORTS_OVERLOADED_VIRTUAL)
+if(COMPILER_SUPPORTS_OVERLOADED_VIRTUAL)
+  add_compile_options(-Woverloaded-virtual)
+endif()
+
 # boost variant constructor uses this see ValueOrReference
 #CHECK_CXX_COMPILER_FLAG(-Wzero-as-null-pointer-constant COMPILER_SUPPORTS_ZERO_AS_NULL_POINTER_CONSTANT)
 #if(COMPILER_SUPPORTS_ZERO_AS_NULL_POINTER_CONSTANT)

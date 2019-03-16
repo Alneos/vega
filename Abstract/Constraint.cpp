@@ -217,7 +217,11 @@ RBE3::RBE3(Model& model, int masterId, const DOFS dofs, int original_id) :
         HomogeneousConstraint(model, Constraint::Type::RBE3, dofs, masterId, original_id) {
 }
 
-void RBE3::addSlave(int slaveId, DOFS slaveDOFS, double slaveCoef) {
+void RBE3::addSlave(int slaveId) {
+    addRBE3Slave(slaveId, DOFS::ALL_DOFS, 1.0);
+}
+
+void RBE3::addRBE3Slave(int slaveId, DOFS slaveDOFS, double slaveCoef) {
     int nodePosition = model.mesh.findOrReserveNode(slaveId);
     slavePositions.insert(nodePosition);
     slaveDofsByPosition[nodePosition] = slaveDOFS;

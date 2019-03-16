@@ -2485,6 +2485,15 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, Model& model) {
 
         model.add(pressionFaceTwoNodes);
         model.addLoadingIntoLoadSet(*pressionFaceTwoNodes, loadSetReference);
+    } else if (has_direction and g1 != Globals::UNAVAILABLE_INT) {
+        const auto& forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(model, g1, g3_or_4,
+			VectorialValue(n1, n2, n3), VectorialValue(0, 0, 0));
+        for(int cellId = eid1; cellId < eid2; cellId++) {
+            forceSurfaceTwoNodes->addCellId(cellId);
+        }
+
+        model.add(forceSurfaceTwoNodes);
+        model.addLoadingIntoLoadSet(*forceSurfaceTwoNodes, loadSetReference);
     } else {
         const auto& forceSurface = make_shared<ForceSurface>(model, VectorialValue(n1 * p1, n2 * p1, n3 * p1),
                 VectorialValue(0.0, 0.0, 0.0));
@@ -2714,7 +2723,7 @@ void NastranParser::parseRBE3(NastranTokenizer& tok, Model& model) {
         const DOFS& sdofs = DOFS::nastranCodeToDOFS(nastranSDofs);
         while (tok.isNextInt()) {
             int slaveId = tok.nextInt();
-            rbe3->addSlave(slaveId, sdofs, coef);
+            rbe3->addRBE3Slave(slaveId, sdofs, coef);
         }
     }
     model.add(rbe3);

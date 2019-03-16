@@ -620,6 +620,9 @@ vector<int> ForceSurfaceTwoNodes::getApplicationFaceNodeIds() const {
 	if (cells.size() != 1) {
 		throw logic_error("More than one cell specified for a ForceSurfaceTwoNodes");
 	}
+	if (model.configuration.logLevel >= LogLevel::TRACE) {
+        cout << "ForceSurfaceTwoNodes getApplicationFaceNodeIds() called" << endl;
+	}
 	const int nodeId1 = model.mesh.findNodeId(nodePosition1);
 	const int nodeId2 = model.mesh.findNodeId(nodePosition2);
 	const vector<int>& nodeIds = cells[0].faceids_from_two_nodes(nodeId1, nodeId2);

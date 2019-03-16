@@ -132,13 +132,14 @@ public:
 			NO_ORIGINAL_ID, const std::set<int>& slaveIds = std::set<int>());
 };
 
-class RBE3: public HomogeneousConstraint {
+class RBE3 final: public HomogeneousConstraint {
 	std::map<int, DOFS> slaveDofsByPosition;
 	std::map<int, double> slaveCoefByPosition;
 public:
 	RBE3(Model& model, int masterId, const DOFS dofs = DOFS::ALL_DOFS, int original_id =
 			NO_ORIGINAL_ID);
-	void addSlave(int slaveId, DOFS slaveDOFS = DOFS::ALL_DOFS, double slaveCoef = 1);
+    virtual void addSlave(int slaveId) override;
+	void addRBE3Slave(int slaveId, DOFS slaveDOFS = DOFS::ALL_DOFS, double slaveCoef = 1);
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	double getCoefForNode(int nodePosition) const;
 };
