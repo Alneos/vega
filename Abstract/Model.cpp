@@ -671,7 +671,7 @@ const CellContainer Model::getMaterialAssignment(int materialId) const {
     if (it != material_assignment_by_material_id.end()) {
         return it->second;
     } else {
-        //return empty cell container if no assigmnent is found
+        //return empty cell container if no assignment is found
         return CellContainer(mesh);
     }
 }

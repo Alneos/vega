@@ -190,7 +190,7 @@ public:
      * both the elementSets with a material assigned and the materials assigned
      * directly.
      */
-    CellContainer getAssignment() const;
+    const CellContainer getAssignment() const;
     /**
      * Assign a material to a group of cells. There are two ways of assigning
      * a material: either trough this method or with an ElementSet.

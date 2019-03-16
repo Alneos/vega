@@ -742,8 +742,16 @@ CellContainer::CellContainer(const Mesh& mesh) :
 		mesh(mesh) {
 }
 
+void CellContainer::addCellPosition(int cellPosition) {
+	cellIds.insert(mesh.findCellId(cellPosition));
+}
+
 void CellContainer::addCellId(int cellId) {
 	cellIds.insert(cellId);
+}
+
+void CellContainer::addCellIds(const vector<int>& otherIds) {
+    cellIds.insert(otherIds.begin(), otherIds.end());
 }
 
 void CellContainer::addCellGroup(const string& groupName) {
@@ -803,6 +811,10 @@ const vector<int> CellContainer::getCellIds(bool all) const {
 		}
 	}
 	return cells;
+}
+
+void CellContainer::removeCellsNotInAGroup() {
+    cellIds.clear();
 }
 
 const vector<int> CellContainer::getCellPositions(bool all) const {

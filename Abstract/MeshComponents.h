@@ -371,6 +371,7 @@ class CellGroup final: public Group {
     CellGroup(const CellGroup& that) = delete;
 public:
     void addCellId(int cellId);
+    void addCellIds(const std::vector<int>& cellIds);
     void addCellPosition(int cellPosition);
     bool containsCellPosition(int cellPosition) const;
     void removeCellPosition(int cellPosition);
@@ -483,7 +484,9 @@ public:
     /**
      * Adds a cellId to the current set
      */
+    void addCellPosition(int cellPosition);
     void addCellId(int cellId);
+    void addCellIds(const std::vector<int>& otherIds);
     void addCellGroup(const std::string& groupName);
     void add(const Cell& cell);
     void add(const CellGroup& cellGroup);
@@ -497,6 +500,7 @@ public:
      * @param all: if true include also the cells inside all the cellGroups
      */
     const std::vector<int> getCellIds(bool all) const;
+    void removeCellsNotInAGroup();
 
     const std::vector<int> getCellPositions(bool all) const;
 

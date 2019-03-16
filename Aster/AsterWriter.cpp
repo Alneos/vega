@@ -34,28 +34,28 @@ const string AsterWriter::toString() const {
 
 string AsterWriter::writeModel(Model& model,
 		const ConfigurationParameters &configuration) {
-	AsterModel asterModel(model, configuration);
+	asterModel = make_unique<AsterModel>(model, configuration);
 //string currentOutFile = asterModel.getOutputFileName();
 
-	string path = asterModel.configuration.outputPath;
+	string path = asterModel->configuration.outputPath;
 	if (!fs::exists(path)) {
 		throw iostream::failure("Directory " + path + " don't exist.");
 	}
 
-    fs::path inputFile(asterModel.configuration.inputFile);
+    fs::path inputFile(asterModel->configuration.inputFile);
 	if (fs::exists(inputFile)) {
 		fs::copy_file(inputFile, fs::absolute(path) / inputFile.filename(), fs::copy_option::overwrite_if_exists);
 	}
 
-    fs::path testFile = asterModel.configuration.resultFile;
+    fs::path testFile = asterModel->configuration.resultFile;
 	if (fs::exists(testFile)) {
 		fs::copy_file(testFile, fs::absolute(path) / testFile.filename(), fs::copy_option::overwrite_if_exists);
 	}
 
 	if (configuration.createGraph) {
-        for (const auto& analysis : asterModel.model.analyses) {
-            string graphviz_path = asterModel.getOutputFileName("_" + to_string(analysis->getId()) + ".dot");
-            string png_path = asterModel.getOutputFileName("_" + to_string(analysis->getId()) + ".png");
+        for (const auto& analysis : asterModel->model.analyses) {
+            string graphviz_path = asterModel->getOutputFileName("_" + to_string(analysis->getId()) + ".dot");
+            string png_path = asterModel->getOutputFileName("_" + to_string(analysis->getId()) + ".png");
             ofstream graphviz_file_ofs;
             graphviz_file_ofs.open(graphviz_path.c_str(), ios::out | ios::trunc);
             analysis->createGraph(graphviz_file_ofs);
@@ -66,12 +66,9 @@ string AsterWriter::writeModel(Model& model,
         }
 	}
 
-	string exp_path = asterModel.getOutputFileName(".export");
-	string med_path = asterModel.getOutputFileName(".med");
-	string comm_path = asterModel.getOutputFileName(".comm");
-
-	MedWriter medWriter;
-	medWriter.writeMED(model, med_path.c_str());
+	string exp_path = asterModel->getOutputFileName(".export");
+	string med_path = asterModel->getOutputFileName(".med");
+	string comm_path = asterModel->getOutputFileName(".comm");
 
 	ofstream comm_file_ofs;
 	//comm_file_ofs.setf(ios::scientific);
@@ -83,7 +80,7 @@ string AsterWriter::writeModel(Model& model,
 		string message = string("Can't open file ") + exp_path + " for writing.";
 		throw ios::failure(message);
 	}
-	this->writeExport(asterModel, exp_file_ofs);
+	this->writeExport(*asterModel, exp_file_ofs);
 	exp_file_ofs.close();
 
 	comm_file_ofs.open(comm_path.c_str(), ios::out | ios::trunc);
@@ -92,8 +89,11 @@ string AsterWriter::writeModel(Model& model,
 		string message = string("Can't open file ") + comm_path + " for writing.";
 		throw ios::failure(message);
 	}
-	this->writeComm(asterModel, comm_file_ofs);
+	this->writeComm(*asterModel, comm_file_ofs);
 	comm_file_ofs.close();
+
+	MedWriter medWriter;
+	medWriter.writeMED(model, med_path.c_str());
 	return exp_path;
 }
 
@@ -1730,10 +1730,19 @@ void AsterWriter::writeCellContainer(const CellContainer& cellContainer, ostream
       out << "),";
     }
     if (cellContainer.hasCells()) {
-      out << "MAILLE=(";
+        // Creating single cell groups to avoid using MAILLE
+      //out << "MAILLE=(";
+      out << "GROUP_MA=(";
       for (int cellPosition : cellContainer.getCellPositions(false)) {
         celem++;
-        out << "'" << Cell::MedName(cellPosition) << "',";
+        const string& groupName = Cell::MedName(cellPosition);
+        auto entry = singleGroupCellPositions.find(cellPosition);
+        if (entry == end(singleGroupCellPositions)) {
+            auto singleCellGroup = asterModel->model.mesh.createCellGroup(groupName);
+            singleCellGroup->addCellPosition(cellPosition);
+            singleGroupCellPositions.insert(cellPosition);
+        }
+        out << "'" << groupName << "',";
         if (celem % 6 == 0) {
           out << endl << "                             ";
         }

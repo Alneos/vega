@@ -608,7 +608,7 @@ shared_ptr<CellGroup> Mesh::createCellGroup(const string& name, int group_id, co
 		this->groupById[group_id] = group;
 	}
 
-	if (this->logLevel >= LogLevel::DEBUG) {
+	if (this->logLevel >= LogLevel::TRACE) {
 		cout << "Created Cell Group: " << name;
         if (not comment.empty())
             cout <<" with comment: "<<comment;

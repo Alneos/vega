@@ -64,7 +64,7 @@ const vector<string> AsterModel::DofByPosition = {
         "DRZ"
 };
 
-AsterModel::AsterModel(const vega::Model& model, const vega::ConfigurationParameters &configuration) :
+AsterModel::AsterModel(vega::Model& model, const vega::ConfigurationParameters &configuration) :
         model(model), configuration(configuration), phenomene{"MECANIQUE"} {
 }
 
