@@ -434,10 +434,14 @@ const VectorialValue StaticPressure::getForceInGlobalCS(int nodePosition) const 
         VectorialValue force2;
         if (v13.norm() < v24.norm()) {
             // triangles : G1,G2,G3 and G1,G3,G4
-            const VectorialValue& direction1 = v12.cross(v13).normalized();
-            const VectorialValue& direction2 = v13.cross(v14).normalized();
-            force1 = (magnitude / 6) * direction1;
-            force2 = (magnitude / 6) * direction2;
+            const VectorialValue& crossTria1 = v12.cross(v13);
+            double tria1Area = crossTria1.norm() / 2;
+            const VectorialValue& direction1 = crossTria1.normalized();
+            const VectorialValue& crossTria2 = v13.cross(v14);
+            double tria2Area = crossTria2.norm() / 2;
+            const VectorialValue& direction2 = crossTria2.normalized();
+            force1 = (magnitude / 6 / tria1Area) * direction1;
+            force2 = (magnitude / 6 / tria2Area) * direction2;
             if (nodePosition == node_position1 || nodePosition == node_position3) {
                 forceNode = force1 + force2;
             } else if (nodePosition == node_position2) {
@@ -447,11 +451,15 @@ const VectorialValue StaticPressure::getForceInGlobalCS(int nodePosition) const 
             }
         } else {
             // triangles : G1,G2,G4 and G2,G3,G4
+            const VectorialValue& crossTria1 = v12.cross(v14);
+            double tria1Area = crossTria1.norm() / 2;
             const VectorialValue& v23 = VectorialValue(node3.x, node3.y, node3.z) - VectorialValue(node2.x, node2.y, node2.z);
-            const VectorialValue& direction1 = v12.cross(v14).normalized();
-            const VectorialValue& direction2 = v23.cross(v14).normalized();
-            force1 = (magnitude / 6) * direction1;
-            force2 = (magnitude / 6) * direction2;
+            const VectorialValue& direction1 = crossTria1.normalized();
+            const VectorialValue& crossTria2 = v23.cross(v14);
+            double tria2Area = crossTria2.norm() / 2;
+            const VectorialValue& direction2 = crossTria2.normalized();
+            force1 = (magnitude / 6 / tria1Area) * direction1;
+            force2 = (magnitude / 6 / tria2Area) * direction2;
             if (nodePosition == node_position2 || nodePosition == node_position4) {
                 forceNode = force1;// + force2;
             } else if (nodePosition == node_position1) {
@@ -461,8 +469,10 @@ const VectorialValue StaticPressure::getForceInGlobalCS(int nodePosition) const 
             }
         }
     } else {
-        const VectorialValue& direction = v12.cross(v13).normalized();
-        forceNode = (magnitude / 3) * direction;
+        const VectorialValue& crossTria = v12.cross(v13);
+        double triaArea = crossTria.norm() / 2;
+        const VectorialValue& direction = crossTria.normalized();
+        forceNode = (magnitude / 3 / triaArea) * direction;
     }
     return localToGlobal(nodePosition, forceNode);
 }
