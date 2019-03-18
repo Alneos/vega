@@ -2487,7 +2487,7 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, Model& model) {
         model.addLoadingIntoLoadSet(*pressionFaceTwoNodes, loadSetReference);
     } else if (has_direction and g1 != Globals::UNAVAILABLE_INT) {
         const auto& forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(model, g1, g3_or_4,
-			VectorialValue(n1, n2, n3), VectorialValue(0, 0, 0));
+			VectorialValue(n1 * p1, n2 * p1, n3 * p1), VectorialValue(0, 0, 0));
         for(int cellId = eid1; cellId < eid2; cellId++) {
             forceSurfaceTwoNodes->addCellId(cellId);
         }

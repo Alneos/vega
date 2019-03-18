@@ -908,18 +908,12 @@ void SystusWriter::generateSubcases(const SystusModel& systusModel,
             vector<systus_ascid_t> cAna;
             cAna.push_back(static_cast<int>(analysis.type)); //Analysis type
 
+            // Only constraints must be considered: we can merge two analysis if they share the same matrix, even if they have different loadings
             const vector<shared_ptr<ConstraintSet>> constraintSets = analysis.getConstraintSets();
             cAna.push_back(static_cast<int>(constraintSets.size()));
             for (const auto& constraintSet : constraintSets){
                 cAna.push_back(constraintSet->getId());
             }
-            //TODO Maybe we need to test that too?
-            //const vector<shared_ptr<BoundaryCondition>> boundaryConditions= analysis.getBoundaryConditions();
-            //cAna.push_back(boundaryConditions.size());
-            //for (const auto& boundaryCondition : boundaryConditions){
-            //  cAna.push_back(boundaryCondition->getId());
-            //}
-
 
             // For mechanical static problem, we search the already defined subcases for the same characteristic
             auto idSubcase = systusSubcases.size();
