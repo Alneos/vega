@@ -440,10 +440,10 @@ const VectorialValue StaticPressure::getForceInGlobalCS(int nodePosition) const 
             const VectorialValue& crossTria2 = v13.cross(v14);
             double tria2Area = crossTria2.norm() / 2;
             const VectorialValue& direction2 = crossTria2.normalized();
-            force1 = (magnitude / 6 / tria1Area) * direction1;
-            force2 = (magnitude / 6 / tria2Area) * direction2;
+            force1 = (magnitude / 4 / tria1Area) * direction1;
+            force2 = (magnitude / 4 / tria2Area) * direction2;
             if (nodePosition == node_position1 || nodePosition == node_position3) {
-                forceNode = force1 + force2;
+                forceNode = (force1 + force2) / 2;
             } else if (nodePosition == node_position2) {
                 forceNode = force1;
             } else if (nodePosition == node_position4) {
@@ -455,17 +455,17 @@ const VectorialValue StaticPressure::getForceInGlobalCS(int nodePosition) const 
             double tria1Area = crossTria1.norm() / 2;
             const VectorialValue& v23 = VectorialValue(node3.x, node3.y, node3.z) - VectorialValue(node2.x, node2.y, node2.z);
             const VectorialValue& direction1 = crossTria1.normalized();
-            const VectorialValue& crossTria2 = v23.cross(v14);
+            const VectorialValue& crossTria2 = v23.cross(v24);
             double tria2Area = crossTria2.norm() / 2;
             const VectorialValue& direction2 = crossTria2.normalized();
-            force1 = (magnitude / 6 / tria1Area) * direction1;
-            force2 = (magnitude / 6 / tria2Area) * direction2;
+            force1 = (magnitude / 4 / tria1Area) * direction1;
+            force2 = (magnitude / 4 / tria2Area) * direction2;
             if (nodePosition == node_position2 || nodePosition == node_position4) {
-                forceNode = force1;// + force2;
+                forceNode = (force1 + force2) / 2;
             } else if (nodePosition == node_position1) {
                 forceNode = force1;
             } else if (nodePosition == node_position3) {
-                forceNode = force1;//force2;
+                forceNode = force2;
             }
         }
     } else {

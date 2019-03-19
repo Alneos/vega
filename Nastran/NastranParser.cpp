@@ -2616,6 +2616,8 @@ void NastranParser::parsePSOLID(NastranTokenizer& tok, Model& model) {
         modelType = &ModelType::TRIDIMENSIONAL_SI;
     } else if ((psolid_in == "TWO" || psolid_in == "2") && (isop == "FULL" || isop == "1")) {
         modelType = &ModelType::TRIDIMENSIONAL;
+    } else if ((psolid_in == "THREE" || psolid_in == "3") && (isop == "FULL" || isop == "1")) {
+        modelType = &ModelType::TRIDIMENSIONAL;
     } else {
         modelType = &ModelType::TRIDIMENSIONAL_SI;
         handleParsingWarning("Integration IN " + psolid_in + " ISOP " + isop + " not implemented : default assumed",

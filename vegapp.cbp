@@ -2079,6 +2079,9 @@
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/fixed_circular_plate.dat" />
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/fixed_circular_plate.f06" />
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/readme.txt" />
+		<Unit filename="testdata/nastran/irt/forcefour/forcefour.f06" />
+		<Unit filename="testdata/nastran/irt/forcefour/forcefour.nas" />
+		<Unit filename="testdata/nastran/irt/forcefour/readme.txt" />
 		<Unit filename="testdata/nastran/irt/nas101prob2/nas101prob2.dat" />
 		<Unit filename="testdata/nastran/irt/nas101prob2/nas101prob2.f06" />
 		<Unit filename="testdata/nastran/irt/nas101prob2/readme.txt" />
@@ -2106,6 +2109,14 @@
 		<Unit filename="testdata/nastran/irt/nas103prob9/nas103prob9.dat" />
 		<Unit filename="testdata/nastran/irt/nas103prob9/nas103prob9.f06" />
 		<Unit filename="testdata/nastran/irt/nas103prob9/readme.txt" />
+		<Unit filename="testdata/nastran/irt/pload/pload.f06" />
+		<Unit filename="testdata/nastran/irt/pload/pload.nas" />
+		<Unit filename="testdata/nastran/irt/pload4/pload4.f06" />
+		<Unit filename="testdata/nastran/irt/pload4/pload4.nas" />
+		<Unit filename="testdata/nastran/irt/pload4/readme.txt" />
+		<Unit filename="testdata/nastran/irt/pload4b/pload4b.f06" />
+		<Unit filename="testdata/nastran/irt/pload4b/pload4b.nas" />
+		<Unit filename="testdata/nastran/irt/pload4b/readme.txt" />
 		<Unit filename="testdata/nastran/irt/rbe3/rbe3.f06" />
 		<Unit filename="testdata/nastran/irt/rbe3/rbe3.nas" />
 		<Unit filename="testdata/nastran/irt/rbe3/readme.txt" />

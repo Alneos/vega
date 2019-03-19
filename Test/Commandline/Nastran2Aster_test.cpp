@@ -196,6 +196,18 @@ BOOST_AUTO_TEST_CASE( truss5 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/truss5/truss5.nas", RUN_ASTER, true, 0.000001);
 }
 
+BOOST_AUTO_TEST_CASE( forcefour ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/forcefour/forcefour.nas", RUN_ASTER, true, 0.00001);
+}
+
+BOOST_AUTO_TEST_CASE( pload4b ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/pload4b/pload4b.nas", RUN_ASTER, true, 0.00001);
+}
+
+BOOST_AUTO_TEST_CASE( pload ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/pload/pload.nas", RUN_ASTER, true, 0.00001);
+}
+
 
 } /* namespace test */
 } /* namespace vega */
