@@ -2461,6 +2461,15 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, Model& model) {
 
         model.add(pressionFaceTwoNodes);
         model.addLoadingIntoLoadSet(*pressionFaceTwoNodes, loadSetReference);
+    } else if (has_direction and g1 != Globals::UNAVAILABLE_INT) {
+        const auto& forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(model, g1, g3_or_4,
+			VectorialValue(n1 * p1, n2 * p1, n3 * p1), VectorialValue(0, 0, 0));
+        for(int cellId = eid1; cellId < eid2; cellId++) {
+            forceSurfaceTwoNodes->addCellId(cellId);
+        }
+
+        model.add(forceSurfaceTwoNodes);
+        model.addLoadingIntoLoadSet(*forceSurfaceTwoNodes, loadSetReference);
     } else {
         const auto& forceSurface = make_shared<ForceSurface>(model, VectorialValue(n1 * p1, n2 * p1, n3 * p1),
                 VectorialValue(0.0, 0.0, 0.0));
@@ -2582,6 +2591,8 @@ void NastranParser::parsePSOLID(NastranTokenizer& tok, Model& model) {
     if (psolid_in == "BUBBLE" && isop == "REDUCED") {
         modelType = &ModelType::TRIDIMENSIONAL_SI;
     } else if ((psolid_in == "TWO" || psolid_in == "2") && (isop == "FULL" || isop == "1")) {
+        modelType = &ModelType::TRIDIMENSIONAL;
+    } else if ((psolid_in == "THREE" || psolid_in == "3") && (isop == "FULL" || isop == "1")) {
         modelType = &ModelType::TRIDIMENSIONAL;
     } else {
         modelType = &ModelType::TRIDIMENSIONAL_SI;
