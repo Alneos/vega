@@ -160,3 +160,72 @@ BOOST_AUTO_TEST_CASE(test_4a) {
 
 }
 
+BOOST_AUTO_TEST_CASE(test_modal_disp) {
+
+	string testLocation(
+	PROJECT_BASE_DIR "/testdata/unitTest/resultReaders/modal_disp.f06");
+	ConfigurationParameters confParams{"inputFile", SolverName::CODE_ASTER, "..", "vega", ".",
+			LogLevel::INFO, ConfigurationParameters::TranslationMode::BEST_EFFORT, testLocation, 0.0003};
+
+	unique_ptr<Model> model = make_unique<Model>("test_modal_disp", "unknown", SolverName::NASTRAN);
+	model->mesh.addNode(1, 2, 3, 4);
+	model->mesh.addNode(2, 2.2, 3.2, 4.2);
+	model->mesh.addNode(3, 2.3, 3.3, 4.3);
+	model->mesh.addNode(4, 2, 3, 4);
+	model->mesh.addNode(5, 2, 6.6, 4);
+	model->mesh.addNode(6, 2, 3, 4);
+	model->mesh.addNode(7, 2.1, 3.1, 4.1);
+	model->mesh.addNode(8, 2.2, 3.1, 4.1);
+	model->mesh.addNode(9, 2.3, 3.1, 4.1);
+	model->mesh.addCell(1, CellType::HEXA8, { 1, 2, 3, 4, 5, 6, 7, 8 });
+	model->mesh.addCell(2, CellType::POINT1, { 9 });
+
+	model->mesh.addNode(5814, 2, 3, 4);
+	model->mesh.addNode(7651, 2.2, 3.2, 4.2);
+	model->mesh.addNode(8456, 2.3, 3.3, 4.3);
+	model->mesh.addNode(8487, 2, 3, 4);
+	model->mesh.addNode(17554, 2, 6.6, 4);
+	model->mesh.addNode(17575, 2, 3, 4);
+	model->mesh.addNode(18046, 2.1, 3.1, 4.1);
+	model->mesh.addCell(2, CellType::HEXA8, { 5814, 7961, 8469, 8483, 17624, 17672, 18049, 8 });
+	shared_ptr<CellGroup> cn1 = model->mesh.createCellGroup("GM1");
+	cn1->addCellId(1);
+	const auto& continuum = make_shared<Continuum>(*model, ModelType::TRIDIMENSIONAL_SI, 1);
+	continuum->assignCellGroup(cn1);
+	model->add(continuum);
+	shared_ptr<CellGroup> cn2 = model->mesh.createCellGroup("GM2");
+	cn2->addCellId(2);
+	const auto& discrete = make_shared<DiscretePoint>(*model);
+	discrete->assignCellGroup(cn2);
+	model->add(discrete);
+    const auto& bandRange = make_shared<BandRange>(*model, 0.0, 10, 1000);
+    const auto& frequencySearch = make_shared<FrequencySearch>(*model, FrequencySearch::FrequencyType::BAND, *bandRange);
+    model->add(bandRange);
+    model->add(frequencySearch);
+	model->add(make_shared<LinearModal>(*model, *frequencySearch, "", 1));
+	model->add(make_shared<LinearMecaStat>(*model, "", 2));
+
+	BOOST_TEST_CHECKPOINT("Before Parse");
+	F06Parser f06parser;
+	f06parser.add_assertions(confParams, *model);
+
+	shared_ptr<LinearModal> linearModal1 = dynamic_pointer_cast<LinearModal>(
+			model->find(Reference<Analysis>(Analysis::Type::LINEAR_MODAL, 1)));
+	BOOST_ASSERT(linearModal1!=nullptr);
+	vector<shared_ptr<Assertion>> all_assertions1 = linearModal1->getAssertions();
+	BOOST_CHECK_EQUAL(all_assertions1.size(), static_cast<size_t>(10));
+
+	shared_ptr<LinearMecaStat> linearStatic2 = dynamic_pointer_cast<LinearMecaStat>(
+			model->find(Reference<Analysis>(Analysis::Type::LINEAR_MECA_STAT, 2)));
+	BOOST_ASSERT(linearStatic2!=nullptr);
+	vector<shared_ptr<Assertion>> all_assertions2 = linearStatic2->getAssertions();
+	BOOST_CHECK_EQUAL(all_assertions2.size(), static_cast<size_t>(42));
+	//before finish() in the model are present all the assertion found in the f06 file
+
+
+	model->finish();
+	vector<shared_ptr<Assertion>> assertions = linearModal1->getAssertions();
+	BOOST_CHECK_EQUAL(assertions.size(), static_cast<size_t>(10));
+
+}
+

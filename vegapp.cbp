@@ -1724,8 +1724,8 @@
 					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
-			<Target title="nastran_f06_tests">
-				<Option output="build/bin/nastran_f06_tests" prefix_auto="0" extension_auto="0" />
+			<Target title="F06Parser_test">
+				<Option output="build/bin/F06Parser_test" prefix_auto="0" extension_auto="0" />
 				<Option working_dir="bin" />
 				<Option object_output="./" />
 				<Option type="1" />
@@ -1749,7 +1749,7 @@
 					<Add directory="/usr/local/include" />
 				</Compiler>
 				<MakeCommands>
-					<Build command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 nastran_f06_tests' />
+					<Build command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 F06Parser_test' />
 					<CompileFile command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
 					<Clean command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 clean' />
 					<DistClean command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 clean' />
@@ -1757,8 +1757,8 @@
 					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
-			<Target title="nastran_f06_tests/fast">
-				<Option output="build/bin/nastran_f06_tests" prefix_auto="0" extension_auto="0" />
+			<Target title="F06Parser_test/fast">
+				<Option output="build/bin/F06Parser_test" prefix_auto="0" extension_auto="0" />
 				<Option working_dir="bin" />
 				<Option object_output="./" />
 				<Option type="1" />
@@ -1782,7 +1782,7 @@
 					<Add directory="/usr/local/include" />
 				</Compiler>
 				<MakeCommands>
-					<Build command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 nastran_f06_tests/fast' />
+					<Build command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 F06Parser_test/fast' />
 					<CompileFile command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
 					<Clean command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 clean' />
 					<DistClean command='/usr/bin/make -f &quot;Test/ResultReaders/Makefile&quot;  VERBOSE=1 clean' />
@@ -2027,7 +2027,7 @@
 			<Option target="CSVResultReaderTest" />
 		</Unit>
 		<Unit filename="Test/ResultReaders/F06Parser_test.cpp">
-			<Option target="nastran_f06_tests" />
+			<Option target="F06Parser_test" />
 		</Unit>
 		<Unit filename="Test/Systus/CMakeLists.txt">
 			<Option virtualFolder="CMake Files/Test/Systus/" />

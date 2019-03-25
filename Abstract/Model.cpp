@@ -1849,7 +1849,7 @@ void Model::addAutoAnalysis() {
         linearStatic = false;
     }
     for(const auto& modalStrategy : objectives.filter(Objective::Type::FREQUENCY_SEARCH)) {
-        const auto& analysis = make_shared<LinearModal>(*this, modalStrategy->getOriginalId());
+        const auto& analysis = make_shared<LinearModal>(*this, *modalStrategy);
         this->add(analysis);
         linearStatic = false;
     }
