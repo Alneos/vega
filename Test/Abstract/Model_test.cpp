@@ -250,9 +250,9 @@ BOOST_AUTO_TEST_CASE( test_create_skin2d ) {
 			VectorialValue(0, 0, 1.0), VectorialValue(0, 0, 0));
 
 	forceSurfaceTwoNodes->addCellId(1);
-	vector<Cell> cells = forceSurfaceTwoNodes->getCells(false);
+	const auto& cells = forceSurfaceTwoNodes->getCellsIncludingGroups();
 	BOOST_CHECK_EQUAL(cells.size(), static_cast<size_t>(1));
-	Cell hexa = cells[0];
+	Cell hexa = *cells.begin();
 	BOOST_CHECK_EQUAL(hexa.id, 1);
 	//BOOST_CHECK_EQUAL(hexa.cellType, CellType::HEXA8);
 	BOOST_CHECK_EQUAL(hexa.nodeIds[0], 50);

@@ -405,12 +405,11 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
 				shared_ptr<ForceSurface> forceSurface = dynamic_pointer_cast<ForceSurface>(loading);
 				Line pload4("PLOAD4");
 				pload4.add(loadingSet->bestId());
-				vector<Cell> cells = forceSurface->getCells(true);
-				if (cells.size() == 1) {
-					pload4.add(cells[0].id);
-				} else {
-					throw logic_error("Unimplemented multiple cells in PLOAD4");
+				const auto& cellIds = forceSurface->getCellIdsIncludingGroups();
+				if (cellIds.size() > 1) {
+                    throw logic_error("Unimplemented multiple cells in PLOAD4");
 				}
+				pload4.add(*cellIds.begin());
 				pload4.add(forceSurface->getForce().norm());
 				pload4.add(0.0);
 				pload4.add(0.0);

@@ -280,7 +280,15 @@ public:
     }
     double square_distance(const Node& other) const;
     double distance(const Node& other) const;
-    ~Node() {
+
+    inline bool operator<(const Node& other) const {
+        return this->position < other.position;
+    }
+    inline bool operator>(const Node& other) const {
+        return this->position > other.position;
+    }
+    inline bool operator==(const Node& other) const {
+        return this->position == other.position;
     }
 };
 
@@ -362,6 +370,16 @@ public:
     inline static const std::string MedName(const int position) {
         return "M" + std::to_string(position + 1);
     }
+
+    inline bool operator<(const Cell& other) const {
+        return this->position < other.position;
+    }
+    inline bool operator>(const Cell& other) const {
+        return this->position > other.position;
+    }
+    inline bool operator==(const Cell& other) const {
+        return this->position == other.position;
+    }
 };
 
 class CellGroup final: public Group {
@@ -434,37 +452,32 @@ public:
  *
  */
 class NodeContainer {
+    std::set<int> _nodePositions;
+    std::set<std::string> groupNames;
 protected:
-    const Mesh& mesh;
-    std::unordered_set<int> nodeIds;
-    std::unordered_set<std::string> groupNames;
+    Mesh& mesh;
 public:
-    NodeContainer(const Mesh& mesh);
+    NodeContainer(Mesh& mesh);
     virtual ~NodeContainer() = default;
 
     /*
      * Adds a nodeId to the current set
      */
     void addNodeId(int nodeId);
+    void addNodePosition(int nodePosition);
     void addNodeGroup(const std::string& groupName);
     void add(const Node& node);
     void add(const NodeGroup& nodeGroup);
     void add(const NodeContainer& nodeContainer);
-    /**
-     * @return the nodeIds contained into the Container
-     * @param all: if true include also the nodes inside all the cellGroups
-     */
-    const std::vector<int> getNodeIds(bool all = false) const;
+    const std::set<int> getNodePositionsExcludingGroups() const;
+    const std::set<int> getNodePositionsIncludingGroups() const;
     const std::vector<std::shared_ptr<NodeGroup>> getNodeGroups() const;
-
-    const std::set<int> nodePositions() const;
 
     // True if the container contains some nodeGroup
     bool hasNodeGroups() const;
     bool empty() const;
     void clear();
-    // True if the cellContainer contains some spare nodes, not inserted in any group.
-    bool hasNodes() const;
+    bool hasNodes() const; /**< True if the container contains some spare nodes, not inserted in any group. */
 };
 
 /**
@@ -475,8 +488,8 @@ public:
 class CellContainer {
 protected:
     const Mesh& mesh;
-    std::unordered_set<int> cellIds;
-    std::unordered_set<std::string> groupNames;
+    std::set<int> cellPositions;
+    std::set<std::string> groupNames;
 public:
     CellContainer(const Mesh& mesh);
     virtual ~CellContainer() = default;
@@ -491,22 +504,15 @@ public:
     void add(const Cell& cell);
     void add(const CellGroup& cellGroup);
     void add(const CellContainer& cellContainer);
-    /**
-     * @param all: if true include also the cells inside all the cellGroups
-     */
-    const std::vector<Cell> getCells(bool all) const;
-    /**
-     * Returns the cellIds contained into the Container
-     * @param all: if true include also the cells inside all the cellGroups
-     */
-    const std::vector<int> getCellIds(bool all) const;
+    const std::set<Cell> getCellsIncludingGroups() const;
     void removeCellsNotInAGroup();
 
-    const std::vector<int> getCellPositions(bool all) const;
+    const std::set<int> getCellIdsIncludingGroups() const;
+    const std::set<int> getCellPositionsIncludingGroups() const;
+    const std::set<int> getCellPositionsExcludingGroups() const;
 
     const std::set<int> nodePositions() const;
 
-    bool containsCells(const CellType& cellType, bool all);
     /**
      * True if the container contains some cellGroup
      */

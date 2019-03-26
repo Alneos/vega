@@ -1705,9 +1705,9 @@ void AsterWriter::writeNodeContainer(const NodeContainer& nodeContainer, ostream
     }
     if (nodeContainer.hasNodes()) {
       out << "NOEUD=(";
-      for (int nodeId : nodeContainer.getNodeIds(false)) {
+      for (int nodePosition : nodeContainer.getNodePositionsExcludingGroups()) {
         cnode++;
-        out << "'N" << nodeId << "',";
+        out << "'" << Node::MedName(nodePosition) << "',";
         if (cnode % 6 == 0) {
           out << endl << "                             ";
         }
@@ -1733,7 +1733,7 @@ void AsterWriter::writeCellContainer(const CellContainer& cellContainer, ostream
         // Creating single cell groups to avoid using MAILLE
       out << "MAILLE=(";
       //out << "GROUP_MA=(";
-      for (int cellPosition : cellContainer.getCellPositions(false)) {
+      for (int cellPosition : cellContainer.getCellPositionsExcludingGroups()) {
         celem++;
 //        const string& groupName = Cell::MedName(cellPosition);
 //        auto entry = singleGroupCellPositions.find(cellPosition);

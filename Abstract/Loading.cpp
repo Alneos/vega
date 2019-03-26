@@ -117,7 +117,7 @@ NodeLoading::NodeLoading(Model& model, Loading::Type type, int original_id,
 }
 
 set<int> NodeLoading::nodePositions() const {
-	return NodeContainer::nodePositions();
+	return NodeContainer::getNodePositionsIncludingGroups();
 }
 
 VolumicLoading::VolumicLoading(Model& model, Loading::Type type, int original_id) :
@@ -402,11 +402,11 @@ StaticPressure::StaticPressure(Model& model, const int node1_id,
                 node_position3(model.mesh.findOrReserveNode(node3_id)),
                 node_position4(node4_id == Globals::UNAVAILABLE_INT ? Globals::UNAVAILABLE_INT : model.mesh.findOrReserveNode(node4_id)),
                 magnitude(magnitude) {
-    addNodeId(node1_id);
-    addNodeId(node2_id);
-    addNodeId(node3_id);
+    addNodePosition(node_position1);
+    addNodePosition(node_position2);
+    addNodePosition(node_position3);
     if (node4_id != Globals::UNAVAILABLE_INT) {
-        addNodeId(node4_id);
+        addNodePosition(node_position4);
     }
 }
 
@@ -499,9 +499,8 @@ set<int> CellLoading::nodePositions() const {
 }
 
 bool CellLoading::cellDimensionGreatherThan(SpaceDimension dimension) {
-	vector<Cell> cells = this->getCells(true);
 	bool result = false;
-	for (const Cell& cell : cells) {
+	for (const Cell& cell : this->getCellsIncludingGroups()) {
 		result = result or cell.type.dimension > dimension;
 		if (result)
 			break;
@@ -513,8 +512,7 @@ bool CellLoading::cellDimensionGreatherThan(SpaceDimension dimension) {
 bool CellLoading::appliedToGeometry() {
 	bool isForceOnPoutre = false;
 	bool assigned = false;
-	vector<Cell> cells = getCells(true);
-	for (const Cell& cell : cells) {
+	for (const Cell& cell : getCellsIncludingGroups()) {
 		int element_id = cell.elementId;
 		if (element_id != Cell::UNAVAILABLE_CELL) {
 			shared_ptr<ElementSet> element = model.find(
@@ -626,7 +624,7 @@ ForceSurfaceTwoNodes::ForceSurfaceTwoNodes(Model& model, int nodeId1, int nodeId
 }
 
 vector<int> ForceSurfaceTwoNodes::getApplicationFaceNodeIds() const {
-	vector<Cell> cells = getCells(true);
+	const auto& cells = getCellsIncludingGroups();
 	if (cells.size() != 1) {
 		throw logic_error("More than one cell specified for a ForceSurfaceTwoNodes");
 	}
@@ -635,7 +633,7 @@ vector<int> ForceSurfaceTwoNodes::getApplicationFaceNodeIds() const {
 	}
 	const int nodeId1 = model.mesh.findNodeId(nodePosition1);
 	const int nodeId2 = model.mesh.findNodeId(nodePosition2);
-	const vector<int>& nodeIds = cells[0].faceids_from_two_nodes(nodeId1, nodeId2);
+	const vector<int>& nodeIds = cells.begin()->faceids_from_two_nodes(nodeId1, nodeId2);
 	return nodeIds;
 }
 
@@ -714,13 +712,13 @@ NormalPressionFaceTwoNodes::NormalPressionFaceTwoNodes(Model& model, int nodeId1
 }
 
 vector<int> NormalPressionFaceTwoNodes::getApplicationFaceNodeIds() const {
-	vector<Cell> cells = getCells(true);
+	const auto& cells = getCellsIncludingGroups();
 	if (cells.size() != 1) {
 		throw logic_error("More than one cell specified for a NormalPressionFaceTwoNodes");
 	}
 	const int nodeId1 = model.mesh.findNodeId(nodePosition1);
 	const int nodeId2 = model.mesh.findNodeId(nodePosition2);
-	const vector<int>& faceIds = cells[0].faceids_from_two_nodes(nodeId1, nodeId2);
+	const vector<int>& faceIds = cells.begin()->faceids_from_two_nodes(nodeId1, nodeId2);
 	return faceIds;
 }
 
