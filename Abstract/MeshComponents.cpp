@@ -368,8 +368,8 @@ bool CellGroup::empty() const {
 ///////////////////////////////////////////////////////////////////////////////
 int Node::auto_node_id = 9999999;
 
-Node::Node(int id, double lx, double ly, double lz, int position1, DOFS inElement1, double gx, double gy, double gz, int _positionCS, int _displacementCS) :
-		id(id), position(position1), lx(lx), ly(ly), lz(lz), dofs(inElement1), x(gx), y(gy), z(gz),
+Node::Node(int id, double lx, double ly, double lz, int position1, DOFS inElement1, double gx, double gy, double gz, int _positionCS, int _displacementCS, int _nodepartId) :
+		id(id), nodepartId(_nodepartId), position(position1), lx(lx), ly(ly), lz(lz), dofs(inElement1), x(gx), y(gy), z(gz),
 		positionCS(_positionCS), displacementCS(_displacementCS) {
 }
 
@@ -451,31 +451,39 @@ const unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::F
 unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::init_faceByCelltype() {
 	vector<vector<int> > hexa8list = { //
         {1,2,3,4}, //
-        {5,6,7,8}, //
-        {1,2,6,5}, //
-        {2,3,7,6}, //
+        {5,8,7,6}, //
+        {1,5,6,2}, //
+        {2,6,7,3}, //
         {3,7,8,4}, //
         {1,4,8,5} //
     };
 	vector<vector<int> > tetra4list = { //
         {1,2,3}, //
         {1,4,2}, //
-        {1,4,3}, //
-        {2,3,4} //
+        {1,3,4}, //
+        {2,4,3} //
+    };
+    vector<vector<int> > pyra5list = { //
+        {1,2,3,4}, //
+        {1,5,2}, //
+        {1,4,5}, //
+        {4,3,5}, //
+        {2,5,3}, //
     };
 	vector<vector<int> > penta6list = { //
         {1,2,3}, //
-        {4,5,6}, //
-        {1,2,5,4}, //
+        {4,6,5}, //
+        {1,4,5,2}, //
         {1,3,6,4}, //
-        {2,3,6,5} //
+        {2,5,6,3} //
     };
 
 	unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > result = {
-        {CellType::HEXA8.code, hexa8list}, //Hexa8
-        {CellType::TETRA4.code, tetra4list}, //Tetra4
-        {CellType::PENTA6.code, penta6list}
-    }; //Penta6
+        {CellType::HEXA8.code, hexa8list}, //
+        {CellType::TETRA4.code, tetra4list}, //
+        {CellType::PYRA5.code, pyra5list}, //
+        {CellType::PENTA6.code, penta6list}, //
+    };
 	return result;
 }
 
@@ -502,7 +510,7 @@ int Cell::findNodeIdPosition(int node_id2) const {
 	return static_cast<int>(node2connectivityPos);
 }
 
-vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
+const vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
 	int node1connectivityPos = findNodeIdPosition(nodeId1);
     int node2connectivityPos = Globals::UNAVAILABLE_INT;
 	if (nodeId2 != Globals::UNAVAILABLE_INT) {
@@ -734,8 +742,16 @@ CellContainer::CellContainer(const Mesh& mesh) :
 		mesh(mesh) {
 }
 
+void CellContainer::addCellPosition(int cellPosition) {
+	cellIds.insert(mesh.findCellId(cellPosition));
+}
+
 void CellContainer::addCellId(int cellId) {
 	cellIds.insert(cellId);
+}
+
+void CellContainer::addCellIds(const vector<int>& otherIds) {
+    cellIds.insert(otherIds.begin(), otherIds.end());
 }
 
 void CellContainer::addCellGroup(const string& groupName) {
@@ -795,6 +811,10 @@ const vector<int> CellContainer::getCellIds(bool all) const {
 		}
 	}
 	return cells;
+}
+
+void CellContainer::removeCellsNotInAGroup() {
+    cellIds.clear();
 }
 
 const vector<int> CellContainer::getCellPositions(bool all) const {

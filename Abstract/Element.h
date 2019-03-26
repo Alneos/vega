@@ -97,7 +97,7 @@ public:
     virtual bool isBeam() const {
         return false;
     }
-    virtual bool isBar() const {
+    virtual bool isTruss() const {
         return false;
     }
     virtual bool isShell() const {
@@ -129,7 +129,7 @@ public:
 	enum class BeamModel {
 		EULER,
 		TIMOSHENKO,
-		TRUSS
+		TRUSS /**< Element with no rotational stiffness in linear static analysis, also called PROD (Nastran) or BARRE (Aster) */
 	};
 	BeamModel beamModel;
 protected:
@@ -138,14 +138,20 @@ protected:
 			double additionalMass = 0.0, int original_id = NO_ORIGINAL_ID);
 public:
     virtual ~Beam() = default;
-    std::vector<RecoveryPoint> recoveryPoints{};
+    std::vector<RecoveryPoint> recoveryPoints;
 	double getAdditionalRho() const override {
 		return additional_mass / std::max(getAreaCrossSection(), DBL_MIN);
 	}
+	/**
+	 * True only for elements having rotational stiffness in linear static analysis, false for Truss elements (also see isTruss() method )
+	 */
 	bool isBeam() const override final {
 		return beamModel != BeamModel::TRUSS;
 	}
-    bool isBar() const override final {
+	/**
+	 * True only for elements with no rotational stiffness in linear static analysis, also called PROD (Nastran) or BARRE (Aster)
+	 */
+    bool isTruss() const override final {
 		return beamModel == BeamModel::TRUSS;
 	}
 	virtual double getAreaCrossSection() const = 0;
@@ -305,7 +311,7 @@ public:
 };
 
 class Composite: public ElementSet {
-    std::vector<CompositeLayer> layers{};
+    std::vector<CompositeLayer> layers;
 	public:
 	Composite(Model&, int original_id = NO_ORIGINAL_ID);
 	std::shared_ptr<ElementSet> clone() const override {
@@ -398,9 +404,9 @@ public:
  TODO LD : is this really needed or we could use DiscreteSegment ? */
 class StructuralSegment final : public Discrete {
 private:
-	DOFMatrix stiffness{};
-	DOFMatrix mass{};
-	DOFMatrix damping{};
+	DOFMatrix stiffness;
+	DOFMatrix mass;
+	DOFMatrix damping;
 public:
 	StructuralSegment(Model&, bool symmetric = true, int original_id = NO_ORIGINAL_ID);
 	bool hasTranslations() const override;
@@ -459,7 +465,7 @@ class NodalMass: public ElementSet {
 /* Matrix for a group nodes.*/
 class MatrixElement : public ElementSet {
 private:
-	std::map<std::pair<int, int>, std::shared_ptr<DOFMatrix>> submatrixByNodes{};
+	std::map<std::pair<int, int>, std::shared_ptr<DOFMatrix>> submatrixByNodes;
 	bool symmetric = false;
 public:
 	MatrixElement(Model&, Type type, bool symmetric = false, int original_id = NO_ORIGINAL_ID);
@@ -468,7 +474,7 @@ public:
 	 * Clear all nodes and submatrices of the Matrix.
 	 */
 	void clear();
-	const std::shared_ptr<DOFMatrix> findSubmatrix(const int nodePosition1, const int nodePosition2) const;
+	const std::shared_ptr<const DOFMatrix> findSubmatrix(const int nodePosition1, const int nodePosition2) const;
 	const std::set<int> nodePositions() const override;
 	const std::set<std::pair<int, int>> nodePairs() const;
 	const std::set<std::pair<int, int>> findInPairs(int nodePosition) const;
@@ -542,7 +548,7 @@ class Lmpc: public RigidSet {
 public:
     Lmpc(Model&, int analysisId, int original_id = NO_ORIGINAL_ID);
     const int analysisId;
-    std::vector<DOFCoefs> dofCoefs{};
+    std::vector<DOFCoefs> dofCoefs;
     std::shared_ptr<ElementSet> clone() const override;
     void assignDofCoefs(const std::vector<DOFCoefs>);
 };
@@ -564,7 +570,7 @@ public:
  **/
 class ScalarSpring : public Discrete {
 private:
-    std::map<std::pair<DOF, DOF>, std::vector<int>> cellpositionByDOFS{};
+    std::map<std::pair<DOF, DOF>, std::vector<int>> cellpositionByDOFS;
     double stiffness;
     double damping;
 public:

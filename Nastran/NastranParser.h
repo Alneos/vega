@@ -37,10 +37,21 @@ namespace fs = boost::filesystem;
 
 class NastranParser: public vega::Parser {
 protected:
+    enum class NastranAnalysis {
+        STATIC = 101,
+        MODES = 103,
+        BUCKL = 105,
+        NLSTATIC = 106,
+        DFREQ = 108,
+        DTRAN = 109,
+        MFREQ = 111,
+        DESOPT = 200
+    };
     typedef void (NastranParser::*parseElementFPtr)(NastranTokenizer& tok, Model& model);
     virtual parseElementFPtr findCmdParser(const std::string) const;
     virtual parseElementFPtr findParamParser(const std::string) const;
     virtual std::string defaultAnalysis() const;
+    virtual NastranAnalysis autoSubcaseAnalysis(std::map<std::string, std::string> &context) const;
 private:
     class GrdSet {
     public:
@@ -54,19 +65,9 @@ private:
         int ps;
         int seid;
     };
-    GrdSet grdSet{};
+    GrdSet grdSet;
 
-    std::unordered_map<std::string, std::shared_ptr<Reference<ElementSet>>> directMatrixByName{};
-    enum class NastranAnalysis {
-        STATIC = 101,
-        MODES = 103,
-        BUCKL = 105,
-        NLSTATIC = 106,
-        DFREQ = 108,
-        DTRAN = 109,
-        MFREQ = 111,
-        DESOPT = 200
-    };
+    std::unordered_map<std::string, Reference<ElementSet>> directMatrixByName;
     static const std::unordered_map<std::string, NastranAnalysis> ANALYSIS_BY_LABEL;
     static const std::unordered_map<std::string, parseElementFPtr> PARSE_FUNCTION_BY_KEYWORD;
     static const std::unordered_map<std::string, parseElementFPtr> PARSEPARAM_FUNCTION_BY_KEYWORD;

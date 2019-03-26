@@ -29,7 +29,7 @@ class Mesh;
 
 class NodeData final {
 public:
-    NodeData(int id, const DOFS& dofs, double x, double y, double z, int cpPos, int cdPos);
+    NodeData(int id, const DOFS& dofs, double x, double y, double z, int cpPos, int cdPos, int nodePart);
 	const int id;
 	char dofs;
 	double x;
@@ -37,6 +37,7 @@ public:
 	double z;
 	int cpPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID; /**< Vega Position Number of the CS used for location (x,y,z) **/;
 	int cdPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID; /**< Vega Position Number of the CS used for displacements, forces, constraints **/;
+	int nodePart = 0; /**< Node grouping by element part */
 };
 
 class NodeStorage final {
@@ -45,17 +46,15 @@ private:
 	friend NodeGroup;
 
 	const LogLevel logLevel;
-	std::vector<NodeData> nodeDatas{};
-	std::map<int, int> nodepositionById{};
-	/**
-	 * Reserve a node position (VEGA Id) given a node id (input model id).
-	 * WARNING! Reserving an already created node will erase the previous value
-	 * of NodeData ! Use Mesh::findOrReserveNode to avoid this problem.
-	 **/
-	int reserveNodePosition(int nodeId);
+	std::vector<NodeData> nodeDatas;
+	std::map<int, int> nodepositionById;
 	static const double RESERVED_POSITION;
+	static int lastNodePart;
 public:
 	Mesh& mesh;
+	std::map<int, int> mainNodePartByCellPart;
+	std::map<int, std::set<int>> cellPartsByNodePart;
+	std::map<std::set<int>, int> interfaceNodePartByCellParts;
 
 	NodeStorage(Mesh& mesh, LogLevel logLevel);
 	NodeIterator begin() const;
@@ -84,9 +83,9 @@ private:
 	friend CellGroup;
 
 	const LogLevel logLevel;
-	std::vector<CellData> cellDatas{};
-	std::map<int, int> cellpositionById{};
-	std::map<CellType, std::shared_ptr<std::deque<int>>> nodepositionsByCelltype{};
+	std::vector<CellData> cellDatas;
+	std::map<int, int> cellpositionById;
+	std::map<CellType, std::shared_ptr<std::deque<int>>> nodepositionsByCelltype;
 	/*
 	 * Reserve a cell position given an id
 	 */
@@ -121,32 +120,32 @@ private:
 	const std::string name;
 	bool finished = false;
 
-	std::map<std::string, std::shared_ptr<Group>> groupByName{};
+	std::map<std::string, std::shared_ptr<Group>> groupByName;
 
 	/**
 	 * Groups ordered by the id provided by the input solver. Since inputSolver may not provide
 	 * this id this map may not contain all the groups.
 	 */
-	std::map<int, std::shared_ptr<Group>> groupById{};
+	std::map<int, std::shared_ptr<Group>> groupById;
 
 	std::shared_ptr<CellGroup> getOrCreateCellGroupForCS(const int cspos);
 
 	std::unique_ptr<MeshStatistics> stats = nullptr;
 public:
-	std::map<CellType, std::vector<int>> cellPositionsByType{};
-	std::map<int, std::string> cellGroupNameByCspos{}; /**< mapping position->group name **/
-	std::map<int, std::string> cellGroupNameByMaterialOrientationTimes100{};
+	std::map<CellType, std::vector<int>> cellPositionsByType;
+	std::map<int, std::string> cellGroupNameByCspos; /**< mapping position->group name **/
+	std::map<int, std::string> cellGroupNameByMaterialOrientationTimes100;
 	Mesh(LogLevel logLevel, const std::string& name);
 	NodeStorage nodes;
 	CellStorage cells;
 	CoordinateSystemStorage coordinateSystemStorage; /**< Container for Coordinate System numerotations. **/
 
-    std::shared_ptr<NodeGroup> createNodeGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
+    std::shared_ptr<NodeGroup> createNodeGroup(const std::string& name, const int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
 	/**
 	 * Find the NodeGroup named "name".
 	 * If it does not exists, create and return a NodeGroup with specified name, groupId and comment.
 	 **/
-	std::shared_ptr<NodeGroup> findOrCreateNodeGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
+	std::shared_ptr<NodeGroup> findOrCreateNodeGroup(const std::string& name, const int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
 	std::vector<std::shared_ptr<NodeGroup>> getNodeGroups() const;
 	std::shared_ptr<CellGroup> createCellGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
 	void renameGroup(const std::string& oldname, const std::string& newname, const std::string& comment);
@@ -160,7 +159,7 @@ public:
 	 * Find a group by its "original" id: the id provided by the input solver. If not found
 	 * returns nullptr
 	 */
-	std::shared_ptr<Group> findGroup(int originalId) const;
+	std::shared_ptr<Group> findGroup(const int originalId) const;
     /**
      * Find or Reserve a Coordinate System in the model by Input Id.
      * Return the VEGA Id (position) of the Coordinate System.
@@ -183,12 +182,13 @@ public:
      * Return nullptr if nothing has been found.
      */
     std::shared_ptr<vega::CoordinateSystem> getCoordinateSystemByPosition(const int pos) const;
-	int addNode(int id, double x, double y, double z = 0,
-	        int cpPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
-	        int cdPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+	int addNode(const int id, const double x, const double y, const double z = 0,
+	        const int cpPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
+	        const int cdPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
+	        const int nodePartId = 0);
     const std::string getName() const;
 	int countNodes() const;
-	void allowDOFS(int nodePosition, const DOFS& allowed);
+	void allowDOFS(const int nodePosition, const DOFS& allowed);
 	/**
 	 * Find a node from its Vega position.
 	 * throws invalid_argument if node not found
@@ -207,7 +207,13 @@ public:
 	 * @return Node::UNAVAILABLE_NODE if not found
 	 */
 	int findNodePosition(const int nodeId) const;
-	int findOrReserveNode(int nodeId);
+
+    /**
+	 * given an internal node position returns the nodepartId
+	 * @return Node::UNAVAILABLE_NODE if not found
+	 */
+	int findNodePartId(const int nodePosition) const;
+	int findOrReserveNode(const int nodeId, const int cellPartId = Globals::UNAVAILABLE_INT);
 	//returns a set of nodePositions
 	std::set<int> findOrReserveNodes(const std::set<int>& nodeIds);
 

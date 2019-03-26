@@ -170,7 +170,7 @@ public:
 class Material: public Identifiable<Material> {
 protected:
     Model& model;
-    std::map<Nature::NatureType, std::shared_ptr<Nature>> nature_by_type{};
+    std::map<Nature::NatureType, std::shared_ptr<Nature>> nature_by_type;
 public:
     virtual ~Material() = default;
     friend std::ostream &operator<<(std::ostream&, const Material&);    //output
@@ -190,7 +190,7 @@ public:
      * both the elementSets with a material assigned and the materials assigned
      * directly.
      */
-    CellContainer getAssignment() const;
+    const CellContainer getAssignment() const;
     /**
      * Assign a material to a group of cells. There are two ways of assigning
      * a material: either trough this method or with an ElementSet.

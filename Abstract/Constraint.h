@@ -65,22 +65,21 @@ public:
 /**
  * Set of constraints that are often referenced by an analysis.
  */
-class ConstraintSet: public Identifiable<ConstraintSet> {
+class ConstraintSet final: public Identifiable<ConstraintSet> {
 	Model& model;
-	std::vector<Reference<ConstraintSet>> constraintSetReferences{};
+	std::vector<Reference<ConstraintSet>> constraintSetReferences;
 	friend std::ostream &operator<<(std::ostream&, const ConstraintSet&);
 public:
 	enum class Type {
 		SPC, MPC, ALL, CONTACT
 	};
-	ConstraintSet(Model&, Type type = Type::SPC, int original_id = NO_ORIGINAL_ID);
+	ConstraintSet(Model&, Type type, int original_id = NO_ORIGINAL_ID);
     ConstraintSet(const ConstraintSet& that) = delete;
-	virtual ~ConstraintSet() = default;
 	static constexpr int COMMON_SET_ID = 0;
 	const Type type;
 	static const std::string name;
 	static const std::map<Type, std::string> stringByType;
-	void add(const Reference<ConstraintSet>&);
+	void add(const Reference<ConstraintSet>&); // LD Hack : see parseSPCADD
 	const std::set<std::shared_ptr<Constraint>> getConstraints() const;
 	const std::set<std::shared_ptr<Constraint>> getConstraintsByType(Constraint::Type) const;
 	int size() const;
@@ -133,19 +132,20 @@ public:
 			NO_ORIGINAL_ID, const std::set<int>& slaveIds = std::set<int>());
 };
 
-class RBE3: public HomogeneousConstraint {
-	std::map<int, DOFS> slaveDofsByPosition{};
-	std::map<int, double> slaveCoefByPosition{};
+class RBE3 final: public HomogeneousConstraint {
+	std::map<int, DOFS> slaveDofsByPosition;
+	std::map<int, double> slaveCoefByPosition;
 public:
 	RBE3(Model& model, int masterId, const DOFS dofs = DOFS::ALL_DOFS, int original_id =
 			NO_ORIGINAL_ID);
-	void addSlave(int slaveId, DOFS slaveDOFS = DOFS::ALL_DOFS, double slaveCoef = 1);
+    virtual void addSlave(int slaveId) override;
+	void addRBE3Slave(int slaveId, DOFS slaveDOFS = DOFS::ALL_DOFS, double slaveCoef = 1);
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	double getCoefForNode(int nodePosition) const;
 };
 
 class SinglePointConstraint: public Constraint {
-	std::set<int> _nodePositions{};
+	std::set<int> _nodePositions;
 	std::array<ValueOrReference, 6> spcs;
 public:
 	//GC: static initialization order is undefined. A reference is needed here to
@@ -174,6 +174,7 @@ public:
 	virtual std::set<int> nodePositions() const override;
 	void removeNode(int nodePosition) override;
 	const DOFS getDOFSForNode(int nodePosition) const override;
+	void emulateLocalDisplacementConstraint();
 	bool hasReferences() const;
 	bool ineffective() const override;
 };
@@ -181,7 +182,7 @@ public:
 
 class LinearMultiplePointConstraint: public Constraint {
 private:
-    std::map<int, DOFCoefs> dofCoefsByNodePosition{};
+    std::map<int, DOFCoefs> dofCoefsByNodePosition;
 public:
     const double coef_impo;
     LinearMultiplePointConstraint(Model& model, double coef_impo = 0, int original_id =
@@ -226,7 +227,7 @@ public:
 
 class GapTwoNodes: public Gap {
 private:
-	std::map<int, int> directionNodePositionByconstrainedNodePosition{};
+	std::map<int, int> directionNodePositionByconstrainedNodePosition;
 public:
 	GapTwoNodes(Model& model, int original_id = NO_ORIGINAL_ID);
 	void addGapNodes(int constrainedNodeId, int directionNodeId);
@@ -239,7 +240,7 @@ public:
 
 class GapNodeDirection: public Gap {
 private:
-	std::map<int, VectorialValue> directionBynodePosition{};
+	std::map<int, VectorialValue> directionBynodePosition;
 public:
 	GapNodeDirection(Model& model, int original_id = NO_ORIGINAL_ID);
 	void addGapNodeDirection(int constrainedNodeId, double directionX, double directionY = 0,
@@ -284,6 +285,7 @@ public:
 	std::set<int> nodePositions() const override;
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	void removeNode(int nodePosition) override;
+	void makeBoundarySurfaces();
 	bool ineffective() const override;
 };
 
@@ -313,6 +315,7 @@ public:
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	void removeNode(int nodePosition) override;
 	bool ineffective() const override;
+	void makeCellsFromSurfaceSlide() const;
 };
 
 } /* namespace vega */

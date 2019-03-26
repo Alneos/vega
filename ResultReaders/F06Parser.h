@@ -23,13 +23,13 @@ private:
 	bool readLine(std::istream &istream, std::string& line);
 	int addAssertionsToModel(int currentSubcase, double loadStep, Model &model,
 			const ConfigurationParameters&, std::ifstream& istream);
-	void addFrequencyAssertionsToModel(int currentSubCase, Model&, const ConfigurationParameters&,
+	int addFrequencyAssertionsToModel(int currentSubCase, Model&, const ConfigurationParameters&,
 			std::ifstream&);
 	int addComplexAssertionsToModel(int currentSubCase, double frequency, Model&,
 			const ConfigurationParameters&, std::ifstream&);
 	int readDisplacementSection(Model& model, const ConfigurationParameters&,
 			std::ifstream& istream, std::vector<std::shared_ptr<Assertion>>& assertions, double loadStep);
-	void readEigenvalueSection(Model&, const ConfigurationParameters&, std::ifstream&,
+	int readEigenvalueSection(Model&, const ConfigurationParameters&, std::ifstream&,
 			std::vector<std::shared_ptr<Assertion>>&);
 	int readComplexDisplacementSection(Model&, const ConfigurationParameters&, std::ifstream&,
 			std::vector<std::shared_ptr<Assertion>>&, double frequency);

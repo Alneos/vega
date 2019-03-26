@@ -25,12 +25,12 @@ namespace vega {
 namespace nastran {
 
 class Line {
-private:
+    static int newlineCounter;
 	friend std::ostream &operator<<(std::ostream &out, const Line& line);
 	unsigned int fieldLength = 0;
 	unsigned int fieldNum = 0;
 	const std::string keyword = "";
-	std::vector<std::string> fields{};
+	std::vector<std::string> fields;
 public:
 	Line(std::string);
 	Line& add();
@@ -46,13 +46,19 @@ public:
 std::ostream &operator<<(std::ostream &out, const Line& line);
 
 class NastranWriter final : public Writer {
+    enum class Dialect {
+        COSMIC95,
+        MODERN,
+    };
 public:
     NastranWriter() = default;
 	NastranWriter(const NastranWriter& that) = delete;
 	std::string writeModel(Model&, const ConfigurationParameters&) override;
     const std::string toString() const override;
 private:
-	std::string getDatFilename(const Model& model, const std::string& outputPath) const;
+    static const std::unordered_map<CellType::Code, std::vector<int>, EnumClassHash> med2nastranNodeConnectByCellType; /**< see NastranParser.h */
+    Dialect dialect;
+	std::string getNasFilename(const Model& model, const std::string& outputPath) const;
 	void writeSOL(const Model& model, std::ofstream& out) const;
 	void writeCells(const Model& model, std::ofstream& out) const;
 	void writeNodes(const Model& model, std::ofstream& out) const;

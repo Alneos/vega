@@ -33,31 +33,42 @@ const string AsterWriter::toString() const {
 }
 
 string AsterWriter::writeModel(Model& model,
-		const vega::ConfigurationParameters &configuration) {
-	AsterModel asterModel(model, configuration);
+		const ConfigurationParameters &configuration) {
+	asterModel = make_unique<AsterModel>(model, configuration);
 //string currentOutFile = asterModel.getOutputFileName();
 
-	string path = asterModel.configuration.outputPath;
+	string path = asterModel->configuration.outputPath;
 	if (!fs::exists(path)) {
 		throw iostream::failure("Directory " + path + " don't exist.");
 	}
 
-    fs::path inputFile(asterModel.configuration.inputFile);
+    fs::path inputFile(asterModel->configuration.inputFile);
 	if (fs::exists(inputFile)) {
 		fs::copy_file(inputFile, fs::absolute(path) / inputFile.filename(), fs::copy_option::overwrite_if_exists);
 	}
 
-    fs::path testFile = asterModel.configuration.resultFile;
+    fs::path testFile = asterModel->configuration.resultFile;
 	if (fs::exists(testFile)) {
 		fs::copy_file(testFile, fs::absolute(path) / testFile.filename(), fs::copy_option::overwrite_if_exists);
 	}
 
-	string exp_path = asterModel.getOutputFileName(".export");
-	string med_path = asterModel.getOutputFileName(".med");
-	string comm_path = asterModel.getOutputFileName(".comm");
+	if (configuration.createGraph) {
+        for (const auto& analysis : asterModel->model.analyses) {
+            string graphviz_path = asterModel->getOutputFileName("_" + to_string(analysis->getId()) + ".dot");
+            string png_path = asterModel->getOutputFileName("_" + to_string(analysis->getId()) + ".png");
+            ofstream graphviz_file_ofs;
+            graphviz_file_ofs.open(graphviz_path.c_str(), ios::out | ios::trunc);
+            analysis->createGraph(graphviz_file_ofs);
+            if (boost::filesystem::exists( DOXYGEN_DOT_EXECUTABLE )) {
+                string dot_cmd = string(DOXYGEN_DOT_EXECUTABLE) + " -Tpng " + graphviz_path + " -o " + png_path;
+                system(dot_cmd.c_str());
+            }
+        }
+	}
 
-	MedWriter medWriter;
-	medWriter.writeMED(model, med_path.c_str());
+	string exp_path = asterModel->getOutputFileName(".export");
+	string med_path = asterModel->getOutputFileName(".med");
+	string comm_path = asterModel->getOutputFileName(".comm");
 
 	ofstream comm_file_ofs;
 	//comm_file_ofs.setf(ios::scientific);
@@ -69,7 +80,7 @@ string AsterWriter::writeModel(Model& model,
 		string message = string("Can't open file ") + exp_path + " for writing.";
 		throw ios::failure(message);
 	}
-	this->writeExport(asterModel, exp_file_ofs);
+	this->writeExport(*asterModel, exp_file_ofs);
 	exp_file_ofs.close();
 
 	comm_file_ofs.open(comm_path.c_str(), ios::out | ios::trunc);
@@ -78,8 +89,11 @@ string AsterWriter::writeModel(Model& model,
 		string message = string("Can't open file ") + comm_path + " for writing.";
 		throw ios::failure(message);
 	}
-	this->writeComm(asterModel, comm_file_ofs);
+	this->writeComm(*asterModel, comm_file_ofs);
 	comm_file_ofs.close();
+
+	MedWriter medWriter;
+	medWriter.writeMED(model, med_path.c_str());
 	return exp_path;
 }
 
@@ -87,7 +101,7 @@ void AsterWriter::writeExport(AsterModel &model, ostream& out) {
 	out << "P actions make_etude" << endl;
 	out << "P mem_aster 100.0" << endl;
 	out << "P mode interactif" << endl;
-	if (model.model.analyses.size() == 0) {
+	if (model.model.analyses.empty()) {
 		out << "P copy_result_alarm no" << endl;
 	}
 	out << "P nomjob " << model.model.name << endl;
@@ -105,7 +119,7 @@ void AsterWriter::writeExport(AsterModel &model, ostream& out) {
 }
 
 void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out) {
-	if (asterModel.model.analyses.size() > 0) {
+	if (not asterModel.model.analyses.empty()) {
 		out << "IMPR_RESU(FORMAT='RESULTAT'," << endl;
 		out << "          RESU=(" << endl;
 		for (const auto& it : asterModel.model.analyses) {
@@ -119,8 +133,8 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 				break;
 			}
 			case (Analysis::Type::LINEAR_MODAL): {
-				out << "                _F(RESULTAT=RESU" << analysis.getId()
-						<< ", NOM_PARA='FREQ', TOUT_CHAM='NON')," << endl;
+				//out << "                _F(RESULTAT=RESU" << analysis.getId()
+				//		<< ", TOUT_PARA='OUI', TOUT_CHAM='NON')," << endl;
 				break;
 			}
             case (Analysis::Type::LINEAR_BUCKLING): {
@@ -215,19 +229,20 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 			}
 			out << "),)" << endl << endl;
 
+			int unit = 10 + analysis.getId();
 			out << "DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
-			out << "             UNITE=26," << endl;
+			out << "             UNITE=" << unit << "," << endl;
 			out << "             FICHIER='REPE_OUT/tbresu_" << analysis.getId() << ".csv')" << endl
 					<< endl;
 
 			out << "IMPR_TABLE(TABLE=RETB" << analysis.getId() << "," << endl;
 			out << "           FORMAT='TABLEAU'," << endl;
-			out << "           UNITE=26," << endl;
+			out << "           UNITE=" << unit << "," << endl;
 			out << "           SEPARATEUR=' ,'," << endl;
 			out << "           TITRE='RESULTS',)" << endl << endl;
 
 			out << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
-			out << "             UNITE=26)" << endl << endl;
+			out << "             UNITE=" << unit << ")" << endl << endl;
 		}
 
 		for (const auto& analysis : asterModel.model.analyses) {
@@ -284,18 +299,19 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
             out << "                    )" << endl;
 			out << "            )" << endl;
 
+			int unit = 10 + analysis->getId();
             out << "DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
-			out << "             UNITE=26," << endl;
+			out << "             UNITE=" << unit << "," << endl;
 			out << "             FICHIER='REPE_OUT/tbrecup_" << analysis->getId() << ".csv')" << endl << endl;
 
             out << "IMPR_TABLE(TABLE=RCTB" << analysis->getId() << "," << endl;
 			out << "           FORMAT='TABLEAU'," << endl;
-			out << "           UNITE=26," << endl;
+			out << "           UNITE=" << unit << "," << endl;
 			out << "           SEPARATEUR=' ,'," << endl;
 			out << "           TITRE='RESULTS',)" << endl << endl;
 
             out << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
-			out << "             UNITE=26)" << endl << endl;
+			out << "             UNITE=" << unit << ")" << endl << endl;
 		}
 	}
 }
@@ -324,21 +340,19 @@ void AsterWriter::writeAnalyses(const AsterModel& asterModel, ostream& out) {
 				case Objective::Type::NODAL_DISPLACEMENT_ASSERTION:
 					out << "                  _F(RESULTAT=RESU" << analysis.getId() << "," << endl;
 					writeNodalDisplacementAssertion(asterModel, *assertion, out);
+                    out << "                     )," << endl;
 					break;
 				case Objective::Type::FREQUENCY_ASSERTION:
-					out << "                  _F(RESULTAT="
-							<< ((analysis.type == Analysis::Type::LINEAR_MODAL or analysis.type == Analysis::Type::LINEAR_BUCKLING) ? "RESU" : "MODES")
-							<< analysis.getId() << "," << endl;
 					writeFrequencyAssertion(analysis, *assertion, out);
 					break;
 				case Objective::Type::NODAL_COMPLEX_DISPLACEMENT_ASSERTION:
 					out << "                  _F(RESULTAT=RESU" << analysis.getId() << "," << endl;
 					writeNodalComplexDisplacementAssertion(asterModel, *assertion, out);
+                    out << "                     )," << endl;
 					break;
 				default:
 					handleWritingError(string("Not implemented"));
 				}
-				out << "                     )," << endl;
 			}
 			out << "                  )" << endl;
 			out << "          );" << endl << endl;
@@ -579,7 +593,7 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
 	default:
 		handleWritingError(string("NamedValue not yet implemented"));
 	}
-	asternameByValue[value.getReference()] = concept_name;
+	asternameByValue[value] = concept_name;
 
 	return concept_name;
 }
@@ -591,9 +605,9 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 			out << "# Material original id " << material->getOriginalId() << endl;
 		}
 		out << "M" << material->getId() << "=DEFI_MATERIAU(" << endl;
-		const shared_ptr<Nature> enature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
+		const shared_ptr<const Nature> enature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
 		if (enature) {
-			const auto& elasticNature = dynamic_pointer_cast<ElasticNature>(enature);
+			const auto& elasticNature = dynamic_pointer_cast<const ElasticNature>(enature);
 			out << "                 ELAS=_F(" << endl;
 			out << "                         E=" << elasticNature->getE() << "," << endl;
 			out << "                         NU=" << elasticNature->getNu() << "," << endl;
@@ -603,9 +617,9 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 			}
 			out << "                         )," << endl;
 		}
-		const shared_ptr<Nature> hynature = material->findNature(Nature::NatureType::NATURE_HYPERELASTIC);
+		const shared_ptr<const Nature> hynature = material->findNature(Nature::NatureType::NATURE_HYPERELASTIC);
 		if (hynature) {
-			const auto& hyperElasticNature = dynamic_pointer_cast<HyperElasticNature>(hynature);
+			const auto& hyperElasticNature = dynamic_pointer_cast<const HyperElasticNature>(hynature);
 			out << "                 ELAS_HYPER=_F(" << endl;
 			out << "                         C10=" << hyperElasticNature->c10 << "," << endl;
 			out << "                         C01=" << hyperElasticNature->c01 << "," << endl;
@@ -614,9 +628,9 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 			out << "                         K=" << hyperElasticNature->k << "," << endl;
 			out << "                         )," << endl;
 		}
-		const shared_ptr<Nature> onature = material->findNature(Nature::NatureType::NATURE_ORTHOTROPIC);
+		const shared_ptr<const Nature> onature = material->findNature(Nature::NatureType::NATURE_ORTHOTROPIC);
 		if (onature) {
-			const auto& orthoNature = dynamic_pointer_cast<OrthotropicNature>(onature);
+			const auto& orthoNature = dynamic_pointer_cast<const OrthotropicNature>(onature);
 			out << "                 ELAS_ORTH=_F(" << endl;
 			out << "                         E_L=" << orthoNature->getE_longitudinal() << "," << endl;
             out << "                         E_T=" << orthoNature->getE_transverse() << "," << endl;
@@ -630,9 +644,9 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 			out << "                         NU_LT=" << orthoNature->getNu_longitudinal_transverse() << "," << endl;
 			out << "                         )," << endl;
 		}
-		const shared_ptr<Nature> binature = material->findNature(Nature::NatureType::NATURE_BILINEAR_ELASTIC);
+		const shared_ptr<const Nature> binature = material->findNature(Nature::NatureType::NATURE_BILINEAR_ELASTIC);
 		if (binature) {
-			const auto& bilinearNature = dynamic_pointer_cast<BilinearElasticNature>(binature);
+			const auto& bilinearNature = dynamic_pointer_cast<const BilinearElasticNature>(binature);
 			out << "                 ECRO_LINE=_F(" << endl;
 			out << "                         D_SIGM_EPSI=" << bilinearNature->secondary_slope << ","
 					<< endl;
@@ -811,7 +825,7 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 			out << "                             )," << endl;
 		}
 		vector<shared_ptr<Beam>> poutres = asterModel.model.getBeams();
-        vector<shared_ptr<Beam>> barres = asterModel.model.getBars();
+        vector<shared_ptr<Beam>> barres = asterModel.model.getTrusses();
 		out << "                    # writing " << poutres.size() << " poutres" << endl;
 		out << "                    # writing " << barres.size() << " barres" << endl;
 		if (poutres.size() > 0 or (asterModel.model.needsLargeDisplacements() and barres.size() > 0)) {
@@ -954,14 +968,14 @@ void AsterWriter::writeAffeCaraElemPoutre(const AsterModel& asterModel, const El
 		const Beam& beam =
 				static_cast<const Beam&>(elementSet);
 		out << "                               SECTION='GENERALE'," << endl;
-		if (not beam.isBar() or asterModel.model.needsLargeDisplacements()) {
+		if (not beam.isTruss() or asterModel.model.needsLargeDisplacements()) {
 		    out << "                               CARA=('A','IY','IZ','JX','AY','AZ',)," << endl;
 		} else {
 		    out << "                               CARA=('A',)," << endl;
 		}
 
 		out << "                               VALE=(";
-        if (not beam.isBar() or asterModel.model.needsLargeDisplacements()) {
+        if (not beam.isTruss() or asterModel.model.needsLargeDisplacements()) {
             out << max(std::numeric_limits<double>::epsilon(), beam.getAreaCrossSection()) << ","
 				<< max(std::numeric_limits<double>::epsilon(), beam.getMomentOfInertiaY()) << "," << max(std::numeric_limits<double>::epsilon(), beam.getMomentOfInertiaZ())
 				<< "," << max(std::numeric_limits<double>::epsilon(), beam.getTorsionalConstant()) << ",";
@@ -1015,7 +1029,7 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
                 out << asterName << "=AFFE_CHAR_MECA(MODELE=MODMECA," << endl;
             } else
                 continue;
-            asternameByConstraintSet[constraintSet.getReference()] = asterName;
+            asternameByConstraintSet[constraintSet] = asterName;
 
             writeSPC(asterModel, constraintSet, out);
             writeLIAISON_SOLIDE(asterModel, constraintSet, out);
@@ -1053,7 +1067,7 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
                 out << asterName << "=AFFE_CHAR_MECA(MODELE=MODMECA," << endl;
             } else
                 continue;
-            asternameByLoadSet[loadSet.getReference()] = asterName;
+            asternameByLoadSet[loadSet] = asterName;
             writeSPCD(asterModel, loadSet, out);
             writePression(loadSet, out);
             writeForceCoque(loadSet, out);
@@ -1112,7 +1126,7 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 			}
 		}
 		string asterName = string("CN") + to_string(constraintSet.getId());
-		asternameByConstraintSet[constraintSet.getReference()] = asterName;
+		asternameByConstraintSet[constraintSet] = asterName;
 		if (constraintSet.isOriginal()) {
             out << "# ConstraintSet original id:" << constraintSet.getOriginalId() << endl;
 		}
@@ -1634,7 +1648,7 @@ void AsterWriter::writeForceLine(const LoadSet& loadset, ostream& out) {
             default:
                 throw logic_error("DOF not yet handled");
             }
-            out << "=" << asternameByValue[forceLine->force->getReference()] << ",";
+            out << "=" << asternameByValue[forceLine->force] << ",";
             writeCellContainer(*forceLine, out);
             out << "          )," << endl;
 		}
@@ -1716,9 +1730,18 @@ void AsterWriter::writeCellContainer(const CellContainer& cellContainer, ostream
       out << "),";
     }
     if (cellContainer.hasCells()) {
+        // Creating single cell groups to avoid using MAILLE
       out << "MAILLE=(";
-      for (int cellPosition : cellContainer.getCellPositions()) {
+      //out << "GROUP_MA=(";
+      for (int cellPosition : cellContainer.getCellPositions(false)) {
         celem++;
+//        const string& groupName = Cell::MedName(cellPosition);
+//        auto entry = singleGroupCellPositions.find(cellPosition);
+//        if (entry == end(singleGroupCellPositions)) {
+//            auto singleCellGroup = asterModel->model.mesh.createCellGroup(groupName);
+//            singleCellGroup->addCellPosition(cellPosition);
+//            singleGroupCellPositions.insert(cellPosition);
+//        }
         out << "'" << Cell::MedName(cellPosition) << "',";
         if (celem % 6 == 0) {
           out << endl << "                             ";
@@ -1806,6 +1829,21 @@ void AsterWriter::writeCalcFreq(const AsterModel& asterModel, LinearModal& linea
         suffix = "FREQ";
     }
     FrequencySearch& frequencySearch = *(linearModal.getFrequencySearch());
+    if (not isBuckling) {
+        switch (frequencySearch.norm) {
+        case(FrequencySearch::NormType::MASS): {
+            out << "                       NORM_MODE=_F(NORME='MASS_GENE')," << endl;
+            break;
+        }
+        case(FrequencySearch::NormType::MAX): {
+            out << "                       NORM_MODE=_F(NORME='TRAN_ROTA')," << endl;
+            break;
+        }
+        default:
+            handleWritingError(
+                    "Norm for frequency search " + to_string(static_cast<int>(frequencySearch.frequencyType)) + " not (yet) implemented");
+        }
+    }
     switch(frequencySearch.frequencyType) {
     case FrequencySearch::FrequencyType::BAND: {
         BandRange band = dynamic_cast<BandRange&>(*frequencySearch.getValue());
@@ -1942,13 +1980,13 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		out << "                    CARA_ELEM=CAEL," << endl;
 		out << "                    EXCIT=(" << endl;
 		for (shared_ptr<LoadSet> loadSet : linearMecaStat.getLoadSets()) {
-			out << "                           _F(CHARGE=" << asternameByLoadSet[loadSet->getReference()] << ")," << endl;
+			out << "                           _F(CHARGE=" << asternameByLoadSet[loadSet] << ")," << endl;
 		}
 		for (shared_ptr<ConstraintSet> constraintSet : linearMecaStat.getConstraintSets()) {
 			//GC: dirty fix for #801, a deeper analysis must be done
 			if (constraintSet->getConstraints().size() > 0) {
-                cout << "constraintSet:" << *constraintSet << " AsterName: " << asternameByConstraintSet[constraintSet->getReference()] << "Size:" << constraintSet->size() << endl;
-				out << "                           _F(CHARGE=" << asternameByConstraintSet[constraintSet->getReference()] << "),"
+                cout << "constraintSet:" << *constraintSet << " AsterName: " << asternameByConstraintSet[constraintSet] << "Size:" << constraintSet->size() << endl;
+				out << "                           _F(CHARGE=" << asternameByConstraintSet[constraintSet] << "),"
 						<< endl;
 			}
 		}
@@ -1987,12 +2025,12 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		out << "                    EXCIT=(" << endl;
 		if (nonLinAnalysis.previousAnalysis) {
 			for (shared_ptr<LoadSet> loadSet : nonLinAnalysis.previousAnalysis->getLoadSets()) {
-				out << "                           _F(CHARGE=" << asternameByLoadSet[loadSet->getReference()]
+				out << "                           _F(CHARGE=" << asternameByLoadSet[loadSet]
 						<< ",FONC_MULT=IRAMP" << nonLinAnalysis.getId() << ")," << "# Original id:" << loadSet->getOriginalId() << endl;
 			}
 		}
 		for (shared_ptr<LoadSet> loadSet : nonLinAnalysis.getLoadSets()) {
-			out << "                           _F(CHARGE=" << asternameByLoadSet[loadSet->getReference()]
+			out << "                           _F(CHARGE=" << asternameByLoadSet[loadSet]
 					<< ",FONC_MULT=RAMP" << nonLinAnalysis.getId() << ")," << "# Original id:" << loadSet->getOriginalId() << endl;
 		}
 		for (shared_ptr<ConstraintSet> constraintSet : nonLinAnalysis.getConstraintSets()) {
@@ -2001,7 +2039,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 			}
 			//GC: dirty fix for #801, a deeper analysis must be done
 			if (constraintSet->getConstraints().size() >= 1) {
-				out << "                           _F(CHARGE=" << asternameByConstraintSet[constraintSet->getReference()] << "),"
+				out << "                           _F(CHARGE=" << asternameByConstraintSet[constraintSet] << "),"
 						 << "# Original id:" << constraintSet->getOriginalId() << endl;
 			}
 		}
@@ -2014,18 +2052,18 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 			if (not constraintSet->hasContacts()) {
 				continue;
 			}
-			out << "                    CONTACT=" << asternameByConstraintSet[constraintSet->getReference()] << "," << "# Original id:" << constraintSet->getOriginalId() << endl;
+			out << "                    CONTACT=" << asternameByConstraintSet[constraintSet] << "," << "# Original id:" << constraintSet->getOriginalId() << endl;
 		}
 		out << "                    COMPORTEMENT=(" << endl;
 		for (const auto& elementSet : asterModel.model.elementSets) {
 			if (elementSet->material != nullptr && elementSet->cellGroup != nullptr) {
 				out << "                          _F(GROUP_MA='" << elementSet->cellGroup->getName()
 						<< "',";
-                const shared_ptr<Nature> hyelas = elementSet->material->findNature(
+                const shared_ptr<const Nature> hyelas = elementSet->material->findNature(
                         Nature::NatureType::NATURE_HYPERELASTIC);
-                const shared_ptr<Nature> binature = elementSet->material->findNature(
+                const shared_ptr<const Nature> binature = elementSet->material->findNature(
                         Nature::NatureType::NATURE_BILINEAR_ELASTIC);
-                const shared_ptr<Nature> nlelas = elementSet->material->findNature(
+                const shared_ptr<const Nature> nlelas = elementSet->material->findNature(
                         Nature::NatureType::NATURE_NONLINEAR_ELASTIC);
                 if (binature) {
                     out << "RELATION='VMIS_ISOT_LINE',";
@@ -2034,7 +2072,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
                 } else if (hyelas) {
                     out << "RELATION='ELAS_HYPER',";
                     out << "DEFORMATION='GROT_GDEP',";
-                } else if (asterModel.model.needsLargeDisplacements() and (elementSet->isBeam() or elementSet->isBar())) {
+                } else if (asterModel.model.needsLargeDisplacements() and (elementSet->isBeam() or elementSet->isTruss())) {
                     out << "RELATION='ELAS_POUTRE_GR',";
                     out << "DEFORMATION='GROT_GDEP',";
                 } else {
@@ -2117,11 +2155,12 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 
 		LinearModal& linearModal = dynamic_cast<LinearModal&>(analysis);
 
+		string resuName;
 		if (analysis.type == Analysis::Type::LINEAR_MODAL)
-			out << "RESU";
+			resuName = "RESU" + to_string(linearModal.getId());
 		else
-			out << "MODES";
-		out << linearModal.getId() << "=CALC_MODES(MATR_RIGI=RIGI" << linearModal.getId()
+			resuName = "MODES" + to_string(linearModal.getId());
+		out << resuName << "=CALC_MODES(MATR_RIGI=RIGI" << linearModal.getId()
 				<< "," << endl;
 		out << "                       MATR_MASS=MASS" << linearModal.getId() << "," << endl;
 		if (linearModal.use_power_iteration) {
@@ -2131,11 +2170,18 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		}
         writeCalcFreq(asterModel, linearModal, out);
 		out << "                       VERI_MODE=_F(STOP_ERREUR='NON',)," << endl;
+		//out << "                       IMPRESSION=_F(CUMUL='OUI',CRIT_EXTR='MASS_EFFE_UN',TOUT_PARA='OUI')," << endl;
 		out << "                       SOLVEUR=_F(METHODE='MUMPS'," << endl;
 		out << "                                  RENUM='PORD'," << endl;
 		out << "                                  NPREC=8," << endl;
 		out << "                                  )," << endl;
-		out << "                       );" << endl << endl;
+		out << "                       )" << endl << endl;
+
+		out << "I" << resuName << "=RECU_TABLE(CO=" << resuName << ",NOM_PARA = ('FREQ','MASS_GENE','RIGI_GENE','AMOR_GENE'))" << endl;
+        out << "IMPR_TABLE(TABLE=I" << resuName << ")" << endl << endl;
+        out << "J" << resuName << "=POST_ELEM(RESULTAT=" << resuName << ", MASS_INER=_F(TOUT='OUI'))" << endl;
+        out << "IMPR_TABLE(TABLE=J" << resuName << ")" << endl << endl;
+
 		if (analysis.type == Analysis::Type::LINEAR_MODAL)
 			break;
 
@@ -2330,8 +2376,8 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
         out << "             SOLVEUR=_F(METHODE='MUMPS',)," << endl;
         out << "       )" << endl << endl;
 
-        out << "RESUN" << linearBuckling.getId() << " = NORM_MODE(MODE=RESU" << linearBuckling.getId() << ",NORME='TRAN',)" << endl;
-        out << "TBCRT" << linearBuckling.getId() << " = RECU_TABLE(CO=RESUN" << linearBuckling.getId() << ",NOM_PARA='CHAR_CRIT')" << endl;
+        out << "RESU" << linearBuckling.getId() << " = NORM_MODE(reuse=RESU"<< linearBuckling.getId() << ",MODE=RESU" << linearBuckling.getId() << ",NORME='TRAN_ROTA',)" << endl;
+        out << "TBCRT" << linearBuckling.getId() << " = RECU_TABLE(CO=RESU" << linearBuckling.getId() << ",NOM_PARA='CHAR_CRIT')" << endl;
 
         break;
     }
@@ -2387,9 +2433,10 @@ void AsterWriter::writeNodalComplexDisplacementAssertion(const AsterModel& aster
 void AsterWriter::writeFrequencyAssertion(const Analysis& analysis, const Assertion& assertion, ostream& out) const {
 	const FrequencyAssertion& frequencyAssertion = dynamic_cast<const FrequencyAssertion&>(assertion);
 	bool isBuckling = analysis.type == Analysis::Type::LINEAR_BUCKLING;
-
-	out << "                     CRITERE = "
-			<< (!is_zero(frequencyAssertion.cycles) ? "'RELATIF'," : "'ABSOLU',") << endl;
+	string resuName = ((analysis.type == Analysis::Type::LINEAR_MODAL or analysis.type == Analysis::Type::LINEAR_BUCKLING) ? "RESU" : "MODES") + to_string(analysis.getId());
+	string critere = (!is_zero(frequencyAssertion.cycles) ? "'RELATIF'," : "'ABSOLU',");
+    out << "                  _F(RESULTAT=" << resuName << "," << endl;
+	out << "                     CRITERE = " << critere << endl;
     if (isBuckling) {
         out << "                     PARA = 'CHAR_CRIT'," << endl;
         out << "                     NUME_MODE = " << analysis.getAssertions().size() - frequencyAssertion.number + 1 << "," << endl;
@@ -2400,6 +2447,29 @@ void AsterWriter::writeFrequencyAssertion(const Analysis& analysis, const Assert
         out << "                     VALE_CALC = " << frequencyAssertion.cycles << "," << endl;
     }
 	out << "                     TOLE_MACHINE = " << frequencyAssertion.tolerance << "," << endl;
+    out << "                     )," << endl;
+
+    if (not isBuckling) {
+        out << "                  _F(RESULTAT=" << resuName << "," << endl;
+        out << "                     CRITERE = " << critere << endl;
+        out << "                     PARA = 'MASS_GENE'," << endl;
+        out << "                     NUME_MODE = " << frequencyAssertion.number << "," << endl;
+        out << "                     VALE_CALC = " << frequencyAssertion.generalizedMass << "," << endl;
+        out << "                     TOLE_MACHINE = " << frequencyAssertion.tolerance << "," << endl;
+        out << "                     )," << endl;
+        if (not is_equal(frequencyAssertion.generalizedMass, 1.0)) {
+            // Do not check generalized stiffness k_g when generalize mass m_g is normalized
+            // since it is the same as checking the frequency : (2*pi*f)**2=k_g/m_g
+            // but the error would be squared
+            out << "                  _F(RESULTAT=" << resuName << "," << endl;
+            out << "                     CRITERE = " << critere << endl;
+            out << "                     PARA = 'RIGI_GENE'," << endl;
+            out << "                     NUME_MODE = " << frequencyAssertion.number << "," << endl;
+            out << "                     VALE_CALC = " << frequencyAssertion.generalizedStiffness << "," << endl;
+            out << "                     TOLE_MACHINE = " << frequencyAssertion.tolerance << "," << endl;
+            out << "                     )," << endl;
+        }
+    }
 
 }
 }

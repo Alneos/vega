@@ -41,7 +41,7 @@ Runner::ExitCode NastranRunner::execSolver(const ConfigurationParameters &config
         string modelFile) {
     fs::path modelFilePath(modelFile);
     string fname = modelFilePath.stem().string();
-    string command = "nastran " + modelFile + " > " + fname + ".stdout 2> " + fname
+    string command = "nastran " + modelFilePath.filename().string() + " > " + fname + ".stdout 2> " + fname
             + ".stderr";
     fs::path outputFsPath(configuration.outputPath);
     cout << configuration.outputPath << endl;

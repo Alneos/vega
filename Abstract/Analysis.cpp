@@ -28,6 +28,9 @@
 #include "Analysis.h"
 #include "Model.h"
 #include "BoundaryCondition.h"
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/graphviz.hpp>
 
 namespace vega {
 
@@ -63,7 +66,7 @@ ostream &operator<<(ostream &out, const Analysis& analysis) {
 }
 
 void Analysis::add(const Reference<LoadSet>& loadSetReference) {
-    this->loadSet_references.push_back(loadSetReference.clone());
+    this->loadSet_references.push_back(loadSetReference);
 }
 
 const vector<shared_ptr<LoadSet>> Analysis::getLoadSets() const {
@@ -72,7 +75,7 @@ const vector<shared_ptr<LoadSet>> Analysis::getLoadSets() const {
     if (commonLoadSet != nullptr and not commonLoadSet->empty())
         result.push_back(commonLoadSet);
     for (const auto& loadSetReference : this->loadSet_references) {
-        const auto& loadSet = model.find(*loadSetReference);
+        const auto& loadSet = model.find(loadSetReference);
         if (loadSet != nullptr)
             result.push_back(loadSet);
     }
@@ -105,13 +108,13 @@ const vector<shared_ptr<BoundaryCondition>> Analysis::getBoundaryConditions() co
 }
 
 void Analysis::add(const Reference<ConstraintSet>& constraintSetReference) {
-    this->constraintSet_references.push_back(constraintSetReference.clone());
+    this->constraintSet_references.push_back(constraintSetReference);
 }
 
 void Analysis::remove(const Reference<LoadSet> loadSetReference) {
     auto it = loadSet_references.begin();
     while (it != loadSet_references.end()) {
-        if (**it == loadSetReference) {
+        if (*it == loadSetReference) {
             it = loadSet_references.erase(it);
         } else {
             ++it;
@@ -122,7 +125,7 @@ void Analysis::remove(const Reference<LoadSet> loadSetReference) {
 void Analysis::remove(const Reference<ConstraintSet> constraintSetReference) {
     auto it = constraintSet_references.begin();
     while (it != constraintSet_references.end()) {
-        if (**it == constraintSetReference) {
+        if (*it == constraintSetReference) {
             it = constraintSet_references.erase(it);
         } else {
             ++it;
@@ -133,7 +136,7 @@ void Analysis::remove(const Reference<ConstraintSet> constraintSetReference) {
 void Analysis::remove(const Reference<Objective> objectiveReference) {
     auto it = objectiveReferences.begin();
     while (it != objectiveReferences.end()) {
-        if (**it == objectiveReference) {
+        if (*it == objectiveReference) {
             it = objectiveReferences.erase(it);
         } else {
             ++it;
@@ -141,27 +144,27 @@ void Analysis::remove(const Reference<Objective> objectiveReference) {
     }
 }
 
-bool Analysis::contains(const Reference<LoadSet> reference) const {
+bool Analysis::contains(const Reference<LoadSet> loadSetRef) const {
     for (const auto& loadset : getLoadSets()) {
-        if (reference == loadset->getReference()) {
+        if (loadSetRef == loadset->getReference()) {
             return true;
         }
     }
     return false;
 }
 
-bool Analysis::contains(const Reference<ConstraintSet> reference) const {
+bool Analysis::contains(const Reference<ConstraintSet> constraintSetRef) const {
     for (const auto& constraintset : getConstraintSets()) {
-        if (reference == constraintset->getReference()) {
+        if (constraintSetRef == constraintset->getReference()) {
             return true;
         }
     }
     return false;
 }
 
-bool Analysis::contains(const Reference<Objective> reference) const {
+bool Analysis::contains(const Reference<Objective> objectiveRef) const {
     for (const auto& objective: getObjectives()) {
-        if (reference == objective->getReference()) {
+        if (objectiveRef == objective->getReference()) {
             return true;
         }
     }
@@ -202,20 +205,20 @@ const vector<shared_ptr<ConstraintSet>> Analysis::getConstraintSets() const {
     if (commonConstraintSet != nullptr and not commonConstraintSet->empty())
         result.push_back(commonConstraintSet);
     for (const auto& constraintSetReference : this->constraintSet_references) {
-        result.push_back(model.find(*constraintSetReference));
+        result.push_back(model.find(constraintSetReference));
     }
 
     return result;
 }
 
 void Analysis::add(const Reference<Objective>& assertionReference) {
-    objectiveReferences.push_back(assertionReference.clone());
+    objectiveReferences.push_back(assertionReference);
 }
 
 const vector<shared_ptr<Assertion>> Analysis::getAssertions() const {
     vector<shared_ptr<Assertion>> assertions;
     for (const auto& assertion_reference : objectiveReferences) {
-        shared_ptr<Objective> objective = model.find(*assertion_reference);
+        shared_ptr<Objective> objective = model.find(assertion_reference);
         if (not objective->isAssertion()) continue;
         assertions.push_back(dynamic_pointer_cast<Assertion>(objective));
     }
@@ -225,7 +228,7 @@ const vector<shared_ptr<Assertion>> Analysis::getAssertions() const {
 const vector<shared_ptr<Objective>> Analysis::getObjectives() const {
     vector<shared_ptr<Objective>> objectives;
     for (const auto& objective_reference : objectiveReferences) {
-        shared_ptr<Objective> objective = model.find(*objective_reference);
+        shared_ptr<Objective> objective = model.find(objective_reference);
         objectives.push_back(objective);
     }
     return objectives;
@@ -234,7 +237,7 @@ const vector<shared_ptr<Objective>> Analysis::getObjectives() const {
 bool Analysis::hasSPC() const{
 
     vector<std::shared_ptr<ConstraintSet>> allcs = this->getConstraintSets();
-    for (const auto & cs : allcs){
+    for (const auto& cs : allcs){
 
         switch(cs->type){
 
@@ -268,17 +271,17 @@ bool Analysis::hasSPC() const{
 bool Analysis::validate() const {
     bool result = true;
     for (const auto& constraintSetReference : this->constraintSet_references) {
-        if (model.find(*constraintSetReference) == nullptr) {
+        if (model.find(constraintSetReference) == nullptr) {
             if (model.configuration.logLevel >= LogLevel::INFO) {
-                cout << "Missing constraintset reference:" << *constraintSetReference << endl;
+                cout << "Missing constraintset reference:" << constraintSetReference << endl;
             }
             result = false;
         }
     }
     for (const auto& loadSetReference : this->loadSet_references) {
-        if (model.find(*loadSetReference) == nullptr) {
+        if (model.find(loadSetReference) == nullptr) {
             if (model.configuration.logLevel >= LogLevel::INFO) {
-                cout << "Missing loadset reference:" << *loadSetReference << endl;
+                cout << "Missing loadset reference:" << loadSetReference << endl;
             }
             result = false;
         }
@@ -325,7 +328,7 @@ void Analysis::removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition,  
                     << " to handle dofs : " << dofsToRemove << endl;
         }
         for (const auto& otherAnalysis : this->model.analyses) {
-            if (*this == *otherAnalysis) {
+            if (this->getReference() == otherAnalysis->getReference()) {
                 continue;
             }
             for (const auto& constraintSet : otherAnalysis->getConstraintSets()) {
@@ -363,15 +366,93 @@ const set<int> Analysis::boundaryNodePositions() const {
 
 void Analysis::copyInto(Analysis& other) const {
     for(const auto& loadSetRef : loadSet_references) {
-        other.add(*loadSetRef);
+        other.add(loadSetRef);
     }
     for(const auto& constraintSetRef : constraintSet_references) {
-        other.add(*constraintSetRef);
+        other.add(constraintSetRef);
     }
     for(const auto& objectiveRef : objectiveReferences) {
-        other.add(*objectiveRef);
+        other.add(objectiveRef);
     }
 }
+
+void Analysis::createGraph(ostream& dot_ofs) {
+    struct VertexProps { int id; string name; };
+    struct EdgeProps   { string name; };
+    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, VertexProps, EdgeProps> Graph;
+    typedef boost::graph_traits<Graph>::vertex_descriptor vertex_descriptor;
+    //typedef boost::graph_traits<Graph>::edge_descriptor edge_descriptor;
+
+    Graph g;
+    map<int,vertex_descriptor> vertexPosByElementId;
+    for (auto& elementSet : model.elementSets) {
+        vertex_descriptor vpos = boost::add_vertex(g);
+        auto& v = g[vpos];
+        v.id = elementSet->getOriginalId();
+        v.name = to_str(*elementSet);
+        vertexPosByElementId[v.id] = vpos;
+    }
+
+    for (auto& entry : model.mesh.nodes.cellPartsByNodePart) {
+        if (entry.second.size() == 1) continue;
+        int nodePart = entry.first;
+        vertex_descriptor vnpos = boost::add_vertex(g);
+        auto& v = g[vnpos];
+        v.id = nodePart;
+        v.name = "Nodal connexion";
+        for (int cellPartId: entry.second) {
+            vertex_descriptor vepos = vertexPosByElementId[cellPartId];
+            boost::add_edge(vnpos, vepos, g);
+        }
+    }
+
+    for (const auto& constraintSet : getConstraintSets()) {
+        vertex_descriptor vcpos = boost::add_vertex(g);
+        auto& v = g[vcpos];
+        v.name = to_str(*constraintSet);
+        set<int> nodeParts;
+        for(const auto& constraint : constraintSet->getConstraints()) {
+            for(int nodePosition : constraint->nodePositions()) {
+                nodeParts.insert(model.mesh.findNodePartId(nodePosition));
+            }
+        }
+        set<int> cellParts;
+        for(int nodePart : nodeParts) {
+            const auto& cellParts2 = model.mesh.nodes.cellPartsByNodePart[nodePart];
+            cellParts.insert(cellParts2.begin(), cellParts2.end());
+        }
+        for(int cellPartId : cellParts) {
+            vertex_descriptor vepos = vertexPosByElementId[cellPartId];
+            boost::add_edge(vcpos, vepos, g);
+        }
+    }
+
+    for (const auto& loadSet : getLoadSets()) {
+        vertex_descriptor vlpos = boost::add_vertex(g);
+        auto& v = g[vlpos];
+        v.name = to_str(*loadSet);
+        set<int> nodeParts;
+        for(const auto& loading : loadSet->getLoadings()) {
+            for(int nodePosition : loading->nodePositions()) {
+                nodeParts.insert(model.mesh.findNodePartId(nodePosition));
+            }
+        }
+        set<int> cellParts;
+        for(int nodePart : nodeParts) {
+            const auto& cellParts2 = model.mesh.nodes.cellPartsByNodePart[nodePart];
+            cellParts.insert(cellParts2.begin(), cellParts2.end());
+        }
+        for(int cellPartId : cellParts) {
+            vertex_descriptor vepos = vertexPosByElementId[cellPartId];
+            boost::add_edge(vlpos, vepos, g);
+        }
+    }
+
+    boost::write_graphviz(dot_ofs, g, boost::make_label_writer(get(&VertexProps::name, g)),
+            boost::make_label_writer(get(&EdgeProps::name, g)));
+    std::cerr << "Graph node name:" << g[0].name << "\n";
+}
+
 
 Combination::Combination(Model& model, const string original_label, const int original_id) :
         Analysis(model, Analysis::Type::COMBINATION, original_label, original_id) {

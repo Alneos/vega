@@ -39,11 +39,11 @@ namespace nastran {
 
 const unordered_map<CellType::Code, vector<int>, EnumClassHash> NastranParser::nastran2medNodeConnectByCellType =
         {
-                { CellType::Code::TRI3_CODE, { 0, 2, 1 } },
-                { CellType::Code::TRI6_CODE, { 0, 2, 1, 5, 4, 3 } },
-                { CellType::Code::QUAD4_CODE, { 0, 3, 2, 1 } },
-                { CellType::Code::QUAD8_CODE, { 0, 3, 2, 1, 7, 6, 5, 4 } },
-                { CellType::Code::QUAD9_CODE, { 0, 3, 2, 1, 7, 6, 5, 4, 8 } },
+                { CellType::Code::TRI3_CODE, { 0, 1, 2 } },
+                { CellType::Code::TRI6_CODE, { 0, 1, 2, 3, 4, 5 } },
+                { CellType::Code::QUAD4_CODE, { 0, 1, 2, 3 } },
+                { CellType::Code::QUAD8_CODE, { 0, 1, 2, 3, 4, 5, 6, 7 } },
+                { CellType::Code::QUAD9_CODE, { 0, 1, 2, 3, 4, 5, 6, 7, 8 } },
                 { CellType::Code::TETRA4_CODE, { 0, 2, 1, 3 } },
                 { CellType::Code::TETRA10_CODE, { 0, 2, 1, 3, 6, 5, 4, 7, 9, 8 } },
                 { CellType::Code::PYRA5_CODE, { 0, 3, 2, 1, 4 } },
@@ -184,7 +184,7 @@ void NastranParser::parseCBAR(NastranTokenizer& tok, Model& model) {
         string message = string("Offset vectors (WA, WB) not supported and taken as null.");
         handleParsingWarning(message, tok, model);
     }
-    model.mesh.addCell(cell_id, CellType::SEG2, {point1, point2}, false, cpos);
+    model.mesh.addCell(cell_id, CellType::SEG2, {point1, point2}, false, cpos, property_id);
     addProperty(tok, property_id, cell_id, model);
 }
 
@@ -228,7 +228,7 @@ void NastranParser::parseCBEAM(NastranTokenizer& tok, Model& model) {
         handleParsingWarning(message, tok, model);
     }
 
-    model.mesh.addCell(cell_id, CellType::SEG2, {point1, point2}, false, cpos);
+    model.mesh.addCell(cell_id, CellType::SEG2, {point1, point2}, false, cpos, property_id);
     addProperty(tok, property_id, cell_id, model);
 }
 
@@ -280,9 +280,9 @@ void NastranParser::parseCBUSH(NastranTokenizer& tok, Model& model) {
 
     // Add cell
     if (gb == Globals::UNAVAILABLE_INT){
-        model.mesh.addCell(eid, CellType::POINT1, {ga}, false, cpos);
+        model.mesh.addCell(eid, CellType::POINT1, {ga}, false, cpos, pid);
     }else{
-        model.mesh.addCell(eid, CellType::SEG2, {ga, gb}, false, cpos);
+        model.mesh.addCell(eid, CellType::SEG2, {ga, gb}, false, cpos, pid);
     }
     addProperty(tok, pid, eid, model);
 }
@@ -309,7 +309,7 @@ void NastranParser::parseCDAMP1(NastranTokenizer& tok, Model& model) {
         model.add(spc);
     }
 
-    int cellPosition= model.mesh.addCell(eid, CellType::SEG2, {g1, g2});
+    int cellPosition= model.mesh.addCell(eid, CellType::SEG2, {g1, g2}, false, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, pid);
     shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model, "CDAMP1");
     cellGroup->addCellPosition(cellPosition);
 
@@ -352,7 +352,7 @@ void NastranParser::parseCELAS1(NastranTokenizer& tok, Model& model) {
         spc->addNodeId(g2);
         model.add(spc);
     }
-    int cellPosition= model.mesh.addCell(eid, cellType, {g1, g2});
+    int cellPosition= model.mesh.addCell(eid, cellType, {g1, g2}, false, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, pid);
     shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model, "CELAS1");
     cellGroup->addCellPosition(cellPosition);
 
@@ -450,7 +450,7 @@ void NastranParser::parseElem(NastranTokenizer& tok, Model& model,
         for (unsigned int i2 = 0; i2 < cellType.numNodes; i2++)
             medConnect[nastran2medNodeConnect[i2]] = nastranConnect[i2];
     }
-    model.mesh.addCell(cell_id, cellType, medConnect);
+    model.mesh.addCell(cell_id, cellType, medConnect, false, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, property_id);
     addProperty(tok, property_id, cell_id, model);
 }
 
@@ -524,7 +524,7 @@ void NastranParser::parseCROD(NastranTokenizer& tok, Model& model) {
     int property_id = tok.nextInt(true, cell_id);
     int point1 = tok.nextInt();
     int point2 = tok.nextInt();
-    model.mesh.addCell(cell_id, CellType::SEG2, {point1, point2});
+    model.mesh.addCell(cell_id, CellType::SEG2, {point1, point2}, false, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, property_id);
     addProperty(tok, property_id, cell_id, model);
 }
 
@@ -640,7 +640,7 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, Model& model,
         handleParsingWarning(msg, tok, model);
     }
 
-    model.mesh.addCell(cell_id, cellType, nodeIds);
+    model.mesh.addCell(cell_id, cellType, nodeIds, false, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, property_id);
     addProperty(tok, property_id, cell_id, model);
 
 }

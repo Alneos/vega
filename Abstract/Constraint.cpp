@@ -25,6 +25,9 @@
 #include "Model.h"
 #include <ciso646>
 #include <string>
+#include <boost/geometry.hpp>
+#include <boost/geometry/index/rtree.hpp>
+#include <boost/geometry/geometries/geometries.hpp>
 
 namespace vega {
 
@@ -67,6 +70,7 @@ ConstraintSet::ConstraintSet(Model& model, Type type, int original_id) :
 }
 
 void ConstraintSet::add(const Reference<ConstraintSet>& constraintSetReference) {
+    // LD Hack : see parseSPCADD
     constraintSetReferences.push_back(constraintSetReference);
 }
 
@@ -213,7 +217,11 @@ RBE3::RBE3(Model& model, int masterId, const DOFS dofs, int original_id) :
         HomogeneousConstraint(model, Constraint::Type::RBE3, dofs, masterId, original_id) {
 }
 
-void RBE3::addSlave(int slaveId, DOFS slaveDOFS, double slaveCoef) {
+void RBE3::addSlave(int slaveId) {
+    addRBE3Slave(slaveId, DOFS::ALL_DOFS, 1.0);
+}
+
+void RBE3::addRBE3Slave(int slaveId, DOFS slaveDOFS, double slaveCoef) {
     int nodePosition = model.mesh.findOrReserveNode(slaveId);
     slavePositions.insert(nodePosition);
     slaveDofsByPosition[nodePosition] = slaveDOFS;
@@ -378,6 +386,53 @@ shared_ptr<Value> SinglePointConstraint::getReferenceForDOF(const DOF& dof) cons
         throw invalid_argument("SPC requested getValueForDOF for a DOF of type double");
     }
     return model.find(spcVal.getReference());
+}
+
+void SinglePointConstraint::emulateLocalDisplacementConstraint() {
+    set<shared_ptr<LinearMultiplePointConstraint>> lmpcs;
+    for (int nodePosition : this->nodePositions()) {
+        const Node& node = model.mesh.findNode(nodePosition);
+        if (node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
+            shared_ptr<CoordinateSystem> coordSystem = model.mesh.getCoordinateSystemByPosition(node.displacementCS);
+            // TODO LD: this should be done differently: is used to compute different nodes but every this it changes the coordinate system instance!
+            coordSystem->updateLocalBase(VectorialValue(node.x, node.y, node.z));
+            const DOFS& dofs = this->getDOFSForNode(nodePosition);
+            if (model.configuration.logLevel >= LogLevel::DEBUG)
+                cout << "Replacing local spc " << *this << " for: " << node << ",dofs " << this->getDOFSForNode(nodePosition) << endl;
+            for (int i = 0; i < 6; i++) {
+                const DOF& currentDOF = *DOF::dofByPosition[i];
+                if (dofs.contains(currentDOF)) {
+                    const VectorialValue& participation = coordSystem->vectorToGlobal(
+                            VectorialValue::XYZ[i % 3]);
+                    shared_ptr<LinearMultiplePointConstraint> lmpc =
+                            make_shared<LinearMultiplePointConstraint>(model,
+                                    this->getDoubleForDOF(currentDOF));
+                    if (i < 3) {
+                        lmpc->addParticipation(node.id, participation.x(),
+                                participation.y(), participation.z());
+                    } else {
+                        lmpc->addParticipation(node.id, 0, 0, 0, participation.x(),
+                                participation.y(), participation.z());
+                    }
+                    if (model.configuration.logLevel >= LogLevel::DEBUG)
+                        cout << "Adding: " << node << ", current dof:" << currentDOF << ", participation:" << participation << ", coef:" << lmpc->coef_impo << endl;
+                    lmpcs.insert(lmpc);
+                }
+            }
+            this->removeNode(nodePosition);
+        }
+    }
+    const set<shared_ptr<ConstraintSet>> constraintSets = model.getConstraintSetsByConstraint(
+                this->getReference());
+    for (const auto& linearMultiplePointConstraint : lmpcs) {
+        model.add(linearMultiplePointConstraint);
+        for (const auto& constraintSet : constraintSets) {
+            if (model.configuration.logLevel >= LogLevel::TRACE)
+                cout << "Adding Local emulation constraint:" << *linearMultiplePointConstraint << " to constraintset: " << *constraintSet << ";" << endl;
+            model.addConstraintIntoConstraintSet(linearMultiplePointConstraint->getReference(),
+                    constraintSet->getReference());
+        }
+    }
 }
 
 LinearMultiplePointConstraint::LinearMultiplePointConstraint(Model& model, double coef_impo,
@@ -672,6 +727,53 @@ const DOFS SurfaceContact::getDOFSForNode(int nodePosition) const {
     return DOFS::TRANSLATIONS;
 }
 
+void SurfaceContact::makeBoundarySurfaces() {
+    shared_ptr<CellGroup> masterCellGroup = model.mesh.createCellGroup("SURFCONT_M_"+to_string(this->bestId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySurfaces() for the master in a SURFACE_CONTACT");
+    shared_ptr<CellGroup> slaveCellGroup = model.mesh.createCellGroup("SURFCONT_S_"+to_string(this->bestId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySurfaces() for the master in a SURFACE_CONTACT");
+    shared_ptr<BoundaryNodeSurface> slaveNodeSurface = dynamic_pointer_cast<BoundaryNodeSurface>(model.find(this->slave));
+    if (slaveNodeSurface == nullptr) {
+        throw logic_error("Cannot find master node list");
+    }
+    const list<int>& slaveNodeIds = slaveNodeSurface->nodeids;
+    auto it2 = slaveNodeIds.begin();
+    for(unsigned int i = 0; i < slaveNodeIds.size();i+=4) {
+        int nodeId1 = *(it2++);
+        int nodeId2 = *(it2++);
+        int nodeId3 = *(it2++);
+        int nodeId4 = *(it2++);
+        vector<int> connectivity {nodeId1, nodeId2, nodeId3};
+        CellType cellType {CellType::TRI3};
+        if (nodeId4 != 0) {
+            connectivity.push_back(nodeId4);
+            cellType = CellType::QUAD4;
+        }
+        int cellPosition = model.mesh.addCell(Cell::AUTO_ID, cellType, connectivity, true);
+        slaveCellGroup->addCellPosition(cellPosition);
+    }
+    this->slaveCellGroup = slaveCellGroup;
+    shared_ptr<BoundaryNodeSurface> masterNodeSurface = dynamic_pointer_cast<BoundaryNodeSurface>(model.find(this->master));
+    if (masterNodeSurface == nullptr) {
+        throw logic_error("Cannot find master node list");
+    }
+    const list<int>& masterNodeIds = masterNodeSurface->nodeids;
+    auto it = masterNodeIds.begin();
+    for(unsigned int i = 0; i < masterNodeIds.size();i+=4) {
+        int nodeId1 = *(it++);
+        int nodeId2 = *(it++);
+        int nodeId3 = *(it++);
+        int nodeId4 = *(it++);
+        vector<int> connectivity {nodeId1, nodeId2, nodeId3};
+        CellType cellType {CellType::TRI3};
+        if (nodeId4 != 0) {
+            connectivity.push_back(nodeId4);
+            cellType = CellType::QUAD4;
+        }
+        int cellPosition = model.mesh.addCell(Cell::AUTO_ID, cellType, connectivity, true);
+        masterCellGroup->addCellPosition(cellPosition);
+    }
+    this->masterCellGroup = masterCellGroup;
+}
+
 ZoneContact::ZoneContact(Model& model, Reference<Target> master, Reference<Target> slave, int original_id) :
     Contact(model, Constraint::Type::ZONE_CONTACT, original_id), master(master), slave(slave) {
 }
@@ -780,6 +882,75 @@ bool SurfaceSlide::ineffective() const {
 const DOFS SurfaceSlide::getDOFSForNode(int nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::TRANSLATIONS;
+}
+
+void SurfaceSlide::makeCellsFromSurfaceSlide() const {
+    namespace bg = boost::geometry;
+    namespace bgi = boost::geometry::index;
+    using node_point = bg::model::point<double, 3, bg::cs::cartesian>;
+    using node_polygon = bg::model::polygon<node_point >;
+    using node_box = bg::model::box<node_point>;
+    using value = pair<node_box, size_t>;
+
+    shared_ptr<CellGroup> group = model.mesh.createCellGroup("SURF_"+to_string(this->bestId()), CellGroup::NO_ORIGINAL_ID, "SURF");
+    const auto& elementsetSlide = make_shared<SurfaceSlideSet>(model);
+    elementsetSlide->assignCellGroup(group);
+    model.add(elementsetSlide);
+
+    shared_ptr<const BoundaryElementFace> masterSurface = dynamic_pointer_cast<const BoundaryElementFace>(model.find(this->master));
+    vector<node_polygon> masterFaces;
+    vector<vector<int>> masterFaceNodeIds;
+    bgi::rtree< value, bgi::rstar<16> > rtree;
+    for (const auto& faceInfo : masterSurface->faceInfos) {
+        const Cell& masterCell = model.mesh.findCell(model.mesh.findCellPosition(faceInfo.cellId));
+        const vector<int>& faceIds = masterCell.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
+        if (faceIds.size() > 0) {
+            node_polygon masterFace;
+            for (const int faceId : faceIds) {
+                int nodePosition = model.mesh.findNodePosition(faceId);
+                const Node& node = model.mesh.findNode(nodePosition);
+                const node_point np{node.x, node.y, node.z};
+                masterFace.outer().push_back(np);
+            }
+            masterFaces.push_back(masterFace);
+            masterFaceNodeIds.push_back(faceIds);
+            for (size_t i = 0 ; i < masterFaces.size() ; ++i) {
+                node_box b = bg::return_envelope<node_box>(masterFaces[i]);
+                rtree.insert(std::make_pair(b, i));
+            }
+        }
+    }
+    shared_ptr<const BoundaryElementFace> slaveSurface = dynamic_pointer_cast<const BoundaryElementFace>(model.find(this->slave));
+    for (const auto& faceInfo : slaveSurface->faceInfos) {
+        const Cell& slaveCell = model.mesh.findCell(model.mesh.findCellPosition(faceInfo.cellId));
+        const vector<int>& faceIds = slaveCell.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
+        for (const int faceId : faceIds) {
+            int nodePosition = model.mesh.findNodePosition(faceId);
+            const Node& node = model.mesh.findNode(nodePosition);
+            vector<value> result_n;
+            rtree.query(bgi::nearest(node_point{node.x, node.y, node.z}, 1), std::back_inserter(result_n));
+            size_t masterFaceIndex = result_n[0].second;
+            const node_polygon& masterFace = masterFaces[masterFaceIndex];
+            vector<int> contactNodeIds = masterFaceNodeIds[masterFaceIndex];
+            contactNodeIds.push_back(faceId);
+            size_t num_master_points = bg::num_points(masterFace);
+            switch(num_master_points) {
+            case 3: {
+                int cellPosition = model.mesh.addCell(Cell::AUTO_ID, CellType::TETRA4, contactNodeIds , true);
+                group->addCellPosition(cellPosition);
+                break;
+            }
+            case 4: {
+                int cellPosition = model.mesh.addCell(Cell::AUTO_ID, CellType::PYRA5, contactNodeIds , true);
+                group->addCellPosition(cellPosition);
+                break;
+            }
+            default:
+                throw logic_error("Slide element not yet implemented:" + to_string(num_master_points));
+            }
+
+        }
+    }
 }
 
 } // namespace vega

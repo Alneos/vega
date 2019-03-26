@@ -196,10 +196,10 @@ void MedWriter::writeMED(const Model& model, const string& medFileName) {
 
 	/* open MED file */
 	med_idt fid = MEDfileOpen(medFileName.c_str(), MED_ACC_CREAT);
+	//cout << "FID : " << fid << endl;
 	if (fid < 0) {
-		throw logic_error("ERROR : MED file creation ...");
+		throw logic_error("ERROR : MED file creation ... fid=" + to_string(fid));
 	}
-	/* mesh creation : a 2D unstructured mesh */
 
 	if (MEDmeshCr(fid, meshname, spacedim, meshdim, MED_UNSTRUCTURED_MESH, model.mesh.getName().c_str(), "",
 			MED_SORT_DTIT, MED_CARTESIAN, axisname, unitname) < 0) {

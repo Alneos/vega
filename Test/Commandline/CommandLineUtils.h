@@ -24,11 +24,13 @@ private:
             double tolerance = 0.02);
     static void nastranStudy2Systus(std::string fname, bool runSystus = false, bool strict = true,
             double tolerance = 0.02);
-    static void nastranStudy2Nastran(std::string fname, bool runAster = false, bool strict = true,
+    static void nastranStudy2Nastran(std::string fname, bool runNastran = false, bool strict = true,
             double tolerance = 0.02);
     static void optistructStudy2Aster(std::string fname, bool runAster = false, bool strict = true,
             double tolerance = 0.02);
     static void optistructStudy2Systus(std::string fname, bool runSystus = false, bool strict = true,
+            double tolerance = 0.02);
+    static void optistructStudy2Nastran(std::string fname, bool runNastran = false, bool strict = true,
             double tolerance = 0.02);
 };
 } /* namespace tests */

@@ -241,7 +241,7 @@ void RigidNature::setLagrangian(double lagrangian) {
     this->lagrangian= lagrangian;
 }
 
-CellContainer Material::getAssignment() const {
+const CellContainer Material::getAssignment() const {
 	return this->model.getMaterialAssignment(this->getId());
 }
 

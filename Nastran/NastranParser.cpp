@@ -294,7 +294,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                     throw logic_error("set references not yet implemented " + to_string(num));
                 }
                 const auto& matrix = make_shared<DampingMatrix>(model); // LD : TODO string identifier here
-                directMatrixByName[line] = matrix->getReference().clone();
+                directMatrixByName.insert(make_pair(line, matrix->getReference()));
                 model.add(matrix);
             } else if (keyword == "CEND") {
                 //Nothing to do
@@ -326,7 +326,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                     throw logic_error("set references not yet implemented " + to_string(num));
                 }
                 const auto& matrix = make_shared<StiffnessMatrix>(model); // LD : TODO string identifier here
-                directMatrixByName[line] = matrix->getReference().clone();
+                directMatrixByName.insert(make_pair(line, matrix->getReference()));
                 model.add(matrix);
             } else if (keyword == "M2GG") {
                 // Selects direct input mass matrix or matrices.
@@ -355,7 +355,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                     throw logic_error("set references not yet implemented " + to_string(num));
                 }
                 const auto& matrix = make_shared<MassMatrix>(model); // LD : TODO string identifier here
-                directMatrixByName[line] = matrix->getReference().clone();
+                directMatrixByName.insert(make_pair(line, matrix->getReference()));
                 model.add(matrix);
             } else if (keyword == "SUBCASE") {
                 keyword = parseSubcase(tok, model, context);
@@ -502,6 +502,30 @@ string NastranParser::defaultAnalysis() const {
     return ""; // instead of "101": see github #15
 }
 
+NastranParser::NastranAnalysis NastranParser::autoSubcaseAnalysis(map<string, string> &context) const {
+    for (const auto& contextEntry: context) {
+        if (contextEntry.first.find("NLPARM") != string::npos) {
+            return NastranAnalysis::NLSTATIC;
+        }
+    }
+    bool hasMethod = false;
+    for (const auto& contextEntry: context) {
+        if (contextEntry.first.find("METHOD") != string::npos) {
+            hasMethod = true;
+            break;
+        }
+    }
+    if (hasMethod) {
+        for (const auto& contextEntry: context) {
+            if (contextEntry.first.find("SDAMPING") != string::npos) {
+                return NastranAnalysis::MFREQ;
+            }
+        }
+        return NastranAnalysis::MODES;
+    }
+    return NastranAnalysis::STATIC;
+}
+
 void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string, string> &context,
         int analysis_id) {
 
@@ -536,10 +560,10 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
             if (label_entry != ANALYSIS_BY_LABEL.end())
                 analysis_type = label_entry->second;
             else {
-                analysis_type = NastranAnalysis::STATIC; // default with empty ANALYSIS keyword (happened in SMOT)
+                analysis_type = autoSubcaseAnalysis(context); // when empty ANALYSIS keyword (happened in SMOT)
             }
         } else
-            analysis_type = NastranAnalysis::STATIC;
+            analysis_type = autoSubcaseAnalysis(context); // no analysis keyword
     }
 
     shared_ptr<Analysis> analysis = nullptr;
@@ -904,7 +928,7 @@ void NastranParser::parseCONROD(NastranTokenizer& tok, Model& model) {
 }
 
 void NastranParser::parseCONM2(NastranTokenizer& tok, Model& model) {
-    int elemId = tok.nextInt();
+    int eid = tok.nextInt();
     int g = tok.nextInt(); // Grid point identification number
     int ci = tok.nextInt(true, 0);
     if (ci == -1) {
@@ -932,11 +956,11 @@ void NastranParser::parseCONM2(NastranTokenizer& tok, Model& model) {
     const double i32 = tok.nextDouble(true, 0.0);
     const double i33 = tok.nextDouble(true, 0.0);
 
-    const auto& nodalMass = make_shared<NodalMass>(model, mass, i11, i22, i33, -i21, -i31, -i32, x1, x2, x3, elemId);
+    const auto& nodalMass = make_shared<NodalMass>(model, mass, i11, i22, i33, -i21, -i31, -i32, x1, x2, x3, eid);
 
-    int cellPosition = model.mesh.addCell(elemId, CellType::POINT1, { g });
-    string mn = string("CONM2_") + to_string(elemId);
-    auto mnodale = model.mesh.createCellGroup(mn, CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
+    int cpos = ci == 0 ? CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID : ci;
+    int cellPosition = model.mesh.addCell(eid, CellType::POINT1, { g }, false, cpos);
+    auto mnodale = model.mesh.createCellGroup("CONM2_" + to_string(eid), CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
     mnodale->addCellId(model.mesh.findCell(cellPosition).id);
     nodalMass->assignCellGroup(mnodale);
 
@@ -1132,7 +1156,7 @@ void NastranParser::parseDMIG(NastranTokenizer& tok, Model& model) {
     }
 
     shared_ptr<MatrixElement> matrix = dynamic_pointer_cast<MatrixElement>(
-                model.find(*(it->second)));
+                model.find(it->second));
 
 
     int gj = headerIndicator;
@@ -1427,7 +1451,7 @@ void NastranParser::parseGRAV(NastranTokenizer& tok, Model& model) {
 
     model.add(gravity);
     Reference<LoadSet> loadset_ref(LoadSet::Type::LOAD, sid);
-    model.addLoadingIntoLoadSet(*gravity, loadset_ref);
+    model.addLoadingIntoLoadSet(gravity->getReference(), loadset_ref);
     if (model.find(loadset_ref) == nullptr) {
         const auto& loadSet = make_shared<LoadSet>(model, LoadSet::Type::LOAD, sid);
         model.add(loadSet);
@@ -1655,7 +1679,7 @@ void NastranParser::parseMOMENT(NastranTokenizer& tok, Model& model) {
     force1->addNodeId(node_id);
     model.add(force1);
     Reference<vega::LoadSet> loadset_ref(LoadSet::Type::LOAD, loadset_id);
-    model.addLoadingIntoLoadSet(*force1, loadset_ref);
+    model.addLoadingIntoLoadSet(force1->getReference(), loadset_ref);
     if (model.find(loadset_ref) == nullptr) {
         const auto& loadSet = make_shared<LoadSet>(model, LoadSet::Type::LOAD, loadset_id);
         model.add(loadSet);
@@ -2701,7 +2725,7 @@ void NastranParser::parseRBE3(NastranTokenizer& tok, Model& model) {
         const DOFS& sdofs = DOFS::nastranCodeToDOFS(nastranSDofs);
         while (tok.isNextInt()) {
             int slaveId = tok.nextInt();
-            rbe3->addSlave(slaveId, sdofs, coef);
+            rbe3->addRBE3Slave(slaveId, sdofs, coef);
         }
     }
     model.add(rbe3);

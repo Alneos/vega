@@ -48,6 +48,50 @@ ostream &operator<<(ostream &out, const Objective& objective) {
     return out;
 }
 
+ObjectiveSet::ObjectiveSet(Model& model, Type type, int original_id) :
+        Identifiable(original_id), model(model), type(type) {
+}
+
+void ObjectiveSet::add(const Reference<ObjectiveSet>& objectiveSetReference) {
+    objectiveSetReferences.push_back(objectiveSetReference);
+}
+
+const set<shared_ptr<Objective> > ObjectiveSet::getObjectives() const {
+    set<shared_ptr<Objective>> result = model.getObjectivesByObjectiveSet(this->getReference());
+    for (const auto& objectiveSetReference : objectiveSetReferences) {
+        set<shared_ptr<Objective>> setToInsert = model.getObjectivesByObjectiveSet(
+                objectiveSetReference);
+        result.insert(setToInsert.begin(), setToInsert.end());
+    }
+    return result;
+}
+
+const set<shared_ptr<Objective> > ObjectiveSet::getObjectivesByType(
+        Objective::Type type) const {
+    set<shared_ptr<Objective> > result;
+    for (shared_ptr<Objective> objective : getObjectives()) {
+        if (objective->type == type) {
+            result.insert(objective);
+        }
+    }
+    return result;
+}
+
+int ObjectiveSet::size() const {
+    return static_cast<int>(getObjectives().size());
+}
+
+const string ObjectiveSet::name = "ObjectiveSet";
+
+const map<ObjectiveSet::Type, string> ObjectiveSet::stringByType = {
+    { ObjectiveSet::Type::FREQ, "FREQ" },
+    };
+
+ostream &operator<<(ostream &out, const ObjectiveSet& objectiveSet) {
+    out << to_str(objectiveSet);
+    return out;
+}
+
 Assertion::Assertion(Model& model, Type type, double tolerance, int original_id) :
         Objective(model, type, original_id), tolerance(tolerance) {
 }
@@ -92,9 +136,9 @@ ostream &operator<<(ostream &out, const NodalComplexDisplacementAssertion& objec
     return out;
 }
 
-FrequencyAssertion::FrequencyAssertion(Model& model, int number, double cycles, double eigenValue,
+FrequencyAssertion::FrequencyAssertion(Model& model, int number, double cycles, double eigenValue, double generalizedMass, double generalizedStiffness,
         double tolerance, int original_id) :
-        Assertion(model, Objective::Type::FREQUENCY_ASSERTION, tolerance, original_id), number(number), cycles(cycles), eigenValue(eigenValue) {
+        Assertion(model, Objective::Type::FREQUENCY_ASSERTION, tolerance, original_id), number(number), cycles(cycles), eigenValue(eigenValue), generalizedMass(generalizedMass), generalizedStiffness(generalizedStiffness) {
 }
 
 const DOFS FrequencyAssertion::getDOFSForNode(const int nodePosition) const {

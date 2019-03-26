@@ -167,7 +167,7 @@ public:
 };
 // TODO: THe Configuration Parameters should be much more generalized. With this,
 // it's a pain in the keyboard to add options!!
-class ConfigurationParameters {
+class ConfigurationParameters final {
 public:
     enum class TranslationMode {
         BEST_EFFORT = 0, //
@@ -178,16 +178,15 @@ public:
     ConfigurationParameters(std::string inputFile, Solver outputSolver, std::string solverVersion =
             "", std::string outputFile = "vega", std::string outputPath = ".", LogLevel logLevel =
             LogLevel::INFO, TranslationMode translationMode = TranslationMode::BEST_EFFORT, fs::path resultFile = "",
-            double testTolerance = 0.02, bool runSolver = false, std::string solverServer = "",
+            double testTolerance = 0.02, bool runSolver = false, bool createGraph = false, std::string solverServer = "",
             std::string solverCommand = "",
             std::string systusRBE2TranslationMode = "lagrangian", double systusRBEStiffness= 0.0,
             double systusRBECoefficient= 0.0,
             std::string systusOptionAnalysis="auto", std::string systusOutputProduct="systus",
             std::vector< std::vector<int> > systusSubcases = {},
             std::string systusOutputMatrix="table", int systusSizeMatrix=9,
-            std::string systusDynamicMethod="direct");
+            std::string systusDynamicMethod="direct", std::string nastranOutputDialect="cosmic95");
     const ModelConfiguration getModelConfiguration() const;
-    virtual ~ConfigurationParameters();
 
     const std::string inputFile;
     const Solver outputSolver;
@@ -199,6 +198,7 @@ public:
     const fs::path resultFile;
     const double testTolerance;
     const bool runSolver;
+    const bool createGraph;
     const std::string solverServer;
     const std::string solverCommand;
     const std::string systusRBE2TranslationMode;
@@ -221,6 +221,10 @@ public:
      * Choice of Dynamic method : either a direct or a modal one
      */
     const std::string systusDynamicMethod;
+    /**
+     * Nastran syntax that should be written: cosmic95 or modern
+     */
+    const std::string nastranOutputDialect;
 };
 
 }

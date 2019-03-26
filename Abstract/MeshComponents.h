@@ -247,7 +247,7 @@ private:
     static int auto_node_id;
     Node(int id, double lx, double ly, double lz, int position, DOFS dofs,
             double gx, double gy, double gz, int positionCS = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
-            int displacementCS = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+            int displacementCS = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int nodePartId = 0);
 public:
     static const int AUTO_ID = INT_MIN;
     static const int UNAVAILABLE_NODE = INT_MIN;
@@ -257,6 +257,7 @@ public:
      *  Unique by mesh.
      **/
     const int id;
+    const int nodepartId;
     /** Position, or VEGA id, of the node in the model.
      *  Unique by mesh.
      **/
@@ -287,7 +288,7 @@ class NodeGroup final : public Group {
 private:
     friend Mesh;
     // Positions of the nodes participating to the group
-    std::set<int> _nodePositions{};
+    std::set<int> _nodePositions;
     NodeGroup(Mesh& mesh, const std::string& name, int groupId, const std::string& comment="    ");
 public:
     // Add a node using its numerical id. If the node hasn't been yet defined it reserve position in the model.
@@ -353,7 +354,7 @@ public:
      * different for each of the four faces of a CTETRA element. </p>
      */
 
-    std::vector<int> faceids_from_two_nodes(int nodeId1, int nodeId2 = Globals::UNAVAILABLE_INT) const;
+    const std::vector<int> faceids_from_two_nodes(int nodeId1, int nodeId2 = Globals::UNAVAILABLE_INT) const;
 
     /**
      * Returns the name used in med file for this cell
@@ -365,11 +366,12 @@ public:
 
 class CellGroup final: public Group {
     friend Mesh;
-    std::set<int> _cellPositions{};
+    std::set<int> _cellPositions;
     CellGroup(Mesh& mesh, const std::string & name, int id = NO_ORIGINAL_ID, const std::string & comment = "");
     CellGroup(const CellGroup& that) = delete;
 public:
     void addCellId(int cellId);
+    void addCellIds(const std::vector<int>& cellIds);
     void addCellPosition(int cellPosition);
     bool containsCellPosition(int cellPosition) const;
     void removeCellPosition(int cellPosition);
@@ -434,8 +436,8 @@ public:
 class NodeContainer {
 protected:
     const Mesh& mesh;
-    std::unordered_set<int> nodeIds{};
-    std::unordered_set<std::string> groupNames{};
+    std::unordered_set<int> nodeIds;
+    std::unordered_set<std::string> groupNames;
 public:
     NodeContainer(const Mesh& mesh);
     virtual ~NodeContainer() = default;
@@ -473,8 +475,8 @@ public:
 class CellContainer {
 protected:
     const Mesh& mesh;
-    std::unordered_set<int> cellIds{};
-    std::unordered_set<std::string> groupNames{};
+    std::unordered_set<int> cellIds;
+    std::unordered_set<std::string> groupNames;
 public:
     CellContainer(const Mesh& mesh);
     virtual ~CellContainer() = default;
@@ -482,7 +484,9 @@ public:
     /**
      * Adds a cellId to the current set
      */
+    void addCellPosition(int cellPosition);
     void addCellId(int cellId);
+    void addCellIds(const std::vector<int>& otherIds);
     void addCellGroup(const std::string& groupName);
     void add(const Cell& cell);
     void add(const CellGroup& cellGroup);
@@ -490,18 +494,19 @@ public:
     /**
      * @param all: if true include also the cells inside all the cellGroups
      */
-    const std::vector<Cell> getCells(bool all = false) const;
+    const std::vector<Cell> getCells(bool all) const;
     /**
      * Returns the cellIds contained into the Container
      * @param all: if true include also the cells inside all the cellGroups
      */
-    const std::vector<int> getCellIds(bool all = false) const;
+    const std::vector<int> getCellIds(bool all) const;
+    void removeCellsNotInAGroup();
 
-    const std::vector<int> getCellPositions(bool all = false) const;
+    const std::vector<int> getCellPositions(bool all) const;
 
     const std::set<int> nodePositions() const;
 
-    bool containsCells(const CellType& cellType, bool all = false);
+    bool containsCells(const CellType& cellType, bool all);
     /**
      * True if the container contains some cellGroup
      */
@@ -561,7 +566,8 @@ namespace boost {
                 typedef cs::cartesian type;
             };
 
-            template<> struct dimension<vega::Node> : boost::mpl::int_<3> {};
+            template<> struct dimension<vega::Node> : boost::mpl::int_<3> {
+            };
 
             template<>
             struct access<vega::Node, 0> {

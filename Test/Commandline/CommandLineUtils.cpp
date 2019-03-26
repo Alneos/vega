@@ -97,6 +97,9 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
     if (string("ON") != TESTS_NIGHTLY_BUILD) {
         argv1.push_back("-d");
     }
+
+    argv1.push_back("-g"); // Create graph
+
 #if defined __unix__ && defined VDEBUG
     //disable running Aster if running under Valgrind on Linux
     runSolver = runSolver && (RUNNING_ON_VALGRIND == 0);
@@ -141,7 +144,10 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
             fs::remove(outputPath / (stem.string() + "_DATA1.ASC"));
             break;
         case SolverName::NASTRAN:
-            fs::remove(outputPath / (stem.string() + ".dat"));
+            fs::remove(outputPath / (stem.string() + "_vg.nas"));
+            fs::remove(outputPath / (stem.string() + "_vg.nas.out"));
+            fs::remove(outputPath / (stem.string() + "_vg.nas.log"));
+            fs::remove(outputPath / (stem.string() + ".6"));
             fs::remove(outputPath / (stem.string() + ".f04"));
             fs::remove(outputPath / (stem.string() + ".f06"));
             fs::remove(outputPath / (stem.string() + ".log"));
@@ -214,7 +220,7 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
             }
             break;
         case SolverName::NASTRAN:
-            BOOST_CHECK(fs::exists(outputPath / (stem.string() + ".dat")));
+            BOOST_CHECK(fs::exists(outputPath / (stem.string() + "_vg.nas")));
             if (hasTests) {
             }
             break;
@@ -242,6 +248,11 @@ void CommandLineUtils::nastranStudy2Nastran(string fname, bool runSolver, bool s
 void CommandLineUtils::optistructStudy2Aster(string fname, bool runSolver, bool strict,
         double tolerance) {
     run(fname, SolverName::OPTISTRUCT, SolverName::CODE_ASTER, runSolver, strict, tolerance);
+}
+
+void CommandLineUtils::optistructStudy2Nastran(string fname, bool runSolver, bool strict,
+        double tolerance) {
+    run(fname, SolverName::OPTISTRUCT, SolverName::NASTRAN, runSolver, strict, tolerance);
 }
 
 void CommandLineUtils::optistructStudy2Systus(string fname, bool runSolver, bool strict,

@@ -34,14 +34,14 @@ namespace aster {
 
 struct Family final {
 public:
-    std::vector<std::shared_ptr<Group>> groups{};
+    std::vector<std::shared_ptr<Group>> groups;
     std::string name = "";
     int num = Globals::UNAVAILABLE_INT;
 };
 
 class NodeGroup2Families {
-    std::vector<Family> families{};
-    std::vector<int> nodes{};
+    std::vector<Family> families;
+    std::vector<int> nodes;
 public:
     NodeGroup2Families(int nnodes, const std::vector<std::shared_ptr<NodeGroup>> nodeGroups);
     const std::vector<Family>& getFamilies() const;
@@ -50,8 +50,8 @@ public:
 
 class CellGroup2Families final {
 private:
-    std::vector<Family> families{};
-    std::unordered_map<CellType::Code, std::shared_ptr<std::vector<int>>, EnumClassHash> cellFamiliesByType{};
+    std::vector<Family> families;
+    std::unordered_map<CellType::Code, std::shared_ptr<std::vector<int>>, EnumClassHash> cellFamiliesByType;
     const Mesh& mesh;
 public:
     CellGroup2Families(const Mesh& mesh, std::unordered_map<CellType::Code, int, EnumClassHash> cellCountByType,

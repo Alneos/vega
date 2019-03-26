@@ -47,17 +47,14 @@ public:
     int original_id;
     int id;
     Reference(const typename T::Type type, const int original_id = NO_ID, const int id = NO_ID);
-    Reference(const T& t);
+    Reference(const T&);
+    Reference(const std::shared_ptr<T>&);
     bool has_original_id() const {
         return original_id != NO_ID;
     }
     bool has_id() const {
         return id != NO_ID;
     }
-    std::shared_ptr<Reference<T>> clone() const;
-    ~Reference() {
-    }
-    ;
 };
 
 template<class T>
@@ -68,6 +65,11 @@ Reference<T>::Reference(const typename T::Type type, const int original_id, cons
 template<class T>
 Reference<T>::Reference(const T& t) :
         type(t.type), original_id(t.getOriginalId()), id(t.getId()) {
+}
+
+template<class T>
+Reference<T>::Reference(const std::shared_ptr<T>& ptr) :
+        type(ptr->type), original_id(ptr->getOriginalId()), id(ptr->getId()) {
 }
 
 template<class T>
@@ -124,12 +126,6 @@ template<class T>
 std::ostream &operator<<(std::ostream &out, const Reference<T>& reference) {
 	out << to_str(reference);
 	return out;
-}
-
-
-template<class T>
-std::shared_ptr<Reference<T>> Reference<T>::clone() const {
-    return std::make_shared<Reference<T>>(*this);
 }
 
 }/* namespace vega */

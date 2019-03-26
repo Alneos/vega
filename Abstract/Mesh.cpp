@@ -42,13 +42,16 @@ namespace fs = boost::filesystem;
 
 const double NodeStorage::RESERVED_POSITION = -DBL_MAX;
 
-NodeData::NodeData(int id, const DOFS& dofs, double x, double y, double z, int cpPos, int cdPos) :
-    id(id), dofs(dofs), x(x), y(y), z(z), cpPos(cpPos), cdPos(cdPos) {
+NodeData::NodeData(int id, const DOFS& dofs, double x, double y, double z, int cpPos, int cdPos, int nodePart) :
+    id(id), dofs(dofs), x(x), y(y), z(z), cpPos(cpPos), cdPos(cdPos), nodePart(nodePart) {
 }
 
 /**
  * Node Container class
  */
+
+int NodeStorage::lastNodePart = 0;
+
 NodeStorage::NodeStorage(Mesh& mesh, LogLevel logLevel) :
 		logLevel(logLevel), mesh(mesh) {
 	nodeDatas.reserve(4096);
@@ -60,16 +63,6 @@ NodeIterator NodeStorage::begin() const {
 
 NodeIterator NodeStorage::end() const {
 	return NodeIterator(this, static_cast<int>(nodeDatas.size()));
-}
-
-int NodeStorage::reserveNodePosition(int nodeId) {
-	int nodePosition = mesh.addNode(nodeId, RESERVED_POSITION, RESERVED_POSITION,
-			RESERVED_POSITION);
-	nodepositionById[nodeId] = nodePosition;
-	if (this->logLevel >= LogLevel::TRACE) {
-		cout << "Reserve node id:" << nodeId << " position:" << nodePosition << endl;
-	}
-	return nodePosition;
 }
 
 CellData::CellData(int id, const CellType& type, bool isvirtual, int elementId, int cellTypePosition) :
@@ -142,7 +135,7 @@ Mesh::Mesh(LogLevel logLevel, const string& modelName) :
 	}
 }
 
-int Mesh::addNode(int id, double x, double y, double z, int cpPos, int cdPos) {
+int Mesh::addNode(int id, double x, double y, double z, int cpPos, int cdPos, int nodePart) {
 	int nodePosition;
 
 	// In auto mode, we assign the first free node, starting from the biggest possible number
@@ -155,7 +148,7 @@ int Mesh::addNode(int id, double x, double y, double z, int cpPos, int cdPos) {
 	auto positionIterator = nodes.nodepositionById.find(id);
 	if (positionIterator == nodes.nodepositionById.end()) {
 		nodePosition = static_cast<int>(nodes.nodeDatas.size());
-		NodeData nodeData(id, DOFS::NO_DOFS, x, y, z, cpPos, cdPos);
+		NodeData nodeData(id, DOFS::NO_DOFS, x, y, z, cpPos, cdPos, nodePart);
 		nodes.nodeDatas.push_back(nodeData);
 		nodes.nodepositionById[id] = nodePosition;
 	} else {
@@ -184,7 +177,7 @@ const Node Mesh::findNode(const int nodePosition) const {
 	if (nodeData.cpPos == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
       // Should always be an "unnamed return" to avoid useless copies
       return Node(nodeData.id, nodeData.x, nodeData.y, nodeData.z, nodePosition, nodeData.dofs,
-          nodeData.x, nodeData.y, nodeData.z, nodeData.cpPos, nodeData.cdPos);
+          nodeData.x, nodeData.y, nodeData.z, nodeData.cpPos, nodeData.cdPos, nodeData.nodePart);
 	} else {
       shared_ptr<CoordinateSystem> coordSystem = this->getCoordinateSystemByPosition(nodeData.cpPos);
       if (!coordSystem) {
@@ -204,10 +197,57 @@ const Node Mesh::findNode(const int nodePosition) const {
 	}
 }
 
-int Mesh::findOrReserveNode(int nodeId) {
+int Mesh::findOrReserveNode(int nodeId, int cellPartId) {
+
+    int mainNodePart = 0;
+    if (cellPartId != Globals::UNAVAILABLE_INT) {
+        if (nodes.mainNodePartByCellPart.find(cellPartId) == nodes.mainNodePartByCellPart.end()) {
+            // Never seen this cellPart, registering a new main node part
+            mainNodePart = ++(nodes.lastNodePart);
+            nodes.mainNodePartByCellPart[cellPartId] = mainNodePart;
+            nodes.cellPartsByNodePart[mainNodePart] = {cellPartId};
+        } else {
+            mainNodePart = nodes.mainNodePartByCellPart[cellPartId];
+        }
+    }
 
 	int nodePosition = findNodePosition(nodeId);
-	return nodePosition != Node::UNAVAILABLE_NODE ? nodePosition : nodes.reserveNodePosition(nodeId);
+	if (nodePosition == Node::UNAVAILABLE_NODE) {
+
+        nodePosition = addNode(nodeId, NodeStorage::RESERVED_POSITION, NodeStorage::RESERVED_POSITION,
+                NodeStorage::RESERVED_POSITION, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, mainNodePart);
+        nodes.nodepositionById[nodeId] = nodePosition;
+        if (this->logLevel >= LogLevel::TRACE) {
+            cout << "Reserve node id:" << nodeId << " position:" << nodePosition << endl;
+        }
+	} else if (cellPartId != Globals::UNAVAILABLE_INT) {
+        auto& nodeData = nodes.nodeDatas[nodePosition];
+        if (nodeData.nodePart == 0) {
+            // Node exists but this is the first cell containing it
+            nodeData.nodePart = mainNodePart;
+        } else if (nodeData.nodePart != mainNodePart) {
+            // Node exists and already has a nodePart which is from another cell part
+            auto& currentCellParts = nodes.cellPartsByNodePart[nodeData.nodePart];
+            if (currentCellParts.find(cellPartId) == currentCellParts.end()) {
+                // Current nodePart did not include this cellPart : interface node
+                set<int> newCellParts{currentCellParts};
+                newCellParts.insert(cellPartId);
+                const auto& interfaceEntry = nodes.interfaceNodePartByCellParts.find(newCellParts);
+                if (interfaceEntry == nodes.interfaceNodePartByCellParts.end()) {
+                    // Never seen this cellpart set, registering a new interface node part
+                    int interfaceNodePart = ++(nodes.lastNodePart);
+                    nodes.interfaceNodePartByCellParts[newCellParts] = interfaceNodePart;
+                    // Changing node part for this node
+                    nodeData.nodePart = interfaceNodePart;
+                    nodes.cellPartsByNodePart[interfaceNodePart] = newCellParts;
+                } else {
+                    // Updating nodepart to the interface
+                    nodeData.nodePart = interfaceEntry->second;
+                }
+            }
+        }
+    }
+	return nodePosition;
 
 }
 
@@ -226,6 +266,14 @@ int Mesh::findNodeId(const int nodePosition) const {
 				"Node position " + to_string(nodePosition) + " not found.");
 	}
 	return nodes.nodeDatas[nodePosition].id;
+}
+
+int Mesh::findNodePartId(const int nodePosition) const {
+	if (nodePosition == Node::UNAVAILABLE_NODE) {
+		throw invalid_argument(
+				"Node position " + to_string(nodePosition) + " not found.");
+	}
+	return nodes.nodeDatas[nodePosition].nodePart;
 }
 
 int Mesh::findNodePosition(const int nodeId) const {
@@ -291,7 +339,7 @@ int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &node
 	}
 	shared_ptr<deque<int>> nodePositionsPtr = cells.nodepositionsByCelltype[cellType];
 	for (const auto& nodeId : nodeIds) {
-		nodePositionsPtr->push_back(findOrReserveNode(nodeId));
+		nodePositionsPtr->push_back(findOrReserveNode(nodeId, elementId));
 	}
 	if (cpos != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
 		std::shared_ptr<CellGroup> coordinateSystemCellGroup = this->getOrCreateCellGroupForCS(cpos);
@@ -403,7 +451,6 @@ int Mesh::generateSkinCell(const vector<int>& faceIds, const SpaceDimension& dim
             break;
         }
     }
-    vector<int> externalFaceIds;
     if (cellTypeFound == nullptr) {
         throw logic_error(
                 "CellType not found connections:"
@@ -458,7 +505,7 @@ int Mesh::addOrFindOrientation(const OrientationCoordinateSystem & ocs){
 	int posOrientation = findOrientation(ocs);
 	if (posOrientation==0){
 		this->add(ocs);
-		posOrientation = coordinateSystemStorage.findPosition(ocs.getReference());
+		posOrientation = coordinateSystemStorage.findPosition(ocs);
 	}
 	return posOrientation;
 }
@@ -561,7 +608,7 @@ shared_ptr<CellGroup> Mesh::createCellGroup(const string& name, int group_id, co
 		this->groupById[group_id] = group;
 	}
 
-	if (this->logLevel >= LogLevel::DEBUG) {
+	if (this->logLevel >= LogLevel::TRACE) {
 		cout << "Created Cell Group: " << name;
         if (not comment.empty())
             cout <<" with comment: "<<comment;

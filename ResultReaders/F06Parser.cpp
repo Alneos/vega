@@ -116,10 +116,11 @@ int F06Parser::readDisplacementSection(Model& model,
 	return subcase_id /* It could have consumed the next subcase id so we give it back for the next section parsing */;
 }
 
-void F06Parser::readEigenvalueSection(Model& model,
+int F06Parser::readEigenvalueSection(Model& model,
 		const ConfigurationParameters& configuration, ifstream& istream,
 		vector<shared_ptr<Assertion>>& assertions) {
 	string currentLine;
+	int subcase_id = NO_SUBCASE;
 	try {
 		while (this->readLine(istream, currentLine)) {
 			size_t orderPosition = currentLine.find("ORDER");
@@ -129,15 +130,25 @@ void F06Parser::readEigenvalueSection(Model& model,
 			orderPosition = currentLine.find("AFTER AUGMENTATION OF RESIDUAL VECTORS");
 			if (orderPosition != string::npos) {
 				//not taking into account RESVEC result
-				return;
+				return subcase_id;
 			}
 			orderPosition = currentLine.find("ACTUAL MODES USED IN THE DYNAMIC ANALYSIS");
 			if (orderPosition != string::npos) {
 				//not taking into account modes used in dynamic analysis
-				return;
+				return subcase_id;
 			}
 		}
 		while (this->readLine(istream, currentLine)) {
+            size_t subCasePosition = currentLine.find("SUBCASE");
+            if (subCasePosition != string::npos) {
+				/*
+				 * Only used to detect if this section has ended.
+				 * Since the line has been consumed, we will return the (next) subcase
+				 * LD : All this should simply be replaced by a buffer parser and a "peek" getline
+				 */
+				subcase_id = parseSubcase(subcase_id, currentLine);
+				break;
+            }
 			istringstream istringLine(currentLine);
 			vector<string> tokens;
 			copy(istream_iterator<string>(istringLine), istream_iterator<string>(),
@@ -147,10 +158,12 @@ void F06Parser::readEigenvalueSection(Model& model,
 			int number = stoi(tokens.at(0));
 			double eigenValue = stod(tokens.at(2));
 			double cycles = stod(tokens.at(4));
+			double generalizedMass = stod(tokens.at(5));
+			double generalizedStiffness = stod(tokens.at(6));
 			if (abs(cycles) < 1e-12)
 				cycles = 0.;
 			assertions.push_back(
-					make_shared<FrequencyAssertion>(model, number, cycles, eigenValue, configuration.testTolerance));
+					make_shared<FrequencyAssertion>(model, number, cycles, eigenValue, generalizedMass, generalizedStiffness, configuration.testTolerance));
 		}
 	} catch (const exception &e) {
 		string message("Error ");
@@ -165,6 +178,7 @@ void F06Parser::readEigenvalueSection(Model& model,
 			//cerr << "Conditions not added, parsing next section" << endl;
 		}
 	}
+	return subcase_id /* It could have consumed the next subcase id so we give it back for the next section parsing */;
 }
 
 int F06Parser::readComplexDisplacementSection(Model& model,
@@ -266,10 +280,10 @@ int F06Parser::addAssertionsToModel(int currentSubcase, double loadStep, Model &
 	return nextSubcase;
 }
 
-void F06Parser::addFrequencyAssertionsToModel(int currentSubCase, Model& model,
+int F06Parser::addFrequencyAssertionsToModel(int currentSubCase, Model& model,
 		const ConfigurationParameters& configuration, ifstream& istream) {
 	vector<shared_ptr<Assertion>> assertions;
-	readEigenvalueSection(model, configuration, istream, assertions);
+	int nextSubcase = readEigenvalueSection(model, configuration, istream, assertions);
 	shared_ptr<Analysis> analysis;
 	if (currentSubCase != NO_SUBCASE) {
 		analysis = model.analyses.find(currentSubCase);
@@ -278,12 +292,12 @@ void F06Parser::addFrequencyAssertionsToModel(int currentSubCase, Model& model,
 		}
     } else if (model.analyses.empty()) {
         cout << "There is no analysis in model." << endl;
-        return;
+        return nextSubcase;
 	} else {
 		// LD If no subcase indicated, the first one is used.
 		// FIXME: what if the model don't have an analysis and the default one is
 		// created inside the finish()? GC
-		analysis = *model.analyses.begin();
+		analysis = model.analyses.first();
 	}
 	for (const auto& assertion : assertions) {
 		if (analysis != nullptr) {
@@ -298,6 +312,7 @@ void F06Parser::addFrequencyAssertionsToModel(int currentSubCase, Model& model,
 					<< currentSubCase << " was not found." << endl;
 		}
 	}
+	return nextSubcase;
 }
 
 int F06Parser::addComplexAssertionsToModel(int currentSubCase, double frequency, Model& model,
@@ -393,7 +408,7 @@ void F06Parser::add_assertions(const ConfigurationParameters& configuration,
 				currentSubCase = addAssertionsToModel(currentSubCase, loadStep, model,
 						configuration, istream);
 			} else if (currentLine == "R E A L   E I G E N V A L U E S") {
-				addFrequencyAssertionsToModel(currentSubCase, model, configuration, istream);
+				currentSubCase = addFrequencyAssertionsToModel(currentSubCase, model, configuration, istream);
 			} else if (currentLine == "C O M P L E X   D I S P L A C E M E N T   V E C T O R") {
 				currentSubCase = addComplexAssertionsToModel(currentSubCase, frequency, model,
 						configuration, istream);

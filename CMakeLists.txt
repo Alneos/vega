@@ -52,12 +52,32 @@ if(CMAKE_CROSSCOMPILING)
 endif(CMAKE_CROSSCOMPILING)
 
 find_program(SYSTUS_EXEC NAMES systus systus.exe)
-set(RUN_SYSTUS SYSTUS_EXEC CACHE BOOL "Run tests using Systus executable")
+if(SYSTUS_EXEC)
+    set(RUN_SYSTUS ON CACHE BOOL "Run tests using Systus executable")
+    message(STATUS "Sytus exec: " ${SYSTUS_EXEC})
+else(SYSTUS_EXEC)
+    set(RUN_SYSTUS OFF CACHE BOOL "Run tests using Systus executable")
+endif(SYSTUS_EXEC)
+
 mark_as_advanced(RUN_SYSTUS)
 
 find_program(ASTER_EXEC NAMES as_run as_run.sh as_run.exe as_run.bat)
-set(RUN_ASTER ASTER_EXEC CACHE BOOL "Run tests using Aster executable")
+if(ASTER_EXEC)
+    set(RUN_ASTER ON CACHE BOOL "Run tests using Aster executable")
+    message(STATUS "Aster exec: " ${ASTER_EXEC})
+else(ASTER_EXEC)
+    set(RUN_ASTER OFF CACHE BOOL "Run tests using Aster executable")
+endif(ASTER_EXEC)
 mark_as_advanced(RUN_ASTER)
+
+find_program(NASTRAN_EXEC NAMES nastran)
+if(NASTRAN_EXEC)
+    set(RUN_NASTRAN ON CACHE BOOL "Run tests using Nastran executable")
+    message(STATUS "Nastran exec: " ${NASTRAN_EXEC})
+else(NASTRAN_EXEC)
+    set(RUN_NASTRAN OFF CACHE BOOL "Run tests using Nastran executable")
+endif(NASTRAN_EXEC)
+mark_as_advanced(RUN_NASTRAN)
 
 # Debug and Release are reserved words for cmake see https://cmake.org/cmake/help/v3.0/variable/CMAKE_BUILD_TYPE.html
 IF(CMAKE_BUILD_TYPE MATCHES "^[Dd][Ee][Bb][Uu][Gg]")
@@ -124,10 +144,24 @@ if(COMPILER_SUPPORTS_SUGGEST_OVERRIDE)
   add_compile_options(-Wsuggest-override)
 endif()
 
-# Preparing for Weffc++
+CHECK_CXX_COMPILER_FLAG(-Wsuggest-final-methods COMPILER_SUPPORTS_SUGGEST_FINAL_METHODS)
+if(COMPILER_SUPPORTS_SUGGEST_FINAL_METHODS)
+  add_compile_options(-Wsuggest-final-methods)
+endif()
+
+CHECK_CXX_COMPILER_FLAG(-Wsuggest-final-types COMPILER_SUPPORTS_SUGGEST_FINAL_TYPES)
+if(COMPILER_SUPPORTS_SUGGEST_FINAL_TYPES)
+  add_compile_options(-Wsuggest-final-types)
+endif()
+
 CHECK_CXX_COMPILER_FLAG(-Wnon-virtual-dtor COMPILER_SUPPORTS_NON_VIRTUAL_DTOR)
 if(COMPILER_SUPPORTS_NON_VIRTUAL_DTOR)
   add_compile_options(-Wnon-virtual-dtor)
+endif()
+
+CHECK_CXX_COMPILER_FLAG(-Woverloaded-virtual COMPILER_SUPPORTS_OVERLOADED_VIRTUAL)
+if(COMPILER_SUPPORTS_OVERLOADED_VIRTUAL)
+  add_compile_options(-Woverloaded-virtual)
 endif()
 
 # boost variant constructor uses this see ValueOrReference
@@ -456,6 +490,7 @@ endif(${STATIC_LINKING})
 #message("Run 'ccmake ${CMAKE_CURRENT_SOURCE_DIR}' to fine-tune the configuration.")
 message(STATUS "Run Sytus: " ${RUN_SYSTUS})
 message(STATUS "Run Aster: " ${RUN_ASTER})
+message(STATUS "Run Nastran: " ${RUN_NASTRAN})
 
 #
 # FILES TO INSTALL

@@ -49,7 +49,7 @@ class ModelConfiguration;
 class Analysis: public Identifiable<Analysis> {
 private:
     friend std::ostream &operator<<(std::ostream &out, const Analysis& analysis);    //output
-    std::map<int, char> boundaryDOFSByNodePosition{};
+    std::map<int, char> boundaryDOFSByNodePosition;
     const std::string label;         /**< User defined label for this instance of Analysis. **/
 public:
     enum class Type {
@@ -63,9 +63,9 @@ public:
         UNKNOWN,
     };
 protected:
-    std::list<std::shared_ptr<Reference<LoadSet>>>loadSet_references{};
-    std::list<std::shared_ptr<Reference<ConstraintSet>>> constraintSet_references{};
-    std::list<std::shared_ptr<Reference<Objective>>> objectiveReferences{};
+    std::list<Reference<LoadSet>>loadSet_references;
+    std::list<Reference<ConstraintSet>> constraintSet_references;
+    std::list<Reference<Objective>> objectiveReferences;
     Analysis(Model& model, const Type Type, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     Analysis(const Analysis& that) = delete;
 
@@ -129,13 +129,27 @@ public:
         return false;
     }
     bool validate() const override;
+
     std::map<std::string, std::string> to_map() const override;
+    /**
+     * Create a connection graph to find and block free mechanisms
+     * See https://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/19950020950.pdf
+     * A Verification Procedure for MSC/NASTRAN Finite Element Models
+     * Alan E. Stockweil
+     *
+     * 3.2.4 Mechanisms
+     * Mechanisms lead to stiffness matrix singularities involving two or more grid points. An
+     * example of a mechanism is a section of a structure that is capable of rigid-body motion in
+     * one or more directions. MSC/NASTRAN automatically checks for mechanisms every time
+     * it performs a decomposition using the DCMP module
+     */
+    void createGraph(std::ostream& dot_ofs);
 };
 
 class Combination: public Analysis {
 public:
     Combination(Model& model, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
-    std::map<Reference<Analysis>,double> coefByAnalysis{};
+    std::map<Reference<Analysis>,double> coefByAnalysis;
     bool isStatic() const override {
         return true;
     }

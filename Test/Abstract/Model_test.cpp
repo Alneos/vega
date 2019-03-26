@@ -187,6 +187,18 @@ unique_ptr<Model> createModelWith1HEXA8() {
 	return model;
 }
 
+BOOST_AUTO_TEST_CASE( test_graph ) {
+    unique_ptr<Model> model = createModelWith1HEXA8();
+	const auto& spc = make_shared<SinglePointConstraint>(*model, DOFS::ALL_DOFS, 0.0);
+	spc->addNodeId(50);
+	model->add(spc);
+	model->addConstraintIntoConstraintSet(spc->getReference(), model->commonConstraintSet->getReference());
+
+    const auto& analysis = make_shared<LinearMecaStat>(*model);
+    model->add(analysis);
+    analysis->createGraph(cout);
+}
+
  BOOST_AUTO_TEST_CASE( test_VirtualElements ) {
      unique_ptr<Model> model = createModelWith1HEXA8();
      const auto& loadSet1 = make_shared<LoadSet>(*model, LoadSet::Type::LOAD, 1);
@@ -206,7 +218,7 @@ unique_ptr<Model> createModelWith1HEXA8() {
      model->addLoadingIntoLoadSet(f3->getReference(), loadSet1->getReference());
      model->add(f3);
      const auto& analysis = make_shared<LinearMecaStat>(*model);
-     analysis->add(loadSet1->getReference());
+     analysis->add(loadSet1);
      model->add(analysis);
      model->finish(); // Should add constraints, discretes to add dofs
      BOOST_CHECK(model->validate());
@@ -238,7 +250,7 @@ BOOST_AUTO_TEST_CASE( test_create_skin2d ) {
 			VectorialValue(0, 0, 1.0), VectorialValue(0, 0, 0));
 
 	forceSurfaceTwoNodes->addCellId(1);
-	vector<Cell> cells = forceSurfaceTwoNodes->getCells();
+	vector<Cell> cells = forceSurfaceTwoNodes->getCells(false);
 	BOOST_CHECK_EQUAL(cells.size(), static_cast<size_t>(1));
 	Cell hexa = cells[0];
 	BOOST_CHECK_EQUAL(hexa.id, 1);
@@ -249,8 +261,14 @@ BOOST_AUTO_TEST_CASE( test_create_skin2d ) {
 	vector<int> applicationFace = forceSurfaceTwoNodes->getApplicationFaceNodeIds();
 	BOOST_CHECK_EQUAL_COLLECTIONS(applicationFace.begin(), applicationFace.end(),
 			expectedFace1NodeIds.begin(), expectedFace1NodeIds.end());
+
+    // Same check but using base class
+    const auto& cellLoading = dynamic_pointer_cast<CellLoading>(forceSurfaceTwoNodes);
+	vector<int> applicationFace2 = cellLoading->getApplicationFaceNodeIds();
+	BOOST_CHECK_EQUAL_COLLECTIONS(applicationFace2.begin(), applicationFace2.end(),
+			expectedFace1NodeIds.begin(), expectedFace1NodeIds.end());
 	model->finish();
-	//BOOST_CHECK_EQUAL(model->materials.size(), 2 /* skin adds a virtual material */);
+	//BOOST_CHECK_EQUAL(model->materials.size(), 2 ); // 2 because skin adds a virtual material
 	BOOST_CHECK(model->validate());
 	BOOST_REQUIRE_EQUAL(1, model->mesh.countCells(CellType::QUAD4));
 	Cell cell = model->mesh.cells.cells_begin(CellType::QUAD4).next();
@@ -307,7 +325,7 @@ BOOST_AUTO_TEST_CASE(test_Analysis) {
 	BOOST_CHECK(not analysis->validate());
 	BOOST_CHECK(not model.validate());
 
-	set<shared_ptr<Loading>> loadings = model.getLoadingsByLoadSet(loadSet1->getReference());
+	set<shared_ptr<Loading>> loadings = model.getLoadingsByLoadSet(loadSet1);
 	BOOST_CHECK_EQUAL(static_cast<size_t>(2), loadings.size());
 	for (shared_ptr<Loading> loading : loadings) {
 		BOOST_CHECK(loading->getId() == force1->getId() or loading->getId() == force2->getId());
@@ -367,13 +385,13 @@ BOOST_AUTO_TEST_CASE( combined_loadset1 ) {
 	model.addLoadingIntoLoadSet(force2->getReference(), loadSet3->getReference());
 	const auto& combination = make_shared<LoadSet>(model, LoadSet::Type::LOAD, 10);
 	combination->embedded_loadsets.push_back(
-			pair<Reference<LoadSet>, double>(loadSet1->getReference(), 5.0));
+			pair<Reference<LoadSet>, double>(loadSet1, 5.0));
 	combination->embedded_loadsets.push_back(
-			pair<Reference<LoadSet>, double>(loadSet3->getReference(), 7.0));
+			pair<Reference<LoadSet>, double>(loadSet3, 7.0));
 	BOOST_CHECK_EQUAL(combination->embedded_loadsets.size(), static_cast<size_t>(2));
 	model.add(combination);
 	model.finish();
-	BOOST_CHECK_EQUAL(model.getLoadingsByLoadSet(combination->getReference()).size(), static_cast<size_t>(3));
+	BOOST_CHECK_EQUAL(model.getLoadingsByLoadSet(combination).size(), static_cast<size_t>(3));
 }
 
 BOOST_AUTO_TEST_CASE(auto_analysis_linst) {
@@ -406,13 +424,11 @@ BOOST_AUTO_TEST_CASE( reference_compare ) {
 	Reference<LoadSet> rauto1(LoadSet::Type::LOAD, Reference<LoadSet>::NO_ID, 1);
 	BOOST_CHECK(rauto1 == rauto1);
 	BOOST_CHECK(!(rauto1 < rauto1));
-	BOOST_CHECK(rauto1 == *rauto1.clone());
 	Reference<LoadSet> rauto2(LoadSet::Type::LOAD, Reference<LoadSet>::NO_ID, 2);
 	Reference<LoadSet> r1(LoadSet::Type::LOAD, 1);
 	BOOST_CHECK(r1 == r1);
 	BOOST_CHECK(!(r1 != r1));
 	BOOST_CHECK(!(r1 < r1));
-	BOOST_CHECK(r1 == *r1.clone());
 	Reference<LoadSet> r1bis(LoadSet::Type::LOAD, 1);
 	BOOST_CHECK(r1 == r1bis);
 	BOOST_CHECK(!(r1 < r1bis));
@@ -494,7 +510,7 @@ BOOST_AUTO_TEST_CASE(test_rbe3_assertions_not_removed) {
 	model.mesh.addNode(100, 0.0, 0.0, 0.0);
 	model.mesh.addNode(101, 1.0, 1.0, 1.0);
 	const auto& rbe3 = make_shared<RBE3>(model, 100, DOFS::ALL_DOFS);
-	rbe3->addSlave(101, DOFS::ALL_DOFS, 42.0);
+	rbe3->addRBE3Slave(101, DOFS::ALL_DOFS, 42.0);
 	model.add(rbe3);
 	model.addConstraintIntoConstraintSet(rbe3->getReference(), model.commonConstraintSet->getReference());
 	const auto& analysis = make_shared<LinearMecaStat>(model);
@@ -550,7 +566,7 @@ BOOST_AUTO_TEST_CASE(test_spc_dof_remove) {
 	auto constraintSets2 = model->find(analysis2->getReference())->getConstraintSets();
 	BOOST_CHECK_EQUAL(constraintSets2.size(), 2);
 	for(const auto& constraintSet : constraintSets2) {
-		if (constraintSet->getReference() == model->commonConstraintSet->getReference()) {
+		if (constraintSet == model->commonConstraintSet) {
 			continue;
 		}
 		BOOST_CHECK_EQUAL(constraintSet->getConstraints().size(), 1);

@@ -417,7 +417,7 @@ int CoordinateSystemStorage::add(const CoordinateSystem& coordinateSystem){
         throw logic_error("Mismatch in coordinate system in position:"+to_string(cpos)+" has conflicting ids: "+ to_str(coordinateSystem) + " "+ to_str(it2->second));
     }
 
-    Reference<CoordinateSystem> csref = coordinateSystem.getReference();
+    Reference<CoordinateSystem> csref = coordinateSystem;
     refByPosition.insert(make_pair<>(cpos, csref));
     //refByPosition[cpos] = csref;
     coordinateSystemByRef[csref] = coordinateSystem.clone();

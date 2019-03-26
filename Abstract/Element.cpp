@@ -47,6 +47,7 @@ const map<ElementSet::Type, string> ElementSet::stringByType = {
         { ElementSet::Type::CIRCULAR_SECTION_BEAM, "CIRCULAR_SECTION_BEAM" },
         { ElementSet::Type::RECTANGULAR_SECTION_BEAM, "RECTANGULAR_SECTION_BEAM" },
         { ElementSet::Type::I_SECTION_BEAM, "I_SECTION_BEAM" },
+        { ElementSet::Type::TUBE_SECTION_BEAM, "TUBE_SECTION_BEAM" },
         { ElementSet::Type::GENERIC_SECTION_BEAM, "GENERIC_SECTION_BEAM" },
         { ElementSet::Type::STRUCTURAL_SEGMENT, "STRUCTURAL_SEGMENT" },
         { ElementSet::Type::SHELL, "SHELL" },
@@ -60,6 +61,7 @@ const map<ElementSet::Type, string> ElementSet::stringByType = {
         { ElementSet::Type::RBE3, "RBE3"},
         { ElementSet::Type::LMPC, "LMPC"},
         { ElementSet::Type::SCALAR_SPRING, "SCALAR_SPRING"},
+        { ElementSet::Type::SURFACE_SLIDE_CONTACT, "SURFACE_SLIDE_CONTACT"},
         { ElementSet::Type::UNKNOWN, "UNKNOWN" },
 };
 
@@ -124,7 +126,7 @@ Beam::Beam(Model& model, Type type, const ModelType& modelType, BeamModel beamMo
 
 const DOFS Beam::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
-	if (this->isBar()) {
+	if (this->isTruss()) {
 	    return DOFS::TRANSLATIONS;
 	}
 
@@ -572,7 +574,7 @@ bool StructuralSegment::hasRotations() const {
 }
 
 bool StructuralSegment::hasStiffness() const {
-	return !(stiffness.isEmpty());
+	return not stiffness.isEmpty() and not stiffness.isZero();
 }
 
 bool StructuralSegment::isDiagonalRigid() const {
@@ -580,11 +582,11 @@ bool StructuralSegment::isDiagonalRigid() const {
 }
 
 bool StructuralSegment::hasMass() const {
-	return !(mass.isEmpty());
+	return not mass.isEmpty() and not mass.isZero();
 }
 
 bool StructuralSegment::hasDamping() const {
-	return !(damping.isEmpty());
+	return not damping.isEmpty() and not damping.isZero();
 }
 
 void StructuralSegment::addStiffness(DOF rowdof, DOF coldof, double value){
@@ -847,7 +849,7 @@ void MatrixElement::clear() {
 }
 
 
-const shared_ptr<DOFMatrix> MatrixElement::findSubmatrix(const int nodePosition1, const int nodePosition2) const {
+const shared_ptr<const DOFMatrix> MatrixElement::findSubmatrix(const int nodePosition1, const int nodePosition2) const {
 	shared_ptr<DOFMatrix> result = make_shared<DOFMatrix>(DOFMatrix(symmetric));
 	auto it = submatrixByNodes.find(make_pair(nodePosition1, nodePosition2));
 	if (it != submatrixByNodes.end()) {

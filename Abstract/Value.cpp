@@ -363,7 +363,7 @@ void VectorialFunction::scale(double factor) {
 }
 
 bool VectorialFunction::iszero() const {
-    return _fx.iszero() && _fy.iszero() && _fz.iszero();
+    return _fx.iszero() and _fy.iszero() and _fz.iszero();
 }
 
 } /* namespace vega */

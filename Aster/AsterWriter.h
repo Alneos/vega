@@ -25,12 +25,14 @@
 namespace vega {
 namespace aster {
 
-class AsterWriter final : public Writer{
+class AsterWriter final : public Writer {
+    std::unique_ptr<AsterModel> asterModel = nullptr;
 	std::string mail_name, sigm_noeu, sigm_elno, sief_elga;
 	bool calc_sigm = false;
 	std::map<Reference<NamedValue>, std::string> asternameByValue;
 	std::map<Reference<LoadSet>, std::string> asternameByLoadSet;
 	std::map<Reference<ConstraintSet>, std::string> asternameByConstraintSet;
+//	std::set<int> singleGroupCellPositions;
 	static constexpr double SMALLEST_RELATIVE_COMPARISON = 1e-7;
 
 	void writeExport(AsterModel& model, std::ostream&);
@@ -74,7 +76,7 @@ class AsterWriter final : public Writer{
 public:
     AsterWriter() = default;
 	AsterWriter(const AsterWriter& that) = delete;
-	std::string writeModel(Model& model_ptr, const ConfigurationParameters&) override;
+	std::string writeModel(Model&, const ConfigurationParameters&) override;
 	const std::string toString() const override;
 };
 

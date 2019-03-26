@@ -68,6 +68,31 @@ public:
     }
 };
 
+/**
+ * Set of objectives that are referenced by an analysis.
+ */
+class ObjectiveSet final: public Identifiable<ObjectiveSet> {
+	Model& model;
+	std::vector<Reference<ObjectiveSet>> objectiveSetReferences;
+	friend std::ostream &operator<<(std::ostream&, const ObjectiveSet&);
+public:
+	enum class Type {
+		FREQ
+	};
+	ObjectiveSet(Model&, Type type, int original_id = NO_ORIGINAL_ID);
+    ObjectiveSet(const ObjectiveSet& that) = delete;
+	static constexpr int COMMON_SET_ID = 0;
+	const Type type;
+	static const std::string name;
+	static const std::map<Type, std::string> stringByType;
+	void add(const Reference<ObjectiveSet>&);
+	const std::set<std::shared_ptr<Objective>> getObjectives() const;
+	const std::set<std::shared_ptr<Objective>> getObjectivesByType(Objective::Type) const;
+	int size() const;
+	inline bool empty() const {return size() == 0;};
+	std::shared_ptr<ObjectiveSet> clone() const;
+};
+
 class Assertion: public Objective {
 protected:
     Assertion(Model&, Type, double tolerance, int original_id = NO_ORIGINAL_ID);
@@ -115,7 +140,9 @@ public:
     const int number;
     const double cycles;
     const double eigenValue;
-    FrequencyAssertion(Model&, int number, double cycles, double eigenValue, double tolerance, int original_id =
+    const double generalizedMass;
+    const double generalizedStiffness;
+    FrequencyAssertion(Model&, int number, double cycles, double eigenValue, double generalizedMass, double generalizedStiffness, double tolerance, int original_id =
             NO_ORIGINAL_ID);
     const DOFS getDOFSForNode(const int nodePosition) const override final;
     std::set<int> nodePositions() const override final;

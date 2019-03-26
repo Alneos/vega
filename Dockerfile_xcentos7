@@ -5,7 +5,7 @@ FROM centos:7
 MAINTAINER Alter Ego Engineering <luca.dallolio@aego.ai>
 
 # https://mxe.cc/#requirements-fedora
-RUN yum -y update && rpm --import http://download.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7 && yum install -y epel-release && yum install -y autoconf automake bash bison bzip2 flex gcc-c++ gdk-pixbuf2-devel gettext git gperf intltool libtool make openssl-devel p7zip patch perl pkgconfig python ruby sed unzip wget xz git openssl
+RUN yum -y update && rpm --import http://download.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7 && yum install -y epel-release && yum install -y autoconf automake bash bison bzip2 flex gcc-c++ gdk-pixbuf2-devel gettext git gperf intltool libtool make openssl-devel p7zip patch perl pkgconfig python ruby sed unzip wget xz git openssl lzip
 
 ENV MXE_HOME=/opt/mxe
 ENV MXE_BUILD=/root/mxe

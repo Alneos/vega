@@ -419,7 +419,7 @@ private:
     void writeNodalDisplacementAssertion(Assertion& assertion, std::ostream& out);
     void writeNodalComplexDisplacementAssertion(Assertion& assertion, std::ostream& out);
     void writeFrequencyAssertion(Assertion& assertion, std::ostream& out);
-    void writeNodalForce(const SystusModel& systusModel, std::shared_ptr<NodalForce> nodalForce, const int idLoadCase, systus_ascid_t& vectorId);
+    void writeNodalForceVector(const SystusModel& systusModel, std::shared_ptr<NodalForce> nodalForce, const int idLoadCase, systus_ascid_t& vectorId);
 
     const std::string toString() const override {
         return std::string("SystusWriter");

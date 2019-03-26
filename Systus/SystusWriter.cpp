@@ -64,10 +64,10 @@ const unordered_map<CellType::Code, vector<int>, EnumClassHash> SystusWriter::sy
         { CellType::Code::POINT1_CODE, { 0 } },
         { CellType::Code::SEG2_CODE, { 0, 1 } },
         { CellType::Code::SEG3_CODE, { 0, 2, 1 } },
-        { CellType::Code::TRI3_CODE, { 0, 2, 1 } },
-        { CellType::Code::TRI6_CODE, { 0, 5, 2, 4, 1, 3 } },
-        { CellType::Code::QUAD4_CODE, { 0, 3, 2, 1 } },
-        { CellType::Code::QUAD8_CODE, { 0, 7, 3, 6, 2, 5, 1, 4 } },
+        { CellType::Code::TRI3_CODE, { 0, 1, 2 } },
+        { CellType::Code::TRI6_CODE, { 0, 3, 1, 4, 2, 5 } },
+        { CellType::Code::QUAD4_CODE, { 0, 1, 2, 3 } },
+        { CellType::Code::QUAD8_CODE, { 0, 4, 1, 5, 2, 6, 3, 7 } },
         { CellType::Code::TETRA4_CODE, { 0, 2, 1, 3 } },
         { CellType::Code::TETRA10_CODE, { 0, 6, 2, 5, 1, 4, 7, 9, 8, 3 } },
         { CellType::Code::PENTA6_CODE, { 0, 2, 1, 3, 5, 4 } },
@@ -585,9 +585,9 @@ double SystusWriter::generateRbarStiffness(const SystusModel& systusModel){
         for (const auto& elementSet : systusModel.model.elementSets) {
             const auto& material = elementSet->material;
             if ((elementSet->cellGroup != nullptr)&&(material != nullptr)){
-                const shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
+                const auto& nature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
                 if (nature) {
-                    const ElasticNature& elasticNature = dynamic_cast<ElasticNature&>(*nature);
+                    const ElasticNature& elasticNature = dynamic_cast<const ElasticNature&>(*nature);
                     maxYoungModulus= max(maxYoungModulus, elasticNature.getE());
                 }
             }
@@ -687,8 +687,8 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
             if (material == nullptr){
                 throw logic_error("Error: ElementSet::RBAR have no material.");
             }
-            shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_RIGID);
-            if (!nature) {
+            const auto& nature = material->findNature(Nature::NatureType::NATURE_RIGID);
+            if (nature == nullptr) {
                 throw logic_error("Error: ElementSet::RBAR have no RIGID nature.");
             }
 
@@ -908,18 +908,12 @@ void SystusWriter::generateSubcases(const SystusModel& systusModel,
             vector<systus_ascid_t> cAna;
             cAna.push_back(static_cast<int>(analysis.type)); //Analysis type
 
+            // Only constraints must be considered: we can merge two analysis if they share the same matrix, even if they have different loadings
             const vector<shared_ptr<ConstraintSet>> constraintSets = analysis.getConstraintSets();
             cAna.push_back(static_cast<int>(constraintSets.size()));
             for (const auto& constraintSet : constraintSets){
                 cAna.push_back(constraintSet->getId());
             }
-            //TODO Maybe we need to test that too?
-            //const vector<shared_ptr<BoundaryCondition>> boundaryConditions= analysis.getBoundaryConditions();
-            //cAna.push_back(boundaryConditions.size());
-            //for (const auto& boundaryCondition : boundaryConditions){
-            //  cAna.push_back(boundaryCondition->getId());
-            //}
-
 
             // For mechanical static problem, we search the already defined subcases for the same characteristic
             auto idSubcase = systusSubcases.size();
@@ -1041,7 +1035,7 @@ void SystusWriter::fillLoads(const SystusModel& systusModel, const int idSubcase
             cerr << "Warning in Filling Loads : wrong analysis number ("<< analysisId[i]<<") Analysis dismissed"<<endl;
             break;
         }
-        localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]= {};
+        localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]={};
         const vector<shared_ptr<LoadSet>> analysisLoadSets = analysis->getLoadSets();
         int idSystusLoadByAnalysis=0;
         for (const auto& loadSet : analysisLoadSets) {
@@ -1064,7 +1058,7 @@ void SystusWriter::fillLoads(const SystusModel& systusModel, const int idSubcase
     }
 }
 
-void SystusWriter::writeNodalForce(const SystusModel& systusModel, shared_ptr<NodalForce> nodalForce, const int idLoadCase, systus_ascid_t& vectorId) {
+void SystusWriter::writeNodalForceVector(const SystusModel& systusModel, shared_ptr<NodalForce> nodalForce, const int idLoadCase, systus_ascid_t& vectorId) {
 
     for(const int nodePosition : nodalForce->nodePositions()) {
         const VectorialValue& force = nodalForce->getForceInGlobalCS(nodePosition);
@@ -1148,7 +1142,7 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                 switch (loading->type) {
                 case Loading::Type::NODAL_FORCE: {
                     shared_ptr<NodalForce> nodalForce = dynamic_pointer_cast<NodalForce>(loading);
-                    writeNodalForce(systusModel, nodalForce, idLoadCase, vectorId);
+                    writeNodalForceVector(systusModel, nodalForce, idLoadCase, vectorId);
                     break;
                 }
 
@@ -1167,7 +1161,7 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                     vec.push_back(0);
                     vec.push_back(0.0);
                     vec.push_back(0.0);
-                    vec.push_back(npf->intensity);
+                    vec.push_back(-npf->intensity);
                     if (!is_zero(npf->intensity)){
                         vectors[vectorId]=vec;
                         for (const int cellId : npf->getCellIds(true)){
@@ -1177,8 +1171,6 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                     }
                     break;
                 }
-
-
                 case Loading::Type::GRAVITY: {
                     shared_ptr<Gravity> gravity = dynamic_pointer_cast<Gravity>(loading);
                     VectorialValue acceleration = gravity->getAccelerationVector();
@@ -1280,7 +1272,7 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                         }
 
                         shared_ptr<NodalForce> nodalForce = dynamic_pointer_cast<NodalForce>(dLoading);
-                        writeNodalForce(systusModel, nodalForce, idLoadCase, vectorId);
+                        writeNodalForceVector(systusModel, nodalForce, idLoadCase, vectorId);
                     }
 
                     break;
@@ -1407,88 +1399,65 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
 
         // Add constraint Vectors
         for (const auto& loadset : analysis->getLoadSets()){
-            for (const auto& loading : loadset->getLoadings()) {
+            for (const auto& loading : loadset->getLoadingsByType(Loading::Type::IMPOSED_DISPLACEMENT)) {
+                shared_ptr<ImposedDisplacement> spc = dynamic_pointer_cast<ImposedDisplacement>(loading);
+                vector<double> vec;
+                double normvec = initSystusAscConstraintVector(vec);
 
-                switch (loading->type) {
-
-                // These loadings are translated via loading vectors
-                // Nothing to do here
-                case Loading::Type::NODAL_FORCE:
-                case Loading::Type::GRAVITY:
-		case Loading::Type::NORMAL_PRESSION_FACE:
-		case Loading::Type::FORCE_SURFACE:
-                case Loading::Type::DYNAMIC_EXCITATION:{
-                    break;
+                for (DOF dof : availableDOFS){
+                    double value = spc->getDoubleForDOF(dof);
+                    if (is_equal(value, Globals::UNAVAILABLE_DOUBLE)) {
+                        value=0.0;
+                    }
+                    normvec = max(normvec, abs(value));
+                    vec.push_back(value);
                 }
 
-                // This loading is translated via a constraint vector.
-                case Loading::Type::IMPOSED_DISPLACEMENT:{
-                    shared_ptr<ImposedDisplacement> spc = dynamic_pointer_cast<ImposedDisplacement>(loading);
-                    vector<double> vec;
-                    double normvec = initSystusAscConstraintVector(vec);
+                if (!is_zero(normvec)){
+                    vectors[vectorId]=vec;
+                    for (const auto& it : localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]){
+                        for (int nodePosition : spc->nodePositions()){
+                            constraintVectorsIdByLocalLoadingByNodePosition[nodePosition][it.second].push_back(vectorId);
+                        }
+                    }
+                    vectorId++;
+                }
 
-                    for (DOF dof : availableDOFS){
+                // Rigid Body Element in option 3D.
+                // We report the constraints from the master node to the master rotational node.
+                // Todo: factorize this part
+                if (systusOption==SystusOption::CONTINUOUS){
+
+                    // Rotation vector
+                    normvec=initSystusAscConstraintVector(vec);
+                    for (DOF dof : DOFS::ROTATIONS){
+                        //double value = (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0);
                         double value = spc->getDoubleForDOF(dof);
                         if (is_equal(value, Globals::UNAVAILABLE_DOUBLE)){
                             value=0.0;
                         }
-
                         normvec = max(normvec, abs(value));
                         vec.push_back(value);
                     }
 
                     if (!is_zero(normvec)){
-                        vectors[vectorId]=vec;
-                        for (const auto& it : localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]){
-                            for (int nodePosition : spc->nodePositions()){
-                                constraintVectorsIdByLocalLoadingByNodePosition[nodePosition][it.second].push_back(vectorId);
-                            }
-                        }
-                        vectorId++;
-                    }
-
-                    // Rigid Body Element in option 3D.
-                    // We report the constraints from the master node to the master rotational node.
-                    // Todo: factorize this part
-                    if (systusOption==SystusOption::CONTINUOUS){
-
-                        // Rotation vector
-                        normvec=initSystusAscConstraintVector(vec);
-                        for (DOF dof : DOFS::ROTATIONS){
-                            //double value = (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0);
-                            double value = spc->getDoubleForDOF(dof);
-                            if (is_equal(value, Globals::UNAVAILABLE_DOUBLE)){
-                                value=0.0;
-                            }
-                            normvec = max(normvec, abs(value));
-                            vec.push_back(value);
-                        }
-
-                        if (!is_zero(normvec)){
-                            bool firstTime=true;
-                            for (int nodePosition : spc->nodePositions()){
-                                int nid = systusModel.model.mesh.findNodeId(nodePosition);
-                                const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
-                                if (it!=rotationNodeIdByTranslationNodeId.end()){
-                                    int rotNodePosition= systusModel.model.mesh.findNodePosition(it->second);
-                                    for (const auto & it2 : localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]){
-                                        constraintVectorsIdByLocalLoadingByNodePosition[rotNodePosition][it2.second].push_back(vectorId);
-                                    }
-                                    if (firstTime){
-                                        vectors[vectorId]=vec;
-                                        vectorId++;
-                                        firstTime = false;
-                                    }
+                        bool firstTime=true;
+                        for (int nodePosition : spc->nodePositions()){
+                            int nid = systusModel.model.mesh.findNodeId(nodePosition);
+                            const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
+                            if (it!=rotationNodeIdByTranslationNodeId.end()){
+                                int rotNodePosition= systusModel.model.mesh.findNodePosition(it->second);
+                                for (const auto & it2 : localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]){
+                                    constraintVectorsIdByLocalLoadingByNodePosition[rotNodePosition][it2.second].push_back(vectorId);
+                                }
+                                if (firstTime){
+                                    vectors[vectorId]=vec;
+                                    vectorId++;
+                                    firstTime = false;
                                 }
                             }
                         }
                     }
-                    break;
-                }
-
-                default: {
-                    handleWritingWarning(to_str(*loading) +" not supported.", "Constraint vectors");
-                }
                 }
             }
         }
@@ -1839,7 +1808,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
                 // Building the table
                 for (const auto np : sm->nodePairs()){
                     int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
-                    shared_ptr<DOFMatrix> dM = sm->findSubmatrix(np.first, np.second);
+                    shared_ptr<const DOFMatrix> dM = sm->findSubmatrix(np.first, np.second);
                     for (const auto dof: dM->componentByDofs){
                         int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
                         aTable.add(pairCode+dofCode);
@@ -1866,7 +1835,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
                 // Building the table
                 for (const auto np : mm->nodePairs()){
                     int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
-                    shared_ptr<DOFMatrix> dM = mm->findSubmatrix(np.first, np.second);
+                    shared_ptr<const DOFMatrix> dM = mm->findSubmatrix(np.first, np.second);
                     for (const auto dof: dM->componentByDofs){
                         int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
                         aTable.add(pairCode+dofCode);
@@ -1893,7 +1862,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
                 // Building the table
                 for (const auto np : dm->nodePairs()){
                     int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
-                    shared_ptr<DOFMatrix> dM = dm->findSubmatrix(np.first, np.second);
+                    shared_ptr<const DOFMatrix> dM = dm->findSubmatrix(np.first, np.second);
                     for (const auto dof: dM->componentByDofs){
                         int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
                         aTable.add(pairCode+dofCode);
@@ -1913,56 +1882,23 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
     }
 
     // Build tables for linear multipoint constraints
-    for (const auto& elementSet : systusModel.model.elementSets) {
-
-        switch (elementSet->type) {
-        // None of these elements are LMPC
-        //HELP: We keep the list to raise warnings for unknown ElementSet
-        case ElementSet::Type::CIRCULAR_SECTION_BEAM:
-        case ElementSet::Type::GENERIC_SECTION_BEAM:
-        case ElementSet::Type::I_SECTION_BEAM:
-        case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
-        case ElementSet::Type::STRUCTURAL_SEGMENT:
-        case ElementSet::Type::SHELL:
-        case ElementSet::Type::CONTINUUM:
-        case ElementSet::Type::SKIN:
-        case ElementSet::Type::NODAL_MASS:
-        case ElementSet::Type::RBAR:
-        case ElementSet::Type::RBE3:
-        case ElementSet::Type::DISCRETE_0D:
-        case ElementSet::Type::DISCRETE_1D:
-        case ElementSet::Type::SCALAR_SPRING:
-        case ElementSet::Type::STIFFNESS_MATRIX:
-        case ElementSet::Type::MASS_MATRIX:
-        case ElementSet::Type::DAMPING_MATRIX:{
+    for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::LMPC)) {
+        // If the LMPC is not relevant to the current subcase, we skip it
+        shared_ptr<Lmpc> lmpc = dynamic_pointer_cast<Lmpc>(elementSet);
+        vector<int> analysisOfSubcase =  systusSubcases[idSubcase];
+        if (std::find(analysisOfSubcase.begin(), analysisOfSubcase.end(), lmpc->analysisId) == analysisOfSubcase.end()){
             continue;
         }
-
-        case ElementSet::Type::LMPC:{
-
-            // If the LMPC is not relevant to the current subcase, we skip it
-            shared_ptr<Lmpc> lmpc = dynamic_pointer_cast<Lmpc>(elementSet);
-            vector<int> analysisOfSubcase =  systusSubcases[idSubcase];
-            if (std::find(analysisOfSubcase.begin(), analysisOfSubcase.end(), lmpc->analysisId) == analysisOfSubcase.end()){
-                continue;
+        // The Table for Lmpc is simply the list of coef by dof by nodes
+        systus_ascid_t tId= tables.size()+1;
+        SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
+        for (DOFCoefs dofCoefs : lmpc->dofCoefs){
+            for (int i =0; i< nbDOFS; i++){
+                aTable.add(dofCoefs[i]);
             }
-            // The Table for Lmpc is simply the list of coef by dof by nodes
-            systus_ascid_t tId= tables.size()+1;
-            SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
-            for (DOFCoefs dofCoefs : lmpc->dofCoefs){
-                for (int i =0; i< nbDOFS; i++){
-                    aTable.add(dofCoefs[i]);
-                }
-            }
-            tables.push_back(aTable);
-            tableByElementSet[elementSet->getId()]=tId;
-            break;
         }
-
-        default: {
-            handleWritingWarning(to_str(*elementSet) +" not supported", "Table");
-        }
-        }
+        tables.push_back(aTable);
+        tableByElementSet[elementSet->getId()]=tId;
     }
 
 
@@ -2132,7 +2068,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
                 for (const auto np : dam->nodePairs()){
                     int nI = positionToSytusNumber[np.first];
                     int nJ = positionToSytusNumber[np.second];
-                    const shared_ptr<DOFMatrix>& dM = dam->findSubmatrix(np.first, np.second);
+                    const shared_ptr<const DOFMatrix>& dM = dam->findSubmatrix(np.first, np.second);
                     for (const auto dof: dM->componentByDofs){
                         int dofI = DOFToInt(dof.first.first);
                         int dofJ = DOFToInt(dof.first.second);
@@ -2164,7 +2100,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
                 for (const auto np : mm->nodePairs()){
                     int nI = positionToSytusNumber[np.first];
                     int nJ = positionToSytusNumber[np.second];
-                    shared_ptr<DOFMatrix> dM = mm->findSubmatrix(np.first, np.second);
+                    shared_ptr<const DOFMatrix> dM = mm->findSubmatrix(np.first, np.second);
                     for (const auto dof: dM->componentByDofs){
                         int dofI = DOFToInt(dof.first.first);
                         int dofJ = DOFToInt(dof.first.second);
@@ -2196,7 +2132,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
                 for (const auto np : sm->nodePairs()){
                     int nI = positionToSytusNumber[np.first];
                     int nJ = positionToSytusNumber[np.second];
-                    shared_ptr<DOFMatrix> dM = sm->findSubmatrix(np.first, np.second);
+                    shared_ptr<const DOFMatrix> dM = sm->findSubmatrix(np.first, np.second);
                     for (const auto dof: dM->componentByDofs){
                         int dofI = DOFToInt(dof.first.first);
                         int dofJ = DOFToInt(dof.first.second);
@@ -2694,7 +2630,7 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
      *  - NodalMass groups, as they are not cells in Systus
      *  - Orientation groups, as they are not parts.
      */
-    set<int> pids= {};
+    set<int> pids={};
     for (const auto& cellGroup : cellGroups) {
         if (cellGroup->isUseful){
             nbGroups++;
@@ -2763,7 +2699,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                         const double S= genericBeam->getAreaCrossSection();
                         writeMaterialField(SMF::S, S, nbElementsMaterial, omat);
 
-                        if (not genericBeam->isBar()) {
+                        if (not genericBeam->isTruss()) {
                             // VEGA stocks the inverse of our needed Shear Area Factors.
                             writeMaterialField(SMF::AY, S*genericBeam->getShearAreaFactorY(), nbElementsMaterial, omat);
                             writeMaterialField(SMF::AZ, S*genericBeam->getShearAreaFactorZ(), nbElementsMaterial, omat);
@@ -2780,7 +2716,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                         const double S= circularBeam->getAreaCrossSection();
 
                         writeMaterialField(SMF::S, S, nbElementsMaterial, omat);
-                        if (not circularBeam->isBar()) {
+                        if (not circularBeam->isTruss()) {
                             writeMaterialField(SMF::AY, S*circularBeam->getShearAreaFactorY(), nbElementsMaterial, omat);
                             writeMaterialField(SMF::AZ, S*circularBeam->getShearAreaFactorZ(), nbElementsMaterial, omat);
 
@@ -2795,7 +2731,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                                 const RectangularSectionBeam>(elementSet);
                         const double S= rectangularBeam->getAreaCrossSection();
 
-                        if (not rectangularBeam->isBar()) {
+                        if (not rectangularBeam->isTruss()) {
                             writeMaterialField(SMF::S, S, nbElementsMaterial, omat);
                             writeMaterialField(SMF::AY, S*rectangularBeam->getShearAreaFactorY(), nbElementsMaterial, omat);
                             writeMaterialField(SMF::AZ, S*rectangularBeam->getShearAreaFactorZ(), nbElementsMaterial, omat);

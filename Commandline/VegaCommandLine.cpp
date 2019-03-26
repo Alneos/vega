@@ -181,6 +181,12 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
         translationMode = ConfigurationParameters::TranslationMode::MODE_STRICT;
     }
 
+    bool createGraph = false;
+    if (vm.count("graph") > 0) {
+        cout << "Graph requested. " << endl;
+        createGraph = true;
+    }
+
 
     // Choice of output solver, and options related to it
     #if ENABLE_ASTER
@@ -219,13 +225,24 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
         }
     }
 
+    // Option for Nastran Conversion
+    string nastranOutputDialect="cosmic95";
+    if (vm.count("nastran.OutputDialect")){
+        nastranOutputDialect = vm["nastran.OutputDialect"].as<string>();
+        set<string> availableDialects { "cosmic95", "modern" };
+        set<string>::iterator it = availableDialects.find(nastranOutputDialect);
+        if (it == availableDialects.end()) {
+            throw invalid_argument("Nastran output dialect must be either cosmic95 (default) or modern.");
+        }
+    }
+
     // Option for Systus Conversion
     string systusRBE2TranslationMode="penalty";
     if (vm.count("systus.RBE2TranslationMode")){
         systusRBE2TranslationMode = vm["systus.RBE2TranslationMode"].as<string>();
-        set<string> availableTranlation { "lagrangian", "penalty" };
-        set<string>::iterator it = availableTranlation.find(systusRBE2TranslationMode);
-        if (it == availableTranlation.end()) {
+        set<string> availableTranslation { "lagrangian", "penalty" };
+        set<string>::iterator it = availableTranslation.find(systusRBE2TranslationMode);
+        if (it == availableTranslation.end()) {
             throw invalid_argument("Systus RBE2 Translation Mode must be either lagrangian or penalty (default).");
         }
     }
@@ -351,6 +368,7 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
         cout << "VEGA options for this translation are: "<< endl;
         cout << "\t Output directory: "<< outputDir << endl;
         cout << "\t Verbosity: "<< static_cast<int>(logLevel) << endl;
+        cout << "\t Nastran Output Dialect: "<< nastranOutputDialect << endl;
         cout << "\t Systus RBE2 Translation Mode: "<< systusRBE2TranslationMode << endl;
         cout << "\t Systus RBE Stiffness: " << (is_equal(systusRBEStiffness, Globals::UNAVAILABLE_DOUBLE) ? "auto" : to_string(systusRBEStiffness)) << endl;
         cout << "\t Systus RBE Coefficient: " << systusRBECoefficient << endl;
@@ -370,9 +388,9 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
 
     ConfigurationParameters configuration = ConfigurationParameters(inputFile.string(), solver,
             solverVersion, modelName, outputDir, logLevel, translationMode, testFnamePath,
-            tolerance, runSolver, solverServer, solverCommand,
+            tolerance, runSolver, createGraph, solverServer, solverCommand,
             systusRBE2TranslationMode, systusRBEStiffness, systusRBECoefficient, systusOptionAnalysis, systusOutputProduct,
-            systusSubcases, systusOutputMatrix, systusSizeMatrix, systusDynamicMethod);
+            systusSubcases, systusOutputMatrix, systusSizeMatrix, systusDynamicMethod, nastranOutputDialect);
     return configuration;
 }
 
@@ -458,7 +476,13 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
                 " otherwise it is translated only the mesh.") //
         ("strict,s", "Stops translation at the first "
                 "unrecognized keyword or parameter.")//
+        ("graph,g", "Creates a graph of the study") //
         ("verbosity", po::value<string>(), "Verbosity of VEGA. From low to high: ERROR, WARN, INFO, DEBUG, TRACE"); //
+
+        po::options_description nastranOptions("Nastran specific options");
+        nastranOptions.add_options() //
+        ("nastran.OutputDialect",po::value<string>()->default_value("cosmic95"),
+                 "Type of output: cosmic95 or modern.");
 
         // Systus specific options
         // TODO: Some of these options are not so specific: rename and move them.
@@ -499,7 +523,7 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
                 "output format. Allowed formats are ASTER, SYSTUS");
 
         po::options_description cmdline_options;
-        cmdline_options.add(commandLine).add(generic).add(systusOptions).add(hidden);
+        cmdline_options.add(commandLine).add(generic).add(nastranOptions).add(systusOptions).add(hidden);
 
         po::options_description config_file_options;
         config_file_options.add(generic).add(systusOptions).add(hidden);

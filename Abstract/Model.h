@@ -153,22 +153,30 @@ public:
         UPPER_CUTOFF_FREQUENCY,
         ELEMENT_QUALITY_CHECK,
         STRUCTURAL_DAMPING,
-        FREQUENCY_OF_INTEREST_RADIANS
+        FREQUENCY_OF_INTEREST_RADIANS,
+        SHELL_NORMAL_STIFFNESS_FACTOR /**< see Nastran K6ROT, Aster COEF_RIGI_DRZ http://eric.cabrol.free.fr/CalculEF/params_Nastran.html */
     };
     const std::shared_ptr<LoadSet> commonLoadSet;
     const std::shared_ptr<ConstraintSet> commonConstraintSet;
 
 private:
-    std::unordered_map<LoadSet::Type, std::map<int, std::set<std::shared_ptr<Reference<Loading>>> > ,EnumClassHash>
+    std::unordered_map<LoadSet::Type, std::map<int, std::set<Reference<Loading>> > ,EnumClassHash>
     loadingReferences_by_loadSet_original_ids_by_loadSet_type;
-    std::unordered_map<int, std::set<std::shared_ptr<Reference<Loading>>> >
+    std::unordered_map<int, std::set<Reference<Loading>> >
     loadingReferences_by_loadSet_ids;
 
     std::unordered_map< ConstraintSet::Type,
-    std::map<int, std::set<std::shared_ptr<Reference<Constraint>>>>,EnumClassHash>
+    std::map<int, std::set<Reference<Constraint>>>,EnumClassHash>
     constraintReferences_by_constraintSet_original_ids_by_constraintSet_type;
-    std::map< int, std::set<std::shared_ptr<Reference<Constraint>>>>
+
+    std::unordered_map< ObjectiveSet::Type,
+    std::map<int, std::set<Reference<Objective>>>,EnumClassHash>
+    objectiveReferences_by_objectiveSet_original_ids_by_objectiveSet_type;
+
+    std::map< int, std::set<Reference<Constraint>>>
     constraintReferences_by_constraintSet_ids;
+    std::map< int, std::set<Reference<Objective>>>
+    objectiveReferences_by_objectiveSet_ids;
 
     template<class T> class Container final {
     private:
@@ -178,6 +186,7 @@ private:
         Model& model;
     public:
         Container(Model& model): model(model) {}
+        Container(const Container& that) = delete; /**< Containers should never be copied */
         class iterator;
         friend class iterator;
         class iterator : public std::iterator< std::input_iterator_tag,T,ptrdiff_t> {
@@ -218,7 +227,6 @@ private:
         bool contains(const typename T::Type type) const; /**< Ask if objects of a given type exist inside */
         const std::vector<std::shared_ptr<T>> filter(const typename T::Type type) const; /**< Choose objects based on their type */
         bool validate(); /**< Says if model parts are coherent (no unresolved references, etc.) AND SOMETIMES IT TRIES TO FIX THEM :( */
-        Container(const Container& that) = delete; /**< Containers should never be copied */
     }; /* Container class */
     std::unordered_map<int,CellContainer> material_assignment_by_material_id;
 public:
@@ -351,6 +359,12 @@ public:
      * Retrieve all the LoadSet of the model that are at least referenced by one analysis
      */
     const std::vector<std::shared_ptr<LoadSet>> getActiveLoadSets() const;
+
+    /**
+     * Retrieve all the Objectives corresponding to a given ObjectiveSet.
+     */
+    const std::set<std::shared_ptr<Objective>> getObjectivesByObjectiveSet(const Reference<ObjectiveSet>&) const;
+
     /**
      * Retrieve all the ConstraintSet of the model that are common to all analysis
      */
@@ -369,8 +383,15 @@ public:
      */
     const std::set<std::shared_ptr<LoadSet>> getUncommonLoadSets() const;
 
+    /**
+	 * Retrieves only 1D elements having rotational stiffness in linear static analysis, false for Truss elements (also see getTrusses() method )
+	 */
     const std::vector<std::shared_ptr<Beam>> getBeams() const;
-    const std::vector<std::shared_ptr<Beam>> getBars() const;
+
+    /**
+	 * Retrieves only 1D elements having no rotational stiffness in linear static analysis (also see getBeams() method )
+	 */
+    const std::vector<std::shared_ptr<Beam>> getTrusses() const;
     bool needsLargeDisplacements() const;
 
     /**
@@ -470,7 +491,7 @@ inline void Model::Container<NamedValue>::add(std::shared_ptr<NamedValue> ptr) {
                 funPtr->setParaY(funptr_old->getParaY());
         } else {
             std::ostringstream oss;
-            oss << ptr->getReference() << " is already in the model";
+            oss << *ptr << " is already in the model";
             throw std::runtime_error(oss.str());
         }
     }
