@@ -31,6 +31,7 @@ using namespace std;
 //}
 
 BOOST_AUTO_TEST_CASE( beam ) {
+    // multiple subcases
 	CommandLineUtils::optistructStudy2Nastran("/irt/beam/beam.fem", RUN_NASTRAN, true, 0.02);
 }
 

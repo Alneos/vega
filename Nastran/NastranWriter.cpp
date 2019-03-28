@@ -180,7 +180,7 @@ string NastranWriter::getNasFilename(const Model& model,
 }
 
 void NastranWriter::writeSOL(const Model& model, ofstream& out) const
-		{
+    {
 	auto& firstAnalysis = *model.analyses.begin();
 	string analysisLabel;
 	switch(dialect) {
@@ -199,7 +199,7 @@ void NastranWriter::writeSOL(const Model& model, ofstream& out) const
             break;
         }
         default:
-            out << "$ WARN analysis " << firstAnalysis << " not supported. Skipping." << endl;
+            out << "$ WARN analysis " << *firstAnalysis << " not supported. Skipping." << endl;
         }
 
         break;
@@ -223,7 +223,7 @@ void NastranWriter::writeSOL(const Model& model, ofstream& out) const
             break;
         }
         default:
-            out << "$ WARN analysis " << firstAnalysis << " not supported. Skipping." << endl;
+            out << "$ WARN analysis " << *firstAnalysis << " not supported. Skipping." << endl;
         }
         break;
     }
@@ -232,6 +232,36 @@ void NastranWriter::writeSOL(const Model& model, ofstream& out) const
 	}
 
 	out << "SOL " << analysisLabel << endl;
+	firstAnalysis->markAsWritten();
+	if (model.analyses.size() >= 2) {
+        for (auto& analysis : model.analyses) {
+            out << "SUBCASE " << analysis->bestId() << endl;
+            for (const auto& loadSet : analysis->getLoadSets()) {
+                switch (loadSet->type) {
+                case LoadSet::Type::LOAD: {
+                    out << "LOAD=" << loadSet->bestId() << endl;
+                    loadSet->markAsWritten();
+                    break;
+                }
+                default:
+                    handleWritingError("LoadSet type not (yet) implemented");
+                }
+            }
+            for (const auto& constraintSet : analysis->getConstraintSets()) {
+                switch (constraintSet->type) {
+                case ConstraintSet::Type::SPC: {
+                    out << "SPC=" << constraintSet->bestId() << endl;
+                    constraintSet->markAsWritten();
+                    break;
+                }
+                default:
+                    handleWritingError("LoadSet type not (yet) implemented");
+                }
+            }
+            analysis->markAsWritten();
+        }
+	}
+
 }
 
 void NastranWriter::writeCells(const Model& model, ofstream& out) const
@@ -337,6 +367,7 @@ void NastranWriter::writeMaterials(const Model& model, ofstream& out) const
 			}
 		}
 		out << mat1;
+		material->markAsWritten();
 	}
 }
 
@@ -345,36 +376,85 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
 	for (const auto& constraintSet : model.constraintSets) {
 		const set<shared_ptr<Constraint> >& spcs = constraintSet->getConstraintsByType(
 				Constraint::Type::SPC);
-		if (spcs.size() > 0) {
-			for (shared_ptr<Constraint> constraint : spcs) {
-				shared_ptr<const SinglePointConstraint> spc = dynamic_pointer_cast<
-						const SinglePointConstraint>(constraint);
-				for (int nodePosition : spc->nodePositions()) {
-					const int nodeId = model.mesh.findNodeId(nodePosition);
-					out
-							<< Line("SPC1").add(constraintSet->bestId()).add(
-									spc->getDOFSForNode(nodePosition)).add(nodeId);
-				}
-			}
-		}
+        for (shared_ptr<Constraint> constraint : spcs) {
+            shared_ptr<SinglePointConstraint> spc = dynamic_pointer_cast<
+                    SinglePointConstraint>(constraint);
+            for (int nodePosition : spc->nodePositions()) {
+                const int nodeId = model.mesh.findNodeId(nodePosition);
+                out
+                        << Line("SPC1").add(constraintSet->bestId()).add(
+                                spc->getDOFSForNode(nodePosition)).add(nodeId);
+            }
+            spc->markAsWritten();
+        }
 		const set<shared_ptr<Constraint> >& rigidConstraints = constraintSet->getConstraintsByType(
 				Constraint::Type::RIGID);
-		if (rigidConstraints.size() > 0) {
-			for (shared_ptr<Constraint> constraint : rigidConstraints) {
-				shared_ptr<const RigidConstraint> rigid =
-						dynamic_pointer_cast<const RigidConstraint>(constraint);
-				Line rbe2("RBE2");
-				rbe2.add(constraintSet->bestId());
-				const int masterId = model.mesh.findNodeId(rigid->getMaster());
-				rbe2.add(masterId);
-				rbe2.add(DOFS::ALL_DOFS);
-				for (int slavePosition : rigid->getSlaves()) {
-					const int slaveId = model.mesh.findNodeId(slavePosition);
-					rbe2.add(slaveId);
-				}
-				out << rbe2;
-			}
-		}
+        for (shared_ptr<Constraint> constraint : rigidConstraints) {
+            shared_ptr<RigidConstraint> rigid =
+                    dynamic_pointer_cast<RigidConstraint>(constraint);
+            Line rbe2("RBE2");
+            rbe2.add(constraintSet->bestId());
+            const int masterId = model.mesh.findNodeId(rigid->getMaster());
+            rbe2.add(masterId);
+            rbe2.add(DOFS::ALL_DOFS);
+            for (int slavePosition : rigid->getSlaves()) {
+                const int slaveId = model.mesh.findNodeId(slavePosition);
+                rbe2.add(slaveId);
+            }
+            out << rbe2;
+            rigid->markAsWritten();
+        }
+
+		const set<shared_ptr<Constraint> >& quasiRigidConstraints = constraintSet->getConstraintsByType(
+				Constraint::Type::QUASI_RIGID);
+        for (shared_ptr<Constraint> constraint : quasiRigidConstraints) {
+            shared_ptr<QuasiRigidConstraint> quasiRigid =
+                    dynamic_pointer_cast<QuasiRigidConstraint>(constraint);
+            if (not quasiRigid->hasMaster() and quasiRigid->getSlaves().size() == 2) {
+                Line rbar("RBAR");
+                rbar.add(constraintSet->bestId());
+                for (int slavePosition : quasiRigid->getSlaves()) {
+                    rbar.add(model.mesh.findNodeId(slavePosition));
+                }
+                for (int slavePosition : quasiRigid->getSlaves()) {
+                    rbar.add(quasiRigid->getDOFSForNode(slavePosition));
+                }
+                out << rbar;
+            } else {
+                Line rbe2("RBE2");
+                rbe2.add(constraintSet->bestId());
+                const int masterId = model.mesh.findNodeId(quasiRigid->getMaster());
+                rbe2.add(masterId);
+                rbe2.add(quasiRigid->getDOFS());
+                for (int slavePosition : quasiRigid->getSlaves()) {
+                    const int slaveId = model.mesh.findNodeId(slavePosition);
+                    rbe2.add(slaveId);
+                }
+                out << rbe2;
+            }
+            quasiRigid->markAsWritten();
+        }
+
+		const set<shared_ptr<Constraint> >& rbe3Constraints = constraintSet->getConstraintsByType(
+				Constraint::Type::RBE3);
+        for (shared_ptr<Constraint> constraint : rbe3Constraints) {
+            shared_ptr<RBE3> rbe3Constraint =
+                    dynamic_pointer_cast<RBE3>(constraint);
+            Line rbe3("RBE3");
+            rbe3.add(constraintSet->bestId());
+            rbe3.add();
+            const int masterPosition = model.mesh.findNodeId(rbe3Constraint->getMaster());
+            rbe3.add(model.mesh.findNodeId(masterPosition));
+            rbe3.add(rbe3Constraint->getDOFSForNode(masterPosition));
+            for (int slavePosition : rbe3Constraint->getSlaves()) {
+                rbe3.add(rbe3Constraint->getCoefForNode(slavePosition));
+                rbe3.add(rbe3Constraint->getDOFSForNode(slavePosition));
+                rbe3.add(model.mesh.findNodeId(slavePosition));
+            }
+            out << rbe3;
+            rbe3Constraint->markAsWritten();
+        }
+		constraintSet->markAsWritten();
 	}
 }
 
@@ -382,80 +462,78 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
 		{
 	for (const auto& loadingSet : model.loadSets) {
 		const set<shared_ptr<Loading> > gravities = loadingSet->getLoadingsByType(Loading::Type::GRAVITY);
-		if (gravities.size() > 0) {
-			for (shared_ptr<Loading> loading : gravities) {
-				shared_ptr<const Gravity> gravity = dynamic_pointer_cast<const Gravity>(loading);
-				Line grav("GRAV");
-				grav.add(loadingSet->bestId());
-				if (gravity->hasCoordinateSystem()) {
-					throw logic_error("Coordinate System ID writing not yet implemented");
-				} else {
-					grav.add(0);
-				}
-				grav.add(gravity->getAccelerationScale());
-				grav.add(gravity->getGravityVector());
-				out << grav;
-			}
-		}
+        for (shared_ptr<Loading> loading : gravities) {
+            shared_ptr<Gravity> gravity = dynamic_pointer_cast<Gravity>(loading);
+            Line grav("GRAV");
+            grav.add(loadingSet->bestId());
+            if (gravity->hasCoordinateSystem()) {
+                throw logic_error("Coordinate System ID writing not yet implemented");
+            } else {
+                grav.add(0);
+            }
+            grav.add(gravity->getAccelerationScale());
+            grav.add(gravity->getGravityVector());
+            out << grav;
+            gravity->markAsWritten();
+        }
 
 		const set<shared_ptr<Loading> > forceSurfaces = loadingSet->getLoadingsByType(
 				Loading::Type::FORCE_SURFACE);
-		if (forceSurfaces.size() > 0) {
-			for (shared_ptr<Loading> loading : forceSurfaces) {
-				shared_ptr<ForceSurface> forceSurface = dynamic_pointer_cast<ForceSurface>(loading);
-				Line pload4("PLOAD4");
-				pload4.add(loadingSet->bestId());
-				const auto& cellIds = forceSurface->getCellIdsIncludingGroups();
-				if (cellIds.size() > 1) {
-                    throw logic_error("Unimplemented multiple cells in PLOAD4");
-				}
-				pload4.add(*cellIds.begin());
-				pload4.add(forceSurface->getForce().norm());
-				pload4.add(0.0);
-				pload4.add(0.0);
-				pload4.add(0.0);
-				if (!forceSurface->getMoment().iszero()) {
-					throw logic_error("Unimplemented moment in PLOAD4");
-				}
-				// TODO LD must recalculate two opposite nodes... hack
-				pload4.add(forceSurface->getApplicationFaceNodeIds()[0]);
-				pload4.add(forceSurface->getApplicationFaceNodeIds()[2]);
-				if (forceSurface->hasCoordinateSystem()) {
-					shared_ptr<CoordinateSystem> coordinateSystem = model.mesh.findCoordinateSystem(forceSurface->csref);
-					pload4.add(coordinateSystem->bestId());
-					pload4.add(coordinateSystem->vectorToGlobal(forceSurface->getForce().normalized()));
-				} else {
-					pload4.add(0);
-					pload4.add(forceSurface->getForce().normalized());
-				}
-				out << pload4;
-			}
-		}
+        for (shared_ptr<Loading> loading : forceSurfaces) {
+            shared_ptr<ForceSurface> forceSurface = dynamic_pointer_cast<ForceSurface>(loading);
+            Line pload4("PLOAD4");
+            pload4.add(loadingSet->bestId());
+            const auto& cellIds = forceSurface->getCellIdsIncludingGroups();
+            if (cellIds.size() > 1) {
+                throw logic_error("Unimplemented multiple cells in PLOAD4");
+            }
+            pload4.add(*cellIds.begin());
+            pload4.add(forceSurface->getForce().norm());
+            pload4.add(0.0);
+            pload4.add(0.0);
+            pload4.add(0.0);
+            if (!forceSurface->getMoment().iszero()) {
+                throw logic_error("Unimplemented moment in PLOAD4");
+            }
+            // TODO LD must recalculate two opposite nodes... hack
+            pload4.add(forceSurface->getApplicationFaceNodeIds()[0]);
+            pload4.add(forceSurface->getApplicationFaceNodeIds()[2]);
+            if (forceSurface->hasCoordinateSystem()) {
+                shared_ptr<CoordinateSystem> coordinateSystem = model.mesh.findCoordinateSystem(forceSurface->csref);
+                pload4.add(coordinateSystem->bestId());
+                pload4.add(coordinateSystem->vectorToGlobal(forceSurface->getForce().normalized()));
+            } else {
+                pload4.add(0);
+                pload4.add(forceSurface->getForce().normalized());
+            }
+            out << pload4;
+            forceSurface->markAsWritten();
+        }
 
 		const set<shared_ptr<Loading> > nodalForces = loadingSet->getLoadingsByType(
 				Loading::Type::NODAL_FORCE);
-		if (nodalForces.size() > 0) {
-			for (shared_ptr<Loading> loading : nodalForces) {
-				shared_ptr<NodalForce> nodalForce = dynamic_pointer_cast<NodalForce>(loading);
-				Line force("FORCE");
-				force.add(loadingSet->bestId());
-				if (nodalForce->nodePositions().size() != 1) {
-                    throw logic_error("Multiple nodes in nodal force, not yet implemented (but easy)");
-				}
-				int nodePosition = *(nodalForce->nodePositions().begin());
-				force.add(model.mesh.findNodeId(nodePosition));
-				force.add(0);
-				const auto& forceVector = nodalForce->getForceInGlobalCS(nodePosition);
-				force.add(1.0);
-				force.add(forceVector.x());
-				force.add(forceVector.y());
-				force.add(forceVector.z());
-				if (!nodalForce->getMomentInGlobalCS(nodePosition).iszero()) {
-					throw logic_error("Unimplemented moment in FORCE");
-				}
-                out << force;
-			}
-		}
+        for (shared_ptr<Loading> loading : nodalForces) {
+            shared_ptr<NodalForce> nodalForce = dynamic_pointer_cast<NodalForce>(loading);
+            Line force("FORCE");
+            force.add(loadingSet->bestId());
+            if (nodalForce->nodePositions().size() != 1) {
+                throw logic_error("Multiple nodes in nodal force, not yet implemented (but easy)");
+            }
+            int nodePosition = *(nodalForce->nodePositions().begin());
+            force.add(model.mesh.findNodeId(nodePosition));
+            force.add(0);
+            const auto& forceVector = nodalForce->getForceInGlobalCS(nodePosition);
+            force.add(1.0);
+            force.add(forceVector.x());
+            force.add(forceVector.y());
+            force.add(forceVector.z());
+            if (!nodalForce->getMomentInGlobalCS(nodePosition).iszero()) {
+                throw logic_error("Unimplemented moment in FORCE");
+            }
+            out << force;
+            nodalForce->markAsWritten();
+        }
+		loadingSet->markAsWritten();
 	}
 }
 
@@ -467,6 +545,15 @@ void NastranWriter::writeRuler(ofstream& out) const
 
 void NastranWriter::writeElements(const Model& model, ofstream& out) const
 		{
+	for (shared_ptr<Beam> truss : model.getTrusses()) {
+		Line prod("PROD");
+		prod.add(truss->bestId());
+		prod.add(truss->material->bestId());
+		prod.add(truss->getAreaCrossSection());
+		prod.add(truss->getTorsionalConstant());
+		out << truss;
+		truss->markAsWritten();
+	}
 	for (shared_ptr<Beam> beam : model.getBeams()) {
 		Line pbeam("PBEAM");
 		pbeam.add(beam->bestId());
@@ -477,12 +564,14 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 		pbeam.add(0.0);
 		pbeam.add(beam->getTorsionalConstant());
 		out << pbeam;
+		beam->markAsWritten();
 	}
 	for (shared_ptr<ElementSet> shell : model.elementSets.filter(ElementSet::Type::SHELL)) {
 		Line pshell("PSHELL");
 		pshell.add(shell->bestId());
 		pshell.add(shell->material->bestId());
 		out << pshell;
+		shell->markAsWritten();
 	}
 	for (shared_ptr<ElementSet> continuum : model.elementSets.filter(ElementSet::Type::CONTINUUM)) {
 	    string keyword = dialect == Dialect::COSMIC95 ? "PIHEX" : "PSOLID";
@@ -490,6 +579,7 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 		psolid.add(continuum->bestId());
 		psolid.add(continuum->material->bestId());
 		out << psolid;
+		continuum->markAsWritten();
 	}
 }
 
@@ -573,108 +663,6 @@ string NastranWriter::writeModel(Model& model,
 	writeConstraints(model, out);
 	writeRuler(out);
 	writeLoadings(model, out);
-
-//	{%- set key_counter = 0 -%}
-//	{% macro lpad(text) -%}{{ "%-16s" % text }}{%- endmacro %}
-//	{% macro key(text) -%}{{ "%-8s" % (text+'*') }}{%- set key_counter = 1 -%}{%- endmacro %}
-//	{% macro endl(text) -%}{{ "%-8s" % text }}{%- endmacro %}
-//	{% macro nextl(text) -%}{{ "%-8s" % text }}{{key_counter}}{%- endmacro %}
-//	{% macro rpad(text) -%}{{ "%16s" % text }}{%- endmacro %}
-//	{% macro fnum(num) -%}{%- set gnum = "%15.13g" % num -%}{%- if gnum | length <= 16 %}{%- if '.' in gnum %}{{ "%16s" % gnum }}{%- else %}{{ "%16s" % (gnum | float) }}{%- endif -%}{%- else %}{{ "%16s" % ("%12.1e" % num) }}{%- endif -%}{%- endmacro %}
-//
-//	{% macro render_collection(start_index, collection) -%}{% for item in collection -%}{%- if (loop.index0 - (4 - start_index)) is divisibleby 4 %}{{ endl("") }}{# next line is intentionally left empy to add a new line in the output every n items ^___^; #}
-//	{{ nextl("") }}{% endif -%}{{ rpad(item) }}
-//	{%- endfor %}{%- endmacro %}
-//
-//	{% macro render_floats(start_index, collection) -%}{% for item in collection -%}{%- if (loop.index0 - (4 - start_index)) is divisibleby 4 %}{{ endl("") }}{# next line is intentionally left empy to add a new line in the output every n items ^___^; #}
-//	{{ nextl("") }}{% endif -%}{{ fnum(item) }}
-//	{%- endfor %}{%- endmacro %}
-//
-//	BEGIN BULK
-//	$---1--][---2--][---3--][---4--][---5--][---6--][---7--][---8--][---9--][--10--]
-//	{% for coordinate_system_id, coordinate_system in model.mesh.coordinate_systems_by_id|dictsort('coordinate_system_id') %}
-//	{%- if coordinate_system.coordinate_system_type == 'CORD_R' %}
-//	{{key('CORD2R')}}{{rpad(coordinate_system.integerid)}}{{rpad('')}}{{ render_floats(2, coordinate_system.abc) }}
-//	{%- elif coordinate_system.coordinate_system_type == 'VECT_Y' %} {# Ignored, directly defined on CBAR #}
-//	{%- else %}
-//	$Not yet implemented {{coordinate_system.coordinate_system_type}}
-//	{%- endif -%}
-//	{%- endfor %}
-//
-//	$---1--][---2--][---3--][---4--][---5--][---6--][---7--][---8--][---9--][--10--]
-//	{% for node in model.mesh.nodes %}
-//	{{key('GRID')}}{{ rpad(node.integerid) }}{%- if node.coordinate_system %}{{rpad(node.coordinate_system.integerid)}}{%- else -%}{{rpad('')}}{%- endif -%}{{ render_floats(2, node.global_coordinates) }}
-//	{%- endfor %}
-//
-//	$---1--][---2--][---3--][---4--][---5--][---6--][---7--][---8--][---9--][--10--]
-//	{% for element_type in model.mesh.element_types %}
-//	{%- for element in model.mesh.find_elements_in_type(element_type) %}
-//	{%- set part = model.parts_by_id[element.part_id] -%}
-//	{%- if element_type == 'SEG2' %}
-//	{{key('CBAR')}}{{ rpad(element.integerid) }}{%- if part -%}{{ rpad(part.integerid) }}{%- endif -%}{{ render_collection(2, element.node_integerids) }}{%- if element.coordinate_system %}{{ render_floats(2+element.node_integerids|length, element.coordinate_system.as_vecty().components) }}{%- endif -%}
-//	{%- elif element_type == 'TRIA3' %}
-//	{{key('CTRIA3')}}{{ rpad(element.integerid) }}{%- if part -%}{{ rpad(part.integerid) }}{%- endif -%}{{ render_collection(2, element.node_integerids) }}
-//	{%- elif element_type == 'QUAD4' %}
-//	{{key('CQUAD4')}}{{ rpad(element.integerid) }}{%- if part -%}{{ rpad(part.integerid) }}{%- endif -%}{{ render_collection(2, element.node_integerids) }}
-//	{%- elif element_type == 'TETRA4' %}
-//	{{key('CTETRA')}}{{ rpad(element.integerid) }}{%- if part -%}{{ rpad(part.integerid) }}{%- endif -%}{{ render_collection(2, element.node_integerids) }}
-//	{%- else %}
-//	Not yet implemented {{element_type}}
-//	{%- endif -%}
-//	{%- endfor %}
-//	{%- endfor %}
-//
-//	$---1--][---2--][---3--][---4--][---5--][---6--][---7--][---8--][---9--][--10--]
-//	{% for constraint_type, constraints in model.constraints_by_type|dictsort('constraint_type') %}
-//	{% for constraint in constraints %}
-//	{%- if constraint_type == 'SINGLE_POINT_CONSTRAINT' %}
-//	{% for node_integerid in constraint.node_integerids %}
-//	{{key('SPC1')}}{{rpad(constraint.group_position)}}{{ rpad(constraint.nastran_code) }}{{ rpad(node_integerid) }}
-//	{%- endfor %}
-//	{%- elif constraint_type == 'QUASIRIGID_CONSTRAINT' %}
-//	{{key('RBE2')}}{{rpad(constraint.integerid)}}{{rpad(constraint.master.integerid)}}{{ rpad(constraint.nastran_code) }}{{ render_collection(3, constraint.slave_node_integerids) }}
-//	{%- endif -%}
-//	{%- endfor %}
-//	{%- endfor %}
-//
-//	$---1--][---2--][---3--][---4--][---5--][---6--][---7--][---8--][---9--][--10--]
-//	{% for loading_type, loadings in model.loadings_by_type|dictsort('loading_type') %}
-//	{% for loading in loadings %}
-//	{%- if loading_type == 'GRAVITY' %}
-//	{{key('GRAV')}}{{rpad(loading.group_position)}}{{rpad('')}}{{fnum(loading.acceleration)}}{{ render_floats(3, loading.direction.components) }}
-//	{%- elif loading_type == 'NODAL_FORCE' %}
-//	{% for node_integerid in loading.node_integerids %}
-//	{{key('FORCE')}}{{rpad(loading.group_position)}}{{ rpad(node_integerid) }}{{rpad('')}}{{fnum(1.0)}}{{ render_floats(4, loading.force.components) }}
-//	{%- endfor %}
-//	{%- elif loading_type == 'NORMAL_PRESSION_FACE' %}
-//	{% for element_integerid, applications in loading.element_integerids %}
-//	{{key('PLOAD4')}}{{rpad(loading.group_position)}}{{ rpad(element_integerid) }}{{ fnum(loading.intensity) }}
-//	{%- endfor %}
-//	{%- endif -%}
-//	{%- endfor %}
-//	{%- endfor %}
-//
-//	$---1--][---2--][---3--][---4--][---5--][---6--][---7--][---8--][---9--][--10--]
-//	{% for material_id, material in model.materials_by_id|dictsort('material_id') %}
-//	{{key('MAT1')}}{{ rpad(material.integerid) }}{{ fnum(material.e) }}{{lpad("")}}{{ fnum(material.nu) }}{{endl("")}}
-//	{{nextl("")}}{{ fnum(material.rho) }}
-//	{%- endfor %}
-//
-//	$---1--][---2--][---3--][---4--][---5--][---6--][---7--][---8--][---9--][--10--]
-//	{% for part_id, part in model.parts_by_id.iteritems() %}
-//	{%- set fe = part.finite_element -%}
-//	{%- if fe.finite_element_type == 'SHELL' %}
-//	{{key('PSHELL')}}{{ rpad(part.integerid) }}{{ rpad(model.find_material(part.material_id).integerid) }}
-//	{%- elif fe.finite_element_type == 'CONTINUUM' %}
-//	{{key('PSOLID')}}{{ rpad(part.integerid) }}{{ rpad(model.find_material(part.material_id).integerid) }}
-//	{%- elif fe.finite_element_type == 'GENERIC_BEAM' %}
-//	{{key('PBAR')}}{{ rpad(part.integerid) }}{{ rpad(model.find_material(part.material_id).integerid) }}{% for section in fe.sections %}{{ fnum(section.area_cross_section)}}{{ fnum(section.moment_of_inertia_Z)}}{{endl("")}}
-//	{{nextl("")}}{{ fnum(section.moment_of_inertia_Y)}}{{ fnum(section.torsional_constant)}}{{ fnum(fe.additional_mass)}}{%- endfor %}
-//	{%- elif fe.finite_element_type == 'CIRCULAR_BEAM' %}
-//	{{key('PBARL')}}{{ rpad(part.integerid) }}{{ rpad(model.find_material(part.material_id).integerid) }}{{lpad("")}}{{rpad("ROD")}}{{endl("")}}
-//	{{nextl("")}}{{fnum(fe.sections[0].radius)}}
-//	{%- endif -%}
-//	{%- endfor %}
 
 	out << "ENDDATA" << endl;
 

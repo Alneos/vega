@@ -481,7 +481,7 @@ shared_ptr<CellGroup> Mesh::getOrCreateCellGroupForCS(int cspos){
 }
 
 void Mesh::add(const CoordinateSystem& coordinateSystem) {
-  if (this->logLevel >= LogLevel::DEBUG) {
+  if (this->logLevel >= LogLevel::TRACE) {
       cout << "Adding " << coordinateSystem << endl;
   }
   coordinateSystemStorage.add(coordinateSystem);
@@ -563,7 +563,7 @@ shared_ptr<NodeGroup> Mesh::createNodeGroup(const string& name, int group_id, co
 		this->groupById[group_id] = group;
 	}
 
-	if (this->logLevel >= LogLevel::DEBUG) {
+	if (this->logLevel >= LogLevel::TRACE) {
 		cout << "Created Node Group:" << name;
 		if (not comment.empty())
             cout <<" with comment: "<<comment;

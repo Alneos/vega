@@ -654,11 +654,11 @@ NodeContainer::NodeContainer(Mesh& mesh) :
 }
 
 void NodeContainer::addNodeId(int nodeId) {
-	_nodePositions.insert(mesh.findOrReserveNode(nodeId));
+	nodePositions.insert(mesh.findOrReserveNode(nodeId));
 }
 
 void NodeContainer::addNodePosition(int nodePosition) {
-	_nodePositions.insert(nodePosition);
+	nodePositions.insert(nodePosition);
 }
 
 void NodeContainer::addNodeGroup(const string& groupName) {
@@ -670,7 +670,7 @@ void NodeContainer::addNodeGroup(const string& groupName) {
 }
 
 void NodeContainer::add(const Node& node) {
-	_nodePositions.insert(node.position);
+	nodePositions.insert(node.position);
 }
 
 void NodeContainer::add(const NodeGroup& nodeGroup) {
@@ -680,7 +680,7 @@ void NodeContainer::add(const NodeGroup& nodeGroup) {
 void NodeContainer::add(const NodeContainer& nodeContainer) {
     const auto& otherNodePositions = nodeContainer.getNodePositionsExcludingGroups();
 	if (otherNodePositions.size() > 0) {
-		_nodePositions.insert(otherNodePositions.begin(), otherNodePositions.end());
+		nodePositions.insert(otherNodePositions.begin(), otherNodePositions.end());
 	}
 
 	if (nodeContainer.groupNames.size() > 0) {
@@ -689,12 +689,12 @@ void NodeContainer::add(const NodeContainer& nodeContainer) {
 }
 
 const set<int> NodeContainer::getNodePositionsExcludingGroups() const {
-	return _nodePositions;
+	return nodePositions;
 }
 
 const set<int> NodeContainer::getNodePositionsIncludingGroups() const {
     set<int> result;
-    result.insert(_nodePositions.begin(), _nodePositions.end());
+    result.insert(nodePositions.begin(), nodePositions.end());
 	for (string groupName : groupNames) {
 		shared_ptr<NodeGroup> group = dynamic_pointer_cast<NodeGroup>(mesh.findGroup(groupName));
 		set<int> groupNodePositions =  group->nodePositions();
@@ -704,16 +704,16 @@ const set<int> NodeContainer::getNodePositionsIncludingGroups() const {
 }
 
 bool NodeContainer::empty() const {
-	return groupNames.empty() && _nodePositions.empty();
+	return groupNames.empty() && nodePositions.empty();
 }
 
 void NodeContainer::clear() {
 	groupNames.clear();
-	_nodePositions.clear();
+	nodePositions.clear();
 }
 
 bool NodeContainer::hasNodes() const {
-	return not _nodePositions.empty();
+	return not nodePositions.empty();
 }
 
 bool NodeContainer::hasNodeGroups() const {

@@ -86,7 +86,7 @@ void Model::add(const shared_ptr<Objective>& objective) {
 }
 
 void Model::add(const shared_ptr<NamedValue>& value) {
-    if (configuration.logLevel >= LogLevel::DEBUG) {
+    if (configuration.logLevel >= LogLevel::TRACE) {
         cout << "Adding " << *value << endl;
     }
     values.add(value);
@@ -237,7 +237,7 @@ void Model::remove(const Reference<LoadSet> loadSetReference) {
     shared_ptr<LoadSet> loadSet = loadSets.find(loadSetReference);
     for (const auto& analysis : analyses) {
         if (analysis->contains(loadSetReference)) {
-            if (configuration.logLevel >= LogLevel::DEBUG)
+            if (configuration.logLevel >= LogLevel::TRACE)
                 cout << "Disassociating empty " << *loadSet << " from " << *analysis << endl;
             analysis->remove(loadSetReference);
         }
@@ -250,7 +250,7 @@ void Model::remove(const Reference<ConstraintSet> constraintSetReference) {
     shared_ptr<ConstraintSet> constraintSet = constraintSets.find(constraintSetReference);
     for (const auto& analysis : analyses) {
         if (analysis->contains(constraintSetReference)) {
-            if (configuration.logLevel >= LogLevel::DEBUG)
+            if (configuration.logLevel >= LogLevel::TRACE)
                 cout << "Disassociating empty " << *constraintSet << " from " << *analysis << endl;
             analysis->remove(constraintSetReference);
         }
@@ -740,6 +740,7 @@ void Model::generateSkin() {
         }
         auto cellTarget = static_pointer_cast<CellTarget>(target);
         cellTarget->createSkin();
+        cellTarget->markAsWritten();
     }
 
 }
@@ -753,6 +754,7 @@ void Model::emulateLocalDisplacementConstraint() {
         if (spc->nodePositions().size() == 0) {
             this->remove(spc->getReference());
         }
+        spc->markAsWritten();
     }
 
 }
@@ -891,7 +893,7 @@ void Model::removeIneffectives() {
             loadingsToRemove.push_back(loading);
     }
     for (const auto& loading : loadingsToRemove) {
-        if (configuration.logLevel >= LogLevel::DEBUG)
+        if (configuration.logLevel >= LogLevel::TRACE)
             cout << "Removed ineffective " << *loading << endl;
         remove(Reference<Loading>(*loading));
     }
@@ -904,7 +906,7 @@ void Model::removeIneffectives() {
         }
     }
     for (Reference<LoadSet> loadSetRef : loadSetSetsToRemove) {
-        if (configuration.logLevel >= LogLevel::DEBUG)
+        if (configuration.logLevel >= LogLevel::TRACE)
             cout << "Removed empty loadset " << loadSetRef << endl;
         remove(loadSetRef);
     }
@@ -916,7 +918,7 @@ void Model::removeIneffectives() {
             constraintsToRemove.push_back(constraint);
     }
     for (const auto& constraint : constraintsToRemove) {
-        if (configuration.logLevel >= LogLevel::DEBUG)
+        if (configuration.logLevel >= LogLevel::TRACE)
             cout << "Removed ineffective " << *constraint << endl;
         remove(Reference<Constraint>(*constraint));
     }
@@ -929,7 +931,7 @@ void Model::removeIneffectives() {
         }
     }
     for (Reference<ConstraintSet> constraintSetRef : constraintSetSetsToRemove) {
-        if (configuration.logLevel >= LogLevel::DEBUG)
+        if (configuration.logLevel >= LogLevel::TRACE)
             cout << "Removed empty " << constraintSetRef << endl;
         remove(constraintSetRef);
     }
@@ -941,14 +943,14 @@ void Model::removeIneffectives() {
             elementSetsToRemove.push_back(elementSet);
     }
     for (const auto& elementSet : elementSetsToRemove) {
-        if (configuration.logLevel >= LogLevel::DEBUG)
+        if (configuration.logLevel >= LogLevel::TRACE)
             cout << "Removed empty " << *elementSet << endl;
         this->elementSets.erase(elementSet->getReference());
     }
 }
 
 void Model::removeUnassignedMaterials() {
-    vector<shared_ptr<Material>> materialsToRemove;
+    //vector<shared_ptr<Material>> materialsToRemove;
     //for (const auto& material : materials) {
         /*
          * if the model is configured to assign materials to cells directly check
@@ -957,18 +959,18 @@ void Model::removeUnassignedMaterials() {
         //if (!configuration.partitionModel and material->getAssignment().empty())
         //        materialsToRemove.push_back(material);
     //}
-    for (const auto& material : materialsToRemove) {
-        if (configuration.logLevel >= LogLevel::DEBUG)
-            cout << "Removed unassigned " << *material << endl;
-        this->materials.erase(material->getReference());
-    }
+    //for (const auto& material : materialsToRemove) {
+    //    if (configuration.logLevel >= LogLevel::DEBUG)
+    //        cout << "Removed unassigned " << *material << endl;
+    //    this->materials.erase(material->getReference());
+    //}
 }
 
 void Model::replaceCombinedLoadSets() {
     for (const auto& loadSet : this->loadSets) {
         for (const auto& kv : loadSet->embedded_loadsets) {
             shared_ptr<LoadSet> otherloadSet = this->find(kv.first);
-            if (!otherloadSet) {
+            if (otherloadSet == nullptr) {
                 throw logic_error("CombinedLoadSet: missing loadSet " + to_str(kv.first));
             }
             double coefficient = kv.second;
@@ -982,7 +984,9 @@ void Model::replaceCombinedLoadSets() {
                     cout << "Cloned " << *loading << " into " << *newLoading << " and scaled by "
                             << coefficient << " and assigned to " << *loadSet << endl;
                 }
+                loading->markAsWritten();
             }
+            otherloadSet->markAsWritten();
         }
         loadSet->embedded_loadsets.clear();
     }
@@ -1179,7 +1183,7 @@ void Model::replaceDirectMatrices()
                         }
                     }
                 }
-                if (this->configuration.logLevel >= LogLevel::DEBUG) {
+                if (this->configuration.logLevel >= LogLevel::TRACE) {
                     cout << "Creating discrete : " << *discrete << " over node ids : "
                             << to_string(rowNodeId) << " and : " << to_string(colNodeId) << endl;
                 }
@@ -1226,14 +1230,14 @@ void Model::replaceDirectMatrices()
             spc->addNodeId(nodeId);
             add(spc);
             addConstraintIntoConstraintSet(*spc, *commonConstraintSet);
-            if (configuration.logLevel >= LogLevel::DEBUG) {
+            if (configuration.logLevel >= LogLevel::TRACE) {
                 cout << "Adding virtual spc on node id: " << nodeId << "for " << extra
                         << endl;
             }
         }
     }
     for (const auto& elementSet : elementSetsToRemove) {
-        if (configuration.logLevel >= LogLevel::DEBUG) {
+        if (configuration.logLevel >= LogLevel::TRACE) {
             cout << "Replaced " << *elementSet << endl;
         }
         this->elementSets.erase(elementSet->getReference());
@@ -1253,7 +1257,7 @@ void Model::replaceRigidSegments()
             const auto& rigid = make_shared<RigidConstraint>(*this, masterId, RigidConstraint::NO_ORIGINAL_ID, slaveNodeIds);
             this->add(rigid);
             addConstraintIntoConstraintSet(*rigid, *commonConstraintSet);
-            if (configuration.logLevel >= LogLevel::DEBUG) {
+            if (configuration.logLevel >= LogLevel::TRACE) {
                 cout << "Added contraint: " << *rigid << " to replace a cell of: " << *segment << endl;
             }
         }
@@ -1297,7 +1301,7 @@ void Model::removeRedundantSpcs() {
                     }
                     if (dofsToRemove.size() >= 1) {
                         analysis->removeSPCNodeDofs(*spc, nodePosition, dofsToRemove);
-                        if (configuration.logLevel >= LogLevel::DEBUG) {
+                        if (configuration.logLevel >= LogLevel::TRACE) {
                             cout << "Removed redundant dofs : " << dofsToRemove << " from node id : " << this->mesh.findNodeId(nodePosition)
                                     << " from spc : " << *spc << " for analysis : " << *analysis << endl;
                         }
@@ -1340,7 +1344,7 @@ void Model::removeConstrainedImposed() {
                     DOFS dofsToRemove = imposedDofs.intersection(blockedDofs);
                     if (dofsToRemove.size() >= 1) {
                         analysis->removeSPCNodeDofs(*spc, nodePosition, dofsToRemove);
-                        if (configuration.logLevel >= LogLevel::DEBUG) {
+                        if (configuration.logLevel >= LogLevel::TRACE) {
                             cout << "Removed imposed dofs : " << dofsToRemove << " from node id : " << this->mesh.findNodeId(nodePosition)
                                     << " from spc : " << *spc << " for analysis : " << *analysis << endl;
                         }
@@ -1528,8 +1532,7 @@ void Model::makeCellsFromLMPC(){
         map< vector<DOFCoefs>, shared_ptr<CellGroup>> groupBySetOfCoefs;
         for (const auto& constraintSet : analysis->getConstraintSets()) {
 
-            set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::Type::LMPC);
-            for (const auto& constraint : constraints) {
+            for (const auto& constraint : constraintSet->getConstraintsByType(Constraint::Type::LMPC)) {
                 const shared_ptr<LinearMultiplePointConstraint> lmpc = dynamic_pointer_cast<LinearMultiplePointConstraint>(constraint);
 
                 // We sort the Coeffs in order to fuse various LMPC into the same ElementSet/CellGroup
@@ -1540,13 +1543,13 @@ void Model::makeCellsFromLMPC(){
                 }
 
                 // Looking for the CellGroup corresponding to the current DOFCoefs.
-                shared_ptr<CellGroup> group =nullptr;
+                shared_ptr<CellGroup> group = nullptr;
                 const auto it = groupBySetOfCoefs.find(sortedCoefs);
-                if(it != groupBySetOfCoefs.end()){
+                if(it != groupBySetOfCoefs.end()) {
                     group = it->second;
-                }else{
+                } else {
                     // If not found, creating an ElementSet, a CellGroup and a (single) dummy rigid material
-                    if (materialLMPC==nullptr){
+                    if (materialLMPC == nullptr){
                         materialLMPC = make_shared<Material>(*this);
                         materialLMPC->addNature(make_shared<RigidNature>(*this, 1));
                         this->add(materialLMPC);
@@ -1568,11 +1571,10 @@ void Model::makeCellsFromLMPC(){
                 }
                 int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::polyType(static_cast<unsigned int>(nodes.size())), nodes, true);
                 group->addCellPosition(cellPosition);
-                if (configuration.logLevel >= LogLevel::DEBUG){
+                if (configuration.logLevel >= LogLevel::TRACE){
                     cout << "Building cells in group "<<group->getName()<<" from "<< *lmpc<<"."<<endl;
                 }
             }
-
         }
     }
 
@@ -1583,9 +1585,9 @@ void Model::makeCellsFromLMPC(){
             const int idConstraintSet = constraintSet->getId();
             const int originalIdConstraintSet = constraintSet->getOriginalId();
             const ConstraintSet::Type natConstraintSet = constraintSet->type;
-            set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::Type::LMPC);
-            for (const auto& constraint : constraints) {
+            for (const auto& constraint : constraintSet->getConstraintsByType(Constraint::Type::LMPC)) {
                 remove(constraint->getReference(), idConstraintSet, originalIdConstraintSet, natConstraintSet);
+                constraintSet->markAsWritten();
             }
         }
     }
@@ -1593,9 +1595,7 @@ void Model::makeCellsFromLMPC(){
 
 void Model::makeCellsFromRBE(){
 
-    vector<shared_ptr<ConstraintSet>> commonConstraintSets = this->getCommonConstraintSets();
-
-    for (const auto& constraintSet : commonConstraintSets) {
+    for (const auto& constraintSet : this->getCommonConstraintSets()) {
 
         const int idConstraintSet = constraintSet->getId();
         const int originalIdConstraintSet = constraintSet->getOriginalId();
@@ -1604,9 +1604,8 @@ void Model::makeCellsFromRBE(){
 
         // Translation of RBAR and RBE2 (RBE2 are viewed as an assembly of RBAR)
         // See Systus Reference Analysis Manual: RIGID BODY Element (page 498)
-        set<shared_ptr<Constraint>> constraints = constraintSet->getConstraintsByType(Constraint::Type::RIGID);
         vector<shared_ptr<Constraint>> toBeRemoved;
-        for (const auto& constraint : constraints) {
+        for (const auto& constraint : constraintSet->getConstraintsByType(Constraint::Type::RIGID)) {
             const shared_ptr<RigidConstraint> rbe2 = dynamic_pointer_cast<RigidConstraint>(constraint);
 
             // Creating an elementset, a CellGroup and a dummy rigid material
@@ -1631,13 +1630,12 @@ void Model::makeCellsFromRBE(){
 
             // Removing the constraint from the model.
             toBeRemoved.push_back(constraint);
-            if (configuration.logLevel >= LogLevel::DEBUG){
+            if (configuration.logLevel >= LogLevel::TRACE){
                 cout << "Building cells in cellgroup "<<group->getName()<<" from "<< *rbe2<<"."<<endl;
             }
         }
 
-        constraints = constraintSet->getConstraintsByType(Constraint::Type::QUASI_RIGID);
-        for (const auto& constraint : constraints) {
+        for (const auto& constraint : constraintSet->getConstraintsByType(Constraint::Type::QUASI_RIGID)) {
             shared_ptr<QuasiRigidConstraint> rbar = dynamic_pointer_cast<QuasiRigidConstraint>(constraint);
 
             if (!(rbar->isCompletelyRigid())){
@@ -1669,7 +1667,7 @@ void Model::makeCellsFromRBE(){
 
             // Removing the constraint from the model.
             toBeRemoved.push_back(constraint);
-            if (configuration.logLevel >= LogLevel::DEBUG){
+            if (configuration.logLevel >= LogLevel::TRACE){
                 cout << "Building cells in cellgroup "<<group->getName()<<" from "<< *rbar<<"."<<endl;
             }
         }
@@ -1679,8 +1677,7 @@ void Model::makeCellsFromRBE(){
          * See Systus Reference Analysis Manual, Section 8.8 "Special Elements",
          * Subsection "Use of Averaging Type Solid Elements", p500.
          */
-        constraints = constraintSet->getConstraintsByType(Constraint::Type::RBE3);
-        for (const auto& constraint : constraints) {
+        for (const auto& constraint : constraintSet->getConstraintsByType(Constraint::Type::RBE3)) {
 
             const shared_ptr<RBE3>& rbe3 = dynamic_pointer_cast<RBE3>(constraint);
             const int masterId = mesh.findNodeId(rbe3->getMaster());
@@ -1720,7 +1717,7 @@ void Model::makeCellsFromRBE(){
                     elementsetRbe3->assignMaterial(materialRBE3);
                     this->add(elementsetRbe3);
 
-                    if (configuration.logLevel >= LogLevel::DEBUG){
+                    if (configuration.logLevel >= LogLevel::TRACE){
                         cout << "Building cells in CellGroup "<<group->getName()<<" from "<< *rbe3<<"."<<endl;
                     }
                     groupByCoefByDOFS[sDOFS][sCoef]= group;
@@ -1735,6 +1732,7 @@ void Model::makeCellsFromRBE(){
 
         for(const auto& constraint: toBeRemoved) {
             remove(constraint->getReference(), idConstraintSet, originalIdConstraintSet, natConstraintSet);
+            constraintSet->markAsWritten();
         }
     }
 }
@@ -1745,18 +1743,17 @@ void Model::makeCellsFromSurfaceSlide() {
         const int idConstraintSet = constraintSet->getId();
         const int originalIdConstraintSet = constraintSet->getOriginalId();
         const ConstraintSet::Type natConstraintSet = constraintSet->type;
-        auto constraints = constraintSet->getConstraintsByType(Constraint::Type::SURFACE_SLIDE_CONTACT);
 
         vector<shared_ptr<Constraint>> toBeRemoved;
-        for (const auto& constraint : constraints) {
+        for (const auto& constraint : constraintSet->getConstraintsByType(Constraint::Type::SURFACE_SLIDE_CONTACT)) {
             shared_ptr<const SurfaceSlide> surface = dynamic_pointer_cast<const SurfaceSlide>(constraint);
             surface->makeCellsFromSurfaceSlide();
-
             toBeRemoved.push_back(constraint);
         }
 
         for(const auto& constraint: toBeRemoved) {
             remove(constraint->getReference(), idConstraintSet, originalIdConstraintSet, natConstraintSet);
+            constraintSet->markAsWritten();
         }
     }
 }
@@ -1802,8 +1799,7 @@ void Model::splitElementsByDOFS(){
 
 void Model::makeBoundarySegments() {
     for (const auto& constraintSet : this->getCommonConstraintSets()) {
-        auto constraints = constraintSet->getConstraintsByType(Constraint::Type::SLIDE);
-        for (const auto& constraint : constraints) {
+        for (const auto& constraint : constraintSet->getConstraintsByType(Constraint::Type::SLIDE)) {
             shared_ptr<SlideContact> slide = dynamic_pointer_cast<SlideContact>(constraint);
             shared_ptr<CellGroup> masterCellGroup = mesh.createCellGroup("SLIDE_M_"+to_string(slide->bestId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySegments() for the master in a SLIDE contact");
             shared_ptr<CellGroup> slaveCellGroup = mesh.createCellGroup("SLIDE_S_"+to_string(slide->bestId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySegments() for the slave in a SLIDE contact");
@@ -1817,6 +1813,7 @@ void Model::makeBoundarySegments() {
                 masterCellGroup->addCellPosition(cellPosition);
             }
             slide->masterCellGroup = masterCellGroup;
+            masterNodeLine->markAsWritten();
             shared_ptr<BoundaryNodeLine> slaveNodeLine = dynamic_pointer_cast<BoundaryNodeLine>(this->find(slide->slave));
             const list<int>& slaveNodeIds = slaveNodeLine->nodeids;
             auto it2 = slaveNodeIds.begin();
@@ -1827,6 +1824,7 @@ void Model::makeBoundarySegments() {
                 slaveCellGroup->addCellPosition(cellPosition);
             }
             slide->slaveCellGroup = slaveCellGroup;
+            slaveNodeLine->markAsWritten();
         }
     }
 }
@@ -1991,6 +1989,7 @@ bool Model::validate() {
     int sizeCon = constraints.size();   string sCon = ( (sizeCon > 1) ? "s are " : " is ");
     int sizeCos = constraintSets.size();string sCos = ( (sizeCos > 1) ? "s are " : " is ");
     int sizeAna = analyses.size();      string sAna = ( (sizeAna > 1) ? "es are " : "is is ");
+    int sizeTar = targets.size();       string sTar = ( (sizeTar > 1) ? "s are " : " is ");
 
     bool validMat = materials.validate();
     bool validEle = elementSets.validate();
@@ -1999,6 +1998,7 @@ bool Model::validate() {
     bool validCon = constraints.validate();
     bool validCos = constraintSets.validate();
     bool validAna = analyses.validate();
+    bool validTar = targets.validate();
 
     if (configuration.logLevel >= LogLevel::DEBUG) {
        cout << "The " << sizeMat << " material"     << sMat << (validMat ? "" : "NOT ") << "valid." << endl;
@@ -2008,10 +2008,59 @@ bool Model::validate() {
        cout << "The " << sizeCon << " constraint"   << sCon << (validCon ? "" : "NOT ") << "valid." << endl;
        cout << "The " << sizeCos << " constraintSet"<< sCos << (validCos ? "" : "NOT ") << "valid." << endl;
        cout << "The " << sizeAna << " analys"      << sAna << (validAna ? "" : "NOT ") << "valid." << endl;
+       if (sizeTar >= 1) cout << "The " << sizeTar << " target"      << sTar << (validTar ? "" : "NOT ") << "valid." << endl;
     }
     bool allValid = meshValid && validMat && validEle && validLoa && validLos && validCon
-            && validCos && validAna;
+            && validCos && validAna && validTar;
     this->afterValidation = true;
+    return allValid;
+}
+
+bool Model::checkWritten() const {
+
+    // Sizes are stocked now, because validation remove invalid objects.
+    int sizeMat = materials.size();     string sMat = ( (sizeMat > 1) ? "s have " : " has ");
+    int sizeEle = elementSets.size();   string sEle = ( (sizeEle > 1) ? "s have " : " has ");
+    int sizeLoa = loadings.size();      string sLoa = ( (sizeLoa > 1) ? "s have " : " has ");
+    int sizeLos = loadSets.size();      string sLos = ( (sizeLos > 1) ? "s have " : " has ");
+    int sizeCon = constraints.size();   string sCon = ( (sizeCon > 1) ? "s have " : " has ");
+    int sizeCos = constraintSets.size();string sCos = ( (sizeCos > 1) ? "s have " : " has ");
+    int sizeAna = analyses.size();      string sAna = ( (sizeAna > 1) ? "es have " : "is has ");
+    int sizeTar = targets.size();       string sTar = ( (sizeTar > 1) ? "s have " : " has ");
+
+    bool validMat = materials.checkWritten();
+    bool validEle = elementSets.checkWritten();
+    bool validLoa = loadings.checkWritten();
+    bool validLos = loadSets.checkWritten();
+    bool validCon = constraints.checkWritten();
+    bool validCos = constraintSets.checkWritten();
+    bool validAna = analyses.checkWritten();
+    bool validTar = targets.checkWritten();
+
+    if (configuration.logLevel >= LogLevel::DEBUG) {
+        if (not validMat) cout << "The " << sizeMat << " material"     << sMat << "NOT been written." << endl;
+        if (not validEle) cout << "The " << sizeEle << " elementSet"   << sEle << "NOT been written." << endl;
+        if (not validLoa) cout << "The " << sizeLoa << " loading"      << sLoa << "NOT been written." << endl;
+        if (not validLos) cout << "The " << sizeLos << " loadSet"      << sLos << "NOT been written." << endl;
+        if (not validCon) cout << "The " << sizeCon << " constraint"   << sCon << "NOT been written." << endl;
+        if (not validCos) cout << "The " << sizeCos << " constraintSet"<< sCos << "NOT been written." << endl;
+        if (not validAna) cout << "The " << sizeAna << " analys"      << sAna << "NOT been written." << endl;
+        if (not validTar) cout << "The " << sizeTar << " target"      << sTar << "NOT been written." << endl;
+
+    }
+
+    if (configuration.logLevel >= LogLevel::TRACE) {
+        if (validMat) cout << "The " << sizeMat << " material"     << sMat << "been written." << endl;
+        if (validEle) cout << "The " << sizeEle << " elementSet"   << sEle << "been written." << endl;
+        if (validLoa) cout << "The " << sizeLoa << " loading"      << sLoa << "been written." << endl;
+        if (validLos) cout << "The " << sizeLos << " loadSet"      << sLos << "been written." << endl;
+        if (validCon) cout << "The " << sizeCon << " constraint"   << sCon << "been written." << endl;
+        if (validCos) cout << "The " << sizeCos << " constraintSet"<< sCos << "been written." << endl;
+        if (validAna) cout << "The " << sizeAna << " analys"      << sAna << "been written." << endl;
+        if (validTar) cout << "The " << sizeTar << " target"      << sTar << "been written." << endl;
+    }
+    bool allValid = validMat && validEle && validLoa && validLos && validCon
+            && validCos && validAna && validTar;
     return allValid;
 }
 

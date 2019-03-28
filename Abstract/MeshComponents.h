@@ -401,7 +401,6 @@ public:
 };
 
 class NodeIterator final: public std::iterator<std::input_iterator_tag, const Node> {
-private:
     const NodeStorage* nodeStorage;
     unsigned int position;
     unsigned int endPosition;
@@ -421,7 +420,6 @@ public:
 };
 
 class CellIterator final: public std::iterator<std::input_iterator_tag, const Cell> {
-private:
     friend CellStorage;
     const CellStorage* cellStorage;
     unsigned int endPosition;
@@ -452,7 +450,7 @@ public:
  *
  */
 class NodeContainer {
-    std::set<int> _nodePositions;
+    std::set<int> nodePositions;
     std::set<std::string> groupNames;
 protected:
     Mesh& mesh;
@@ -486,10 +484,10 @@ public:
  *
  */
 class CellContainer {
-protected:
-    const Mesh& mesh;
     std::set<int> cellPositions;
     std::set<std::string> groupNames;
+protected:
+    const Mesh& mesh;
 public:
     CellContainer(const Mesh& mesh);
     virtual ~CellContainer() = default;

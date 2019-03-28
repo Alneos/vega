@@ -49,6 +49,7 @@ public:
 		WRITING_EXCEPTION = 7, // Error in the Writer.
 		CHILD_CRASHED = 8, // Child not providing status
 		FORK_FAILED = 9, // Fork in main could not be done by the system
+		WRITING_INCOMPLETE = 10, // Some translated objects have not been marked as written
         SOLVER_NOT_FOUND = static_cast<int>(Runner::ExitCode::SOLVER_NOT_FOUND), //solver was not found
         SOLVER_KILLED = static_cast<int>(Runner::ExitCode::SOLVER_KILLED),
         SOLVER_EXIT_NOT_ZERO = static_cast<int>(Runner::ExitCode::SOLVER_EXIT_NOT_ZERO),

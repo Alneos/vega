@@ -102,6 +102,7 @@ public:
 	static const int UNAVAILABLE_MASTER;
 	virtual void addSlave(int slaveId);
 	virtual int getMaster() const;
+	virtual bool hasMaster() const;
 	virtual std::set<int> getSlaves() const;
 	std::set<int> nodePositions() const override;
 	const DOFS getDOFSForNode(int nodePosition) const override;

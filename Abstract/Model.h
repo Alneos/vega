@@ -227,6 +227,7 @@ private:
         bool contains(const typename T::Type type) const; /**< Ask if objects of a given type exist inside */
         const std::vector<std::shared_ptr<T>> filter(const typename T::Type type) const; /**< Choose objects based on their type */
         bool validate(); /**< Says if model parts are coherent (no unresolved references, etc.) AND SOMETIMES IT TRIES TO FIX THEM :( */
+        bool checkWritten() const; /**< Says if all container objects have been written in output (or not) */
     }; /* Container class */
     std::unordered_map<int,CellContainer> material_assignment_by_material_id;
 public:
@@ -403,6 +404,7 @@ public:
      * is correct. Validation results are printed to stdout/stderr.
      */
     bool validate();
+    bool checkWritten() const; /**< Says if model parts have been completely translated */
 
 };
 
@@ -466,6 +468,20 @@ bool Model::Container<T>::validate() {
     }
     return isValid;
 }
+
+template<class T>
+bool Model::Container<T>::checkWritten() const {
+    bool isWritten = true;
+    for (iterator it = this->begin(); it != this->end(); ++it) {
+        std::shared_ptr<T> t = *it;
+        if (!t->isWritten()) {
+            isWritten = false;
+            std::cerr << *t << " hasn't been written." << std::endl;
+        }
+    }
+    return isWritten;
+}
+
 
 /*
  * Redefining method add for Value to take into account placeHolder

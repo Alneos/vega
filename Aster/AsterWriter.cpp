@@ -491,7 +491,7 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
 
 	switch (value.type) {
 	case Value::Type::LIST: {
-		const ListValueBase& listValue = dynamic_cast<ListValueBase&>(value);
+		ListValueBase& listValue = dynamic_cast<ListValueBase&>(value);
 
 		ostringstream list_concept_ss;
 		list_concept_ss << "LST" << setfill('0') << setw(5) << listValue.getId();
@@ -511,41 +511,44 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
 		}
         out << ")," << endl;
         out << "                        );" << endl << endl;
+        listValue.markAsWritten();
         break;
 	}
 	case Value::Type::STEP_RANGE: {
 		StepRange& stepRange = dynamic_cast<StepRange&>(value);
-    ostringstream list_concept_ss;
-    list_concept_ss << "LST" << setfill('0') << setw(5) << stepRange.getId();
-    concept_name = list_concept_ss.str();
+        ostringstream list_concept_ss;
+        list_concept_ss << "LST" << setfill('0') << setw(5) << stepRange.getId();
+        concept_name = list_concept_ss.str();
 		if (not is_equal(stepRange.end, Globals::UNAVAILABLE_DOUBLE)) {
-      out << concept_name << "=DEFI_LIST_REEL(" << endl;
-      out << "                        DEBUT = " << stepRange.start << "," << endl;
-      out << "                        INTERVALLE = _F(JUSQU_A = " << stepRange.end << "," << endl;
-      out << "                                        NOMBRE = " << stepRange.count << endl;
-      out << "                                        )," << endl;
-      out << "                        );" << endl << endl;
+            out << concept_name << "=DEFI_LIST_REEL(" << endl;
+            out << "                        DEBUT = " << stepRange.start << "," << endl;
+            out << "                        INTERVALLE = _F(JUSQU_A = " << stepRange.end << "," << endl;
+            out << "                                        NOMBRE = " << stepRange.count << endl;
+            out << "                                        )," << endl;
+            out << "                        );" << endl << endl;
+            stepRange.markAsWritten();
 		} else {
-		  out << "# Ignoring " << concept_name << " because: no end value" << endl;
+            out << "# Ignoring " << concept_name << " because: no end value" << endl;
 		}
 		break;
 	}
 	case Value::Type::SPREAD_RANGE: {
-			SpreadRange& spreadRange = dynamic_cast<SpreadRange&>(value);
-			ostringstream list_concept_ss;
-			list_concept_ss << "LST" << setfill('0') << setw(5) << spreadRange.getId();
-			concept_name = list_concept_ss.str();
-			out << concept_name << "=DEFI_LIST_FREQ(" << endl;
-			out << "                        DEBUT = " << spreadRange.start << "," << endl;
-			out << "                        INTERVALLE = _F(JUSQU_A = " << spreadRange.end << "," << endl;
-			out << "                                        NOMBRE = " << spreadRange.count << endl;
-			out << "                                        )," << endl;
-			out << "                        RAFFINEMENT = _F(LIST_RAFFINE = XXXX" << "," << endl;
-			out << "                                        CRITERE = 'RELATIF'," << endl;
-			out << "                                        DISPERSION = " << spreadRange.spread << endl;
-			out << "                                        )," << endl;
-			out << "                        );" << endl << endl;
-			break;
+        SpreadRange& spreadRange = dynamic_cast<SpreadRange&>(value);
+        ostringstream list_concept_ss;
+        list_concept_ss << "LST" << setfill('0') << setw(5) << spreadRange.getId();
+        concept_name = list_concept_ss.str();
+        out << concept_name << "=DEFI_LIST_FREQ(" << endl;
+        out << "                        DEBUT = " << spreadRange.start << "," << endl;
+        out << "                        INTERVALLE = _F(JUSQU_A = " << spreadRange.end << "," << endl;
+        out << "                                        NOMBRE = " << spreadRange.count << endl;
+        out << "                                        )," << endl;
+        out << "                        RAFFINEMENT = _F(LIST_RAFFINE = XXXX" << "," << endl;
+        out << "                                        CRITERE = 'RELATIF'," << endl;
+        out << "                                        DISPERSION = " << spreadRange.spread << endl;
+        out << "                                        )," << endl;
+        out << "                        );" << endl << endl;
+        spreadRange.markAsWritten();
+        break;
 		}
 	case Value::Type::FUNCTION_TABLE: {
 		FunctionTable& functionTable = dynamic_cast<FunctionTable&>(value);
@@ -584,12 +587,14 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
 			out << "# Original id:" << functionTable.getOriginalId();
 		}
 		out << endl << endl;
+		functionTable.markAsWritten();
 		break;
 	}
 	case Value::Type::SCALAR:
 	case Value::Type::BAND_RANGE:
-	case Value::Type::DYNA_PHASE:
+	case Value::Type::DYNA_PHASE: {
 		break;
+	}
 	default:
 		handleWritingError(string("NamedValue not yet implemented"));
 	}
@@ -600,7 +605,7 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
 
 void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 
-	for (const auto& material : asterModel.model.materials) {
+	for (auto& material : asterModel.model.materials) {
 		if (material->isOriginal()) {
 			out << "# Material original id " << material->getOriginalId() << endl;
 		}
@@ -654,6 +659,7 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 			out << "                         )," << endl;
 		}
 		out << "                 );" << endl << endl;
+		material->markAsWritten();
 	}
 
 	vector<shared_ptr<ElementSet>> composites = asterModel.model.elementSets.filter(ElementSet::Type::COMPOSITE);
@@ -667,6 +673,7 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
         }
         out << "                         )," << endl;
         out << "                 );" << endl << endl;
+        composite->markAsWritten();
     }
 
   if (asterModel.model.materials.size() >= 1) {
@@ -723,10 +730,12 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 					for (double rigi : discret_0d->asStiffnessVector())
 						out << rigi << ",";
 					out << "),)," << endl;
-				} else
+				} else {
 					out
 							<< "                             # WARN Finite Element : DISCRETE_0D ignored because its GROUP_MA is empty."
 							<< endl;
+				}
+				discret->markAsWritten();
 			}
 			for (shared_ptr<ElementSet> discret : discrets_1d) {
 				if (discret->cellGroup != nullptr) {
@@ -740,10 +749,12 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 					for (double rigi : discret_1d->asStiffnessVector())
 						out << rigi << ",";
 					out << "),)," << endl;
-				} else
+				} else {
 					out
 							<< "                             # WARN Finite Element : DISCRETE_1D ignored because its GROUP_MA is empty."
 							<< endl;
+				}
+				discret->markAsWritten();
 			}
 			for (shared_ptr<ElementSet> segment : structural_segments) {
 				if (segment->cellGroup != nullptr) {
@@ -767,10 +778,12 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 					for (double rigi : segment_1d->asDampingVector())
 						out << rigi << ",";
 					out << "),)," << endl;
-				} else
+				} else {
 					out
 							<< "                             # WARN Finite Element : DISCRETE_1D ignored because its GROUP_MA is empty."
 							<< endl;
+				}
+				segment->markAsWritten();
 			}
 			for (shared_ptr<ElementSet> scalar_springset : scalar_springs) {
 				if (scalar_springset->cellGroup != nullptr) {
@@ -796,10 +809,12 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
                         out << "),";
                     }
 					out << ")," << endl;
-				} else
+				} else {
 					out
 							<< "                             # WARN Finite Element : DISCRETE_1D ignored because its GROUP_MA is empty."
 							<< endl;
+				}
+				scalar_springset->markAsWritten();
 			}
 			for (shared_ptr<ElementSet> discret : nodal_masses) {
 				if (discret->cellGroup != nullptr) {
@@ -817,10 +832,12 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
                         out << "                                CARA='M_T_D_N',VALE=("
 							<< nodalMass->getMass()	<< "),)," << endl;
 					}
-				} else
+				} else {
 					out
 							<< "                             # WARN Finite Element : NODAL_MASS ignored because its GROUP_MA is empty."
 							<< endl;
+				}
+				discret->markAsWritten();
 			}
 			out << "                             )," << endl;
 		}
@@ -861,10 +878,12 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 					out << "                              EPAIS="
 							<< dynamic_pointer_cast<Shell>(shell)->thickness << "," << endl;
 					out << "                              VECTEUR=(0.9,0.1,0.2))," << endl;
-				} else
+				} else {
 					out
 							<< "                           # WARN Finite Element : COQUE ignored because its GROUP_MA is empty."
 							<< endl;
+				}
+				shell->markAsWritten();
 			}
 			for (shared_ptr<ElementSet> c : composites) {
                 shared_ptr<Composite> composite = dynamic_pointer_cast<Composite>(c);
@@ -876,10 +895,12 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 					out << "                              COQUE_NCOU="
 							<< composite->getLayers().size() << "," << endl;
 					out << "                              VECTEUR=(1.0,0.0,0.0))," << endl;
-				} else
+				} else {
 					out
 							<< "                           # WARN Finite Element : COMPOSITE ignored because its GROUP_MA is empty."
 							<< endl;
+				}
+				composite->markAsWritten();
 			}
 			out << "                           )," << endl;
 		}
@@ -896,18 +917,22 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 					out << "                            _F(GROUP_MA='"
 							<< solid->cellGroup->getName() << "'," << endl;
 					out << "                               ANGL_REP=(0.,0.,0.,),)," << endl;
-				} else
+				} else {
 					out << "# WARN Finite Element : MASSIF ignored because its GROUP_MA is empty."
 							<< endl;
+				}
+				solid->markAsWritten();
 			}
 			for (shared_ptr<ElementSet> skin : skins) {
 				if (skin->cellGroup != nullptr) {
 					out << "                            _F(GROUP_MA='"
 							<< skin->cellGroup->getName() << "'," << endl;
 					out << "                               ANGL_REP=(0.,0.,0.,),)," << endl;
-				} else
+				} else {
 					out << "# WARN Finite Element : MASSIF (skin) ignored because its GROUP_MA is empty."
 							<< endl;
+				}
+				skin->markAsWritten();
 			}
 			out << "                            )," << endl;
 		}
@@ -936,37 +961,40 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 	}
 	out << "                    );" << endl << endl;
 }
-void AsterWriter::writeAffeCaraElemPoutre(const AsterModel& asterModel, const ElementSet& elementSet, ostream& out) {
+void AsterWriter::writeAffeCaraElemPoutre(const AsterModel& asterModel, ElementSet& elementSet, ostream& out) {
 	out << "                            _F(GROUP_MA='" << elementSet.cellGroup->getName() << "',"
 			<< endl;
 	switch (elementSet.type) {
 	case ElementSet::Type::RECTANGULAR_SECTION_BEAM: {
-		const RectangularSectionBeam& rectBeam =
-				static_cast<const RectangularSectionBeam&>(elementSet);
+		RectangularSectionBeam& rectBeam =
+				static_cast<RectangularSectionBeam&>(elementSet);
 		out << "                               VARI_SECT='CONSTANT'," << endl;
 		out << "                               SECTION='RECTANGLE'," << endl;
 		out << "                               CARA=('HY','HZ',)," << endl;
 		out << "                               VALE=(" << rectBeam.height << "," << rectBeam.width
 				<< ")," << endl;
+        rectBeam.markAsWritten();
 		break;
 	}
 	case ElementSet::Type::CIRCULAR_SECTION_BEAM: {
-		const CircularSectionBeam& circBeam = static_cast<const CircularSectionBeam&>(elementSet);
+		CircularSectionBeam& circBeam = static_cast<CircularSectionBeam&>(elementSet);
 		out << "                               SECTION='CERCLE'," << endl;
 		out << "                               CARA=('R',)," << endl;
 		out << "                               VALE=(" << circBeam.radius << ")," << endl;
+		circBeam.markAsWritten();
 		break;
 	}
 	case ElementSet::Type::TUBE_SECTION_BEAM: {
-		const TubeSectionBeam& tubeBeam = static_cast<const TubeSectionBeam&>(elementSet);
+		TubeSectionBeam& tubeBeam = static_cast<TubeSectionBeam&>(elementSet);
 		out << "                               SECTION='CERCLE'," << endl;
 		out << "                               CARA=('R','EP')," << endl;
 		out << "                               VALE=(" << tubeBeam.radius << ","<< tubeBeam.thickness << ")," << endl;
+		tubeBeam.markAsWritten();
 		break;
 	}
 	default:
-		const Beam& beam =
-				static_cast<const Beam&>(elementSet);
+		Beam& beam =
+				static_cast<Beam&>(elementSet);
 		out << "                               SECTION='GENERALE'," << endl;
 		if (not beam.isTruss() or asterModel.model.needsLargeDisplacements()) {
 		    out << "                               CARA=('A','IY','IZ','JX','AY','AZ',)," << endl;
@@ -993,6 +1021,7 @@ void AsterWriter::writeAffeCaraElemPoutre(const AsterModel& asterModel, const El
 		}
 
 		out << ")," << endl;
+		beam.markAsWritten();
 	}
 	out << "                               )," << endl;
 }
@@ -1004,6 +1033,7 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
 			//GC fix for http://hotline.alneos.fr/redmine/issues/801.
 			//What is the meaning of an empty constraintset?
 			//maybe it should be fixed elsewhere
+			constraintSet.markAsWritten();
 			continue;
 		}
 		bool contactOnly = true;
@@ -1038,6 +1068,7 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
             writeLMPC(asterModel, constraintSet, out);
             out << "                   );" << endl << endl;
 		}
+		constraintSet.markAsWritten();
 	}
 
 	for (const auto& it : asterModel.model.loadSets) {
@@ -1046,6 +1077,7 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
 			continue;
 		}
 		if (loadSet.getLoadings().size() == 0) {
+            loadSet.markAsWritten();
 			continue;
 		}
 		if (loadSet.getLoadings().size()
@@ -1078,6 +1110,7 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
             writeRotation(loadSet, out);
             out << "                      );" << endl << endl;
 		}
+		loadSet.markAsWritten();
 	}
 }
 
@@ -1141,7 +1174,7 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 		}
 		out << "                   ZONE=(" << endl;
 		for (shared_ptr<Constraint> constraint : gaps) {
-			shared_ptr<const Gap> gap = dynamic_pointer_cast<const Gap>(constraint);
+			shared_ptr<Gap> gap = dynamic_pointer_cast<Gap>(constraint);
 			int gapCount = 0;
 			for (shared_ptr<Gap::GapParticipation> gapParticipation : gap->getGaps()) {
 				gapCount++;
@@ -1175,18 +1208,20 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 				out << "),";
 				out << ")," << endl;
 			}
+			gap->markAsWritten();
 		}
 		for (shared_ptr<Constraint> constraint : slides) {
-		    shared_ptr<const SlideContact> slide = dynamic_pointer_cast<const SlideContact>(constraint);
-                out << "                             _F(";
-				out << "GROUP_MA_MAIT='"
-						<< slide->masterCellGroup->getName()
-						<< "',";
-				out << "GROUP_MA_ESCL='"
-						<< slide->slaveCellGroup->getName()
-						<< "',";
-                out << "COULOMB=" << slide->getFriction() << ",";
-				out << ")," << endl;
+		    shared_ptr<SlideContact> slide = dynamic_pointer_cast<SlideContact>(constraint);
+            out << "                             _F(";
+            out << "GROUP_MA_MAIT='"
+                    << slide->masterCellGroup->getName()
+                    << "',";
+            out << "GROUP_MA_ESCL='"
+                    << slide->slaveCellGroup->getName()
+                    << "',";
+            out << "COULOMB=" << slide->getFriction() << ",";
+            out << ")," << endl;
+            slide->markAsWritten();
 		}
 //		for (shared_ptr<Constraint> constraint : surfaceSlides) {
 //		    shared_ptr<const SurfaceSlide> surfaceSlide = dynamic_pointer_cast<const SurfaceSlide>(constraint);
@@ -1203,22 +1238,23 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 //				out << ")," << endl;
 //		}
 		for (shared_ptr<Constraint> constraint : surfaces) {
-		    shared_ptr<const SurfaceContact> surface = dynamic_pointer_cast<const SurfaceContact>(constraint);
-                out << "                             _F(";
-				out << "GROUP_MA_MAIT='"
-						<< surface->masterCellGroup->getName()
-						<< "',";
-				out << "GROUP_MA_ESCL='"
-						<< surface->slaveCellGroup->getName()
-						<< "',";
-				out << ")," << endl;
+		    shared_ptr<SurfaceContact> surface = dynamic_pointer_cast<SurfaceContact>(constraint);
+            out << "                             _F(";
+            out << "GROUP_MA_MAIT='"
+                    << surface->masterCellGroup->getName()
+                    << "',";
+            out << "GROUP_MA_ESCL='"
+                    << surface->slaveCellGroup->getName()
+                    << "',";
+            out << ")," << endl;
+            surface->markAsWritten();
 		}
 		for (shared_ptr<Constraint> constraint : zones) {
-		    shared_ptr<const ZoneContact> zone = dynamic_pointer_cast<const ZoneContact>(constraint);
-		    shared_ptr<const ContactBody> master = dynamic_pointer_cast<const ContactBody>(asterModel.model.find(zone->master));
-		    shared_ptr<const BoundarySurface> masterSurface = dynamic_pointer_cast<const BoundarySurface>(asterModel.model.find(master->boundary));
-		    shared_ptr<const ContactBody> slave = dynamic_pointer_cast<const ContactBody>(asterModel.model.find(zone->slave));
-		    shared_ptr<const BoundarySurface> slaveSurface = dynamic_pointer_cast<const BoundarySurface>(asterModel.model.find(slave->boundary));
+		    shared_ptr<ZoneContact> zone = dynamic_pointer_cast<ZoneContact>(constraint);
+		    shared_ptr<ContactBody> master = dynamic_pointer_cast<ContactBody>(asterModel.model.find(zone->master));
+		    shared_ptr<BoundarySurface> masterSurface = dynamic_pointer_cast<BoundarySurface>(asterModel.model.find(master->boundary));
+		    shared_ptr<ContactBody> slave = dynamic_pointer_cast<ContactBody>(asterModel.model.find(zone->slave));
+		    shared_ptr<BoundarySurface> slaveSurface = dynamic_pointer_cast<BoundarySurface>(asterModel.model.find(slave->boundary));
             out << "                             _F(";
 
             out << "GROUP_MA_MAIT=(";
@@ -1232,21 +1268,27 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
                 }
                 out << "),";
             out << ")," << endl;
+            zone->markAsWritten();
+            master->markAsWritten();
+            masterSurface->markAsWritten();
+            slave->markAsWritten();
+            slaveSurface->markAsWritten();
 		}
 		out << "                             )," << endl;
 		out << "                   );" << endl << endl;
+		constraintSet.markAsWritten();
 	}
 }
 
 void AsterWriter::writeSPC(const AsterModel& asterModel, const ConstraintSet& cset,
 		ostream&out) {
     UNUSEDV(asterModel);
-	const set<shared_ptr<Constraint>> spcs = cset.getConstraintsByType(Constraint::Type::SPC);
+	const auto& spcs = cset.getConstraintsByType(Constraint::Type::SPC);
 	if (spcs.size() > 0) {
 		out << "                   DDL_IMPO=(" << endl;
 		for (shared_ptr<Constraint> constraint : spcs) {
-			shared_ptr<const SinglePointConstraint> spc = dynamic_pointer_cast<
-					const SinglePointConstraint>(constraint);
+			shared_ptr<SinglePointConstraint> spc = dynamic_pointer_cast<
+					SinglePointConstraint>(constraint);
 			//FIXME: filter spcs with type function.
 			if (spc->hasReferences()) {
 				cerr << "SPC references not supported " << *spc << endl;
@@ -1284,6 +1326,7 @@ void AsterWriter::writeSPC(const AsterModel& asterModel, const ConstraintSet& cs
 				}
 				out << ")," << endl;
 			}
+			spc->markAsWritten();
 		}
 		out << "                             )," << endl;
 	}
@@ -1292,12 +1335,11 @@ void AsterWriter::writeSPC(const AsterModel& asterModel, const ConstraintSet& cs
 void AsterWriter::writeSPCD(const AsterModel& asterModel, const LoadSet& lset,
 		ostream&out) {
     UNUSEDV(asterModel);
-	const set<shared_ptr<Loading>> spcds = lset.getLoadingsByType(Loading::Type::IMPOSED_DISPLACEMENT);
+	const auto& spcds = lset.getLoadingsByType(Loading::Type::IMPOSED_DISPLACEMENT);
 	if (spcds.size() > 0) {
 		out << "                   DDL_IMPO=(" << endl;
 		for (shared_ptr<Loading> loading : spcds) {
-			shared_ptr<const ImposedDisplacement> spcd = dynamic_pointer_cast<
-					const ImposedDisplacement>(loading);
+			shared_ptr<ImposedDisplacement> spcd = dynamic_pointer_cast<ImposedDisplacement>(loading);
             out << "                             _F(";
             writeNodeContainer(*spcd, out);
             for (const DOF dof : spcd->getDOFSForNode(0)) { // parameter 0 ignored
@@ -1316,6 +1358,7 @@ void AsterWriter::writeSPCD(const AsterModel& asterModel, const LoadSet& lset,
                 out << "=" << spcd->getDoubleForDOF(dof) << ", ";
             }
             out << ")," << endl;
+            spcd->markAsWritten();
 		}
 		out << "                             )," << endl;
 	}
@@ -1348,6 +1391,7 @@ void AsterWriter::writeLIAISON_SOLIDE(const AsterModel& asterModel, const Constr
 			}
 			out << ")," << endl;
 			out << "                                      )," << endl;
+			constraintPtr->markAsWritten();
 
 		}
 		out << "                                   )," << endl;
@@ -1357,19 +1401,22 @@ void AsterWriter::writeLIAISON_SOLIDE(const AsterModel& asterModel, const Constr
 void AsterWriter::writeLIAISON_MAIL(const AsterModel& asterModel, const ConstraintSet& cset,
 		ostream& out) {
 
-	const set<shared_ptr<Constraint>> slideSurfaces = cset.getConstraintsByType(
+	const auto& slideSurfaces = cset.getConstraintsByType(
 			Constraint::Type::SURFACE_SLIDE_CONTACT);
 
 	if (slideSurfaces.size() >= 1) {
 		out << "                   LIAISON_MAIL=(" << endl;
         for (shared_ptr<Constraint> constraint : slideSurfaces) {
-		    shared_ptr<const SurfaceSlide> surface = dynamic_pointer_cast<const SurfaceSlide>(constraint);
-		    shared_ptr<const BoundaryElementFace> masterSurface = dynamic_pointer_cast<const BoundaryElementFace>(asterModel.model.find(surface->master));
-		    shared_ptr<const BoundaryElementFace> slaveSurface = dynamic_pointer_cast<const BoundaryElementFace>(asterModel.model.find(surface->slave));
+		    shared_ptr<SurfaceSlide> surface = dynamic_pointer_cast<SurfaceSlide>(constraint);
+		    shared_ptr<BoundaryElementFace> masterSurface = dynamic_pointer_cast<BoundaryElementFace>(asterModel.model.find(surface->master));
+		    shared_ptr<BoundaryElementFace> slaveSurface = dynamic_pointer_cast<BoundaryElementFace>(asterModel.model.find(surface->slave));
 			out << "                                   _F(TYPE_RACCORD='MASSIF', DDL_MAIT='DNOR', DDL_ESCL='DNOR',";
 			out << "GROUP_MA_MAIT='" << masterSurface->elementCellGroup->getName() << "',";
 			out << "GROUP_MA_ESCL='" << slaveSurface->surfaceCellGroup->getName() << "',";
             out << ")," << endl;
+            surface->markAsWritten();
+            masterSurface->markAsWritten();
+            slaveSurface->markAsWritten();
 		}
 		out << "                                   )," << endl;
 	}
@@ -1377,12 +1424,12 @@ void AsterWriter::writeLIAISON_MAIL(const AsterModel& asterModel, const Constrai
 
 void AsterWriter::writeRBE3(const AsterModel& asterModel, const ConstraintSet& cset,
 		ostream& out) {
-  UNUSEDV(asterModel);
-	const set<shared_ptr<Constraint>> constraints = cset.getConstraintsByType(Constraint::Type::RBE3);
+    UNUSEDV(asterModel);
+	const auto& constraints = cset.getConstraintsByType(Constraint::Type::RBE3);
 	if (constraints.size() > 0) {
 		out << "                   LIAISON_RBE3=(" << endl;
 		for (const auto& constraint : constraints) {
-			shared_ptr<const RBE3> rbe3 = dynamic_pointer_cast<const RBE3>(constraint);
+			shared_ptr<RBE3> rbe3 = dynamic_pointer_cast<RBE3>(constraint);
 			int masterNode = rbe3->getMaster();
 			out << "                                 _F(NOEUD_MAIT='"
 					<< Node::MedName(masterNode) << "',"
@@ -1451,6 +1498,7 @@ void AsterWriter::writeRBE3(const AsterModel& asterModel, const ConstraintSet& c
 			}
 			out << ")," << endl;
 			out << "                                    )," << endl;
+			rbe3->markAsWritten();
 		}
 		out << "                                 )," << endl;
 	}
@@ -1458,13 +1506,12 @@ void AsterWriter::writeRBE3(const AsterModel& asterModel, const ConstraintSet& c
 
 void AsterWriter::writeLMPC(const AsterModel& asterModel, const ConstraintSet& cset,
 		ostream& out) {
-  UNUSEDV(asterModel);
-	const set<shared_ptr<Constraint>> lmpcs = cset.getConstraintsByType(Constraint::Type::LMPC);
+    UNUSEDV(asterModel);
+	const auto& lmpcs = cset.getConstraintsByType(Constraint::Type::LMPC);
 	if (lmpcs.size() > 0) {
 		out << "                   LIAISON_DDL=(" << endl;
 		for (shared_ptr<Constraint> constraint : lmpcs) {
-			shared_ptr<const LinearMultiplePointConstraint> lmpc = dynamic_pointer_cast<
-					const LinearMultiplePointConstraint>(constraint);
+			shared_ptr<LinearMultiplePointConstraint> lmpc = dynamic_pointer_cast<LinearMultiplePointConstraint>(constraint);
 			out << "                                _F(NOEUD=(";
 			set<int> nodes = lmpc->nodePositions();
 			for (int nodePosition : nodes) {
@@ -1503,6 +1550,7 @@ void AsterWriter::writeLMPC(const AsterModel& asterModel, const ConstraintSet& c
 			out << ")," << endl;
 			out << "                                   COEF_IMPO=" << lmpc->coef_impo << "),"
 					<< endl;
+            lmpc->markAsWritten();
 		}
 		out << "                               )," << endl;
 	}
@@ -1519,6 +1567,7 @@ void AsterWriter::writeGravity(const LoadSet& loadSet, ostream& out) {
 			VectorialValue direction = gravity->getAccelerationVector().normalized();
 			out << "                                    DIRECTION=(" << direction.x() << ","
 					<< direction.y() << "," << direction.z() << "),)," << endl;
+            gravity->markAsWritten();
 		}
 		out << "                                 )," << endl;
 	}
@@ -1539,6 +1588,7 @@ void AsterWriter::writeRotation(const LoadSet& loadSet, ostream& out) {
 			out << "                                    CENTRE=(" << center.x() << "," << center.y()
 					<< "," << center.z() << ")";
 			out << ",)," << endl;
+			rotation->markAsWritten();
 		}
 		out << "                                 )," << endl;
 	}
@@ -1569,7 +1619,7 @@ void AsterWriter::writeNodalForce(const AsterModel& asterModel, const LoadSet& l
                 if (!is_zero(moment.z()))
                     out << "MZ=" << moment.z() << ",";
                 out << ")," << endl;
-
+                nodal_force->markAsWritten();
 			}
 		}
 		out << "                                    )," << endl;
@@ -1587,6 +1637,7 @@ void AsterWriter::writePression(const LoadSet& loadSet, ostream& out) {
 			out << "                         _F(PRES= " << normalPressionFace->intensity << ",";
 			writeCellContainer(*normalPressionFace, out);
 			out << "                         )," << endl;
+			pressionFace->markAsWritten();
 		}
 		out << "                      )," << endl;
 	}
@@ -1604,6 +1655,7 @@ void AsterWriter::writeForceCoque(const LoadSet& loadSet, ostream&out) {
 			out << "                        _F(PRES=" << normalPressionFace->intensity << ",";
 			writeCellContainer(*normalPressionFace, out);
 			out << "                         )," << endl;
+			normalPressionFace->markAsWritten();
 		}
 		out << "            )," << endl;
 	}
@@ -1622,7 +1674,7 @@ void AsterWriter::writeForceLine(const LoadSet& loadset, ostream& out) {
 			forcesOnPoutres.push_back(forceLine);
 		}
 	}
-	if (forcesOnPoutres.size() > 0) {
+	if (forcesOnPoutres.size() >= 1) {
 		out << "           FORCE_POUTRE=(" << endl;
 		for (shared_ptr<ForceLine> forceLine : forcesOnPoutres) {
             out << "                   _F(";
@@ -1651,11 +1703,12 @@ void AsterWriter::writeForceLine(const LoadSet& loadset, ostream& out) {
             out << "=" << asternameByValue[forceLine->force] << ",";
             writeCellContainer(*forceLine, out);
             out << "          )," << endl;
+            forceLine->markAsWritten();
 		}
 		out << "            )," << endl;
 	}
 
-	if (forcesOnGeometry.size() > 0) {
+	if (forcesOnGeometry.size() >= 1) {
 		cerr << "ERROR! force_arete not implemented" << endl;
 		out << "# warn! force_arete not implemented" << endl;
 	}
@@ -1685,6 +1738,7 @@ void AsterWriter::writeForceSurface(const LoadSet& loadSet, ostream&out) {
 			if (!is_equal(moment.z(), 0))
 				out << "MZ=" << moment.z() << ",";
 			out << ")," << endl;
+			forceSurface->markAsWritten();
 		}
 		out << "            )," << endl;
 	}
@@ -1812,6 +1866,8 @@ void AsterWriter::writeAssemblage(const AsterModel& asterModel, Analysis& analys
                             << dynamicExcitation.getLoadSet()->getId() << "," << endl;
                     out << "                                )," << endl;
                     out << "                      )," << endl;
+                    dynamicExcitation.markAsWritten();
+                    loadSet->markAsWritten();
                 }
             }
         }
@@ -1968,6 +2024,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
         out << "                      CHAM_MATER=CHMAT," << endl;
         out << "                      )," << endl;
         out << "              )" << endl << endl;
+        combination.markAsWritten();
         break;
     }
 	case Analysis::Type::LINEAR_MECA_STAT: {
@@ -1994,6 +2051,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
         out << "                    SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS')," << endl;
         out << "                    OPTION='SIEF_ELGA'," << endl;
 		out << "                    );" << endl << endl;
+		linearMecaStat.markAsWritten();
 		break;
 	}
 	case Analysis::Type::NONLINEAR_MECA_STAT: {
@@ -2096,6 +2154,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		}
 		out << "                    SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS')," << endl;
 		out << "                    );" << endl << endl;
+		nonLinAnalysis.markAsWritten();
 		break;
 	}
 	case Analysis::Type::LINEAR_DYNA_DIRECT_FREQ: {
@@ -2141,12 +2200,15 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 							<< endl;
 					out << "                                    PHAS_DEG = "
 							<< dynamicExcitation.getDynaPhase()->get() << ",)," << endl;
+                    dynamicExcitation.markAsWritten();
+                    loadSet->markAsWritten();
 				}
 			}
 		}
 		out << "                                 )," << endl;
 		out << "                   #SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS',NPREC=8)," << endl; // MUMPS: Error in function orderMinPriority no valid number of stages in multisector (#stages = 2)
 		out << "                   );" << endl << endl;
+		linearDirect.markAsWritten();
 	    break;
 	}
 	case Analysis::Type::LINEAR_MODAL:
@@ -2182,8 +2244,10 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
         out << "J" << resuName << "=POST_ELEM(RESULTAT=" << resuName << ", MASS_INER=_F(TOUT='OUI'))" << endl;
         out << "IMPR_TABLE(TABLE=J" << resuName << ")" << endl << endl;
 
-		if (analysis.type == Analysis::Type::LINEAR_MODAL)
+		if (analysis.type == Analysis::Type::LINEAR_MODAL) {
+            linearModal.markAsWritten();
 			break;
+		}
 
 		LinearDynaModalFreq& linearDynaModalFreq = dynamic_cast<LinearDynaModalFreq&>(analysis);
 
@@ -2224,6 +2288,8 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
                                     out << "'DRZ',";
                                 out << "))," << endl;
                             }
+                            dynamicExcitation.markAsWritten();
+                            loadSet->markAsWritten();
 						}
 					}
 				}
@@ -2277,6 +2343,8 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
                     out << "                             VECT_ASSE=FX"
                             << linearDynaModalFreq.getId() << "_"
                             << dynamicExcitation.getId() << ",)," << endl;
+                    dynamicExcitation.markAsWritten();
+                    loadSet->markAsWritten();
                 }
             }
         }
@@ -2337,6 +2405,8 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 							<< endl;
 					out << "                                    PHAS_DEG = "
 							<< dynamicExcitation.getDynaPhase()->get() << ",)," << endl;
+                    dynamicExcitation.markAsWritten();
+                    loadSet->markAsWritten();
 				}
 			}
 		}
@@ -2349,7 +2419,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
         out << "                       TOUT_ORDRE = 'OUI'," << endl;
         out << "                       NOM_CHAM = 'DEPL'," << endl;
         out << "                       );" << endl << endl;
-
+        linearDynaModalFreq.markAsWritten();
 		break;
 	}
     case Analysis::Type::LINEAR_BUCKLING: {
@@ -2378,7 +2448,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 
         out << "RESU" << linearBuckling.getId() << " = NORM_MODE(reuse=RESU"<< linearBuckling.getId() << ",MODE=RESU" << linearBuckling.getId() << ",NORME='TRAN_ROTA',)" << endl;
         out << "TBCRT" << linearBuckling.getId() << " = RECU_TABLE(CO=RESU" << linearBuckling.getId() << ",NOM_PARA='CHAR_CRIT')" << endl;
-
+        linearBuckling.markAsWritten();
         break;
     }
 	default:

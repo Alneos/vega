@@ -46,6 +46,7 @@ unordered_map<VegaCommandLine::ExitCode, string, EnumClassHash> VegaCommandLine:
         {ExitCode::OUTPUT_DIR_NOT_CREATED, "Output dir can't be created."},
         {ExitCode::INVALID_COMMAND_LINE, "Invalid command line argument."},
         {ExitCode::MODEL_VALIDATION_ERROR, "Validation of model failed."},
+        {ExitCode::WRITING_INCOMPLETE, "Some translated objects have not been MARKED as written, output COULD be incomplete."},
         {ExitCode::SOLVER_NOT_FOUND, "Problem launching the solver (solver not found?)."},
         {ExitCode::SOLVER_KILLED, "Solver got a signal (killed?)."},
         {ExitCode::SOLVER_EXIT_NOT_ZERO, "Generic Solver problem {exit code !=0}."},
@@ -108,6 +109,14 @@ VegaCommandLine::ExitCode VegaCommandLine::convertStudy(
 
     string modelFile = writerIterator->second->writeModel(*model, configuration);
     modelFileOut.append(modelFile);
+
+    bool writingResult = model->checkWritten();
+
+    if (!writingResult
+            && configuration.translationMode == ConfigurationParameters::TranslationMode::MODE_STRICT) {
+        cerr << "Some translated model objects haven't been MARKED as written, output COULD be incomplete. EXIT" << endl;
+        return ExitCode::WRITING_INCOMPLETE;
+    }
     return ExitCode::OK;
 }
 
@@ -182,7 +191,7 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     }
 
     bool createGraph = false;
-    if (vm.count("graph") > 0) {
+    if (vm.count("graph") >= 1 and logLevel == LogLevel::TRACE) {
         cout << "Graph requested. " << endl;
         createGraph = true;
     }

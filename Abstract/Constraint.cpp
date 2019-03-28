@@ -148,6 +148,10 @@ int HomogeneousConstraint::getMaster() const {
     }
 }
 
+bool HomogeneousConstraint::hasMaster() const {
+    return this->masterPosition != HomogeneousConstraint::UNAVAILABLE_MASTER;
+}
+
 /** Getter for dofs data. **/
 const DOFS HomogeneousConstraint::getDOFS() const {
     return this->dofs;
@@ -397,7 +401,7 @@ void SinglePointConstraint::emulateLocalDisplacementConstraint() {
             // TODO LD: this should be done differently: is used to compute different nodes but every this it changes the coordinate system instance!
             coordSystem->updateLocalBase(VectorialValue(node.x, node.y, node.z));
             const DOFS& dofs = this->getDOFSForNode(nodePosition);
-            if (model.configuration.logLevel >= LogLevel::DEBUG)
+            if (model.configuration.logLevel >= LogLevel::TRACE)
                 cout << "Replacing local spc " << *this << " for: " << node << ",dofs " << this->getDOFSForNode(nodePosition) << endl;
             for (int i = 0; i < 6; i++) {
                 const DOF& currentDOF = *DOF::dofByPosition[i];
@@ -414,7 +418,7 @@ void SinglePointConstraint::emulateLocalDisplacementConstraint() {
                         lmpc->addParticipation(node.id, 0, 0, 0, participation.x(),
                                 participation.y(), participation.z());
                     }
-                    if (model.configuration.logLevel >= LogLevel::DEBUG)
+                    if (model.configuration.logLevel >= LogLevel::TRACE)
                         cout << "Adding: " << node << ", current dof:" << currentDOF << ", participation:" << participation << ", coef:" << lmpc->coef_impo << endl;
                     lmpcs.insert(lmpc);
                 }

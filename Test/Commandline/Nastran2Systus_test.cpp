@@ -51,9 +51,10 @@ BOOST_AUTO_TEST_CASE( truss1 ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/truss1/truss1.nas", RUN_SYSTUS, true, 0.001);
 }
 
-BOOST_AUTO_TEST_CASE( truss5 ) {
-	CommandLineUtils::nastranStudy2Systus("/irt/truss5/truss5.nas", RUN_SYSTUS, true, 0.001);
-}
+//BOOST_AUTO_TEST_CASE( truss5 ) {
+// COMBINATION
+//	CommandLineUtils::nastranStudy2Systus("/irt/truss5/truss5.nas", RUN_SYSTUS, true, 0.001);
+//}
 
 BOOST_AUTO_TEST_CASE( pload4 ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/pload4/pload4.nas", RUN_SYSTUS, true, 0.00001);
@@ -93,9 +94,10 @@ BOOST_AUTO_TEST_CASE( bugcoords ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/bug-coord/bug-coord.nas", false, true, 0.00001);
 }
 
-BOOST_AUTO_TEST_CASE( nas101prob2 ) {
-	CommandLineUtils::nastranStudy2Systus("/irt/nas101prob2/nas101prob2.dat", RUN_SYSTUS, true, 0.15);
-}
+//BOOST_AUTO_TEST_CASE( nas101prob2 ) {
+    // ForceLine
+	//CommandLineUtils::nastranStudy2Systus("/irt/nas101prob2/nas101prob2.dat", RUN_SYSTUS, true, 0.15);
+//}
 
 BOOST_AUTO_TEST_CASE( nas101prob3 ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/nas101prob3/nas101prob3.nas", RUN_SYSTUS, true, 0.005);

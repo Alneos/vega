@@ -658,7 +658,7 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
             handleParsingError("FREQ not found for linear dynamic modal frequency analysis", tok, model);
 
         bool residual_vector = false;
-        it = context.find("RESVEC(NOINREL)");
+        it = context.find("RESVEC");
         if (it != context.end() && it->second == "YES")
             residual_vector = true;
 
@@ -3045,6 +3045,7 @@ void NastranParser::parseSPCADD(NastranTokenizer& tok, Model& model) {
             model.add(constraintSet);
             Reference<ConstraintSet> constraintSetReference(ConstraintSet::Type::SPC, constraintSet_id);
             constraintSet_ptr->add(constraintSetReference);
+            constraintSet->markAsWritten();
         }
     }
 }

@@ -29,6 +29,7 @@ const map<Loading::Type, string> Loading::stringByType = {
 		{ Loading::Type::GRAVITY, "GRAVITY" },
 		{ Loading::Type::ROTATION, "ROTATION" },
 		{ Loading::Type::NORMAL_PRESSION_FACE, "NORMAL_PRESSION_FACE" },
+		{ Loading::Type::INITIAL_TEMPERATURE, "INITIAL_TEMPERATURE" },
 		{ Loading::Type::FORCE_LINE, "FORCE_LINE" },
 		{ Loading::Type::FORCE_SURFACE, "FORCE_SURFACE" },
 		{ Loading::Type::DYNAMIC_EXCITATION, "DYNAMIC_EXCITATION" },

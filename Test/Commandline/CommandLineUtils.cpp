@@ -22,6 +22,7 @@
 #endif
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/test/unit_test.hpp>
 
 namespace vega {
 namespace tests {
@@ -31,6 +32,9 @@ using namespace std;
 
 void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName outputSolver,
         bool runSolver, bool strict, double tolerance) {
+    cout << "-------------------------------------------------------------------------------" << endl;
+    cout << "----- Starting:" << boost::unit_test::framework::current_test_case().full_name() << " -----" << endl;
+    cout << "-------------------------------------------------------------------------------" << endl;
     string inputSolverString;
     switch (inputSolver) {
     case SolverName::NASTRAN:
@@ -228,6 +232,7 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
             BOOST_FAIL("OutputSolver not recognized");
         }
     }
+    cout << "Leaving test: " << boost::unit_test::framework::current_test_case().full_name() << endl;
 }
 
 void CommandLineUtils::nastranStudy2Aster(string fname, bool runSolver, bool strict,

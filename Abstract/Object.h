@@ -19,6 +19,7 @@
  *
  *  Created on: 3 juin 2014
  *      Author: siavelis
+ *      Contributor(s) : Luca Dall'Olio (IRT)
  */
 
 #ifndef OBJECT_H_
@@ -38,6 +39,7 @@ template<class T> class Identifiable {
     static int auto_id;
     int original_id;
     int id;
+    bool written = false;
 public:
     static const int NO_ORIGINAL_ID;
 
@@ -50,6 +52,20 @@ public:
 
     int getId() const {
         return id;
+    }
+
+    /**
+     * Has this object been treated by the writer ?
+     */
+    bool isWritten() const {
+        return written;
+    }
+
+    /**
+     * Tell this object that it has been written into output
+     */
+    void markAsWritten() {
+        written = true;
     }
 
     int bestId() const {
@@ -99,8 +115,7 @@ public:
         return infos;
     }
 
-    virtual ~Identifiable() {
-    }
+    virtual ~Identifiable() = default;
 
 };
 template<class T> const int Identifiable<T>::NO_ORIGINAL_ID = INT_MIN;
