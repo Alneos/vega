@@ -655,212 +655,243 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
     Mesh& mesh = systusModel.model.mesh;
     rotationNodeIdByTranslationNodeId.clear();
 
-    for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::RBAR)) {
-        shared_ptr<Rbar> rbars = dynamic_pointer_cast<Rbar>(elementSet);
+    for (const auto& elementSet : systusModel.model.elementSets) {
 
-        const auto& material = elementSet->material;
-        if (material == nullptr){
-            throw logic_error("Error: ElementSet::RBAR have no material.");
-        }
-        const auto& nature = material->findNature(Nature::NatureType::NATURE_RIGID);
-        if (nature == nullptr) {
-            throw logic_error("Error: ElementSet::RBAR have no RIGID nature.");
-        }
-
-        // We update the material with the needed value
-        double stiffness;
-        if (is_equal(configuration.systusRBEStiffness, Globals::UNAVAILABLE_DOUBLE)){
-            stiffness= this->generateRbarStiffness(systusModel);
-        }else{
-            stiffness= configuration.systusRBEStiffness;
-        }
-        RigidNature& rigidNature = dynamic_cast<RigidNature&>(*nature);
-        if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-            rigidNature.setLagrangian(configuration.systusRBECoefficient);
-        }else{
-            rigidNature.setRigidity(configuration.systusRBECoefficient*stiffness);
+        switch (elementSet->type) {
+        // None of these element Set are RBE
+        case ElementSet::Type::CIRCULAR_SECTION_BEAM:
+        case ElementSet::Type::GENERIC_SECTION_BEAM:
+        case ElementSet::Type::I_SECTION_BEAM:
+        case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
+        case ElementSet::Type::STRUCTURAL_SEGMENT:
+        case ElementSet::Type::SHELL:
+        case ElementSet::Type::SKIN:
+        case ElementSet::Type::CONTINUUM:
+        case ElementSet::Type::NODAL_MASS:
+        case ElementSet::Type::DISCRETE_0D:
+        case ElementSet::Type::DISCRETE_1D:
+        case ElementSet::Type::STIFFNESS_MATRIX:
+        case ElementSet::Type::MASS_MATRIX:
+        case ElementSet::Type::DAMPING_MATRIX:
+        case ElementSet::Type::SCALAR_SPRING:{
+            continue;
         }
 
+        // Translation of RBAR and RBE2 (RBE2 are viewed as an assembly of RBAR)
+        // See Systus Reference Analysis Manual: RIGID BODY Element (page 498)
+        // Here we add the needed lagrangian and/or 3D nodes, and compute the material properties
+        case ElementSet::Type::RBAR: {
+            shared_ptr<Rbar> rbars = dynamic_pointer_cast<Rbar>(elementSet);
 
-        const int masterId = rbars->masterId;
-        const int masterPosition = mesh.findNodePosition(masterId);
-
-        const Node& master = mesh.findNode(masterPosition);
-        int master_rot_id = 0;
-
-        if (systusOption == SystusOption::CONTINUOUS){
-            int master_rot_position = mesh.addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
-            master_rot_id = mesh.findNodeId(master_rot_position);
-            rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
-        }
-
-        shared_ptr<CellGroup> cellGroup = elementSet->cellGroup;
-        for (const Cell& cell : cellGroup->getCells()) {
-
-            vector<int> nodes = cell.nodeIds;
-
-            if (nodes.size()!=2){
-                throw logic_error("Error: ElementSet::RBAR cells must have exactly two nodes.");
+            const auto& material = elementSet->material;
+            if (material == nullptr){
+                throw logic_error("Error: ElementSet::RBAR have no material.");
             }
-            if (nodes[0]!=masterId){
-                throw logic_error("Error: the first node of ElementSet::RBAR cells must be the master node.");
+            const auto& nature = material->findNature(Nature::NatureType::NATURE_RIGID);
+            if (nature == nullptr) {
+                throw logic_error("Error: ElementSet::RBAR have no RIGID nature.");
             }
 
-            if (systusOption == SystusOption::CONTINUOUS)
-                nodes.push_back(master_rot_id);
-
-            // With a Lagrangian formulation, we add a Lagrange node.
-            // Lagrange node must NOT have an orientation, as they inherit it from the slave node.
+            // We update the material with the needed value
+            double stiffness;
+            if (is_equal(configuration.systusRBEStiffness, Globals::UNAVAILABLE_DOUBLE)){
+                stiffness= this->generateRbarStiffness(systusModel);
+            }else{
+                stiffness= configuration.systusRBEStiffness;
+            }
+            RigidNature& rigidNature = dynamic_cast<RigidNature&>(*nature);
             if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-                const Node& slave = mesh.findNode(cell.nodePositions[1]);
-                int slave_lagr_position = mesh.addNode(Node::AUTO_ID, slave.lx, slave.ly, slave.lz, slave.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-                int slave_lagr_id = mesh.findNodeId(slave_lagr_position);
-                nodes.push_back(slave_lagr_id);
+                rigidNature.setLagrangian(configuration.systusRBECoefficient);
+            }else{
+                rigidNature.setRigidity(configuration.systusRBECoefficient*stiffness);
             }
 
-            // If needed, we update the Cell
-            switch (nodes.size()){
-            case (2):{
-                break;
+
+            const int masterId = rbars->masterId;
+            const int masterPosition = mesh.findNodePosition(masterId);
+
+            const Node& master = mesh.findNode(masterPosition);
+            int master_rot_id = 0;
+
+            if (systusOption == SystusOption::CONTINUOUS){
+                int master_rot_position = mesh.addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
+                master_rot_id = mesh.findNodeId(master_rot_position);
+                rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
             }
-            case (3):{
-                mesh.updateCell(cell.id, CellType::POLY3, nodes, true);
-                break;
+
+            shared_ptr<CellGroup> cellGroup = elementSet->cellGroup;
+            for (const Cell& cell : cellGroup->getCells()) {
+
+                vector<int> nodes = cell.nodeIds;
+
+                if (nodes.size()!=2){
+                    throw logic_error("Error: ElementSet::RBAR cells must have exactly two nodes.");
+                }
+                if (nodes[0]!=masterId){
+                    throw logic_error("Error: the first node of ElementSet::RBAR cells must be the master node.");
+                }
+
+                if (systusOption == SystusOption::CONTINUOUS)
+                    nodes.push_back(master_rot_id);
+
+                // With a Lagrangian formulation, we add a Lagrange node.
+                // Lagrange node must NOT have an orientation, as they inherit it from the slave node.
+                if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
+                    const Node& slave = mesh.findNode(cell.nodePositions[1]);
+                    int slave_lagr_position = mesh.addNode(Node::AUTO_ID, slave.lx, slave.ly, slave.lz, slave.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+                    int slave_lagr_id = mesh.findNodeId(slave_lagr_position);
+                    nodes.push_back(slave_lagr_id);
+                }
+
+                // If needed, we update the Cell
+                switch (nodes.size()){
+                case (2):{
+                    break;
+                }
+                case (3):{
+                    mesh.updateCell(cell.id, CellType::POLY3, nodes, true);
+                    break;
+                }
+                case(4):{
+                    mesh.updateCell(cell.id, CellType::POLY4, nodes, true);
+                    break;
+                }
+                default:
+                    throw logic_error("Not (yet) implemented, maybe nothing to do in this case?");
+                }
             }
-            case(4):{
-                mesh.updateCell(cell.id, CellType::POLY4, nodes, true);
-                break;
-            }
-            default:
-                throw logic_error("Not (yet) implemented, maybe nothing to do in this case?");
-            }
+            rbars->markAsWritten();
+            break;
         }
-        rbars->markAsWritten();
-    }
-
-    for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::RBE3)) {
 
         /*
          * Translation of RBE3
          * See Systus Reference Analysis Manual, Section 8.8 "Special Elements",
          * Subsection "Use of Averaging Type Solid Elements", p500.
         */
-        shared_ptr<Rbe3> rbe3 = dynamic_pointer_cast<Rbe3>(elementSet);
+        case ElementSet::Type::RBE3: {
+            shared_ptr<Rbe3> rbe3 = dynamic_pointer_cast<Rbe3>(elementSet);
 
-        const auto& material = elementSet->material;
-        if (material == nullptr){
-            throw logic_error("Error: ElementSet::RBE3 have no material.");
-        }
-        shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_RIGID);
-        if (!nature) {
-            throw logic_error("Error: ElementSet::RBE3 have no RIGID nature.");
-        }
-
-        // We dont change the nature, it has already been correctly filed.
-        //RigidNature& rigidNature = dynamic_cast<RigidNature&>(*nature);
-        //rigidNature.setLagrangian(lagrangianValue);
-
-        const int masterId = rbe3->masterId;
-        const int masterPosition = mesh.findNodePosition(masterId);
-
-        const Node& master = mesh.findNode(masterPosition);
-
-        // Creating a Lagrange node
-        // Lagrange node must NOT have an orientation, as they inherit it from the slave node.
-        int master_lagr_position = mesh.addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-        int master_lagr_id = mesh.findNodeId(master_lagr_position);
-
-        // Creating rotation nodes if needed
-        int master_rot_id=0;
-        int master_lagr_rot_id=0;
-        if (systusOption == SystusOption::CONTINUOUS){
-            int master_rot_position = mesh.addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
-            master_rot_id = mesh.findNodeId(master_rot_position);
-            rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
-            int master_lagr_rot_position = mesh.addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-            master_lagr_rot_id = mesh.findNodeId(master_lagr_rot_position);
-        }
-
-        // Updating the cells
-        shared_ptr<CellGroup> cellGroup = elementSet->cellGroup;
-        for (const Cell& cell : cellGroup->getCells()) {
-
-            vector<int> nodes = cell.nodeIds;
-            if (nodes.size()!=2){
-                throw logic_error("Error: ElementSet::RBE3 cells must have exactly two nodes.");
+            const auto& material = elementSet->material;
+            if (material == nullptr){
+                throw logic_error("Error: ElementSet::RBE3 have no material.");
             }
-            if (nodes[0]!=masterId){
-                throw logic_error("Error: the first node of ElementSet::RBE3 cells must be the master node.");
+            shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_RIGID);
+            if (!nature) {
+                throw logic_error("Error: ElementSet::RBE3 have no RIGID nature.");
             }
 
-            if (systusOption == SystusOption::CONTINUOUS)
-                nodes.push_back(master_rot_id);
-            nodes.push_back(master_lagr_id);
+            // We dont change the nature, it has already been correctly filed.
+            //RigidNature& rigidNature = dynamic_cast<RigidNature&>(*nature);
+            //rigidNature.setLagrangian(lagrangianValue);
+
+            const int masterId = rbe3->masterId;
+            const int masterPosition = mesh.findNodePosition(masterId);
+
+            const Node& master = mesh.findNode(masterPosition);
+
+            // Creating a Lagrange node
+            // Lagrange node must NOT have an orientation, as they inherit it from the slave node.
+            int master_lagr_position = mesh.addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+            int master_lagr_id = mesh.findNodeId(master_lagr_position);
+
+            // Creating rotation nodes if needed
+            int master_rot_id=0;
+            int master_lagr_rot_id=0;
             if (systusOption == SystusOption::CONTINUOUS){
-                nodes.push_back(master_lagr_rot_id);
+                int master_rot_position = mesh.addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
+                master_rot_id = mesh.findNodeId(master_rot_position);
+                rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
+                int master_lagr_rot_position = mesh.addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+                master_lagr_rot_id = mesh.findNodeId(master_lagr_rot_position);
             }
 
-            switch (nodes.size()){
-            case (3):{
-                mesh.updateCell(cell.id, CellType::POLY3, nodes, true);
-                break;
-            }
-            case(5):{
-                mesh.updateCell(cell.id, CellType::POLY5, nodes, true);
-                break;
-            }
-            default:
-                throw logic_error("Not (yet) implemented, maybe nothing to do in this case?");
-            }
-        }
-        rbe3->markAsWritten();
-    }
-
-
-    for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::LMPC)) {
-
-    // Translation of LMPC elements has X9XX Level 0 elements
-    // See Systus Reference Analysis Manual: RIGID BODY Element (page 498)
-    // Here we compute the material properties and, if needed, add a lagrangian node
-        shared_ptr<Lmpc> lmpc = dynamic_pointer_cast<Lmpc>(elementSet);
-
-        const auto& material = elementSet->material;
-        if (material == nullptr){
-            throw logic_error("Error: ElementSet::Lmpc have no material.");
-        }
-        shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_RIGID);
-        if (!nature) {
-            throw logic_error("Error: ElementSet::Lmpc have no RIGID nature.");
-        }
-
-        // We update the material with the needed value
-        double stiffness;
-        if (is_equal(configuration.systusRBEStiffness, Globals::UNAVAILABLE_DOUBLE)){
-            stiffness= this->generateRbarStiffness(systusModel);
-        }else{
-            stiffness= configuration.systusRBEStiffness;
-        }
-        RigidNature& rigidNature = dynamic_cast<RigidNature&>(*nature);
-        if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-            rigidNature.setLagrangian(configuration.systusRBECoefficient);
-        }else{
-            rigidNature.setRigidity(configuration.systusRBECoefficient*stiffness);
-        }
-
-        // With a Lagrangian formulation, we add a Lagrange node.
-        // Lagrange node must NOT have an orientation, as they inherit it from the original node.
-        if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
+            // Updating the cells
             shared_ptr<CellGroup> cellGroup = elementSet->cellGroup;
             for (const Cell& cell : cellGroup->getCells()) {
+
                 vector<int> nodes = cell.nodeIds;
-                const Node& first = mesh.findNode(cell.nodePositions[0]);
-                int first_lagr_position = mesh.addNode(Node::AUTO_ID, first.lx, first.ly, first.lz, first.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-                int first_lagr_id = mesh.findNodeId(first_lagr_position);
-                nodes.push_back(first_lagr_id);
-                mesh.updateCell(cell.id, CellType::polyType(static_cast<unsigned int>(nodes.size())), nodes, true);
+                if (nodes.size()!=2){
+                    throw logic_error("Error: ElementSet::RBE3 cells must have exactly two nodes.");
+                }
+                if (nodes[0]!=masterId){
+                    throw logic_error("Error: the first node of ElementSet::RBE3 cells must be the master node.");
+                }
+
+                if (systusOption == SystusOption::CONTINUOUS)
+                    nodes.push_back(master_rot_id);
+                nodes.push_back(master_lagr_id);
+                if (systusOption == SystusOption::CONTINUOUS){
+                    nodes.push_back(master_lagr_rot_id);
+                }
+
+                switch (nodes.size()){
+                case (3):{
+                    mesh.updateCell(cell.id, CellType::POLY3, nodes, true);
+                    break;
+                }
+                case(5):{
+                    mesh.updateCell(cell.id, CellType::POLY5, nodes, true);
+                    break;
+                }
+                default:
+                    throw logic_error("Not (yet) implemented, maybe nothing to do in this case?");
+                }
             }
+            rbe3->markAsWritten();
+            break;
         }
-        lmpc->markAsWritten();
+
+        // Translation of LMPC elements has X9XX Level 0 elements
+        // See Systus Reference Analysis Manual: RIGID BODY Element (page 498)
+        // Here we compute the material properties and, if needed, add a lagrangian node
+        case ElementSet::Type::LMPC: {
+            shared_ptr<Lmpc> lmpc = dynamic_pointer_cast<Lmpc>(elementSet);
+
+            const auto& material = elementSet->material;
+            if (material == nullptr){
+                throw logic_error("Error: ElementSet::Lmpc have no material.");
+            }
+            shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_RIGID);
+            if (!nature) {
+                throw logic_error("Error: ElementSet::Lmpc have no RIGID nature.");
+            }
+
+            // We update the material with the needed value
+            double stiffness;
+            if (is_equal(configuration.systusRBEStiffness, Globals::UNAVAILABLE_DOUBLE)){
+                stiffness= this->generateRbarStiffness(systusModel);
+            }else{
+                stiffness= configuration.systusRBEStiffness;
+            }
+            RigidNature& rigidNature = dynamic_cast<RigidNature&>(*nature);
+            if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
+                rigidNature.setLagrangian(configuration.systusRBECoefficient);
+            }else{
+                rigidNature.setRigidity(configuration.systusRBECoefficient*stiffness);
+            }
+
+            // With a Lagrangian formulation, we add a Lagrange node.
+            // Lagrange node must NOT have an orientation, as they inherit it from the original node.
+            if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
+                shared_ptr<CellGroup> cellGroup = elementSet->cellGroup;
+                for (const Cell& cell : cellGroup->getCells()) {
+                    vector<int> nodes = cell.nodeIds;
+                    const Node& first = mesh.findNode(cell.nodePositions[0]);
+                    int first_lagr_position = mesh.addNode(Node::AUTO_ID, first.lx, first.ly, first.lz, first.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+                    int first_lagr_id = mesh.findNodeId(first_lagr_position);
+                    nodes.push_back(first_lagr_id);
+                    mesh.updateCell(cell.id, CellType::polyType(static_cast<unsigned int>(nodes.size())), nodes, true);
+                }
+            }
+            lmpc->markAsWritten();
+            break;
+        }
+
+        default: {
+            handleWritingWarning(to_str(*elementSet) +" not supported", "Rigid Element");
+        }
+        }
     }
 }
 
@@ -1289,63 +1320,79 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
         }
 
         for (const auto& constraintset : analysis->getConstraintSets()){
-            for (const auto& constraint : constraintset->getConstraintsByType(Constraint::Type::SPC)) {
+            for (const auto& constraint : constraintset->getConstraints()) {
                 vector<double> vec;
                 double normvec=0.0;
-                std::shared_ptr<SinglePointConstraint> spc = std::dynamic_pointer_cast<SinglePointConstraint>(constraint);
-                if (spc->hasReferences()) {
-                    handleWritingWarning(to_str(*constraint) + " with reference to functions not supported", "Constraint vectors");
-                } else {
-                    normvec= initSystusAscConstraintVector(vec);
-                    DOFS spcDOFS = spc->getDOFSForNode(0);
-                    for (DOF dof : availableDOFS){
-                        double value = (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0);
-                        normvec = max(normvec, abs(value));
-                        vec.push_back(value);
-                    }
-
-                    if (!is_zero(normvec)){
-                        vectors[vectorId]=vec;
-                        for (const auto& it : localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]){
-                            for (int nodePosition : constraint->nodePositions()){
-                                constraintVectorsIdByLocalLoadingByNodePosition[nodePosition][it.second].push_back(vectorId);
-                            }
-                        }
-                        vectorId++;
-                    }
-                    // Rigid Body Element in option 3D.
-                    // We report the constraints from the master node to the master rotational node.
-                    if (systusOption==SystusOption::CONTINUOUS){
-
-                        // Rotation vector
-                        normvec=initSystusAscConstraintVector(vec);
-                        for (DOF dof : DOFS::ROTATIONS){
+                switch (constraint->type) {
+                case Constraint::Type::SPC: {
+                    std::shared_ptr<SinglePointConstraint> spc = std::dynamic_pointer_cast<SinglePointConstraint>(constraint);
+                    if (spc->hasReferences()) {
+                        handleWritingWarning(to_str(*constraint) + " with reference to functions not supported", "Constraint vectors");
+                    } else {
+                        normvec= initSystusAscConstraintVector(vec);
+                        DOFS spcDOFS = spc->getDOFSForNode(0);
+                        for (DOF dof : availableDOFS){
                             double value = (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0);
                             normvec = max(normvec, abs(value));
                             vec.push_back(value);
                         }
 
                         if (!is_zero(normvec)){
-                            bool firstTime=true;
-                            for (int nodePosition : constraint->nodePositions()){
-                                int nid = systusModel.model.mesh.findNodeId(nodePosition);
-                                const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
-                                if (it!=rotationNodeIdByTranslationNodeId.end()){
-                                    int rotNodePosition= systusModel.model.mesh.findNodePosition(it->second);
-                                    for (const auto & it2 : localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]){
-                                        constraintVectorsIdByLocalLoadingByNodePosition[rotNodePosition][it2.second].push_back(vectorId);
-                                    }
-                                    if (firstTime){
-                                        vectors[vectorId]=vec;
-                                        vectorId++;
-                                        firstTime = false;
+                            vectors[vectorId]=vec;
+                            for (const auto& it : localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]){
+                                for (int nodePosition : constraint->nodePositions()){
+                                    constraintVectorsIdByLocalLoadingByNodePosition[nodePosition][it.second].push_back(vectorId);
+                                }
+                            }
+                            vectorId++;
+                        }
+                        // Rigid Body Element in option 3D.
+                        // We report the constraints from the master node to the master rotational node.
+                        if (systusOption==SystusOption::CONTINUOUS){
+
+                            // Rotation vector
+                            normvec=initSystusAscConstraintVector(vec);
+                            for (DOF dof : DOFS::ROTATIONS){
+                                double value = (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0);
+                                normvec = max(normvec, abs(value));
+                                vec.push_back(value);
+                            }
+
+                            if (!is_zero(normvec)){
+                                bool firstTime=true;
+                                for (int nodePosition : constraint->nodePositions()){
+                                    int nid = systusModel.model.mesh.findNodeId(nodePosition);
+                                    const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
+                                    if (it!=rotationNodeIdByTranslationNodeId.end()){
+                                        int rotNodePosition= systusModel.model.mesh.findNodePosition(it->second);
+                                        for (const auto & it2 : localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]){
+                                            constraintVectorsIdByLocalLoadingByNodePosition[rotNodePosition][it2.second].push_back(vectorId);
+                                        }
+                                        if (firstTime){
+                                            vectors[vectorId]=vec;
+                                            vectorId++;
+                                            firstTime = false;
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+                    spc->markAsWritten();
+                    break;
                 }
-                spc->markAsWritten();
+
+                // Nothing to be done here
+                case Constraint::Type::RIGID:
+                case Constraint::Type::RBE3:
+                case Constraint::Type::QUASI_RIGID:
+                case Constraint::Type::LMPC:{
+                    break;
+                }
+                default: {
+                    handleWritingWarning(to_str(*constraint)+" not supported","Constraint vectors");
+                }
+                }
             }
             constraintset->markAsWritten();
         }
@@ -1560,36 +1607,51 @@ void SystusWriter::fillConstraintsNodes(const SystusModel& systusModel, const in
 
     // Work
     for (const auto & constraintSet : analysis->getConstraintSets()){
-        for (const auto& constraint : constraintSet->getConstraintsByType(Constraint::Type::SPC)) {
-            std::shared_ptr<SinglePointConstraint> spc = std::dynamic_pointer_cast<
-                    SinglePointConstraint>(constraint);
-            for (int nodePosition : constraint->nodePositions()) {
+        for (const auto& constraint : constraintSet->getConstraints()) {
 
-                // We compute the Degree Of Freedom of the node (see ASC Manual)
-                DOFS constrained = constraint->getDOFSForNode(nodePosition);
-                if (constraintByNodePosition.find(nodePosition) == constraintByNodePosition.end()){
-                    constraintByNodePosition[nodePosition] = char(constrained) & dofCode;
-                }else{
-                    constraintByNodePosition[nodePosition] = (char(constrained) & dofCode)
-                                        | constraintByNodePosition[nodePosition];
-                }
+            switch (constraint->type) {
+            case Constraint::Type::SPC: {
+                std::shared_ptr<SinglePointConstraint> spc = std::dynamic_pointer_cast<
+                        SinglePointConstraint>(constraint);
+                for (int nodePosition : constraint->nodePositions()) {
 
-                // Rigid Body Element in option 3D.
-                // We report the constraints from the master node to the master rotational node.
-                if (systusOption==SystusOption::CONTINUOUS){
-                    int nid =  mesh.findNodeId(nodePosition);
-                    const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
-                    if (it != rotationNodeIdByTranslationNodeId.end()){
-                        DOFS constrainedRot(constrained.contains(DOF::RX),constrained.contains(DOF::RY),constrained.contains(DOF::RZ));
-                        int rotNodePosition= mesh.findNodePosition(it->second);
-                        if (constraintByNodePosition.find(rotNodePosition) == constraintByNodePosition.end()){
-                            constraintByNodePosition[rotNodePosition] = char(constrainedRot) & dofCode;
-                        }else{
-                            constraintByNodePosition[rotNodePosition] = (char(constrainedRot) & dofCode)
-                                                | constraintByNodePosition[rotNodePosition];
+                    // We compute the Degree Of Freedom of the node (see ASC Manual)
+                    DOFS constrained = constraint->getDOFSForNode(nodePosition);
+                    if (constraintByNodePosition.find(nodePosition) == constraintByNodePosition.end()){
+                        constraintByNodePosition[nodePosition] = char(constrained) & dofCode;
+                    }else{
+                        constraintByNodePosition[nodePosition] = (char(constrained) & dofCode)
+                                            | constraintByNodePosition[nodePosition];
+                    }
+
+                    // Rigid Body Element in option 3D.
+                    // We report the constraints from the master node to the master rotational node.
+                    if (systusOption==SystusOption::CONTINUOUS){
+                        int nid =  mesh.findNodeId(nodePosition);
+                        const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
+                        if (it != rotationNodeIdByTranslationNodeId.end()){
+                            DOFS constrainedRot(constrained.contains(DOF::RX),constrained.contains(DOF::RY),constrained.contains(DOF::RZ));
+                            int rotNodePosition= mesh.findNodePosition(it->second);
+                            if (constraintByNodePosition.find(rotNodePosition) == constraintByNodePosition.end()){
+                                constraintByNodePosition[rotNodePosition] = char(constrainedRot) & dofCode;
+                            }else{
+                                constraintByNodePosition[rotNodePosition] = (char(constrainedRot) & dofCode)
+                                                    | constraintByNodePosition[rotNodePosition];
+                            }
                         }
                     }
                 }
+                break;
+            }
+            case Constraint::Type::RIGID:
+            case Constraint::Type::RBE3:
+            case Constraint::Type::QUASI_RIGID:{
+                // Nothing to be done here
+                break;
+            }
+            default: {
+                handleWritingWarning("Constraint type "+constraint->to_str() +"is not supported");
+            }
             }
         }
         constraintSet->markAsWritten();
@@ -1655,153 +1717,186 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const int idSubcase
 void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcase) {
 
 
-    if (systusModel.configuration.systusOutputMatrix=="table") {
+    if (systusModel.configuration.systusOutputMatrix=="table"){
 
         // Fill tables for Stiffness, Mass and Damping elements
-        for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::SCALAR_SPRING)) {
+        for (const auto& elementSet : systusModel.model.elementSets) {
 
-            shared_ptr<ScalarSpring> ss = dynamic_pointer_cast<ScalarSpring>(elementSet);
-            const std::vector<std::pair<DOF, DOF>> dofsSpring = ss->getDOFSSpring();
-            if (dofsSpring.size()!=1){
-                handleWritingWarning(to_str(*elementSet) + " spring directions after the first one will be dismissed.", "FillTable");
+            switch (elementSet->type) {
+            // None of these elements needs this kind of tables
+            case ElementSet::Type::CIRCULAR_SECTION_BEAM:
+            case ElementSet::Type::GENERIC_SECTION_BEAM:
+            case ElementSet::Type::I_SECTION_BEAM:
+            case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
+            case ElementSet::Type::STRUCTURAL_SEGMENT:
+            case ElementSet::Type::SHELL:
+            case ElementSet::Type::SKIN:
+            case ElementSet::Type::CONTINUUM:
+            case ElementSet::Type::NODAL_MASS:
+            case ElementSet::Type::RBAR:
+            case ElementSet::Type::RBE3:
+            case ElementSet::Type::LMPC:{
+                continue;
             }
-            const std::pair<DOF,DOF> pairDOF = dofsSpring[0];
-            // If we have the same DOF, we can use a Spring element 1602.
-            // Else, we need to use a tabulated element 1902 Type 0
-            if (pairDOF.first != pairDOF.second){
-                systus_ascid_t tId2=0;
-                if (ss->hasStiffness()){
-                    systus_ascid_t tId= tables.size()+1;
-                    SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
-                    const double stiffness = ss->getStiffness();
 
-                    int pairCode = 1100;
-                    int dofCode = 11*DOFToInt(pairDOF.first);
-                    aTable.add(pairCode+dofCode);
-                    aTable.add(stiffness);
-                    pairCode = 2200;
-                    dofCode = 11*DOFToInt(pairDOF.second);
-                    aTable.add(pairCode+dofCode);
-                    aTable.add(stiffness);
-                    pairCode = 1200;
-                    dofCode = 10*DOFToInt(pairDOF.first) + DOFToInt(pairDOF.second);
-                    aTable.add(pairCode+dofCode);
-                    aTable.add(-stiffness);
-                    tables.push_back(aTable);
-                    tId2+=tId;
+            // Those elements are not supported yet
+            case ElementSet::Type::DISCRETE_0D:
+            case ElementSet::Type::DISCRETE_1D:{
+                continue;
+            }
+
+            case ElementSet::Type::SCALAR_SPRING:{
+                shared_ptr<ScalarSpring> ss = dynamic_pointer_cast<ScalarSpring>(elementSet);
+                const std::vector<std::pair<DOF, DOF>> dofsSpring = ss->getDOFSSpring();
+                if (dofsSpring.size()!=1){
+                    handleWritingWarning(to_str(*elementSet) + " spring directions after the first one will be dismissed.", "FillTable");
                 }
-                if (ss->hasDamping()){
-                    systus_ascid_t tId= tables.size()+1;
-                    SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
-                    const double damping = ss->getDamping();
+                const std::pair<DOF,DOF> pairDOF = dofsSpring[0];
+                // If we have the same DOF, we can use a Spring element 1602.
+                // Else, we need to use a tabulated element 1902 Type 0
+                if (pairDOF.first != pairDOF.second){
+                    systus_ascid_t tId2=0;
+                    if (ss->hasStiffness()){
+                        systus_ascid_t tId= tables.size()+1;
+                        SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
+                        const double stiffness = ss->getStiffness();
 
-                    int pairCode = 1100;
-                    int dofCode = 11*DOFToInt(pairDOF.first);
-                    aTable.add(pairCode+dofCode);
-                    aTable.add(damping);
-                    pairCode = 2200;
-                    dofCode = 11*DOFToInt(pairDOF.second);
-                    aTable.add(pairCode+dofCode);
-                    aTable.add(damping);
-                    pairCode = 1200;
-                    dofCode = 10*DOFToInt(pairDOF.first) + DOFToInt(pairDOF.second);
-                    aTable.add(pairCode+dofCode);
-                    aTable.add(-damping);
-                    tables.push_back(aTable);
-                    tId2+=tId*10000;
+                        int pairCode = 1100;
+                        int dofCode = 11*DOFToInt(pairDOF.first);
+                        aTable.add(pairCode+dofCode);
+                        aTable.add(stiffness);
+                        pairCode = 2200;
+                        dofCode = 11*DOFToInt(pairDOF.second);
+                        aTable.add(pairCode+dofCode);
+                        aTable.add(stiffness);
+                        pairCode = 1200;
+                        dofCode = 10*DOFToInt(pairDOF.first) + DOFToInt(pairDOF.second);
+                        aTable.add(pairCode+dofCode);
+                        aTable.add(-stiffness);
+                        tables.push_back(aTable);
+                        tId2+=tId;
+                    }
+                    if (ss->hasDamping()){
+                        systus_ascid_t tId= tables.size()+1;
+                        SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
+                        const double damping = ss->getDamping();
+
+                        int pairCode = 1100;
+                        int dofCode = 11*DOFToInt(pairDOF.first);
+                        aTable.add(pairCode+dofCode);
+                        aTable.add(damping);
+                        pairCode = 2200;
+                        dofCode = 11*DOFToInt(pairDOF.second);
+                        aTable.add(pairCode+dofCode);
+                        aTable.add(damping);
+                        pairCode = 1200;
+                        dofCode = 10*DOFToInt(pairDOF.first) + DOFToInt(pairDOF.second);
+                        aTable.add(pairCode+dofCode);
+                        aTable.add(-damping);
+                        tables.push_back(aTable);
+                        tId2+=tId*10000;
+                    }
+                    tableByElementSet[elementSet->getId()]=tId2;
                 }
-                tableByElementSet[elementSet->getId()]=tId2;
-            }
-            ss->markAsWritten();
-        }
-
-        // Stiffness, Mass and Damping matrices are the same kind.
-        // Only the tableByElementSet value differs:
-        //   - Stiffness: 0000XX
-        //   - Mass     : 00XX00
-        //   - Damping  : XX0000
-        for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::STIFFNESS_MATRIX)) {
-            shared_ptr<StiffnessMatrix> sm = dynamic_pointer_cast<StiffnessMatrix>(elementSet);
-            systus_ascid_t tId= tables.size()+1;
-            SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
-
-            //Numbering the node internally to the element
-            map<int, int> positionToSytusNumber;
-            int iSystus= 1;
-            for (const int pos : sm->nodePositions()){
-                positionToSytusNumber[pos]=iSystus;
-                iSystus++;
+                ss->markAsWritten();
+                break;
             }
 
-            // Building the table
-            for (const auto np : sm->nodePairs()){
-                int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
-                shared_ptr<const DOFMatrix> dM = sm->findSubmatrix(np.first, np.second);
-                for (const auto dof: dM->componentByDofs){
-                    int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
-                    aTable.add(pairCode+dofCode);
-                    aTable.add(dof.second);
+
+            // Stiffness, Mass and Damping matrices are the same kind.
+            // Only the tableByElementSet value differs:
+            //   - Stiffness: 0000XX
+            //   - Mass     : 00XX00
+            //   - Damping  : XX0000
+            case ElementSet::Type::STIFFNESS_MATRIX:{
+                shared_ptr<StiffnessMatrix> sm = dynamic_pointer_cast<StiffnessMatrix>(elementSet);
+                systus_ascid_t tId= tables.size()+1;
+                SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
+
+                //Numbering the node internally to the element
+                map<int, int> positionToSytusNumber;
+                int iSystus= 1;
+                for (const int pos : sm->nodePositions()){
+                    positionToSytusNumber[pos]=iSystus;
+                    iSystus++;
                 }
-            }
-            tables.push_back(aTable);
-            tableByElementSet[elementSet->getId()]=tId;
-            sm->markAsWritten();
-        }
 
-        for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::MASS_MATRIX)) {
-            shared_ptr<MassMatrix> mm = dynamic_pointer_cast<MassMatrix>(elementSet);
-            systus_ascid_t tId= tables.size()+1;
-            SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
-
-            //Numbering the node internally to the element
-            map<int, int> positionToSytusNumber;
-            int iSystus= 1;
-            for (const int pos : mm->nodePositions()){
-                positionToSytusNumber[pos]=iSystus;
-                iSystus++;
-            }
-
-            // Building the table
-            for (const auto np : mm->nodePairs()){
-                int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
-                shared_ptr<const DOFMatrix> dM = mm->findSubmatrix(np.first, np.second);
-                for (const auto dof: dM->componentByDofs){
-                    int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
-                    aTable.add(pairCode+dofCode);
-                    aTable.add(dof.second);
+                // Building the table
+                for (const auto np : sm->nodePairs()){
+                    int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
+                    shared_ptr<const DOFMatrix> dM = sm->findSubmatrix(np.first, np.second);
+                    for (const auto dof: dM->componentByDofs){
+                        int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
+                        aTable.add(pairCode+dofCode);
+                        aTable.add(dof.second);
+                    }
                 }
+                tables.push_back(aTable);
+                tableByElementSet[elementSet->getId()]=tId;
+                sm->markAsWritten();
+                break;
             }
-            tables.push_back(aTable);
-            tableByElementSet[elementSet->getId()]=tId*100;
-            mm->markAsWritten();
-        }
+            case ElementSet::Type::MASS_MATRIX:{
+                shared_ptr<MassMatrix> mm = dynamic_pointer_cast<MassMatrix>(elementSet);
+                systus_ascid_t tId= tables.size()+1;
+                SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
 
-        for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::DAMPING_MATRIX)) {
-            shared_ptr<DampingMatrix> dm = dynamic_pointer_cast<DampingMatrix>(elementSet);
-            systus_ascid_t tId= tables.size()+1;
-            SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
-
-            //Numbering the node internally to the element
-            map<int, int> positionToSytusNumber;
-            int iSystus= 1;
-            for (const int pos : dm->nodePositions()){
-                positionToSytusNumber[pos]=iSystus;
-                iSystus++;
-            }
-
-            // Building the table
-            for (const auto np : dm->nodePairs()){
-                int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
-                shared_ptr<const DOFMatrix> dM = dm->findSubmatrix(np.first, np.second);
-                for (const auto dof: dM->componentByDofs){
-                    int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
-                    aTable.add(pairCode+dofCode);
-                    aTable.add(dof.second);
+                //Numbering the node internally to the element
+                map<int, int> positionToSytusNumber;
+                int iSystus= 1;
+                for (const int pos : mm->nodePositions()){
+                    positionToSytusNumber[pos]=iSystus;
+                    iSystus++;
                 }
+
+                // Building the table
+                for (const auto np : mm->nodePairs()){
+                    int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
+                    shared_ptr<const DOFMatrix> dM = mm->findSubmatrix(np.first, np.second);
+                    for (const auto dof: dM->componentByDofs){
+                        int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
+                        aTable.add(pairCode+dofCode);
+                        aTable.add(dof.second);
+                    }
+                }
+                tables.push_back(aTable);
+                tableByElementSet[elementSet->getId()]=tId*100;
+                mm->markAsWritten();
+                break;
             }
-            tables.push_back(aTable);
-            tableByElementSet[elementSet->getId()]=tId*10000;
-            dm->markAsWritten();
+            case ElementSet::Type::DAMPING_MATRIX:{
+                shared_ptr<DampingMatrix> dm = dynamic_pointer_cast<DampingMatrix>(elementSet);
+                systus_ascid_t tId= tables.size()+1;
+                SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
+
+                //Numbering the node internally to the element
+                map<int, int> positionToSytusNumber;
+                int iSystus= 1;
+                for (const int pos : dm->nodePositions()){
+                    positionToSytusNumber[pos]=iSystus;
+                    iSystus++;
+                }
+
+                // Building the table
+                for (const auto np : dm->nodePairs()){
+                    int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
+                    shared_ptr<const DOFMatrix> dM = dm->findSubmatrix(np.first, np.second);
+                    for (const auto dof: dM->componentByDofs){
+                        int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
+                        aTable.add(pairCode+dofCode);
+                        aTable.add(dof.second);
+                    }
+                }
+                tables.push_back(aTable);
+                tableByElementSet[elementSet->getId()]=tId*10000;
+                dm->markAsWritten();
+                break;
+            }
+
+            default: {
+                handleWritingWarning(to_str(*elementSet) +" not supported", "Table");
+            }
+            }
         }
     }
 
@@ -1827,40 +1922,56 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
 
 
     // Build tables for frequency-dependent amplitude on Modal Dynamic Analysis
-    if (systusModel.configuration.systusDynamicMethod=="modal") {
+    if (systusModel.configuration.systusDynamicMethod=="modal"){
         const vector<int> analysisId = systusSubcases[idSubcase];
 
         for (unsigned i = 0 ; i < analysisId.size(); i++) {
             const shared_ptr<Analysis> analysis = systusModel.model.getAnalysis(analysisId[i]);
 
-            if (analysis == nullptr){
+            if (analysis==nullptr){
                 handleWritingWarning("Wrong analysis number: analysis dismissed", "Table");
                 break;
             }
 
-            for (const auto& loadset : analysis->getLoadSets()) {
+            for (const auto& loadset : analysis->getLoadSets()){
                 const int idLoadCase = localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()][loadset->getId()];
-                for (const auto& loading : loadset->getLoadingsByType(Loading::Type::DYNAMIC_EXCITATION)) {
+                for (const auto& loading : loadset->getLoadings()) {
 
-                    // Here we stock the amplitude
-                    shared_ptr<DynamicExcitation> dE = dynamic_pointer_cast<DynamicExcitation>(loading);
-                    shared_ptr<LoadSet> dEL = dE->getLoadSet();
-                    if (dEL->type != LoadSet::Type::EXCITEID) {
-                        handleWritingWarning("Dynamic loading must refer an EXCITED Loadset. Dismissing load "+ to_string(dE->bestId()), "Table");
+                    switch (loading->type){
+
+                    // Nothing to do
+                    case Loading::Type::NODAL_FORCE:
+                    case Loading::Type::GRAVITY:{
                         break;
                     }
 
-                    shared_ptr<FunctionTable> aTable = dE->getFunctionTableB();
-                    int tId= static_cast<int>(tables.size())+1;
-                    SystusTable aSystusTable(tId);
-                    //TODO: Test the units of the table ?
-                    for (auto it = aTable->getBeginValuesXY(); it != aTable->getEndValuesXY(); it++) {
-                        aSystusTable.add(it->first);
-                        aSystusTable.add(it->second);
-                    }
-                    tables.push_back(aSystusTable);
-                    tableByLoadcase[idLoadCase]= tId;
+                    // Here we stock the amplitude
+                    case Loading::Type::DYNAMIC_EXCITATION:{
+                        shared_ptr<DynamicExcitation> dE = dynamic_pointer_cast<DynamicExcitation>(loading);
+                        shared_ptr<LoadSet> dEL = dE->getLoadSet();
+                        if (dEL->type != LoadSet::Type::EXCITEID){
+                            handleWritingWarning("Dynamic loading must refer an EXCITED Loadset. Dismissing load "+ to_string(dE->bestId()), "Table");
+                            break;
+                        }
 
+                        shared_ptr<FunctionTable> aTable = dE->getFunctionTableB();
+                        int tId= static_cast<int>(tables.size())+1;
+                        SystusTable aSystusTable(tId);
+                        //TODO: Test the units of the table ?
+                        for (auto it = aTable->getBeginValuesXY(); it != aTable->getEndValuesXY(); it++){
+                            aSystusTable.add(it->first);
+                            aSystusTable.add(it->second);
+                        }
+                        tables.push_back(aSystusTable);
+                        tableByLoadcase[idLoadCase]= tId;
+
+                        break;
+                    }
+
+                    default: {
+                        handleWritingWarning("Unknown type of LOADING "+ to_str(*loading), "Table");
+                    }
+                    }
                 }
             }
         }
@@ -1869,7 +1980,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
 
 
 
-void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubcase) {
+void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubcase){
 
     // Suppressing warnings. Technically, we don't need these variables. We
     // keep them to remember that only one kind of matrix  are translated yet,
@@ -1881,152 +1992,187 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
     stiffnessMatrices.nbDOFS=nbDOFS;
 
     // Fill tables for Stiffness, Mass and Damping elements
-    if (systusModel.configuration.systusOutputMatrix == "file") {
-        return;
-    }
+    if (systusModel.configuration.systusOutputMatrix=="file"){
+        for (const auto& elementSet : systusModel.model.elementSets) {
 
-    for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::SCALAR_SPRING)) {
-
-        shared_ptr<ScalarSpring> ss = dynamic_pointer_cast<ScalarSpring>(elementSet);
-        const std::vector<std::pair<DOF, DOF>> dofsSpring = ss->getDOFSSpring();
-        if (dofsSpring.size()!=1){
-            handleWritingWarning(to_str(*elementSet) + " spring directions after the first one will be dismissed.", "FillMatrices");
-        }
-        const std::pair<DOF,DOF> pairDOF = dofsSpring[0];
-        // If we have the same DOF, we can use a Spring element 1602.
-        // Else, we need to use a tabulated element 1902 Type 0
-        if (pairDOF.first != pairDOF.second){
-            systus_ascid_t tId2=0;
-            if (ss->hasStiffness()){
-                systus_ascid_t seId= stiffnessMatrices.size()+1;
-                // Building the Systus Matrix
-                SystusMatrix aMatrix{seId, nbDOFS, 2};
-                int dofI = DOFToInt(pairDOF.first);
-                int dofJ = DOFToInt(pairDOF.second);
-                aMatrix.setValue(1, 1, dofI, dofI, ss->getStiffness());
-                aMatrix.setValue(2, 2, dofJ, dofJ, ss->getStiffness());
-                aMatrix.setValue(1, 2, dofI, dofJ, -ss->getStiffness());
-                aMatrix.setValue(2, 1, dofJ, dofI, -ss->getStiffness());
-                tId2+=SystusWriter::StiffnessAccessId;
-                seIdByElementSet[elementSet->getId()]= seId;
-                stiffnessMatrices.add(aMatrix);
-
+            switch (elementSet->type) {
+            // None of these elements needs to output matrices
+            case ElementSet::Type::CIRCULAR_SECTION_BEAM:
+            case ElementSet::Type::GENERIC_SECTION_BEAM:
+            case ElementSet::Type::I_SECTION_BEAM:
+            case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
+            case ElementSet::Type::STRUCTURAL_SEGMENT:
+            case ElementSet::Type::SHELL:
+            case ElementSet::Type::SKIN:
+            case ElementSet::Type::CONTINUUM:
+            case ElementSet::Type::LMPC:
+            case ElementSet::Type::NODAL_MASS:
+            case ElementSet::Type::RBAR:
+            case ElementSet::Type::RBE3:{
+                continue;
             }
-            if (ss->hasDamping()){
+
+            // Those elements are not supported yet
+            case ElementSet::Type::DISCRETE_0D:
+            case ElementSet::Type::DISCRETE_1D:{
+                continue;
+            }
+
+            case ElementSet::Type::SCALAR_SPRING:{
+                shared_ptr<ScalarSpring> ss = dynamic_pointer_cast<ScalarSpring>(elementSet);
+                const std::vector<std::pair<DOF, DOF>> dofsSpring = ss->getDOFSSpring();
+                if (dofsSpring.size()!=1){
+                    handleWritingWarning(to_str(*elementSet) + " spring directions after the first one will be dismissed.", "FillMatrices");
+                }
+                const std::pair<DOF,DOF> pairDOF = dofsSpring[0];
+                // If we have the same DOF, we can use a Spring element 1602.
+                // Else, we need to use a tabulated element 1902 Type 0
+                if (pairDOF.first != pairDOF.second){
+                    systus_ascid_t tId2=0;
+                    if (ss->hasStiffness()){
+                        systus_ascid_t seId= stiffnessMatrices.size()+1;
+                        // Building the Systus Matrix
+                        SystusMatrix aMatrix{seId, nbDOFS, 2};
+                        int dofI = DOFToInt(pairDOF.first);
+                        int dofJ = DOFToInt(pairDOF.second);
+                        aMatrix.setValue(1, 1, dofI, dofI, ss->getStiffness());
+                        aMatrix.setValue(2, 2, dofJ, dofJ, ss->getStiffness());
+                        aMatrix.setValue(1, 2, dofI, dofJ, -ss->getStiffness());
+                        aMatrix.setValue(2, 1, dofJ, dofI, -ss->getStiffness());
+                        tId2+=SystusWriter::StiffnessAccessId;
+                        seIdByElementSet[elementSet->getId()]= seId;
+                        stiffnessMatrices.add(aMatrix);
+
+                    }
+                    if (ss->hasDamping()){
+                        systus_ascid_t seId= dampingMatrices.size()+1;
+                        // Building the Systus Matrix
+                        SystusMatrix aMatrix{seId, nbDOFS, 2};
+                        //for (const auto np : dam->nodePairs()){
+                        int dofI = DOFToInt(pairDOF.first);
+                        int dofJ = DOFToInt(pairDOF.second);
+                        aMatrix.setValue(1, 1, dofI, dofI, ss->getDamping());
+                        aMatrix.setValue(2, 2, dofJ, dofJ, ss->getDamping());
+                        aMatrix.setValue(1, 2, dofI, dofJ, -ss->getDamping());
+                        aMatrix.setValue(2, 1, dofJ, dofI, -ss->getDamping());
+                        tId2+=SystusWriter::DampingAccessId*10000;
+                        seIdByElementSet[elementSet->getId()]= seId;
+                        dampingMatrices.add(aMatrix);
+                    }
+                    tableByElementSet[elementSet->getId()]=-tId2;
+                }
+                break;
+            }
+
+
+            // Stiffness, Mass and Damping matrices are the same kind.
+            // Only the tableByElementSet value differs:
+            //   - Stiffness: -0000XX
+            //   - Mass     : -00XX00
+            //   - Damping  : -XX0000
+            case ElementSet::Type::DAMPING_MATRIX:{
+                shared_ptr<DampingMatrix> dam = dynamic_pointer_cast<DampingMatrix>(elementSet);
                 systus_ascid_t seId= dampingMatrices.size()+1;
+
+                // Numbering the node internally to the element
+                map<int, int> positionToSytusNumber;
+                int iSystus= 1;
+                for (const int pos : dam->nodePositions()){
+                    positionToSytusNumber[pos]=iSystus;
+                    iSystus++;
+                }
+
                 // Building the Systus Matrix
-                SystusMatrix aMatrix{seId, nbDOFS, 2};
-                //for (const auto np : dam->nodePairs()){
-                int dofI = DOFToInt(pairDOF.first);
-                int dofJ = DOFToInt(pairDOF.second);
-                aMatrix.setValue(1, 1, dofI, dofI, ss->getDamping());
-                aMatrix.setValue(2, 2, dofJ, dofJ, ss->getDamping());
-                aMatrix.setValue(1, 2, dofI, dofJ, -ss->getDamping());
-                aMatrix.setValue(2, 1, dofJ, dofI, -ss->getDamping());
-                tId2+=SystusWriter::DampingAccessId*10000;
+                SystusMatrix aMatrix = SystusMatrix(seId, nbDOFS, iSystus-1);
+                for (const auto np : dam->nodePairs()){
+                    int nI = positionToSytusNumber[np.first];
+                    int nJ = positionToSytusNumber[np.second];
+                    const shared_ptr<const DOFMatrix>& dM = dam->findSubmatrix(np.first, np.second);
+                    for (const auto dof: dM->componentByDofs){
+                        int dofI = DOFToInt(dof.first.first);
+                        int dofJ = DOFToInt(dof.first.second);
+                        aMatrix.setValue(nI, nJ, dofI, dofJ, dof.second);
+                        aMatrix.setValue(nJ, nI, dofJ, dofI, dof.second);
+                    }
+                }
+
+                tableByElementSet[elementSet->getId()]=-SystusWriter::DampingAccessId*10000;
                 seIdByElementSet[elementSet->getId()]= seId;
                 dampingMatrices.add(aMatrix);
+                break;
             }
-            tableByElementSet[elementSet->getId()]=-tId2;
-        }
-    }
 
-    // Stiffness, Mass and Damping matrices are the same kind.
-    // Only the tableByElementSet value differs:
-    //   - Stiffness: -0000XX
-    //   - Mass     : -00XX00
-    //   - Damping  : -XX0000
-    for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::DAMPING_MATRIX)) {
-        shared_ptr<DampingMatrix> dam = dynamic_pointer_cast<DampingMatrix>(elementSet);
-        systus_ascid_t seId= dampingMatrices.size()+1;
+            case ElementSet::Type::MASS_MATRIX:{
+                const shared_ptr<MassMatrix>& mm = dynamic_pointer_cast<MassMatrix>(elementSet);
+                systus_ascid_t seId= massMatrices.size()+1;
 
-        // Numbering the node internally to the element
-        map<int, int> positionToSytusNumber;
-        int iSystus= 1;
-        for (const int pos : dam->nodePositions()){
-            positionToSytusNumber[pos]=iSystus;
-            iSystus++;
-        }
+                // Numbering the node internally to the element
+                map<int, int> positionToSytusNumber;
+                int iSystus= 1;
+                for (const int pos : mm->nodePositions()){
+                    positionToSytusNumber[pos]=iSystus;
+                    iSystus++;
+                }
 
-        // Building the Systus Matrix
-        SystusMatrix aMatrix = SystusMatrix(seId, nbDOFS, iSystus-1);
-        for (const auto np : dam->nodePairs()){
-            int nI = positionToSytusNumber[np.first];
-            int nJ = positionToSytusNumber[np.second];
-            const shared_ptr<const DOFMatrix>& dM = dam->findSubmatrix(np.first, np.second);
-            for (const auto dof: dM->componentByDofs){
-                int dofI = DOFToInt(dof.first.first);
-                int dofJ = DOFToInt(dof.first.second);
-                aMatrix.setValue(nI, nJ, dofI, dofJ, dof.second);
-                aMatrix.setValue(nJ, nI, dofJ, dofI, dof.second);
+                // Building the Systus Matrix
+                SystusMatrix aMatrix = SystusMatrix(seId, nbDOFS, iSystus-1);
+                for (const auto np : mm->nodePairs()){
+                    int nI = positionToSytusNumber[np.first];
+                    int nJ = positionToSytusNumber[np.second];
+                    shared_ptr<const DOFMatrix> dM = mm->findSubmatrix(np.first, np.second);
+                    for (const auto dof: dM->componentByDofs){
+                        int dofI = DOFToInt(dof.first.first);
+                        int dofJ = DOFToInt(dof.first.second);
+                        aMatrix.setValue(nI, nJ, dofI, dofJ, dof.second);
+                        aMatrix.setValue(nJ, nI, dofJ, dofI, dof.second);
+                    }
+                }
+
+                tableByElementSet[elementSet->getId()]=-SystusWriter::MassAccessId*100;
+                seIdByElementSet[elementSet->getId()]= seId;
+                massMatrices.add(aMatrix);
+                break;
             }
-        }
 
-        tableByElementSet[elementSet->getId()]=-SystusWriter::DampingAccessId*10000;
-        seIdByElementSet[elementSet->getId()]= seId;
-        dampingMatrices.add(aMatrix);
-    }
+            case ElementSet::Type::STIFFNESS_MATRIX:{
+                shared_ptr<StiffnessMatrix> sm = dynamic_pointer_cast<StiffnessMatrix>(elementSet);
+                systus_ascid_t seId= stiffnessMatrices.size()+1;
 
-    for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::MASS_MATRIX)) {
-        const shared_ptr<MassMatrix>& mm = dynamic_pointer_cast<MassMatrix>(elementSet);
-        systus_ascid_t seId= massMatrices.size()+1;
+                // Numbering the node internally to the element
+                map<int, int> positionToSytusNumber;
+                int iSystus= 1;
+                for (const int pos : sm->nodePositions()){
+                    positionToSytusNumber[pos]=iSystus;
+                    iSystus++;
+                }
 
-        // Numbering the node internally to the element
-        map<int, int> positionToSytusNumber;
-        int iSystus= 1;
-        for (const int pos : mm->nodePositions()){
-            positionToSytusNumber[pos]=iSystus;
-            iSystus++;
-        }
+                // Building the Systus Matrix
+                SystusMatrix aMatrix = SystusMatrix(seId, nbDOFS, iSystus-1);
+                for (const auto np : sm->nodePairs()){
+                    int nI = positionToSytusNumber[np.first];
+                    int nJ = positionToSytusNumber[np.second];
+                    shared_ptr<const DOFMatrix> dM = sm->findSubmatrix(np.first, np.second);
+                    for (const auto dof: dM->componentByDofs){
+                        int dofI = DOFToInt(dof.first.first);
+                        int dofJ = DOFToInt(dof.first.second);
+                        aMatrix.setValue(nI, nJ, dofI, dofJ, dof.second);
+                        aMatrix.setValue(nJ, nI, dofJ, dofI, dof.second);
+                    }
+                }
 
-        // Building the Systus Matrix
-        SystusMatrix aMatrix = SystusMatrix(seId, nbDOFS, iSystus-1);
-        for (const auto np : mm->nodePairs()){
-            int nI = positionToSytusNumber[np.first];
-            int nJ = positionToSytusNumber[np.second];
-            shared_ptr<const DOFMatrix> dM = mm->findSubmatrix(np.first, np.second);
-            for (const auto dof: dM->componentByDofs){
-                int dofI = DOFToInt(dof.first.first);
-                int dofJ = DOFToInt(dof.first.second);
-                aMatrix.setValue(nI, nJ, dofI, dofJ, dof.second);
-                aMatrix.setValue(nJ, nI, dofJ, dofI, dof.second);
+                tableByElementSet[elementSet->getId()]=-SystusWriter::StiffnessAccessId;
+                seIdByElementSet[elementSet->getId()]= seId;
+                stiffnessMatrices.add(aMatrix);
+                break;
             }
-        }
 
-        tableByElementSet[elementSet->getId()]=-SystusWriter::MassAccessId*100;
-        seIdByElementSet[elementSet->getId()]= seId;
-        massMatrices.add(aMatrix);
-    }
 
-    for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::STIFFNESS_MATRIX)) {
-        shared_ptr<StiffnessMatrix> sm = dynamic_pointer_cast<StiffnessMatrix>(elementSet);
-        systus_ascid_t seId= stiffnessMatrices.size()+1;
-
-        // Numbering the node internally to the element
-        map<int, int> positionToSytusNumber;
-        int iSystus= 1;
-        for (const int pos : sm->nodePositions()){
-            positionToSytusNumber[pos]=iSystus;
-            iSystus++;
-        }
-
-        // Building the Systus Matrix
-        SystusMatrix aMatrix = SystusMatrix(seId, nbDOFS, iSystus-1);
-        for (const auto np : sm->nodePairs()){
-            int nI = positionToSytusNumber[np.first];
-            int nJ = positionToSytusNumber[np.second];
-            shared_ptr<const DOFMatrix> dM = sm->findSubmatrix(np.first, np.second);
-            for (const auto dof: dM->componentByDofs){
-                int dofI = DOFToInt(dof.first.first);
-                int dofJ = DOFToInt(dof.first.second);
-                aMatrix.setValue(nI, nJ, dofI, dofJ, dof.second);
-                aMatrix.setValue(nJ, nI, dofJ, dofI, dof.second);
+            default: {
+                //TODO : throw WriterException("ElementSet type not supported");
+                handleWritingWarning(to_str(*elementSet) +" not supported", "Filling Matrices");
+            }
             }
         }
-
-        tableByElementSet[elementSet->getId()]=-SystusWriter::StiffnessAccessId;
-        seIdByElementSet[elementSet->getId()]= seId;
-        stiffnessMatrices.add(aMatrix);
     }
 }
 
