@@ -327,6 +327,10 @@ void AsterWriter::writeAnalyses(const AsterModel& asterModel, ostream& out) {
 					<< endl;
 			out << "           RESULTAT=RESU" << analysis.getId() << "," << endl;
 			out << "           MODELE=MODMECA," << endl;
+            if (asterModel.model.materials.size() >= 1) {
+                out << "           CHAM_MATER=CHMAT," << endl;
+            }
+            out << "           CARA_ELEM=CAEL," << endl;
 			out << "           CONTRAINTE =('SIGM_ELNO')," << endl;
 			out << "           FORCE = 'REAC_NODA'," << endl;
 			out << ")" << endl;
@@ -2222,7 +2226,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 			resuName = "RESU" + to_string(linearModal.getId());
 		else
 			resuName = "MODES" + to_string(linearModal.getId());
-		out << resuName << "=CALC_MODES(MATR_RIGI=RIGI" << linearModal.getId()
+		out << "U" << resuName << "=CALC_MODES(MATR_RIGI=RIGI" << linearModal.getId()
 				<< "," << endl;
 		out << "                       MATR_MASS=MASS" << linearModal.getId() << "," << endl;
 		if (linearModal.use_power_iteration) {
@@ -2238,6 +2242,17 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		out << "                                  NPREC=8," << endl;
 		out << "                                  )," << endl;
 		out << "                       )" << endl << endl;
+
+		double lowFreq = 0;
+		if (asterModel.model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY) != asterModel.model.parameters.end()) {
+		    lowFreq = asterModel.model.parameters[Model::Parameter::LOWER_CUTOFF_FREQUENCY];
+		}
+
+		double highFreq = 1e30;
+		if (asterModel.model.parameters.find(Model::Parameter::UPPER_CUTOFF_FREQUENCY) != asterModel.model.parameters.end()) {
+		    highFreq = asterModel.model.parameters[Model::Parameter::UPPER_CUTOFF_FREQUENCY];
+		}
+		out << resuName << "=EXTR_MODE(FILTRE_MODE=_F(MODE=U" << resuName << ", FREQ_MIN=" << lowFreq << ", FREQ_MAX=" << highFreq << "),)" << endl;
 
 		out << "I" << resuName << "=RECU_TABLE(CO=" << resuName << ",NOM_PARA = ('FREQ','MASS_GENE','RIGI_GENE','AMOR_GENE'))" << endl;
         out << "IMPR_TABLE(TABLE=I" << resuName << ")" << endl << endl;
@@ -2417,7 +2432,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
         out << "RESU" << linearDynaModalFreq.getId() << " = REST_GENE_PHYS(RESU_GENE = GENE"
                 << linearDynaModalFreq.getId() << "," << endl;
         out << "                       TOUT_ORDRE = 'OUI'," << endl;
-        out << "                       NOM_CHAM = 'DEPL'," << endl;
+        out << "                       NOM_CHAM = ('DEPL','VITE','ACCE')," << endl;
         out << "                       );" << endl << endl;
         linearDynaModalFreq.markAsWritten();
 		break;

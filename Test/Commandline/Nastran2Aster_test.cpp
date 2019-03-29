@@ -208,6 +208,19 @@ BOOST_AUTO_TEST_CASE( pload ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/pload/pload.nas", RUN_ASTER, true, 0.00001);
 }
 
+//BOOST_AUTO_TEST_CASE( sine_wave ) {
+//  RLOAD2 TYPE=ACCE
+//	CommandLineUtils::nastranStudy2Aster("/irt/sine_test/sine_test.nas", RUN_ASTER, true, 0.00001);
+//}
+
+//BOOST_AUTO_TEST_CASE( aero2728 ) {
+// RLOAD2 referencing GRAV
+//	CommandLineUtils::nastranStudy2Aster("/irt/aero2728/aero2728.nas", RUN_ASTER, true, 0.00001);
+//}
+
+BOOST_AUTO_TEST_CASE( nas102prob6resvec ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/nas102prob6resvec/nas102prob6resvec.nas", RUN_ASTER, true, 0.03);
+}
 
 } /* namespace test */
 } /* namespace vega */

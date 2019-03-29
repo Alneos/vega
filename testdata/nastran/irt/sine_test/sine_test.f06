@@ -1,0 +1,1818 @@
+1
+ 
+ 
+ 
+ 
+                     THIS PROGRAM IS CONFIDENTIAL AND A TRADE SECRET OF MSC.SOFTWARE CORPORATION.  THE RECEIPT OR    
+                  POSSESSION OF THIS PROGRAM DOES NOT CONVEY ANY RIGHTS TO REPRODUCE OR DISCLOSE ITS CONTENTS, OR TO 
+                 MANUFACTURE, USE, OR SELL ANYTHING HEREIN, IN WHOLE OR IN PART, WITHOUT THE SPECIFIC WRITTEN CONSENT
+                                                    OF MSC.SOFTWARE CORPORATION.                                     
+ 
+ 
+                                              * * * * * * * * * * * * * * * * * * * *
+                                              * * * * * * * * * * * * * * * * * * * *
+                                              * *                                 * *
+                                              * *           MSC.SOFTWARE          * *
+                                              * *               CORP              * *
+                                              * *                                 * *
+                                              * *      M S C . N a s t r a n      * *
+                                              * *                                 * *
+                                              * *       VERSION - 2001.0.1        * *
+                                              * *                                 * *
+                                              * *          APR  9, 2001           * *
+                                              * *                                 * *
+                                              * *                                 * *
+                                              * *        Silicon Graphics         * *
+                                              * *                                 * *
+                                              * *    MODEL R10000/360 (parrot)    * *
+                                              * *                                 * *
+                                              * *           IRIX64 6.5            * *
+                                              * *                                 * *
+                                              * *                                 * *
+                                              * *                                 * *
+                                              * * * * * * * * * * * * * * * * * * * *
+                                              * * * * * * * * * * * * * * * * * * * *
+1 
+  
+                        Welcome to MSC.Nastran 2001
+                        ---------------------------
+  
+ Thank you for choosing MSC.Nastran, the industry standard in FEA.
+  
+ Version 2001 implements a number of industry-leading, and often-requested new
+ features, many of which are listed below.
+  
+ Version-specific online documentation is available at:
+  
+  http://www.mechsolutions.com/support/documentation/index.html
+  
+ MSC.Nastran online technical support is available at:
+  
+  http://www.mechsolutions.com/support/prod_support/nastran/index.html
+  
+ Also at the technical support location is a searchable list of technical
+ application notes and the current error/avoidance list. Please don't
+ hesitate to contact your nearest technical support representative any time we
+ can be of assistance.
+  
+  http://www.mechsolutions.com/about/locate/index.html
+  
+  
+  
+ Design Optimimzation:
+  
+    o Discrete variable optimization
+      - can also be combined with continuous variables
+    o Automatic support for FREQ3, FREQ4, and FREQ5 entries
+      - forcing frequencies are also updated as the design progresses
+    o Improved dynamic response optimization support
+      - includes a number of new DEQATN equations, and support for direct
+        reference on DRESP1 and DRESP2 entries
+    o Support for random responses
+  
+ Dynamics:
+  
+    o Direct Enforced Motion
+      - Allows direct application of displacements, velocities, or accelerations
+        without the need for large masses or Lagrange multipliers in solutions
+        108, 109, 111, and 112
+    o Direct definition of dynamic loads
+      - allows direct specification of static load sets on dynamic load
+        entries, eliminating the need for LOADSET/LSEQ data
+    o OMODES Case Control command
+      - Output specification according to mode number, rather than frequency
+        range
+1 
+ Elements, and Element Diagnostics:
+  
+    o ELSUM case control command for element property summaries
+      - provides mass and weight summaries
+    o GEOMCHECK Executive Control command
+      - provides direct control over element diagnostics and warning
+        levels
+    o PARAM, OMID
+      - selects material coordinate system output for shell element force,
+        stress, and strain
+    o PCOMP "MEM" and "BEND" options
+      - membrane- or bending-only options for composites to facilitate
+        rapid design studies
+    o Symmetric integration for p-element tetrahedral elements
+  
+ Model Checkout and Diagnostics:
+  
+    o Expanded force summary output (OLOAD, SPC forces, MPC forces, etc.),
+      with forces given on a component-by-component basis
+  
+ Nonlinear Analysis:
+  
+    o TET10 elements now in solutions 106 and 129
+    o Grid point force support in nonlinear analysis
+  
+ Numerical Analysis and Parallel Processing:
+  
+    o Parallel Lanczos (Geometric Domain Decomposition)
+    o Parallel Automated Component Mode Synthesis (automated substructuring
+      to split the model across cpu's)
+  
+ Documentation:
+  
+    o Version-specific updates:
+      - Quick Reference Guide
+      - Installation, Configuration, and Operations Guide
+    o New or updated for 2001:
+      - DMAP Programmer's Guide
+      - Numerical Analysis User's Guide
+  
+  
+  
+  
+ This "news" information can be turned off by setting "news=no" in the runtime
+ configuration (RC) file.  The "news" keyword can be set in the system RC file
+ for global, or multi-user control, and in a local file for local control.
+ Individual jobs can be controlled by setting news to yes or no on the command
+ line. The news file alone can be viewed with the command "msc2001 nastran news".
+  
+1                                                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE     1
+                                                                                                                                    
+0        N A S T R A N    F I L E    A N D    S Y S T E M    P A R A M E T E R    E C H O                                           
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+     NASTRAN SYSTEM(303)=1 $ MSC.NASTRAN 2001 R1                                     
+     NASTRAN BUFFSIZE=8193 $(/APPS_PARROT/MSC/CONF/NAST2001RC[3])                    
+1                                                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE     2
+                                                                                                                                    
+0        N A S T R A N    E X E C U T I V E    C O N T R O L    E C H  O                                                            
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+     ID SINE,TEST                                                                            
+     SOL 111                                                                                 
+     TIME 10                                                                                 
+     CEND                                                                                    
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE     3
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+0                                        C A S E    C O N T R O L    E C H O                                                        
+                 COMMAND                                                                                                            
+                 COUNT                                                                                                              
+                  1      $                                                                                       
+                  2           TITLE = SINE VIBRATION EXAMPLE MODEL                                               
+                  3           SUBTITLE = 48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                
+                  4           LABEL = Y-DIRECTION SINE INPUT                                                     
+                  5      $                                                                                       
+                  6           ECHO = NONE                                                                        
+                  7      $                                                                                       
+                  8           SPC      = 1                                                                       
+                  9           METHOD   = 1                                                                       
+                 10           DLOAD    = 10                                                                      
+                 11           SDAMPING = 20                                                                      
+                 12           FREQ     = 40                                                                      
+                 13      $                                                                                       
+                 14           SET 99 = 101, 149                                                                  
+                 15      $                                                                                       
+                 16           ACCELERATION(SORT2,PRINT,PUNCH,PHASE) = 99                                         
+                 17      $                                                                                       
+                 18           OUTPUT(XYPLOT)                                                                     
+                 19           XYPEAK,XYPUNCH,ACCE/ 101(T2),149(T2)                                               
+                 20      $                                                                                       
+                 21      BEGIN BULK                                                                              
+0                             INPUT BULK DATA ENTRY COUNT =     133
+0                       TOTAL COUNT=       119
+
+
+                                        M O D E L   S U M M A R Y
+
+                                   NUMBER OF GRID     POINTS   =       49
+ 
+                                   NUMBER OF CBAR     ELEMENTS =       48
+ 
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE     4
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+                           O U T P U T   F R O M   G R I D   P O I N T   W E I G H T   G E N E R A T O R
+0                                                     REFERENCE POINT =        0
+                                                                M O
+                      *  9.567806E-03  0.000000E+00  0.000000E+00  0.000000E+00  0.000000E+00  0.000000E+00 *
+                      *  0.000000E+00  9.567806E-03  0.000000E+00  0.000000E+00  0.000000E+00  2.296273E-01 *
+                      *  0.000000E+00  0.000000E+00  9.567806E-03  0.000000E+00 -2.296273E-01  0.000000E+00 *
+                      *  0.000000E+00  0.000000E+00  0.000000E+00  0.000000E+00  0.000000E+00  0.000000E+00 *
+                      *  0.000000E+00  0.000000E+00 -2.296273E-01  0.000000E+00  7.349669E+00  0.000000E+00 *
+                      *  0.000000E+00  2.296273E-01  0.000000E+00  0.000000E+00  0.000000E+00  7.349669E+00 *
+                                                                 S
+                                           *  1.000000E+00  0.000000E+00  0.000000E+00 *
+                                           *  0.000000E+00  1.000000E+00  0.000000E+00 *
+                                           *  0.000000E+00  0.000000E+00  1.000000E+00 *
+                               DIRECTION
+                          MASS AXIS SYSTEM (S)     MASS              X-C.G.        Y-C.G.        Z-C.G.
+                                  X            9.567806E-03      0.000000E+00  0.000000E+00  0.000000E+00
+                                  Y            9.567806E-03      2.400000E+01  0.000000E+00  0.000000E+00
+                                  Z            9.567806E-03      2.400000E+01  0.000000E+00  0.000000E+00
+                                                                I(S)
+                                           *  0.000000E+00  0.000000E+00  0.000000E+00 *
+                                           *  0.000000E+00  1.838613E+00  0.000000E+00 *
+                                           *  0.000000E+00  0.000000E+00  1.838613E+00 *
+                                                                I(Q)
+                                           *  0.000000E+00                             *
+                                           *                1.838613E+00               *
+                                           *                              1.838613E+00 *
+                                                                 Q
+                                           *  1.000000E+00  0.000000E+00  0.000000E+00 *
+                                           *  0.000000E+00  1.000000E+00  0.000000E+00 *
+                                           *  0.000000E+00  0.000000E+00  1.000000E+00 *
+
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE     5
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE     6
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+0 RESULTANTS ABOUT ORIGIN OF SUPERELEMENT BASIC COORDINATE SYSTEM IN SUPERELEMENT BASIC SYSTEM COORDINATES.
+
+0                                                  OLOAD    RESULTANT       
+  SUBCASE/    LOAD
+  DAREA ID    TYPE       T1            T2            T3            R1            R2            R3
+0       11     FX    0.000000E+00     ----          ----          ----       0.000000E+00  0.000000E+00                             
+               FY       ----       0.000000E+00     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----       0.000000E+00  0.000000E+00  0.000000E+00     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  0.000000E+00  0.000000E+00  0.000000E+00  0.000000E+00  0.000000E+00  0.000000E+00
+ *** SYSTEM INFORMATION MESSAGE 6916 (DFMSYN)
+     DECOMP ORDERING METHOD CHOSEN: BEND, ORDERING METHOD USED: BEND
+ *** USER INFORMATION MESSAGE 5010 (LNCILD)
+     STURM SEQUENCE DATA FOR EIGENVALUE EXTRACTION.
+     TRIAL EIGENVALUE =  9.869604D+06, CYCLES =  5.000000D+02 NUMBER OF EIGENVALUES BELOW THIS VALUE =     8
+ *** USER INFORMATION MESSAGE 5010 (LNCILD)
+     STURM SEQUENCE DATA FOR EIGENVALUE EXTRACTION.
+     TRIAL EIGENVALUE = -9.903628D+06, CYCLES = -5.008611D+02 NUMBER OF EIGENVALUES BELOW THIS VALUE =     0
+
+ TABLE OF SHIFTS:  (LNNRIGL)
+ SHIFT #        SHIFT VALUE         FREQUENCY, CYCLES     # EIGENVALUES BELOW    # NEW EIGENVALUES FOUND
+     1.        9.8696040E+06          4.9999997E+02                 8                        0
+     2.       -9.9036280E+06         -5.0086105E+02                 0                        8
+
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE     7
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+0
+
+
+                          E I G E N V A L U E  A N A L Y S I S   S U M M A R Y   (READ MODULE) 
+
+
+
+                                     BLOCK SIZE USED ......................    7
+
+                                     NUMBER OF DECOMPOSITIONS .............    2
+
+                                     NUMBER OF ROOTS FOUND ................    8
+
+                                     NUMBER OF SOLVES REQUIRED ............    8
+
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE     8
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+ 
+                                              R E A L   E I G E N V A L U E S
+   MODE    EXTRACTION      EIGENVALUE            RADIANS             CYCLES            GENERALIZED         GENERALIZED
+    NO.       ORDER                                                                       MASS              STIFFNESS
+        1         1        5.673224E+03        7.532081E+01        1.198768E+01        1.000000E+00        5.673224E+03
+        2         2        5.673224E+03        7.532081E+01        1.198768E+01        1.000000E+00        5.673224E+03
+        3         3        2.220890E+05        4.712632E+02        7.500386E+01        1.000000E+00        2.220890E+05
+        4         4        2.220890E+05        4.712632E+02        7.500386E+01        1.000000E+00        2.220890E+05
+        5         5        1.733352E+06        1.316568E+03        2.095384E+02        1.000000E+00        1.733352E+06
+        6         6        1.733352E+06        1.316568E+03        2.095384E+02        1.000000E+00        1.733352E+06
+        7         7        6.614887E+06        2.571942E+03        4.093373E+02        1.000000E+00        6.614887E+06
+        8         8        6.614888E+06        2.571942E+03        4.093373E+02        1.000000E+00        6.614888E+06
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE     9
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+ *** USER INFORMATION MESSAGE 7559 (FRRD1A)
+     THIS FREQUENCY RESPONSE ANALYSIS INVOLVES THE FOLLOWING TYPES OF EXCITATION --
+
+     * ENFORCED ACCELERATION USING SPC / SPCD DATA
+ *** USER INFORMATION MESSAGE 5222 (SQFREQ)
+     UN COUPLED SOLUTION ALGORITHM USED.
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    10
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       101
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  2.000000E+00     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.109742E+00     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.000000E+00     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.219484E+00     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  5.329226E+00     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  6.000000E+00     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  6.438968E+00     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  7.548710E+00     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  8.000000E+00     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  8.658452E+00     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  9.768194E+00     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.000000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.087794E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.198768E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.200000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.400000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    11
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       101
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  1.600000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.800000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.898948E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.000000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.200000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.400000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.599127E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.600000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.800000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.000000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.200000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.299307E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.400000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.600000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.800000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.999487E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    12
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       101
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  4.000000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.200000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.400000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.600000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.699667E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.800000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  5.000000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  5.200000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  5.399847E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  5.600000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  5.800000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  6.000000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  6.100026E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  6.200000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  6.400000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  6.599999E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    13
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       101
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  6.800000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  7.000000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  7.200000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  7.400000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  7.500386E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  7.600000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  7.799999E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  8.000000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  8.200000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  8.399999E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  8.600000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  8.799999E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  8.995214E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  9.000000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  9.199999E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  9.400000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    14
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       101
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  9.600000E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  9.799999E+01     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.000000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.020000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.040000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.049004E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.060000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.080000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.100000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.120000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.140000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.160000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.180000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.198487E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.200000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.220000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    15
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       101
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  1.240000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.260000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.280000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.300000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.320000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.340000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.347970E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.360000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.380000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.400000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.420000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.440000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.460000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.480000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.497453E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.500000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    16
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       101
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  1.520000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.540000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.560000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.580000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.600000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.620000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.640000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.646935E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.660000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.680000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.700000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.720000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.740000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.760000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.780000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.796418E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    17
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       101
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  1.800000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.820000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.840000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.860000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.880000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.900000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.920000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.940000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.945901E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.960000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  1.980000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.000000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.020000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.040000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.060000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.080000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    18
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       101
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  2.095384E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.100000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.120000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.140000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.160000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.180000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.200000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.220000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.240000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.260000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.280000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.300000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.317382E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.320000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.340000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.360000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    19
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       101
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  2.380000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.400000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.420000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.440000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.460000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.480000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.500000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.520000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.539381E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.540000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.560000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.580000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.600000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.620000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.640000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.660000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    20
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       101
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  2.680000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.700000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.720000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.740000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.760000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.761380E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.780000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.800000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.820000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.840000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.860000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.880000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.900000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.920000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.940000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.960000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    21
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       101
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  2.980000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  2.983379E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.000000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.020000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.040000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.060000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.080000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.100000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.120000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.140000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.160000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.180000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.200000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.205378E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.220000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.240000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    22
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       101
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  3.260000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.280000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.300000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.320000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.340000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.360000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.380000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.400000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.420000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.427377E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.440000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.460000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.480000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.500000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.520000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.540000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    23
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       101
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  3.560000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.580000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.600000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.620000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.640000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.649376E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.660000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.680000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.700000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.720000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.740000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.760000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.780000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.800000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.820000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.840000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    24
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       101
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  3.860000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.871374E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.880000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.900000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.920000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.940000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.960000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  3.980000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.000000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.020000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.040000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.060000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.080000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.093373E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.100000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.120000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    25
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       101
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  4.140000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.160000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.180000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.194109E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.200000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.220000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.240000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.260000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.280000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.294846E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.300000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.320000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.340000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.360000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.380000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.395582E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    26
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       101
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  4.400000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.420000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.440000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.460000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.480000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.496319E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.500000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.520000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.540000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.560000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.580000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.597055E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.600000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.620000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.640000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.660000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    27
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       101
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  4.680000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.697791E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.700000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.720000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.740000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.760000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.780000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.798528E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.800000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.820000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.840000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.860000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.880000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.899264E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.900000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.920000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    28
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       101
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  4.940000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.960000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  4.980000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  5.000000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+0  5.020000E+02     G      0.0            2.500000E-01   0.0            0.0            0.0            0.0
+                             0.0            0.0            0.0            0.0            0.0            0.0
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    29
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       149
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  2.000000E+00     G      4.345413E-17   2.221159E-01   1.012504E-12   0.0            3.272628E-15   1.007428E-02
+                           181.9821       358.3475       178.8464         0.0          351.0273       180.8535
+0  3.109742E+00     G      3.963935E-17   2.388943E-01   1.406906E-12   0.0            1.447238E-14   9.613853E-03
+                           183.6875       357.3896       178.2196         0.0          355.5177       181.5473
+0  4.000000E+00     G      3.502847E-17   2.593850E-01   1.322254E-12   0.0            1.189495E-14   9.052319E-03
+                           185.9450       356.5729       177.8896         0.0          354.0833       182.3873
+0  4.219484E+00     G      3.364268E-17   2.656025E-01   1.594272E-12   0.0            1.960717E-14   8.882208E-03
+                           186.7291       356.3617       177.5441         0.0          354.8061       182.6585
+0  5.329226E+00     G      2.486839E-17   3.060393E-01   1.306064E-12   0.0            1.111663E-14   7.781213E-03
+                           193.8963       355.2028       176.5029         0.0          349.5468       184.7431
+0  6.000000E+00     G      1.814013E-17   3.399080E-01   1.676096E-12   0.0            2.145047E-14   6.870727E-03
+                           205.2376       354.3958       175.3910         0.0          350.5392       187.1033
+0  6.438968E+00     G      1.373590E-17   3.673210E-01   2.017210E-12   0.0            3.094574E-14   6.146837E-03
+                           222.2194       353.8026       176.1952         0.0          353.6092       189.6192
+0  7.548710E+00     G      1.904025E-17   4.637839E-01   1.459199E-12   0.0            1.477881E-14   3.819285E-03
+                           307.5652       351.9419       171.0340         0.0          336.4429       207.0088
+0  8.000000E+00     G      3.060483E-17   5.194165E-01   1.846755E-12   0.0            2.515929E-14   2.895396E-03
+                           321.7871       350.9572       171.8185         0.0          344.3601       229.5403
+0  8.658452E+00     G      5.538418E-17   6.282840E-01   2.400477E-12   0.0            3.998995E-14   3.423685E-03
+                           330.2827       349.1216       172.1463         0.0          347.9579       288.3291
+0  9.768194E+00     G      1.321664E-16   9.536485E-01   3.163912E-12   0.0            6.013868E-14   1.213054E-02
+                           332.4924       343.9140       163.1267         0.0          336.4059       322.3734
+0  1.000000E+01     G      1.584996E-16   1.063987E+00   5.248189E-12   0.0            1.186844E-13   1.539086E-02
+                           331.6735       342.1759       164.3336         0.0          341.3912       323.4611
+0  1.087794E+01     G      3.385420E-16   1.807759E+00   6.741169E-12   0.0            1.571670E-13   3.810492E-02
+                           322.2707       330.2063       153.5896         0.0          330.0184       317.8669
+0  1.198768E+01     G      9.116273E-16   3.915089E+00   1.360275E-11   0.0            3.590482E-13   1.140779E-01
+                           261.3991       267.2829        89.3838         0.0          265.7012       258.8248
+0  1.200000E+01     G      9.132896E-16   3.914057E+00   1.498069E-11   0.0            3.989733E-13   1.143875E-01
+                           260.2390       266.1046        88.2395         0.0          264.9336       257.6771
+0  1.400000E+01     G      3.680984E-16   1.203061E+00   3.476639E-12   0.0            1.131089E-13   5.099174E-02
+                           191.1989       194.8893        17.2860         0.0          193.7811       189.7194
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    30
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       149
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  1.600000E+01     G      2.492892E-16   6.811446E-01   1.371531E-12   0.0            5.783486E-14   3.653418E-02
+                           184.2438       186.6328         9.1866         0.0          185.4102       183.0706
+0  1.800000E+01     G      2.075490E-16   5.011920E-01   1.161128E-12   0.0            5.349559E-14   3.161389E-02
+                           182.1226       183.6220         6.3986         0.0          183.4711       181.0180
+0  1.898948E+01     G      1.957535E-16   4.511294E-01   1.100714E-12   0.0            5.221394E-14   3.029016E-02
+                           181.5707       182.7199         4.3203         0.0          182.1690       180.4592
+0  2.000000E+01     G      1.867874E-16   4.135610E-01   9.804848E-13   0.0            4.909054E-14   2.933038E-02
+                           181.1682       182.0021         4.4047         0.0          182.1031       180.0326
+0  2.200000E+01     G      1.745770E-16   3.636645E-01   6.514332E-13   0.0            4.018069E-14   2.814967E-02
+                           180.6454       180.9460         3.7246         0.0          181.2725       179.4267
+0  2.400000E+01     G      1.666532E-16   3.328921E-01   5.405597E-13   0.0            3.735358E-14   2.754727E-02
+                           180.3210       180.1692         3.1245         0.0          180.8223       178.9857
+0  2.599127E+01     G      1.611879E-16   3.133008E-01   5.220899E-13   0.0            3.714240E-14   2.729924E-02
+                           180.1016       179.5491         2.2323         0.0          180.4068       178.6250
+0  2.600000E+01     G      1.611677E-16   3.132325E-01   5.131725E-13   0.0            3.703457E-14   2.729874E-02
+                           180.1008       179.5466         2.5291         0.0          180.5061       178.6235
+0  2.800000E+01     G      1.571928E-16   3.007069E-01   4.294235E-13   0.0            3.479444E-14   2.729470E-02
+                           179.9410       179.0136         1.5099         0.0          179.9884       178.2990
+0  3.000000E+01     G      1.542132E-16   2.931462E-01   3.927609E-13   0.0            3.379483E-14   2.747806E-02
+                           179.8186       178.5331         1.3135         0.0          179.8306       177.9897
+0  3.200000E+01     G      1.519201E-16   2.892962E-01   3.292695E-13   0.0            3.238255E-14   2.781873E-02
+                           179.7211       178.0812         0.8411         0.0          179.5677       177.6818
+0  3.299307E+01     G      1.509730E-16   2.885188E-01   4.152232E-13   0.0            3.483759E-14   2.804142E-02
+                           179.6794       177.8622         0.8415         0.0          179.6328       177.5263
+0  3.400000E+01     G      1.501174E-16   2.884104E-01   3.324487E-13   0.0            3.252898E-14   2.830226E-02
+                           179.6409       177.6415         0.5463         0.0          179.4127       177.3655
+0  3.600000E+01     G      1.486744E-16   2.900488E-01   3.257571E-13   0.0            3.272450E-14   2.892444E-02
+                           179.5734       177.2016         0.3175         0.0          179.2871       177.0330
+0  3.800000E+01     G      1.475002E-16   2.939730E-01   2.740955E-13   0.0            3.136764E-14   2.968861E-02
+                           179.5160       176.7511       359.7210         0.0          179.0048       176.6772
+0  3.999487E+01     G      1.465312E-16   3.000710E-01   2.966976E-13   0.0            3.221911E-14   3.060209E-02
+                           179.4672       176.2818       359.4620         0.0          178.8747       176.2921
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    31
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       149
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  4.000000E+01     G      1.465290E-16   3.000895E-01   3.047439E-13   0.0            3.250103E-14   3.060465E-02
+                           179.4671       176.2805       359.8446         0.0          178.9970       176.2911
+0  4.200000E+01     G      1.457112E-16   3.084219E-01   3.123392E-13   0.0            3.303615E-14   3.168873E-02
+                           179.4260       175.7804       359.3385         0.0          178.7451       175.8670
+0  4.400000E+01     G      1.450082E-16   3.191006E-01   2.689815E-13   0.0            3.213103E-14   3.296408E-02
+                           179.3926       175.2406       358.9245         0.0          178.5049       175.3960
+0  4.600000E+01     G      1.443878E-16   3.323662E-01   2.705622E-13   0.0            3.238579E-14   3.446233E-02
+                           179.3675       174.6495       358.7928         0.0          178.3810       174.8675
+0  4.699667E+01     G      1.441006E-16   3.400507E-01   2.882721E-13   0.0            3.308071E-14   3.530482E-02
+                           179.3586       174.3315       358.6147         0.0          178.2071       174.5786
+0  4.800000E+01     G      1.438218E-16   3.485846E-01   2.725268E-13   0.0            3.294466E-14   3.622576E-02
+                           179.3522       173.9931       358.3743         0.0          178.0927       174.2681
+0  5.000000E+01     G      1.432839E-16   3.682798E-01   2.687921E-13   0.0            3.328453E-14   3.831101E-02
+                           179.3487       173.2540       357.8538         0.0          177.7710       173.5809
+0  5.200000E+01     G      1.427473E-16   3.921838E-01   2.604213E-13   0.0            3.342931E-14   4.079436E-02
+                           179.3608       172.4094       357.2300         0.0          177.3708       172.7834
+0  5.399847E+01     G      1.421831E-16   4.212955E-01   2.754651E-13   0.0            3.435782E-14   4.377776E-02
+                           179.3940       171.4296       356.7786         0.0          176.9948       171.8462
+0  5.600000E+01     G      1.415556E-16   4.571353E-01   2.645211E-13   0.0            3.486186E-14   4.741455E-02
+                           179.4573       170.2701       355.8218         0.0          176.4671       170.7247
+0  5.800000E+01     G      1.408231E-16   5.017128E-01   2.834627E-13   0.0            3.600463E-14   5.190569E-02
+                           179.5648       168.8729       355.0839         0.0          175.7714       169.3610
+0  6.000000E+01     G      1.399295E-16   5.581350E-01   2.887915E-13   0.0            3.709630E-14   5.756072E-02
+                           179.7406       167.1474       353.8727         0.0          174.9096       167.6644
+0  6.100026E+01     G      1.394000E-16   5.921786E-01   2.991624E-13   0.0            3.816262E-14   6.096286E-02
+                           179.8664       166.1205       352.9529         0.0          174.1667       166.6501
+0  6.200000E+01     G      1.388013E-16   6.311062E-01   3.012719E-13   0.0            3.869160E-14   6.484682E-02
+                           180.0272       164.9542       352.1521         0.0          173.6198       165.4954
+0  6.400000E+01     G      1.373451E-16   7.280673E-01   3.185069E-13   0.0            4.084843E-14   7.450131E-02
+                           180.5035       162.0663       349.8147         0.0          171.8203       162.6268
+0  6.599999E+01     G      1.354657E-16   8.612023E-01   3.491346E-13   0.0            4.363893E-14   8.772892E-02
+                           181.3262       158.0912       346.7774         0.0          169.2262       158.6658
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    32
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       149
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  6.800000E+01     G      1.331865E-16   1.050810E+00   3.933641E-13   0.0            4.843980E-14   1.065311E-01
+                           182.8239       152.3057       341.6588         0.0          165.0349       152.8890
+0  7.000000E+01     G      1.312358E-16   1.328451E+00   4.593772E-13   0.0            5.384433E-14   1.340018E-01
+                           185.6680       143.2974       333.9600         0.0          157.9341       143.8838
+0  7.200000E+01     G      1.333660E-16   1.719741E+00   5.347520E-13   0.0            6.065347E-14   1.725708E-01
+                           190.6769       128.3498       319.6649         0.0          145.2803       128.9333
+0  7.400000E+01     G      1.488698E-16   2.106262E+00   5.726106E-13   0.0            6.205611E-14   2.102370E-01
+                           195.3697       104.0452       297.7069         0.0          125.5555       104.6195
+0  7.500386E+01     G      1.612533E-16   2.162916E+00   5.483106E-13   0.0            5.777194E-14   2.153123E-01
+                           195.0714        88.9031       282.6670         0.0          112.8034        89.4702
+0  7.600000E+01     G      1.716671E-16   2.074572E+00   4.981823E-13   0.0            5.053609E-14   2.059670E-01
+                           192.8697        74.0604       269.4509         0.0          101.0152        74.6187
+0  7.799999E+01     G      1.798681E-16   1.663796E+00   3.500935E-13   0.0            3.256599E-14   1.643037E-01
+                           187.2921        50.6359       248.2130         0.0           85.5792        51.1714
+0  8.000000E+01     G      1.788677E-16   1.277417E+00   2.204489E-13   0.0            1.863051E-14   1.254843E-01
+                           183.6134        36.3556       236.9876         0.0           85.3531        36.8611
+0  8.200000E+01     G      1.763403E-16   1.006959E+00   1.482902E-13   0.0            1.238470E-14   9.840913E-02
+                           181.5800        27.6953       234.5762         0.0           99.2509        28.1631
+0  8.399999E+01     G      1.742422E-16   8.222749E-01   9.979401E-14   0.0            9.381390E-15   7.996311E-02
+                           180.4091        22.0780       232.8122         0.0          119.9473        22.5004
+0  8.600000E+01     G      1.727895E-16   6.921983E-01   6.306370E-14   0.0            9.331474E-15   6.699759E-02
+                           179.6793        18.1759       240.4494         0.0          142.3770        18.5449
+0  8.799999E+01     G      1.718800E-16   5.970937E-01   4.392358E-14   0.0            1.043383E-14   5.753851E-02
+                           179.1875        15.3066       251.2261         0.0          155.2105        15.6140
+0  8.995214E+01     G      1.713978E-16   5.267138E-01   3.219630E-14   0.0            1.150357E-14   5.055610E-02
+                           178.8396        13.1446       267.8041         0.0          162.5714        13.3839
+0  9.000000E+01     G      1.713901E-16   5.252029E-01   3.328885E-14   0.0            1.123727E-14   5.040643E-02
+                           178.8322        13.0976       258.9477         0.0          161.8990        13.3351
+0  9.199999E+01     G      1.712237E-16   4.693311E-01   3.242276E-14   0.0            1.302609E-14   4.488068E-02
+                           178.5599        11.3322       309.6104         0.0          167.8664        11.4917
+0  9.400000E+01     G      1.713117E-16   4.249111E-01   2.974806E-14   0.0            1.360349E-14   4.050425E-02
+                           178.3401         9.8774       316.1581         0.0          170.2514         9.9504
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    33
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       149
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  9.600000E+01     G      1.716055E-16   3.889355E-01   3.736578E-14   0.0            1.445827E-14   3.697643E-02
+                           178.1546         8.6468       333.0234         0.0          172.2601         8.6255
+0  9.799999E+01     G      1.720709E-16   3.593545E-01   4.057507E-14   0.0            1.507066E-14   3.409244E-02
+                           177.9923         7.5827       338.3938         0.0          173.3434         7.4591
+0  1.000000E+02     G      1.726833E-16   3.347299E-01   4.339056E-14   0.0            1.557687E-14   3.170871E-02
+                           177.8458         6.6448       343.0602         0.0          174.3808         6.4114
+0  1.020000E+02     G      1.734255E-16   3.140257E-01   5.359489E-14   0.0            1.639503E-14   2.972194E-02
+                           177.7101         5.8042       348.3789         0.0          175.2869         5.4539
+0  1.040000E+02     G      1.742849E-16   2.964787E-01   5.630420E-14   0.0            1.677831E-14   2.805611E-02
+                           177.5816         5.0397       349.9745         0.0          175.7195         4.5660
+0  1.049004E+02     G      1.747076E-16   2.894512E-01   5.265109E-14   0.0            1.681061E-14   2.739516E-02
+                           177.5255         4.7159       349.9902         0.0          175.9492         4.1847
+0  1.060000E+02     G      1.752527E-16   2.815154E-01   5.379536E-14   0.0            1.700594E-14   2.665420E-02
+                           177.4580         4.3352       350.6064         0.0          176.1204         3.7322
+0  1.080000E+02     G      1.763228E-16   2.686976E-01   6.095984E-14   0.0            1.743892E-14   2.547273E-02
+                           177.3373         3.6787       352.7380         0.0          176.5517         2.9411
+0  1.100000E+02     G      1.774911E-16   2.576852E-01   6.082297E-14   0.0            1.775489E-14   2.447806E-02
+                           177.2181         3.0606       353.3591         0.0          176.8360         2.1840
+0  1.120000E+02     G      1.787554E-16   2.482117E-01   6.107990E-14   0.0            1.786056E-14   2.364390E-02
+                           177.0992         2.4734       354.0295         0.0          177.0633         1.4541
+0  1.140000E+02     G      1.801146E-16   2.400649E-01   6.720526E-14   0.0            1.835952E-14   2.294948E-02
+                           176.9797         1.9109       355.1000         0.0          177.3229         0.7464
+0  1.160000E+02     G      1.815687E-16   2.330752E-01   6.865824E-14   0.0            1.851947E-14   2.237825E-02
+                           176.8586         1.3683       355.5160         0.0          177.4527         0.0568
+0  1.180000E+02     G      1.831189E-16   2.271057E-01   6.916332E-14   0.0            1.868514E-14   2.191702E-02
+                           176.7354         0.8415       355.9500         0.0          177.6263       359.3822
+0  1.198487E+02     G      1.846388E-16   2.223985E-01   6.860859E-14   0.0            1.878848E-14   2.157929E-02
+                           176.6191         0.3656       356.1513         0.0          177.7162       358.7700
+0  1.200000E+02     G      1.847669E-16   2.220453E-01   7.063980E-14   0.0            1.892338E-14   2.155519E-02
+                           176.6094         0.3270       356.3393         0.0          177.7631       358.7203
+0  1.220000E+02     G      1.865157E-16   2.178037E-01   6.679152E-14   0.0            1.881450E-14   2.128431E-02
+                           176.4800       359.8221       356.3876         0.0          177.8500       358.0692
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    34
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       149
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  1.240000E+02     G      1.883687E-16   2.143074E-01   7.040483E-14   0.0            1.903136E-14   2.109762E-02
+                           176.3465       359.3241       356.8370         0.0          177.9686       357.4272
+0  1.260000E+02     G      1.903301E-16   2.114967E-01   7.258013E-14   0.0            1.922552E-14   2.098983E-02
+                           176.2083       358.8310       357.2090         0.0          178.0827       356.7932
+0  1.280000E+02     G      1.924049E-16   2.093233E-01   7.398455E-14   0.0            1.938124E-14   2.095688E-02
+                           176.0649       358.3407       357.4702         0.0          178.1906       356.1660
+0  1.300000E+02     G      1.945990E-16   2.077488E-01   7.384492E-14   0.0            1.942332E-14   2.099571E-02
+                           175.9156       357.8517       357.6308         0.0          178.2669       355.5448
+0  1.320000E+02     G      1.969190E-16   2.067433E-01   7.490684E-14   0.0            1.951507E-14   2.110423E-02
+                           175.7598       357.3621       357.9540         0.0          178.3917       354.9286
+0  1.340000E+02     G      1.993725E-16   2.062840E-01   7.421458E-14   0.0            1.957244E-14   2.128118E-02
+                           175.5967       356.8705       358.0837         0.0          178.4630       354.3165
+0  1.347970E+02     G      2.003892E-16   2.062494E-01   7.516260E-14   0.0            1.964204E-14   2.137061E-02
+                           175.5295       356.6738       358.1716         0.0          178.4932       354.0736
+0  1.360000E+02     G      2.019678E-16   2.063549E-01   7.419127E-14   0.0            1.958760E-14   2.152603E-02
+                           175.4256       356.3755       358.2106         0.0          178.5253       353.7077
+0  1.380000E+02     G      2.047147E-16   2.069459E-01   7.626255E-14   0.0            1.975637E-14   2.183901E-02
+                           175.2456       355.8757       358.4997         0.0          178.6477       353.1012
+0  1.400000E+02     G      2.076238E-16   2.080528E-01   7.612833E-14   0.0            1.968731E-14   2.222105E-02
+                           175.0559       355.3694       358.6734         0.0          178.7285       352.4958
+0  1.420000E+02     G      2.107071E-16   2.096765E-01   7.595761E-14   0.0            1.973263E-14   2.267377E-02
+                           174.8554       354.8554       358.9034         0.0          178.8483       351.8903
+0  1.440000E+02     G      2.139782E-16   2.118234E-01   7.616389E-14   0.0            1.977949E-14   2.319949E-02
+                           174.6431       354.3319       359.1237         0.0          178.9675       351.2834
+0  1.460000E+02     G      2.174523E-16   2.145051E-01   7.480420E-14   0.0            1.965892E-14   2.380132E-02
+                           174.4175       353.7975       359.3528         0.0          179.0946       350.6735
+0  1.480000E+02     G      2.211465E-16   2.177390E-01   7.535854E-14   0.0            1.976094E-14   2.448312E-02
+                           174.1774       353.2502       359.5724         0.0          179.2053       350.0589
+0  1.497453E+02     G      2.245650E-16   2.210298E-01   7.603019E-14   0.0            1.972794E-14   2.514710E-02
+                           173.9547       352.7606       359.8328         0.0          179.3601       349.5171
+0  1.500000E+02     G      2.250800E-16   2.215479E-01   7.597879E-14   0.0            1.974282E-14   2.524963E-02
+                           173.9211       352.6881       359.9111         0.0          179.4009       349.4375
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    35
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       149
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  1.520000E+02     G      2.292747E-16   2.259613E-01   7.498485E-14   0.0            1.970299E-14   2.610653E-02
+                           173.6468       352.1091         0.1734         0.0          179.5574       348.8070
+0  1.540000E+02     G      2.337554E-16   2.310153E-01   7.312091E-14   0.0            1.955636E-14   2.706058E-02
+                           173.3524       351.5109         0.5646         0.0          179.7715       348.1650
+0  1.560000E+02     G      2.385499E-16   2.367536E-01   7.414855E-14   0.0            1.953849E-14   2.811972E-02
+                           173.0357       350.8906         0.9647         0.0          180.0078       347.5084
+0  1.580000E+02     G      2.436905E-16   2.432290E-01   7.377472E-14   0.0            1.947163E-14   2.929335E-02
+                           172.6937       350.2453         1.3578         0.0          180.2462       346.8340
+0  1.600000E+02     G      2.492134E-16   2.505035E-01   7.407445E-14   0.0            1.940567E-14   3.059236E-02
+                           172.3235       349.5714         1.8323         0.0          180.5347       346.1379
+0  1.620000E+02     G      2.551609E-16   2.586513E-01   7.239798E-14   0.0            1.924690E-14   3.202963E-02
+                           171.9212       348.8649         2.4681         0.0          180.9070       345.4158
+0  1.640000E+02     G      2.615813E-16   2.677595E-01   7.211450E-14   0.0            1.918252E-14   3.362020E-02
+                           171.4827       348.1212         3.0014         0.0          181.2296       344.6627
+0  1.646935E+02     G      2.639280E-16   2.711604E-01   7.018000E-14   0.0            1.905683E-14   3.421069E-02
+                           171.3213       347.8537         3.3272         0.0          181.3911       344.3933
+0  1.660000E+02     G      2.685305E-16   2.779314E-01   7.049735E-14   0.0            1.896744E-14   3.538177E-02
+                           171.0030       347.3349         3.8367         0.0          181.7179       343.8728
+0  1.680000E+02     G      2.760734E-16   2.892889E-01   7.060491E-14   0.0            1.881560E-14   3.733515E-02
+                           170.4760       346.4995         4.7720         0.0          182.3180       343.0394
+0  1.700000E+02     G      2.842859E-16   3.019770E-01   6.785403E-14   0.0            1.858957E-14   3.950501E-02
+                           169.8947       345.6076         5.8812         0.0          182.9073       342.1545
+0  1.720000E+02     G      2.932568E-16   3.161676E-01   6.802639E-14   0.0            1.842986E-14   4.192058E-02
+                           169.2508       344.6503         7.0030         0.0          183.6411       341.2090
+0  1.740000E+02     G      3.030903E-16   3.320657E-01   6.571475E-14   0.0            1.809144E-14   4.461668E-02
+                           168.5340       343.6168         8.6252         0.0          184.5576       340.1916
+0  1.760000E+02     G      3.139094E-16   3.499168E-01   6.295525E-14   0.0            1.775948E-14   4.763503E-02
+                           167.7321       342.4944        10.8397         0.0          185.7430       339.0893
+0  1.780000E+02     G      3.258602E-16   3.700161E-01   6.154777E-14   0.0            1.746976E-14   5.102579E-02
+                           166.8300       341.2672        13.1825         0.0          187.0858       337.8860
+0  1.796418E+02     G      3.366370E-16   3.884440E-01   5.961880E-14   0.0            1.709419E-14   5.412981E-02
+                           166.0017       340.1683        15.6771         0.0          188.4611       336.8090
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    36
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       149
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  1.800000E+02     G      3.391156E-16   3.927197E-01   5.850778E-14   0.0            1.702558E-14   5.484954E-02
+                           165.8092       339.9163        16.5107         0.0          188.8002       336.5621
+0  1.820000E+02     G      3.538813E-16   4.184575E-01   5.742437E-14   0.0            1.665291E-14   5.917963E-02
+                           164.6467       338.4178        20.1528         0.0          190.9063       335.0937
+0  1.840000E+02     G      3.704013E-16   4.477516E-01   5.762329E-14   0.0            1.631911E-14   6.410537E-02
+                           163.3138       336.7422        24.1972         0.0          193.5188       333.4508
+0  1.860000E+02     G      3.889632E-16   4.812332E-01   5.471047E-14   0.0            1.597943E-14   6.973519E-02
+                           161.7743       334.8524        30.8345         0.0          196.6964       331.5960
+0  1.880000E+02     G      4.099020E-16   5.196635E-01   5.455849E-14   0.0            1.563032E-14   7.620049E-02
+                           159.9819       332.7012        38.6139         0.0          201.1295       329.4821
+0  1.900000E+02     G      4.335974E-16   5.639474E-01   5.804928E-14   0.0            1.562506E-14   8.365880E-02
+                           157.8777       330.2286        44.4250         0.0          205.7611       327.0485
+0  1.920000E+02     G      4.604590E-16   6.151369E-01   6.131562E-14   0.0            1.566720E-14   9.229518E-02
+                           155.3857       327.3574        54.2268         0.0          212.3528       324.2179
+0  1.940000E+02     G      4.908803E-16   6.743873E-01   6.812471E-14   0.0            1.622980E-14   1.023168E-01
+                           152.4084       323.9889        61.9904         0.0          219.0068       320.8913
+0  1.945901E+02     G      5.005814E-16   6.935776E-01   7.144549E-14   0.0            1.659302E-14   1.055693E-01
+                           151.4199       322.8824        64.2414         0.0          221.2813       319.7975
+0  1.960000E+02     G      5.251335E-16   7.428268E-01   7.960262E-14   0.0            1.751578E-14   1.139332E-01
+                           148.8216       319.9973        69.1437         0.0          226.5294       316.9429
+0  1.980000E+02     G      5.631556E-16   8.212410E-01   9.589180E-14   0.0            1.969971E-14   1.273074E-01
+                           144.4705       315.2263        73.8465         0.0          233.4246       312.2160
+0  2.000000E+02     G      6.041357E-16   9.093939E-01   1.159367E-13   0.0            2.285369E-14   1.424461E-01
+                           139.1728       309.4920        75.7060         0.0          238.0384       306.5264
+0  2.020000E+02     G      6.458450E-16   1.004812E+00   1.415550E-13   0.0            2.724413E-14   1.589990E-01
+                           132.7374       302.6010        75.2556         0.0          240.4973       299.6809
+0  2.040000E+02     G      6.837900E-16   1.101024E+00   1.722946E-13   0.0            3.281317E-14   1.759599E-01
+                           125.0170       294.4040        72.3171         0.0          240.2941       291.5297
+0  2.060000E+02     G      7.108087E-16   1.186152E+00   2.028085E-13   0.0            3.875666E-14   1.914088E-01
+                           116.0069       284.8937        67.4742         0.0          237.2506       282.0656
+0  2.080000E+02     G      7.184465E-16   1.244261E+00   2.344105E-13   0.0            4.498430E-14   2.026916E-01
+                           105.9705       274.3307        60.8420         0.0          232.3820       271.5489
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    37
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       149
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  2.095384E+02     G      7.072890E-16   1.261693E+00   2.552568E-13   0.0            4.920360E-14   2.069975E-01
+                            97.9082       265.8433        54.7037         0.0          227.4577       263.0972
+0  2.100000E+02     G      7.009475E-16   1.261742E+00   2.586423E-13   0.0            5.003806E-14   2.074421E-01
+                            95.4884       263.2922        52.5670         0.0          225.6041       260.5568
+0  2.120000E+02     G      6.594118E-16   1.235589E+00   2.759674E-13   0.0            5.384627E-14   2.049763E-01
+                            85.3170       252.5312        44.5711         0.0          218.6901       249.8421
+0  2.140000E+02     G      6.015769E-16   1.175260E+00   2.837663E-13   0.0            5.578286E-14   1.966841E-01
+                            76.1096       242.6966        36.9886         0.0          212.0398       240.0537
+0  2.160000E+02     G      5.371998E-16   1.096049E+00   2.840976E-13   0.0            5.640670E-14   1.850014E-01
+                            68.2207       234.1380        30.1931         0.0          205.9428       231.5412
+0  2.180000E+02     G      4.738230E-16   1.011402E+00   2.791565E-13   0.0            5.596525E-14   1.721411E-01
+                            61.7110       226.9106        24.8086         0.0          201.0686       224.3594
+0  2.200000E+02     G      4.155875E-16   9.297929E-01   2.735957E-13   0.0            5.526690E-14   1.595404E-01
+                            56.4649       220.8921        20.1194         0.0          196.8820       218.3863
+0  2.220000E+02     G      3.640174E-16   8.552836E-01   2.675715E-13   0.0            5.429859E-14   1.479202E-01
+                            52.3018       215.8944        16.4400         0.0          193.6200       213.4335
+0  2.240000E+02     G      3.191634E-16   7.891561E-01   2.602143E-13   0.0            5.333052E-14   1.375387E-01
+                            49.0412       211.7280        13.4739         0.0          190.9263       209.3114
+0  2.260000E+02     G      2.804205E-16   7.312640E-01   2.549118E-13   0.0            5.253630E-14   1.284086E-01
+                            46.5290       208.2280        11.1033         0.0          188.8140       205.8554
+0  2.280000E+02     G      2.469807E-16   6.808549E-01   2.490614E-13   0.0            5.150606E-14   1.204337E-01
+                            44.6441       205.2606         8.9198         0.0          186.9082       202.9313
+0  2.300000E+02     G      2.180416E-16   6.369937E-01   2.442204E-13   0.0            5.082577E-14   1.134801E-01
+                            43.2957       202.7201         7.2394         0.0          185.4125       200.4335
+0  2.317382E+02     G      1.959875E-16   6.034732E-01   2.402328E-13   0.0            5.019643E-14   1.081592E-01
+                            42.5092       200.7940         5.9671         0.0          184.2936       198.5441
+0  2.320000E+02     G      1.928884E-16   5.987588E-01   2.396423E-13   0.0            5.018511E-14   1.074105E-01
+                            42.4197       200.5237         5.8817         0.0          184.2020       198.2793
+0  2.340000E+02     G      1.709161E-16   5.653218E-01   2.360800E-13   0.0            4.961170E-14   1.020993E-01
+                            41.9739       198.6072         4.6331         0.0          183.1119       196.4042
+0  2.360000E+02     G      1.516250E-16   5.359683E-01   2.323912E-13   0.0            4.902900E-14   9.743647E-02
+                            41.9349       196.9202         3.5749         0.0          182.1845       194.7579
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    38
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       149
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  2.380000E+02     G      1.346085E-16   5.100945E-01   2.304355E-13   0.0            4.872953E-14   9.332842E-02
+                            42.2963       195.4229         2.7068         0.0          181.4247       193.3008
+0  2.400000E+02     G      1.195385E-16   4.871956E-01   2.281632E-13   0.0            4.840013E-14   8.969638E-02
+                            43.0673       194.0840         1.8530         0.0          180.6831       192.0013
+0  2.420000E+02     G      1.061525E-16   4.668511E-01   2.267021E-13   0.0            4.824831E-14   8.647439E-02
+                            44.2732       192.8782         1.1500         0.0          180.0703       190.8342
+0  2.440000E+02     G      9.424375E-17   4.487108E-01   2.244703E-13   0.0            4.798239E-14   8.360737E-02
+                            45.9554       191.7851         0.5344         0.0          179.5291       189.7791
+0  2.460000E+02     G      8.365211E-17   4.324820E-01   2.232361E-13   0.0            4.790488E-14   8.104905E-02
+                            48.1730       190.7882       359.9395         0.0          179.0126       188.8195
+0  2.480000E+02     G      7.425948E-17   4.179198E-01   2.225459E-13   0.0            4.776793E-14   7.876075E-02
+                            51.0032       189.8739       359.4525         0.0          178.5829       187.9417
+0  2.500000E+02     G      6.598530E-17   4.048183E-01   2.226149E-13   0.0            4.780963E-14   7.670979E-02
+                            54.5401       189.0308       358.9926         0.0          178.1787       187.1344
+0  2.520000E+02     G      5.878428E-17   3.930039E-01   2.216608E-13   0.0            4.775313E-14   7.486860E-02
+                            58.8890       188.2496       358.5768         0.0          177.8112       186.3883
+0  2.539381E+02     G      5.281730E-17   3.826430E-01   2.209807E-13   0.0            4.779163E-14   7.326227E-02
+                            63.9738       187.5440       358.2024         0.0          177.4832       185.7160
+0  2.540000E+02     G      5.264338E-17   3.823286E-01   2.209035E-13   0.0            4.778912E-14   7.321369E-02
+                            64.1510       187.5222       358.1636         0.0          177.4531       185.6953
+0  2.560000E+02     G      4.757730E-17   3.726673E-01   2.208373E-13   0.0            4.787020E-14   7.172511E-02
+                            70.3929       186.8421       357.8165         0.0          177.1438       185.0489
+0  2.580000E+02     G      4.361762E-17   3.639124E-01   2.209968E-13   0.0            4.800666E-14   7.038581E-02
+                            77.5995       186.2035       357.4763         0.0          176.8428       184.4433
+0  2.600000E+02     G      4.079344E-17   3.559716E-01   2.217523E-13   0.0            4.818852E-14   6.918105E-02
+                            85.6207       185.6015       357.1692         0.0          176.5661       183.8735
+0  2.620000E+02     G      3.910557E-17   3.487656E-01   2.226165E-13   0.0            4.835741E-14   6.809822E-02
+                            94.1441       185.0318       356.8596         0.0          176.2846       183.3354
+0  2.640000E+02     G      3.850271E-17   3.422256E-01   2.233057E-13   0.0            4.856777E-14   6.712639E-02
+                           102.7367       184.4908       356.5806         0.0          176.0327       182.8253
+0  2.660000E+02     G      3.887484E-17   3.362916E-01   2.238561E-13   0.0            4.878997E-14   6.625606E-02
+                           110.9548       183.9753       356.2875         0.0          175.7707       182.3399
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    39
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       149
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  2.680000E+02     G      4.006884E-17   3.309120E-01   2.241691E-13   0.0            4.903928E-14   6.547900E-02
+                           118.4595       183.4823       356.0147         0.0          175.5314       181.8765
+0  2.700000E+02     G      4.191703E-17   3.260412E-01   2.253591E-13   0.0            4.933571E-14   6.478801E-02
+                           125.0739       183.0094       355.7551         0.0          175.2948       181.4325
+0  2.720000E+02     G      4.426277E-17   3.216396E-01   2.267046E-13   0.0            4.965438E-14   6.417689E-02
+                           130.7651       182.5544       355.5069         0.0          175.0650       181.0057
+0  2.740000E+02     G      4.697477E-17   3.176723E-01   2.281195E-13   0.0            5.001806E-14   6.364012E-02
+                           135.5936       182.1152       355.2639         0.0          174.8418       180.5942
+0  2.760000E+02     G      4.995038E-17   3.141090E-01   2.295362E-13   0.0            5.035877E-14   6.317295E-02
+                           139.6628       181.6902       355.0283         0.0          174.6214       180.1962
+0  2.761380E+02     G      5.016337E-17   3.138773E-01   2.295974E-13   0.0            5.036085E-14   6.314317E-02
+                           139.9185       181.6614       355.0004         0.0          174.5953       180.1692
+0  2.780000E+02     G      5.311323E-17   3.109227E-01   2.314663E-13   0.0            5.080488E-14   6.277122E-02
+                           143.0862       181.2777       354.7994         0.0          174.4074       179.8100
+0  2.800000E+02     G      5.640819E-17   3.080900E-01   2.330924E-13   0.0            5.119864E-14   6.243128E-02
+                           145.9700       180.8761       354.5707         0.0          174.1928       179.4343
+0  2.820000E+02     G      5.979628E-17   3.055901E-01   2.343816E-13   0.0            5.162119E-14   6.214998E-02
+                           148.4064       180.4842       354.3295         0.0          173.9760       179.0676
+0  2.840000E+02     G      6.325070E-17   3.034049E-01   2.364127E-13   0.0            5.209221E-14   6.192455E-02
+                           150.4726       180.1007       354.1011         0.0          173.7600       178.7087
+0  2.860000E+02     G      6.675340E-17   3.015185E-01   2.385919E-13   0.0            5.260962E-14   6.175266E-02
+                           152.2316       179.7245       353.8738         0.0          173.5455       178.3566
+0  2.880000E+02     G      7.029285E-17   2.999171E-01   2.413088E-13   0.0            5.316310E-14   6.163226E-02
+                           153.7346       179.3544       353.6649         0.0          173.3377       178.0101
+0  2.900000E+02     G      7.386206E-17   2.985885E-01   2.430847E-13   0.0            5.367369E-14   6.156163E-02
+                           155.0229       178.9895       353.4305         0.0          173.1223       177.6682
+0  2.920000E+02     G      7.745752E-17   2.975224E-01   2.453966E-13   0.0            5.423789E-14   6.153933E-02
+                           156.1300       178.6289       353.1923         0.0          172.8975       177.3301
+0  2.940000E+02     G      8.107827E-17   2.967100E-01   2.487934E-13   0.0            5.491607E-14   6.156417E-02
+                           157.0831       178.2716       352.9843         0.0          172.6853       176.9947
+0  2.960000E+02     G      8.472522E-17   2.961436E-01   2.510775E-13   0.0            5.551610E-14   6.163522E-02
+                           157.9042       177.9168       352.7349         0.0          172.4539       176.6614
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    40
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       149
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  2.980000E+02     G      8.840070E-17   2.958171E-01   2.539404E-13   0.0            5.619120E-14   6.175178E-02
+                           158.6114       177.5636       352.5096         0.0          172.2354       176.3292
+0  2.983379E+02     G      8.902472E-17   2.957852E-01   2.540257E-13   0.0            5.632005E-14   6.177592E-02
+                           158.7207       177.5041       352.4471         0.0          172.1915       176.2731
+0  3.000000E+02     G      9.210809E-17   2.957254E-01   2.562511E-13   0.0            5.685945E-14   6.191332E-02
+                           159.2195       177.2113       352.2487         0.0          172.0004       175.9973
+0  3.020000E+02     G      9.585180E-17   2.958648E-01   2.594994E-13   0.0            5.758230E-14   6.211956E-02
+                           159.7409       176.8590       352.0087         0.0          171.7644       175.6651
+0  3.040000E+02     G      9.963685E-17   2.962323E-01   2.630657E-13   0.0            5.838451E-14   6.237041E-02
+                           160.1857       176.5059       351.7711         0.0          171.5315       175.3316
+0  3.060000E+02     G      1.034689E-16   2.968261E-01   2.667711E-13   0.0            5.918471E-14   6.266596E-02
+                           160.5623       176.1513       351.5163         0.0          171.2766       174.9961
+0  3.080000E+02     G      1.073541E-16   2.976455E-01   2.700740E-13   0.0            6.001128E-14   6.300650E-02
+                           160.8778       175.7944       351.2555         0.0          171.0309       174.6580
+0  3.100000E+02     G      1.112993E-16   2.986908E-01   2.737910E-13   0.0            6.090111E-14   6.339249E-02
+                           161.1381       175.4345       350.9827         0.0          170.7701       174.3163
+0  3.120000E+02     G      1.153115E-16   2.999629E-01   2.780089E-13   0.0            6.182287E-14   6.382459E-02
+                           161.3480       175.0707       350.7206         0.0          170.5058       173.9704
+0  3.140000E+02     G      1.193985E-16   3.014641E-01   2.818643E-13   0.0            6.275058E-14   6.430369E-02
+                           161.5118       174.7022       350.4252         0.0          170.2233       173.6193
+0  3.160000E+02     G      1.235685E-16   3.031974E-01   2.863854E-13   0.0            6.375326E-14   6.483082E-02
+                           161.6329       174.3282       350.1448         0.0          169.9435       173.2624
+0  3.180000E+02     G      1.278300E-16   3.051669E-01   2.912351E-13   0.0            6.482815E-14   6.540722E-02
+                           161.7141       173.9478       349.8539         0.0          169.6530       172.8987
+0  3.200000E+02     G      1.321921E-16   3.073778E-01   2.964248E-13   0.0            6.593888E-14   6.603438E-02
+                           161.7577       173.5601       349.5546         0.0          169.3467       172.5273
+0  3.205378E+02     G      1.333836E-16   3.080142E-01   2.973451E-13   0.0            6.623187E-14   6.621191E-02
+                           161.7632       173.4545       349.4604         0.0          169.2662       172.4261
+0  3.220000E+02     G      1.366650E-16   3.098360E-01   3.004484E-13   0.0            6.704161E-14   6.671400E-02
+                           161.7656       173.1642       349.2026         0.0          169.0277       172.1474
+0  3.240000E+02     G      1.412588E-16   3.125490E-01   3.061991E-13   0.0            6.826483E-14   6.744798E-02
+                           161.7394       172.7591       348.8984         0.0          168.7141       171.7580
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    41
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       149
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  3.260000E+02     G      1.459848E-16   3.155249E-01   3.118821E-13   0.0            6.952011E-14   6.823849E-02
+                           161.6802       172.3438       348.5524         0.0          168.3665       171.3579
+0  3.280000E+02     G      1.508549E-16   3.187736E-01   3.175081E-13   0.0            7.088142E-14   6.908800E-02
+                           161.5889       171.9171       348.1900         0.0          168.0215       170.9462
+0  3.300000E+02     G      1.558820E-16   3.223059E-01   3.236680E-13   0.0            7.222357E-14   6.999923E-02
+                           161.4660       171.4779       347.8206         0.0          167.6466       170.5216
+0  3.320000E+02     G      1.610797E-16   3.261341E-01   3.299762E-13   0.0            7.371447E-14   7.097521E-02
+                           161.3118       171.0249       347.4347         0.0          167.2735       170.0829
+0  3.340000E+02     G      1.664628E-16   3.302720E-01   3.368714E-13   0.0            7.522172E-14   7.201929E-02
+                           161.1263       170.5567       347.0303         0.0          166.8623       169.6287
+0  3.360000E+02     G      1.720474E-16   3.347349E-01   3.444028E-13   0.0            7.690717E-14   7.313523E-02
+                           160.9093       170.0719       346.6198         0.0          166.4505       169.1575
+0  3.380000E+02     G      1.778509E-16   3.395403E-01   3.514344E-13   0.0            7.858238E-14   7.432717E-02
+                           160.6603       169.5688       346.1636         0.0          166.0124       168.6678
+0  3.400000E+02     G      1.838921E-16   3.447072E-01   3.592007E-13   0.0            8.036948E-14   7.559969E-02
+                           160.3786       169.0457       345.6879         0.0          165.5438       168.1578
+0  3.420000E+02     G      1.901911E-16   3.502567E-01   3.677254E-13   0.0            8.223468E-14   7.695781E-02
+                           160.0631       168.5007       345.2197         0.0          165.0670       167.6256
+0  3.427377E+02     G      1.925840E-16   3.524049E-01   3.710479E-13   0.0            8.299035E-14   7.748146E-02
+                           159.9380       168.2938       345.0356         0.0          164.8844       167.4233
+0  3.440000E+02     G      1.967704E-16   3.562125E-01   3.764734E-13   0.0            8.422933E-14   7.840714E-02
+                           159.7127       167.9317       344.6967         0.0          164.5493       167.0692
+0  3.460000E+02     G      2.036542E-16   3.626005E-01   3.854505E-13   0.0            8.631406E-14   7.995378E-02
+                           159.3258       167.3364       344.1444         0.0          164.0091       166.4861
+0  3.480000E+02     G      2.108690E-16   3.694495E-01   3.955604E-13   0.0            8.858038E-14   8.160456E-02
+                           158.9004       166.7122       343.5798         0.0          163.4433       165.8740
+0  3.500000E+02     G      2.184435E-16   3.767911E-01   4.057853E-13   0.0            9.091245E-14   8.336689E-02
+                           158.4346       166.0565       342.9686         0.0          162.8382       165.2299
+0  3.520000E+02     G      2.264100E-16   3.846611E-01   4.168629E-13   0.0            9.343173E-14   8.524913E-02
+                           157.9256       165.3659       342.3311         0.0          162.2053       164.5509
+0  3.540000E+02     G      2.348029E-16   3.930977E-01   4.289800E-13   0.0            9.611977E-14   8.726029E-02
+                           157.3705       164.6371       341.6581         0.0          161.5249       163.8334
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    42
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       149
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  3.560000E+02     G      2.436606E-16   4.021438E-01   4.412409E-13   0.0            9.888641E-14   8.941041E-02
+                           156.7661       163.8662       340.9303         0.0          160.7978       163.0735
+0  3.580000E+02     G      2.530252E-16   4.118467E-01   4.546092E-13   0.0            1.019187E-13   9.171053E-02
+                           156.1082       163.0488       340.1653         0.0          160.0374       162.2669
+0  3.600000E+02     G      2.629424E-16   4.222579E-01   4.687011E-13   0.0            1.051413E-13   9.417269E-02
+                           155.3927       162.1801       339.3341         0.0          159.2160       161.4088
+0  3.620000E+02     G      2.734630E-16   4.334344E-01   4.839411E-13   0.0            1.085344E-13   9.681021E-02
+                           154.6142       161.2547       338.4571         0.0          158.3303       160.4938
+0  3.640000E+02     G      2.846420E-16   4.454380E-01   4.994271E-13   0.0            1.121328E-13   9.963755E-02
+                           153.7670       160.2663       337.4893         0.0          157.3855       159.5155
+0  3.649376E+02     G      2.901265E-16   4.513692E-01   5.075673E-13   0.0            1.139471E-13   1.010328E-01
+                           153.3444       159.7793       337.0257         0.0          156.9174       159.0332
+0  3.660000E+02     G      2.965402E-16   4.583367E-01   5.169054E-13   0.0            1.160479E-13   1.026706E-01
+                           152.8445       159.2079       336.4811         0.0          156.3724       158.4671
+0  3.680000E+02     G      3.092229E-16   4.722034E-01   5.358244E-13   0.0            1.202581E-13   1.059264E-01
+                           151.8390       158.0717       335.4016         0.0          155.2809       157.3407
+0  3.700000E+02     G      3.227610E-16   4.871164E-01   5.558057E-13   0.0            1.247244E-13   1.094233E-01
+                           150.7419       156.8487       334.2377         0.0          154.1089       156.1273
+0  3.720000E+02     G      3.372299E-16   5.031586E-01   5.763386E-13   0.0            1.294266E-13   1.131808E-01
+                           149.5431       155.5288       332.9283         0.0          152.8156       154.8167
+0  3.740000E+02     G      3.527100E-16   5.204164E-01   5.989499E-13   0.0            1.345586E-13   1.172191E-01
+                           148.2316       154.1003       331.5251         0.0          151.4197       153.3974
+0  3.760000E+02     G      3.692835E-16   5.389773E-01   6.234319E-13   0.0            1.400971E-13   1.215588E-01
+                           146.7942       152.5502       330.0207         0.0          149.9196       151.8562
+0  3.780000E+02     G      3.870326E-16   5.589254E-01   6.494329E-13   0.0            1.459433E-13   1.262199E-01
+                           145.2165       150.8636       328.3734         0.0          148.2683       150.1785
+0  3.800000E+02     G      4.060373E-16   5.803390E-01   6.775917E-13   0.0            1.522922E-13   1.312210E-01
+                           143.4817       149.0237       326.5757         0.0          146.4704       148.3472
+0  3.820000E+02     G      4.263659E-16   6.032782E-01   7.075710E-13   0.0            1.590900E-13   1.365767E-01
+                           141.5711       147.0115       324.5905         0.0          144.4937       146.3435
+0  3.840000E+02     G      4.480678E-16   6.277753E-01   7.392912E-13   0.0            1.662497E-13   1.422954E-01
+                           139.4639       144.8061       322.4036         0.0          142.3077       144.1464
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    43
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       149
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  3.860000E+02     G      4.711602E-16   6.538176E-01   7.733782E-13   0.0            1.739654E-13   1.483753E-01
+                           137.1370       142.3841       320.0034         0.0          139.9146       141.7326
+0  3.871374E+02     G      4.849032E-16   6.692901E-01   7.936190E-13   0.0            1.784913E-13   1.519881E-01
+                           135.7062       140.9007       318.5583         0.0          138.4583       140.2538
+0  3.880000E+02     G      4.956090E-16   6.813236E-01   8.090668E-13   0.0            1.820098E-13   1.547986E-01
+                           134.5655       139.7207       317.3803         0.0          137.2898       139.0772
+0  3.900000E+02     G      5.213042E-16   7.101123E-01   8.472007E-13   0.0            1.905915E-13   1.615252E-01
+                           131.7233       136.7894       314.4917         0.0          134.3937       136.1538
+0  3.920000E+02     G      5.480279E-16   7.398645E-01   8.865193E-13   0.0            1.994948E-13   1.684830E-01
+                           128.5840       133.5640       311.2955         0.0          131.2062       132.9360
+0  3.940000E+02     G      5.754190E-16   7.700809E-01   9.263372E-13   0.0            2.084653E-13   1.755586E-01
+                           125.1229       130.0193       307.7910         0.0          127.6953       129.3989
+0  3.960000E+02     G      6.029309E-16   8.000339E-01   9.659537E-13   0.0            2.174159E-13   1.825860E-01
+                           121.3200       126.1353       303.9281         0.0          123.8331       125.5223
+0  3.980000E+02     G      6.298026E-16   8.287379E-01   1.004675E-12   0.0            2.261908E-13   1.893395E-01
+                           117.1629       121.8996       299.7140         0.0          119.6296       121.2939
+0  4.000000E+02     G      6.550481E-16   8.549456E-01   1.040655E-12   0.0            2.343009E-13   1.955327E-01
+                           112.6524       117.3129       295.1637         0.0          115.0672       116.7142
+0  4.020000E+02     G      6.774890E-16   8.771991E-01   1.071064E-12   0.0            2.411984E-13   2.008297E-01
+                           107.8068       112.3933       290.2687         0.0          110.1821       111.8016
+0  4.040000E+02     G      6.958474E-16   8.939556E-01   1.095717E-12   0.0            2.467938E-13   2.048740E-01
+                           102.6663       107.1809       285.0723         0.0          104.9917       106.5961
+0  4.060000E+02     G      7.089013E-16   9.037888E-01   1.111547E-12   0.0            2.503898E-13   2.073345E-01
+                            97.2950       101.7397       279.6619         0.0           99.5786       101.1617
+0  4.080000E+02     G      7.156859E-16   9.056363E-01   1.118312E-12   0.0            2.519496E-13   2.079622E-01
+                            91.7782        96.1550       274.1097         0.0           94.0210        95.5836
+0  4.093373E+02     G      7.164435E-16   9.021500E-01   1.115816E-12   0.0            2.514094E-13   2.072957E-01
+                            88.0577        92.3902       270.3461         0.0           90.2731        91.8232
+0  4.100000E+02     G      7.156795E-16   8.990188E-01   1.113188E-12   0.0            2.508286E-13   2.066418E-01
+                            86.2165        90.5274       268.5029         0.0           88.4177        89.9625
+0  4.120000E+02     G      7.089176E-16   8.841614E-01   1.098891E-12   0.0            2.476401E-13   2.034196E-01
+                            80.7156        84.9623       262.9547         0.0           82.8785        84.4038
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    44
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       149
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  4.140000E+02     G      6.959827E-16   8.619547E-01   1.075104E-12   0.0            2.423118E-13   1.984954E-01
+                            75.3740        79.5583       257.5752         0.0           77.4988        79.0060
+0  4.160000E+02     G      6.778781E-16   8.337784E-01   1.043336E-12   0.0            2.351832E-13   1.921829E-01
+                            70.2738        74.3974       252.4462         0.0           72.3694        73.8512
+0  4.180000E+02     G      6.558363E-16   8.012506E-01   1.005582E-12   0.0            2.267053E-13   1.848519E-01
+                            65.4750        69.5394       247.6004         0.0           67.5215        68.9993
+0  4.194109E+02     G      6.386065E-16   7.765646E-01   9.772147E-13   0.0            2.203420E-13   1.792690E-01
+                            62.2911        66.3147       244.4005         0.0           64.3168        65.7788
+0  4.200000E+02     G      6.311210E-16   7.659820E-01   9.643301E-13   0.0            2.174524E-13   1.768720E-01
+                            61.0134        65.0202       243.1288         0.0           63.0410        64.4860
+0  4.220000E+02     G      6.048827E-16   7.294030E-01   9.211889E-13   0.0            2.077350E-13   1.685724E-01
+                            56.9040        60.8547       238.9674         0.0           58.8890        60.3264
+0  4.240000E+02     G      5.780743E-16   6.926700E-01   8.773754E-13   0.0            1.978881E-13   1.602204E-01
+                            53.1449        57.0410       235.1836         0.0           55.1026        56.5183
+0  4.260000E+02     G      5.514262E-16   6.566450E-01   8.345951E-13   0.0            1.882396E-13   1.520156E-01
+                            49.7222        53.5649       231.7211         0.0           51.6506        53.0480
+0  4.280000E+02     G      5.254586E-16   6.219206E-01   7.928471E-13   0.0            1.788649E-13   1.440963E-01
+                            46.6145        50.4053       228.5831         0.0           48.5059        49.8939
+0  4.294846E+02     G      5.068321E-16   5.972128E-01   7.630776E-13   0.0            1.721243E-13   1.384556E-01
+                            44.4967        48.2497       226.4326         0.0           46.3698        47.7423
+0  4.300000E+02     G      5.005154E-16   5.888684E-01   7.528005E-13   0.0            1.698026E-13   1.365497E-01
+                            43.7967        47.5369       225.7060         0.0           45.6456        47.0309
+0  4.320000E+02     G      4.768020E-16   5.576906E-01   7.147134E-13   0.0            1.612738E-13   1.294239E-01
+                            41.2424        44.9332       223.1582         0.0           43.0833        44.4325
+0  4.340000E+02     G      4.544205E-16   5.284646E-01   6.792186E-13   0.0            1.532881E-13   1.227383E-01
+                            38.9254        42.5679       220.8152         0.0           40.7393        42.0724
+0  4.360000E+02     G      4.334023E-16   5.011863E-01   6.458990E-13   0.0            1.457665E-13   1.164934E-01
+                            36.8209        40.4164       218.6806         0.0           38.6115        39.9261
+0  4.380000E+02     G      4.137298E-16   4.757958E-01   6.149059E-13   0.0            1.387895E-13   1.106764E-01
+                            34.9064        38.4559       216.7375         0.0           36.6683        37.9707
+0  4.395582E+02     G      3.993049E-16   4.572634E-01   5.918715E-13   0.0            1.336303E-13   1.064281E-01
+                            33.5329        37.0474       215.3524         0.0           35.2749        36.5661
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    45
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       149
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  4.400000E+02     G      3.953548E-16   4.522009E-01   5.863032E-13   0.0            1.323259E-13   1.052672E-01
+                            33.1610        36.6657       214.9328         0.0           34.8707        36.1854
+0  4.420000E+02     G      3.782109E-16   4.302913E-01   5.593743E-13   0.0            1.262830E-13   1.002412E-01
+                            31.5664        35.0273       213.3312         0.0           33.2633        34.5520
+0  4.440000E+02     G      3.622221E-16   4.099491E-01   5.337771E-13   0.0            1.205257E-13   9.557204E-02
+                            30.1063        33.5243       211.8623         0.0           31.7920        33.0538
+0  4.460000E+02     G      3.473094E-16   3.910564E-01   5.107722E-13   0.0            1.153256E-13   9.123310E-02
+                            28.7660        32.1422       210.4863         0.0           30.4221        31.6764
+0  4.480000E+02     G      3.333930E-16   3.734971E-01   4.889786E-13   0.0            1.104316E-13   8.719821E-02
+                            27.5328        30.8682       209.2432         0.0           29.1750        30.4070
+0  4.496319E+02     G      3.227228E-16   3.600817E-01   4.724931E-13   0.0            1.066771E-13   8.411407E-02
+                            26.5981        29.9008       208.2661         0.0           28.2099        29.4434
+0  4.500000E+02     G      3.203963E-16   3.571622E-01   4.686505E-13   0.0            1.058428E-13   8.344273E-02
+                            26.3955        29.6909       208.0743         0.0           28.0092        29.2344
+0  4.520000E+02     G      3.082469E-16   3.419496E-01   4.497000E-13   0.0            1.015839E-13   7.994350E-02
+                            25.3443        28.6006       207.0099         0.0           26.9423        28.1486
+0  4.540000E+02     G      2.968767E-16   3.277648E-01   4.322434E-13   0.0            9.765355E-14   7.667906E-02
+                            24.3704        27.5884       205.9976         0.0           25.9296        27.1408
+0  4.560000E+02     G      2.862228E-16   3.145210E-01   4.158361E-13   0.0            9.394296E-14   7.362971E-02
+                            23.4661        26.6468       205.0615         0.0           24.9978        26.2035
+0  4.580000E+02     G      2.762274E-16   3.021389E-01   4.002727E-13   0.0            9.041049E-14   7.077745E-02
+                            22.6247        25.7688       204.2023         0.0           24.1460        25.3299
+0  4.597055E+02     G      2.681844E-16   2.922069E-01   3.879410E-13   0.0            8.767112E-14   6.848858E-02
+                            21.9525        25.0660       203.5257         0.0           23.4587        24.6306
+0  4.600000E+02     G      2.668378E-16   2.905470E-01   3.857450E-13   0.0            8.718416E-14   6.810595E-02
+                            21.8403        24.9486       203.4162         0.0           23.3471        24.5139
+0  4.620000E+02     G      2.580052E-16   2.796792E-01   3.723170E-13   0.0            8.411924E-14   6.560019E-02
+                            21.1076        24.1808       202.6457         0.0           22.5878        23.7502
+0  4.640000E+02     G      2.496855E-16   2.694766E-01   3.596631E-13   0.0            8.127785E-14   6.324673E-02
+                            20.4218        23.4607       201.9343         0.0           21.8741        23.0342
+0  4.660000E+02     G      2.418388E-16   2.598852E-01   3.473472E-13   0.0            7.850920E-14   6.103330E-02
+                            19.7788        22.7841       201.2913         0.0           21.2295        22.3617
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    46
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       149
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  4.680000E+02     G      2.344285E-16   2.508565E-01   3.360517E-13   0.0            7.594527E-14   5.894879E-02
+                            19.1749        22.1474       200.6539         0.0           20.5975        21.7288
+0  4.697791E+02     G      2.281765E-16   2.432621E-01   3.264479E-13   0.0            7.380542E-14   5.719468E-02
+                            18.6679        21.6116       200.1402         0.0           20.0771        21.1966
+0  4.700000E+02     G      2.274214E-16   2.423463E-01   3.251757E-13   0.0            7.354921E-14   5.698312E-02
+                            18.6068        21.5470       200.0922         0.0           20.0206        21.1324
+0  4.720000E+02     G      2.207875E-16   2.343146E-01   3.151668E-13   0.0            7.126012E-14   5.512719E-02
+                            18.0716        20.9802       199.5259         0.0           19.4639        20.5694
+0  4.740000E+02     G      2.144991E-16   2.267252E-01   3.055986E-13   0.0            6.908570E-14   5.337269E-02
+                            17.5665        20.4441       198.9962         0.0           18.9392        20.0371
+0  4.760000E+02     G      2.085312E-16   2.195447E-01   2.963646E-13   0.0            6.702991E-14   5.171202E-02
+                            17.0891        19.9365       198.5209         0.0           18.4571        19.5332
+0  4.780000E+02     G      2.028610E-16   2.127434E-01   2.879445E-13   0.0            6.511119E-14   5.013839E-02
+                            16.6374        19.4550       198.0376         0.0           17.9801        19.0554
+0  4.798528E+02     G      1.978556E-16   2.067573E-01   2.802692E-13   0.0            6.336830E-14   4.875280E-02
+                            16.2401        19.0306       197.6194         0.0           17.5655        18.6344
+0  4.800000E+02     G      1.974677E-16   2.062940E-01   2.795974E-13   0.0            6.324314E-14   4.864555E-02
+                            16.2094        18.9978       197.6028         0.0           17.5414        18.6018
+0  4.820000E+02     G      1.923322E-16   2.001715E-01   2.720045E-13   0.0            6.151453E-14   4.722777E-02
+                            15.8032        18.5631       197.1661         0.0           17.1100        18.1706
+0  4.840000E+02     G      1.874371E-16   1.943531E-01   2.646506E-13   0.0            5.986038E-14   4.587986E-02
+                            15.4174        18.1492       196.7662         0.0           16.7093        17.7602
+0  4.860000E+02     G      1.827665E-16   1.888181E-01   2.573852E-13   0.0            5.823740E-14   4.459707E-02
+                            15.0505        17.7548       196.3995         0.0           16.3384        17.3692
+0  4.880000E+02     G      1.783058E-16   1.835476E-01   2.506948E-13   0.0            5.671493E-14   4.337507E-02
+                            14.7011        17.3784       196.0224         0.0           15.9652        16.9962
+0  4.899264E+02     G      1.741950E-16   1.787046E-01   2.446350E-13   0.0            5.534720E-14   4.225174E-02
+                            14.3800        17.0318       195.6841         0.0           15.6279        16.6529
+0  4.900000E+02     G      1.740414E-16   1.785239E-01   2.442606E-13   0.0            5.527869E-14   4.220983E-02
+                            14.3681        17.0189       195.6807         0.0           15.6197        16.6401
+0  4.920000E+02     G      1.699610E-16   1.737311E-01   2.380946E-13   0.0            5.387469E-14   4.109768E-02
+                            14.0503        16.6751       195.3562         0.0           15.2995        16.2996
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    47
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+      POINT-ID =       149
+                                       C O M P L E X   A C C E L E R A T I O N   V E C T O R
+                                                         (MAGNITUDE/PHASE)
+ 
+      FREQUENCY   TYPE          T1             T2             T3             R1             R2             R3
+0  4.940000E+02     G      1.660534E-16   1.691547E-01   2.323363E-13   0.0            5.256767E-14   4.003530E-02
+                            13.7468        16.3461       195.0272         0.0           14.9732        15.9738
+0  4.960000E+02     G      1.623080E-16   1.647808E-01   2.267658E-13   0.0            5.131927E-14   3.901953E-02
+                            13.4566        16.0309       194.7273         0.0           14.6714        15.6618
+0  4.980000E+02     G      1.587150E-16   1.605971E-01   2.212962E-13   0.0            5.009330E-14   3.804756E-02
+                            13.1790        15.7287       194.4340         0.0           14.3759        15.3627
+0  5.000000E+02     G      1.552657E-16   1.565922E-01   2.160899E-13   0.0            4.891608E-14   3.711672E-02
+                            12.9130        15.4386       194.1623         0.0           14.1055        15.0757
+0  5.020000E+02     G      1.519517E-16   1.527553E-01   2.112763E-13   0.0            4.782506E-14   3.622461E-02
+                            12.6581        15.1599       193.8795         0.0           13.8244        14.8001
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    48
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    49
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+0                             X Y - O U T P U T  S U M M A R Y  ( R E S P O N S E )
+0 SUBCASE  CURVE FRAME    CURVE ID./       XMIN-FRAME/    XMAX-FRAME/    YMIN-FRAME/      X FOR        YMAX-FRAME/      X FOR
+     ID     TYPE   NO.  PANEL  : GRID ID     ALL DATA       ALL DATA       ALL DATA       YMIN           ALL DATA       YMAX
+0       1  ACCE      0      101(  4)      2.000000E+00   5.020000E+02   2.500000E-01   6.438968E+00   2.500000E-01   2.000000E+00
+                                          2.000000E+00   5.020000E+02   2.500000E-01   6.438968E+00   2.500000E-01   2.000000E+00
+0       1  ACCE      0      149(  4)      2.000000E+00   5.020000E+02   1.527553E-01   5.020000E+02   3.915089E+00   1.198768E+01
+                                          2.000000E+00   5.020000E+02   1.527553E-01   5.020000E+02   3.915089E+00   1.198768E+01
+1    SINE VIBRATION EXAMPLE MODEL                                              JULY  12, 2001  MSC.NASTRAN  4/ 9/01   PAGE    50
+      48-ELEMENT CANTILEVER BEAM ON THE X-AXIS                                                                                      
+0     Y-DIRECTION SINE INPUT                                                                                                        
+ * * * *  D B D I C T   P R I N T  * * * *      SUBDMAP = PRTSUM  ,  DMAP STATEMENT NO.     28
+
+
+
+0                                   * * * *  A N A L Y S I S  S U M M A R Y  T A B L E  * * * *
+0 SEID  PEID PROJ VERS APRCH      SEMG SEMR SEKR SELG SELR MODES DYNRED SOLLIN PVALID SOLNL LOOPID DESIGN CYCLE SENSITIVITY
+ --------------------------------------------------------------------------------------------------------------------------
+     0     0    1    1 '        '    T    T    T    T    T     T      F      T      0     F     -1            0           F
+0SEID = SUPERELEMENT ID.
+ PEID = PRIMARY SUPERELEMENT ID OF IMAGE SUPERELEMENT.
+ PROJ = PROJECT ID NUMBER.
+ VERS = VERSION ID.
+ APRCH = BLANK FOR STRUCTURAL ANALYSIS.  HEAT FOR HEAT TRANSFER ANALYSIS.
+ SEMG = STIFFNESS AND MASS MATRIX GENERATION STEP.
+ SEMR = MASS MATRIX REDUCTION STEP (INCLUDES EIGENVALUE SOLUTION FOR MODES).
+ SEKR = STIFFNESS MATRIX REDUCTION STEP.
+ SELG = LOAD MATRIX GENERATION STEP.
+ SELR = LOAD MATRIX REDUCTION STEP. 
+ MODES = T (TRUE) IF NORMAL MODES OR BUCKLING MODES CALCULATED.
+ DYNRED = T (TRUE) MEANS GENERALIZED DYNAMIC AND/OR COMPONENT MODE REDUCTION PERFORMED.
+ SOLLIN = T (TRUE) IF LINEAR SOLUTION EXISTS IN DATABASE.
+ PVALID = P-DISTRIBUTION ID OF P-VALUE FOR P-ELEMENTS
+ LOOPID = THE LAST LOOPID VALUE USED IN THE NONLINEAR ANALYSIS.  USEFUL FOR RESTARTS.
+ SOLNL = T (TRUE) IF NONLINEAR SOLUTION EXISTS IN DATABASE.
+ DESIGN CYCLE = THE LAST DESIGN CYCLE (ONLY VALID IN OPTIMIZATION).
+ SENSITIVITY = SENSITIVITY MATRIX GENERATION FLAG.
+1                                        * * * END OF JOB * * *
+ 
+ 
