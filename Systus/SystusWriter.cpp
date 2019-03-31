@@ -1282,7 +1282,9 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
 
                         shared_ptr<NodalForce> nodalForce = dynamic_pointer_cast<NodalForce>(dLoading);
                         writeNodalForceVector(systusModel, nodalForce, idLoadCase, vectorId);
+                        nodalForce->markAsWritten();
                     }
+                    dEL->markAsWritten();
                     dE->markAsWritten();
                     break;
                 }
