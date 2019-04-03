@@ -1594,52 +1594,37 @@ void SystusWriter::fillConstraintsNodes(const SystusModel& systusModel, const in
 
     // Work
     for (const auto & constraintSet : analysis->getConstraintSets()){
-        for (const auto& constraint : constraintSet->getConstraints()) {
+        for (auto& constraint : constraintSet->getConstraintsByType(Constraint::Type::SPC)) {
+            shared_ptr<SinglePointConstraint> spc = dynamic_pointer_cast<SinglePointConstraint>(constraint);
+            for (int nodePosition : constraint->nodePositions()) {
 
-            switch (constraint->type) {
-            case Constraint::Type::SPC: {
-                std::shared_ptr<SinglePointConstraint> spc = std::dynamic_pointer_cast<
-                        SinglePointConstraint>(constraint);
-                for (int nodePosition : constraint->nodePositions()) {
+                // We compute the Degree Of Freedom of the node (see ASC Manual)
+                DOFS constrained = constraint->getDOFSForNode(nodePosition);
+                if (constraintByNodePosition.find(nodePosition) == constraintByNodePosition.end()) {
+                    constraintByNodePosition[nodePosition] = char(constrained) & dofCode;
+                } else {
+                    constraintByNodePosition[nodePosition] = (char(constrained) & dofCode)
+                                        | constraintByNodePosition[nodePosition];
+                }
 
-                    // We compute the Degree Of Freedom of the node (see ASC Manual)
-                    DOFS constrained = constraint->getDOFSForNode(nodePosition);
-                    if (constraintByNodePosition.find(nodePosition) == constraintByNodePosition.end()){
-                        constraintByNodePosition[nodePosition] = char(constrained) & dofCode;
-                    }else{
-                        constraintByNodePosition[nodePosition] = (char(constrained) & dofCode)
-                                            | constraintByNodePosition[nodePosition];
-                    }
-
-                    // Rigid Body Element in option 3D.
-                    // We report the constraints from the master node to the master rotational node.
-                    if (systusOption==SystusOption::CONTINUOUS){
-                        int nid =  mesh.findNodeId(nodePosition);
-                        const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
-                        if (it != rotationNodeIdByTranslationNodeId.end()){
-                            DOFS constrainedRot(constrained.contains(DOF::RX),constrained.contains(DOF::RY),constrained.contains(DOF::RZ));
-                            int rotNodePosition= mesh.findNodePosition(it->second);
-                            if (constraintByNodePosition.find(rotNodePosition) == constraintByNodePosition.end()){
-                                constraintByNodePosition[rotNodePosition] = char(constrainedRot) & dofCode;
-                            }else{
-                                constraintByNodePosition[rotNodePosition] = (char(constrainedRot) & dofCode)
-                                                    | constraintByNodePosition[rotNodePosition];
-                            }
+                // Rigid Body Element in option 3D.
+                // We report the constraints from the master node to the master rotational node.
+                if (systusOption==SystusOption::CONTINUOUS){
+                    int nid =  mesh.findNodeId(nodePosition);
+                    const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
+                    if (it != rotationNodeIdByTranslationNodeId.end()){
+                        DOFS constrainedRot(constrained.contains(DOF::RX),constrained.contains(DOF::RY),constrained.contains(DOF::RZ));
+                        int rotNodePosition= mesh.findNodePosition(it->second);
+                        if (constraintByNodePosition.find(rotNodePosition) == constraintByNodePosition.end()){
+                            constraintByNodePosition[rotNodePosition] = char(constrainedRot) & dofCode;
+                        }else{
+                            constraintByNodePosition[rotNodePosition] = (char(constrainedRot) & dofCode)
+                                                | constraintByNodePosition[rotNodePosition];
                         }
                     }
                 }
-                break;
             }
-            case Constraint::Type::RIGID:
-            case Constraint::Type::RBE3:
-            case Constraint::Type::QUASI_RIGID:{
-                // Nothing to be done here
-                break;
-            }
-            default: {
-                handleWritingWarning("Constraint type "+constraint->to_str() +"is not supported");
-            }
-            }
+            constraint->markAsWritten();
         }
         constraintSet->markAsWritten();
     }
