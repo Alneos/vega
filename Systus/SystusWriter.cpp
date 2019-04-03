@@ -1322,79 +1322,64 @@ void SystusWriter::fillConstraintsVectors(const SystusModel& systusModel, const 
         }
 
         for (const auto& constraintset : analysis->getConstraintSets()){
-            for (const auto& constraint : constraintset->getConstraints()) {
+            for (auto& constraint : constraintset->getConstraintsByType(Constraint::Type::SPC)) {
                 vector<double> vec;
                 double normvec=0.0;
-                switch (constraint->type) {
-                case Constraint::Type::SPC: {
-                    std::shared_ptr<SinglePointConstraint> spc = std::dynamic_pointer_cast<SinglePointConstraint>(constraint);
-                    if (spc->hasReferences()) {
-                        handleWritingWarning(to_str(*constraint) + " with reference to functions not supported", "Constraint vectors");
-                    } else {
-                        normvec= initSystusAscConstraintVector(vec);
-                        DOFS spcDOFS = spc->getDOFSForNode(0);
-                        for (DOF dof : availableDOFS){
-                            double value = (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0);
-                            normvec = max(normvec, abs(value));
-                            vec.push_back(value);
-                        }
+                std::shared_ptr<SinglePointConstraint> spc = std::dynamic_pointer_cast<SinglePointConstraint>(constraint);
+                if (spc->hasReferences()) {
+                    handleWritingWarning(to_str(*constraint) + " with reference to functions not supported", "Constraint vectors");
+                    spc->markAsWritten();
+                    continue;
+                }
+                normvec= initSystusAscConstraintVector(vec);
+                DOFS spcDOFS = spc->getDOFSForNode(0);
+                for (DOF dof : availableDOFS){
+                    double value = (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0);
+                    normvec = max(normvec, abs(value));
+                    vec.push_back(value);
+                }
 
-                        if (!is_zero(normvec)){
-                            vectors[vectorId]=vec;
-                            for (const auto& it : localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]){
-                                for (int nodePosition : constraint->nodePositions()){
-                                    constraintVectorsIdByLocalLoadingByNodePosition[nodePosition][it.second].push_back(vectorId);
+                if (!is_zero(normvec)){
+                    vectors[vectorId]=vec;
+                    for (const auto& it : localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]){
+                        for (int nodePosition : constraint->nodePositions()){
+                            constraintVectorsIdByLocalLoadingByNodePosition[nodePosition][it.second].push_back(vectorId);
+                        }
+                    }
+                    vectorId++;
+                }
+                // Rigid Body Element in option 3D.
+                // We report the constraints from the master node to the master rotational node.
+                if (systusOption==SystusOption::CONTINUOUS){
+
+                    // Rotation vector
+                    normvec=initSystusAscConstraintVector(vec);
+                    for (DOF dof : DOFS::ROTATIONS){
+                        double value = (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0);
+                        normvec = max(normvec, abs(value));
+                        vec.push_back(value);
+                    }
+
+                    if (!is_zero(normvec)){
+                        bool firstTime=true;
+                        for (int nodePosition : constraint->nodePositions()){
+                            int nid = systusModel.model.mesh.findNodeId(nodePosition);
+                            const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
+                            if (it!=rotationNodeIdByTranslationNodeId.end()){
+                                int rotNodePosition= systusModel.model.mesh.findNodePosition(it->second);
+                                for (const auto & it2 : localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]){
+                                    constraintVectorsIdByLocalLoadingByNodePosition[rotNodePosition][it2.second].push_back(vectorId);
                                 }
-                            }
-                            vectorId++;
-                        }
-                        // Rigid Body Element in option 3D.
-                        // We report the constraints from the master node to the master rotational node.
-                        if (systusOption==SystusOption::CONTINUOUS){
-
-                            // Rotation vector
-                            normvec=initSystusAscConstraintVector(vec);
-                            for (DOF dof : DOFS::ROTATIONS){
-                                double value = (spcDOFS.contains(dof) ? spc->getDoubleForDOF(dof) : 0);
-                                normvec = max(normvec, abs(value));
-                                vec.push_back(value);
-                            }
-
-                            if (!is_zero(normvec)){
-                                bool firstTime=true;
-                                for (int nodePosition : constraint->nodePositions()){
-                                    int nid = systusModel.model.mesh.findNodeId(nodePosition);
-                                    const auto & it = rotationNodeIdByTranslationNodeId.find(nid);
-                                    if (it!=rotationNodeIdByTranslationNodeId.end()){
-                                        int rotNodePosition= systusModel.model.mesh.findNodePosition(it->second);
-                                        for (const auto & it2 : localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()]){
-                                            constraintVectorsIdByLocalLoadingByNodePosition[rotNodePosition][it2.second].push_back(vectorId);
-                                        }
-                                        if (firstTime){
-                                            vectors[vectorId]=vec;
-                                            vectorId++;
-                                            firstTime = false;
-                                        }
-                                    }
+                                if (firstTime){
+                                    vectors[vectorId]=vec;
+                                    vectorId++;
+                                    firstTime = false;
                                 }
                             }
                         }
                     }
-                    spc->markAsWritten();
-                    break;
                 }
-
-                // Nothing to be done here
-                case Constraint::Type::RIGID:
-                case Constraint::Type::RBE3:
-                case Constraint::Type::QUASI_RIGID:
-                case Constraint::Type::LMPC:{
-                    break;
-                }
-                default: {
-                    handleWritingWarning(to_str(*constraint)+" not supported","Constraint vectors");
-                }
-                }
+                spc->markAsWritten();
             }
             constraintset->markAsWritten();
         }
