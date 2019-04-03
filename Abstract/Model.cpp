@@ -1745,8 +1745,8 @@ void Model::makeCellsFromSurfaceSlide() {
         const ConstraintSet::Type natConstraintSet = constraintSet->type;
 
         vector<shared_ptr<Constraint>> toBeRemoved;
-        for (const auto& constraint : constraintSet->getConstraintsByType(Constraint::Type::SURFACE_SLIDE_CONTACT)) {
-            shared_ptr<const SurfaceSlide> surface = dynamic_pointer_cast<const SurfaceSlide>(constraint);
+        for ( auto& constraint : constraintSet->getConstraintsByType(Constraint::Type::SURFACE_SLIDE_CONTACT)) {
+            shared_ptr<SurfaceSlide> surface = dynamic_pointer_cast<SurfaceSlide>(constraint);
             surface->makeCellsFromSurfaceSlide();
             toBeRemoved.push_back(constraint);
         }
@@ -2019,23 +2019,52 @@ bool Model::validate() {
 bool Model::checkWritten() const {
 
     // Sizes are stocked now, because validation remove invalid objects.
-    int sizeMat = materials.size();     string sMat = ( (sizeMat > 1) ? "s have " : " has ");
-    int sizeEle = elementSets.size();   string sEle = ( (sizeEle > 1) ? "s have " : " has ");
-    int sizeLoa = loadings.size();      string sLoa = ( (sizeLoa > 1) ? "s have " : " has ");
-    int sizeLos = loadSets.size();      string sLos = ( (sizeLos > 1) ? "s have " : " has ");
-    int sizeCon = constraints.size();   string sCon = ( (sizeCon > 1) ? "s have " : " has ");
-    int sizeCos = constraintSets.size();string sCos = ( (sizeCos > 1) ? "s have " : " has ");
-    int sizeAna = analyses.size();      string sAna = ( (sizeAna > 1) ? "es have " : "is has ");
-    int sizeTar = targets.size();       string sTar = ( (sizeTar > 1) ? "s have " : " has ");
+    int sizeMat = materials.size();
+    int sizeEle = elementSets.size();
+    int sizeLoa = loadings.size();
+    int sizeLos = loadSets.size();
+    int sizeCon = constraints.size();
+    int sizeCos = constraintSets.size();
+    int sizeAna = analyses.size();
+    int sizeTar = targets.size();
 
     bool validMat = materials.checkWritten();
     bool validEle = elementSets.checkWritten();
-    bool validLoa = loadings.checkWritten();
-    bool validLos = loadSets.checkWritten();
-    bool validCon = constraints.checkWritten();
-    bool validCos = constraintSets.checkWritten();
+    bool validLoa = true;
+    bool validLos = true;
+    bool validCon = true;
+    bool validCos = true;
     bool validAna = analyses.checkWritten();
-    bool validTar = targets.checkWritten();
+    bool validTar = true;
+
+    for (shared_ptr<Analysis> analysis : analyses) {
+        if (not analysis->isWritten()) {
+            continue;
+        }
+        for (const auto& loadSet : analysis->getLoadSets()) {
+            validLos = validLos and loadSet->isWritten();
+            for (const auto& loading : loadSet->getLoadings()) {
+                validLoa = validLoa and loading->isWritten();
+            }
+        }
+
+        for (const auto& constraintSet : analysis->getConstraintSets()) {
+            validCos = validCos and constraintSet ->isWritten();
+            for (const auto& constraint : constraintSet->getConstraints()) {
+                validCon = validCon and constraint->isWritten();
+            }
+        }
+
+    }
+
+    string sMat = ( (sizeMat > 1) ? "s have " : " has ");
+    string sEle = ( (sizeEle > 1) ? "s have " : " has ");
+    string sLoa = ( (sizeLoa > 1) ? "s have " : " has ");
+    string sLos = ( (sizeLos > 1) ? "s have " : " has ");
+    string sCon = ( (sizeCon > 1) ? "s have " : " has ");
+    string sCos = ( (sizeCos > 1) ? "s have " : " has ");
+    string sAna = ( (sizeAna > 1) ? "es have " : "is has ");
+    string sTar = ( (sizeTar > 1) ? "s have " : " has ");
 
     if (configuration.logLevel >= LogLevel::DEBUG) {
         if (not validMat) cout << "The " << sizeMat << " material"     << sMat << "NOT been written." << endl;

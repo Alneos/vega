@@ -888,7 +888,7 @@ const DOFS SurfaceSlide::getDOFSForNode(int nodePosition) const {
     return DOFS::TRANSLATIONS;
 }
 
-void SurfaceSlide::makeCellsFromSurfaceSlide() const {
+void SurfaceSlide::makeCellsFromSurfaceSlide() {
     namespace bg = boost::geometry;
     namespace bgi = boost::geometry::index;
     using node_point = bg::model::point<double, 3, bg::cs::cartesian>;
@@ -900,8 +900,9 @@ void SurfaceSlide::makeCellsFromSurfaceSlide() const {
     const auto& elementsetSlide = make_shared<SurfaceSlideSet>(model);
     elementsetSlide->assignCellGroup(group);
     model.add(elementsetSlide);
+    this->markAsWritten();
 
-    shared_ptr<const BoundaryElementFace> masterSurface = dynamic_pointer_cast<const BoundaryElementFace>(model.find(this->master));
+    shared_ptr<BoundaryElementFace> masterSurface = dynamic_pointer_cast<BoundaryElementFace>(model.find(this->master));
     vector<node_polygon> masterFaces;
     vector<vector<int>> masterFaceNodeIds;
     bgi::rtree< value, bgi::rstar<16> > rtree;
@@ -924,7 +925,8 @@ void SurfaceSlide::makeCellsFromSurfaceSlide() const {
             }
         }
     }
-    shared_ptr<const BoundaryElementFace> slaveSurface = dynamic_pointer_cast<const BoundaryElementFace>(model.find(this->slave));
+    masterSurface->markAsWritten();
+    shared_ptr<BoundaryElementFace> slaveSurface = dynamic_pointer_cast<BoundaryElementFace>(model.find(this->slave));
     for (const auto& faceInfo : slaveSurface->faceInfos) {
         const Cell& slaveCell = model.mesh.findCell(model.mesh.findCellPosition(faceInfo.cellId));
         const vector<int>& faceIds = slaveCell.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
@@ -955,6 +957,7 @@ void SurfaceSlide::makeCellsFromSurfaceSlide() const {
 
         }
     }
+    slaveSurface->markAsWritten();
 }
 
 } // namespace vega
