@@ -655,243 +655,214 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
     Mesh& mesh = systusModel.model.mesh;
     rotationNodeIdByTranslationNodeId.clear();
 
-    for (const auto& elementSet : systusModel.model.elementSets) {
+    for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::RBAR)) {
+        shared_ptr<Rbar> rbars = dynamic_pointer_cast<Rbar>(elementSet);
 
-        switch (elementSet->type) {
-        // None of these element Set are RBE
-        case ElementSet::Type::CIRCULAR_SECTION_BEAM:
-        case ElementSet::Type::GENERIC_SECTION_BEAM:
-        case ElementSet::Type::I_SECTION_BEAM:
-        case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
-        case ElementSet::Type::STRUCTURAL_SEGMENT:
-        case ElementSet::Type::SHELL:
-        case ElementSet::Type::SKIN:
-        case ElementSet::Type::CONTINUUM:
-        case ElementSet::Type::NODAL_MASS:
-        case ElementSet::Type::DISCRETE_0D:
-        case ElementSet::Type::DISCRETE_1D:
-        case ElementSet::Type::STIFFNESS_MATRIX:
-        case ElementSet::Type::MASS_MATRIX:
-        case ElementSet::Type::DAMPING_MATRIX:
-        case ElementSet::Type::SCALAR_SPRING:{
-            continue;
+        const auto& material = elementSet->material;
+        if (material == nullptr){
+            throw logic_error("Error: ElementSet::RBAR have no material.");
+        }
+        const auto& nature = material->findNature(Nature::NatureType::NATURE_RIGID);
+        if (nature == nullptr) {
+            throw logic_error("Error: ElementSet::RBAR have no RIGID nature.");
         }
 
-        // Translation of RBAR and RBE2 (RBE2 are viewed as an assembly of RBAR)
-        // See Systus Reference Analysis Manual: RIGID BODY Element (page 498)
-        // Here we add the needed lagrangian and/or 3D nodes, and compute the material properties
-        case ElementSet::Type::RBAR: {
-            shared_ptr<Rbar> rbars = dynamic_pointer_cast<Rbar>(elementSet);
+        // We update the material with the needed value
+        double stiffness;
+        if (is_equal(configuration.systusRBEStiffness, Globals::UNAVAILABLE_DOUBLE)){
+            stiffness= this->generateRbarStiffness(systusModel);
+        }else{
+            stiffness= configuration.systusRBEStiffness;
+        }
+        RigidNature& rigidNature = dynamic_cast<RigidNature&>(*nature);
+        if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
+            rigidNature.setLagrangian(configuration.systusRBECoefficient);
+        }else{
+            rigidNature.setRigidity(configuration.systusRBECoefficient*stiffness);
+        }
 
-            const auto& material = elementSet->material;
-            if (material == nullptr){
-                throw logic_error("Error: ElementSet::RBAR have no material.");
+        const int masterId = rbars->masterId;
+        const int masterPosition = mesh.findNodePosition(masterId);
+
+        const Node& master = mesh.findNode(masterPosition);
+        int master_rot_id = 0;
+
+        if (systusOption == SystusOption::CONTINUOUS){
+            int master_rot_position = mesh.addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
+            master_rot_id = mesh.findNodeId(master_rot_position);
+            rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
+        }
+
+        shared_ptr<CellGroup> cellGroup = elementSet->cellGroup;
+        for (const Cell& cell : cellGroup->getCells()) {
+
+            vector<int> nodes = cell.nodeIds;
+
+            if (nodes.size()!=2){
+                throw logic_error("Error: ElementSet::RBAR cells must have exactly two nodes.");
             }
-            const auto& nature = material->findNature(Nature::NatureType::NATURE_RIGID);
-            if (nature == nullptr) {
-                throw logic_error("Error: ElementSet::RBAR have no RIGID nature.");
+            if (nodes[0]!=masterId){
+                throw logic_error("Error: the first node of ElementSet::RBAR cells must be the master node.");
             }
 
-            // We update the material with the needed value
-            double stiffness;
-            if (is_equal(configuration.systusRBEStiffness, Globals::UNAVAILABLE_DOUBLE)){
-                stiffness= this->generateRbarStiffness(systusModel);
-            }else{
-                stiffness= configuration.systusRBEStiffness;
-            }
-            RigidNature& rigidNature = dynamic_cast<RigidNature&>(*nature);
+            if (systusOption == SystusOption::CONTINUOUS)
+                nodes.push_back(master_rot_id);
+
+            // With a Lagrangian formulation, we add a Lagrange node.
+            // Lagrange node must NOT have an orientation, as they inherit it from the slave node.
             if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-                rigidNature.setLagrangian(configuration.systusRBECoefficient);
-            }else{
-                rigidNature.setRigidity(configuration.systusRBECoefficient*stiffness);
+                const Node& slave = mesh.findNode(cell.nodePositions[1]);
+                int slave_lagr_position = mesh.addNode(Node::AUTO_ID, slave.lx, slave.ly, slave.lz, slave.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+                int slave_lagr_id = mesh.findNodeId(slave_lagr_position);
+                nodes.push_back(slave_lagr_id);
             }
 
-
-            const int masterId = rbars->masterId;
-            const int masterPosition = mesh.findNodePosition(masterId);
-
-            const Node& master = mesh.findNode(masterPosition);
-            int master_rot_id = 0;
-
-            if (systusOption == SystusOption::CONTINUOUS){
-                int master_rot_position = mesh.addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
-                master_rot_id = mesh.findNodeId(master_rot_position);
-                rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
+            // If needed, we update the Cell
+            switch (nodes.size()){
+            case (2):{
+                break;
             }
-
-            shared_ptr<CellGroup> cellGroup = elementSet->cellGroup;
-            for (const Cell& cell : cellGroup->getCells()) {
-
-                vector<int> nodes = cell.nodeIds;
-
-                if (nodes.size()!=2){
-                    throw logic_error("Error: ElementSet::RBAR cells must have exactly two nodes.");
-                }
-                if (nodes[0]!=masterId){
-                    throw logic_error("Error: the first node of ElementSet::RBAR cells must be the master node.");
-                }
-
-                if (systusOption == SystusOption::CONTINUOUS)
-                    nodes.push_back(master_rot_id);
-
-                // With a Lagrangian formulation, we add a Lagrange node.
-                // Lagrange node must NOT have an orientation, as they inherit it from the slave node.
-                if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-                    const Node& slave = mesh.findNode(cell.nodePositions[1]);
-                    int slave_lagr_position = mesh.addNode(Node::AUTO_ID, slave.lx, slave.ly, slave.lz, slave.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-                    int slave_lagr_id = mesh.findNodeId(slave_lagr_position);
-                    nodes.push_back(slave_lagr_id);
-                }
-
-                // If needed, we update the Cell
-                switch (nodes.size()){
-                case (2):{
-                    break;
-                }
-                case (3):{
-                    mesh.updateCell(cell.id, CellType::POLY3, nodes, true);
-                    break;
-                }
-                case(4):{
-                    mesh.updateCell(cell.id, CellType::POLY4, nodes, true);
-                    break;
-                }
-                default:
-                    throw logic_error("Not (yet) implemented, maybe nothing to do in this case?");
-                }
+            case (3):{
+                mesh.updateCell(cell.id, CellType::POLY3, nodes, true);
+                break;
             }
-            rbars->markAsWritten();
-            break;
+            case(4):{
+                mesh.updateCell(cell.id, CellType::POLY4, nodes, true);
+                break;
+            }
+            default:
+                throw logic_error("Not (yet) implemented, maybe nothing to do in this case?");
+            }
         }
+        rbars->markAsWritten();
+    }
+
+    for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::RBE3)) {
 
         /*
          * Translation of RBE3
          * See Systus Reference Analysis Manual, Section 8.8 "Special Elements",
          * Subsection "Use of Averaging Type Solid Elements", p500.
         */
-        case ElementSet::Type::RBE3: {
-            shared_ptr<Rbe3> rbe3 = dynamic_pointer_cast<Rbe3>(elementSet);
+        shared_ptr<Rbe3> rbe3 = dynamic_pointer_cast<Rbe3>(elementSet);
 
-            const auto& material = elementSet->material;
-            if (material == nullptr){
-                throw logic_error("Error: ElementSet::RBE3 have no material.");
+        const auto& material = elementSet->material;
+        if (material == nullptr){
+            throw logic_error("Error: ElementSet::RBE3 have no material.");
+        }
+        shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_RIGID);
+        if (!nature) {
+            throw logic_error("Error: ElementSet::RBE3 have no RIGID nature.");
+        }
+
+        // We dont change the nature, it has already been correctly filed.
+        //RigidNature& rigidNature = dynamic_cast<RigidNature&>(*nature);
+        //rigidNature.setLagrangian(lagrangianValue);
+
+        const int masterId = rbe3->masterId;
+        const int masterPosition = mesh.findNodePosition(masterId);
+
+        const Node& master = mesh.findNode(masterPosition);
+
+        // Creating a Lagrange node
+        // Lagrange node must NOT have an orientation, as they inherit it from the slave node.
+        int master_lagr_position = mesh.addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+        int master_lagr_id = mesh.findNodeId(master_lagr_position);
+
+        // Creating rotation nodes if needed
+        int master_rot_id=0;
+        int master_lagr_rot_id=0;
+        if (systusOption == SystusOption::CONTINUOUS){
+            int master_rot_position = mesh.addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
+            master_rot_id = mesh.findNodeId(master_rot_position);
+            rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
+            int master_lagr_rot_position = mesh.addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+            master_lagr_rot_id = mesh.findNodeId(master_lagr_rot_position);
+        }
+
+        // Updating the cells
+        shared_ptr<CellGroup> cellGroup = elementSet->cellGroup;
+        for (const Cell& cell : cellGroup->getCells()) {
+
+            vector<int> nodes = cell.nodeIds;
+            if (nodes.size()!=2){
+                throw logic_error("Error: ElementSet::RBE3 cells must have exactly two nodes.");
             }
-            shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_RIGID);
-            if (!nature) {
-                throw logic_error("Error: ElementSet::RBE3 have no RIGID nature.");
+            if (nodes[0]!=masterId){
+                throw logic_error("Error: the first node of ElementSet::RBE3 cells must be the master node.");
             }
 
-            // We dont change the nature, it has already been correctly filed.
-            //RigidNature& rigidNature = dynamic_cast<RigidNature&>(*nature);
-            //rigidNature.setLagrangian(lagrangianValue);
-
-            const int masterId = rbe3->masterId;
-            const int masterPosition = mesh.findNodePosition(masterId);
-
-            const Node& master = mesh.findNode(masterPosition);
-
-            // Creating a Lagrange node
-            // Lagrange node must NOT have an orientation, as they inherit it from the slave node.
-            int master_lagr_position = mesh.addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-            int master_lagr_id = mesh.findNodeId(master_lagr_position);
-
-            // Creating rotation nodes if needed
-            int master_rot_id=0;
-            int master_lagr_rot_id=0;
+            if (systusOption == SystusOption::CONTINUOUS)
+                nodes.push_back(master_rot_id);
+            nodes.push_back(master_lagr_id);
             if (systusOption == SystusOption::CONTINUOUS){
-                int master_rot_position = mesh.addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, master.displacementCS);
-                master_rot_id = mesh.findNodeId(master_rot_position);
-                rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
-                int master_lagr_rot_position = mesh.addNode(Node::AUTO_ID, master.lx, master.ly, master.lz, master.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-                master_lagr_rot_id = mesh.findNodeId(master_lagr_rot_position);
+                nodes.push_back(master_lagr_rot_id);
             }
 
-            // Updating the cells
+            switch (nodes.size()){
+            case (3):{
+                mesh.updateCell(cell.id, CellType::POLY3, nodes, true);
+                break;
+            }
+            case(5):{
+                mesh.updateCell(cell.id, CellType::POLY5, nodes, true);
+                break;
+            }
+            default:
+                throw logic_error("Not (yet) implemented, maybe nothing to do in this case?");
+            }
+        }
+        rbe3->markAsWritten();
+    }
+
+	// Translation of LMPC elements has X9XX Level 0 elements
+	// See Systus Reference Analysis Manual: RIGID BODY Element (page 498)
+	// Here we compute the material properties and, if needed, add a lagrangian node
+
+    for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::LMPC)) {
+
+    // Translation of LMPC elements has X9XX Level 0 elements
+    // See Systus Reference Analysis Manual: RIGID BODY Element (page 498)
+    // Here we compute the material properties and, if needed, add a lagrangian node
+        shared_ptr<Lmpc> lmpc = dynamic_pointer_cast<Lmpc>(elementSet);
+
+        const auto& material = elementSet->material;
+        if (material == nullptr){
+            throw logic_error("Error: ElementSet::Lmpc have no material.");
+        }
+        shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_RIGID);
+        if (!nature) {
+            throw logic_error("Error: ElementSet::Lmpc have no RIGID nature.");
+        }
+
+        // We update the material with the needed value
+        double stiffness;
+        if (is_equal(configuration.systusRBEStiffness, Globals::UNAVAILABLE_DOUBLE)){
+            stiffness= this->generateRbarStiffness(systusModel);
+        }else{
+            stiffness= configuration.systusRBEStiffness;
+        }
+        RigidNature& rigidNature = dynamic_cast<RigidNature&>(*nature);
+        if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
+            rigidNature.setLagrangian(configuration.systusRBECoefficient);
+        }else{
+            rigidNature.setRigidity(configuration.systusRBECoefficient*stiffness);
+        }
+
+        // With a Lagrangian formulation, we add a Lagrange node.
+        // Lagrange node must NOT have an orientation, as they inherit it from the original node.
+        if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
             shared_ptr<CellGroup> cellGroup = elementSet->cellGroup;
             for (const Cell& cell : cellGroup->getCells()) {
-
                 vector<int> nodes = cell.nodeIds;
-                if (nodes.size()!=2){
-                    throw logic_error("Error: ElementSet::RBE3 cells must have exactly two nodes.");
-                }
-                if (nodes[0]!=masterId){
-                    throw logic_error("Error: the first node of ElementSet::RBE3 cells must be the master node.");
-                }
-
-                if (systusOption == SystusOption::CONTINUOUS)
-                    nodes.push_back(master_rot_id);
-                nodes.push_back(master_lagr_id);
-                if (systusOption == SystusOption::CONTINUOUS){
-                    nodes.push_back(master_lagr_rot_id);
-                }
-
-                switch (nodes.size()){
-                case (3):{
-                    mesh.updateCell(cell.id, CellType::POLY3, nodes, true);
-                    break;
-                }
-                case(5):{
-                    mesh.updateCell(cell.id, CellType::POLY5, nodes, true);
-                    break;
-                }
-                default:
-                    throw logic_error("Not (yet) implemented, maybe nothing to do in this case?");
-                }
+                const Node& first = mesh.findNode(cell.nodePositions[0]);
+                int first_lagr_position = mesh.addNode(Node::AUTO_ID, first.lx, first.ly, first.lz, first.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+                int first_lagr_id = mesh.findNodeId(first_lagr_position);
+                nodes.push_back(first_lagr_id);
+                mesh.updateCell(cell.id, CellType::polyType(static_cast<unsigned int>(nodes.size())), nodes, true);
             }
-            rbe3->markAsWritten();
-            break;
         }
-
-        // Translation of LMPC elements has X9XX Level 0 elements
-        // See Systus Reference Analysis Manual: RIGID BODY Element (page 498)
-        // Here we compute the material properties and, if needed, add a lagrangian node
-        case ElementSet::Type::LMPC: {
-            shared_ptr<Lmpc> lmpc = dynamic_pointer_cast<Lmpc>(elementSet);
-
-            const auto& material = elementSet->material;
-            if (material == nullptr){
-                throw logic_error("Error: ElementSet::Lmpc have no material.");
-            }
-            shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_RIGID);
-            if (!nature) {
-                throw logic_error("Error: ElementSet::Lmpc have no RIGID nature.");
-            }
-
-            // We update the material with the needed value
-            double stiffness;
-            if (is_equal(configuration.systusRBEStiffness, Globals::UNAVAILABLE_DOUBLE)){
-                stiffness= this->generateRbarStiffness(systusModel);
-            }else{
-                stiffness= configuration.systusRBEStiffness;
-            }
-            RigidNature& rigidNature = dynamic_cast<RigidNature&>(*nature);
-            if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-                rigidNature.setLagrangian(configuration.systusRBECoefficient);
-            }else{
-                rigidNature.setRigidity(configuration.systusRBECoefficient*stiffness);
-            }
-
-            // With a Lagrangian formulation, we add a Lagrange node.
-            // Lagrange node must NOT have an orientation, as they inherit it from the original node.
-            if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-                shared_ptr<CellGroup> cellGroup = elementSet->cellGroup;
-                for (const Cell& cell : cellGroup->getCells()) {
-                    vector<int> nodes = cell.nodeIds;
-                    const Node& first = mesh.findNode(cell.nodePositions[0]);
-                    int first_lagr_position = mesh.addNode(Node::AUTO_ID, first.lx, first.ly, first.lz, first.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-                    int first_lagr_id = mesh.findNodeId(first_lagr_position);
-                    nodes.push_back(first_lagr_id);
-                    mesh.updateCell(cell.id, CellType::polyType(static_cast<unsigned int>(nodes.size())), nodes, true);
-                }
-            }
-            lmpc->markAsWritten();
-            break;
-        }
-
-        default: {
-            handleWritingWarning(to_str(*elementSet) +" not supported", "Rigid Element");
-        }
-        }
+        lmpc->markAsWritten();
     }
 }
 
