@@ -669,17 +669,18 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
 
         // We update the material with the needed value
         double stiffness;
-        if (is_equal(configuration.systusRBEStiffness, Globals::UNAVAILABLE_DOUBLE)){
+        if (is_equal(configuration.systusRBEStiffness, Globals::UNAVAILABLE_DOUBLE)) {
             stiffness= this->generateRbarStiffness(systusModel);
-        }else{
+        } else {
             stiffness= configuration.systusRBEStiffness;
         }
         RigidNature& rigidNature = dynamic_cast<RigidNature&>(*nature);
-        if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
+        if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0) {
             rigidNature.setLagrangian(configuration.systusRBECoefficient);
-        }else{
+        } else {
             rigidNature.setRigidity(configuration.systusRBECoefficient*stiffness);
         }
+
 
         const int masterId = rbars->masterId;
         const int masterPosition = mesh.findNodePosition(masterId);
@@ -1660,187 +1661,157 @@ void SystusWriter::fillLists(const SystusModel& systusModel, const int idSubcase
 void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcase) {
 
 
-    if (systusModel.configuration.systusOutputMatrix=="table"){
+    if (systusModel.configuration.systusOutputMatrix=="table") {
+
 
         // Fill tables for Stiffness, Mass and Damping elements
-        for (const auto& elementSet : systusModel.model.elementSets) {
+        for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::SCALAR_SPRING)) {
 
-            switch (elementSet->type) {
-            // None of these elements needs this kind of tables
-            case ElementSet::Type::CIRCULAR_SECTION_BEAM:
-            case ElementSet::Type::GENERIC_SECTION_BEAM:
-            case ElementSet::Type::I_SECTION_BEAM:
-            case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
-            case ElementSet::Type::STRUCTURAL_SEGMENT:
-            case ElementSet::Type::SHELL:
-            case ElementSet::Type::SKIN:
-            case ElementSet::Type::CONTINUUM:
-            case ElementSet::Type::NODAL_MASS:
-            case ElementSet::Type::RBAR:
-            case ElementSet::Type::RBE3:
-            case ElementSet::Type::LMPC:{
-                continue;
+            shared_ptr<ScalarSpring> ss = dynamic_pointer_cast<ScalarSpring>(elementSet);
+            const std::vector<std::pair<DOF, DOF>> dofsSpring = ss->getDOFSSpring();
+            if (dofsSpring.size()!=1){
+                handleWritingWarning(to_str(*elementSet) + " spring directions after the first one will be dismissed.", "FillTable");
             }
+            const std::pair<DOF,DOF> pairDOF = dofsSpring[0];
+            // If we have the same DOF, we can use a Spring element 1602.
+            // Else, we need to use a tabulated element 1902 Type 0
+            if (pairDOF.first != pairDOF.second){
+                systus_ascid_t tId2=0;
+                if (ss->hasStiffness()){
+                    systus_ascid_t tId= tables.size()+1;
+                    SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
+                    const double stiffness = ss->getStiffness();
 
-            // Those elements are not supported yet
-            case ElementSet::Type::DISCRETE_0D:
-            case ElementSet::Type::DISCRETE_1D:{
-                continue;
+                    int pairCode = 1100;
+                    int dofCode = 11*DOFToInt(pairDOF.first);
+                    aTable.add(pairCode+dofCode);
+                    aTable.add(stiffness);
+                    pairCode = 2200;
+                    dofCode = 11*DOFToInt(pairDOF.second);
+                    aTable.add(pairCode+dofCode);
+                    aTable.add(stiffness);
+                    pairCode = 1200;
+                    dofCode = 10*DOFToInt(pairDOF.first) + DOFToInt(pairDOF.second);
+                    aTable.add(pairCode+dofCode);
+                    aTable.add(-stiffness);
+                    tables.push_back(aTable);
+                    tId2+=tId;
+                }
+                if (ss->hasDamping()){
+                    systus_ascid_t tId= tables.size()+1;
+                    SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
+                    const double damping = ss->getDamping();
+
+                    int pairCode = 1100;
+                    int dofCode = 11*DOFToInt(pairDOF.first);
+                    aTable.add(pairCode+dofCode);
+                    aTable.add(damping);
+                    pairCode = 2200;
+                    dofCode = 11*DOFToInt(pairDOF.second);
+                    aTable.add(pairCode+dofCode);
+                    aTable.add(damping);
+                    pairCode = 1200;
+                    dofCode = 10*DOFToInt(pairDOF.first) + DOFToInt(pairDOF.second);
+                    aTable.add(pairCode+dofCode);
+                    aTable.add(-damping);
+                    tables.push_back(aTable);
+                    tId2+=tId*10000;
+                }
+                tableByElementSet[elementSet->getId()]=tId2;
             }
-
-            case ElementSet::Type::SCALAR_SPRING:{
-                shared_ptr<ScalarSpring> ss = dynamic_pointer_cast<ScalarSpring>(elementSet);
-                const std::vector<std::pair<DOF, DOF>> dofsSpring = ss->getDOFSSpring();
-                if (dofsSpring.size()!=1){
-                    handleWritingWarning(to_str(*elementSet) + " spring directions after the first one will be dismissed.", "FillTable");
-                }
-                const std::pair<DOF,DOF> pairDOF = dofsSpring[0];
-                // If we have the same DOF, we can use a Spring element 1602.
-                // Else, we need to use a tabulated element 1902 Type 0
-                if (pairDOF.first != pairDOF.second){
-                    systus_ascid_t tId2=0;
-                    if (ss->hasStiffness()){
-                        systus_ascid_t tId= tables.size()+1;
-                        SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
-                        const double stiffness = ss->getStiffness();
-
-                        int pairCode = 1100;
-                        int dofCode = 11*DOFToInt(pairDOF.first);
-                        aTable.add(pairCode+dofCode);
-                        aTable.add(stiffness);
-                        pairCode = 2200;
-                        dofCode = 11*DOFToInt(pairDOF.second);
-                        aTable.add(pairCode+dofCode);
-                        aTable.add(stiffness);
-                        pairCode = 1200;
-                        dofCode = 10*DOFToInt(pairDOF.first) + DOFToInt(pairDOF.second);
-                        aTable.add(pairCode+dofCode);
-                        aTable.add(-stiffness);
-                        tables.push_back(aTable);
-                        tId2+=tId;
-                    }
-                    if (ss->hasDamping()){
-                        systus_ascid_t tId= tables.size()+1;
-                        SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
-                        const double damping = ss->getDamping();
-
-                        int pairCode = 1100;
-                        int dofCode = 11*DOFToInt(pairDOF.first);
-                        aTable.add(pairCode+dofCode);
-                        aTable.add(damping);
-                        pairCode = 2200;
-                        dofCode = 11*DOFToInt(pairDOF.second);
-                        aTable.add(pairCode+dofCode);
-                        aTable.add(damping);
-                        pairCode = 1200;
-                        dofCode = 10*DOFToInt(pairDOF.first) + DOFToInt(pairDOF.second);
-                        aTable.add(pairCode+dofCode);
-                        aTable.add(-damping);
-                        tables.push_back(aTable);
-                        tId2+=tId*10000;
-                    }
-                    tableByElementSet[elementSet->getId()]=tId2;
-                }
-                ss->markAsWritten();
-                break;
-            }
-
-
-            // Stiffness, Mass and Damping matrices are the same kind.
-            // Only the tableByElementSet value differs:
-            //   - Stiffness: 0000XX
-            //   - Mass     : 00XX00
-            //   - Damping  : XX0000
-            case ElementSet::Type::STIFFNESS_MATRIX:{
-                shared_ptr<StiffnessMatrix> sm = dynamic_pointer_cast<StiffnessMatrix>(elementSet);
-                systus_ascid_t tId= tables.size()+1;
-                SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
-
-                //Numbering the node internally to the element
-                map<int, int> positionToSytusNumber;
-                int iSystus= 1;
-                for (const int pos : sm->nodePositions()){
-                    positionToSytusNumber[pos]=iSystus;
-                    iSystus++;
-                }
-
-                // Building the table
-                for (const auto np : sm->nodePairs()){
-                    int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
-                    shared_ptr<const DOFMatrix> dM = sm->findSubmatrix(np.first, np.second);
-                    for (const auto dof: dM->componentByDofs){
-                        int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
-                        aTable.add(pairCode+dofCode);
-                        aTable.add(dof.second);
-                    }
-                }
-                tables.push_back(aTable);
-                tableByElementSet[elementSet->getId()]=tId;
-                sm->markAsWritten();
-                break;
-            }
-            case ElementSet::Type::MASS_MATRIX:{
-                shared_ptr<MassMatrix> mm = dynamic_pointer_cast<MassMatrix>(elementSet);
-                systus_ascid_t tId= tables.size()+1;
-                SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
-
-                //Numbering the node internally to the element
-                map<int, int> positionToSytusNumber;
-                int iSystus= 1;
-                for (const int pos : mm->nodePositions()){
-                    positionToSytusNumber[pos]=iSystus;
-                    iSystus++;
-                }
-
-                // Building the table
-                for (const auto np : mm->nodePairs()){
-                    int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
-                    shared_ptr<const DOFMatrix> dM = mm->findSubmatrix(np.first, np.second);
-                    for (const auto dof: dM->componentByDofs){
-                        int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
-                        aTable.add(pairCode+dofCode);
-                        aTable.add(dof.second);
-                    }
-                }
-                tables.push_back(aTable);
-                tableByElementSet[elementSet->getId()]=tId*100;
-                mm->markAsWritten();
-                break;
-            }
-            case ElementSet::Type::DAMPING_MATRIX:{
-                shared_ptr<DampingMatrix> dm = dynamic_pointer_cast<DampingMatrix>(elementSet);
-                systus_ascid_t tId= tables.size()+1;
-                SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
-
-                //Numbering the node internally to the element
-                map<int, int> positionToSytusNumber;
-                int iSystus= 1;
-                for (const int pos : dm->nodePositions()){
-                    positionToSytusNumber[pos]=iSystus;
-                    iSystus++;
-                }
-
-                // Building the table
-                for (const auto np : dm->nodePairs()){
-                    int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
-                    shared_ptr<const DOFMatrix> dM = dm->findSubmatrix(np.first, np.second);
-                    for (const auto dof: dM->componentByDofs){
-                        int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
-                        aTable.add(pairCode+dofCode);
-                        aTable.add(dof.second);
-                    }
-                }
-                tables.push_back(aTable);
-                tableByElementSet[elementSet->getId()]=tId*10000;
-                dm->markAsWritten();
-                break;
-            }
-
-            default: {
-                handleWritingWarning(to_str(*elementSet) +" not supported", "Table");
-            }
-            }
+            ss->markAsWritten();
         }
+
+        for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::STIFFNESS_MATRIX)) {
+
+        // Stiffness, Mass and Damping matrices are the same kind.
+        // Only the tableByElementSet value differs:
+        //   - Stiffness: 0000XX
+        //   - Mass     : 00XX00
+        //   - Damping  : XX0000
+            shared_ptr<StiffnessMatrix> sm = dynamic_pointer_cast<StiffnessMatrix>(elementSet);
+            systus_ascid_t tId= tables.size()+1;
+            SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
+
+            //Numbering the node internally to the element
+            map<int, int> positionToSytusNumber;
+            int iSystus= 1;
+            for (const int pos : sm->nodePositions()){
+                positionToSytusNumber[pos]=iSystus;
+                iSystus++;
+            }
+
+            // Building the table
+            for (const auto np : sm->nodePairs()){
+                int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
+                shared_ptr<const DOFMatrix> dM = sm->findSubmatrix(np.first, np.second);
+                for (const auto dof: dM->componentByDofs){
+                    int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
+                    aTable.add(pairCode+dofCode);
+                    aTable.add(dof.second);
+                }
+            }
+            tables.push_back(aTable);
+            tableByElementSet[elementSet->getId()]=tId;
+            sm->markAsWritten();
+        }
+
+        for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::MASS_MATRIX)) {
+            shared_ptr<MassMatrix> mm = dynamic_pointer_cast<MassMatrix>(elementSet);
+            systus_ascid_t tId= tables.size()+1;
+            SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
+
+            //Numbering the node internally to the element
+            map<int, int> positionToSytusNumber;
+            int iSystus= 1;
+            for (const int pos : mm->nodePositions()){
+                positionToSytusNumber[pos]=iSystus;
+                iSystus++;
+            }
+
+            // Building the table
+            for (const auto np : mm->nodePairs()){
+                int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
+                shared_ptr<const DOFMatrix> dM = mm->findSubmatrix(np.first, np.second);
+                for (const auto dof: dM->componentByDofs){
+                    int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
+                    aTable.add(pairCode+dofCode);
+                    aTable.add(dof.second);
+                }
+            }
+            tables.push_back(aTable);
+            tableByElementSet[elementSet->getId()]=tId*100;
+            mm->markAsWritten();
+        }
+
+        for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::DAMPING_MATRIX)) {
+            shared_ptr<DampingMatrix> dm = dynamic_pointer_cast<DampingMatrix>(elementSet);
+            systus_ascid_t tId= tables.size()+1;
+            SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
+
+            //Numbering the node internally to the element
+            map<int, int> positionToSytusNumber;
+            int iSystus= 1;
+            for (const int pos : dm->nodePositions()){
+                positionToSytusNumber[pos]=iSystus;
+                iSystus++;
+            }
+
+            // Building the table
+            for (const auto np : dm->nodePairs()){
+                int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
+                shared_ptr<const DOFMatrix> dM = dm->findSubmatrix(np.first, np.second);
+                for (const auto dof: dM->componentByDofs){
+                    int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
+                    aTable.add(pairCode+dofCode);
+                    aTable.add(dof.second);
+                }
+            }
+            tables.push_back(aTable);
+            tableByElementSet[elementSet->getId()]=tId*10000;
+            dm->markAsWritten();
+        }
+
     }
 
     // Build tables for linear multipoint constraints
