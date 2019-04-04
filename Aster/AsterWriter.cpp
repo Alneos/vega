@@ -2517,7 +2517,20 @@ void AsterWriter::writeNodalComplexDisplacementAssertion(const AsterModel& aster
 
 void AsterWriter::writeFrequencyAssertion(const Analysis& analysis, const Assertion& assertion, ostream& out) const {
 	const FrequencyAssertion& frequencyAssertion = dynamic_cast<const FrequencyAssertion&>(assertion);
-	bool isBuckling = analysis.type == Analysis::Type::LINEAR_BUCKLING;
+    bool isBuckling = analysis.type == Analysis::Type::LINEAR_BUCKLING;
+
+    double lowFreq = 0;
+    if (analysis.model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY) != analysis.model.parameters.end()) {
+        lowFreq = analysis.model.parameters[Model::Parameter::LOWER_CUTOFF_FREQUENCY];
+    }
+
+    double highFreq = 1e30;
+    if (analysis.model.parameters.find(Model::Parameter::UPPER_CUTOFF_FREQUENCY) != analysis.model.parameters.end()) {
+        highFreq = analysis.model.parameters[Model::Parameter::UPPER_CUTOFF_FREQUENCY];
+    }
+    if (not isBuckling and (frequencyAssertion.cycles < lowFreq or frequencyAssertion.cycles > highFreq)) {
+        return; // Cannot check this frequency: it will be excluded by results
+    }
 	string resuName = ((analysis.type == Analysis::Type::LINEAR_MODAL or analysis.type == Analysis::Type::LINEAR_BUCKLING) ? "RESU" : "MODES") + to_string(analysis.getId());
 	string critere = (!is_zero(frequencyAssertion.cycles) ? "'RELATIF'," : "'ABSOLU',");
     out << "                  _F(RESULTAT=" << resuName << "," << endl;
