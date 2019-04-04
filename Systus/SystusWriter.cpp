@@ -816,9 +816,6 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
         rbe3->markAsWritten();
     }
 
-	// Translation of LMPC elements has X9XX Level 0 elements
-	// See Systus Reference Analysis Manual: RIGID BODY Element (page 498)
-	// Here we compute the material properties and, if needed, add a lagrangian node
 
     for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::LMPC)) {
 
@@ -1836,18 +1833,18 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
 
 
     // Build tables for frequency-dependent amplitude on Modal Dynamic Analysis
-    if (systusModel.configuration.systusDynamicMethod=="modal"){
+    if (systusModel.configuration.systusDynamicMethod=="modal") {
         const vector<int> analysisId = systusSubcases[idSubcase];
 
         for (unsigned i = 0 ; i < analysisId.size(); i++) {
             const shared_ptr<Analysis> analysis = systusModel.model.getAnalysis(analysisId[i]);
 
-            if (analysis==nullptr){
+            if (analysis == nullptr){
                 handleWritingWarning("Wrong analysis number: analysis dismissed", "Table");
                 break;
             }
 
-            for (const auto& loadset : analysis->getLoadSets()){
+            for (const auto& loadset : analysis->getLoadSets()) {
                 const int idLoadCase = localLoadingIdByLoadsetIdByAnalysisId[analysis->getId()][loadset->getId()];
                 for (const auto& loading : loadset->getLoadings()) {
 
@@ -1894,7 +1891,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
 
 
 
-void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubcase){
+void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubcase) {
 
     // Suppressing warnings. Technically, we don't need these variables. We
     // keep them to remember that only one kind of matrix  are translated yet,
@@ -1906,188 +1903,155 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
     stiffnessMatrices.nbDOFS=nbDOFS;
 
     // Fill tables for Stiffness, Mass and Damping elements
-    if (systusModel.configuration.systusOutputMatrix=="file"){
-        for (const auto& elementSet : systusModel.model.elementSets) {
+    if (systusModel.configuration.systusOutputMatrix != "file") {
+        return;
+    }
 
-            switch (elementSet->type) {
-            // None of these elements needs to output matrices
-            case ElementSet::Type::CIRCULAR_SECTION_BEAM:
-            case ElementSet::Type::GENERIC_SECTION_BEAM:
-            case ElementSet::Type::I_SECTION_BEAM:
-            case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
-            case ElementSet::Type::STRUCTURAL_SEGMENT:
-            case ElementSet::Type::SHELL:
-            case ElementSet::Type::SKIN:
-            case ElementSet::Type::CONTINUUM:
-            case ElementSet::Type::LMPC:
-            case ElementSet::Type::NODAL_MASS:
-            case ElementSet::Type::RBAR:
-            case ElementSet::Type::RBE3:{
-                continue;
-            }
+    for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::SCALAR_SPRING)) {
 
-            // Those elements are not supported yet
-            case ElementSet::Type::DISCRETE_0D:
-            case ElementSet::Type::DISCRETE_1D:{
-                continue;
-            }
-
-            case ElementSet::Type::SCALAR_SPRING:{
-                shared_ptr<ScalarSpring> ss = dynamic_pointer_cast<ScalarSpring>(elementSet);
-                const std::vector<std::pair<DOF, DOF>> dofsSpring = ss->getDOFSSpring();
-                if (dofsSpring.size()!=1){
-                    handleWritingWarning(to_str(*elementSet) + " spring directions after the first one will be dismissed.", "FillMatrices");
-                }
-                const std::pair<DOF,DOF> pairDOF = dofsSpring[0];
-                // If we have the same DOF, we can use a Spring element 1602.
-                // Else, we need to use a tabulated element 1902 Type 0
-                if (pairDOF.first != pairDOF.second){
-                    systus_ascid_t tId2=0;
-                    if (ss->hasStiffness()){
-                        systus_ascid_t seId= stiffnessMatrices.size()+1;
-                        // Building the Systus Matrix
-                        SystusMatrix aMatrix{seId, nbDOFS, 2};
-                        int dofI = DOFToInt(pairDOF.first);
-                        int dofJ = DOFToInt(pairDOF.second);
-                        aMatrix.setValue(1, 1, dofI, dofI, ss->getStiffness());
-                        aMatrix.setValue(2, 2, dofJ, dofJ, ss->getStiffness());
-                        aMatrix.setValue(1, 2, dofI, dofJ, -ss->getStiffness());
-                        aMatrix.setValue(2, 1, dofJ, dofI, -ss->getStiffness());
-                        tId2+=SystusWriter::StiffnessAccessId;
-                        seIdByElementSet[elementSet->getId()]= seId;
-                        stiffnessMatrices.add(aMatrix);
-
-                    }
-                    if (ss->hasDamping()){
-                        systus_ascid_t seId= dampingMatrices.size()+1;
-                        // Building the Systus Matrix
-                        SystusMatrix aMatrix{seId, nbDOFS, 2};
-                        //for (const auto np : dam->nodePairs()){
-                        int dofI = DOFToInt(pairDOF.first);
-                        int dofJ = DOFToInt(pairDOF.second);
-                        aMatrix.setValue(1, 1, dofI, dofI, ss->getDamping());
-                        aMatrix.setValue(2, 2, dofJ, dofJ, ss->getDamping());
-                        aMatrix.setValue(1, 2, dofI, dofJ, -ss->getDamping());
-                        aMatrix.setValue(2, 1, dofJ, dofI, -ss->getDamping());
-                        tId2+=SystusWriter::DampingAccessId*10000;
-                        seIdByElementSet[elementSet->getId()]= seId;
-                        dampingMatrices.add(aMatrix);
-                    }
-                    tableByElementSet[elementSet->getId()]=-tId2;
-                }
-                break;
-            }
-
-
-            // Stiffness, Mass and Damping matrices are the same kind.
-            // Only the tableByElementSet value differs:
-            //   - Stiffness: -0000XX
-            //   - Mass     : -00XX00
-            //   - Damping  : -XX0000
-            case ElementSet::Type::DAMPING_MATRIX:{
-                shared_ptr<DampingMatrix> dam = dynamic_pointer_cast<DampingMatrix>(elementSet);
-                systus_ascid_t seId= dampingMatrices.size()+1;
-
-                // Numbering the node internally to the element
-                map<int, int> positionToSytusNumber;
-                int iSystus= 1;
-                for (const int pos : dam->nodePositions()){
-                    positionToSytusNumber[pos]=iSystus;
-                    iSystus++;
-                }
-
-                // Building the Systus Matrix
-                SystusMatrix aMatrix = SystusMatrix(seId, nbDOFS, iSystus-1);
-                for (const auto np : dam->nodePairs()){
-                    int nI = positionToSytusNumber[np.first];
-                    int nJ = positionToSytusNumber[np.second];
-                    const shared_ptr<const DOFMatrix>& dM = dam->findSubmatrix(np.first, np.second);
-                    for (const auto dof: dM->componentByDofs){
-                        int dofI = DOFToInt(dof.first.first);
-                        int dofJ = DOFToInt(dof.first.second);
-                        aMatrix.setValue(nI, nJ, dofI, dofJ, dof.second);
-                        aMatrix.setValue(nJ, nI, dofJ, dofI, dof.second);
-                    }
-                }
-
-                tableByElementSet[elementSet->getId()]=-SystusWriter::DampingAccessId*10000;
-                seIdByElementSet[elementSet->getId()]= seId;
-                dampingMatrices.add(aMatrix);
-                break;
-            }
-
-            case ElementSet::Type::MASS_MATRIX:{
-                const shared_ptr<MassMatrix>& mm = dynamic_pointer_cast<MassMatrix>(elementSet);
-                systus_ascid_t seId= massMatrices.size()+1;
-
-                // Numbering the node internally to the element
-                map<int, int> positionToSytusNumber;
-                int iSystus= 1;
-                for (const int pos : mm->nodePositions()){
-                    positionToSytusNumber[pos]=iSystus;
-                    iSystus++;
-                }
-
-                // Building the Systus Matrix
-                SystusMatrix aMatrix = SystusMatrix(seId, nbDOFS, iSystus-1);
-                for (const auto np : mm->nodePairs()){
-                    int nI = positionToSytusNumber[np.first];
-                    int nJ = positionToSytusNumber[np.second];
-                    shared_ptr<const DOFMatrix> dM = mm->findSubmatrix(np.first, np.second);
-                    for (const auto dof: dM->componentByDofs){
-                        int dofI = DOFToInt(dof.first.first);
-                        int dofJ = DOFToInt(dof.first.second);
-                        aMatrix.setValue(nI, nJ, dofI, dofJ, dof.second);
-                        aMatrix.setValue(nJ, nI, dofJ, dofI, dof.second);
-                    }
-                }
-
-                tableByElementSet[elementSet->getId()]=-SystusWriter::MassAccessId*100;
-                seIdByElementSet[elementSet->getId()]= seId;
-                massMatrices.add(aMatrix);
-                break;
-            }
-
-            case ElementSet::Type::STIFFNESS_MATRIX:{
-                shared_ptr<StiffnessMatrix> sm = dynamic_pointer_cast<StiffnessMatrix>(elementSet);
+        shared_ptr<ScalarSpring> ss = dynamic_pointer_cast<ScalarSpring>(elementSet);
+        const std::vector<std::pair<DOF, DOF>> dofsSpring = ss->getDOFSSpring();
+        if (dofsSpring.size() != 1) {
+            handleWritingWarning(to_str(*elementSet) + " spring directions after the first one will be dismissed.", "FillMatrices");
+        }
+        const std::pair<DOF,DOF> pairDOF = dofsSpring[0];
+        // If we have the same DOF, we can use a Spring element 1602.
+        // Else, we need to use a tabulated element 1902 Type 0
+        if (pairDOF.first != pairDOF.second){
+            systus_ascid_t tId2=0;
+            if (ss->hasStiffness()){
                 systus_ascid_t seId= stiffnessMatrices.size()+1;
-
-                // Numbering the node internally to the element
-                map<int, int> positionToSytusNumber;
-                int iSystus= 1;
-                for (const int pos : sm->nodePositions()){
-                    positionToSytusNumber[pos]=iSystus;
-                    iSystus++;
-                }
-
                 // Building the Systus Matrix
-                SystusMatrix aMatrix = SystusMatrix(seId, nbDOFS, iSystus-1);
-                for (const auto np : sm->nodePairs()){
-                    int nI = positionToSytusNumber[np.first];
-                    int nJ = positionToSytusNumber[np.second];
-                    shared_ptr<const DOFMatrix> dM = sm->findSubmatrix(np.first, np.second);
-                    for (const auto dof: dM->componentByDofs){
-                        int dofI = DOFToInt(dof.first.first);
-                        int dofJ = DOFToInt(dof.first.second);
-                        aMatrix.setValue(nI, nJ, dofI, dofJ, dof.second);
-                        aMatrix.setValue(nJ, nI, dofJ, dofI, dof.second);
-                    }
-                }
-
-                tableByElementSet[elementSet->getId()]=-SystusWriter::StiffnessAccessId;
+                SystusMatrix aMatrix{seId, nbDOFS, 2};
+                int dofI = DOFToInt(pairDOF.first);
+                int dofJ = DOFToInt(pairDOF.second);
+                aMatrix.setValue(1, 1, dofI, dofI, ss->getStiffness());
+                aMatrix.setValue(2, 2, dofJ, dofJ, ss->getStiffness());
+                aMatrix.setValue(1, 2, dofI, dofJ, -ss->getStiffness());
+                aMatrix.setValue(2, 1, dofJ, dofI, -ss->getStiffness());
+                tId2+=SystusWriter::StiffnessAccessId;
                 seIdByElementSet[elementSet->getId()]= seId;
                 stiffnessMatrices.add(aMatrix);
-                break;
-            }
 
-
-            default: {
-                //TODO : throw WriterException("ElementSet type not supported");
-                handleWritingWarning(to_str(*elementSet) +" not supported", "Filling Matrices");
             }
+            if (ss->hasDamping()){
+                systus_ascid_t seId= dampingMatrices.size()+1;
+                // Building the Systus Matrix
+                SystusMatrix aMatrix{seId, nbDOFS, 2};
+                //for (const auto np : dam->nodePairs()){
+                int dofI = DOFToInt(pairDOF.first);
+                int dofJ = DOFToInt(pairDOF.second);
+                aMatrix.setValue(1, 1, dofI, dofI, ss->getDamping());
+                aMatrix.setValue(2, 2, dofJ, dofJ, ss->getDamping());
+                aMatrix.setValue(1, 2, dofI, dofJ, -ss->getDamping());
+                aMatrix.setValue(2, 1, dofJ, dofI, -ss->getDamping());
+                tId2+=SystusWriter::DampingAccessId*10000;
+                seIdByElementSet[elementSet->getId()]= seId;
+                dampingMatrices.add(aMatrix);
             }
+            tableByElementSet[elementSet->getId()]=-tId2;
         }
     }
+
+    // Stiffness, Mass and Damping matrices are the same kind.
+    // Only the tableByElementSet value differs:
+    //   - Stiffness: -0000XX
+    //   - Mass     : -00XX00
+    //   - Damping  : -XX0000
+    for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::DAMPING_MATRIX)) {
+        shared_ptr<DampingMatrix> dam = dynamic_pointer_cast<DampingMatrix>(elementSet);
+        systus_ascid_t seId= dampingMatrices.size()+1;
+
+        // Numbering the node internally to the element
+        map<int, int> positionToSytusNumber;
+        int iSystus= 1;
+        for (const int pos : dam->nodePositions()){
+            positionToSytusNumber[pos]=iSystus;
+            iSystus++;
+        }
+
+        // Building the Systus Matrix
+        SystusMatrix aMatrix = SystusMatrix(seId, nbDOFS, iSystus-1);
+        for (const auto np : dam->nodePairs()){
+            int nI = positionToSytusNumber[np.first];
+            int nJ = positionToSytusNumber[np.second];
+            const shared_ptr<const DOFMatrix>& dM = dam->findSubmatrix(np.first, np.second);
+            for (const auto dof: dM->componentByDofs){
+                int dofI = DOFToInt(dof.first.first);
+                int dofJ = DOFToInt(dof.first.second);
+                aMatrix.setValue(nI, nJ, dofI, dofJ, dof.second);
+                aMatrix.setValue(nJ, nI, dofJ, dofI, dof.second);
+            }
+        }
+
+        tableByElementSet[elementSet->getId()]=-SystusWriter::DampingAccessId*10000;
+        seIdByElementSet[elementSet->getId()]= seId;
+        dampingMatrices.add(aMatrix);
+    }
+
+
+    for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::MASS_MATRIX)) {
+        const shared_ptr<MassMatrix>& mm = dynamic_pointer_cast<MassMatrix>(elementSet);
+        systus_ascid_t seId= massMatrices.size()+1;
+
+        // Numbering the node internally to the element
+        map<int, int> positionToSytusNumber;
+        int iSystus= 1;
+        for (const int pos : mm->nodePositions()){
+            positionToSytusNumber[pos]=iSystus;
+            iSystus++;
+        }
+
+        // Building the Systus Matrix
+        SystusMatrix aMatrix = SystusMatrix(seId, nbDOFS, iSystus-1);
+        for (const auto np : mm->nodePairs()){
+            int nI = positionToSytusNumber[np.first];
+            int nJ = positionToSytusNumber[np.second];
+            shared_ptr<const DOFMatrix> dM = mm->findSubmatrix(np.first, np.second);
+            for (const auto dof: dM->componentByDofs){
+                int dofI = DOFToInt(dof.first.first);
+                int dofJ = DOFToInt(dof.first.second);
+                aMatrix.setValue(nI, nJ, dofI, dofJ, dof.second);
+                aMatrix.setValue(nJ, nI, dofJ, dofI, dof.second);
+            }
+        }
+
+        tableByElementSet[elementSet->getId()]=-SystusWriter::MassAccessId*100;
+        seIdByElementSet[elementSet->getId()]= seId;
+        massMatrices.add(aMatrix);
+    }
+
+    for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::STIFFNESS_MATRIX)) {
+        shared_ptr<StiffnessMatrix> sm = dynamic_pointer_cast<StiffnessMatrix>(elementSet);
+        systus_ascid_t seId= stiffnessMatrices.size()+1;
+
+        // Numbering the node internally to the element
+        map<int, int> positionToSytusNumber;
+        int iSystus= 1;
+        for (const int pos : sm->nodePositions()){
+            positionToSytusNumber[pos]=iSystus;
+            iSystus++;
+        }
+
+        // Building the Systus Matrix
+        SystusMatrix aMatrix = SystusMatrix(seId, nbDOFS, iSystus-1);
+        for (const auto np : sm->nodePairs()){
+            int nI = positionToSytusNumber[np.first];
+            int nJ = positionToSytusNumber[np.second];
+            shared_ptr<const DOFMatrix> dM = sm->findSubmatrix(np.first, np.second);
+            for (const auto dof: dM->componentByDofs){
+                int dofI = DOFToInt(dof.first.first);
+                int dofJ = DOFToInt(dof.first.second);
+                aMatrix.setValue(nI, nJ, dofI, dofJ, dof.second);
+                aMatrix.setValue(nJ, nI, dofJ, dofI, dof.second);
+            }
+        }
+
+        tableByElementSet[elementSet->getId()]=-SystusWriter::StiffnessAccessId;
+        seIdByElementSet[elementSet->getId()]= seId;
+        stiffnessMatrices.add(aMatrix);
+    }
+
 }
 
 
