@@ -26,7 +26,7 @@ namespace tests {
 
 using namespace std;
 
-BOOST_AUTO_TEST_CASE( prob19 ) {
+/*BOOST_AUTO_TEST_CASE( prob19 ) {
 	CommandLineUtils::nastranStudy2Aster("/caw/prob19/prob19.dat", RUN_ASTER, true, 0.002);
 }
 
@@ -216,7 +216,7 @@ BOOST_AUTO_TEST_CASE( pload ) {
 //BOOST_AUTO_TEST_CASE( aero2728 ) {
 // RLOAD2 referencing GRAV
 //	CommandLineUtils::nastranStudy2Aster("/irt/aero2728/aero2728.nas", RUN_ASTER, true, 0.00001);
-//}
+//}*/
 
 BOOST_AUTO_TEST_CASE( nas102prob6resvec ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/nas102prob6resvec/nas102prob6resvec.nas", RUN_ASTER, true, 0.03);
