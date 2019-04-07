@@ -2341,10 +2341,12 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
                 << "')," << endl;
         out << "                             MATR_ASSE=RIGI" << linearDynaModalFreq.getId() << ",),"
                 << endl;
-        out << "                          _F(MATRICE=CO('AMORG" << linearDynaModalFreq.getId()
-                << "')," << endl;
-        out << "                             MATR_ASSE=AMOR" << linearDynaModalFreq.getId() << ",),"
-                << endl;
+        if (linearDynaModalFreq.getModalDamping() == nullptr) {
+            out << "                          _F(MATRICE=CO('AMORG" << linearDynaModalFreq.getId()
+                    << "')," << endl;
+            out << "                             MATR_ASSE=AMOR" << linearDynaModalFreq.getId() << ",),"
+                    << endl;
+        }
         out << "                          )," << endl;
         out << "          VECT_ASSE_GENE=(" << endl;
         for (shared_ptr<LoadSet> loadSet : linearDynaModalFreq.getLoadSets()) {
@@ -2397,11 +2399,13 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
             << endl;
     out << "                   MATR_RIGI  = RIGIG" << linearDynaModalFreq.getId() << ","
             << endl;
-    out << "                   MATR_AMOR  = AMORG" << linearDynaModalFreq.getId() << ","
-            << endl;
     if (linearDynaModalFreq.getModalDamping() != nullptr) {
         out << "                   AMOR_MODAL = _F(AMOR_REDUIT = AMMO"
             << linearDynaModalFreq.getId() << ",)," << endl;
+    } else {
+        // LD MATR_AMOR nullifies AMOR_MODAL
+        out << "                   MATR_AMOR  = AMORG" << linearDynaModalFreq.getId() << ","
+            << endl;
     }
     out << "                   LIST_FREQ  = LST" << setfill('0') << setw(5)
         << linearDynaModalFreq.getExcitationFrequencies()->getValue()->getId() << "," << endl;
