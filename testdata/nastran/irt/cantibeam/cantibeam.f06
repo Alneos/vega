@@ -1,0 +1,31 @@
+ 
+                                              R E A L   E I G E N V A L U E S
+   MODE    EXTRACTION      EIGENVALUE            RADIANS             CYCLES            GENERALIZED         GENERALIZED
+    NO.       ORDER                                                                       MASS              STIFFNESS
+        1         1        6.499125E+02        2.549338E+01        4.057397E+00        1.000000E+00        6.499125E+02
+        2         2        2.576557E+03        5.075980E+01        8.078672E+00        1.000000E+00        2.576557E+03
+        3         3        2.452506E+04        1.566048E+02        2.492443E+01        1.000000E+00        2.452506E+04
+        4         4        9.244084E+04        3.040409E+02        4.838961E+01        1.000000E+00        9.244084E+04
+        5         5        1.328651E+05        3.645066E+02        5.801303E+01        1.000000E+00        1.328651E+05
+        6         6        1.831985E+05        4.280170E+02        6.812102E+01        1.000000E+00        1.831985E+05
+                                                                                                                                    
+0    BEAM                                                                                                    SUBCASE 1              
+      FREQUENCY =  2.000000E+00
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+0            2      G     -2.675222E-11   5.791004E-11  -2.098506E+01   1.158690E-10   3.060514E+00   9.867372E-11
+                          -3.647551E-13   8.064763E-13   8.046308E-01   1.277054E-12  -1.115309E-01   1.494285E-12
+1   VEGA EXPORTED MODEL                                                       APRIL   7, 2019  MSC.NASTRAN  7/ 6/12   PAGE    12
+                                                                                                                                    
+0    BEAM                                                                                                    SUBCASE 1              
+      FREQUENCY =  5.800000E+00
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+0            2      G     -4.600503E-11   1.017964E-10   1.436739E+01   1.852517E-10  -1.800751E+00   1.767777E-10
+                          -4.593737E-13   8.862527E-13   1.225175E+00   1.549567E-12  -1.710234E-01   1.892429E-12
+1   VEGA EXPORTED MODEL                                                       APRIL   7, 2019  MSC.NASTRAN  7/ 6/12   PAGE    13
+                                                                                                                                    

@@ -1,0 +1,122 @@
+                                                                                                                                  
+0    BOX                                                                                                     SUBCASE 1              
+ 
+                                              R E A L   E I G E N V A L U E S
+                                         (BEFORE AUGMENTATION OF RESIDUAL VECTORS)
+   MODE    EXTRACTION      EIGENVALUE            RADIANS             CYCLES            GENERALIZED         GENERALIZED
+    NO.       ORDER                                                                       MASS              STIFFNESS
+        1         1        6.751809E+02        2.598424E+01        4.135520E+00        1.000000E+00        6.751809E+02
+        2         2        2.622664E+03        5.121195E+01        8.150635E+00        1.000000E+00        2.622664E+03
+        3         3        2.590591E+04        1.609531E+02        2.561649E+01        1.000000E+00        2.590591E+04
+        4         4        9.432988E+04        3.071317E+02        4.888153E+01        1.000000E+00        9.432988E+04
+        5         5        1.340834E+05        3.661740E+02        5.827839E+01        1.000000E+00        1.340834E+05
+        6         6        1.960644E+05        4.427916E+02        7.047247E+01        1.000000E+00        1.960644E+05
+                                                                                                                                    
+0    BOX                                                                                                     SUBCASE 1              
+      FREQUENCY =  2.000000E+00
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+0            6      G      5.096042E-10  -5.146860E-10  -2.018626E+01   0.0            0.0            0.0
+                          -2.161266E-11   4.285921E-11   7.489762E-01   0.0            0.0            0.0
+
+                                                                                                                                    
+0    BOX                                                                                                     SUBCASE 1              
+      FREQUENCY =  5.800000E+00
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+0            6      G     -5.050060E-10   1.973174E-09   1.505019E+01   0.0            0.0            0.0
+                          -4.094967E-11   4.137381E-11   1.357777E+00   0.0            0.0            0.0
+
+                                                                                                                                    
+0    BOX                                                                                                     SUBCASE 1              
+      FREQUENCY =  9.599999E+00
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+0            6      G     -2.381640E-10   9.965529E-11   2.920233E+00   0.0            0.0            0.0
+                          -8.188786E-12  -1.088616E-10   1.216075E-01   0.0            0.0            0.0
+
+                                                                                                                                    
+0    BOX                                                                                                     SUBCASE 1              
+      FREQUENCY =  1.340000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+0            6      G     -1.702814E-10   4.600148E-10   9.849972E-01   0.0            0.0            0.0
+                           3.615713E-12  -1.197584E-11   5.633241E-02   0.0            0.0            0.0
+
+                                                                                                                                    
+0    BOX                                                                                                     SUBCASE 1              
+      FREQUENCY =  1.720000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+0            6      G     -1.833134E-10   5.034766E-10   1.499874E-01   0.0            0.0            0.0
+                           1.080322E-11  -9.688043E-12   6.670589E-02   0.0            0.0            0.0
+
+                                                                                                                                    
+0    BOX                                                                                                     SUBCASE 1              
+      FREQUENCY =  2.100000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+0            6      G     -2.717082E-10   5.312920E-10  -6.238574E-01   0.0            0.0            0.0
+                           3.774007E-11  -1.256165E-11   1.822368E-01   0.0            0.0            0.0
+
+                                                                                                                                    
+0    BOX                                                                                                     SUBCASE 1              
+      FREQUENCY =  2.480000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+0            6      G     -7.397948E-10   5.826477E-10  -2.976267E+00   0.0            0.0            0.0
+                           6.720526E-10  -5.597321E-11   3.088881E+00   0.0            0.0            0.0
+
+                                                                                                                                    
+0    BOX                                                                                                     SUBCASE 1              
+      FREQUENCY =  2.860000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+0            6      G      3.080113E-10   5.384208E-10   1.706009E+00   0.0            0.0            0.0
+                           8.713045E-11  -2.077424E-11   4.030732E-01   0.0            0.0            0.0
+
+                                                                                                                                    
+0    BOX                                                                                                     SUBCASE 1              
+      FREQUENCY =  3.240000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+0            6      G      1.284578E-10   5.789372E-10   8.009439E-01   0.0            0.0            0.0
+                           1.812767E-11  -1.987935E-11   8.495995E-02   0.0            0.0            0.0
+
+                                                                                                                                    
+0    BOX                                                                                                     SUBCASE 1              
+      FREQUENCY =  3.620000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+0            6      G      7.359717E-11   6.176069E-10   4.954661E-01   0.0            0.0            0.0
+                           8.119658E-12  -2.363579E-11   3.735103E-02   0.0            0.0            0.0
+
+                                                                                                                                    
+0    BOX                                                                                                     SUBCASE 1              
+      FREQUENCY =  4.000000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+0            6      G      4.589174E-11   6.614521E-10   3.351832E-01   0.0            0.0            0.0
+                           5.595089E-12  -2.826387E-11   2.251987E-02   0.0            0.0            0.0
