@@ -124,5 +124,9 @@ BOOST_AUTO_TEST_CASE( nas101probB ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/nas101probB/nas101probB.nas", RUN_SYSTUS, true, 0.1);
 }
 
+BOOST_AUTO_TEST_CASE( cantibeam ) {
+	CommandLineUtils::nastranStudy2Systus("/irt/cantibeam/cantibeam.nas", RUN_SYSTUS, true, 0.02);
+}
+
 } /* namespace test */
 } /* namespace vega */
