@@ -3038,14 +3038,16 @@ void NastranParser::parseSPCADD(NastranTokenizer& tok, Model& model) {
         while (tok.isNextInt()) {
             int constraintSet_id = tok.nextInt();
             // Need to add referenced SPCs in the same constraintset, otherwise it will not be found
-            // Example: case of SPC in local coordinate system replaced by MPCs
+            // Example: case of SPC in local coordinate system later replaced by MPCs during finish()
             // Possible alternative: make sure that these SPCs are found also with methods like
             // Model.getConstraintsByConstraintSet() etc. which seems not to be the case now
-            const auto& constraintSet = make_shared<ConstraintSet>(model, ConstraintSet::Type::SPC, constraintSet_id);
-            model.add(constraintSet);
             Reference<ConstraintSet> constraintSetReference(ConstraintSet::Type::SPC, constraintSet_id);
+            auto constraintSet = model.constraintSets.find(constraintSetReference);
+            if (constraintSet == nullptr) {
+                constraintSet = make_shared<ConstraintSet>(model, ConstraintSet::Type::SPC, constraintSet_id);
+                model.add(constraintSet);
+            }
             constraintSet_ptr->add(constraintSetReference);
-            constraintSet->markAsWritten();
         }
     }
 }

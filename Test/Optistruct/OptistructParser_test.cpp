@@ -131,4 +131,23 @@ BOOST_AUTO_TEST_CASE(optistruct_pbushrigid) {
 	}
 }
 
+BOOST_AUTO_TEST_CASE(optistruct_twosubcases) {
+	string testLocation = fs::path(
+		PROJECT_BASE_DIR "/testdata/unitTest/optistructparser/twosubcases.nas").make_preferred().string();
+	optistruct::OptistructParser parser;
+	try {
+		const unique_ptr<Model> model = parser.parse(
+			ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
+        BOOST_CHECK_EQUAL(model->constraintSets.size(), 3);
+        model->finish();
+        BOOST_CHECK_EQUAL(model->constraintSets.size(), 3);
+	}
+	catch (exception& e) {
+		cerr << e.what() << endl;
+		BOOST_TEST_MESSAGE(string("Application exception") + e.what());
+
+		BOOST_FAIL(string("Parse threw exception ") + e.what());
+	}
+}
+
 //____________________________________________________________________________//
