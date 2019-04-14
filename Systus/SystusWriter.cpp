@@ -2571,6 +2571,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 
     for (const auto& elementSet : systusModel.model.elementSets) {
         const auto& material = elementSet->material;
+        ModelType modelType = elementSet->getModelType();
         if (elementSet->cellGroup == nullptr) {
             continue;
         }
@@ -2587,6 +2588,9 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 
                 writeMaterialField(SMF::ID, elementSet->getId(), nbElementsMaterial, omat);
                 writeMaterialField(SMF::MID, elementSet->getId(), nbElementsMaterial, omat);
+                if (modelType == ModelType::TRIDIMENSIONAL_SI) {
+                    writeMaterialField(SMF::INTEG, 1, nbElementsMaterial, omat);
+                }
                 writeMaterialField(SMF::RHO, elasticNature.getRho(), nbElementsMaterial, omat);
                 writeMaterialField(SMF::E, elasticNature.getE(), nbElementsMaterial, omat);
                 writeMaterialField(SMF::NU, elasticNature.getNu(), nbElementsMaterial, omat);

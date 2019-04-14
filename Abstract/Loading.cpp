@@ -730,9 +730,10 @@ shared_ptr<Loading> NormalPressionFaceTwoNodes::clone() const {
 
 DynamicExcitation::DynamicExcitation(Model& model, const Reference<NamedValue> dynaDelay, const Reference<NamedValue> dynaPhase,
         const Reference<NamedValue> functionTableB, const Reference<NamedValue> functionTableP, const Reference<LoadSet> loadSet,
+        const DynamicExcitationType excitType,
         const int original_id) :
                 Loading(model, Loading::Type::DYNAMIC_EXCITATION, original_id), dynaDelay(dynaDelay), dynaPhase(dynaPhase),
-                functionTableB(functionTableB), functionTableP(functionTableP), loadSet(loadSet) {
+                functionTableB(functionTableB), functionTableP(functionTableP), loadSet(loadSet), excitType(excitType) {
 }
 
 shared_ptr<DynaPhase> DynamicExcitation::getDynaDelay() const {

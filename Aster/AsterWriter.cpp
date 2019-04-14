@@ -2359,7 +2359,29 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
                             << dynamicExcitation.getId() << "')," << endl;
                     out << "                             VECT_ASSE=FX"
                             << linearDynaModalFreq.getId() << "_"
-                            << dynamicExcitation.getId() << ",)," << endl;
+                            << dynamicExcitation.getId() << ",";
+                    out << "TYPE_VECT=";
+                    switch(dynamicExcitation.excitType) {
+                    case DynamicExcitation::DynamicExcitationType::LOAD: {
+                        out << "'FORCE',";
+                        break;
+                    };
+                    case DynamicExcitation::DynamicExcitationType::DISPLACEMENT: {
+                        out << "'DEPL',";
+                        break;
+                    };
+                    case DynamicExcitation::DynamicExcitationType::VELOCITY: {
+                        out << "'VITE',";
+                        break;
+                    };
+                    case DynamicExcitation::DynamicExcitationType::ACCELERATION: {
+                        out << "'ACCE',";
+                        break;
+                    };
+                    default:
+                        handleWritingError("Dynamic excitation type " + to_string(static_cast<int>(dynamicExcitation.excitType)) + " not (yet) implemented");
+                    }
+                    out << ")," << endl;
                     dynamicExcitation.markAsWritten();
                     loadSet->markAsWritten();
                 }

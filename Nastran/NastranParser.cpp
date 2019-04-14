@@ -2800,8 +2800,18 @@ void NastranParser::parseRLOAD1(NastranTokenizer& tok, Model& model) {
 
     // Type
     string type = tok.nextString(true, "LOAD").substr(0, 1);
-    if (type != "L" && type != "0")
-        handleParsingError("TYPE in RLOAD1 not supported. ", tok, model);
+    DynamicExcitation::DynamicExcitationType excitType;
+    if (type == "L" or type == "0" or type == "LOAD") {
+        excitType = DynamicExcitation::DynamicExcitationType::LOAD;
+    } else if (type == "D" or type == "1" or type == "DISP") {
+        excitType = DynamicExcitation::DynamicExcitationType::DISPLACEMENT;
+    } else if (type == "V" or type == "2" or type == "VELO") {
+        excitType = DynamicExcitation::DynamicExcitationType::VELOCITY;
+    } else if (type == "A" or type == "3" or type == "ACCE") {
+        excitType = DynamicExcitation::DynamicExcitationType::ACCELERATION;
+    } else {
+        handleParsingError("TYPE " + type + " not yet implemented in RLOAD2.", tok, model);
+    }
 
     Reference<NamedValue> dynaDelay_ref = Reference<NamedValue>(Value::Type::DYNA_PHASE, delay_id);
     if (delay_id == 0) {
@@ -2831,7 +2841,7 @@ void NastranParser::parseRLOAD1(NastranTokenizer& tok, Model& model) {
         original_id = loadset_id;
 
     const auto& dynamicExcitation = make_shared<DynamicExcitation>(model, dynaDelay_ref, dynaPhase_ref, functionTableC_ref, functionTableD_ref, darea->getReference(),
-            original_id);
+            excitType, original_id);
     model.add(dynamicExcitation);
 
     shared_ptr<LoadSet> loadSet = model.getOrCreateLoadSet(loadset_id, LoadSet::Type::DLOAD);
@@ -2869,8 +2879,18 @@ void NastranParser::parseRLOAD2(NastranTokenizer& tok, Model& model) {
 
     // Type
     string type = tok.nextString(true, "LOAD").substr(0, 1);
-    if (type != "L" && type != "0")
-        handleParsingError("TYPE in RLOAD2 not yet supported. ", tok, model);
+    DynamicExcitation::DynamicExcitationType excitType;
+    if (type == "L" or type == "0" or type == "LOAD") {
+        excitType = DynamicExcitation::DynamicExcitationType::LOAD;
+    } else if (type == "D" or type == "1" or type == "DISP") {
+        excitType = DynamicExcitation::DynamicExcitationType::DISPLACEMENT;
+    } else if (type == "V" or type == "2" or type == "VELO") {
+        excitType = DynamicExcitation::DynamicExcitationType::VELOCITY;
+    } else if (type == "A" or type == "3" or type == "ACCE") {
+        excitType = DynamicExcitation::DynamicExcitationType::ACCELERATION;
+    } else {
+        handleParsingError("TYPE " + type + " not yet implemented in RLOAD2.", tok, model);
+    }
 
     Reference<NamedValue> dynaDelay_ref = Reference<NamedValue>(Value::Type::DYNA_PHASE, delay_id);
     if (delay_id == 0) {
@@ -2920,7 +2940,7 @@ void NastranParser::parseRLOAD2(NastranTokenizer& tok, Model& model) {
         original_id = loadset_id;
 
     const auto& dynamicExcitation = make_shared<DynamicExcitation>(model, dynaDelay_ref, dynaPhase_ref, functionTableB_ref, functionTableP_ref, excitRef,
-            original_id);
+            excitType, original_id);
     model.add(dynamicExcitation);
 
     model.addLoadingIntoLoadSet(dynamicExcitation->getReference(), loadSetReference);

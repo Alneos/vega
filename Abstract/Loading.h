@@ -431,10 +431,17 @@ private:
     Reference<NamedValue> functionTableP;
     Reference<LoadSet> loadSet;   /**< Excitation Loadset **/
 public:
+	enum class DynamicExcitationType {
+		LOAD,
+		DISPLACEMENT,
+		VELOCITY,
+		ACCELERATION
+	};
     DynamicExcitation(Model&, const Reference<NamedValue> dynaDelay, const Reference<NamedValue> dynaPhase,
-            const Reference<NamedValue> functionTableB, const Reference<NamedValue> functionTableP, const Reference<LoadSet>, const int original_id =
+            const Reference<NamedValue> functionTableB, const Reference<NamedValue> functionTableP, const Reference<LoadSet>, const DynamicExcitationType excitType = DynamicExcitationType::LOAD, const int original_id =
                     NO_ORIGINAL_ID);
 
+    const DynamicExcitationType excitType;
     std::shared_ptr<DynaPhase> getDynaDelay() const;
     std::shared_ptr<DynaPhase> getDynaPhase() const;
     std::shared_ptr<FunctionTable> getFunctionTableB() const;
