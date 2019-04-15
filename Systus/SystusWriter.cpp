@@ -2571,7 +2571,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
 
     for (const auto& elementSet : systusModel.model.elementSets) {
         const auto& material = elementSet->material;
-        ModelType modelType = elementSet->getModelType();
+        //ModelType modelType = elementSet->getModelType();
         if (elementSet->cellGroup == nullptr) {
             continue;
         }
