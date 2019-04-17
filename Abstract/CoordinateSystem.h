@@ -201,31 +201,28 @@ public:
     std::shared_ptr<CoordinateSystem> clone() const override;
 };
 
-//class SphericalCoordinateSystem: public CoordinateSystem {
-//    VectorialValue ur;
-//    VectorialValue utheta;
-//    VectorialValue uphi;
-//    public:
-//    SphericalCoordinateSystem(const Model&, const VectorialValue origin, const VectorialValue ex,
-//            const VectorialValue ey, int original_id = NO_ORIGINAL_ID);
-//    /**
-//     *  Compute the local spheric base (ur, utheta, uphi) corresponding to point.
-//     *   Point must be expressed in the reference cartesian coordinate system.
-//     */
-//    void updateLocalBase(const VectorialValue& point);
-//    /**
-//     *  Not done
-//     */
-//    const VectorialValue positionToGlobal(const VectorialValue&) const override;
-//    /**
-//     *  Translate a vector, expressed in this coordinate system (ur, utheta, uphi),
-//     *   to its global counterpart. Warning, it does not take the origin into
-//     *   account, so do NOT use this to convert coordinates.
-//     */
-//    const VectorialValue vectorToGlobal(const VectorialValue&) const override;
-//    const VectorialValue vectorToLocal(const VectorialValue&) const override;
-//    std::shared_ptr<CoordinateSystem> clone() const override;
-//};
+class SphericalCoordinateSystem: public CoordinateSystem {
+    public:
+    SphericalCoordinateSystem(const Mesh&, const VectorialValue origin, const VectorialValue ex,
+            const VectorialValue ey, const Reference<CoordinateSystem> rcs = GLOBAL_COORDINATE_SYSTEM, int original_id = NO_ORIGINAL_ID);
+    /**
+     *  Compute the local spheric base (ur, utheta, uphi) corresponding to point.
+     *   Point must be expressed in the reference cartesian coordinate system.
+     */
+    void updateLocalBase(const VectorialValue& point) override;
+    /**
+     *  Not done
+     */
+    const VectorialValue positionToGlobal(const VectorialValue&) const override;
+    /**
+     *  Translate a vector, expressed in this coordinate system (ur, utheta, uphi),
+     *   to its global counterpart. Warning, it does not take the origin into
+     *   account, so do NOT use this to convert coordinates.
+     */
+    const VectorialValue vectorToGlobal(const VectorialValue&) const override;
+    const VectorialValue vectorToLocal(const VectorialValue&) const override;
+    std::shared_ptr<CoordinateSystem> clone() const override;
+};
 
 
 /** This class allows the model to store Coordinate System BEFORE they are created.

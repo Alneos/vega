@@ -70,6 +70,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "CORD1R", &NastranParser::parseCORD1R },
                 { "CORD2C", &NastranParser::parseCORD2C },
                 { "CORD2R", &NastranParser::parseCORD2R },
+                { "CORD2S", &NastranParser::parseCORD2S },
                 { "CPENTA", &NastranParser::parseCPENTA },
                 { "CPYRAM", &NastranParser::parseCPYRAM },
                 { "CQUAD", &NastranParser::parseCQUAD },
@@ -154,6 +155,7 @@ const std::unordered_map<std::string, NastranParser::NastranAnalysis> NastranPar
         { "STATIC", NastranAnalysis::STATIC },
         { "STATICS", NastranAnalysis::STATIC },
         { "SESTATIC", NastranAnalysis::STATIC },
+        { "SESTATICS", NastranAnalysis::STATIC },
         { "3", NastranAnalysis::MODES },
         { "103", NastranAnalysis::MODES },
         { "MODES", NastranAnalysis::MODES },
@@ -1016,6 +1018,27 @@ void NastranParser::parseCORD2R(NastranTokenizer& tok, Model& model) {
     VectorialValue ey = ez.cross(ex);
 
     CartesianCoordinateSystem coordinateSystem(model.mesh, vect[0], ex, ey, Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, rid), cid);
+    model.mesh.add(coordinateSystem);
+}
+
+void NastranParser::parseCORD2S(NastranTokenizer& tok, Model& model) {
+    int cid = tok.nextInt();
+    //reference coordinate system 0 for global.
+    int rid = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+
+    double coor[3];
+    VectorialValue vect[3];
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++)
+            coor[j] = tok.nextDouble(true,0.0);
+        vect[i] = VectorialValue(coor[0], coor[1], coor[2]);
+    }
+
+    VectorialValue ez = vect[1] - vect[0];
+    VectorialValue ex = (vect[2] - vect[0]).orthonormalized(ez);
+    VectorialValue ey = ez.cross(ex);
+
+    SphericalCoordinateSystem coordinateSystem(model.mesh, vect[0], ex, ey, Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, rid), cid);
     model.mesh.add(coordinateSystem);
 }
 

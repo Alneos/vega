@@ -2082,6 +2082,9 @@
 		<Unit filename="testdata/nastran/irt/forcefour/forcefour.f06" />
 		<Unit filename="testdata/nastran/irt/forcefour/forcefour.nas" />
 		<Unit filename="testdata/nastran/irt/forcefour/readme.txt" />
+		<Unit filename="testdata/nastran/irt/n4w101/n4w101.f06" />
+		<Unit filename="testdata/nastran/irt/n4w101/n4w101.nas" />
+		<Unit filename="testdata/nastran/irt/n4w101/readme.txt" />
 		<Unit filename="testdata/nastran/irt/nas101prob2/nas101prob2.dat" />
 		<Unit filename="testdata/nastran/irt/nas101prob2/nas101prob2.f06" />
 		<Unit filename="testdata/nastran/irt/nas101prob2/readme.txt" />
@@ -2121,6 +2124,7 @@
 		<Unit filename="testdata/nastran/irt/pload4b/pload4b.f06" />
 		<Unit filename="testdata/nastran/irt/pload4b/pload4b.nas" />
 		<Unit filename="testdata/nastran/irt/pload4b/readme.txt" />
+		<Unit filename="testdata/nastran/irt/pload4c/pload4c.nas" />
 		<Unit filename="testdata/nastran/irt/rbe3/rbe3.f06" />
 		<Unit filename="testdata/nastran/irt/rbe3/rbe3.nas" />
 		<Unit filename="testdata/nastran/irt/rbe3/readme.txt" />

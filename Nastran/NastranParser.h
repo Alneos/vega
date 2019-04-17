@@ -287,17 +287,7 @@ private:
      */
     void parseCONM2(NastranTokenizer& tok, Model& model);
 
-    /**
-     * Parse the CORD1R keyword (page 1264 of MDN Nastran 2006 Quick Reference Guide.)
-     * Full support.
-     */
-    void parseCORD1R(NastranTokenizer& tok, Model& model);
 
-    /**
-     * Parse the CORD2C keyword (page 1271 of MDN Nastran 2006 Quick Reference Guide.)
-     * Reference coordinate system (RID) not supported.
-     */
-    void parseCORD2C(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the CRIGD1 keyword (page 385 of THE NASTRAN USER'S MANUAL)
@@ -310,12 +300,27 @@ private:
      * defines a tension-compression-torsion element without reference to a property entry
      */
     void parseCONROD(NastranTokenizer& tok, Model& model);
+    /**
+     * Parse the CORD1R keyword (page 1264 of MDN Nastran 2006 Quick Reference Guide.)
+     * Full support.
+     */
+    void parseCORD1R(NastranTokenizer& tok, Model& model);
 
+    /**
+     * Parse the CORD2C keyword (page 1271 of MDN Nastran 2006 Quick Reference Guide.)
+     * Reference coordinate system (RID) not supported.
+     */
+    void parseCORD2C(NastranTokenizer& tok, Model& model);
     /**
      * Parse the CORD2R keyword (page 1273 of MDN Nastran 2006 Quick Reference Guide.)
      * Reference coordinate system (RID) not supported.
      */
     void parseCORD2R(NastranTokenizer& tok, Model& model);
+    /**
+     * Parse the CORD2S keyword (page 1271 of MDN Nastran 2006 Quick Reference Guide.)
+     * Reference coordinate system (RID) not supported.
+     */
+    void parseCORD2S(NastranTokenizer& tok, Model& model);
     void parseCPENTA(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
     void parseCPYRAM(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
     void parseCQUAD(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp

@@ -95,6 +95,15 @@ BOOST_AUTO_TEST_CASE( pload4 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/pload4/pload4.nas", RUN_ASTER, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( pload4b ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/pload4b/pload4b.nas", RUN_ASTER, true, 0.00001);
+}
+
+//BOOST_AUTO_TEST_CASE( pload4c ) {
+// underintegration different results
+//	CommandLineUtils::nastranStudy2Aster("/irt/pload4c/pload4c.nas", RUN_ASTER, true, 0.00001);
+//}
+
 BOOST_AUTO_TEST_CASE( nas101prob2 ) {
     // ok but using refinement in beams (cannot refine a truss in Aster)
 	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob2/nas101prob2.dat", RUN_ASTER, true, 0.03);
@@ -200,10 +209,6 @@ BOOST_AUTO_TEST_CASE( forcefour ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/forcefour/forcefour.nas", RUN_ASTER, true, 0.00001);
 }
 
-BOOST_AUTO_TEST_CASE( pload4b ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/pload4b/pload4b.nas", RUN_ASTER, true, 0.00001);
-}
-
 BOOST_AUTO_TEST_CASE( pload ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/pload/pload.nas", RUN_ASTER, true, 0.00001);
 }
@@ -230,6 +235,10 @@ BOOST_AUTO_TEST_CASE( cantibeam ) {
 // SLOW after parsing complete ??
 //	CommandLineUtils::nastranStudy2Aster("/irt/cantibox/cantibox.nas", RUN_ASTER, true, 0.02);
 //}
+
+BOOST_AUTO_TEST_CASE( n4w101 ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/n4w101/n4w101.nas", RUN_ASTER, true, 0.00001);
+}
 
 } /* namespace test */
 } /* namespace vega */

@@ -227,7 +227,6 @@ const VectorialValue CylindricalCoordinateSystem::vectorToGlobal(
 const VectorialValue CylindricalCoordinateSystem::vectorToLocal(const VectorialValue& global) const {
     UNUSEDV(global);
     throw logic_error("Global To Local vector conversion not done for Cylindrical Coordinate System");
-    return VectorialValue(0,0,0);
 }
 
 
@@ -240,8 +239,52 @@ const VectorialValue CylindricalCoordinateSystem::getLocalEulerAnglesIntrinsicZY
     return localCS.getEulerAnglesIntrinsicZYX(cs);
 }
 
+SphericalCoordinateSystem::SphericalCoordinateSystem(const Mesh& mesh,
+        const VectorialValue origin, const VectorialValue ex, const VectorialValue ey, const Reference<CoordinateSystem> rcs,
+        int original_id) :
+        CoordinateSystem(mesh, CoordinateSystem::Type::ABSOLUTE, CoordinateSystem::CoordinateType::CYLINDRICAL, origin, ex, ey, rcs, original_id) {
+}
 
+// TODO : LD What's this ? Should this method be renamed moveOrigin ?
+void SphericalCoordinateSystem::updateLocalBase(const VectorialValue& point) {
+    UNUSEDV(point);
+    throw logic_error("updateLocalBase not done for Spherical Coordinate System");
+}
 
+const VectorialValue SphericalCoordinateSystem::positionToGlobal(const VectorialValue& local) const{
+    double r = local.x();
+    double theta = local.y();
+    double phi = local.z();
+    double lx = r * sin(M_PI*theta/180.0) * cos(M_PI*phi/180.0);
+    double ly = r * sin(M_PI*theta/180.0) * sin(M_PI*phi/180.0);
+    double lz = r * cos(M_PI*theta/180.0);
+
+    double x = lx*ex.x() + ly*ey.x() + lz*ez.x();
+    double y = lx*ex.y() + ly*ey.y() + lz*ez.y();
+    double z = lx*ex.z() + ly*ey.z() + lz*ez.z();
+    VectorialValue position = this->getOrigin()+VectorialValue(x,y,z);
+    if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM) {
+        return position;
+    } else {
+        shared_ptr<CoordinateSystem> coordSystem = mesh.findCoordinateSystem(rcs);
+        return coordSystem->positionToGlobal(position);
+    }
+}
+
+const VectorialValue SphericalCoordinateSystem::vectorToGlobal(
+        const VectorialValue& local) const {
+    UNUSEDV(local);
+    throw logic_error("Vector To Global conversion not done for Spherical Coordinate System");
+}
+
+const VectorialValue SphericalCoordinateSystem::vectorToLocal(const VectorialValue& global) const {
+    UNUSEDV(global);
+    throw logic_error("Global To Local vector conversion not done for Spherical Coordinate System");
+}
+
+shared_ptr<CoordinateSystem> SphericalCoordinateSystem::clone() const {
+    return make_shared<SphericalCoordinateSystem>(*this);
+}
 
 OrientationCoordinateSystem::OrientationCoordinateSystem(const Mesh& mesh, const int nO, const int nX,
         const int nV, const Reference<CoordinateSystem> rcs, int original_id) :
