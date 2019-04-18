@@ -38,5 +38,9 @@ BOOST_AUTO_TEST_CASE( rod1freeforce ) {
 	CommandLineUtils::nastranStudy2Nastran("/alneos/rod1freeforce/rod1freeforce.dat", false, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( n4w101 ) {
+	CommandLineUtils::nastranStudy2Nastran("/irt/n4w101/n4w101.nas", false, true, 0.00001);
+}
+
 } /* namespace test */
 } /* namespace vega */
