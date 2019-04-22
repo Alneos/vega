@@ -28,7 +28,7 @@ shbuilding:
     - ./build/bin/vegapp
     expire_in: 1 day
 
-xbuilding:
+.hidden.xbuilding:
   stage: build
   image: docker:dind
   tags:
