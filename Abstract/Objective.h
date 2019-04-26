@@ -86,8 +86,8 @@ public:
 	static const std::string name;
 	static const std::map<Type, std::string> stringByType;
 	void add(const Reference<ObjectiveSet>&);
-	const std::set<std::shared_ptr<Objective>> getObjectives() const;
-	const std::set<std::shared_ptr<Objective>> getObjectivesByType(Objective::Type) const;
+	const std::set<std::shared_ptr<Objective>, ptrLess<Objective>> getObjectives() const;
+	const std::set<std::shared_ptr<Objective>, ptrLess<Objective>> getObjectivesByType(Objective::Type) const;
 	int size() const;
 	inline bool empty() const {return size() == 0;};
 	std::shared_ptr<ObjectiveSet> clone() const;

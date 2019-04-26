@@ -447,8 +447,10 @@ void NastranParser::parseElem(NastranTokenizer& tok, Model& model,
     } else {
         vector<int> nastran2medNodeConnect = nastran2med_it->second;
         medConnect.resize(cellType.numNodes);
-        for (unsigned int i2 = 0; i2 < cellType.numNodes; i2++)
+        for (unsigned int i2 = 0; i2 < cellType.numNodes; i2++) {
+            //model.mesh.findOrReserveNode(nastranConnect[i2], property_id); // LD this is optional : preserving cell nodeid order for better output readeability
             medConnect[nastran2medNodeConnect[i2]] = nastranConnect[i2];
+        }
     }
     model.mesh.addCell(cell_id, cellType, medConnect, false, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, property_id);
     addProperty(tok, property_id, cell_id, model);

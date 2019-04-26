@@ -95,8 +95,8 @@ public:
 	static const std::map<Type, std::string> stringByType;
 	int size() const;
 	inline bool empty() const { return size() == 0;};
-	const std::set<std::shared_ptr<Loading> > getLoadings() const;
-	const std::set<std::shared_ptr<Loading> > getLoadingsByType(Loading::Type) const;
+	const std::set<std::shared_ptr<Loading>, ptrLess<Loading> > getLoadings() const;
+	const std::set<std::shared_ptr<Loading>, ptrLess<Loading> > getLoadingsByType(Loading::Type) const;
 	bool validate() const override;
 	std::shared_ptr<LoadSet> clone() const;
 	bool hasFunctions() const;

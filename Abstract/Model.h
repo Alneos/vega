@@ -313,7 +313,7 @@ public:
     /**
      * Retrieve all the Loadings corresponding to a given LoadSet.
      */
-    const std::set<std::shared_ptr<Loading>> getLoadingsByLoadSet(const Reference<LoadSet>&) const;
+    const std::set<std::shared_ptr<Loading>, ptrLess<Loading>> getLoadingsByLoadSet(const Reference<LoadSet>&) const;
 
     /**
      * Create a material
@@ -344,12 +344,12 @@ public:
     /**
      * Retrieve all the Constraints corresponding to a given ConstraintSet.
      */
-    const std::set<std::shared_ptr<Constraint>> getConstraintsByConstraintSet(const Reference<ConstraintSet>&) const;
+    const std::set<std::shared_ptr<Constraint>, ptrLess<Constraint>> getConstraintsByConstraintSet(const Reference<ConstraintSet>&) const;
 
     /**
      * Retrieve all the ConstraintSet containing a corresponding Constraint.
      */
-    const std::set<std::shared_ptr<ConstraintSet>> getConstraintSetsByConstraint(const Reference<Constraint>& constraintReference) const;
+    const std::set<std::shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> getConstraintSetsByConstraint(const Reference<Constraint>& constraintReference) const;
 
     /**
      * Retrieve all the ConstraintSet of the model that are at least referenced by one analysis
@@ -364,7 +364,7 @@ public:
     /**
      * Retrieve all the Objectives corresponding to a given ObjectiveSet.
      */
-    const std::set<std::shared_ptr<Objective>> getObjectivesByObjectiveSet(const Reference<ObjectiveSet>&) const;
+    const std::set<std::shared_ptr<Objective>, ptrLess<Objective>> getObjectivesByObjectiveSet(const Reference<ObjectiveSet>&) const;
 
     /**
      * Retrieve all the ConstraintSet of the model that are common to all analysis
@@ -378,11 +378,11 @@ public:
     /**
      * Retrieve all the ConstraintSet of the model that are active but not common to all analysis
      */
-    const std::set<std::shared_ptr<ConstraintSet>> getUncommonConstraintSets() const;
+    const std::set<std::shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> getUncommonConstraintSets() const;
     /**
      * Retrieve all the ConstraintSet of the model that are active but not common to all analysis
      */
-    const std::set<std::shared_ptr<LoadSet>> getUncommonLoadSets() const;
+    const std::set<std::shared_ptr<LoadSet>, ptrLess<LoadSet>> getUncommonLoadSets() const;
 
     /**
 	 * Retrieves only 1D elements having rotational stiffness in linear static analysis, false for Truss elements (also see getTrusses() method )

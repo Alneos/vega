@@ -325,7 +325,7 @@ BOOST_AUTO_TEST_CASE(test_Analysis) {
 	BOOST_CHECK(not analysis->validate());
 	BOOST_CHECK(not model.validate());
 
-	set<shared_ptr<Loading>> loadings = model.getLoadingsByLoadSet(loadSet1);
+	auto& loadings = model.getLoadingsByLoadSet(loadSet1);
 	BOOST_CHECK_EQUAL(static_cast<size_t>(2), loadings.size());
 	for (shared_ptr<Loading> loading : loadings) {
 		BOOST_CHECK(loading->getId() == force1->getId() or loading->getId() == force2->getId());
@@ -597,6 +597,41 @@ BOOST_AUTO_TEST_CASE( test_globalcs_force )
     NodalForce force1(model, 42.0, 43.0, 44.0, 0., 0., 0., Loading::NO_ORIGINAL_ID,
             Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, 0));
     BOOST_CHECK_EQUAL(force1.csref, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM);
+}
+
+BOOST_AUTO_TEST_CASE( test_indentifiable_sort )
+{
+    // https://github.com/Alneos/vega/issues/15
+    Model model{"cs test model", "10.3", SolverName::NASTRAN};
+    const auto& spc2 = make_shared<SinglePointConstraint>(model,nullptr, 2);
+    const auto& spc1 = make_shared<SinglePointConstraint>(model,nullptr, 1);
+    BOOST_CHECK(*spc1 < *spc2);
+    BOOST_CHECK(spc1->getReference() < spc2->getReference());
+    BOOST_CHECK_EQUAL(*spc1, *spc1);
+    BOOST_CHECK(! (*spc1 == *spc2));
+    const auto& spc3 = make_shared<SinglePointConstraint>(model,nullptr);
+    BOOST_CHECK(*spc1 < *spc3);
+    BOOST_CHECK(*spc2 < *spc3);
+    BOOST_CHECK_EQUAL(*spc3, *spc3);
+    const auto& spc4 = make_shared<SinglePointConstraint>(model,nullptr);
+    BOOST_CHECK(*spc1 < *spc4);
+    BOOST_CHECK(*spc2 < *spc4);
+    BOOST_CHECK(*spc3 < *spc4);
+    BOOST_CHECK(! (*spc1 == *spc4));
+    BOOST_CHECK(! (*spc3 == *spc4));
+    set<shared_ptr<Constraint>, ptrLess<Constraint>> cset;
+    cset.insert(spc4);
+    cset.insert(spc2);
+    BOOST_CHECK_EQUAL(*(*(cset.begin())), *spc2);
+    BOOST_CHECK_EQUAL(*(*(cset.rbegin())), *spc4);
+    cset.insert(spc1);
+    cset.insert(spc3);
+    cset.insert(spc1);
+    shared_ptr<Constraint> spc1b = spc1;
+    cset.insert(spc1b);
+    BOOST_CHECK_EQUAL(cset.size(), 4);
+    BOOST_CHECK_EQUAL(*(*(cset.begin())), *spc1);
+    BOOST_CHECK_EQUAL(*(*(cset.rbegin())), *spc4);
 }
 //____________________________________________________________________________//
 

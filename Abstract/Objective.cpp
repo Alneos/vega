@@ -56,19 +56,19 @@ void ObjectiveSet::add(const Reference<ObjectiveSet>& objectiveSetReference) {
     objectiveSetReferences.push_back(objectiveSetReference);
 }
 
-const set<shared_ptr<Objective> > ObjectiveSet::getObjectives() const {
-    set<shared_ptr<Objective>> result = model.getObjectivesByObjectiveSet(this->getReference());
+const set<shared_ptr<Objective>, ptrLess<Objective> > ObjectiveSet::getObjectives() const {
+    auto result = model.getObjectivesByObjectiveSet(this->getReference());
     for (const auto& objectiveSetReference : objectiveSetReferences) {
-        set<shared_ptr<Objective>> setToInsert = model.getObjectivesByObjectiveSet(
+        const auto& setToInsert = model.getObjectivesByObjectiveSet(
                 objectiveSetReference);
         result.insert(setToInsert.begin(), setToInsert.end());
     }
     return result;
 }
 
-const set<shared_ptr<Objective> > ObjectiveSet::getObjectivesByType(
+const set<shared_ptr<Objective>, ptrLess<Objective> > ObjectiveSet::getObjectivesByType(
         Objective::Type type) const {
-    set<shared_ptr<Objective> > result;
+    set<shared_ptr<Objective>, ptrLess<Objective> > result;
     for (shared_ptr<Objective> objective : getObjectives()) {
         if (objective->type == type) {
             result.insert(objective);

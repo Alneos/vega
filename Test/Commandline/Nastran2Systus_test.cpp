@@ -132,5 +132,9 @@ BOOST_AUTO_TEST_CASE( n4w101 ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/n4w101/n4w101.nas", RUN_SYSTUS, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( nas103prob5 ) {
+	CommandLineUtils::nastranStudy2Systus("/irt/nas103prob5b/nas103prob5b.nas", RUN_SYSTUS, true, 0.005);
+}
+
 } /* namespace test */
 } /* namespace vega */

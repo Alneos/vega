@@ -74,19 +74,19 @@ void ConstraintSet::add(const Reference<ConstraintSet>& constraintSetReference) 
     constraintSetReferences.push_back(constraintSetReference);
 }
 
-const set<shared_ptr<Constraint> > ConstraintSet::getConstraints() const {
-    set<shared_ptr<Constraint>> result = model.getConstraintsByConstraintSet(this->getReference());
+const set<shared_ptr<Constraint>, ptrLess<Constraint> > ConstraintSet::getConstraints() const {
+    auto result = model.getConstraintsByConstraintSet(this->getReference());
     for (const auto& constraintSetReference : constraintSetReferences) {
-        set<shared_ptr<Constraint>> setToInsert = model.getConstraintsByConstraintSet(
+        const auto& setToInsert = model.getConstraintsByConstraintSet(
                 constraintSetReference);
         result.insert(setToInsert.begin(), setToInsert.end());
     }
     return result;
 }
 
-const set<shared_ptr<Constraint> > ConstraintSet::getConstraintsByType(
+const set<shared_ptr<Constraint>, ptrLess<Constraint> > ConstraintSet::getConstraintsByType(
         Constraint::Type type) const {
-    set<shared_ptr<Constraint> > result;
+    set<shared_ptr<Constraint>, ptrLess<Constraint> > result;
     for (shared_ptr<Constraint> constraint : getConstraints()) {
         if (constraint->type == type) {
             result.insert(constraint);
@@ -393,7 +393,7 @@ shared_ptr<Value> SinglePointConstraint::getReferenceForDOF(const DOF& dof) cons
 }
 
 void SinglePointConstraint::emulateLocalDisplacementConstraint() {
-    set<shared_ptr<LinearMultiplePointConstraint>> lmpcs;
+    set<shared_ptr<LinearMultiplePointConstraint>, ptrLess<Constraint>> lmpcs;
     for (int nodePosition : this->nodePositions()) {
         const Node& node = model.mesh.findNode(nodePosition);
         if (node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
@@ -426,8 +426,7 @@ void SinglePointConstraint::emulateLocalDisplacementConstraint() {
             this->removeNode(nodePosition);
         }
     }
-    const set<shared_ptr<ConstraintSet>> constraintSets = model.getConstraintSetsByConstraint(
-                this->getReference());
+    const auto& constraintSets = model.getConstraintSetsByConstraint(this->getReference());
     for (const auto& linearMultiplePointConstraint : lmpcs) {
         model.add(linearMultiplePointConstraint);
         for (const auto& constraintSet : constraintSets) {

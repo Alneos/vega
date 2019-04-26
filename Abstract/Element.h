@@ -28,7 +28,7 @@ private:
 	ModelType(std::string name, const SpaceDimension dimension);
 	public:
 	inline bool operator==(const ModelType& rhs) {
-		return this->name == rhs.name;
+		return this->name == rhs.name and dimension == rhs.dimension;
 	}
 
 	static const ModelType PLANE_STRESS;

@@ -367,9 +367,9 @@ shared_ptr<LoadSet> Model::getOrCreateLoadSet(int loadset_id, LoadSet::Type load
 }
 
 
-const set<shared_ptr<Loading>> Model::getLoadingsByLoadSet(
+const set<shared_ptr<Loading>, ptrLess<Loading>> Model::getLoadingsByLoadSet(
         const Reference<LoadSet>& loadSetReference) const {
-    set<shared_ptr<Loading>> result;
+    set<shared_ptr<Loading>, ptrLess<Loading>> result;
     auto itm = loadingReferences_by_loadSet_ids.find(loadSetReference.id);
     if (itm != loadingReferences_by_loadSet_ids.end()) {
         for (const auto& itm2 : itm->second) {
@@ -410,9 +410,9 @@ void Model::addConstraintIntoConstraintSet(const Reference<Constraint>& constrai
         add(commonConstraintSet); // commonConstraintSet is added to the model if needed
 }
 
-const set<shared_ptr<Constraint>> Model::getConstraintsByConstraintSet(
+const set<shared_ptr<Constraint>, ptrLess<Constraint>> Model::getConstraintsByConstraintSet(
         const Reference<ConstraintSet>& constraintSetReference) const {
-    set<shared_ptr<Constraint>> result;
+    set<shared_ptr<Constraint>, ptrLess<Constraint>> result;
     auto itm = constraintReferences_by_constraintSet_ids.find(constraintSetReference.id);
     if (itm != constraintReferences_by_constraintSet_ids.end()) {
         for (const auto& itm2 : itm->second) {
@@ -432,11 +432,11 @@ const set<shared_ptr<Constraint>> Model::getConstraintsByConstraintSet(
     return result;
 }
 
-const set<shared_ptr<ConstraintSet>> Model::getConstraintSetsByConstraint(
+const set<shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> Model::getConstraintSetsByConstraint(
         const Reference<Constraint>& constraintReference) const {
-    set<shared_ptr<ConstraintSet>> result;
+    set<shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> result;
     for (const auto& it : constraintSets) {
-        set<shared_ptr<Constraint>> constraints = getConstraintsByConstraintSet(it->getReference());
+        const auto& constraints = getConstraintsByConstraintSet(it->getReference());
         bool found = false;
         for (const auto& constraint : constraints) {
             if (constraint == nullptr) {
@@ -454,9 +454,9 @@ const set<shared_ptr<ConstraintSet>> Model::getConstraintSetsByConstraint(
     return result;
 }
 
-const set<shared_ptr<Objective>> Model::getObjectivesByObjectiveSet(
+const set<shared_ptr<Objective>, ptrLess<Objective>> Model::getObjectivesByObjectiveSet(
         const Reference<ObjectiveSet>& objectiveSetReference) const {
-    set<shared_ptr<Objective>> result;
+    set<shared_ptr<Objective>, ptrLess<Objective>> result;
     auto itm = objectiveReferences_by_objectiveSet_ids.find(objectiveSetReference.id);
     if (itm != objectiveReferences_by_objectiveSet_ids.end()) {
         for (const auto& itm2 : itm->second) {
@@ -478,11 +478,11 @@ const set<shared_ptr<Objective>> Model::getObjectivesByObjectiveSet(
 
 const vector<shared_ptr<ConstraintSet>> Model::getActiveConstraintSets() const {
     vector<shared_ptr<ConstraintSet>> result;
-    set<shared_ptr<ConstraintSet>> set;
+    set<shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> cset;
     for (const auto& analyse : analyses) {
         for (const auto& constraintSet : analyse->getConstraintSets()) {
-            if (set.find(constraintSet) == set.end()) {
-                set.insert(constraintSet);
+            if (cset.find(constraintSet) == cset.end()) {
+                cset.insert(constraintSet);
                 result.push_back(constraintSet);
             }
         }
@@ -492,11 +492,11 @@ const vector<shared_ptr<ConstraintSet>> Model::getActiveConstraintSets() const {
 
 const vector<shared_ptr<LoadSet>> Model::getActiveLoadSets() const {
     vector<shared_ptr<LoadSet>> result;
-    set<shared_ptr<LoadSet>> set;
+    set<shared_ptr<LoadSet>, ptrLess<LoadSet>> lset;
     for (const auto& analyse : analyses) {
         for (const auto& loadSet : analyse->getLoadSets()) {
-            if (set.find(loadSet) == set.end()) {
-                set.insert(loadSet);
+            if (lset.find(loadSet) == lset.end()) {
+                lset.insert(loadSet);
                 result.push_back(loadSet);
             }
         }
@@ -537,33 +537,33 @@ const vector<shared_ptr<LoadSet>> Model::getCommonLoadSets() const {
     return result;
 }
 
-const set<shared_ptr<ConstraintSet>> Model::getUncommonConstraintSets() const {
-    set<shared_ptr<ConstraintSet>> result;
-    map<shared_ptr<ConstraintSet>, int> map;
+const set<shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> Model::getUncommonConstraintSets() const {
+    set<shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> result;
+    map<shared_ptr<ConstraintSet>, int, ptrLess<ConstraintSet>> amap;
     for (const auto& analyse : analyses) {
         for (const auto& constraintSet : analyse->getConstraintSets()) {
-            map[constraintSet] += 1;
+            amap[constraintSet] += 1;
         }
     }
     for (const auto& constraintSet : constraintSets) {
-        auto it = map.find(constraintSet);
-        if (it != map.end() and it->second < analyses.size())
+        auto it = amap.find(constraintSet);
+        if (it != amap.end() and it->second < analyses.size())
             result.insert(constraintSet);
     }
     return result;
 }
 
-const set<shared_ptr<LoadSet>> Model::getUncommonLoadSets() const {
-    set<shared_ptr<LoadSet>> result;
-    map<shared_ptr<LoadSet>, int> map;
+const set<shared_ptr<LoadSet>, ptrLess<LoadSet>> Model::getUncommonLoadSets() const {
+    set<shared_ptr<LoadSet>, ptrLess<LoadSet>> result;
+    map<shared_ptr<LoadSet>, int, ptrLess<LoadSet>> lmap;
     for (const auto& analyse : analyses) {
         for (const auto& loadSet : analyse->getLoadSets()) {
-            map[loadSet] += 1;
+            lmap[loadSet] += 1;
         }
     }
     for (const auto& loadSet : loadSets) {
-        auto it = map.find(loadSet);
-        if ((it != map.end() and it->second < analyses.size()) and loadSet->type != LoadSet::Type::DLOAD)
+        auto it = lmap.find(loadSet);
+        if ((it != lmap.end() and it->second < analyses.size()) and loadSet->type != LoadSet::Type::DLOAD)
             result.insert(loadSet);
     }
     return result;
@@ -796,9 +796,9 @@ void Model::generateBeamsToDisplayHomogeneousConstraint() {
     shared_ptr<CellGroup> virtualGroupRigid = nullptr;
     shared_ptr<CellGroup> virtualGroupRBE3 = nullptr;
 
-    vector<shared_ptr<ConstraintSet>> activeConstraintSets = getActiveConstraintSets();
+    const auto& activeConstraintSets = getActiveConstraintSets();
     for (const auto& constraintSet : activeConstraintSets) {
-        set<shared_ptr<Constraint>> constraints = constraintSet->getConstraints();
+        const auto& constraints = constraintSet->getConstraints();
         for (const auto& constraint : constraints) {
             switch (constraint->type) {
             case Constraint::Type::RIGID: {
@@ -1270,8 +1270,7 @@ void Model::removeRedundantSpcs() {
     for (const auto& analysis : this->analyses) {
         unordered_map<pair<int, DOF>, double, boost::hash<pair<int, int> > > spcvalueByNodeAndDof;
         for (const auto& constraintSet : analysis->getConstraintSets()) {
-            const set<shared_ptr<Constraint> > spcs = constraintSet->getConstraintsByType(
-                    Constraint::Type::SPC);
+            const auto& spcs = constraintSet->getConstraintsByType(Constraint::Type::SPC);
             if (spcs.size() == 0) {
                 continue;
             }
@@ -1316,8 +1315,7 @@ void Model::removeConstrainedImposed() {
     for (const auto& analysis : this->analyses) {
         unordered_map<int, DOFS> imposedDofsByNodeId;
         for (const auto& loadSet : analysis->getLoadSets()) {
-            const set<shared_ptr<Loading> > loads = loadSet->getLoadingsByType(
-                    Loading::Type::IMPOSED_DISPLACEMENT);
+            const auto& loads = loadSet->getLoadingsByType(Loading::Type::IMPOSED_DISPLACEMENT);
             if (loads.size() == 0) {
                 continue;
             }
@@ -1330,8 +1328,7 @@ void Model::removeConstrainedImposed() {
             }
         }
         for (const auto& constraintSet : analysis->getConstraintSets()) {
-            const set<shared_ptr<Constraint> > spcs = constraintSet->getConstraintsByType(
-                    Constraint::Type::SPC);
+            const auto& spcs = constraintSet->getConstraintsByType(Constraint::Type::SPC);
             if (spcs.size() == 0) {
                 continue;
             }
@@ -1561,6 +1558,9 @@ void Model::makeCellsFromLMPC(){
                     elementsetLMPC->assignDofCoefs(sortedCoefs);
                     this->add(elementsetLMPC);
                     groupBySetOfCoefs[sortedCoefs]= group;
+                    if (configuration.logLevel >= LogLevel::DEBUG){
+                        cout << "Created elementSet " << *elementsetLMPC << " from " << *lmpc<<"." << endl;
+                    }
                 }
 
                 // Creating a cell and adding it to the CellGroup
@@ -1571,8 +1571,8 @@ void Model::makeCellsFromLMPC(){
                 }
                 int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::polyType(static_cast<unsigned int>(nodes.size())), nodes, true);
                 group->addCellPosition(cellPosition);
-                if (configuration.logLevel >= LogLevel::TRACE){
-                    cout << "Building cells in group "<<group->getName()<<" from "<< *lmpc<<"."<<endl;
+                if (configuration.logLevel >= LogLevel::DEBUG){
+                    cout << "Added cell id " << mesh.findCellId(cellPosition) << " in group " << group->getName() << " from " << *lmpc << "." << endl;
                 }
             }
         }

@@ -374,8 +374,7 @@ void NastranWriter::writeMaterials(const Model& model, ofstream& out) const
 void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
 		{
 	for (const auto& constraintSet : model.constraintSets) {
-		const set<shared_ptr<Constraint> >& spcs = constraintSet->getConstraintsByType(
-				Constraint::Type::SPC);
+		const auto& spcs = constraintSet->getConstraintsByType(Constraint::Type::SPC);
         for (shared_ptr<Constraint> constraint : spcs) {
             shared_ptr<SinglePointConstraint> spc = dynamic_pointer_cast<
                     SinglePointConstraint>(constraint);
@@ -387,8 +386,7 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
             }
             spc->markAsWritten();
         }
-		const set<shared_ptr<Constraint> >& rigidConstraints = constraintSet->getConstraintsByType(
-				Constraint::Type::RIGID);
+		const auto& rigidConstraints = constraintSet->getConstraintsByType(Constraint::Type::RIGID);
         for (shared_ptr<Constraint> constraint : rigidConstraints) {
             shared_ptr<RigidConstraint> rigid =
                     dynamic_pointer_cast<RigidConstraint>(constraint);
@@ -405,7 +403,7 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
             rigid->markAsWritten();
         }
 
-		const set<shared_ptr<Constraint> >& quasiRigidConstraints = constraintSet->getConstraintsByType(
+		const auto& quasiRigidConstraints = constraintSet->getConstraintsByType(
 				Constraint::Type::QUASI_RIGID);
         for (shared_ptr<Constraint> constraint : quasiRigidConstraints) {
             shared_ptr<QuasiRigidConstraint> quasiRigid =
@@ -435,7 +433,7 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
             quasiRigid->markAsWritten();
         }
 
-		const set<shared_ptr<Constraint> >& rbe3Constraints = constraintSet->getConstraintsByType(
+		const auto& rbe3Constraints = constraintSet->getConstraintsByType(
 				Constraint::Type::RBE3);
         for (shared_ptr<Constraint> constraint : rbe3Constraints) {
             shared_ptr<RBE3> rbe3Constraint =
@@ -461,7 +459,7 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
 void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
 		{
 	for (const auto& loadingSet : model.loadSets) {
-		const set<shared_ptr<Loading> > gravities = loadingSet->getLoadingsByType(Loading::Type::GRAVITY);
+		const auto& gravities = loadingSet->getLoadingsByType(Loading::Type::GRAVITY);
         for (shared_ptr<Loading> loading : gravities) {
             shared_ptr<Gravity> gravity = dynamic_pointer_cast<Gravity>(loading);
             Line grav("GRAV");
@@ -477,7 +475,7 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
             gravity->markAsWritten();
         }
 
-		const set<shared_ptr<Loading> > forceSurfaces = loadingSet->getLoadingsByType(
+		const auto& forceSurfaces = loadingSet->getLoadingsByType(
 				Loading::Type::FORCE_SURFACE);
         for (shared_ptr<Loading> loading : forceSurfaces) {
             shared_ptr<ForceSurface> forceSurface = dynamic_pointer_cast<ForceSurface>(loading);
@@ -510,7 +508,7 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
             forceSurface->markAsWritten();
         }
 
-		const set<shared_ptr<Loading> > nodalForces = loadingSet->getLoadingsByType(
+		const auto& nodalForces = loadingSet->getLoadingsByType(
 				Loading::Type::NODAL_FORCE);
         for (shared_ptr<Loading> loading : nodalForces) {
             shared_ptr<NodalForce> nodalForce = dynamic_pointer_cast<NodalForce>(loading);

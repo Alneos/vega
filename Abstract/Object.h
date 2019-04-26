@@ -158,9 +158,23 @@ int operator==(const Identifiable<T>& left, const Identifiable<T>& right) {
 }
 
 template<class T>
-int operator <(const Identifiable<T>& left, const Identifiable<T>& right) {
-    return left < right;
+int operator!=(const Identifiable<T>& left, const Identifiable<T>& right) {
+    return left.getReference() != right.getReference();
 }
+
+template<class T>
+int operator <(const Identifiable<T>& left, const Identifiable<T>& right) {
+    return left.getReference() < right.getReference();
+}
+
+template<class T>
+struct ptrLess {
+    bool operator()(const std::shared_ptr<T>& lhs,
+                    const std::shared_ptr<T>& rhs) const
+    {
+        return lhs->getReference() < rhs->getReference();
+    }
+};
 
 } /* namespace vega */
 

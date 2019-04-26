@@ -2113,6 +2113,8 @@
 		<Unit filename="testdata/nastran/irt/nas103prob5/nas103prob5.f06" />
 		<Unit filename="testdata/nastran/irt/nas103prob5/nas103prob5.nas" />
 		<Unit filename="testdata/nastran/irt/nas103prob5/readme.txt" />
+		<Unit filename="testdata/nastran/irt/nas103prob5b/nas103prob5b.nas" />
+		<Unit filename="testdata/nastran/irt/nas103prob5b/readme.txt" />
 		<Unit filename="testdata/nastran/irt/nas103prob9/nas103prob9.dat" />
 		<Unit filename="testdata/nastran/irt/nas103prob9/nas103prob9.f06" />
 		<Unit filename="testdata/nastran/irt/nas103prob9/readme.txt" />

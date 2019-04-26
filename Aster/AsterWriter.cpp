@@ -407,13 +407,11 @@ void AsterWriter::writeLireMaillage(const AsterModel& asterModel, ostream& out) 
 	}
 	out << ");" << endl << endl;
 
-    for (const auto& it : asterModel.model.constraintSets) {
-		ConstraintSet& constraintSet = *it;
-		if (not constraintSet.hasContacts()) {
+    for (const auto& constraintSet : asterModel.model.constraintSets) {
+		if (not constraintSet->hasContacts()) {
 			continue;
 		}
-        const set<shared_ptr<Constraint>> zones = constraintSet.getConstraintsByType(
-				Constraint::Type::ZONE_CONTACT);
+        const auto& zones = constraintSet->getConstraintsByType(Constraint::Type::ZONE_CONTACT);
         if (zones.empty()) {
             continue;
         }
@@ -444,9 +442,8 @@ void AsterWriter::writeLireMaillage(const AsterModel& asterModel, ostream& out) 
 		out << "                   )" << endl << endl;
 	}
 
-	for (const auto& it : asterModel.model.constraintSets) {
-		ConstraintSet& constraintSet = *it;
-        const set<shared_ptr<Constraint>> surfaces = constraintSet.getConstraintsByType(
+	for (const auto& constraintSet : asterModel.model.constraintSets) {
+        const auto& surfaces = constraintSet->getConstraintsByType(
 				Constraint::Type::SURFACE_SLIDE_CONTACT);
         if (surfaces.empty()) {
             continue;
@@ -1128,16 +1125,12 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 		if (not constraintSet.hasContacts()) {
 			continue;
 		}
-		const set<shared_ptr<Constraint>> gaps = constraintSet.getConstraintsByType(
-				Constraint::Type::GAP);
-        const set<shared_ptr<Constraint>> slides = constraintSet.getConstraintsByType(
-				Constraint::Type::SLIDE);
-        const set<shared_ptr<Constraint>> surfaces = constraintSet.getConstraintsByType(
-				Constraint::Type::SURFACE_CONTACT);
-//        const set<shared_ptr<Constraint>> surfaceSlides = constraintSet.getConstraintsByType(
+		const auto& gaps = constraintSet.getConstraintsByType(Constraint::Type::GAP);
+        const auto& slides = constraintSet.getConstraintsByType(Constraint::Type::SLIDE);
+        const auto& surfaces = constraintSet.getConstraintsByType(Constraint::Type::SURFACE_CONTACT);
+//        const auto& surfaceSlides = constraintSet.getConstraintsByType(
 //				Constraint::Type::SURFACE_SLIDE_CONTACT);
-        const set<shared_ptr<Constraint>> zones = constraintSet.getConstraintsByType(
-				Constraint::Type::ZONE_CONTACT);
+        const auto& zones = constraintSet.getConstraintsByType(Constraint::Type::ZONE_CONTACT);
 		for (shared_ptr<Constraint> constraint : gaps) {
 			shared_ptr<const Gap> gap = dynamic_pointer_cast<const Gap>(constraint);
 			int gapCount = 0;
@@ -1372,10 +1365,8 @@ void AsterWriter::writeLIAISON_SOLIDE(const AsterModel& asterModel, const Constr
 		ostream& out) {
   UNUSEDV(asterModel);
 
-	const set<shared_ptr<Constraint>> rigidConstraints = cset.getConstraintsByType(
-			Constraint::Type::RIGID);
-	const set<shared_ptr<Constraint>> quasiRigidConstraints = cset.getConstraintsByType(
-			Constraint::Type::QUASI_RIGID);
+	const auto& rigidConstraints = cset.getConstraintsByType(Constraint::Type::RIGID);
+	const auto& quasiRigidConstraints = cset.getConstraintsByType(Constraint::Type::QUASI_RIGID);
 	vector<shared_ptr<Constraint>> constraints;
 	constraints.reserve(rigidConstraints.size() + quasiRigidConstraints.size());
 	constraints.assign(rigidConstraints.begin(), rigidConstraints.end());
@@ -1561,7 +1552,7 @@ void AsterWriter::writeLMPC(const AsterModel& asterModel, const ConstraintSet& c
 }
 
 void AsterWriter::writeGravity(const LoadSet& loadSet, ostream& out) {
-	const set<shared_ptr<Loading>> gravities = loadSet.getLoadingsByType(Loading::Type::GRAVITY);
+	const auto& gravities = loadSet.getLoadingsByType(Loading::Type::GRAVITY);
 	if (gravities.size() > 0) {
 		out << "                      PESANTEUR=(" << endl;
 		for (shared_ptr<Loading> loading : gravities) {
@@ -1578,7 +1569,7 @@ void AsterWriter::writeGravity(const LoadSet& loadSet, ostream& out) {
 }
 
 void AsterWriter::writeRotation(const LoadSet& loadSet, ostream& out) {
-	const set<shared_ptr<Loading>> rotations = loadSet.getLoadingsByType(Loading::Type::ROTATION);
+	const auto& rotations = loadSet.getLoadingsByType(Loading::Type::ROTATION);
 	if (rotations.size() > 0) {
 		out << "                      ROTATION=(" << endl;
 		for (shared_ptr<Loading> loading : rotations) {
@@ -1600,7 +1591,7 @@ void AsterWriter::writeRotation(const LoadSet& loadSet, ostream& out) {
 
 void AsterWriter::writeNodalForce(const AsterModel& asterModel, const LoadSet& loadSet, ostream& out) {
   UNUSEDV(asterModel);
-	const set<shared_ptr<Loading>> nodalForces = loadSet.getLoadingsByType(Loading::Type::NODAL_FORCE);
+	const auto& nodalForces = loadSet.getLoadingsByType(Loading::Type::NODAL_FORCE);
 	if (nodalForces.size() > 0) {
 		out << "                      FORCE_NODALE=(" << endl;
 		for (shared_ptr<Loading> loading : nodalForces) {
@@ -1631,7 +1622,7 @@ void AsterWriter::writeNodalForce(const AsterModel& asterModel, const LoadSet& l
 }
 
 void AsterWriter::writePression(const LoadSet& loadSet, ostream& out) {
-	const set<shared_ptr<Loading>> loading = loadSet.getLoadingsByType(
+	const auto& loading = loadSet.getLoadingsByType(
 			Loading::Type::NORMAL_PRESSION_FACE);
 	if (loading.size() > 0) {
 		out << "           PRES_REP=(" << endl;
@@ -1649,8 +1640,7 @@ void AsterWriter::writePression(const LoadSet& loadSet, ostream& out) {
 
 void AsterWriter::writeForceCoque(const LoadSet& loadSet, ostream&out) {
     return; // TODO : change type of loading in parser to something specific for shell elements
-	const set<shared_ptr<Loading> > pressionFaces = loadSet.getLoadingsByType(
-			Loading::Type::NORMAL_PRESSION_FACE);
+	const auto& pressionFaces = loadSet.getLoadingsByType(Loading::Type::NORMAL_PRESSION_FACE);
 	if (pressionFaces.size() > 0) {
 		out << "           FORCE_COQUE=(" << endl;
 		for (shared_ptr<Loading> pressionFace : pressionFaces) {
@@ -1666,7 +1656,7 @@ void AsterWriter::writeForceCoque(const LoadSet& loadSet, ostream&out) {
 }
 
 void AsterWriter::writeForceLine(const LoadSet& loadset, ostream& out) {
-	const set<shared_ptr<Loading> > forcesLine = loadset.getLoadingsByType(Loading::Type::FORCE_LINE);
+	const auto& forcesLine = loadset.getLoadingsByType(Loading::Type::FORCE_LINE);
 	vector<shared_ptr<ForceLine>> forcesOnPoutres;
 	vector<shared_ptr<ForceLine>> forcesOnGeometry;
 
@@ -1719,8 +1709,7 @@ void AsterWriter::writeForceLine(const LoadSet& loadset, ostream& out) {
 
 }
 void AsterWriter::writeForceSurface(const LoadSet& loadSet, ostream&out) {
-	const set<shared_ptr<Loading> > forceSurfaces = loadSet.getLoadingsByType(
-			Loading::Type::FORCE_SURFACE);
+	const auto& forceSurfaces = loadSet.getLoadingsByType(Loading::Type::FORCE_SURFACE);
 	if (forceSurfaces.size() > 0) {
 		out << "           FORCE_FACE=(" << endl;
 		for (const auto& loading : forceSurfaces) {
@@ -2277,7 +2266,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 					if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
 						DynamicExcitation& dynamicExcitation =
 								dynamic_cast<DynamicExcitation&>(*loading);
-						const set<shared_ptr<Loading>> nodalForces =
+						const auto& nodalForces =
 								dynamicExcitation.getLoadSet()->getLoadingsByType(
 										Loading::Type::NODAL_FORCE);
 						for (const auto& loading2 : nodalForces) {

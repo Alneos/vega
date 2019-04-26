@@ -2364,6 +2364,10 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
     out << "BEGIN_ELEMENTS " << mesh.countCells() << endl;
     for (const auto& elementSet : systusModel.model.elementSets) {
 
+        if (systusModel.model.configuration.logLevel >= LogLevel::DEBUG){
+            cout << "Writing elementSet " << *elementSet << endl;
+        }
+
         shared_ptr<CellGroup> cellGroup = elementSet->cellGroup;
         cellGroup->isUseful=false;
         int dim = 0;
@@ -2464,6 +2468,10 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
         }
         cellGroup->isUseful=true;
         for (const Cell& cell : cellGroup->getCells()) {
+
+            if (systusModel.model.configuration.logLevel >= LogLevel::DEBUG){
+                cout << "Writing cell id " << cell.id << "from group " << cellGroup->getName() << endl;
+            }
             auto systus2med_it = systus2medNodeConnectByCellType.find(cell.type.code);
             if (systus2med_it == systus2medNodeConnectByCellType.end()) {
                 cout << "Warning in Elements: " << cell << " not supported in Systus" << endl;

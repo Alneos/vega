@@ -73,13 +73,13 @@ int LoadSet::size() const {
 	return static_cast<int>(getLoadings().size());
 }
 
-const set<shared_ptr<Loading> > LoadSet::getLoadings() const {
-	set<shared_ptr<Loading>> result = model.getLoadingsByLoadSet(this->getReference());
+const set<shared_ptr<Loading>, ptrLess<Loading> > LoadSet::getLoadings() const {
+	const auto& result = model.getLoadingsByLoadSet(this->getReference());
 	return result;
 }
 
-const set<shared_ptr<Loading> > LoadSet::getLoadingsByType(Loading::Type loadingType) const {
-	set<shared_ptr<Loading> > result;
+const set<shared_ptr<Loading>, ptrLess<Loading> > LoadSet::getLoadingsByType(Loading::Type loadingType) const {
+	set<shared_ptr<Loading>, ptrLess<Loading> > result;
 	for (shared_ptr<Loading> loading : getLoadings()) {
 		if (loading->type == loadingType) {
 			result.insert(loading);
@@ -89,7 +89,7 @@ const set<shared_ptr<Loading> > LoadSet::getLoadingsByType(Loading::Type loading
 }
 
 bool LoadSet::validate() const {
-	set<shared_ptr<Loading>> loadings = getLoadings();
+	const auto& loadings = getLoadings();
 	if (loadings.size() == 0 ) { //or loadings.find(0) != loadings.end()) {
         if (model.configuration.logLevel >= LogLevel::INFO) {
             cout << "Loadset " << *this << " is not valid, no loads associated" << endl;
