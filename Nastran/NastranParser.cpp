@@ -660,8 +660,9 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
             handleParsingError("FREQ not found for linear dynamic modal frequency analysis", tok, model);
 
         bool residual_vector = false;
-        it = context.find("RESVEC");
-        if (it != context.end() && it->second == "YES")
+        string search_for = "RESVEC";
+        it = context.lower_bound(search_for);
+        if (it != context.end() and it->first.compare(0, search_for.size(), search_for) == 0 and it->second == "YES")
             residual_vector = true;
 
         if (frequency_band_original_id == 0)
