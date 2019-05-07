@@ -2460,7 +2460,7 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, Model& model) {
         //format 1
         g1 = tok.nextInt(true);
         g3_or_4 = tok.nextInt(true);
-        eid2 = eid1 + 1;
+        eid2 = eid1;
     } else {
         if (tok.isNextTHRU()) {
             //format2
@@ -2494,7 +2494,7 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, Model& model) {
                               and cid == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     if (not has_direction and g1 == Globals::UNAVAILABLE_INT) {
         const auto& normalPressionFace = make_shared<NormalPressionFace>(model, p1);
-        for(int cellId = eid1; cellId < eid2; cellId++) {
+        for(int cellId = eid1; cellId < eid2+1; cellId++) {
             normalPressionFace->addCellId(cellId);
         }
 
@@ -2503,7 +2503,7 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, Model& model) {
     } else if (not has_direction and g1 != Globals::UNAVAILABLE_INT) {
         const auto& pressionFaceTwoNodes = make_shared<NormalPressionFaceTwoNodes>(model, g1, g3_or_4,
                 p1);
-        for(int cellId = eid1; cellId < eid2; cellId++) {
+        for(int cellId = eid1; cellId < eid2+1; cellId++) {
             pressionFaceTwoNodes->addCellId(cellId);
         }
 
@@ -2512,7 +2512,7 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, Model& model) {
     } else if (has_direction and g1 != Globals::UNAVAILABLE_INT) {
         const auto& forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(model, g1, g3_or_4,
 			VectorialValue(n1 * p1, n2 * p1, n3 * p1), VectorialValue(0, 0, 0));
-        for(int cellId = eid1; cellId < eid2; cellId++) {
+        for(int cellId = eid1; cellId < eid2+1; cellId++) {
             forceSurfaceTwoNodes->addCellId(cellId);
         }
 
@@ -2521,7 +2521,7 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, Model& model) {
     } else {
         const auto& forceSurface = make_shared<ForceSurface>(model, VectorialValue(n1 * p1, n2 * p1, n3 * p1),
                 VectorialValue(0.0, 0.0, 0.0));
-        for(int cellId = eid1; cellId < eid2; cellId++) {
+        for(int cellId = eid1; cellId < eid2+1; cellId++) {
             forceSurface->addCellId(cellId);
         }
 
