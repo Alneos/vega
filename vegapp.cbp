@@ -2127,6 +2127,8 @@
 		<Unit filename="testdata/nastran/irt/pload4b/pload4b.nas" />
 		<Unit filename="testdata/nastran/irt/pload4b/readme.txt" />
 		<Unit filename="testdata/nastran/irt/pload4c/pload4c.nas" />
+		<Unit filename="testdata/nastran/irt/pload4d/pload4d.f06" />
+		<Unit filename="testdata/nastran/irt/pload4d/pload4d.nas" />
 		<Unit filename="testdata/nastran/irt/rbe3/rbe3.f06" />
 		<Unit filename="testdata/nastran/irt/rbe3/rbe3.nas" />
 		<Unit filename="testdata/nastran/irt/rbe3/readme.txt" />

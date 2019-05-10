@@ -114,7 +114,7 @@ void AsterWriter::writeExport(AsterModel &model, ostream& out) {
 	out << "F mess " << model.getOutputFileName(".mess", false) << " R 6" << endl;
 	out << "F resu " << model.getOutputFileName(".resu", false) << " R 8" << endl;
 	out << "F rmed " << model.getOutputFileName(".rmed", false) << " R 80" << endl;
-	out << "R repe repe_out R 0" << endl;
+	out << "R repe " << model.getOutputFileName("_repe_out", false) << " R 0" << endl;
 
 }
 
@@ -229,20 +229,25 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 			}
 			out << "),)" << endl << endl;
 
-			int unit = 10 + analysis.getId();
+			out << "TBUNITE=INFO_EXEC_ASTER(LISTE_INFO='UNITE_LIBRE')" << endl;
+			//out << "IMPR_TABLE(TABLE=TBUNITE)" << endl;
+
+			//int unit = 10 + analysis.getId();
+			out << "unite=TBUNITE['UNITE_LIBRE',1]" << endl;
 			out << "DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
-			out << "             UNITE=" << unit << "," << endl;
+			out << "             UNITE=unite," << endl;
 			out << "             FICHIER='REPE_OUT/tbresu_" << analysis.getId() << ".csv')" << endl
 					<< endl;
 
 			out << "IMPR_TABLE(TABLE=RETB" << analysis.getId() << "," << endl;
 			out << "           FORMAT='TABLEAU'," << endl;
-			out << "           UNITE=" << unit << "," << endl;
+			out << "           UNITE=unite," << endl;
 			out << "           SEPARATEUR=' ,'," << endl;
 			out << "           TITRE='RESULTS',)" << endl << endl;
 
 			out << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
-			out << "             UNITE=" << unit << ")" << endl << endl;
+			out << "             UNITE=unite,)" << endl << endl;
+			out << "DETRUIRE(CONCEPT=(_F(NOM=TBUNITE),))" << endl << endl;
 		}
 
 		for (const auto& analysis : asterModel.model.analyses) {
@@ -1058,8 +1063,9 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
             } else if (not withFunctions and not constraintSet.hasFunctions()) {
                 asterName = string("BL") + to_string(constraintSet.getId());
                 out << asterName << "=AFFE_CHAR_MECA(MODELE=MODMECA," << endl;
-            } else
+            } else {
                 continue;
+            }
             asternameByConstraintSet[constraintSet] = asterName;
 
             writeSPC(asterModel, constraintSet, out);
@@ -1098,8 +1104,10 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
 		    } else if (not withFunctions and not loadSet.hasFunctions()) {
 		        asterName = string("CHMEC") + to_string(loadSet.getId());
                 out << asterName << "=AFFE_CHAR_MECA(MODELE=MODMECA," << endl;
-            } else
+            } else {
                 continue;
+            }
+            out << "                 VERI_NORM='NON'," << endl; // Workaround for PREPOST4_97 see test pload4-ctetra-multi
             asternameByLoadSet[loadSet] = asterName;
             writeSPCD(asterModel, loadSet, out);
             writePression(loadSet, out);

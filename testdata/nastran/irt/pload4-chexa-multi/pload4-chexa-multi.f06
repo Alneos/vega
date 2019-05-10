@@ -1,0 +1,382 @@
+1
+ 
+ 
+ 
+ 
+                                                             
+                       Copyright 2007 UGS Corp.              
+                         All Rights Reserved.                
+                                                             
+           All other company names, trademarks or registered 
+           trademarks belong to their respective holders.    
+                                                             
+           LIMITATIONS TO U.S. GOVERNMENT RIGHTS. UNPUBLISHED
+           - RIGHTS RESERVED UNDER THE COPYRIGHT LAWS OF THE 
+            UNITED STATES. This computer software and related
+               computer software documentation have been     
+            developed exclusively at private expense and are 
+           provided subject to the following rights:  If this
+               computer software and computer  software      
+            documentation qualify as "commercial items" (as  
+             that term is defined in FAR 2.101), their use,  
+            duplication or disclosure by the U.S. Government 
+           is subject to the protections and restrictions as 
+            set forth in the UGS commercial license for the  
+            software and/or documentation, as prescribed in  
+           FAR 12.212 and FAR 27.405(b)(2)(i) (for civilian  
+             agencies) and in DFARS 227.7202-1(a) and DFARS  
+           227.7202-3(a) (for the Department of Defense), or 
+           any successor or similar regulation, as applicable
+           or as amended from time to time.  If this computer
+           software and computer documentation do not qualify
+            as "commercial items", then they are "restricted 
+           computer software" and are provided with "restric-
+            tive rights", and their use, duplication or dis- 
+            closure by the U.S. Government is subject to the 
+            protections and restrictions as set forth in FAR 
+           27.404(b) and FAR 52-227-14 (for civilian agencies
+           ), and DFARS 227.7203-5(c) and DFARS 252.227-7014 
+           (for the Department of Defense), or any successor 
+           or similar regulation, as applicable or as amended
+              from time to time.  UGS Corp.                  
+              5400 Legacy Drive, Plano, Texas 75024-3199.    
+ 
+
+                * * * * * * * * * * * * * * * * * * * *
+                * * * * * * * * * * * * * * * * * * * *
+                * *                                 * *
+                * *                                 * *
+                * *                                 * *
+                * *                                 * *
+                * *       N X   N a s t r a n       * *
+                * *                                 * *
+                * *         VERSION -   6.0         * *
+                * *                                 * *
+                * *          JUN  3, 2008           * *
+                * *                                 * *
+                * *                                 * *
+                * *Intel64 Family 6 Model 60 Steppi * *
+                * *                                 * *
+                * * Intel(R) Core(TM) i7-4810MQ CPU * *
+                * *                                 * *
+                * *             Windows             * *
+                * *                                 * *
+                * *       Compiled for X86-64       * *
+                * *                                 * *
+                * * * * * * * * * * * * * * * * * * * *
+                * * * * * * * * * * * * * * * * * * * *
+1 
+  
+                        Welcome to NX Nastran
+                        -------------------------
+  
+  
+ This "news" information can be turned off by setting "news=no" in the runtime
+ configuration (RC) file.  The "news" keyword can be set in the system RC file
+ for global, or multi-user control, and in a local file for local control.
+ Individual jobs can be controlled by setting news to yes or no on the command
+ line.
+1                                                                               MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE     1
+                                                                                                                                    
+0        N A S T R A N    F I L E    A N D    S Y S T E M    P A R A M E T E R    E C H O                                           
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+     NASTRAN BUFFSIZE=8193 $(C:/PROGRAM FILES (X86)/UGS/NXNASTRAN/6.0/CONF/NAST6.RCF[
+     NASTRAN REAL=2147483647 $(PROGRAM DEFAULT)                                      
+1                                                                               MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE     2
+                                                                                                                                    
+0        N A S T R A N    E X E C U T I V E    C O N T R O L    E C H  O                                                            
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+     ID LINEAR,PLOAD4-CHEXA-MULTIV4                                                          
+     SOL 101                                                                                 
+     TIME 5                                                                                  
+     CEND                                                                                    
+1    PRESSURE ON CHEXA                                                          MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE     3
+                                                                                                                                    
+0                                                                                                                                   
+0                                        C A S E    C O N T R O L    E C H O                                                        
+                 COMMAND                                                                                                            
+                 COUNT                                                                                                              
+                  1      TITLE = PRESSURE ON CHEXA                                                               
+                  2      SPC = 1                                                                                 
+                  3                                                                                              
+                  4      DISP=ALL                                                                                
+                  5      SUBCASE 1                                                                               
+                  6          LOAD = 1                                                                            
+                  7      SUBCASE 2                                                                               
+                  8          LOAD = 2                                                                            
+                  9      SUBCASE 3                                                                               
+                 10          LOAD = 3                                                                            
+                 11      SUBCASE 4                                                                               
+                 12          LOAD = 4                                                                            
+                 13      SUBCASE 5                                                                               
+                 14          LOAD = 5                                                                            
+                 15      SUBCASE 6                                                                               
+                 16          LOAD = 6                                                                            
+                 17                                                                                              
+                 18      BEGIN BULK                                                                              
+ *** USER WARNING MESSAGE 324 (XSORSO)
+     BLANK ENTRIES ENCOUNTERED WILL BE IGNORED.
+0                             INPUT BULK DATA ENTRY COUNT =      31
+1    PRESSURE ON CHEXA                                                          MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE     4
+                                                                                                                                    
+0                                                                                                                                   
+0                                                 S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                    1-        CHEXA   13      1       1       6       8       2       3       10      +      1
+                    2-        +      112      4                                                               
+                    3-        GRID    1               0.      0.      0.                                      
+                    4-        GRID    2               1.      0.      0.                                      
+                    5-        GRID    3               0.      1.      0.                                      
+                    6-        GRID    4               1.      1.      0.                                      
+                    7-        GRID    6               0.      0.      1.                                      
+                    8-        GRID    8               1.      0.      1.                                      
+                    9-        GRID    10              0.      1.      1.                                      
+                   10-        GRID    12              1.      1.      1.                                      
+                   11-        MAT1    1       210000.         0.3                                             
+                   12-        PLOAD4  1       13      100.                            1       8               
+                   13-        PLOAD4  2       13      100.                            2       12              
+                   14-        PLOAD4  3       13      100.                            4       10              
+                   15-        PLOAD4  4       13      100.                            3       6               
+                   16-        PLOAD4  5       13      100.                            1       4               
+                   17-        PLOAD4  6       13      100.                            6       12              
+                   18-        PSOLID  1       1       0       THREE   GRID    FULL    SMECH                   
+                   19-        SPC1    1       2       2                                                       
+                   20-        SPC1    1       12      1                                                       
+                   21-        SPC1    1       123     6                                                       
+                              ENDDATA 
+0                       TOTAL COUNT=        22
+
+
+                                        M O D E L   S U M M A R Y
+
+                                   NUMBER OF GRID     POINTS   =        8
+ 
+                                   NUMBER OF CHEXA    ELEMENTS =        1
+ 
+1    PRESSURE ON CHEXA                                                          MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE     5
+                                                                                                                                    
+0                                                                                                                                   
+ *** USER INFORMATION MESSAGE 7310 (VECPRN)
+     ORIGIN OF SUPERELEMENT BASIC COORDINATE SYSTEM WILL BE USED AS REFERENCE LOCATION.
+     RESULTANTS ABOUT ORIGIN OF SUPERELEMENT BASIC COORDINATE SYSTEM IN SUPERELEMENT BASIC SYSTEM COORDINATES.
+0                                                  OLOAD    RESULTANT       
+  SUBCASE/    LOAD
+  DAREA ID    TYPE       T1            T2            T3            R1            R2            R3
+0        1     FX    0.000000E+00     ----          ----          ----       0.000000E+00  0.000000E+00                             
+               FY       ----       1.000000E+02     ----      -5.000000E+01     ----       5.000000E+01                             
+               FZ       ----          ----       0.000000E+00  0.000000E+00  0.000000E+00     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  0.000000E+00  1.000000E+02  0.000000E+00 -5.000000E+01  0.000000E+00  5.000000E+01
+0        2     FX   -1.000000E+02     ----          ----          ----      -5.000000E+01  5.000000E+01                             
+               FY       ----      -2.775558E-15     ----       2.189013E-15     ----      -2.775558E-15                             
+               FZ       ----          ----       0.000000E+00  0.000000E+00  0.000000E+00     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS -1.000000E+02 -2.775558E-15  0.000000E+00  2.189013E-15 -5.000000E+01  5.000000E+01
+0        3     FX    2.775558E-15     ----          ----          ----       2.189013E-15 -2.775558E-15                             
+               FY       ----      -1.000000E+02     ----       5.000000E+01     ----      -5.000000E+01                             
+               FZ       ----          ----       0.000000E+00  0.000000E+00  0.000000E+00     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  2.775558E-15 -1.000000E+02  0.000000E+00  5.000000E+01  2.189013E-15 -5.000000E+01
+0        4     FX    1.000000E+02     ----          ----          ----       5.000000E+01 -5.000000E+01                             
+               FY       ----       0.000000E+00     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----       0.000000E+00  0.000000E+00  0.000000E+00     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  1.000000E+02  0.000000E+00  0.000000E+00  0.000000E+00  5.000000E+01 -5.000000E+01
+0        5     FX    0.000000E+00     ----          ----          ----       0.000000E+00  0.000000E+00                             
+               FY       ----       0.000000E+00     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----       1.000000E+02  5.000000E+01 -5.000000E+01     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  0.000000E+00  0.000000E+00  1.000000E+02  5.000000E+01 -5.000000E+01  0.000000E+00
+0        6     FX   -2.775558E-15     ----          ----          ----      -2.775558E-15  2.189013E-15                             
+               FY       ----       0.000000E+00     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----      -1.000000E+02 -5.000000E+01  5.000000E+01     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS -2.775558E-15  0.000000E+00 -1.000000E+02 -5.000000E+01  5.000000E+01  2.189013E-15
+1    PRESSURE ON CHEXA                                                          MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE     6
+                                                                                                                                    
+0                                                                                                            SUBCASE 1              
+0                                         G R I D   P O I N T   S I N G U L A R I T Y   T A B L E
+0                             POINT    TYPE   FAILED      STIFFNESS       OLD USET           NEW USET
+                               ID            DIRECTION      RATIO     EXCLUSIVE  UNION   EXCLUSIVE  UNION
+                                1        G      4         0.00E+00          BF       F         SB       S    *
+                                1        G      5         0.00E+00          BF       F         SB       S    *
+                                1        G      6         0.00E+00          BF       F         SB       S    *
+                                2        G      4         0.00E+00          BF       F         SB       S    *
+                                2        G      5         0.00E+00          BF       F         SB       S    *
+                                2        G      6         0.00E+00          BF       F         SB       S    *
+                                3        G      4         0.00E+00          BF       F         SB       S    *
+                                3        G      5         0.00E+00          BF       F         SB       S    *
+                                3        G      6         0.00E+00          BF       F         SB       S    *
+                                4        G      4         0.00E+00          BF       F         SB       S    *
+                                4        G      5         0.00E+00          BF       F         SB       S    *
+                                4        G      6         0.00E+00          BF       F         SB       S    *
+                                6        G      4         0.00E+00          BF       F         SB       S    *
+                                6        G      5         0.00E+00          BF       F         SB       S    *
+                                6        G      6         0.00E+00          BF       F         SB       S    *
+                                8        G      4         0.00E+00          BF       F         SB       S    *
+                                8        G      5         0.00E+00          BF       F         SB       S    *
+                                8        G      6         0.00E+00          BF       F         SB       S    *
+                               10        G      4         0.00E+00          BF       F         SB       S    *
+                               10        G      5         0.00E+00          BF       F         SB       S    *
+                               10        G      6         0.00E+00          BF       F         SB       S    *
+                               12        G      4         0.00E+00          BF       F         SB       S    *
+                               12        G      5         0.00E+00          BF       F         SB       S    *
+                               12        G      6         0.00E+00          BF       F         SB       S    *
+ *** USER INFORMATION MESSAGE - SINGULARITIES FOUND USING EIGENVALUE METHOD
+ ***      24 SINGULARITIES FOUND        24 SINGULARITIES AUTOSPCD
+1    PRESSURE ON CHEXA                                                          MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE     7
+                                                                                                                                    
+0                                                                                                            SUBCASE 1              
+ *** SYSTEM INFORMATION MESSAGE 6916 (DFMSYN)
+     DECOMP ORDERING METHOD CHOSEN: BEND, ORDERING METHOD USED: BEND
+ *** USER INFORMATION MESSAGE 5293 (SSG3A)
+    FOR DATA BLOCK KLL     
+    LOAD SEQ. NO.             EPSILON              EXTERNAL WORK      EPSILONS LARGER THAN 0.001 ARE FLAGGED WITH ASTERISKS
+                1          6.3450222E-16          6.0146105E-02
+                2          1.1972209E-17          1.2264611E-01
+                3         -1.2584548E-15          8.3955631E-02
+                4         -3.3488435E-16          9.8836586E-02
+                5         -8.0429034E-17          2.0424783E-01
+                6         -6.4672114E-16          1.8043831E-01
+1    PRESSURE ON CHEXA                                                          MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE     8
+                                                                                                                                    
+0                                                                                                            SUBCASE 1              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             1      G      0.0            0.0           -4.987330E-18   0.0            0.0            0.0
+             2      G     -3.144186E-18   0.0            9.285715E-04   0.0            0.0            0.0
+             3      G     -1.941559E-03  -1.012987E-03  -1.941559E-03   0.0            0.0            0.0
+             4      G     -1.941559E-03   1.012987E-03  -1.941559E-03   0.0            0.0            0.0
+             6      G      0.0            0.0            0.0            0.0            0.0            0.0
+             8      G     -2.602085E-18   4.811688E-03   9.285715E-04   0.0            0.0            0.0
+            10      G     -2.870130E-03   1.012987E-03  -1.941559E-03   0.0            0.0            0.0
+            12      G     -2.870130E-03   3.798702E-03  -1.941559E-03   0.0            0.0            0.0
+1    PRESSURE ON CHEXA                                                          MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE     9
+                                                                                                                                    
+0                                                                                                            SUBCASE 2              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             1      G      0.0            0.0           -4.523810E-04   0.0            0.0            0.0
+             2      G     -9.404762E-04   0.0            6.309524E-04   0.0            0.0            0.0
+             3      G     -3.489178E-03  -1.334416E-03  -2.239177E-03   0.0            0.0            0.0
+             4      G     -3.501082E-03   1.620130E-03  -2.084416E-03   0.0            0.0            0.0
+             6      G      0.0            0.0            0.0            0.0            0.0            0.0
+             8      G     -9.404762E-04   4.811688E-03   7.738096E-04   0.0            0.0            0.0
+            10      G     -4.417749E-03   6.915585E-04  -2.096321E-03   0.0            0.0            0.0
+            12      G     -4.429654E-03   4.405844E-03  -2.251082E-03   0.0            0.0            0.0
+1    PRESSURE ON CHEXA                                                          MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE    10
+                                                                                                                                    
+0                                                                                                            SUBCASE 3              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             1      G      0.0            0.0           -1.428571E-04   0.0            0.0            0.0
+             2      G      1.428571E-04   0.0           -1.071429E-03   0.0            0.0            0.0
+             3      G      1.941559E-03   5.367965E-04   1.798701E-03   0.0            0.0            0.0
+             4      G      2.084416E-03  -1.489177E-03   1.798701E-03   0.0            0.0            0.0
+             6      G      0.0            0.0            0.0            0.0            0.0            0.0
+             8      G      1.428571E-04  -4.811688E-03  -9.285715E-04   0.0            0.0            0.0
+            10      G      2.870130E-03  -1.489177E-03   1.941559E-03   0.0            0.0            0.0
+            12      G      3.012987E-03  -4.274892E-03   1.941559E-03   0.0            0.0            0.0
+1    PRESSURE ON CHEXA                                                          MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE    11
+                                                                                                                                    
+0                                                                                                            SUBCASE 4              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             1      G      0.0            0.0            3.095238E-04   0.0            0.0            0.0
+             2      G      4.642857E-04   0.0           -7.738096E-04   0.0            0.0            0.0
+             3      G      3.489178E-03   1.477273E-03   2.096321E-03   0.0            0.0            0.0
+             4      G      3.024892E-03  -1.477273E-03   1.941559E-03   0.0            0.0            0.0
+             6      G      0.0            0.0            0.0            0.0            0.0            0.0
+             8      G      4.642857E-04  -4.811688E-03  -7.738096E-04   0.0            0.0            0.0
+            10      G      4.417749E-03  -5.487013E-04   2.096321E-03   0.0            0.0            0.0
+            12      G      3.953463E-03  -4.262987E-03   2.251082E-03   0.0            0.0            0.0
+1    PRESSURE ON CHEXA                                                          MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE    12
+                                                                                                                                    
+0                                                                                                            SUBCASE 5              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             1      G      0.0            0.0            2.417749E-03   0.0            0.0            0.0
+             2      G      1.620130E-03   0.0            3.810606E-03   0.0            0.0            0.0
+             3      G      3.264069E-03   1.620130E-03   3.810606E-03   0.0            0.0            0.0
+             4      G      2.548701E-03  -7.153680E-04   6.300866E-03   0.0            0.0            0.0
+             6      G      0.0            0.0            0.0            0.0            0.0            0.0
+             8      G     -1.024892E-03  -2.954545E-03   4.347403E-03   0.0            0.0            0.0
+            10      G      3.095238E-04  -1.024892E-03   4.347403E-03   0.0            0.0            0.0
+            12      G      1.001082E-03  -2.262987E-03   5.740260E-03   0.0            0.0            0.0
+1    PRESSURE ON CHEXA                                                          MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE    13
+                                                                                                                                    
+0                                                                                                            SUBCASE 6              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             1      G      0.0            0.0           -1.941558E-03   0.0            0.0            0.0
+             2      G     -1.477273E-03   0.0           -3.334416E-03   0.0            0.0            0.0
+             3      G     -3.264069E-03  -1.477273E-03  -3.334416E-03   0.0            0.0            0.0
+             4      G     -2.405844E-03   8.582251E-04  -5.824675E-03   0.0            0.0            0.0
+             6      G      0.0            0.0            0.0            0.0            0.0            0.0
+             8      G      1.167749E-03   2.954545E-03  -4.347403E-03   0.0            0.0            0.0
+            10      G     -3.095238E-04   1.167749E-03  -4.347403E-03   0.0            0.0            0.0
+            12      G     -8.582251E-04   2.405844E-03  -5.740260E-03   0.0            0.0            0.0
+1    PRESSURE ON CHEXA                                                          MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE    14
+                                                                                                                                    
+0                                                                                                                                   
+1    PRESSURE ON CHEXA                                                          MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE    15
+                                                                                                                                    
+0                                                                                                                                   
+ * * * *  D B D I C T   P R I N T  * * * *      SUBDMAP = PRTSUM  ,  DMAP STATEMENT NO.     28
+
+
+
+0                                   * * * *  A N A L Y S I S  S U M M A R Y  T A B L E  * * * *
+0 SEID  PEID PROJ VERS APRCH      SEMG SEMR SEKR SELG SELR MODES DYNRED SOLLIN PVALID SOLNL LOOPID DESIGN CYCLE SENSITIVITY
+ --------------------------------------------------------------------------------------------------------------------------
+     0     0    1    1 '        '    T    T    T    T    T     F      F      T      0     F     -1            0           F
+0SEID = SUPERELEMENT ID.
+ PEID = PRIMARY SUPERELEMENT ID OF IMAGE SUPERELEMENT.
+ PROJ = PROJECT ID NUMBER.
+ VERS = VERSION ID.
+ APRCH = BLANK FOR STRUCTURAL ANALYSIS.  HEAT FOR HEAT TRANSFER ANALYSIS.
+ SEMG = STIFFNESS AND MASS MATRIX GENERATION STEP.
+ SEMR = MASS MATRIX REDUCTION STEP (INCLUDES EIGENVALUE SOLUTION FOR MODES).
+ SEKR = STIFFNESS MATRIX REDUCTION STEP.
+ SELG = LOAD MATRIX GENERATION STEP.
+ SELR = LOAD MATRIX REDUCTION STEP. 
+ MODES = T (TRUE) IF NORMAL MODES OR BUCKLING MODES CALCULATED.
+ DYNRED = T (TRUE) MEANS GENERALIZED DYNAMIC AND/OR COMPONENT MODE REDUCTION PERFORMED.
+ SOLLIN = T (TRUE) IF LINEAR SOLUTION EXISTS IN DATABASE.
+ PVALID = P-DISTRIBUTION ID OF P-VALUE FOR P-ELEMENTS
+ LOOPID = THE LAST LOOPID VALUE USED IN THE NONLINEAR ANALYSIS.  USEFUL FOR RESTARTS.
+ SOLNL = T (TRUE) IF NONLINEAR SOLUTION EXISTS IN DATABASE.
+ DESIGN CYCLE = THE LAST DESIGN CYCLE (ONLY VALID IN OPTIMIZATION).
+ SENSITIVITY = SENSITIVITY MATRIX GENERATION FLAG.
+1                                        * * * END OF JOB * * *
+ 
+ 

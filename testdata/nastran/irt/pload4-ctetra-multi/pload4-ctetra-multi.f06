@@ -1,0 +1,305 @@
+1
+ 
+ 
+ 
+ 
+                                                             
+                       Copyright 2007 UGS Corp.              
+                         All Rights Reserved.                
+                                                             
+           All other company names, trademarks or registered 
+           trademarks belong to their respective holders.    
+                                                             
+           LIMITATIONS TO U.S. GOVERNMENT RIGHTS. UNPUBLISHED
+           - RIGHTS RESERVED UNDER THE COPYRIGHT LAWS OF THE 
+            UNITED STATES. This computer software and related
+               computer software documentation have been     
+            developed exclusively at private expense and are 
+           provided subject to the following rights:  If this
+               computer software and computer  software      
+            documentation qualify as "commercial items" (as  
+             that term is defined in FAR 2.101), their use,  
+            duplication or disclosure by the U.S. Government 
+           is subject to the protections and restrictions as 
+            set forth in the UGS commercial license for the  
+            software and/or documentation, as prescribed in  
+           FAR 12.212 and FAR 27.405(b)(2)(i) (for civilian  
+             agencies) and in DFARS 227.7202-1(a) and DFARS  
+           227.7202-3(a) (for the Department of Defense), or 
+           any successor or similar regulation, as applicable
+           or as amended from time to time.  If this computer
+           software and computer documentation do not qualify
+            as "commercial items", then they are "restricted 
+           computer software" and are provided with "restric-
+            tive rights", and their use, duplication or dis- 
+            closure by the U.S. Government is subject to the 
+            protections and restrictions as set forth in FAR 
+           27.404(b) and FAR 52-227-14 (for civilian agencies
+           ), and DFARS 227.7203-5(c) and DFARS 252.227-7014 
+           (for the Department of Defense), or any successor 
+           or similar regulation, as applicable or as amended
+              from time to time.  UGS Corp.                  
+              5400 Legacy Drive, Plano, Texas 75024-3199.    
+ 
+
+                * * * * * * * * * * * * * * * * * * * *
+                * * * * * * * * * * * * * * * * * * * *
+                * *                                 * *
+                * *                                 * *
+                * *                                 * *
+                * *                                 * *
+                * *       N X   N a s t r a n       * *
+                * *                                 * *
+                * *         VERSION -   6.0         * *
+                * *                                 * *
+                * *          JUN  3, 2008           * *
+                * *                                 * *
+                * *                                 * *
+                * *Intel64 Family 6 Model 60 Steppi * *
+                * *                                 * *
+                * * Intel(R) Core(TM) i7-4810MQ CPU * *
+                * *                                 * *
+                * *             Windows             * *
+                * *                                 * *
+                * *       Compiled for X86-64       * *
+                * *                                 * *
+                * * * * * * * * * * * * * * * * * * * *
+                * * * * * * * * * * * * * * * * * * * *
+1 
+  
+                        Welcome to NX Nastran
+                        -------------------------
+  
+  
+ This "news" information can be turned off by setting "news=no" in the runtime
+ configuration (RC) file.  The "news" keyword can be set in the system RC file
+ for global, or multi-user control, and in a local file for local control.
+ Individual jobs can be controlled by setting news to yes or no on the command
+ line.
+1                                                                               MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE     1
+                                                                                                                                    
+0        N A S T R A N    F I L E    A N D    S Y S T E M    P A R A M E T E R    E C H O                                           
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+     NASTRAN BUFFSIZE=8193 $(C:/PROGRAM FILES (X86)/UGS/NXNASTRAN/6.0/CONF/NAST6.RCF[
+     NASTRAN REAL=2147483647 $(PROGRAM DEFAULT)                                      
+1                                                                               MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE     2
+                                                                                                                                    
+0        N A S T R A N    E X E C U T I V E    C O N T R O L    E C H  O                                                            
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+     ID LINEAR,PLOAD4-CTETRA-MULTI                                                           
+     SOL 101                                                                                 
+     TIME 5                                                                                  
+     CEND                                                                                    
+1    PRESSURE ON CTETRA                                                         MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE     3
+                                                                                                                                    
+0                                                                                                                                   
+0                                        C A S E    C O N T R O L    E C H O                                                        
+                 COMMAND                                                                                                            
+                 COUNT                                                                                                              
+                  1      TITLE = PRESSURE ON CTETRA                                                              
+                  2      SPC = 1                                                                                 
+                  3                                                                                              
+                  4      DISP=ALL                                                                                
+                  5      SUBCASE 1                                                                               
+                  6          LOAD = 1                                                                            
+                  7      SUBCASE 2                                                                               
+                  8          LOAD = 2                                                                            
+                  9      SUBCASE 3                                                                               
+                 10          LOAD = 3                                                                            
+                 11      SUBCASE 4                                                                               
+                 12          LOAD = 4                                                                            
+                 13                                                                                              
+                 14      BEGIN BULK                                                                              
+ *** USER WARNING MESSAGE 324 (XSORSO)
+     BLANK ENTRIES ENCOUNTERED WILL BE IGNORED.
+0                             INPUT BULK DATA ENTRY COUNT =      28
+1    PRESSURE ON CTETRA                                                         MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE     4
+                                                                                                                                    
+0                                                                                                                                   
+0                                                 S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                    1-        CTETRA  13      1       1       2       3       4                               
+                    2-        CTETRA  14      1       1       2       3       5                               
+                    3-        GRID    1               0.      0.      0.                                      
+                    4-        GRID    2               3.      0.      0.                                      
+                    5-        GRID    3               1.      1.      0.                                      
+                    6-        GRID    4               0.      0.      1.                                      
+                    7-        GRID    5               0.      0.      -1.                                     
+                    8-        MAT1    1       210000.         0.3                                             
+                    9-        PLOAD4  1       13      100.                            1       2               
+                   10-        PLOAD4  2       13      100.                            1       3               
+                   11-        PLOAD4  3       13      100.                            1       4               
+                   12-        PLOAD4  4       13      100.                            2       1               
+                   13-        PSOLID  1       1       0       THREE   GRID    FULL    SMECH                   
+                   14-        SPC1    1       2       2                                                       
+                   15-        SPC1    1       123     1       5                                               
+                              ENDDATA 
+0                       TOTAL COUNT=        16
+
+
+                                        M O D E L   S U M M A R Y
+
+                                   NUMBER OF GRID     POINTS   =        5
+ 
+                                   NUMBER OF CTETRA   ELEMENTS =        2
+ 
+1    PRESSURE ON CTETRA                                                         MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE     5
+                                                                                                                                    
+0                                                                                                                                   
+ *** USER INFORMATION MESSAGE 7310 (VECPRN)
+     ORIGIN OF SUPERELEMENT BASIC COORDINATE SYSTEM WILL BE USED AS REFERENCE LOCATION.
+     RESULTANTS ABOUT ORIGIN OF SUPERELEMENT BASIC COORDINATE SYSTEM IN SUPERELEMENT BASIC SYSTEM COORDINATES.
+0                                                  OLOAD    RESULTANT       
+  SUBCASE/    LOAD
+  DAREA ID    TYPE       T1            T2            T3            R1            R2            R3
+0        1     FX    5.000000E+01     ----          ----          ----       1.666667E+01 -1.666667E+01                             
+               FY       ----      -5.000000E+01     ----       1.666667E+01     ----      -1.666667E+01                             
+               FZ       ----          ----       0.000000E+00  0.000000E+00  0.000000E+00     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  5.000000E+01 -5.000000E+01  0.000000E+00  1.666667E+01  1.666667E+01 -3.333333E+01
+0        2     FX    0.000000E+00     ----          ----          ----       0.000000E+00  0.000000E+00                             
+               FY       ----       1.500000E+02     ----      -5.000000E+01     ----       1.500000E+02                             
+               FZ       ----          ----       0.000000E+00  0.000000E+00  0.000000E+00     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  0.000000E+00  1.500000E+02  0.000000E+00 -5.000000E+01  0.000000E+00  1.500000E+02
+0        3     FX    0.000000E+00     ----          ----          ----       0.000000E+00  0.000000E+00                             
+               FY       ----       0.000000E+00     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----       1.500000E+02  5.000000E+01 -2.000000E+02     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  0.000000E+00  0.000000E+00  1.500000E+02  5.000000E+01 -2.000000E+02  0.000000E+00
+0        4     FX   -5.000000E+01     ----          ----          ----      -1.666667E+01  1.666667E+01                             
+               FY       ----      -1.000000E+02     ----       3.333333E+01     ----      -1.333333E+02                             
+               FZ       ----          ----      -1.500000E+02 -5.000000E+01  2.000000E+02     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS -5.000000E+01 -1.000000E+02 -1.500000E+02 -1.666667E+01  1.833333E+02 -1.166667E+02
+1    PRESSURE ON CTETRA                                                         MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE     6
+                                                                                                                                    
+0                                                                                                            SUBCASE 1              
+0                                         G R I D   P O I N T   S I N G U L A R I T Y   T A B L E
+0                             POINT    TYPE   FAILED      STIFFNESS       OLD USET           NEW USET
+                               ID            DIRECTION      RATIO     EXCLUSIVE  UNION   EXCLUSIVE  UNION
+                                1        G      4         0.00E+00          BF       F         SB       S    *
+                                1        G      5         0.00E+00          BF       F         SB       S    *
+                                1        G      6         0.00E+00          BF       F         SB       S    *
+                                2        G      4         0.00E+00          BF       F         SB       S    *
+                                2        G      5         0.00E+00          BF       F         SB       S    *
+                                2        G      6         0.00E+00          BF       F         SB       S    *
+                                3        G      4         0.00E+00          BF       F         SB       S    *
+                                3        G      5         0.00E+00          BF       F         SB       S    *
+                                3        G      6         0.00E+00          BF       F         SB       S    *
+                                4        G      4         0.00E+00          BF       F         SB       S    *
+                                4        G      5         0.00E+00          BF       F         SB       S    *
+                                4        G      6         0.00E+00          BF       F         SB       S    *
+                                5        G      4         0.00E+00          BF       F         SB       S    *
+                                5        G      5         0.00E+00          BF       F         SB       S    *
+                                5        G      6         0.00E+00          BF       F         SB       S    *
+ *** USER INFORMATION MESSAGE - SINGULARITIES FOUND USING EIGENVALUE METHOD
+ ***      15 SINGULARITIES FOUND        15 SINGULARITIES AUTOSPCD
+1    PRESSURE ON CTETRA                                                         MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE     7
+                                                                                                                                    
+0                                                                                                            SUBCASE 1              
+ *** SYSTEM INFORMATION MESSAGE 6916 (DFMSYN)
+     DECOMP ORDERING METHOD CHOSEN: BEND, ORDERING METHOD USED: BEND
+ *** USER INFORMATION MESSAGE 5293 (SSG3A)
+    FOR DATA BLOCK KLL     
+    LOAD SEQ. NO.             EPSILON              EXTERNAL WORK      EPSILONS LARGER THAN 0.001 ARE FLAGGED WITH ASTERISKS
+                1          8.8434832E-17          1.7195767E-02
+                2          3.2804464E-20          6.1904762E-02
+                3         -1.4232590E-17          5.2619052E-01
+                4         -3.1883917E-18          4.5137480E-01
+1    PRESSURE ON CTETRA                                                         MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE     8
+                                                                                                                                    
+0                                                                                                            SUBCASE 1              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             1      G      0.0            0.0            0.0            0.0            0.0            0.0
+             2      G      3.095238E-04   0.0           -1.238095E-03   0.0            0.0            0.0
+             3      G      3.095238E-04  -1.031746E-04  -9.978954E-12   0.0            0.0            0.0
+             4      G      8.253969E-04  -8.253968E-04   1.391722E-13   0.0            0.0            0.0
+             5      G      0.0            0.0            0.0            0.0            0.0            0.0
+1    PRESSURE ON CTETRA                                                         MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE     9
+                                                                                                                                    
+0                                                                                                            SUBCASE 2              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             1      G      0.0            0.0            0.0            0.0            0.0            0.0
+             2      G      2.002560E-11   0.0           -7.045548E-11   0.0            0.0            0.0
+             3      G      1.626534E-11  -6.834467E-12  -1.238095E-03   0.0            0.0            0.0
+             4      G      4.697032E-11   2.476190E-03   2.070457E-13   0.0            0.0            0.0
+             5      G      0.0            0.0            0.0            0.0            0.0            0.0
+1    PRESSURE ON CTETRA                                                         MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE    10
+                                                                                                                                    
+0                                                                                                            SUBCASE 3              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             1      G      0.0            0.0            0.0            0.0            0.0            0.0
+             2      G     -1.096885E-11   0.0            1.485714E-02   0.0            0.0            0.0
+             3      G     -3.498493E-11  -2.515224E-12   6.190476E-03   0.0            0.0            0.0
+             4      G     -4.952381E-03  -1.238095E-03   2.644932E-12   0.0            0.0            0.0
+             5      G      0.0            0.0            0.0            0.0            0.0            0.0
+1    PRESSURE ON CTETRA                                                         MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE    11
+                                                                                                                                    
+0                                                                                                            SUBCASE 4              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             1      G      0.0            0.0            0.0            0.0            0.0            0.0
+             2      G     -5.530835E-04   0.0           -1.361905E-02   0.0            0.0            0.0
+             3      G     -3.907104E-04   2.198804E-05  -4.952381E-03   0.0            0.0            0.0
+             4      G      4.126984E-03  -4.126983E-04  -2.841530E-04   0.0            0.0            0.0
+             5      G      0.0            0.0            0.0            0.0            0.0            0.0
+1    PRESSURE ON CTETRA                                                         MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE    12
+                                                                                                                                    
+0                                                                                                                                   
+1    PRESSURE ON CTETRA                                                         MAY   9, 2019  NX NASTRAN  6/ 3/08   PAGE    13
+                                                                                                                                    
+0                                                                                                                                   
+ * * * *  D B D I C T   P R I N T  * * * *      SUBDMAP = PRTSUM  ,  DMAP STATEMENT NO.     28
+
+
+
+0                                   * * * *  A N A L Y S I S  S U M M A R Y  T A B L E  * * * *
+0 SEID  PEID PROJ VERS APRCH      SEMG SEMR SEKR SELG SELR MODES DYNRED SOLLIN PVALID SOLNL LOOPID DESIGN CYCLE SENSITIVITY
+ --------------------------------------------------------------------------------------------------------------------------
+     0     0    1    1 '        '    T    T    T    T    T     F      F      T      0     F     -1            0           F
+0SEID = SUPERELEMENT ID.
+ PEID = PRIMARY SUPERELEMENT ID OF IMAGE SUPERELEMENT.
+ PROJ = PROJECT ID NUMBER.
+ VERS = VERSION ID.
+ APRCH = BLANK FOR STRUCTURAL ANALYSIS.  HEAT FOR HEAT TRANSFER ANALYSIS.
+ SEMG = STIFFNESS AND MASS MATRIX GENERATION STEP.
+ SEMR = MASS MATRIX REDUCTION STEP (INCLUDES EIGENVALUE SOLUTION FOR MODES).
+ SEKR = STIFFNESS MATRIX REDUCTION STEP.
+ SELG = LOAD MATRIX GENERATION STEP.
+ SELR = LOAD MATRIX REDUCTION STEP. 
+ MODES = T (TRUE) IF NORMAL MODES OR BUCKLING MODES CALCULATED.
+ DYNRED = T (TRUE) MEANS GENERALIZED DYNAMIC AND/OR COMPONENT MODE REDUCTION PERFORMED.
+ SOLLIN = T (TRUE) IF LINEAR SOLUTION EXISTS IN DATABASE.
+ PVALID = P-DISTRIBUTION ID OF P-VALUE FOR P-ELEMENTS
+ LOOPID = THE LAST LOOPID VALUE USED IN THE NONLINEAR ANALYSIS.  USEFUL FOR RESTARTS.
+ SOLNL = T (TRUE) IF NONLINEAR SOLUTION EXISTS IN DATABASE.
+ DESIGN CYCLE = THE LAST DESIGN CYCLE (ONLY VALID IN OPTIMIZATION).
+ SENSITIVITY = SENSITIVITY MATRIX GENERATION FLAG.
+1                                        * * * END OF JOB * * *
+ 
+ 

@@ -240,9 +240,18 @@ BOOST_AUTO_TEST_CASE( n4w101 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/n4w101/n4w101.nas", RUN_ASTER, true, 0.00001);
 }
 
-//BOOST_AUTO_TEST_CASE( pload4d ) {
-//	CommandLineUtils::nastranStudy2Aster("/irt/pload4d/pload4d.nas", RUN_ASTER, true, 0.00001);
-//}
+BOOST_AUTO_TEST_CASE( pload4d ) {
+    // Tests NOOK
+	CommandLineUtils::nastranStudy2Aster("/irt/pload4d/pload4d.nas", false, true, 0.00001);
+}
+
+BOOST_AUTO_TEST_CASE( pload4_ctetra_multi ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/pload4-ctetra-multi/pload4-ctetra-multi.nas", RUN_ASTER, true, 0.00001);
+}
+
+BOOST_AUTO_TEST_CASE( pload4_chexa_multi ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/pload4-chexa-multi/pload4-chexa-multi.nas", RUN_ASTER, true, 0.00001);
+}
 
 } /* namespace test */
 } /* namespace vega */

@@ -100,4 +100,26 @@ BOOST_AUTO_TEST_CASE(nastran_github_issue15) {
 	//expected 1 material elastic
 }
 
+BOOST_AUTO_TEST_CASE(nastran_pload4d) {
+	string testLocation = fs::path(
+		PROJECT_BASE_DIR "/testdata/unitTest/nastranparser/pload4d.nas").make_preferred().string();
+	nastran::NastranParser parser;
+	try {
+		const unique_ptr<Model> model = parser.parse(
+			ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
+        model->finish();
+        BOOST_CHECK_EQUAL(model->analyses.size(), 2);
+        const auto& analysis = model->analyses.first();
+        BOOST_CHECK_EQUAL(analysis->getConstraintSets().size(), 1);
+        BOOST_CHECK_EQUAL(analysis->getLoadSets().size(), 1);
+        BOOST_CHECK_EQUAL(model->loadings.size(), 2);
+	}
+	catch (exception& e) {
+		cerr << e.what() << endl;
+		BOOST_TEST_MESSAGE(string("Application exception") + e.what());
+
+		BOOST_FAIL(string("Parse threw exception ") + e.what());
+	}
+}
+
 //____________________________________________________________________________//

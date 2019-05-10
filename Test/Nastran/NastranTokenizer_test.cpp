@@ -368,7 +368,7 @@ BOOST_AUTO_TEST_CASE(nastran_THRU_BY_symbol) {
 }
 
 BOOST_AUTO_TEST_CASE(nastran_THRU_BY_symbol2) {
-    //                    1234567812345678123456781234567812345678123456781234567812345678
+    //                    $  1   ><  2   ><  3   ><  4   ><  5   ><  6   ><  7   ><  8   ><  9   >
     string nastranLine = "SPC1    4       3       1       THRU    11";
     istringstream istr(nastranLine);
     NastranTokenizer tokenizer(istr);
