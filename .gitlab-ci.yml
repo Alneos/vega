@@ -100,3 +100,5 @@ nightly_systus:
     - /srv/data/vegapp -s -o /srv/data/$OUTDIR/systus /srv/data/input/v02_K9Kgen6_rebuild/v02_K9Kgen6_rebuild.fem optistruct systus
     - /srv/data/vegapp -s -o /srv/data/$OUTDIR/aster /srv/data/input/SMOTRenault/SMOTRENAULT.fem optistruct aster
     - /srv/data/vegapp -s -o /srv/data/$OUTDIR/systus /srv/data/input/SMOTRenault/SMOTRENAULT.fem optistruct systus
+    - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/aster /srv/data/input/AirbusUseCase/TOP_CAS_AIRBUS_11032019.fem optistruct systus
+    - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/aster /srv/data/input/AirbusUseCase/TOP_CAS_AIRBUS_11032019.fem optistruct aster
