@@ -229,13 +229,7 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 			}
 			out << "),)" << endl << endl;
 
-			out << "TBUNITE=INFO_EXEC_ASTER(LISTE_INFO='UNITE_LIBRE')" << endl;
-			//out << "IMPR_TABLE(TABLE=TBUNITE)" << endl;
-
-			//int unit = 10 + analysis.getId();
-			out << "unite=TBUNITE['UNITE_LIBRE',1]" << endl;
-			out << "DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
-			out << "             UNITE=unite," << endl;
+			out << "unite=DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
 			out << "             FICHIER='REPE_OUT/tbresu_" << analysis.getId() << ".csv')" << endl
 					<< endl;
 
@@ -247,7 +241,7 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 
 			out << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
 			out << "             UNITE=unite,)" << endl << endl;
-			out << "DETRUIRE(CONCEPT=(_F(NOM=TBUNITE),))" << endl << endl;
+			out << "DETRUIRE(CONCEPT=(_F(NOM=unite),))" << endl << endl;
 		}
 
 		for (const auto& analysis : asterModel.model.analyses) {

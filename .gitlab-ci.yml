@@ -92,13 +92,13 @@ nightly_systus:
     - export PATH=$PATH:/opt/TOP/ESI/sysworld/v2018.0/GB/
     - mkdir -p /srv/data/$OUTDIR; mkdir -p /srv/data/$OUTDIR/aster; mkdir -p /srv/data/$OUTDIR/systus
   script:
+    - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/systus /srv/data/input/AirbusUseCase/TOP_CAS_AIRBUS_11032019.fem optistruct systus
     - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/systus -t /srv/data/input/v02_K9Kgen6_simplif/refres/v02_K9Kgen6_simplif.f06 -x 0.05 /srv/data/input/v02_K9Kgen6_simplif/original/v02_K9Kgen6_simplif.fem optistruct systus
     - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/systus /srv/data/input/Safran_AB_RadiusBlock_v1.fem optistruct systus
+    - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/aster /srv/data/input/AirbusUseCase/TOP_CAS_AIRBUS_11032019.fem optistruct aster
     - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/aster -t /srv/data/input/v02_K9Kgen6_simplif/refres/v02_K9Kgen6_simplif.f06 -x 0.05 /srv/data/input/v02_K9Kgen6_simplif/original/v02_K9Kgen6_simplif.fem optistruct aster
     - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/aster /srv/data/input/Safran_AB_RadiusBlock_v1.fem optistruct aster
     - /srv/data/vegapp -s -o /srv/data/$OUTDIR/aster /srv/data/input/v02_K9Kgen6_rebuild/v02_K9Kgen6_rebuild.fem optistruct aster
     - /srv/data/vegapp -s -o /srv/data/$OUTDIR/systus /srv/data/input/v02_K9Kgen6_rebuild/v02_K9Kgen6_rebuild.fem optistruct systus
     - /srv/data/vegapp -s -o /srv/data/$OUTDIR/aster /srv/data/input/SMOTRenault/SMOTRENAULT.fem optistruct aster
     - /srv/data/vegapp -s -o /srv/data/$OUTDIR/systus /srv/data/input/SMOTRenault/SMOTRENAULT.fem optistruct systus
-    - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/aster /srv/data/input/AirbusUseCase/TOP_CAS_AIRBUS_11032019.fem optistruct systus
-    - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/aster /srv/data/input/AirbusUseCase/TOP_CAS_AIRBUS_11032019.fem optistruct aster
