@@ -64,6 +64,9 @@ private:
         "DVGRID",
         "DREPORT", "DREPADD", // Optistruct Cards
         "ELEMQUAL", // Parameters for element mesh quality checks https://www.sharcnet.ca/Software/Hyperworks/help/hwsolvers/hwsolvers.htm?elemqual.htm
+        "XHIST", // Time history outputs are curve information that is output to T** files by RADIOSS. Time history
+                 // requests for geometric nonlinear analysis are specified through the output blocks within HyperMesh
+                 // and compiled into the subcase information when the deck is written using XHIST cards.
     };
 
     static const std::unordered_map<std::string, parseOptistructElementFPtr> OPTISTRUCT_PARSE_FUNCTION_BY_KEYWORD;

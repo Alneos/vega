@@ -13,8 +13,8 @@
 
 #include <boost/test/unit_test.hpp>
 #include <string>
-//#include "build_properties.h"
-#define RUN_SYSTUS false
+#include "build_properties.h"
+//#define RUN_SYSTUS false
 #include "CommandLineUtils.h"
 //____________________________________________________________________________//
 
