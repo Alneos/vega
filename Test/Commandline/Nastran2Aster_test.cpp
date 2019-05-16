@@ -26,7 +26,7 @@ namespace tests {
 
 using namespace std;
 
-BOOST_AUTO_TEST_CASE( prob19 ) {
+/*BOOST_AUTO_TEST_CASE( prob19 ) {
 	CommandLineUtils::nastranStudy2Aster("/caw/prob19/prob19.dat", RUN_ASTER, true, 0.002);
 }
 
@@ -141,13 +141,13 @@ BOOST_AUTO_TEST_CASE( nas101probB ) {
 BOOST_AUTO_TEST_CASE( nas102prob5 ) {
     // TODO : LD missing G param, tests not found, otherwise ok
 	CommandLineUtils::nastranStudy2Aster("/irt/nas102prob5/nas102prob5.bdf", RUN_ASTER, true, 0.05);
-}
+}*/
 
 BOOST_AUTO_TEST_CASE( nas102prob6 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/nas102prob6/nas102prob6.nas", RUN_ASTER, true, 0.03);
 }
 
-BOOST_AUTO_TEST_CASE( nas102prob14a ) {
+/*BOOST_AUTO_TEST_CASE( nas102prob14a ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/nas102prob14a/nas102prob14a.nas", RUN_ASTER, true, 0.006);
 }
 
@@ -251,7 +251,7 @@ BOOST_AUTO_TEST_CASE( pload4_ctetra_multi ) {
 
 BOOST_AUTO_TEST_CASE( pload4_chexa_multi ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/pload4-chexa-multi/pload4-chexa-multi.nas", RUN_ASTER, true, 0.00001);
-}
+}*/
 
 } /* namespace test */
 } /* namespace vega */

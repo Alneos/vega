@@ -102,6 +102,7 @@ void OptistructParser::parseCONTACT(nastran::NastranTokenizer& tok, Model& model
 
 void OptistructParser::parseSET(nastran::NastranTokenizer& tok, Model& model) {
     // https://www.sharcnet.ca/Software/Hyperworks/help/hwsolvers/set_bulk_data.htm
+    // https://knowledge.autodesk.com/support/nastran/learn-explore/caas/CloudHelp/cloudhelp/2019/ENU/NSTRN-Reference/files/GUID-B2CE1526-DEDE-4694-B944-83880E9047A1-htm.html
     int sid = tok.nextInt();
     string name = string("SET") + "_" + to_string(sid);
     string type = tok.nextString();

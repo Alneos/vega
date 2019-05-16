@@ -204,5 +204,13 @@ ArcLengthMethod::ArcLengthMethod(Model& model, const Reference<Objective>& strat
         AnalysisParameter(model, Objective::Type::ARC_LENGTH_METHOD, original_id), strategy_reference(strategy_reference) {
 }
 
+Output::Output(Model& model, Type type, int original_id) :
+        Objective(model, type, original_id) {
+}
+
+NodalDisplacementOutput::NodalDisplacementOutput(Model& model, shared_ptr<const NodeGroup> outputGroup, int original_id) :
+        Output(model, Objective::Type::NODAL_DISPLACEMENT_OUTPUT, original_id), outputGroup(outputGroup) {
+}
+
 } /* namespace vega */
 

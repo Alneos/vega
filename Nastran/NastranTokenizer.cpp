@@ -214,9 +214,9 @@ void NastranTokenizer::bulkSection() {
 	}
 }
 
-void NastranTokenizer::parseParameters() {
-	split(currentLineVector, this->currentLine, boost::is_any_of("\\="));
-}
+//void NastranTokenizer::parseParameters() {
+//	split(currentLineVector, this->currentLine, boost::is_any_of("\\="));
+//}
 
 bool NastranTokenizer::isNextInt() {
 	if (nextSymbolType != SymbolType::SYMBOL_FIELD) {

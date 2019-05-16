@@ -381,11 +381,18 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                 if (tok.nextSymbolType != NastranTokenizer::SymbolType::SYMBOL_FIELD) {
                     context[keyword] = string("");
                 } else {
-                    string line;
-                    while (tok.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_FIELD){
-                         line += tok.nextString();
+                    vector<string> parts;
+                    split(parts, tok.currentRawDataLine(), boost::is_any_of("="), boost::algorithm::token_compress_on);
+                    if (parts.size() == 1) {
+                        vector<string> parvalparts;
+                        split(parvalparts, parts[0], boost::is_any_of(" "), boost::algorithm::token_compress_on);
+                        if (parts.size() >= 2) {
+                            throw logic_error("multiple space in parameter not yet implemented");
+                        }
+                        context[keyword] = parvalparts[1];
+                    } else {
+                        context[parts[0]] = parts[1];
                     }
-                    context[keyword] = line;
                 }
             }
 

@@ -31,6 +31,7 @@
 #include "Value.h"
 #include "Object.h"
 #include "Reference.h"
+#include "MeshComponents.h"
 #include "Dof.h"
 
 namespace vega {
@@ -49,7 +50,8 @@ public:
         FREQUENCY_EXCIT,
         MODAL_DAMPING,
         NONLINEAR_STRATEGY,
-        ARC_LENGTH_METHOD
+        ARC_LENGTH_METHOD,
+        NODAL_DISPLACEMENT_OUTPUT,
     };
 protected:
     const Model& model;
@@ -223,6 +225,18 @@ public:
     ArcLengthMethod(Model& model, const Reference<Objective>& strategy_reference, int original_id = NO_ORIGINAL_ID);
     const Reference<Objective>& strategy_reference;
 };
+
+class Output: public Objective {
+protected:
+    Output(Model&, Type, int original_id = NO_ORIGINAL_ID);
+};
+
+class NodalDisplacementOutput: public Output {
+public:
+    NodalDisplacementOutput(Model& model, const std::shared_ptr<const NodeGroup> outputGroup, int original_id = NO_ORIGINAL_ID);
+    const std::shared_ptr<const NodeGroup> outputGroup;
+};
+
 
 } /* namespace vega */
 
