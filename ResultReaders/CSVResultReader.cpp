@@ -96,7 +96,7 @@ struct CsvGrammar: qi::grammar<stream_iterator_type, void(), qi::locals<vector<L
 			case LineItems::RESULT_NAME:
 				result_name = columns[i];
 				if (result_name.find("RESU") == 0) {
-					result_number = atoi(result_name.substr(4).c_str());
+					result_number = stoi(result_name.substr(4));
 				} else {
 					cerr << "Can't parse result name" << result_name << endl;
 					return;
@@ -104,10 +104,10 @@ struct CsvGrammar: qi::grammar<stream_iterator_type, void(), qi::locals<vector<L
 				break;
 			case LineItems::NODE:
 				node_name = columns[i];
-				nodeId = atoi(node_name.substr(1).c_str());
+				nodeId = stoi(node_name.substr(1));
 				break;
 			case LineItems::NUM_ORD:
-				num_step = atoi(columns[i].c_str());
+				num_step = stoi(columns[i]);
 				break;
 			case LineItems::TIME:
 				time = atof(columns[i].c_str());

@@ -355,7 +355,7 @@ int F06Parser::parseSubcase(int currentSubCase, const string& currentLine) {
 	int parsedSubCase = currentSubCase;
 	if (has_digits_or_space) {
 		try {
-			parsedSubCase = atoi(subcaseN.c_str());
+			parsedSubCase = stoi(subcaseN);
 		} catch (invalid_argument&) {
 			//many different subcase keywords, exception may happen, ignore
 		}

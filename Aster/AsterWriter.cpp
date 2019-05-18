@@ -205,29 +205,43 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 		for (const auto& it : asterModel.model.analyses) {
 			const Analysis& analysis = *it;
 
-			out << "RETB" << analysis.getId() << "=CREA_TABLE(RESU=(" << endl;
-			switch (analysis.type) {
-            case (Analysis::Type::COMBINATION):
-            case (Analysis::Type::LINEAR_MODAL):
-            case (Analysis::Type::LINEAR_BUCKLING):
-            case (Analysis::Type::NONLINEAR_MECA_STAT):
-			case (Analysis::Type::LINEAR_MECA_STAT): {
-				out << "                _F(RESULTAT=RESU" << analysis.getId()
-						<< ",TOUT='OUI',NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
-				break;
-			}
-			case (Analysis::Type::LINEAR_DYNA_DIRECT_FREQ): {
-			    break;
-			}
-			case (Analysis::Type::LINEAR_DYNA_MODAL_FREQ): {
-				out << "                _F(RESULTAT=MODES" << analysis.getId()
-						<< ",TOUT='OUI',NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
-				break;
-			}
-			default:
-				out << "# WARN analysis " << analysis << " not supported. Skipping." << endl;
-			}
+			vector<shared_ptr<Objective>> displacementOutputs = asterModel.model.objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT);
+			out << "RETB" << analysis.getId();
+			if (displacementOutputs.size() >= 1) {
+                out << "=POST_RELEVE_T(ACTION=(" << endl;
+                for (auto output : displacementOutputs) {
+                    shared_ptr<const NodalDisplacementOutput> displacementOutput = dynamic_pointer_cast<const NodalDisplacementOutput>(output);
+                    out << "                _F(INTITULE='DISP" << output->bestId() << "',OPERATION='EXTRACTION',RESULTAT=RESU" << analysis.getId() << ",";
+                    writeNodeContainer(*displacementOutput, out);
+                    out << "NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
+                }
+                out << "),)" << endl << endl;
+			} else {
+
+                out << "=CREA_TABLE(RESU=(" << endl;
+                switch (analysis.type) {
+                case (Analysis::Type::COMBINATION):
+                case (Analysis::Type::LINEAR_MODAL):
+                case (Analysis::Type::LINEAR_BUCKLING):
+                case (Analysis::Type::NONLINEAR_MECA_STAT):
+                case (Analysis::Type::LINEAR_MECA_STAT): {
+                    out << "                _F(RESULTAT=RESU" << analysis.getId()
+                            << ",TOUT='OUI',NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
+                    break;
+                }
+                case (Analysis::Type::LINEAR_DYNA_DIRECT_FREQ): {
+                    break;
+                }
+                case (Analysis::Type::LINEAR_DYNA_MODAL_FREQ): {
+                    out << "                _F(RESULTAT=MODES" << analysis.getId()
+                            << ",TOUT='OUI',NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
+                    break;
+                }
+                default:
+                    out << "# WARN analysis " << analysis << " not supported. Skipping." << endl;
+                }
 			out << "),)" << endl << endl;
+			}
 
 			out << "unite=DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
 			out << "             FICHIER='REPE_OUT/tbresu_" << analysis.getId() << ".csv')" << endl

@@ -208,8 +208,8 @@ Output::Output(Model& model, Type type, int original_id) :
         Objective(model, type, original_id) {
 }
 
-NodalDisplacementOutput::NodalDisplacementOutput(Model& model, shared_ptr<const NodeGroup> outputGroup, int original_id) :
-        Output(model, Objective::Type::NODAL_DISPLACEMENT_OUTPUT, original_id), outputGroup(outputGroup) {
+NodalDisplacementOutput::NodalDisplacementOutput(Model& model, int original_id) :
+        Output(model, Objective::Type::NODAL_DISPLACEMENT_OUTPUT, original_id), NodeContainer(model.mesh) {
 }
 
 } /* namespace vega */

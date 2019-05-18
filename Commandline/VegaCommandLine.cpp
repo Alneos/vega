@@ -365,9 +365,9 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
             while ((pos = soptions.find(delimiter)) != string::npos) {
                 string token = soptions.substr(0, pos);
                 soptions.erase(0, pos + delimiter.length());
-                vec.push_back(  atoi(token.c_str()) );
+                vec.push_back(  stoi(token) );
             }
-            vec.push_back(atoi(soptions.c_str()));
+            vec.push_back(stoi(soptions));
             systusSubcases.push_back(vec);
         }
     }

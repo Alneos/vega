@@ -377,6 +377,21 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                 while (tok.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_FIELD)
                     line += tok.nextString(true,"");
                 model.title = line;
+            } else if (keyword == "SET") {
+                string setid = tok.nextString(true, "");
+                shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup("SET_"+setid,NodeGroup::NO_ORIGINAL_ID,"SET");
+                vector<string> parts;
+                split(parts, tok.currentRawDataLine(), boost::is_any_of("="), boost::algorithm::token_compress_on);
+                if (parts.size() == 2) {
+                    vector<string> parvalparts;
+                    split(parvalparts, parts[1], boost::is_any_of(","), boost::algorithm::token_compress_on);
+                    for (const auto& nodeId : parvalparts) {
+                        nodeGroup->addNodeId(stoi(nodeId));
+                    }
+                } else {
+                    throw logic_error("multiple = in SET should never happen");
+                }
+
             } else {
                 if (tok.nextSymbolType != NastranTokenizer::SymbolType::SYMBOL_FIELD) {
                     context[keyword] = string("");
@@ -387,7 +402,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                         vector<string> parvalparts;
                         split(parvalparts, parts[0], boost::is_any_of(" "), boost::algorithm::token_compress_on);
                         if (parts.size() >= 2) {
-                            throw logic_error("multiple space in parameter not yet implemented");
+                            throw logic_error("multiple spaces in parameter not yet implemented");
                         }
                         context[keyword] = parvalparts[1];
                     } else {
@@ -598,7 +613,7 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
         int frequency_band_original_id = 0;
         for (it = context.begin(); it != context.end(); it++) {
             if (it->first.find("METHOD") != string::npos) {
-                frequency_band_original_id = atoi(it->second.c_str());
+                frequency_band_original_id = stoi(it->second);
                 break;
             }
         }
@@ -613,7 +628,7 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
         int frequency_band_original_id = 0;
         for (it = context.begin(); it != context.end(); it++) {
             if (it->first.find("METHOD") != string::npos) {
-                frequency_band_original_id = atoi(it->second.c_str());
+                frequency_band_original_id = stoi(it->second);
                 break;
             }
         }
@@ -629,7 +644,7 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
         if (itparam == context.end())
             handleParsingError("NLPARM not found for non linear analysis", tok, model);
         else
-            strategy_original_id = atoi(itparam->second.c_str());
+            strategy_original_id = stoi(itparam->second);
 
         analysis = make_shared<NonLinearMecaStat>(model, strategy_original_id, labelAnalysis, analysis_id);
 
@@ -684,7 +699,20 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
 
     for (const auto& contextPair : context) {
         string key = contextPair.first;
-        int id = atoi(contextPair.second.c_str());
+        int id;
+        try {
+            id = stoi(contextPair.second);
+        }
+        catch(std::invalid_argument& e){
+            id = 0;
+        }
+        vector<string> options;
+        boost::split(options, key, boost::is_any_of("(, )"), boost::token_compress_on);
+        options.erase( remove_if( options.begin(), options.end(), [](string option){return option.size() == 0;} ));
+        if (options.size() >= 2) {
+            key = options[0];
+            options.erase(options.begin());
+        }
         if (!key.compare(0, 3, "SPC")) {
             Reference<ConstraintSet> constraintReference(ConstraintSet::Type::SPC, id);
             analysis->add(constraintReference);
@@ -726,6 +754,18 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
             if (!model.find(constraintReference)) { // constraintSet is added in the model if not found in the model
                 const auto& constraintSet = make_shared<ConstraintSet>(model, ConstraintSet::Type::CONTACT, id);
                 model.add(constraintSet);
+            }
+        } else if (!key.compare(0, 4, "DISP")) {
+            if (id != 0) {
+                auto nodalOutput = make_shared<NodalDisplacementOutput>(model);
+                for (const auto& option:options) {
+                    if (option == "PHASE") {
+                        nodalOutput->complexOutput = NodalDisplacementOutput::ComplexOutputType::PHASE_MAGNITUDE;
+                    }
+                }
+                nodalOutput->addNodeGroup("SET_" + to_string(id));
+                model.add(nodalOutput);
+                analysis->add(nodalOutput->getReference());
             }
         }
     }

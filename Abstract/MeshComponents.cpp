@@ -664,7 +664,7 @@ void NodeContainer::addNodePosition(int nodePosition) {
 void NodeContainer::addNodeGroup(const string& groupName) {
 	shared_ptr<Group> group = mesh.findGroup(groupName);
 	if (group == nullptr) {
-		throw logic_error("Group name: " + groupName + "not found.");
+		throw logic_error("Group name: [" + groupName + "] not found.");
 	}
 	groupNames.insert(groupName);
 }

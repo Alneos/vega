@@ -68,6 +68,9 @@ public:
     virtual bool isAssertion() const {
         return false;
     }
+    virtual bool isOutput() const {
+        return false;
+    }
 };
 
 /**
@@ -229,12 +232,20 @@ public:
 class Output: public Objective {
 protected:
     Output(Model&, Type, int original_id = NO_ORIGINAL_ID);
+public:
+    bool isOutput() const override {
+        return true;
+    }
 };
 
-class NodalDisplacementOutput: public Output {
+class NodalDisplacementOutput: public Output, public NodeContainer {
 public:
-    NodalDisplacementOutput(Model& model, const std::shared_ptr<const NodeGroup> outputGroup, int original_id = NO_ORIGINAL_ID);
-    const std::shared_ptr<const NodeGroup> outputGroup;
+    enum class ComplexOutputType {
+        REAL_IMAGINARY,
+        PHASE_MAGNITUDE
+    };
+    NodalDisplacementOutput(Model& model, int original_id = NO_ORIGINAL_ID);
+    ComplexOutputType complexOutput;
 };
 
 

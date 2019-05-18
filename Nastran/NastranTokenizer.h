@@ -81,7 +81,7 @@ private:
     bool readLineSkipComment(std::string& line);
     void splitFreeFormat(std::string line, bool firstLine);
     void parseBulkSectionLine(std::string line);
-//    void parseParameters();
+    void parseParameters();
 
     /**
      * Return the next symbol to be interpreted, as a string (trimmed + uppercase), and advances to next field

@@ -66,7 +66,7 @@ ostream &operator<<(ostream &out, const Analysis& analysis) {
 }
 
 void Analysis::add(const Reference<LoadSet>& loadSetReference) {
-    this->loadSet_references.push_back(loadSetReference);
+    this->loadSet_references.insert(loadSetReference);
 }
 
 const vector<shared_ptr<LoadSet>> Analysis::getLoadSets() const {
@@ -108,7 +108,7 @@ const vector<shared_ptr<BoundaryCondition>> Analysis::getBoundaryConditions() co
 }
 
 void Analysis::add(const Reference<ConstraintSet>& constraintSetReference) {
-    this->constraintSet_references.push_back(constraintSetReference);
+    this->constraintSet_references.insert(constraintSetReference);
 }
 
 void Analysis::remove(const Reference<LoadSet> loadSetReference) {
@@ -212,7 +212,7 @@ const vector<shared_ptr<ConstraintSet>> Analysis::getConstraintSets() const {
 }
 
 void Analysis::add(const Reference<Objective>& assertionReference) {
-    objectiveReferences.push_back(assertionReference);
+    objectiveReferences.insert(assertionReference);
 }
 
 const vector<shared_ptr<Assertion>> Analysis::getAssertions() const {
