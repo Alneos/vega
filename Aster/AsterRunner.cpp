@@ -54,7 +54,7 @@ Runner::ExitCode AsterRunner::execSolver(const ConfigurationParameters &configur
     deletePreviousResultFiles(modelFile, fileList);
     fs::path repeout = modelFilePath.remove_filename();
     //repeout /= "repe_out";
-    repeout /= modelFile + "repe_out";
+    repeout /= fname + "_repe_out";
     if (fs::exists(repeout)) {
         uintmax_t removed = fs::remove_all(repeout);
         if (removed == 0) {
