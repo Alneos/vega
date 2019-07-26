@@ -103,6 +103,13 @@ Line& Line::add(string value) {
 	return *this;
 }
 
+Line& Line::add(const char* value) {
+	std::ostringstream strs;
+	strs << internal << setw(this->fieldLength) << value;
+	this->fields.push_back(strs.str());
+	return *this;
+}
+
 Line& Line::add(int value) {
 	std::ostringstream strs;
 	strs << internal << setw(this->fieldLength) << value;
@@ -270,13 +277,13 @@ void NastranWriter::writeCells(const Model& model, ofstream& out) const
 		if (elementSet->isDiscrete() || elementSet->isMatrixElement()) {
 			continue;
 		}
-		shared_ptr<CellGroup> cellGroup = elementSet->cellGroup;
-		for (const Cell& cell : cellGroup->getCells()) {
+		for (const Cell& cell : elementSet->getCellsIncludingGroups()) {
 			string keyword;
 			if (elementSet->isBeam()) {
 				keyword = "CBEAM";
-			} else
-			if (elementSet->isShell()) {
+            } else if (elementSet->isDiscrete() and cell.type.code == CellType::Code::SEG2_CODE) {
+                keyword = "CBUSH";
+			} else if (elementSet->isShell()) {
 				switch (cell.type.code) {
 				case CellType::Code::TRI3_CODE:
 					keyword = "CTRIA3";
@@ -578,6 +585,59 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 		psolid.add(continuum->material->bestId());
 		out << psolid;
 		continuum->markAsWritten();
+	}
+    for (shared_ptr<ElementSet> elementSet: model.elementSets.filter(ElementSet::Type::DISCRETE_0D)) {
+        shared_ptr<const DiscretePoint> discretePoint = dynamic_pointer_cast<const DiscretePoint>(elementSet);
+        if (discretePoint->hasStiffness() or discretePoint->hasDamping()) {
+            throw logic_error("discrete not completely written");
+        }
+        for (int nodePosition: discretePoint->nodePositions()) {
+            Line conm1("CONM1");
+            conm1.add(discretePoint->bestId());
+            conm1.add(model.mesh.findNodeId(nodePosition));
+            conm1.add(0); // CID
+            for (int row = 0; row < 5; row++) {
+                const DOF rowdof = DOF::findByPosition(row);
+                for (int col = 0; col < row; col++) {
+                    const DOF coldof = DOF::findByPosition(col);
+                    conm1.add(discretePoint->findMass(rowdof, coldof));
+                }
+            }
+            out << conm1;
+            elementSet->markAsWritten();
+        }
+	}
+    for (shared_ptr<ElementSet> elementSet: model.elementSets.filter(ElementSet::Type::NODAL_MASS)) {
+        shared_ptr<const NodalMass> mass = dynamic_pointer_cast<const NodalMass>(elementSet);
+        for (int nodePosition: mass->nodePositions()) {
+            Line conm2("CONM2");
+            conm2.add(mass->bestId());
+            conm2.add(model.mesh.findNodeId(nodePosition));
+            conm2.add(0); // CID
+            conm2.add(mass->getMass());
+            out << conm2;
+            elementSet->markAsWritten();
+        }
+	}
+    for (shared_ptr<ElementSet> elementSet: model.elementSets.filter(ElementSet::Type::STRUCTURAL_SEGMENT)) {
+        shared_ptr<const StructuralSegment> segment = dynamic_pointer_cast<const StructuralSegment>(elementSet);
+        if (segment->hasMass()) {
+            throw logic_error("discrete not completely written");
+        }
+        Line pbush("PBUSH");
+        pbush.add(segment->bestId());
+        pbush.add(0); // CID
+        pbush.add("K");
+        for (const DOF dof: DOFS::ALL_DOFS) {
+            pbush.add(segment->findStiffness(dof, dof));
+        }
+        pbush.add("");
+        pbush.add("B");
+        for (const DOF dof: DOFS::ALL_DOFS) {
+            pbush.add(segment->findDamping(dof, dof));
+        }
+        out << pbush;
+        elementSet->markAsWritten();
 	}
 }
 

@@ -36,6 +36,7 @@ public:
 	Line& add();
 	Line& add(double);
 	Line& add(std::string);
+	Line& add(const char*);
 	Line& add(int);
 	Line& add(const std::vector<int>);
 	Line& add(const std::vector<double>);
