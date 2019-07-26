@@ -153,27 +153,34 @@ DOFS operator&(const DOFS lhs, const DOF& rhs);
 std::ostream &operator<<(std::ostream &out, const DOFS& dofs);
 std::ostream &operator<<(std::ostream &out, const DOFS::iterator& dofs_iter);
 
-/* Sparse matrix between two dofs (of the same node), or the same dof with itself.*/
+/**
+ * Sparse matrix between two dofs (of the same node), or the same dof with itself.
+ */
 class DOFMatrix final {
-private:
-		bool symmetric;
 public:
 		std::unordered_map<std::pair<DOF, DOF>, double,
 				boost::hash<std::pair<int, int>>>componentByDofs;
-		DOFMatrix(bool it2 = false);
+		const MatrixType matrixType;
+		DOFMatrix(MatrixType matrixType = MatrixType::FULL);
 		void addComponent(const DOF dof1, const DOF dof2, const double value);
 		double findComponent(const DOF dof1, const DOF dof2) const;
 		bool hasTranslations() const;
 		bool hasRotations() const;
 		bool isDiagonal() const;
+		bool isSymmetric() const;
 		/**
 		 * Checks if diagonal is filled with DBL_MAX values
 		 * useful (for now) to understand if an element is totally rigid
 		 **/
 		bool isMaxDiagonal() const;
-		bool isSymmetric() const;
 		bool isEmpty() const;
 		bool isZero() const;
+		void setAllZero();
+		DOFMatrix transposed() const;
+		bool isEqual(const DOFMatrix& other) const;
+		std::vector<double> diagonal(bool addRotationsIfNotPresent) const;
+		std::vector<double> asUpperTriangularColumnsVector(bool addRotationsIfNotPresent) const;
+		std::vector<double> asColumnsVector(bool addRotationsIfNotPresent) const;
 };
 
 

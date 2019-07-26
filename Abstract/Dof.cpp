@@ -283,12 +283,15 @@ ostream &operator<<(ostream &out, const DOFS& dofs) {
 	return out;
 }
 
-DOFMatrix::DOFMatrix(bool symmetric) : symmetric(symmetric) {
+DOFMatrix::DOFMatrix(MatrixType matrixType) : matrixType(matrixType) {
 
 }
 
 void DOFMatrix::addComponent(const DOF dof1, const DOF dof2, const double value) {
-	if (symmetric and dof1 > dof2) {
+    if (matrixType == MatrixType::DIAGONAL and dof1 != dof2 and not is_zero(value)) {
+        throw logic_error("Cannot assign non-zero value out of diagonal for a diagonal matrix");
+    }
+	if (matrixType == MatrixType::SYMMETRIC and dof1 > dof2) {
 		componentByDofs[make_pair(dof2, dof1)] = value;
 	} else {
 		componentByDofs[make_pair(dof1, dof2)] = value;
@@ -296,7 +299,9 @@ void DOFMatrix::addComponent(const DOF dof1, const DOF dof2, const double value)
 }
 
 double DOFMatrix::findComponent(const DOF dof1, const DOF dof2) const {
-	if (symmetric and dof1 > dof2) {
+    if (matrixType == MatrixType::DIAGONAL and dof1 != dof2) {
+        return 0.0;
+	} else if (matrixType == MatrixType::SYMMETRIC and dof1 > dof2) {
 		auto it = componentByDofs.find(make_pair(dof2, dof1));
 		if (it != componentByDofs.end()) {
 			return it->second;
@@ -307,7 +312,40 @@ double DOFMatrix::findComponent(const DOF dof1, const DOF dof2) const {
 			return it->second;
 		}
 	}
-	return 0;
+	return 0.0;
+}
+
+vector<double> DOFMatrix::asColumnsVector(bool addRotationsIfNotPresent) const {
+	vector<double> result;
+	DOFS dofs = (addRotationsIfNotPresent || hasRotations()) ? DOFS::ALL_DOFS : DOFS::TRANSLATIONS;
+    for (const DOF coldof : dofs) {
+        for (const DOF rowdof : dofs) {
+            result.push_back(this->findComponent(rowdof, coldof));
+        }
+    }
+	return result;
+}
+
+vector<double> DOFMatrix::asUpperTriangularColumnsVector(bool addRotationsIfNotPresent) const {
+	vector<double> result;
+	DOFS dofs = (addRotationsIfNotPresent || hasRotations()) ? DOFS::ALL_DOFS : DOFS::TRANSLATIONS;
+    for (int coldof = 0; coldof < dofs.size(); coldof++) {
+        const DOF colcode = DOF::findByPosition(coldof);
+        for (int rowdof = 0; rowdof <= coldof; rowdof++) {
+            const DOF rowcode = DOF::findByPosition(rowdof);
+            result.push_back(this->findComponent(rowcode, colcode));
+        }
+    }
+	return result;
+}
+
+vector<double> DOFMatrix::diagonal(bool addRotationsIfNotPresent) const {
+	vector<double> result;
+	DOFS dofs = (addRotationsIfNotPresent || hasRotations()) ? DOFS::ALL_DOFS : DOFS::TRANSLATIONS;
+	for (const DOF& dof: dofs) {
+		result.push_back(this->findComponent(dof, dof));
+	}
+	return result;
 }
 
 bool DOFMatrix::hasRotations() const {
@@ -337,14 +375,38 @@ bool DOFMatrix::hasTranslations() const {
 }
 
 bool DOFMatrix::isDiagonal() const {
-	bool isDiagonal = true;
+	if (matrixType == MatrixType::DIAGONAL) {
+        return true;
+    }
 	for (const auto& kv : componentByDofs) {
 		if (kv.first.first != kv.first.second and !is_zero(kv.second)) {
-			isDiagonal = false;
-			break;
+			return false;
 		}
 	}
-	return isDiagonal;
+
+	return true;
+}
+
+bool DOFMatrix::isSymmetric() const {
+	if (matrixType == MatrixType::SYMMETRIC) {
+        return true;
+    }
+	if (matrixType == MatrixType::DIAGONAL) {
+        return true;
+    }
+	for (const auto& kv : componentByDofs) {
+	    const auto& kv2 = componentByDofs.find(make_pair(kv.first.second, kv.first.first));
+		if (kv2 == componentByDofs.end()) {
+            if (!is_zero(kv.second)) {
+                return false;
+            }
+		} else {
+		    if (!is_equal(kv.second, kv2->second)) {
+                return false;
+            }
+		}
+	}
+	return true;
 }
 
 bool DOFMatrix::isMaxDiagonal() const {
@@ -356,10 +418,6 @@ bool DOFMatrix::isMaxDiagonal() const {
 		}
 	}
 	return isMaxDiagonal;
-}
-
-bool DOFMatrix::isSymmetric() const {
-	return symmetric;
 }
 
 bool DOFMatrix::isEmpty() const {
@@ -375,6 +433,35 @@ bool DOFMatrix::isZero() const {
 		}
 	}
 	return isZero;
+}
+
+void DOFMatrix::setAllZero() {
+    for (auto& entry : componentByDofs) {
+        entry.second = 0.0;
+    }
+}
+
+DOFMatrix DOFMatrix::transposed() const {
+    DOFMatrix transposed(matrixType);
+    for (auto& entry : componentByDofs) {
+        transposed.addComponent(entry.first.second, entry.first.first, entry.second);
+    }
+    return transposed;
+}
+
+bool DOFMatrix::isEqual(const DOFMatrix& other) const {
+    if (componentByDofs.size() != other.componentByDofs.size())
+        return false; // This should be relaxed: maybe other matrix has some zero values explicitely
+    for (auto& entry : componentByDofs) {
+        const auto& otherit = other.componentByDofs.find(entry.first);
+        if (otherit == other.componentByDofs.end() and not is_zero(entry.second)) {
+            return false;
+        }
+        if (not is_equal(entry.second, otherit->second)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 DOFCoefs::DOFCoefs(double dx, double dy, double dz, double rx, double ry, double rz) {
