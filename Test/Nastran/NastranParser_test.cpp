@@ -122,4 +122,44 @@ BOOST_AUTO_TEST_CASE(nastran_pload4d) {
 	}
 }
 
+BOOST_AUTO_TEST_CASE( test_issue24_multilineset ) {
+	string testLocation = fs::path(
+	PROJECT_BASE_DIR "/testdata/unitTest/nastranparser/multilineset.nas").make_preferred().string();
+	nastran::NastranParser parser;
+	try {
+		const unique_ptr<Model> model = parser.parse(
+				ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
+        BOOST_CHECK_EQUAL(model->mesh.getNodeGroups().size(), 1);
+        BOOST_CHECK_EQUAL(model->mesh.getNodeGroups()[0]->nodePositions().size(), 16);
+	} catch (exception& e) {
+		cout << e.what() << endl;
+		BOOST_FAIL(string("Parse threw exception ") + e.what());
+	}
+}
+
+BOOST_AUTO_TEST_CASE(nastran_issue23_doubleload) {
+	string testLocation = fs::path(
+		PROJECT_BASE_DIR "/testdata/unitTest/nastranparser/doubleload.nas").make_preferred().string();
+	nastran::NastranParser parser;
+	try {
+		const unique_ptr<Model> model = parser.parse(
+			ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
+        model->finish();
+        BOOST_CHECK_EQUAL(model->analyses.size(), 2);
+        const auto& analysis = model->analyses.first();
+        BOOST_CHECK_EQUAL(analysis->getConstraintSets().size(), 1);
+        BOOST_CHECK_EQUAL(analysis->getLoadSets().size(), 1);
+        BOOST_CHECK_EQUAL(model->loadings.size(), 2);
+        const auto& analysis2 = model->analyses.last();
+        BOOST_CHECK_EQUAL(analysis2->getConstraintSets().size(), 1);
+        BOOST_CHECK_EQUAL(analysis2->getLoadSets().size(), 1);
+	}
+	catch (exception& e) {
+		cerr << e.what() << endl;
+		BOOST_TEST_MESSAGE(string("Application exception") + e.what());
+
+		BOOST_FAIL(string("Parse threw exception ") + e.what());
+	}
+}
+
 //____________________________________________________________________________//

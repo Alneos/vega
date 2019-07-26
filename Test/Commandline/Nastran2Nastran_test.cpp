@@ -42,5 +42,9 @@ BOOST_AUTO_TEST_CASE( n4w101 ) {
 	CommandLineUtils::nastranStudy2Nastran("/irt/n4w101/n4w101.nas", false, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( sdld27a ) {
+	CommandLineUtils::nastranStudy2Nastran("/irt/sdld27a/sdld27a.bdf", false, true, 0.00001);
+}
+
 } /* namespace test */
 } /* namespace vega */

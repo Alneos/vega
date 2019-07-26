@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 	cn1->addCellId(1);
 	cn1->addCellId(2);
 	const auto& shell = make_shared<Shell>(*model, 1.1);
-	shell->assignCellGroup(cn1);
+	shell->add(*cn1);
 	model->add(shell);
 	//node 10 outside mesh, number of assertion = 6 nodes * 6 dofs
 	model->add(make_shared<LinearMecaStat>(*model, "", 1));
@@ -133,12 +133,12 @@ BOOST_AUTO_TEST_CASE(test_4a) {
 	shared_ptr<CellGroup> cn1 = model->mesh.createCellGroup("GM1");
 	cn1->addCellId(1);
 	const auto& continuum = make_shared<Continuum>(*model, ModelType::TRIDIMENSIONAL_SI, 1);
-	continuum->assignCellGroup(cn1);
+	continuum->add(*cn1);
 	model->add(continuum);
 	shared_ptr<CellGroup> cn2 = model->mesh.createCellGroup("GM2");
 	cn2->addCellId(2);
-	const auto& discrete = make_shared<DiscretePoint>(*model);
-	discrete->assignCellGroup(cn2);
+	const auto& discrete = make_shared<DiscretePoint>(*model, MatrixType::FULL);
+	discrete->add(*cn2);
 	model->add(discrete);
 	model->add(make_shared<LinearMecaStat>(*model, "", 1));
 
@@ -191,12 +191,12 @@ BOOST_AUTO_TEST_CASE(test_modal_disp) {
 	shared_ptr<CellGroup> cn1 = model->mesh.createCellGroup("GM1");
 	cn1->addCellId(1);
 	const auto& continuum = make_shared<Continuum>(*model, ModelType::TRIDIMENSIONAL_SI, 1);
-	continuum->assignCellGroup(cn1);
+	continuum->add(*cn1);
 	model->add(continuum);
 	shared_ptr<CellGroup> cn2 = model->mesh.createCellGroup("GM2");
 	cn2->addCellId(2);
-	const auto& discrete = make_shared<DiscretePoint>(*model);
-	discrete->assignCellGroup(cn2);
+	const auto& discrete = make_shared<DiscretePoint>(*model, MatrixType::SYMMETRIC);
+	discrete->add(*cn2);
 	model->add(discrete);
     const auto& bandRange = make_shared<BandRange>(*model, 0.0, 10, 1000);
     const auto& frequencySearch = make_shared<FrequencySearch>(*model, FrequencySearch::FrequencyType::BAND, *bandRange);

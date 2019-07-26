@@ -123,7 +123,7 @@ BOOST_AUTO_TEST_CASE( test_Elements ) {
 	cn1->addCellId(2);
 	BOOST_TEST_CHECKPOINT("after addcells");
 	const auto& rectangularSectionBeam = make_shared<RectangularSectionBeam>(model, 100.0, 110.0, Beam::BeamModel::EULER, 1);
-	rectangularSectionBeam->assignCellGroup(cn1);
+	rectangularSectionBeam->add(*cn1);
 	rectangularSectionBeam->assignMaterial(1);
 	model.add(rectangularSectionBeam);
 	model.getOrCreateMaterial(1)->addNature(make_shared<ElasticNature>(model, 1, 0));
@@ -180,7 +180,7 @@ unique_ptr<Model> createModelWith1HEXA8() {
 	cn1->addCellId(1);
 	BOOST_TEST_CHECKPOINT("after addcells");
 	const auto& continuum = make_shared<Continuum>(*model, ModelType::TRIDIMENSIONAL_SI, 1);
-	continuum->assignCellGroup(cn1);
+	continuum->add(*cn1);
 	continuum->assignMaterial(1);
 	model->add(continuum);
 	model->getOrCreateMaterial(1)->addNature(make_shared<ElasticNature>(*model, 1, 0));

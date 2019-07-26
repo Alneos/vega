@@ -82,6 +82,11 @@ BOOST_AUTO_TEST_CASE( rbe3 ) {
 //	CommandLineUtils::nastranStudy2Systus("/irt/cbush1b/cbush1b.bdf", RUN_SYSTUS, true, 0.00001);
 //}
 
+//BOOST_AUTO_TEST_CASE( sdld27a ) {
+// Missing DISCRET_0D translation
+//	CommandLineUtils::nastranStudy2Systus("/irt/sdld27a/sdld27a.bdf", RUN_SYSTUS, true, 0.00001);
+//}
+
 BOOST_AUTO_TEST_CASE( ssll11a ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/ssll11a/ssll11a.nas", RUN_SYSTUS, true, 0.000001);
 }

@@ -67,6 +67,10 @@ BOOST_AUTO_TEST_CASE( cbush1b ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/cbush1b/cbush1b.bdf", RUN_ASTER, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( sdld27a ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/sdld27a/sdld27a.bdf", RUN_ASTER, true, 0.00001);
+}
+
 BOOST_AUTO_TEST_CASE( ssll11a ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/ssll11a/ssll11a.nas", RUN_ASTER, true, 0.000001);
 }
@@ -200,8 +204,11 @@ BOOST_AUTO_TEST_CASE( truss1 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/truss1/truss1.nas", RUN_ASTER, true, 0.000001);
 }
 
+BOOST_AUTO_TEST_CASE( truss3 ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/truss3/truss3.nas", RUN_ASTER, true, 0.000001);
+}
+
 BOOST_AUTO_TEST_CASE( truss5 ) {
-    // NOOK on first subcase ?
 	CommandLineUtils::nastranStudy2Aster("/irt/truss5/truss5.nas", RUN_ASTER, true, 0.000001);
 }
 

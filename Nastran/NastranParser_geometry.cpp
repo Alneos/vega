@@ -242,40 +242,42 @@ void NastranParser::parseCBUSH(NastranTokenizer& tok, Model& model) {
 
     // Local element coordinate system
     int cpos = 0;
-    vector<string> line = tok.currentDataLine();
-    if ( (line.size()>8) && !(line[8].empty())){
-        // A CID is provided by the user
-        tok.skip(3);
-        int cid = tok.nextInt();
-        cpos = model.mesh.findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, cid));
-    }else{
-        // Local definition of the element coordinate system
-        if (forbidOrientation){
-            handleParsingWarning(string("Single node CBUSH can't support local orientation. Orientation dismissed."), tok, model);
-            tok.skip(4);
-            cpos = 0;
+    if (!tok.isEmptyUntilNextKeyword()) {
+        vector<string> line = tok.currentDataLine();
+        if ( (line.size()>8) && !(line[8].empty())){
+            // A CID is provided by the user
+            tok.skip(3);
+            int cid = tok.nextInt();
+            cpos = model.mesh.findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, cid));
         }else{
-            cpos = parseOrientation(ga, gb, tok, model);
-            tok.nextInt(true);
+            // Local definition of the element coordinate system
+            if (forbidOrientation){
+                handleParsingWarning(string("Single node CBUSH can't support local orientation. Orientation dismissed."), tok, model);
+                tok.skip(4);
+                cpos = 0;
+            }else{
+                cpos = parseOrientation(ga, gb, tok, model);
+                tok.nextInt(true);
+            }
         }
-    }
 
-    // Spring damper location (S): not supported.
-    double s=tok.nextDouble(true, 0.5);
-    if (!is_equal(s,0.5)){
-        handleParsingWarning(string("S keyword not supported. Default (0.5) used."), tok, model);
-        s=0.5;
-    }
+        // Spring damper location (S): not supported.
+        double s=tok.nextDouble(true, 0.5);
+        if (!is_equal(s,0.5)){
+            handleParsingWarning(string("S keyword not supported. Default (0.5) used."), tok, model);
+            s=0.5;
+        }
 
-    // Coordinate system identification of spring-damper offset (OCID): not supported.
-    int ocid =tok.nextInt(true, -1);
-    double s1=tok.nextDouble(true);
-    double s2=tok.nextDouble(true);
-    double s3=tok.nextDouble(true);
-    if (ocid!=-1){
-        handleParsingWarning(string("OCID keyword not supported. Default (-1) used."), tok, model);
-        handleParsingWarning(string("S1 S2 S3 dismissed :")+to_string(s1)+ string(" ")+to_string(s2)+ string(" ")+to_string(s3), tok, model);
-        ocid=-1;
+        // Coordinate system identification of spring-damper offset (OCID): not supported.
+        int ocid =tok.nextInt(true, -1);
+        double s1=tok.nextDouble(true);
+        double s2=tok.nextDouble(true);
+        double s3=tok.nextDouble(true);
+        if (ocid!=-1){
+            handleParsingWarning(string("OCID keyword not supported. Default (-1) used."), tok, model);
+            handleParsingWarning(string("S1 S2 S3 dismissed :")+to_string(s1)+ string(" ")+to_string(s2)+ string(" ")+to_string(s3), tok, model);
+            ocid=-1;
+        }
     }
 
     // Add cell
@@ -317,7 +319,7 @@ void NastranParser::parseCDAMP1(NastranTokenizer& tok, Model& model) {
     shared_ptr<ElementSet> elementSet = model.elementSets.find(pid);
     if (elementSet == nullptr){
         const auto& scalarSpring = make_shared<ScalarSpring>(model, pid);
-        scalarSpring->assignCellGroup(cellGroup);
+        scalarSpring->add(*cellGroup);
         scalarSpring->addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
         model.add(scalarSpring);
     } else {
@@ -360,7 +362,7 @@ void NastranParser::parseCELAS1(NastranTokenizer& tok, Model& model) {
     shared_ptr<ElementSet> elementSet = model.elementSets.find(pid);
     if (elementSet == nullptr){
         const auto& scalarSpring = make_shared<ScalarSpring>(model, pid);
-        scalarSpring->assignCellGroup(cellGroup);
+        scalarSpring->add(*cellGroup);
         scalarSpring->addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
         model.add(scalarSpring);
     }else{
@@ -399,7 +401,7 @@ void NastranParser::parseCELAS2(NastranTokenizer& tok, Model& model) {
 
     // Create ElementSet
     const auto& scalarSpring = make_shared<ScalarSpring>(model, eid, k ,ge);
-    scalarSpring->assignCellGroup(springGroup);
+    scalarSpring->add(*springGroup);
     scalarSpring->addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
     model.add(scalarSpring);
 }
@@ -419,7 +421,7 @@ void NastranParser::parseCELAS4(NastranTokenizer& tok, Model& model) {
 
     // Create ElementSet
     const auto& scalarSpring = make_shared<ScalarSpring>(model, eid, k);
-    scalarSpring->assignCellGroup(springGroup);
+    scalarSpring->add(*springGroup);
     scalarSpring->addSpring(cellPosition, DOF::DX, DOF::DX);
     model.add(scalarSpring);
 }
@@ -492,7 +494,7 @@ void NastranParser::parseCMASS2(NastranTokenizer& tok, Model& model) {
     int c1 = tok.nextInt(); // Nastran coordinate goes from 1 to 6, VEGA from 0 to 5.
     int g2 = tok.nextInt();
     int c2 = tok.nextInt(); // Nastran coordinate goes from 1 to 6, VEGA from 0 to 5.
-    const auto& matrix = make_shared<MassMatrix>(model, eid);
+    const auto& matrix = make_shared<MassMatrix>(model, MatrixType::SYMMETRIC, eid);
     matrix->addComponent(g1, DOF::findByPosition(c1-1), g2, DOF::findByPosition(c2-1), m);
     model.add(matrix);
 }
