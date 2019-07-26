@@ -1,0 +1,36 @@
+0     POINT LOAD AT GRID POINT 4                                                                             SUBCASE 1              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             1      G      0.0            0.0            0.0            0.0            0.0            0.0                           
+             2      G      0.0            0.0            0.0            0.0            0.0            0.0                           
+             3      G      1.247578E-02  -1.285377E-01   0.0            0.0            0.0            0.0                           
+             4      G     -1.252422E-02  -1.290368E-01   0.0            0.0            0.0            0.0                           
+1     LINEAR STATICS USER’S SAMPLE INPUT FILE                             /    95 INTEL LINUX NASTRAN    / JUL 25, 19 / PAGE     9
+      TRUSS STRUCTURE                                                                                                               
+0     POINT LOAD AT GRID POINT 3                                                                             SUBCASE 2              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             3      G      7.578219E-03  -2.504843E-02   0.0            0.0            0.0            0.0                           
+             4      G     -2.421781E-03  -2.495156E-02   0.0            0.0            0.0            0.0                           
+1     LINEAR STATICS USER’S SAMPLE INPUT FILE                             /    95 INTEL LINUX NASTRAN    / JUL 25, 19 / PAGE    10
+      TRUSS STRUCTURE                                                                                                               
+0     POINT LOAD AT GRID POINT 4                                                                             SUBCASE 1              
+ 
+                                           F O R C E S   I N   R O D   E L E M E N T S     ( C R O D )
+       ELEMENT           AXIAL                                     ELEMENT           AXIAL
+         ID.             FORCE          TORQUE                       ID.             FORCE          TORQUE
+             3       -2.544571E+03   0.0                                                                                            
+1     LINEAR STATICS USER’S SAMPLE INPUT FILE                             /    95 INTEL LINUX NASTRAN    / JUL 25, 19 / PAGE    11
+      TRUSS STRUCTURE                                                                                                               
+0     POINT LOAD AT GRID POINT 3                                                                             SUBCASE 2              
+ 
+                                           F O R C E S   I N   R O D   E L E M E N T S     ( C R O D )
+       ELEMENT           AXIAL                                     ELEMENT           AXIAL
+         ID.             FORCE          TORQUE                       ID.             FORCE          TORQUE
+             3        4.939485E+02   0.0                                 4       -4.843562E+02   0.0                                
+1     LINEAR STATICS USER’S SAMPLE INPUT FILE                             /    95 INTEL LINUX NASTRAN    / JUL 25, 19 / PAGE    12
+      TRUSS STRUCTURE                                                                                                               
