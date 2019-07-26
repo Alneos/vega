@@ -226,6 +226,7 @@ private:
         std::shared_ptr<T> get(int) const; /**< Return an object by its Vega Id **/
         bool contains(const typename T::Type type) const; /**< Ask if objects of a given type exist inside */
         const std::vector<std::shared_ptr<T>> filter(const typename T::Type type) const; /**< Choose objects based on their type */
+        const std::vector<std::shared_ptr<T>> filter(const std::unordered_set<typename T::Type> types) const; /**< Choose objects based on their types */
         bool validate(); /**< Says if model parts are coherent (no unresolved references, etc.) AND SOMETIMES IT TRIES TO FIX THEM :( */
         bool checkWritten() const; /**< Says if all container objects have been written in output (or not) */
     }; /* Container class */
@@ -424,6 +425,17 @@ const std::vector<std::shared_ptr<T>> Model::Container<T>::filter(const typename
     std::vector<std::shared_ptr<T>> result;
     for (const auto& id_obj_pair: by_id) {
         if (id_obj_pair.second->type == type) {
+            result.push_back(id_obj_pair.second);
+        }
+    }
+    return result;
+}
+
+template<class T>
+const std::vector<std::shared_ptr<T>> Model::Container<T>::filter(const std::unordered_set<typename T::Type> types) const {
+    std::vector<std::shared_ptr<T>> result;
+    for (const auto& id_obj_pair: by_id) {
+        if (types.find(id_obj_pair.second->type) != types.end()) {
             result.push_back(id_obj_pair.second);
         }
     }
