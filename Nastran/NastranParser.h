@@ -282,6 +282,12 @@ private:
     void parseCMASS2(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
 
     /**
+     * Parse the CONM1 keyword (page 1250 of MDN Nastran 2006 Quick Reference Guide.)
+     * CID is not supported.
+     */
+    void parseCONM1(NastranTokenizer& tok, Model& model);
+
+    /**
      * Parse the CONM2 keyword (page 1251 of MDN Nastran 2006 Quick Reference Guide.)
      * CID is not supported.
      */

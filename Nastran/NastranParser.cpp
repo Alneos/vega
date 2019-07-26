@@ -65,6 +65,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "CELAS4", &NastranParser::parseCELAS4 },
                 { "CHEXA", &NastranParser::parseCHEXA },
                 { "CMASS2", &NastranParser::parseCMASS2 },
+                { "CONM1", &NastranParser::parseCONM1 },
                 { "CONM2", &NastranParser::parseCONM2 },
                 { "CONROD", &NastranParser::parseCONROD },
                 { "CORD1R", &NastranParser::parseCORD1R },
@@ -191,6 +192,7 @@ string NastranParser::parseSubcase(NastranTokenizer& tok, Model& model,
             continue;
         }
         nextKeyword = tok.nextString(true,"");
+        trim(nextKeyword);
         if ((!nextKeyword.empty()) && (nextKeyword != "BEGIN") && (nextKeyword != "SUBCASE")  && (nextKeyword != "SUBCOM")) {
             string line ="";
             string sep="";
@@ -228,6 +230,7 @@ string NastranParser::parseSubcom(NastranTokenizer& tok, Model& model,
             continue;
         }
         nextKeyword = tok.nextString(true,"");
+        trim(nextKeyword);
         if ((!nextKeyword.empty()) && (nextKeyword != "BEGIN") && (nextKeyword != "SUBCASE")  && (nextKeyword != "SUBCOM")) {
             string line ="";
             string sep="";
@@ -295,7 +298,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                 if (!(iss >> num).fail()) {
                     throw logic_error("set references not yet implemented " + to_string(num));
                 }
-                const auto& matrix = make_shared<DampingMatrix>(model); // LD : TODO string identifier here
+                const auto& matrix = make_shared<DampingMatrix>(model, MatrixType::FULL); // LD : TODO string identifier here
                 directMatrixByName.insert(make_pair(line, matrix->getReference()));
                 model.add(matrix);
             } else if (keyword == "CEND") {
@@ -327,7 +330,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                 if (!(iss >> num).fail()) {
                     throw logic_error("set references not yet implemented " + to_string(num));
                 }
-                const auto& matrix = make_shared<StiffnessMatrix>(model); // LD : TODO string identifier here
+                const auto& matrix = make_shared<StiffnessMatrix>(model, MatrixType::FULL); // LD : TODO string identifier here
                 directMatrixByName.insert(make_pair(line, matrix->getReference()));
                 model.add(matrix);
             } else if (keyword == "M2GG") {
@@ -356,7 +359,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                 if (!(iss >> num).fail()) {
                     throw logic_error("set references not yet implemented " + to_string(num));
                 }
-                const auto& matrix = make_shared<MassMatrix>(model); // LD : TODO string identifier here
+                const auto& matrix = make_shared<MassMatrix>(model, MatrixType::FULL); // LD : TODO string identifier here
                 directMatrixByName.insert(make_pair(line, matrix->getReference()));
                 model.add(matrix);
             } else if (keyword == "SUBCASE") {
@@ -378,20 +381,24 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                     line += tok.nextString(true,"");
                 model.title = line;
             } else if (keyword == "SET") {
-                string setid = tok.nextString(true, "");
-                shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup("SET_"+setid,NodeGroup::NO_ORIGINAL_ID,"SET");
-                vector<string> parts;
-                split(parts, tok.currentRawDataLine(), boost::is_any_of("="), boost::algorithm::token_compress_on);
-                if (parts.size() == 2) {
-                    vector<string> parvalparts;
-                    split(parvalparts, parts[1], boost::is_any_of(","), boost::algorithm::token_compress_on);
-                    for (const auto& nodeId : parvalparts) {
-                        nodeGroup->addNodeId(stoi(nodeId));
-                    }
-                } else {
-                    throw logic_error("multiple = in SET should never happen");
+                string line = trim_copy(tok.currentRawDataLine());
+                while (line.back() == ',') {
+                    tok.nextLine();
+                    line += trim_copy(tok.currentRawDataLine());
                 }
-
+                vector<string> parts;
+                split(parts, line, boost::is_any_of("="), boost::algorithm::token_compress_on);
+                if (parts.size() != 2) {
+                    throw logic_error("multiple or no = in SET should never happen");
+                }
+                string setid = trim_copy(parts[0].substr(4));
+                shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup("SET_"+setid,NodeGroup::NO_ORIGINAL_ID,"SET");
+                vector<string> parvalparts;
+                trim(parts[1]);
+                split(parvalparts, parts[1], boost::is_any_of(", "), boost::algorithm::token_compress_on);
+                for (const auto& nodeId : parvalparts) {
+                    nodeGroup->addNodeId(stoi(nodeId));
+                }
             } else {
                 if (tok.nextSymbolType != NastranTokenizer::SymbolType::SYMBOL_FIELD) {
                     context[keyword] = string("");
@@ -406,6 +413,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                         }
                         context[keyword] = parvalparts[1];
                     } else {
+                        trim(parts[0]);
                         context[parts[0]] = parts[1];
                     }
                 }
@@ -699,12 +707,10 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
 
     for (const auto& contextPair : context) {
         string key = contextPair.first;
-        int id;
-        try {
-            id = stoi(contextPair.second);
-        }
-        catch(std::invalid_argument& e){
-            id = 0;
+        int id = 0;
+        string value = boost::algorithm::trim_copy(contextPair.second);
+        if (value.size() >= 1 and value.find_first_not_of("0123456789") == std::string::npos) {
+            id = stoi(value); // Avoid exception catch to simplify debugging
         }
         vector<string> options;
         boost::split(options, key, boost::is_any_of("(, )"), boost::token_compress_on);
@@ -973,8 +979,39 @@ void NastranParser::parseCONROD(NastranTokenizer& tok, Model& model) {
     genericSectionBeam->assignMaterial(mid);
     shared_ptr<CellGroup> cellGroup = model.mesh.createCellGroup("CONROD_" + to_string(eid), Group::NO_ORIGINAL_ID, "CONROD");
     cellGroup->addCellId(eid);
-    genericSectionBeam->assignCellGroup(cellGroup);
+    genericSectionBeam->add(*cellGroup);
     model.add(genericSectionBeam);
+}
+
+void NastranParser::parseCONM1(NastranTokenizer& tok, Model& model) {
+    int eid = tok.nextInt();
+    int g = tok.nextInt(); // Grid point identification number
+    int ci = tok.nextInt(true, 0);
+    if (ci == -1) {
+        handleParsingWarning("coordinate system CID=-1 not supported and dismissed.", tok, model);
+        ci = 0;
+    }
+    int cpos = ci == 0 ? CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID : ci;
+    int cellPosition = model.mesh.addCell(eid, CellType::POINT1, { g }, false, cpos);
+    auto mnodale = model.mesh.createCellGroup("CONM1_" + to_string(eid), CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
+    mnodale->addCellId(model.mesh.findCell(cellPosition).id);
+
+    const auto& nodalMassMatrix = make_shared<DiscretePoint>(model, MatrixType::SYMMETRIC, eid);
+
+    for (int row = 0; row < 5; row++) {
+        const DOF rowdof = DOF::findByPosition(row);
+        for (int col = 0; col <= row; col++) {
+            const DOF coldof = DOF::findByPosition(col);
+            if (!tok.isNextDouble()) {
+                break;
+            }
+            nodalMassMatrix->addMass(rowdof, coldof, tok.nextDouble(true, 0.0));
+        }
+    }
+
+    nodalMassMatrix->add(*mnodale);
+
+    model.add(nodalMassMatrix);
 }
 
 void NastranParser::parseCONM2(NastranTokenizer& tok, Model& model) {
@@ -1012,7 +1049,7 @@ void NastranParser::parseCONM2(NastranTokenizer& tok, Model& model) {
     int cellPosition = model.mesh.addCell(eid, CellType::POINT1, { g }, false, cpos);
     auto mnodale = model.mesh.createCellGroup("CONM2_" + to_string(eid), CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
     mnodale->addCellId(model.mesh.findCell(cellPosition).id);
-    nodalMass->assignCellGroup(mnodale);
+    nodalMass->add(*mnodale);
 
     model.add(nodalMass);
 }
@@ -1849,7 +1886,7 @@ void NastranParser::parsePBAR(NastranTokenizer& tok, Model& model) {
     const auto& genericSectionBeam = make_shared<GenericSectionBeam>(model, area, i2, i1, j, invk2, invk1, Beam::BeamModel::TIMOSHENKO, nsm,
             elemId);
     genericSectionBeam->assignMaterial(material_id);
-    genericSectionBeam->assignCellGroup(getOrCreateCellGroup(elemId, model, "PBAR"));
+    genericSectionBeam->add(*getOrCreateCellGroup(elemId, model, "PBAR"));
     std::list<std::pair<double, double>> reccoefs = { {c1, c2}, {d1, d2}, {e1, e2}, {f1, f2} };
     for (const auto& reccoef : reccoefs) {
         if (is_zero(reccoef.first) and is_zero(reccoef.second)) {
@@ -1883,7 +1920,7 @@ void NastranParser::parsePBARL(NastranTokenizer& tok, Model& model) {
         const auto& rectangularSectionBeam = make_shared<RectangularSectionBeam>(model, width, height, Beam::BeamModel::TIMOSHENKO, nsm,
                 propertyId);
         rectangularSectionBeam->assignMaterial(material_id);
-        rectangularSectionBeam->assignCellGroup(getOrCreateCellGroup(propertyId, model, "PBARL"));
+        rectangularSectionBeam->add(*getOrCreateCellGroup(propertyId, model, "PBARL"));
         model.add(rectangularSectionBeam);
     } else if (type == "ROD") {
         tok.skip(4);
@@ -1891,7 +1928,7 @@ void NastranParser::parsePBARL(NastranTokenizer& tok, Model& model) {
         nsm = tok.nextDouble(true, 0.0);
         const auto& circularSectionBeam = make_shared<CircularSectionBeam>(model, radius, Beam::BeamModel::TIMOSHENKO, nsm, propertyId);
         circularSectionBeam->assignMaterial(material_id);
-        circularSectionBeam->assignCellGroup(getOrCreateCellGroup(propertyId, model, "PBARL"));
+        circularSectionBeam->add(*getOrCreateCellGroup(propertyId, model, "PBARL"));
         model.add(circularSectionBeam);
     } else if (type == "TUBE") {
         tok.skip(4);
@@ -1900,7 +1937,7 @@ void NastranParser::parsePBARL(NastranTokenizer& tok, Model& model) {
         nsm = tok.nextDouble(true, 0.0);
         const auto& tubeSectionBeam = make_shared<TubeSectionBeam>(model, intRadius, extRadius - intRadius, Beam::BeamModel::TIMOSHENKO, nsm, propertyId);
         tubeSectionBeam->assignMaterial(material_id);
-        tubeSectionBeam->assignCellGroup(getOrCreateCellGroup(propertyId, model, "PBARL"));
+        tubeSectionBeam->add(*getOrCreateCellGroup(propertyId, model, "PBARL"));
         model.add(tubeSectionBeam);
     } else if (type == "I") {
         tok.skip(4);
@@ -1915,7 +1952,7 @@ void NastranParser::parsePBARL(NastranTokenizer& tok, Model& model) {
                 upper_flange_thickness, lower_flange_thickness, beam_height, web_thickness,
                 Beam::BeamModel::TIMOSHENKO, nsm, propertyId);
         iSectionBeam->assignMaterial(material_id);
-        iSectionBeam->assignCellGroup(getOrCreateCellGroup(propertyId, model, "PBARL"));
+        iSectionBeam->add(*getOrCreateCellGroup(propertyId, model, "PBARL"));
         model.add(iSectionBeam);
     } else {
         string message = "PBARL type " + type + " not implemented.";
@@ -1980,7 +2017,7 @@ void NastranParser::parsePBEAM(NastranTokenizer& tok, Model& model) {
             moment_of_inertia_Z, torsionalConstant, 0.0, 0.0, GenericSectionBeam::BeamModel::EULER, nsm,
             elemId);
     genericSectionBeam->assignMaterial(material_id);
-    genericSectionBeam->assignCellGroup(getOrCreateCellGroup(elemId, model, "PBEAM"));
+    genericSectionBeam->add(*getOrCreateCellGroup(elemId, model, "PBEAM"));
     model.add(genericSectionBeam);
 
     // Intermediate stations are not supported
@@ -2056,7 +2093,7 @@ void NastranParser::parsePBEAML(NastranTokenizer& tok, Model& model) {
         nsm = tok.nextDouble(true, 0.0);
         const auto& rectangularSectionBeam = make_shared<RectangularSectionBeam>(model, width, height, Beam::BeamModel::TIMOSHENKO, nsm, pid);
         rectangularSectionBeam->assignMaterial(mid);
-        rectangularSectionBeam->assignCellGroup(getOrCreateCellGroup(pid, model,"PBEAML"));
+        rectangularSectionBeam->add(*getOrCreateCellGroup(pid, model,"PBEAML"));
         model.add(rectangularSectionBeam);
     } else if (type == "ROD") {
         tok.skip(4);
@@ -2064,7 +2101,7 @@ void NastranParser::parsePBEAML(NastranTokenizer& tok, Model& model) {
         nsm = tok.nextDouble(true, 0.0);
         const auto& circularSectionBeam = make_shared<CircularSectionBeam>(model, radius, Beam::BeamModel::TIMOSHENKO, nsm, pid);
         circularSectionBeam->assignMaterial(mid);
-        circularSectionBeam->assignCellGroup(getOrCreateCellGroup(pid, model,"PBEAML"));
+        circularSectionBeam->add(*getOrCreateCellGroup(pid, model,"PBEAML"));
         model.add(circularSectionBeam);
     } else if (type == "TUBE") {
         tok.skip(4);
@@ -2073,7 +2110,7 @@ void NastranParser::parsePBEAML(NastranTokenizer& tok, Model& model) {
         nsm = tok.nextDouble(true, 0.0);
         const auto& tubeSectionBeam = make_shared<TubeSectionBeam>(model, intRadius, extRadius - intRadius, Beam::BeamModel::TIMOSHENKO, nsm, pid);
         tubeSectionBeam->assignMaterial(mid);
-        tubeSectionBeam->assignCellGroup(getOrCreateCellGroup(pid, model,"PBEAML"));
+        tubeSectionBeam->add(*getOrCreateCellGroup(pid, model,"PBEAML"));
         model.add(tubeSectionBeam);
     } else if (type == "I") {
         tok.skip(4);
@@ -2089,7 +2126,7 @@ void NastranParser::parsePBEAML(NastranTokenizer& tok, Model& model) {
                 upper_flange_thickness, lower_flange_thickness, beam_height, web_thickness,
                 Beam::BeamModel::TIMOSHENKO, nsm, pid);
         iSectionBeam->assignMaterial(mid);
-        iSectionBeam->assignCellGroup(getOrCreateCellGroup(pid, model,"PBEAML"));
+        iSectionBeam->add(*getOrCreateCellGroup(pid, model,"PBEAML"));
         model.add(iSectionBeam);
     } else {
         string message = "PBEAML type " + type + " not implemented.";
@@ -2214,8 +2251,8 @@ void NastranParser::parsePBUSH(NastranTokenizer& tok, Model& model) {
         handleParsingWarning(string("Stress and Strain recovery coefficients (SA, ST, EA, ET ) not supported. Default (1.0) assumed."), tok, model);
     }
 
-    const auto& structuralElement = make_shared<StructuralSegment>(model, true, pid);
-    structuralElement->assignCellGroup(getOrCreateCellGroup(pid, model, "PBUSH"));
+    const auto& structuralElement = make_shared<StructuralSegment>(model, MatrixType::DIAGONAL, pid);
+    structuralElement->add(*getOrCreateCellGroup(pid, model, "PBUSH"));
     structuralElement->addStiffness(DOF::DX, DOF::DX, k1);
     structuralElement->addStiffness(DOF::DY, DOF::DY, k2);
     structuralElement->addStiffness(DOF::DZ, DOF::DZ, k3);
@@ -2243,7 +2280,7 @@ void NastranParser::parsePCOMP(NastranTokenizer& tok, Model& model) {
     }
     const auto& composite = make_shared<Composite>(model, pid);
     shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model,"PCOMP");
-    composite->assignCellGroup(cellGroup);
+    composite->add(*cellGroup);
     int mid1 = tok.nextInt();
     shared_ptr<Material> material = model.getOrCreateMaterial(mid1);
     composite->assignMaterial(material);
@@ -2280,13 +2317,13 @@ void NastranParser::parsePDAMP(NastranTokenizer& tok, Model& model) {
         shared_ptr<ElementSet> elementSet = model.elementSets.find(pid);
         if (elementSet == nullptr){
             const auto& scalarSpring = make_shared<ScalarSpring>(model, pid, Globals::UNAVAILABLE_DOUBLE, b);
-            scalarSpring->assignCellGroup(cellGroup);
+            scalarSpring->add(*cellGroup);
             model.add(scalarSpring);
         } else {
             if (elementSet->type == ElementSet::Type::SCALAR_SPRING){
                 shared_ptr<ScalarSpring> springElementSet = dynamic_pointer_cast<ScalarSpring>(elementSet);
                 springElementSet->setDamping(b);
-                springElementSet->assignCellGroup(cellGroup);
+                springElementSet->add(*cellGroup);
             }else{
                 string message = "The part of PID " + to_string(pid) + " already exists with the wrong NATURE.";
                 handleParsingError(message, tok, model);
@@ -2318,14 +2355,14 @@ void NastranParser::parsePELAS(NastranTokenizer& tok, Model& model) {
         shared_ptr<ElementSet> elementSet = model.elementSets.find(pid);
         if (elementSet == nullptr){
             const auto& scalarSpring = make_shared<ScalarSpring>(model, pid, k, ge);
-            scalarSpring->assignCellGroup(cellGroup);
+            scalarSpring->add(*cellGroup);
             model.add(scalarSpring);
         } else {
             if (elementSet->type == ElementSet::Type::SCALAR_SPRING){
                 shared_ptr<ScalarSpring> springElementSet = dynamic_pointer_cast<ScalarSpring>(elementSet);
                 springElementSet->setStiffness(k);
                 springElementSet->setDamping(ge);
-                springElementSet->assignCellGroup(cellGroup);
+                springElementSet->add(*cellGroup);
             } else {
                 string message = "The part of PID "+std::to_string(pid)+" already exists with the wrong NATURE.";
                 handleParsingError(message, tok, model);
@@ -2598,7 +2635,7 @@ void NastranParser::parsePLSOLID(NastranTokenizer& tok, Model& model) {
     // TODO LD: add large strain and large rotation somewhere, to be used in COMPORTEMENT
     const auto& continuum = make_shared<Continuum>(model, ModelType::TRIDIMENSIONAL, pid);
     continuum->assignMaterial(mid);
-    continuum->assignCellGroup(getOrCreateCellGroup(pid, model, "PLSOLID"));
+    continuum->add(*getOrCreateCellGroup(pid, model, "PLSOLID"));
     model.add(continuum);
 }
 
@@ -2619,7 +2656,7 @@ void NastranParser::parsePROD(NastranTokenizer& tok, Model& model) {
     const auto& genericSectionBeam = make_shared<GenericSectionBeam>(model, a, equivalent_inertia_moment, equivalent_inertia_moment, j, 1.0, 1.0, GenericSectionBeam::BeamModel::TRUSS, nsm,
             propId);
     genericSectionBeam->assignMaterial(material_id);
-    genericSectionBeam->assignCellGroup(getOrCreateCellGroup(propId, model, "PROD"));
+    genericSectionBeam->add(*getOrCreateCellGroup(propId, model, "PROD"));
     model.add(genericSectionBeam);
 }
 
@@ -2658,7 +2695,7 @@ void NastranParser::parsePSHELL(NastranTokenizer& tok, Model& model) {
 
     const auto& shell = make_shared<Shell>(model, thickness, nsm, propId);
     shell->assignMaterial(material_id1);
-    shell->assignCellGroup(getOrCreateCellGroup(propId, model,"PSHELL"));
+    shell->add(*getOrCreateCellGroup(propId, model,"PSHELL"));
     model.add(shell);
 }
 
@@ -2700,7 +2737,7 @@ void NastranParser::parsePSOLID(NastranTokenizer& tok, Model& model) {
     }
     const auto& continuum = make_shared<Continuum>(model, *modelType, elemId);
     continuum->assignMaterial(material_id);
-    continuum->assignCellGroup(getOrCreateCellGroup(elemId, model, "PSOLID"));
+    continuum->add(*getOrCreateCellGroup(elemId, model, "PSOLID"));
     model.add(continuum);
 }
 
@@ -3030,16 +3067,16 @@ void NastranParser::parseRLOAD2(NastranTokenizer& tok, Model& model) {
 void NastranParser::parseSET3(NastranTokenizer& tok, Model& model) {
     // page 2457 Labeled Set Definition, defines a list of grids, elements or points.
     int sid = tok.nextInt();
-    string name = string("SET") + "_" + to_string(sid);
+    string name = "SET3_" + to_string(sid);
     string des = tok.nextString();
 
     if (des == "GRID") {
-        shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SET");
+        shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SET3");
         while (tok.isNextInt()) {
             nodeGroup->addNodeId(tok.nextInt());
         }
     } else if (des == "ELEM") {
-        shared_ptr<CellGroup> cellGroup = model.mesh.createCellGroup(name,CellGroup::NO_ORIGINAL_ID,"SET");
+        shared_ptr<CellGroup> cellGroup = model.mesh.createCellGroup(name,CellGroup::NO_ORIGINAL_ID,"SET3");
         while (tok.isNextInt()) {
             cellGroup->addCellId(tok.nextInt());
         }
