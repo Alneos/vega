@@ -82,7 +82,7 @@ void handler(int sig);
 struct EnumClassHash
 {
     template <typename T>
-    std::size_t operator()(T t) const
+    std::size_t operator()(const T t) const
     {
         return static_cast<std::size_t>(t); // you don't need to provide a specialization of std::hash, the template argument deduction does the job
     }

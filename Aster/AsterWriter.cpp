@@ -721,8 +721,11 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 
 		vector<shared_ptr<ElementSet>> discrets_0d = asterModel.model.elementSets.filter(
 				ElementSet::Type::DISCRETE_0D);
-		vector<shared_ptr<ElementSet>> discrets_1d = asterModel.model.elementSets.filter(
-				{ElementSet::Type::DISCRETE_1D, ElementSet::Type::SCALAR_SPRING, ElementSet::Type::STRUCTURAL_SEGMENT});
+		vector<shared_ptr<ElementSet>> discrets_1d = asterModel.model.elementSets.filter(ElementSet::Type::DISCRETE_1D);
+                vector<shared_ptr<ElementSet>> scalar_springs = asterModel.model.elementSets.filter(ElementSet::Type::SCALAR_SPRING);
+                vector<shared_ptr<ElementSet>> structural_segments = asterModel.model.elementSets.filter(ElementSet::Type::STRUCTURAL_SEGMENT);
+                discrets_1d.insert(discrets_1d.end(), scalar_springs.begin(), scalar_springs.end());
+                discrets_1d.insert(discrets_1d.end(), structural_segments.begin(), structural_segments.end());
 		vector<shared_ptr<ElementSet>> nodal_masses = asterModel.model.elementSets.filter(
 				ElementSet::Type::NODAL_MASS);
         auto numDiscrets = discrets_0d.size() + nodal_masses.size() + discrets_1d.size();
