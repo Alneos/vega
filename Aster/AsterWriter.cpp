@@ -270,18 +270,16 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
             }
             if (not hasRecoveryPoints) continue;
 
-			out << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
-					<< endl;
-			out << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
-			out << "           MODELE=MODMECA," << endl;
-			out << "           CONTRAINTE =('SIPO_NOEU')," << endl;
-			out << "           GROUP_MA=(";
             for (const auto& elementSet : asterModel.model.elementSets) {
                 if (not elementSet->isBeam()) continue; // to avoid CALCUL_37 Le TYPE_ELEMENT MECA_BARRE  ne sait pas encore calculer l'option:  SIPO_ELNO.
-                out << "'" << elementSet->cellGroup->getName() << "'" << ",";
+                out << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
+                        << endl;
+                out << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
+                out << "           MODELE=MODMECA," << endl;
+                out << "           CONTRAINTE =('SIPO_NOEU')," << endl;
+                writeCellContainer(*elementSet, out);
+                out << ")" << endl;
             }
-            out << ")" << endl;
-			out << ")" << endl;
 
             out << "RCTB" << analysis->getId() << "=MACR_LIGN_COUPE(" << endl;
             out << "            RESULTAT=RESU" << analysis->getId() << "," << endl;
@@ -293,7 +291,7 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
                 auto beam = dynamic_pointer_cast<Beam>(elementSet);
                 for (const auto& recoveryPoint : beam->recoveryPoints) {
                     const VectorialValue& localCoords = recoveryPoint.getLocalCoords();
-                    for (const Cell& cell : beam->cellGroup->getCells()) {
+                    for (const Cell& cell : beam->getCellsIncludingGroups()) {
                         const Node& node1 = asterModel.model.mesh.findNode(cell.nodePositions[0]);
                         const VectorialValue& globalCoords = recoveryPoint.getGlobalCoords(cell.id);
                         out << "                    _F(" << endl;
@@ -484,9 +482,10 @@ void AsterWriter::writeAffeModele(const AsterModel& asterModel, ostream& out) {
 	out << "MODMECA=AFFE_MODELE(MAILLAGE=" << mail_name << "," << endl;
 	out << "                    AFFE=(" << endl;
 	for (const auto& elementSet : asterModel.model.elementSets) {
-		if (elementSet->cellGroup != nullptr) {
-			out << "                          _F(GROUP_MA='" << elementSet->cellGroup->getName()
-					<< "'," << endl;
+		if (!elementSet->empty()) {
+			out << "                          _F(";
+			writeCellContainer(*elementSet, out);
+			out << endl;
 			out << "                             PHENOMENE='" << asterModel.phenomene << "',"
 					<< endl;
 
@@ -706,7 +705,9 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
     }
     for (shared_ptr<ElementSet> c : composites) {
         shared_ptr<Composite> composite = dynamic_pointer_cast<Composite>(c);
-          out << "                          _F(MATER=MC" << composite ->getId() << ", GROUP_MA='" << composite->cellGroup->getName() << "')," << endl;
+          out << "                          _F(MATER=MC" << composite ->getId() << ",";
+          writeCellContainer(*composite, out);
+          out << ")," << endl;
     }
     out << "                          )," << endl;
     out << "                    );" << endl << endl;
@@ -721,29 +722,57 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 		vector<shared_ptr<ElementSet>> discrets_0d = asterModel.model.elementSets.filter(
 				ElementSet::Type::DISCRETE_0D);
 		vector<shared_ptr<ElementSet>> discrets_1d = asterModel.model.elementSets.filter(
-				ElementSet::Type::DISCRETE_1D);
+				{ElementSet::Type::DISCRETE_1D, ElementSet::Type::SCALAR_SPRING, ElementSet::Type::STRUCTURAL_SEGMENT});
 		vector<shared_ptr<ElementSet>> nodal_masses = asterModel.model.elementSets.filter(
 				ElementSet::Type::NODAL_MASS);
-		vector<shared_ptr<ElementSet>> scalar_springs = asterModel.model.elementSets.filter(
-				ElementSet::Type::SCALAR_SPRING);
-		vector<shared_ptr<ElementSet>> structural_segments = asterModel.model.elementSets.filter(
-				ElementSet::Type::STRUCTURAL_SEGMENT);
-        auto numDiscrets = discrets_0d.size() + nodal_masses.size() + discrets_1d.size() + structural_segments.size() + scalar_springs.size();
+        auto numDiscrets = discrets_0d.size() + nodal_masses.size() + discrets_1d.size();
 		out << "                    # writing " << numDiscrets << " discrets" << endl;
 		if (numDiscrets > 0) {
 			out << "                    DISCRET=(" << endl;
 			for (shared_ptr<ElementSet> discret : discrets_0d) {
-				if (discret->cellGroup != nullptr) {
-					out << "                             _F(GROUP_MA='"
-							<< discret->cellGroup->getName() << "'," << endl;
-					shared_ptr<DiscretePoint> discret_0d = dynamic_pointer_cast<DiscretePoint>(discret);
-					if (discret_0d->hasRotations())
-						out << "                                CARA='K_TR_D_N', VALE=(";
-					else
-						out << "                                CARA='K_T_D_N', VALE=(";
-					for (double rigi : discret_0d->asStiffnessVector())
-						out << rigi << ",";
-					out << "),)," << endl;
+				if (!discret->empty()) {
+                    shared_ptr<DiscretePoint> discret_0d = dynamic_pointer_cast<DiscretePoint>(discret);
+                    string rotationMarker = "";
+                    if (discret_0d->hasRotations()) {
+                        rotationMarker = "R";
+                    }
+                    string diagonalMarker = "";
+                    // M_T_D_N and M_TR_D_N do not allow to specify the diagonal for PO1 elements
+                    //if (discret_0d->isDiagonal()) {
+                    //    diagonalMarker = "D_";
+                    //}
+                    string syme = "";
+                    if (not discret_0d->isSymmetric()) {
+                        syme = "SYME='NON',";
+                    }
+                    out << "                             _F(";
+                    writeCellContainer(*discret, out);
+                    out << endl;
+                    out << "                                " << syme << "CARA='K_T" << rotationMarker << "_" << diagonalMarker << "N', VALE=(";
+                    for (double rigi : discret_0d->asStiffnessVector())
+                        out << rigi << ",";
+                    out << "),)," << endl;
+
+					if (discret_0d->hasDamping()) {
+                        out << "                             _F(";
+                        writeCellContainer(*discret, out);
+                        out << endl;
+                        out << "                                " << syme << "CARA='A_T" << rotationMarker << "_" << diagonalMarker << "N', VALE=(";
+                        for (double amor : discret_0d->asDampingVector())
+                            out << amor << ",";
+                        out << "),)," << endl;
+					}
+
+					if (discret_0d->hasMass()) {
+                        out << "                             _F(";
+                        writeCellContainer(*discret, out);
+                        out << endl;
+                        out << "                                " << syme << "CARA='M_T" << rotationMarker << "_" << diagonalMarker << "N', VALE=(";
+                        for (double mass : discret_0d->asMassVector())
+                            out << mass << ",";
+                        out << "),)," << endl;
+					}
+
 				} else {
 					out
 							<< "                             # WARN Finite Element : DISCRETE_0D ignored because its GROUP_MA is empty."
@@ -752,17 +781,49 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 				discret->markAsWritten();
 			}
 			for (shared_ptr<ElementSet> discret : discrets_1d) {
-				if (discret->cellGroup != nullptr) {
-					out << "                             _F(GROUP_MA='"
-							<< discret->cellGroup->getName() << "'," << endl;
-					shared_ptr<DiscreteSegment> discret_1d = dynamic_pointer_cast<DiscreteSegment>(discret);
-					if (discret_1d->hasRotations())
-						out << "                                CARA='K_TR_L', VALE=(";
-					else
-						out << "                                CARA='K_T_L', VALE=(";
-					for (double rigi : discret_1d->asStiffnessVector())
-						out << rigi << ",";
-					out << "),)," << endl;
+				if (!discret->empty()) {
+                    shared_ptr<Discrete> discret_1d = dynamic_pointer_cast<Discrete>(discret);
+                    string rotationMarker = "";
+                    if (discret_1d->hasRotations()) {
+                        rotationMarker = "R";
+                    }
+                    string diagonalMarker = "";
+                    if (discret_1d->isDiagonal()) {
+                        diagonalMarker = "D_";
+                    }
+                    string syme = "";
+                    if (not discret_1d->isSymmetric()) {
+                        syme = "SYME='NON',";
+                    }
+                    out << "                             _F(";
+                    writeCellContainer(*discret, out);
+                    out << endl;
+                    out << "                                " << syme << "CARA='K_T" << rotationMarker << "_" << diagonalMarker << "L', VALE=(";
+                    for (double rigi : discret_1d->asStiffnessVector())
+                        out << rigi << ",";
+                    out << "),)," << endl;
+
+                    if (discret_1d->hasDamping()) {
+                        out << "                             _F(";
+                        writeCellContainer(*discret, out);
+                        out << endl;
+                        out << "                                " << syme << "CARA='A_T" << rotationMarker << "_" << diagonalMarker << "L', VALE=(";
+                        for (double amor : discret_1d->asDampingVector())
+                            out << amor << ",";
+                        out << "),)," << endl;
+                    }
+
+                    if (discret_1d->hasMass()) {
+                        out << "                             _F(";
+                        writeCellContainer(*discret, out);
+                        out << endl;
+                        out << "                                " << syme << "CARA='M_T" << rotationMarker << "_" << diagonalMarker << "L', VALE=(";
+
+                        for (double mass : discret_1d->asMassVector())
+                            out << mass << ",";
+                        out << "),)," << endl;
+                    }
+
 				} else {
 					out
 							<< "                             # WARN Finite Element : DISCRETE_1D ignored because its GROUP_MA is empty."
@@ -770,70 +831,11 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 				}
 				discret->markAsWritten();
 			}
-			for (shared_ptr<ElementSet> segment : structural_segments) {
-				if (segment->cellGroup != nullptr) {
-					shared_ptr<StructuralSegment> segment_1d = dynamic_pointer_cast<StructuralSegment>(segment);
-					out << "                             _F(GROUP_MA='"
-							<< segment_1d->cellGroup->getName() << "'," << endl;
-					if (segment_1d->hasRotations())
-						out << "                                CARA='K_TR_L', VALE=(";
-					else
-						out << "                                CARA='K_T_L', VALE=(";
-					for (double rigi : segment_1d->asStiffnessVector())
-						out << rigi << ",";
-					out << "),)," << endl;
-
-					out << "                             _F(GROUP_MA='"
-							<< segment_1d->cellGroup->getName() << "'," << endl;
-					if (segment_1d->hasRotations())
-						out << "                                CARA='A_TR_L', VALE=(";
-					else
-						out << "                                CARA='A_T_L', VALE=(";
-					for (double rigi : segment_1d->asDampingVector())
-						out << rigi << ",";
-					out << "),)," << endl;
-				} else {
-					out
-							<< "                             # WARN Finite Element : DISCRETE_1D ignored because its GROUP_MA is empty."
-							<< endl;
-				}
-				segment->markAsWritten();
-			}
-			for (shared_ptr<ElementSet> scalar_springset : scalar_springs) {
-				if (scalar_springset->cellGroup != nullptr) {
-					out << "                             _F(GROUP_MA='"
-							<< scalar_springset->cellGroup->getName() << "'," << endl;
-					shared_ptr<ScalarSpring> spring = dynamic_pointer_cast<ScalarSpring>(scalar_springset);
-					if (spring->hasStiffness()) {
-                        if (spring->hasRotations())
-                            out << "                                CARA='K_TR_L', VALE=(";
-                        else
-                            out << "                                CARA='K_T_L', VALE=(";
-                        for (double rigi : spring->asStiffnessVector())
-                            out << rigi << ",";
-                        out << "),";
-                    }
-					if (spring->hasDamping()) {
-                        if (spring->hasRotations())
-                            out << "                                CARA='A_TR_L', VALE=(";
-                        else
-                            out << "                                CARA='A_T_L', VALE=(";
-                        for (double dampval : spring->asDampingVector())
-                            out << dampval << ",";
-                        out << "),";
-                    }
-					out << ")," << endl;
-				} else {
-					out
-							<< "                             # WARN Finite Element : DISCRETE_1D ignored because its GROUP_MA is empty."
-							<< endl;
-				}
-				scalar_springset->markAsWritten();
-			}
 			for (shared_ptr<ElementSet> discret : nodal_masses) {
-				if (discret->cellGroup != nullptr) {
-					out << "                             _F(GROUP_MA='"
-							<< discret->cellGroup->getName() << "'," << endl;
+				if (!discret->empty()) {
+					out << "                             _F(";
+					writeCellContainer(*discret, out);
+					out << endl;
 					shared_ptr<NodalMass> nodalMass = dynamic_pointer_cast<NodalMass>(discret);
 					if (nodalMass->hasRotations()) {
                         out << "                                CARA='M_TR_D_N',VALE=("
@@ -886,9 +888,10 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 			calc_sigm = true;
 			out << "                    COQUE=(" << endl;
 			for (shared_ptr<ElementSet> shell : shells) {
-				if (shell->cellGroup != nullptr) {
-					out << "                           _F(GROUP_MA='" << shell->cellGroup->getName()
-							<< "'," << endl;
+				if (!shell->empty()) {
+					out << "                           _F(";
+					writeCellContainer(*shell, out);
+					out << endl;
 					out << "                              EPAIS="
 							<< dynamic_pointer_cast<Shell>(shell)->thickness << "," << endl;
 					out << "                              VECTEUR=(0.9,0.1,0.2))," << endl;
@@ -901,9 +904,10 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 			}
 			for (shared_ptr<ElementSet> c : composites) {
                 shared_ptr<Composite> composite = dynamic_pointer_cast<Composite>(c);
-				if (composite->cellGroup != nullptr) {
-					out << "                           _F(GROUP_MA='" << composite->cellGroup->getName()
-							<< "'," << endl;
+				if (!composite->empty()) {
+					out << "                           _F(";
+					writeCellContainer(*composite, out);
+					out << endl;
 					out << "                              EPAIS="
 							<< composite->getTotalThickness() << "," << endl;
 					out << "                              COQUE_NCOU="
@@ -927,9 +931,10 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 		if (solids.size() > 0) {
 			out << "                    MASSIF=(" << endl;
 			for (shared_ptr<ElementSet> solid : solids) {
-				if (solid->cellGroup != nullptr) {
-					out << "                            _F(GROUP_MA='"
-							<< solid->cellGroup->getName() << "'," << endl;
+				if (!solid->empty()) {
+					out << "                           _F(";
+					writeCellContainer(*solid, out);
+					out << endl;
 					out << "                               ANGL_REP=(0.,0.,0.,),)," << endl;
 				} else {
 					out << "# WARN Finite Element : MASSIF ignored because its GROUP_MA is empty."
@@ -938,9 +943,10 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 				solid->markAsWritten();
 			}
 			for (shared_ptr<ElementSet> skin : skins) {
-				if (skin->cellGroup != nullptr) {
-					out << "                            _F(GROUP_MA='"
-							<< skin->cellGroup->getName() << "'," << endl;
+				if (!skin->empty()) {
+					out << "                           _F(";
+					writeCellContainer(*skin, out);
+					out << endl;
 					out << "                               ANGL_REP=(0.,0.,0.,),)," << endl;
 				} else {
 					out << "# WARN Finite Element : MASSIF (skin) ignored because its GROUP_MA is empty."
@@ -976,8 +982,9 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 	out << "                    );" << endl << endl;
 }
 void AsterWriter::writeAffeCaraElemPoutre(const AsterModel& asterModel, ElementSet& elementSet, ostream& out) {
-	out << "                            _F(GROUP_MA='" << elementSet.cellGroup->getName() << "',"
-			<< endl;
+	out << "                            _F(";
+	writeCellContainer(elementSet, out);
+	out << endl;
 	switch (elementSet.type) {
 	case ElementSet::Type::RECTANGULAR_SECTION_BEAM: {
 		RectangularSectionBeam& rectBeam =
@@ -2123,9 +2130,9 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		}
 		out << "                    COMPORTEMENT=(" << endl;
 		for (const auto& elementSet : asterModel.model.elementSets) {
-			if (elementSet->material != nullptr && elementSet->cellGroup != nullptr) {
-				out << "                          _F(GROUP_MA='" << elementSet->cellGroup->getName()
-						<< "',";
+			if (elementSet->material != nullptr and !elementSet->empty()) {
+				out << "                          _F(";
+				writeCellContainer(*elementSet, out);
                 const shared_ptr<const Nature> hyelas = elementSet->material->findNature(
                         Nature::NatureType::NATURE_HYPERELASTIC);
                 const shared_ptr<const Nature> binature = elementSet->material->findNature(
@@ -2368,7 +2375,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
                     out << "TYPE_VECT=";
                     switch(dynamicExcitation.excitType) {
                     case DynamicExcitation::DynamicExcitationType::LOAD: {
-                        out << "'FORCE',";
+                        out << "'FORC',";
                         break;
                     };
                     case DynamicExcitation::DynamicExcitationType::DISPLACEMENT: {

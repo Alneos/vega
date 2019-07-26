@@ -509,7 +509,7 @@ public:
     const std::set<int> getCellPositionsIncludingGroups() const;
     const std::set<int> getCellPositionsExcludingGroups() const;
 
-    const std::set<int> nodePositions() const;
+    virtual std::set<int> nodePositions() const;
 
     /**
      * True if the container contains some cellGroup

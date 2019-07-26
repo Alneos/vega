@@ -34,7 +34,7 @@ ModelType::ModelType(string name, const SpaceDimension dimension) :
 }
 
 ElementSet::ElementSet(Model& model, Type type, const ModelType& modelType, int original_id) :
-		Identifiable(original_id), model(model), type(type), modelType(modelType), cellGroup(nullptr), material(
+		Identifiable(original_id), CellContainer(model.mesh), model(model), type(type), modelType(modelType), material(
 		nullptr) {
 }
 
@@ -74,10 +74,6 @@ void ElementSet::assignMaterial(int materialId) {
 	this->material = this->model.getOrCreateMaterial(materialId);
 }
 
-void ElementSet::assignCellGroup(shared_ptr<CellGroup> cellGroup) {
-	this->cellGroup = cellGroup;
-}
-
 const ModelType ElementSet::getModelType() const {
 	return this->modelType;
 }
@@ -85,8 +81,8 @@ const ModelType ElementSet::getModelType() const {
 bool ElementSet::validate() const {
 	bool validElement = true;
 
-	if (cellGroup == nullptr) {
-		cerr << *this << " has no cellGroup assigned." << endl;
+	if (empty()) {
+		cerr << *this << " has no cells assigned." << endl;
 		validElement = false;
 	}
 
@@ -353,8 +349,8 @@ const DOFS Composite::getDOFSForNode(const int nodePosition) const {
 	return DOFS::ALL_DOFS;
 }
 
-Discrete::Discrete(Model& model, ElementSet::Type type, bool symmetric, int original_id) :
-		ElementSet(model, type, model.modelType, original_id), symmetric(symmetric) {
+Discrete::Discrete(Model& model, ElementSet::Type type, MatrixType matrixType, int original_id) :
+		ElementSet(model, type, model.modelType, original_id), matrixType(matrixType) {
 }
 
 const double Discrete::NOT_BOUNDED = -DBL_MAX;
@@ -366,67 +362,50 @@ const DOFS Discrete::getDOFSForNode(const int nodePosition) const {
 	return DOFS::ALL_DOFS;
 }
 
-DiscretePoint::DiscretePoint(Model& model, vector<double> coefficients, bool symmetric,
+DiscretePoint::DiscretePoint(Model& model, MatrixType matrixType,
 		int original_id) :
-		Discrete(model, ElementSet::Type::DISCRETE_0D, symmetric, original_id), stiffness(
-				symmetric), mass(symmetric), damping(symmetric) {
-	// LD TODO : remove this vector parameter
-	for (int i = 0; i < 6 && i < static_cast<int>(coefficients.size()); i++) {
-		this->addComponent(DOF::findByPosition(i), coefficients[i]);
-	}
-}
-
-DiscretePoint::DiscretePoint(Model& model, double x, double y, double z, double rx, double ry,
-		double rz, bool symmetric,
-		int original_id) :
-		Discrete(model, ElementSet::Type::DISCRETE_0D, symmetric, original_id), stiffness(
-				symmetric), mass(
-				symmetric), damping(symmetric) {
-	// LD TODO : remove this method
-	if (!is_equal(x, NOT_BOUNDED)) {
-		this->addComponent(DOF::DX, x);
-	}
-	if (!is_equal(y, NOT_BOUNDED)) {
-		this->addComponent(DOF::DY, y);
-	}
-	if (!is_equal(z, NOT_BOUNDED)) {
-		this->addComponent(DOF::DZ, x);
-	}
-	if (!is_equal(rx, NOT_BOUNDED)) {
-		this->addComponent(DOF::RX, rx);
-	}
-	if (!is_equal(ry, NOT_BOUNDED)) {
-		this->addComponent(DOF::RY, ry);
-	}
-	if (!is_equal(rz, NOT_BOUNDED)) {
-		this->addComponent(DOF::RZ, rz);
-	}
+		Discrete(model, ElementSet::Type::DISCRETE_0D, matrixType, original_id), stiffness(
+				matrixType), mass(matrixType), damping(matrixType) {
 }
 
 shared_ptr<ElementSet> DiscretePoint::clone() const {
 	return make_shared<DiscretePoint>(*this);
 }
 
-void DiscretePoint::addComponent(DOF code, double value) {
-	// LD TODO : remove this ambigous method, replace with this line
-	stiffness.addComponent(code, code, value);
+vector<double> DiscretePoint::asStiffnessVector(bool addRotationsIfNotPresent) const {
+    bool addRotations = addRotationsIfNotPresent or hasRotations();
+    // M_T_D_N and M_TR_D_N do not allow to specify the diagonal for PO1 elements
+    //if (isDiagonal())
+    //    return this->stiffness.diagonal(addRotations);
+    //else
+    if (isSymmetric())
+        return this->stiffness.asUpperTriangularColumnsVector(addRotations);
+    else
+        return this->stiffness.asColumnsVector(addRotations);
 }
 
-const vector<double> DiscretePoint::asStiffnessVector(bool addRotationsIfNotPresent) const {
-	vector<double> result;
-	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
-	for (int i = 0; i < ncomp; i++) {
-		DOF code = DOF::findByPosition(i);
-		auto codeIter = this->stiffness.componentByDofs.find(make_pair(code, code));
-		double value;
-		if (codeIter != this->stiffness.componentByDofs.end()) {
-			value = codeIter->second;
-		} else {
-			value = 0;
-		}
-		result.push_back(value);
-	}
-	return result;
+vector<double> DiscretePoint::asMassVector(bool addRotationsIfNotPresent) const {
+    bool addRotations = addRotationsIfNotPresent or hasRotations();
+    // M_T_D_N and M_TR_D_N do not allow to specify the diagonal for PO1 elements
+    //if (isDiagonal())
+    //    return this->mass.diagonal(addRotations);
+    //else
+    if (isSymmetric())
+        return this->mass.asUpperTriangularColumnsVector(addRotations);
+    else
+        return this->mass.asColumnsVector(addRotations);
+}
+
+vector<double> DiscretePoint::asDampingVector(bool addRotationsIfNotPresent) const {
+    bool addRotations = addRotationsIfNotPresent or hasRotations();
+    // M_T_D_N and M_TR_D_N do not allow to specify the diagonal for PO1 elements
+    //if (isDiagonal())
+    //    return this->damping.diagonal(addRotations);
+    //else
+    if (isSymmetric())
+        return this->damping.asUpperTriangularColumnsVector(addRotations);
+    else
+        return this->damping.asColumnsVector(addRotations);
 }
 
 bool DiscretePoint::hasTranslations() const {
@@ -437,39 +416,64 @@ bool DiscretePoint::hasRotations() const {
 	return stiffness.hasRotations() or mass.hasRotations() or damping.hasRotations();
 }
 
+bool DiscretePoint::hasStiffness() const {
+	return not stiffness.isEmpty() and not stiffness.isZero();
+}
+
+bool DiscretePoint::hasMass() const {
+	return not mass.isEmpty() and not mass.isZero();
+}
+
+bool DiscretePoint::hasDamping() const {
+	return not damping.isEmpty() and not damping.isZero();
+}
+
+bool DiscretePoint::isDiagonal() const {
+    if (matrixType == MatrixType::DIAGONAL) {
+        return true;
+    }
+	return stiffness.isDiagonal() and damping.isDiagonal() and mass.isDiagonal();
+}
+
+bool DiscretePoint::isSymmetric() const {
+    if (matrixType == MatrixType::SYMMETRIC) {
+        return true;
+    }
+	if (matrixType == MatrixType::DIAGONAL) {
+        return true;
+    }
+	return stiffness.isSymmetric() and damping.isSymmetric() and mass.isSymmetric();
+}
+
 double DiscretePoint::findStiffness(DOF rowdof, DOF coldof) const {
-	double result;
-	auto codeIter = stiffness.componentByDofs.find(make_pair(rowdof, coldof));
-	if (codeIter != stiffness.componentByDofs.end()) {
-		result = codeIter->second;
-	} else {
-		if (symmetric) {
-			codeIter = stiffness.componentByDofs.find(make_pair(coldof, rowdof));
-			if (codeIter != stiffness.componentByDofs.end()) {
-				result = codeIter->second;
-			} else {
-				result = 0.0;
-			}
-		} else {
-			result = 0.0;
-		}
-	}
-	return result;
+	return stiffness.findComponent(rowdof, coldof);
+}
+
+double DiscretePoint::findMass(DOF rowdof, DOF coldof) const {
+	return mass.findComponent(rowdof, coldof);
+}
+
+double DiscretePoint::findDamping(DOF rowdof, DOF coldof) const {
+	return damping.findComponent(rowdof, coldof);
 }
 
 void DiscretePoint::addStiffness(DOF rowdof, DOF coldof, double value) {
-	this->stiffness.componentByDofs[make_pair(rowdof, coldof)] = value;
+	this->stiffness.addComponent(rowdof, coldof, value);
 }
 
-DiscreteSegment::DiscreteSegment(Model& model, bool symmetric, int original_id) :
-		Discrete(model, ElementSet::Type::DISCRETE_1D, symmetric, original_id) {
-	for (int i = 0; i < 2; i++){
-		for (int j = 0; j < 2; j++){
-			stiffness[i][j] = symmetric;
-			mass[i][j] = symmetric;
-			damping[i][j] = symmetric;
-		}
-	}
+void DiscretePoint::addMass(DOF rowdof, DOF coldof, double value) {
+	this->mass.addComponent(rowdof, coldof, value);
+}
+
+void DiscretePoint::addDamping(DOF rowdof, DOF coldof, double value) {
+	this->damping.addComponent(rowdof, coldof, value);
+}
+
+DiscreteSegment::DiscreteSegment(Model& model, MatrixType matrixType, int original_id) :
+		Discrete(model, ElementSet::Type::DISCRETE_1D, matrixType, original_id),
+		stiffness{DOFMatrix(matrixType),DOFMatrix(matrixType)},
+		mass{DOFMatrix(matrixType),DOFMatrix(matrixType)},
+		damping{DOFMatrix(matrixType),DOFMatrix(matrixType)} {
 }
 
 shared_ptr<ElementSet> DiscreteSegment::clone() const {
@@ -504,41 +508,120 @@ bool DiscreteSegment::hasRotations() const {
 	return hasRotations;
 }
 
-double DiscreteSegment::findStiffness(int rowindex, int colindex, DOF rowdof, DOF coldof) const {
-	double result;
-	const DOFMatrix* matrix = &stiffness[rowindex][colindex];
-	auto codeIter = matrix->componentByDofs.find(make_pair(rowdof, coldof));
-	if (codeIter != matrix->componentByDofs.end()) {
-		result = codeIter->second;
-	} else {
-		if (symmetric) {
-			matrix = &stiffness[colindex][rowindex];
-			codeIter = matrix->componentByDofs.find(make_pair(coldof, rowdof));
-			if (codeIter != matrix->componentByDofs.end()) {
-				result = codeIter->second;
-			} else {
-				result = 0.0;
+bool DiscreteSegment::hasStiffness() const {
+	bool hasNonZero = false;
+	for (int i = 0; i < 2; ++i) {
+		for (int j = 0; j < 2; ++j) {
+			if (not stiffness[i][j].isEmpty() and not stiffness[i][j].isZero()) {
+				hasNonZero = true;
+				break;
 			}
-		} else {
-			result = 0.0;
 		}
 	}
-	return result;
+	return hasNonZero;
+}
+
+bool DiscreteSegment::hasMass() const {
+	bool hasNonZero = false;
+	for (int i = 0; i < 2; ++i) {
+		for (int j = 0; j < 2; ++j) {
+			if (not mass[i][j].isEmpty() and not mass[i][j].isZero()) {
+				hasNonZero = true;
+				break;
+			}
+		}
+	}
+	return hasNonZero;
+}
+
+bool DiscreteSegment::hasDamping() const {
+	bool hasNonZero = false;
+	for (int i = 0; i < 2; ++i) {
+		for (int j = 0; j < 2; ++j) {
+			if (not damping[i][j].isEmpty() and not damping[i][j].isZero()) {
+				hasNonZero = true;
+				break;
+			}
+		}
+	}
+	return hasNonZero;
+}
+
+bool DiscreteSegment::isDiagonal() const {
+    if (matrixType == MatrixType::DIAGONAL) {
+        return true;
+    }
+    for (int i : {0,1}) {
+        if (not stiffness[i][i].isDiagonal() or not damping[i][i].isDiagonal() or not mass[i][i].isDiagonal()) {
+            return false;
+        }
+	}
+    for (int i : {0,1}) {
+        for (int j : {0,1}) {
+            if (i == j) continue;
+            if (not stiffness[i][j].isZero() or not damping[i][j].isZero() or not mass[i][j].isZero()) {
+                return false;
+            }
+        }
+    }
+	return true;
+}
+
+bool DiscreteSegment::isSymmetric() const {
+    if (matrixType == MatrixType::SYMMETRIC) {
+        return true;
+    }
+	if (matrixType == MatrixType::DIAGONAL) {
+        return true;
+    }
+    for (int i : {0,1}) {
+        if (not stiffness[i][i].isSymmetric() or not damping[i][i].isSymmetric() or not mass[i][i].isSymmetric()) {
+            return false;
+        }
+	}
+    if (not stiffness[0][1].isEqual(stiffness[1][0].transposed())) {
+        return false;
+    }
+    if (not damping[0][1].isEqual(damping[1][0].transposed())) {
+        return false;
+    }
+    if (not mass[0][1].isEqual(mass[1][0].transposed())) {
+        return false;
+    }
+	return true;
+}
+
+double DiscreteSegment::findStiffness(int rowindex, int colindex, DOF rowdof, DOF coldof) const {
+	return stiffness[rowindex][colindex].findComponent(rowdof, coldof);
+}
+
+double DiscreteSegment::findMass(int rowindex, int colindex, DOF rowdof, DOF coldof) const {
+	return mass[rowindex][colindex].findComponent(rowdof, coldof);
+}
+
+double DiscreteSegment::findDamping(int rowindex, int colindex, DOF rowdof, DOF coldof) const {
+	return damping[rowindex][colindex].findComponent(rowdof, coldof);
 }
 
 void DiscreteSegment::addStiffness(int rowindex, int colindex, DOF rowdof, DOF coldof, double value) {
-	DOFMatrix* matrix = &stiffness[rowindex][colindex];
-	matrix->componentByDofs[make_pair(rowdof, coldof)] = value;
+	stiffness[rowindex][colindex].addComponent(rowdof, coldof, value);
 }
 
-const vector<double> DiscreteSegment::asStiffnessVector(bool addRotationsIfNotPresent) const {
-	// LD TODO : at least rename this method (it only does stiffness and with aster convention!!)
+void DiscreteSegment::addMass(int rowindex, int colindex, DOF rowdof, DOF coldof, double value) {
+	mass[rowindex][colindex].addComponent(rowdof, coldof, value);
+}
+
+void DiscreteSegment::addDamping(int rowindex, int colindex, DOF rowdof, DOF coldof, double value) {
+	damping[rowindex][colindex].addComponent(rowdof, coldof, value);
+}
+
+vector<double> DiscreteSegment::asStiffnessVector(bool addRotationsIfNotPresent) const {
 	vector<double> result;
 	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
 	int max_row_element_index = 0;
 	for (int colindex = 0; colindex < 2; ++colindex) {
 		for (int coldof = 0; coldof < ncomp; coldof++) {
-			DOF colcode = DOF::findByPosition(coldof);
+			const DOF colcode = DOF::findByPosition(coldof);
 			max_row_element_index++;
 			int row_element_index = 0;
 			for (int rowindex = 0; rowindex < 2; ++rowindex) {
@@ -547,9 +630,8 @@ const vector<double> DiscreteSegment::asStiffnessVector(bool addRotationsIfNotPr
 					if (row_element_index > max_row_element_index) {
 						break;
 					}
-					DOF rowcode = DOF::findByPosition(rowdof);
-					double value = findStiffness(rowindex, colindex, rowcode, colcode);
-					result.push_back(value);
+					const DOF rowcode = DOF::findByPosition(rowdof);
+					result.push_back(findStiffness(rowindex, colindex, rowcode, colcode));
 				}
 			}
 		}
@@ -557,12 +639,59 @@ const vector<double> DiscreteSegment::asStiffnessVector(bool addRotationsIfNotPr
 	return result;
 }
 
+vector<double> DiscreteSegment::asMassVector(bool addRotationsIfNotPresent) const {
+	vector<double> result;
+	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
+	int max_row_element_index = 0;
+	for (int colindex = 0; colindex < 2; ++colindex) {
+		for (int coldof = 0; coldof < ncomp; coldof++) {
+			const DOF colcode = DOF::findByPosition(coldof);
+			max_row_element_index++;
+			int row_element_index = 0;
+			for (int rowindex = 0; rowindex < 2; ++rowindex) {
+				for (int rowdof = 0; rowdof < ncomp; rowdof++) {
+					row_element_index++;
+					if (row_element_index > max_row_element_index) {
+						break;
+					}
+					const DOF rowcode = DOF::findByPosition(rowdof);
+					result.push_back(findMass(rowindex, colindex, rowcode, colcode));
+				}
+			}
+		}
+	}
+	return result;
+}
 
-StructuralSegment::StructuralSegment(Model& model, bool symmetric, int original_id) :
-				Discrete(model, ElementSet::Type::STRUCTURAL_SEGMENT, symmetric, original_id) {
-	this->stiffness = symmetric;
-	this->mass = symmetric;
-	this->damping = symmetric;
+vector<double> DiscreteSegment::asDampingVector(bool addRotationsIfNotPresent) const {
+	vector<double> result;
+	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
+	int max_row_element_index = 0;
+	for (int colindex = 0; colindex < 2; ++colindex) {
+		for (int coldof = 0; coldof < ncomp; coldof++) {
+			const DOF colcode = DOF::findByPosition(coldof);
+			max_row_element_index++;
+			int row_element_index = 0;
+			for (int rowindex = 0; rowindex < 2; ++rowindex) {
+				for (int rowdof = 0; rowdof < ncomp; rowdof++) {
+					row_element_index++;
+					if (row_element_index > max_row_element_index) {
+						break;
+					}
+					const DOF rowcode = DOF::findByPosition(rowdof);
+					result.push_back(findDamping(rowindex, colindex, rowcode, colcode));
+				}
+			}
+		}
+	}
+	return result;
+}
+
+StructuralSegment::StructuralSegment(Model& model, MatrixType matrixType, int original_id) :
+				Discrete(model, ElementSet::Type::STRUCTURAL_SEGMENT, matrixType, original_id),
+				stiffness{matrixType},
+				mass{matrixType},
+				damping{matrixType} {
 }
 
 bool StructuralSegment::hasTranslations() const {
@@ -577,8 +706,25 @@ bool StructuralSegment::hasStiffness() const {
 	return not stiffness.isEmpty() and not stiffness.isZero();
 }
 
+bool StructuralSegment::isDiagonal() const {
+	if (matrixType == MatrixType::DIAGONAL) {
+        return true;
+    }
+	return not stiffness.isDiagonal() and damping.isDiagonal() and mass.isDiagonal();
+}
+
 bool StructuralSegment::isDiagonalRigid() const {
 	return stiffness.isMaxDiagonal();
+}
+
+bool StructuralSegment::isSymmetric() const {
+    if (matrixType == MatrixType::SYMMETRIC) {
+        return true;
+    }
+	if (matrixType == MatrixType::DIAGONAL) {
+        return true;
+    }
+	return stiffness.isSymmetric() and damping.isSymmetric() and mass.isSymmetric();
 }
 
 bool StructuralSegment::hasMass() const {
@@ -590,111 +736,101 @@ bool StructuralSegment::hasDamping() const {
 }
 
 void StructuralSegment::addStiffness(DOF rowdof, DOF coldof, double value){
-	stiffness.componentByDofs[make_pair(rowdof, coldof)] = value;
+	stiffness.addComponent(rowdof, coldof, value);
 }
 void StructuralSegment::addMass(DOF rowdof, DOF coldof, double value){
-	mass.componentByDofs[make_pair(rowdof, coldof)] = value;
+	mass.addComponent(rowdof, coldof, value);
 }
 void StructuralSegment::addDamping(DOF rowdof, DOF coldof, double value){
-	damping.componentByDofs[make_pair(rowdof, coldof)] = value;
+	damping.addComponent(rowdof, coldof, value);
 }
 
 void StructuralSegment::setAllZero() {
-    for (auto& entry : stiffness.componentByDofs) {
-        entry.second = 0.0;
-    }
+    stiffness.setAllZero();
+    mass.setAllZero();
+    damping.setAllZero();
 }
 
 double StructuralSegment::findStiffness(DOF rowdof, DOF coldof) const{
-	double result=0.0;
-	auto itFind = stiffness.componentByDofs.find(make_pair(rowdof, coldof));
-	if (itFind != stiffness.componentByDofs.end()) {
-		result = itFind->second;
-	} else {
-		if (symmetric){
-			itFind = stiffness.componentByDofs.find(make_pair(coldof, rowdof));
-			if (itFind != stiffness.componentByDofs.end()) {
-				result = itFind->second;
-			}
-		}
-	}
-	return result;
+    return stiffness.findComponent(rowdof, coldof);
 }
 
 double StructuralSegment::findDamping(DOF rowdof, DOF coldof) const{
-	double result=0.0;
-	auto itFind = damping.componentByDofs.find(make_pair(rowdof, coldof));
-	if (itFind != damping.componentByDofs.end()) {
-		result = itFind->second;
-	}else{
-		if (symmetric){
-			itFind = damping.componentByDofs.find(make_pair(coldof, rowdof));
-			if (itFind != damping.componentByDofs.end()) {
-				result = itFind->second;
-			}
-		}
-	}
-	return result;
+	return damping.findComponent(rowdof, coldof);
 }
 
-const vector<double> StructuralSegment::asStiffnessVector(bool addRotationsIfNotPresent) const {
-	vector<double> result;
-	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
-	int max_row_element_index = 0;
-	for (int colindex = 0; colindex < 2; ++colindex) {
-		for (int coldof = 0; coldof < ncomp; coldof++) {
-			DOF colcode = DOF::findByPosition(coldof);
-			max_row_element_index++;
-			int row_element_index = 0;
-			for (int rowindex = 0; rowindex < 2; ++rowindex) {
-				for (int rowdof = 0; rowdof < ncomp; rowdof++) {
-					row_element_index++;
-					if (row_element_index > max_row_element_index) {
-						break;
-					}
-					DOF rowcode = DOF::findByPosition(rowdof);
-					double value = findStiffness(rowcode, colcode);
-					result.push_back(value);
-				}
-			}
-		}
-	}
-	return result;
+vector<double> StructuralSegment::asStiffnessVector(bool addRotationsIfNotPresent) const {
+    vector<double> result;
+    bool addRotations = (addRotationsIfNotPresent || hasRotations());
+    int ncomp = addRotations ? 6 : 3;
+
+    if (isDiagonal()) {
+        result = stiffness.diagonal(addRotations);
+    } else if (isSymmetric()) {
+        int max_row_element_index = 0;
+        for (int colindex = 0; colindex < 2; ++colindex) {
+            for (int coldof = 0; coldof < ncomp; coldof++) {
+                DOF colcode = DOF::findByPosition(coldof);
+                max_row_element_index++;
+                int row_element_index = 0;
+                for (int rowindex = 0; rowindex < 2; ++rowindex) {
+                    for (int rowdof = 0; rowdof < ncomp; rowdof++) {
+                        row_element_index++;
+                        if (row_element_index > max_row_element_index) {
+                               break;
+                        }
+                        DOF rowcode = DOF::findByPosition(rowdof);
+                        double value = findStiffness(rowcode, colcode);
+                        result.push_back(value);
+                    }
+                }
+            }
+        }
+    } else {
+        throw logic_error("not yet implemented");
+    }
+    return result;
 }
 
-const vector<double> StructuralSegment::asDampingVector(bool addRotationsIfNotPresent) const {
-	vector<double> result;
-	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
-	int max_row_element_index = 0;
-	for (int colindex = 0; colindex < 2; ++colindex) {
-		for (int coldof = 0; coldof < ncomp; coldof++) {
-			DOF colcode = DOF::findByPosition(coldof);
-			max_row_element_index++;
-			int row_element_index = 0;
-			for (int rowindex = 0; rowindex < 2; ++rowindex) {
-				for (int rowdof = 0; rowdof < ncomp; rowdof++) {
-					row_element_index++;
-					if (row_element_index > max_row_element_index) {
-						break;
-					}
-					DOF rowcode = DOF::findByPosition(rowdof);
-					double value = findDamping(rowcode, colcode);
-					result.push_back(value);
-				}
-			}
-		}
-	}
-	return result;
+vector<double> StructuralSegment::asDampingVector(bool addRotationsIfNotPresent) const {
+    vector<double> result;
+    bool addRotations = (addRotationsIfNotPresent || hasRotations());
+    int ncomp = addRotations ? 6 : 3;
+    if (isDiagonal()) {
+        result = damping.diagonal(addRotations);
+    } else if (isSymmetric()) {
+        int max_row_element_index = 0;
+        for (int colindex = 0; colindex < 2; ++colindex) {
+            for (int coldof = 0; coldof < ncomp; coldof++) {
+                DOF colcode = DOF::findByPosition(coldof);
+                max_row_element_index++;
+                int row_element_index = 0;
+                for (int rowindex = 0; rowindex < 2; ++rowindex) {
+                    for (int rowdof = 0; rowdof < ncomp; rowdof++) {
+                        row_element_index++;
+                        if (row_element_index > max_row_element_index) {
+                               break;
+                        }
+                        DOF rowcode = DOF::findByPosition(rowdof);
+                        double value = findDamping(rowcode, colcode);
+                        result.push_back(value);
+                    }
+                }
+            }
+        }
+    }
+    return result;
+}
+
+vector<double> StructuralSegment::asMassVector(bool addRotationsIfNotPresent) const {
+    UNUSEDV(addRotationsIfNotPresent);
+	throw logic_error("asMassVector should not be called for a StructuralSegment");
 }
 
 
 std::shared_ptr<ElementSet> StructuralSegment::clone() const{
 	return make_shared<StructuralSegment>(*this);
 }
-
-
-
-
 
 NodalMass::NodalMass(Model& model, double m, double ixx, double iyy, double izz, double ixy,
 		double iyz, double ixz, double ex, double ey, double ez, int original_id) :
@@ -816,8 +952,8 @@ double ISectionBeam::getShearAreaFactorZ() const {
     return this->getAreaCrossSection() / web_area;
 }
 
-MatrixElement::MatrixElement(Model& model, Type type, bool symmetric, int original_id) :
-		ElementSet(model, type, modelType, original_id), symmetric(symmetric) {
+MatrixElement::MatrixElement(Model& model, Type type, MatrixType matrixType, int original_id) :
+		ElementSet(model, type, modelType, original_id), matrixType(matrixType) {
 }
 
 void MatrixElement::addComponent(const int nodeid1, const DOF dof1, const int nodeid2, const DOF dof2, const double value) {
@@ -838,7 +974,7 @@ void MatrixElement::addComponent(const int nodeid1, const DOF dof1, const int no
 	if (it != submatrixByNodes.end()) {
 		subMatrix = it->second;
 	} else {
-		subMatrix = make_shared<DOFMatrix>(DOFMatrix(symmetric && nodeid1 == nodeid2));
+		subMatrix = make_shared<DOFMatrix>(matrixType);
 		this->submatrixByNodes[make_pair(nodePosition1, nodePosition2)] = subMatrix;
 	}
     subMatrix->addComponent(myDof1, myDof2, value);
@@ -850,7 +986,7 @@ void MatrixElement::clear() {
 
 
 const shared_ptr<const DOFMatrix> MatrixElement::findSubmatrix(const int nodePosition1, const int nodePosition2) const {
-	shared_ptr<DOFMatrix> result = make_shared<DOFMatrix>(DOFMatrix(symmetric));
+	shared_ptr<DOFMatrix> result = make_shared<DOFMatrix>(matrixType);
 	auto it = submatrixByNodes.find(make_pair(nodePosition1, nodePosition2));
 	if (it != submatrixByNodes.end()) {
 		std::copy(it->second->componentByDofs.begin(), it->second->componentByDofs.end(),
@@ -859,7 +995,7 @@ const shared_ptr<const DOFMatrix> MatrixElement::findSubmatrix(const int nodePos
 	return result;
 }
 
-const set<int> MatrixElement::nodePositions() const {
+set<int> MatrixElement::nodePositions() const {
 	set<int> result;
 	for (const auto& kv : submatrixByNodes) {
 		result.insert(kv.first.first);
@@ -905,8 +1041,8 @@ const std::set<std::pair<int, int>> MatrixElement::findInPairs(int nodePosition)
 	return result;
 }
 
-StiffnessMatrix::StiffnessMatrix(Model& model, int original_id) :
-		MatrixElement(model, ElementSet::Type::STIFFNESS_MATRIX, true, original_id) {
+StiffnessMatrix::StiffnessMatrix(Model& model, MatrixType matrixType, int original_id) :
+		MatrixElement(model, ElementSet::Type::STIFFNESS_MATRIX, matrixType, original_id) {
 }
 
 void StiffnessMatrix::addStiffness(const int nodeid1, const DOF dof1, const int nodeid2,
@@ -916,12 +1052,12 @@ void StiffnessMatrix::addStiffness(const int nodeid1, const DOF dof1, const int 
 	addComponent(nodeid1, dof1, nodeid2, dof2, -stiffness_value);
 }
 
-MassMatrix::MassMatrix(Model& model, int original_id) :
-		MatrixElement(model, ElementSet::Type::MASS_MATRIX, true, original_id) {
+MassMatrix::MassMatrix(Model& model, MatrixType matrixType, int original_id) :
+		MatrixElement(model, ElementSet::Type::MASS_MATRIX, matrixType, original_id) {
 }
 
-DampingMatrix::DampingMatrix(Model& model, int original_id) :
-		MatrixElement(model, ElementSet::Type::DAMPING_MATRIX, true, original_id) {
+DampingMatrix::DampingMatrix(Model& model, MatrixType matrixType, int original_id) :
+		MatrixElement(model, ElementSet::Type::DAMPING_MATRIX, matrixType, original_id) {
 }
 
 void DampingMatrix::addDamping(const int nodeid1, const DOF dof1, const int nodeid2,
@@ -982,7 +1118,7 @@ shared_ptr<ElementSet> SurfaceSlideSet::clone() const {
 
 // ScalarSpring Methods
 ScalarSpring::ScalarSpring(Model& model, int original_id, double stiffness, double damping) :
-                Discrete(model, ElementSet::Type::SCALAR_SPRING, true, original_id), stiffness(stiffness),
+                Discrete(model, ElementSet::Type::SCALAR_SPRING, MatrixType::SYMMETRIC, original_id), stiffness(stiffness),
                 damping(damping){
 }
 
@@ -1008,6 +1144,9 @@ bool ScalarSpring::hasStiffness() const {
 bool ScalarSpring::hasDamping() const {
     return !(is_zero(this->damping) || is_equal(this->damping, Globals::UNAVAILABLE_DOUBLE));
 }
+bool ScalarSpring::hasMass() const {
+    return false;
+}
 
 shared_ptr<ElementSet> ScalarSpring::clone() const {
     return make_shared<ScalarSpring>(*this);
@@ -1030,11 +1169,9 @@ int ScalarSpring::getNbDOFSSpring() const{
 }
 
 bool ScalarSpring::hasTranslations() const {
-	for (int i = 0; i < 2; ++i) {
-        DOF code1 = DOF::findByPosition(i);
-		for (int j = 0; j < 2; ++j) {
-		    DOF code2 = DOF::findByPosition(j);
-            auto codeIter = this->cellpositionByDOFS.find(make_pair(code1, code2));
+	for (const DOF dof1 : DOFS::TRANSLATIONS) {
+		for (const DOF dof2 : DOFS::TRANSLATIONS) {
+            auto codeIter = this->cellpositionByDOFS.find(make_pair(dof1, dof2));
             if (codeIter != this->cellpositionByDOFS.end()) {
 				return true;
             }
@@ -1044,11 +1181,9 @@ bool ScalarSpring::hasTranslations() const {
 }
 
 bool ScalarSpring::hasRotations() const {
-	for (int i = 3; i < 5; ++i) {
-        DOF code1 = DOF::findByPosition(i);
-		for (int j = 3; j < 5; ++j) {
-		    DOF code2 = DOF::findByPosition(j);
-            auto codeIter = this->cellpositionByDOFS.find(make_pair(code1, code2));
+	for (const DOF dof1 : DOFS::ROTATIONS) {
+		for (const DOF dof2 : DOFS::ROTATIONS) {
+            auto codeIter = this->cellpositionByDOFS.find(make_pair(dof1, dof2));
             if (codeIter != this->cellpositionByDOFS.end()) {
 				return true;
             }
@@ -1057,7 +1192,7 @@ bool ScalarSpring::hasRotations() const {
 	return false;
 }
 
-const vector<double> ScalarSpring::asStiffnessVector(bool addRotationsIfNotPresent) const {
+vector<double> ScalarSpring::asStiffnessVector(bool addRotationsIfNotPresent) const {
 	vector<double> result;
 	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
 	int max_row_element_index = 0;
@@ -1086,7 +1221,7 @@ const vector<double> ScalarSpring::asStiffnessVector(bool addRotationsIfNotPrese
 	return result;
 }
 
-const vector<double> ScalarSpring::asDampingVector(bool addRotationsIfNotPresent) {
+vector<double> ScalarSpring::asDampingVector(bool addRotationsIfNotPresent) const {
 	vector<double> result;
 	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
 	int max_row_element_index = 0;
@@ -1108,6 +1243,28 @@ const vector<double> ScalarSpring::asDampingVector(bool addRotationsIfNotPresent
                     } else {
                         result.push_back(0.0);
                     }
+				}
+			}
+		}
+	}
+	return result;
+}
+
+vector<double> ScalarSpring::asMassVector(bool addRotationsIfNotPresent) const {
+	vector<double> result;
+	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
+	int max_row_element_index = 0;
+	for (int colindex = 0; colindex < 2; ++colindex) {
+		for (int coldof = 0; coldof < ncomp; coldof++) {
+			max_row_element_index++;
+			int row_element_index = 0;
+			for (int rowindex = 0; rowindex < 2; ++rowindex) {
+				for (int rowdof = 0; rowdof < ncomp; rowdof++) {
+					row_element_index++;
+					if (row_element_index > max_row_element_index) {
+						break;
+					}
+					result.push_back(damping);
 				}
 			}
 		}

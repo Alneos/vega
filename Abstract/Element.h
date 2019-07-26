@@ -38,7 +38,7 @@ private:
 	static const ModelType TRIDIMENSIONAL_SI;
 };
 
-class ElementSet: public Identifiable<ElementSet> {
+class ElementSet: public Identifiable<ElementSet>, public CellContainer {
     friend std::ostream &operator<<(std::ostream&, const ElementSet&);    //output
 public:
     enum class Type {
@@ -76,20 +76,14 @@ public:
     static const std::map<Type, std::string> stringByType;
     const Type type;
     const ModelType& modelType;
-    std::shared_ptr<CellGroup> cellGroup;
     std::shared_ptr<Material> material;
     void assignMaterial(int materialId);
     void assignMaterial(std::shared_ptr<Material> material) {
         this->material = std::move(material);
     }
-    void assignCellGroup(std::shared_ptr<CellGroup>);
     const ModelType getModelType() const;
     virtual bool validate() const override;
     virtual std::shared_ptr<ElementSet> clone() const = 0;
-    virtual const std::set<int> nodePositions() const {
-        assert(cellGroup != nullptr);
-        return cellGroup->nodePositions();
-    }
     virtual const DOFS getDOFSForNode(const int nodePosition) const = 0;
     virtual double getAdditionalRho() const {
         return 0;
@@ -351,15 +345,22 @@ public:
 class Discrete: public ElementSet {
 public:
 	static const double NOT_BOUNDED;
-	const bool symmetric = false;
-	Discrete(Model&, ElementSet::Type type, bool symmetric = false, int original_id = NO_ORIGINAL_ID);
+	const MatrixType matrixType;
+	Discrete(Model&, ElementSet::Type type, MatrixType matrixType, int original_id = NO_ORIGINAL_ID);
 	bool isDiscrete() const override final {
 		return true;
 	}
 	virtual bool hasTranslations() const = 0;
 	virtual bool hasRotations() const = 0;
+	virtual bool hasStiffness() const = 0;
+	virtual bool hasMass() const = 0;
+	virtual bool hasDamping() const = 0;
+	virtual bool isDiagonal() const = 0;
+	virtual bool isSymmetric() const = 0;
 	const DOFS getDOFSForNode(const int nodePosition) const override final;
-	virtual const std::vector<double> asStiffnessVector(bool) const = 0;
+	virtual std::vector<double> asStiffnessVector(bool addRotationsIfNotPresent = false) const = 0;
+	virtual std::vector<double> asMassVector(bool addRotationsIfNotPresent = false) const = 0;
+	virtual std::vector<double> asDampingVector(bool addRotationsIfNotPresent = false) const = 0;
 };
 
 class DiscretePoint final: public Discrete {
@@ -368,16 +369,23 @@ private:
 	DOFMatrix mass;
 	DOFMatrix damping;
 public:
-	DiscretePoint(Model&, double x, double y, double z, double rx = NOT_BOUNDED, double ry =
-			NOT_BOUNDED, double rz = NOT_BOUNDED, bool symmetric = true, int original_id = NO_ORIGINAL_ID);
-	DiscretePoint(Model&, std::vector<double> components = {}, bool symmetric = true, int original_id =
-			NO_ORIGINAL_ID);
+	DiscretePoint(Model&, MatrixType matrixType, int original_id = NO_ORIGINAL_ID);
 	bool hasTranslations() const override;
 	bool hasRotations() const override;
+	bool hasStiffness() const override;
+	bool hasMass() const override;
+	bool hasDamping() const override;
+	bool isDiagonal() const override;
+	bool isSymmetric() const override;
 	void addStiffness(DOF rowcode, DOF colcode,	double value);
+	void addMass(DOF rowcode, DOF colcode,	double value);
+	void addDamping(DOF rowcode, DOF colcode,	double value);
 	double findStiffness(DOF rowcode, DOF colcode) const;
-	void addComponent(DOF, double value);
-	const std::vector<double> asStiffnessVector(bool addRotationsIfNotPresent = false) const override final;
+	double findMass(DOF rowcode, DOF colcode) const;
+	double findDamping(DOF rowcode, DOF colcode) const;
+	std::vector<double> asStiffnessVector(bool addRotationsIfNotPresent = false) const override final;
+	std::vector<double> asMassVector(bool addRotationsIfNotPresent = false) const override final;
+	std::vector<double> asDampingVector(bool addRotationsIfNotPresent = false) const override final;
 	std::shared_ptr<ElementSet> clone() const override;
 };
 
@@ -387,42 +395,60 @@ private:
 	DOFMatrix mass[2][2];
 	DOFMatrix damping[2][2];
 public:
-	DiscreteSegment(Model&, bool symmetric = true, int original_id = NO_ORIGINAL_ID);
+	DiscreteSegment(Model&, MatrixType matrixType, int original_id = NO_ORIGINAL_ID);
 	bool hasTranslations() const override;
 	bool hasRotations() const override;
+	bool hasStiffness() const override;
+	bool hasMass() const override;
+	bool hasDamping() const override;
+	bool isDiagonal() const override;
 	bool isDiagonalRigid() const;
+	bool isSymmetric() const override;
 	void addStiffness(int rowindex, int colindex, DOF rowdof, DOF coldof,
 			double value);
+	void addMass(int rowindex, int colindex, DOF rowdof, DOF coldof,
+			double value);
+    void addDamping(int rowindex, int colindex, DOF rowdof, DOF coldof,
+			double value);
 	double findStiffness(int rowindex, int colindex, DOF rowdof, DOF coldof) const;
-	const std::vector<double> asStiffnessVector(bool addRotationsIfNotPresent = false) const override final;
+	double findMass(int rowindex, int colindex, DOF rowdof, DOF coldof) const;
+	double findDamping(int rowindex, int colindex, DOF rowdof, DOF coldof) const;
+	std::vector<double> asStiffnessVector(bool addRotationsIfNotPresent = false) const override final;
+	std::vector<double> asMassVector(bool addRotationsIfNotPresent = false) const override final;
+	std::vector<double> asDampingVector(bool addRotationsIfNotPresent = false) const override final;
 	std::shared_ptr<ElementSet> clone() const override;
 };
 
 
 /** Generalized Structural Two points elements : used for spring, damper elements.
- *  It may overlapped some functionnalities of DiscreteSegment.
- TODO LD : is this really needed or we could use DiscreteSegment ? */
+ *  It may overlap some features of DiscreteSegment.
+ TODO LD : is this really needed or we could use DiscreteSegment ?
+            I think it is like a DiscreteSegment only using one matrix ?*/
 class StructuralSegment final : public Discrete {
 private:
 	DOFMatrix stiffness;
 	DOFMatrix mass;
 	DOFMatrix damping;
 public:
-	StructuralSegment(Model&, bool symmetric = true, int original_id = NO_ORIGINAL_ID);
+	StructuralSegment(Model&, MatrixType matrixType, int original_id = NO_ORIGINAL_ID);
 	bool hasTranslations() const override;
 	bool hasRotations() const override;
+	bool isDiagonal() const override;
 	bool isDiagonalRigid() const;
-	bool hasStiffness() const;
-	bool hasMass() const;
-	bool hasDamping() const;
+	bool isSymmetric() const override;
+	bool hasStiffness() const override;
+	bool hasMass() const override;
+	bool hasDamping() const override;
 	void addStiffness(DOF rowdof, DOF coldof, double value);
 	void addMass(DOF rowdof, DOF coldof, double value);
 	void addDamping(DOF rowdof, DOF coldof, double value);
 	void setAllZero();
 	double findStiffness(DOF rowdof, DOF coldof) const;
+	double findMass(DOF rowdof, DOF coldof) const;
 	double findDamping(DOF rowdof, DOF coldof) const;
-	const std::vector<double> asStiffnessVector(bool addRotationsIfNotPresent = false) const override final;
-	const std::vector<double> asDampingVector(bool addRotationsIfNotPresent = false) const;
+	std::vector<double> asStiffnessVector(bool addRotationsIfNotPresent = false) const override final;
+	std::vector<double> asMassVector(bool addRotationsIfNotPresent = false) const override final;
+	std::vector<double> asDampingVector(bool addRotationsIfNotPresent = false) const override final;
 	std::shared_ptr<ElementSet> clone() const override;
 };
 
@@ -466,16 +492,16 @@ class NodalMass: public ElementSet {
 class MatrixElement : public ElementSet {
 private:
 	std::map<std::pair<int, int>, std::shared_ptr<DOFMatrix>> submatrixByNodes;
-	bool symmetric = false;
 public:
-	MatrixElement(Model&, Type type, bool symmetric = false, int original_id = NO_ORIGINAL_ID);
+	MatrixElement(Model&, Type type, MatrixType matrixType, int original_id = NO_ORIGINAL_ID);
+	const MatrixType matrixType;
 	void addComponent(const int nodeid1, const DOF dof1, const int nodeid2, const DOF dof2, const double value);
 	/**
 	 * Clear all nodes and submatrices of the Matrix.
 	 */
 	void clear();
 	const std::shared_ptr<const DOFMatrix> findSubmatrix(const int nodePosition1, const int nodePosition2) const;
-	const std::set<int> nodePositions() const override;
+	std::set<int> nodePositions() const override;
 	const std::set<std::pair<int, int>> nodePairs() const;
 	const std::set<std::pair<int, int>> findInPairs(int nodePosition) const;
 	const DOFS getDOFSForNode(const int nodePosition) const override final;
@@ -489,7 +515,7 @@ public:
 
 class StiffnessMatrix : public MatrixElement {
 public:
-	StiffnessMatrix(Model&, int original_id = NO_ORIGINAL_ID);
+	StiffnessMatrix(Model&, MatrixType matrixType, int original_id = NO_ORIGINAL_ID);
 	void addStiffness(const int nodeid1, const DOF dof1, const int nodeid2, const DOF dof2, const double stiffness);
 	std::shared_ptr<ElementSet> clone() const override {
 		return std::make_shared<StiffnessMatrix>(*this);
@@ -498,7 +524,7 @@ public:
 
 class MassMatrix : public MatrixElement {
 public:
-	MassMatrix(Model&, int original_id = NO_ORIGINAL_ID);
+	MassMatrix(Model&, MatrixType matrixType, int original_id = NO_ORIGINAL_ID);
 	std::shared_ptr<ElementSet> clone() const override {
 		return std::make_shared<MassMatrix>(*this);
 	}
@@ -506,7 +532,7 @@ public:
 
 class DampingMatrix : public MatrixElement {
 public:
-	DampingMatrix(Model&, int original_id = NO_ORIGINAL_ID);
+	DampingMatrix(Model&, MatrixType matrixType, int original_id = NO_ORIGINAL_ID);
 	void addDamping(const int nodeid1, const DOF dof1, const int nodeid2, const DOF dof2, const double damping);
 	std::shared_ptr<ElementSet> clone() const override {
 		return std::make_shared<DampingMatrix>(*this);
@@ -563,16 +589,15 @@ public:
 };
 
 /**
- * ScalarSpring elemenset represent springs between two nodes.
+ * ScalarSpring represent springs between two nodes (for a single dof).
  * All springs in this elementSet have the same stiffness and damping, but various
  * "directions" of spring can be collected.
- * TODO LD : is this really needed or we could use DiscreteSegment ?
  **/
 class ScalarSpring : public Discrete {
 private:
     std::map<std::pair<DOF, DOF>, std::vector<int>> cellpositionByDOFS;
-    double stiffness;
-    double damping;
+    double stiffness = 0.0;
+    double damping = 0.0;
 public:
     ScalarSpring(Model&, int original_id = NO_ORIGINAL_ID, double stiffness = Globals::UNAVAILABLE_DOUBLE, double damping= Globals::UNAVAILABLE_DOUBLE);
     double getStiffness() const;
@@ -580,10 +605,17 @@ public:
     const std::map<std::pair<DOF, DOF>, std::vector<int>> getCellPositionByDOFS() const;
     void setStiffness(const double stiffness);
     void setDamping (const double damping);
-    bool hasStiffness() const;
-    bool hasDamping() const;
+    bool hasStiffness() const override;
+    bool hasDamping() const override;
+    bool hasMass() const override;
 	bool hasTranslations() const override;
 	bool hasRotations() const override;
+	bool isDiagonal() const override {
+	    return true;
+	}
+	bool isSymmetric() const override {
+	    return true;
+	}
     std::vector<std::pair<DOF, DOF>> getDOFSSpring() const;
     int getNbDOFSSpring() const;
 
@@ -592,8 +624,9 @@ public:
      *  and the two impacted DOF.
      */
     void addSpring(int cellPosition, DOF dofNodeA, DOF dofNodeB);
-    const std::vector<double> asStiffnessVector(bool addRotationsIfNotPresent = false) const override final;
-    const std::vector<double> asDampingVector(bool addRotationsIfNotPresent = false);
+    std::vector<double> asStiffnessVector(bool addRotationsIfNotPresent = false) const override final;
+    std::vector<double> asMassVector(bool addRotationsIfNotPresent = false) const override final;
+    std::vector<double> asDampingVector(bool addRotationsIfNotPresent = false) const override final;
     bool validate() const override {
         return true;
     }

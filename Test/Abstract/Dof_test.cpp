@@ -79,11 +79,39 @@ BOOST_AUTO_TEST_CASE( hash_DOFS ) {
 
 BOOST_AUTO_TEST_CASE( test_differentnodes ) {
 	double expected = -25000;
-	DOFMatrix matrix;
+	DOFMatrix matrix(MatrixType::SYMMETRIC);
 	matrix.addComponent(DOF::RY, DOF::DX, expected);
 	double found = matrix.findComponent(DOF::RY, DOF::DX);
 	BOOST_CHECK(is_equal(found, expected));
 	BOOST_CHECK(!matrix.isDiagonal());
+	BOOST_CHECK(matrix.isSymmetric());
+	BOOST_CHECK(matrix.hasRotations());
+	double found2 = matrix.findComponent(DOF::DX, DOF::RY);
+	BOOST_CHECK(is_equal(found2, expected));
+}
+
+BOOST_AUTO_TEST_CASE( test_diagonal ) {
+	double expected = -25000;
+	DOFMatrix matrix(MatrixType::DIAGONAL);
+	matrix.addComponent(DOF::RY, DOF::RY, expected);
+	double found = matrix.findComponent(DOF::RY, DOF::RY);
+	BOOST_CHECK(is_equal(found, expected));
+	BOOST_CHECK(matrix.isDiagonal());
+	BOOST_CHECK(matrix.isSymmetric());
+	BOOST_CHECK(matrix.hasRotations());
+}
+
+BOOST_AUTO_TEST_CASE( test_detectsymmetric ) {
+	DOFMatrix matrix(MatrixType::FULL);
+	matrix.addComponent(DOF::DX, DOF::DX, 10.0);
+	matrix.addComponent(DOF::DY, DOF::DY, 10.0);
+	matrix.addComponent(DOF::DZ, DOF::DZ, 10.0);
+	double found = matrix.findComponent(DOF::DY, DOF::DY);
+	BOOST_CHECK(is_equal(found, 10.0));
+	BOOST_CHECK(matrix.isDiagonal());
+	BOOST_CHECK(matrix.isSymmetric());
+	BOOST_CHECK(matrix.hasTranslations());
+	BOOST_CHECK(!matrix.hasRotations());
 }
 
 BOOST_AUTO_TEST_CASE( dofs_intersection ) {

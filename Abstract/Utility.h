@@ -18,6 +18,7 @@
 #include <cmath>
 #include <stdio.h>
 #include <cfloat>
+#include "prettyprint.hpp"
 
 #if defined(__GNUC__)
 // Avoid tons of warnings with the following code
@@ -43,6 +44,12 @@ public:
 	static constexpr int UNAVAILABLE_INT = INT_MIN;
 	static constexpr double UNAVAILABLE_DOUBLE = -DBL_MAX;
 	static constexpr double DOUBLE_COMPARE_TOLERANCE = std::numeric_limits<double>::epsilon() * 5;
+};
+
+enum class MatrixType {
+    SYMMETRIC,
+    FULL,
+    DIAGONAL
 };
 
 /**

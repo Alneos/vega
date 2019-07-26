@@ -831,7 +831,7 @@ const set<int> CellContainer::getCellPositionsExcludingGroups() const {
 	return cellPositions;
 }
 
-const set<int> CellContainer::nodePositions() const {
+set<int> CellContainer::nodePositions() const {
 	set<int> result;
 	for (Cell cell : getCellsIncludingGroups()) {
 		result.insert(cell.nodePositions.begin(), cell.nodePositions.end());

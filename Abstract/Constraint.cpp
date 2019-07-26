@@ -897,7 +897,7 @@ void SurfaceSlide::makeCellsFromSurfaceSlide() {
 
     shared_ptr<CellGroup> group = model.mesh.createCellGroup("SURF_"+to_string(this->bestId()), CellGroup::NO_ORIGINAL_ID, "SURF");
     const auto& elementsetSlide = make_shared<SurfaceSlideSet>(model);
-    elementsetSlide->assignCellGroup(group);
+    elementsetSlide->add(*group);
     model.add(elementsetSlide);
     this->markAsWritten();
 
