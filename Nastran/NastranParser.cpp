@@ -193,7 +193,9 @@ string NastranParser::parseSubcase(NastranTokenizer& tok, Model& model,
         }
         nextKeyword = tok.nextString(true,"");
         trim(nextKeyword);boost::to_upper(nextKeyword);
-        if ((!nextKeyword.empty()) && (nextKeyword != "BEGIN") && (nextKeyword != "SUBCASE")  && (nextKeyword != "SUBCOM")) {
+        if (nextKeyword == "SET") {
+            addSet(tok, model);
+        } else if ((!nextKeyword.empty()) && (nextKeyword != "BEGIN") && (nextKeyword != "SUBCASE")  && (nextKeyword != "SUBCOM")) {
             string line ="";
             string sep="";
             while (tok.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_FIELD) {
@@ -250,6 +252,39 @@ string NastranParser::parseSubcom(NastranTokenizer& tok, Model& model,
         return nextKeyword;
     }
     return nextKeyword;
+}
+
+void NastranParser::addSet(NastranTokenizer& tok, Model& model) {
+    string line = trim_copy(tok.currentRawDataLine());
+    while (line.back() == ',') {
+        tok.nextLine();
+        line += trim_copy(tok.currentRawDataLine());
+    }
+    vector<string> parts;
+    split(parts, line, boost::is_any_of("="), boost::algorithm::token_compress_on);
+    if (parts.size() == 1) {
+        std::size_t equalPos = line.find_last_of(" ");
+        if (equalPos == string::npos) {
+            handleParsingError("no = nor space in SET should never happen", tok, model);
+        }
+        parts.clear();
+        parts.push_back(line.substr(0, equalPos));
+        parts.push_back(line.substr(equalPos + 1));
+    } else if (parts.size() >= 3) {
+        handleParsingError("multiple = in SET should never happen", tok, model);
+    }
+    string setid = trim_copy(parts[0].substr(4));
+    shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup("SET_"+setid,NodeGroup::NO_ORIGINAL_ID,"SET");
+    vector<string> parvalparts;
+    trim(parts[1]);boost::to_upper(parts[1]);
+    if (parts[1] != "ALL") {
+        split(parvalparts, parts[1], boost::is_any_of(", "), boost::algorithm::token_compress_on);
+        for (const auto& nodeId : parvalparts) {
+            nodeGroup->addNodeId(stoi(nodeId));
+        }
+    } else {
+        handleParsingWarning("ALL in SET not yet implemented, ignoring", tok, model);
+    }
 }
 
 void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
@@ -381,24 +416,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                     line += tok.nextString(true,"");
                 model.title = line;
             } else if (keyword == "SET") {
-                string line = trim_copy(tok.currentRawDataLine());
-                while (line.back() == ',') {
-                    tok.nextLine();
-                    line += trim_copy(tok.currentRawDataLine());
-                }
-                vector<string> parts;
-                split(parts, line, boost::is_any_of("="), boost::algorithm::token_compress_on);
-                if (parts.size() != 2) {
-                    throw logic_error("multiple or no = in SET should never happen");
-                }
-                string setid = trim_copy(parts[0].substr(4));
-                shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup("SET_"+setid,NodeGroup::NO_ORIGINAL_ID,"SET");
-                vector<string> parvalparts;
-                trim(parts[1]);
-                split(parvalparts, parts[1], boost::is_any_of(", "), boost::algorithm::token_compress_on);
-                for (const auto& nodeId : parvalparts) {
-                    nodeGroup->addNodeId(stoi(nodeId));
-                }
+                addSet(tok, model);
             } else {
                 if (tok.nextSymbolType != NastranTokenizer::SymbolType::SYMBOL_FIELD) {
                     context[keyword] = string("");

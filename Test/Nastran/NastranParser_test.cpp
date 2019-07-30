@@ -184,4 +184,26 @@ BOOST_AUTO_TEST_CASE(nastran_issue22_lowercasecommands) {
 	}
 }
 
+BOOST_AUTO_TEST_CASE(nastran_set_in_subcase) {
+	string testLocation = fs::path(
+		PROJECT_BASE_DIR "/testdata/unitTest/nastranparser/set_in_subcase.nas").make_preferred().string();
+	nastran::NastranParser parser;
+	try {
+		const unique_ptr<Model> model = parser.parse(
+			ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
+        model->finish();
+        BOOST_CHECK_EQUAL(model->analyses.size(), 1);
+        const auto& analysis = model->analyses.first();
+        BOOST_CHECK_EQUAL(model->mesh.getNodeGroups().size(), 2);
+        const auto& group = model->mesh.findGroup("SET_100");
+        BOOST_CHECK(group != nullptr);
+	}
+	catch (exception& e) {
+		cerr << e.what() << endl;
+		BOOST_TEST_MESSAGE(string("Application exception") + e.what());
+
+		BOOST_FAIL(string("Parse threw exception ") + e.what());
+	}
+}
+
 //____________________________________________________________________________//

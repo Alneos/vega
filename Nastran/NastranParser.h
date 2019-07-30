@@ -72,6 +72,7 @@ private:
     static const std::unordered_map<std::string, parseElementFPtr> PARSE_FUNCTION_BY_KEYWORD;
     static const std::unordered_map<std::string, parseElementFPtr> PARSEPARAM_FUNCTION_BY_KEYWORD;
 
+    void addSet(NastranTokenizer& tok, Model& model);
     void addAnalysis(NastranTokenizer& tok, Model& model, std::map<std::string, std::string>& context, int analysis_id =
             Analysis::NO_ORIGINAL_ID);
     void addCombinationAnalysis(NastranTokenizer& tok, Model& model, std::map<std::string, std::string>& context, int analysis_id =
