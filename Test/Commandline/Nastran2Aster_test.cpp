@@ -67,6 +67,14 @@ BOOST_AUTO_TEST_CASE( cbush1b ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/cbush1b/cbush1b.bdf", RUN_ASTER, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( dmigstfs ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/dmigstfs/dmigstfs.nas", RUN_ASTER, true, 0.00001);
+}
+
+BOOST_AUTO_TEST_CASE( dmigstfl ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/dmigstfl/dmigstfl.nas", RUN_ASTER, true, 0.00001);
+}
+
 BOOST_AUTO_TEST_CASE( sdld27a ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/sdld27a/sdld27a.bdf", RUN_ASTER, true, 0.00001);
 }

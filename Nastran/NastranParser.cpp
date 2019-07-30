@@ -1283,6 +1283,7 @@ void NastranParser::parseDMIG(NastranTokenizer& tok, Model& model) {
 
     shared_ptr<MatrixElement> matrix = dynamic_pointer_cast<MatrixElement>(
                 model.find(it->second));
+    matrix->matrixType = MatrixType::SYMMETRIC;
 
 
     int gj = headerIndicator;

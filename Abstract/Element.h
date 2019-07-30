@@ -494,7 +494,7 @@ private:
 	std::map<std::pair<int, int>, std::shared_ptr<DOFMatrix>> submatrixByNodes;
 public:
 	MatrixElement(Model&, Type type, MatrixType matrixType, int original_id = NO_ORIGINAL_ID);
-	const MatrixType matrixType;
+	MatrixType matrixType;
 	void addComponent(const int nodeid1, const DOF dof1, const int nodeid2, const DOF dof2, const double value);
 	/**
 	 * Clear all nodes and submatrices of the Matrix.

@@ -1132,7 +1132,7 @@ void Model::replaceDirectMatrices()
                 DOFS requiredRowDofs = requiredDofsByNode.find(rowNodePosition)->second;
                 DOFS requiredColDofs = requiredDofsByNode.find(colNodePosition)->second;
 
-                const auto& discrete = make_shared<DiscreteSegment>(*this, MatrixType::FULL);
+                const auto& discrete = make_shared<DiscreteSegment>(*this, matrix->matrixType);
                 ostringstream oss;
                 oss << "created by replaceDirectMatrices() because of matrix element on node couple: " << matrix;
                 shared_ptr<CellGroup> matrixGroup = mesh.createCellGroup(
