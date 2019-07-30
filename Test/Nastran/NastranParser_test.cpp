@@ -162,4 +162,26 @@ BOOST_AUTO_TEST_CASE(nastran_issue23_doubleload) {
 	}
 }
 
+BOOST_AUTO_TEST_CASE(nastran_issue22_lowercasecommands) {
+	string testLocation = fs::path(
+		PROJECT_BASE_DIR "/testdata/unitTest/nastranparser/github_issue22.nas").make_preferred().string();
+	nastran::NastranParser parser;
+	try {
+		const unique_ptr<Model> model = parser.parse(
+			ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
+        model->finish();
+        BOOST_CHECK_EQUAL(model->analyses.size(), 1);
+        const auto& analysis = model->analyses.first();
+        BOOST_CHECK_EQUAL(analysis->getConstraintSets().size(), 1);
+        BOOST_CHECK_EQUAL(analysis->getLoadSets().size(), 0);
+        BOOST_CHECK_EQUAL(model->loadings.size(), 1);
+	}
+	catch (exception& e) {
+		cerr << e.what() << endl;
+		BOOST_TEST_MESSAGE(string("Application exception") + e.what());
+
+		BOOST_FAIL(string("Parse threw exception ") + e.what());
+	}
+}
+
 //____________________________________________________________________________//
