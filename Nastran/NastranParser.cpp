@@ -192,7 +192,7 @@ string NastranParser::parseSubcase(NastranTokenizer& tok, Model& model,
             continue;
         }
         nextKeyword = tok.nextString(true,"");
-        trim(nextKeyword);
+        trim(nextKeyword);boost::to_upper(nextKeyword);
         if ((!nextKeyword.empty()) && (nextKeyword != "BEGIN") && (nextKeyword != "SUBCASE")  && (nextKeyword != "SUBCOM")) {
             string line ="";
             string sep="";
@@ -230,7 +230,7 @@ string NastranParser::parseSubcom(NastranTokenizer& tok, Model& model,
             continue;
         }
         nextKeyword = tok.nextString(true,"");
-        trim(nextKeyword);
+        trim(nextKeyword);boost::to_upper(nextKeyword);
         if ((!nextKeyword.empty()) && (nextKeyword != "BEGIN") && (nextKeyword != "SUBCASE")  && (nextKeyword != "SUBCOM")) {
             string line ="";
             string sep="";
@@ -261,7 +261,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
 
     tok.nextLine();
     keyword = tok.nextString(true, "");
-    trim(keyword);
+    trim(keyword);boost::to_upper(keyword);
 
     while (canContinue){
 
@@ -413,7 +413,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                         }
                         context[keyword] = parvalparts[1];
                     } else {
-                        trim(parts[0]);
+                        trim(parts[0]);boost::to_upper(parts[0]);
                         context[parts[0]] = parts[1];
                     }
                 }
@@ -430,9 +430,9 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
             tok.nextLine();
             if (tok.nextSymbolType != NastranTokenizer::SymbolType::SYMBOL_EOF){
                 keyword = tok.nextString(true, "");
-                trim(keyword);
+                trim(keyword);boost::to_upper(keyword);
             }
-        }else{
+        } else {
             //new keyword was read by a parsing method
             readNewKeyword = true;
         }
