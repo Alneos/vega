@@ -333,7 +333,10 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                 if (!(iss >> num).fail()) {
                     throw logic_error("set references not yet implemented " + to_string(num));
                 }
-                const auto& matrix = make_shared<DampingMatrix>(model, MatrixType::FULL); // LD : TODO string identifier here
+                /*
+                The matrix must be symmetric in form (field 4 on DMIG Bulk Data entry must contain the integer 6).
+                */
+                const auto& matrix = make_shared<DampingMatrix>(model, MatrixType::SYMMETRIC); // LD : TODO string identifier here
                 directMatrixByName.insert(make_pair(line, matrix->getReference()));
                 model.add(matrix);
             } else if (keyword == "CEND") {
@@ -365,7 +368,10 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                 if (!(iss >> num).fail()) {
                     throw logic_error("set references not yet implemented " + to_string(num));
                 }
-                const auto& matrix = make_shared<StiffnessMatrix>(model, MatrixType::FULL); // LD : TODO string identifier here
+                /*
+                The matrix must be symmetric in form (field 4 on DMIG Bulk Data entry must contain the integer 6).
+                */
+                const auto& matrix = make_shared<StiffnessMatrix>(model, MatrixType::SYMMETRIC); // LD : TODO string identifier here
                 directMatrixByName.insert(make_pair(line, matrix->getReference()));
                 model.add(matrix);
             } else if (keyword == "M2GG") {
@@ -394,7 +400,10 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                 if (!(iss >> num).fail()) {
                     throw logic_error("set references not yet implemented " + to_string(num));
                 }
-                const auto& matrix = make_shared<MassMatrix>(model, MatrixType::FULL); // LD : TODO string identifier here
+                /*
+                The matrix must be symmetric in form (field 4 on DMIG Bulk Data entry must contain the integer 6).
+                */
+                const auto& matrix = make_shared<MassMatrix>(model, MatrixType::SYMMETRIC); // LD : TODO string identifier here
                 directMatrixByName.insert(make_pair(line, matrix->getReference()));
                 model.add(matrix);
             } else if (keyword == "SUBCASE") {
@@ -1283,8 +1292,6 @@ void NastranParser::parseDMIG(NastranTokenizer& tok, Model& model) {
 
     shared_ptr<MatrixElement> matrix = dynamic_pointer_cast<MatrixElement>(
                 model.find(it->second));
-    matrix->matrixType = MatrixType::SYMMETRIC;
-
 
     int gj = headerIndicator;
     int cj = tok.nextInt();
@@ -1295,7 +1302,7 @@ void NastranParser::parseDMIG(NastranTokenizer& tok, Model& model) {
         int c1 = tok.nextInt();
         DOF dof1 = *(DOFS::nastranCodeToDOFS(c1).begin());
         double a1 = tok.nextDouble();
-        tok.nextDouble(true, 0.0);
+        tok.skip(1);
         matrix->addComponent(gj, dofj, g1, dof1, a1);
     }
 }

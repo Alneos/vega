@@ -471,9 +471,9 @@ void DiscretePoint::addDamping(DOF rowdof, DOF coldof, double value) {
 
 DiscreteSegment::DiscreteSegment(Model& model, MatrixType matrixType, int original_id) :
 		Discrete(model, ElementSet::Type::DISCRETE_1D, matrixType, original_id),
-		stiffness{DOFMatrix(matrixType),DOFMatrix(matrixType)},
-		mass{DOFMatrix(matrixType),DOFMatrix(matrixType)},
-		damping{DOFMatrix(matrixType),DOFMatrix(matrixType)} {
+		stiffness{{DOFMatrix(matrixType),DOFMatrix(MatrixType::FULL)},{DOFMatrix(matrixType),DOFMatrix(matrixType)}},
+		mass{{DOFMatrix(matrixType),DOFMatrix(MatrixType::FULL)},{DOFMatrix(matrixType),DOFMatrix(matrixType)}},
+		damping{{DOFMatrix(matrixType),DOFMatrix(MatrixType::FULL)},{DOFMatrix(matrixType),DOFMatrix(matrixType)}} {
 }
 
 shared_ptr<ElementSet> DiscreteSegment::clone() const {
@@ -974,7 +974,14 @@ void MatrixElement::addComponent(const int nodeid1, const DOF dof1, const int no
 	if (it != submatrixByNodes.end()) {
 		subMatrix = it->second;
 	} else {
-		subMatrix = make_shared<DOFMatrix>(matrixType);
+	    if (matrixType == MatrixType::SYMMETRIC and nodePosition1 != nodePosition2) {
+            // a triangular symmetric matrix has the upper right block which is full (see K_TR_L)
+            subMatrix = make_shared<DOFMatrix>(MatrixType::FULL);
+	    } else if (matrixType == MatrixType::SYMMETRIC and nodePosition1 == nodePosition2) {
+	        subMatrix = make_shared<DOFMatrix>(MatrixType::SYMMETRIC);
+	    } else {
+            throw logic_error("not yet implemented");
+	    }
 		this->submatrixByNodes[make_pair(nodePosition1, nodePosition2)] = subMatrix;
 	}
     subMatrix->addComponent(myDof1, myDof2, value);

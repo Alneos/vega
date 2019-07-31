@@ -1093,6 +1093,12 @@ void Model::replaceDirectMatrices()
                         case ElementSet::Type::STIFFNESS_MATRIX:
                             discrete->addStiffness(dof1, dof2, value);
                             break;
+                        case ElementSet::Type::MASS_MATRIX:
+                            discrete->addMass(dof1, dof2, value);
+                            break;
+                        case ElementSet::Type::DAMPING_MATRIX:
+                            discrete->addDamping(dof1, dof2, value);
+                            break;
                         default:
                             throw logic_error("Not yet implemented");
                         }
@@ -1181,6 +1187,14 @@ void Model::replaceDirectMatrices()
                                 switch (matrix->type) {
                                 case ElementSet::Type::STIFFNESS_MATRIX:
                                     discrete->addStiffness(row_index, col_index, rowDof, colDof,
+                                            value);
+                                    break;
+                                case ElementSet::Type::MASS_MATRIX:
+                                    discrete->addMass(row_index, col_index, rowDof, colDof,
+                                            value);
+                                    break;
+                                case ElementSet::Type::DAMPING_MATRIX:
+                                    discrete->addDamping(row_index, col_index, rowDof, colDof,
                                             value);
                                     break;
                                 default:

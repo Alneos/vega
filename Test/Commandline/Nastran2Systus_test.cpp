@@ -47,8 +47,20 @@ BOOST_AUTO_TEST_CASE( cbush ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/cbush/cbush.inp", RUN_SYSTUS, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( dmigstfs ) {
+	CommandLineUtils::nastranStudy2Systus("/irt/dmigstfs/dmigstfs.nas", RUN_SYSTUS, true, 0.00001);
+}
+
+BOOST_AUTO_TEST_CASE( dmigstfl ) {
+	CommandLineUtils::nastranStudy2Systus("/irt/dmigstfl/dmigstfl.nas", RUN_SYSTUS, true, 0.00001);
+}
+
 BOOST_AUTO_TEST_CASE( truss1 ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/truss1/truss1.nas", RUN_SYSTUS, true, 0.001);
+}
+
+BOOST_AUTO_TEST_CASE( truss3 ) {
+	CommandLineUtils::nastranStudy2Systus("/irt/truss3/truss3.nas", RUN_SYSTUS, true, 0.000001);
 }
 
 //BOOST_AUTO_TEST_CASE( truss5 ) {
