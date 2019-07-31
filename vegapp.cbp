@@ -2076,6 +2076,11 @@
 		<Unit filename="testdata/nastran/irt/cbush1/cbush1.bdf" />
 		<Unit filename="testdata/nastran/irt/cbush1/cbush1.f06" />
 		<Unit filename="testdata/nastran/irt/cbush1/readme.txt" />
+		<Unit filename="testdata/nastran/irt/dmigstfl/dmigstfl.nas" />
+		<Unit filename="testdata/nastran/irt/dmigstfl/readme.txt" />
+		<Unit filename="testdata/nastran/irt/dmigstfs/dmigstfs.f06" />
+		<Unit filename="testdata/nastran/irt/dmigstfs/dmigstfs.nas" />
+		<Unit filename="testdata/nastran/irt/dmigstfs/readme.txt" />
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/fixed_circular_plate.dat" />
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/fixed_circular_plate.f06" />
 		<Unit filename="testdata/nastran/irt/fixed_circular_plate/readme.txt" />

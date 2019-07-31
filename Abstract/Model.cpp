@@ -948,7 +948,7 @@ void Model::removeIneffectives() {
     // remove empty elementSets from the model
     vector<shared_ptr<ElementSet>> elementSetsToRemove;
     for (const auto& elementSet : elementSets) {
-        if (elementSet->empty())
+        if (not elementSet->effective())
             elementSetsToRemove.push_back(elementSet);
     }
     for (const auto& elementSet : elementSetsToRemove) {

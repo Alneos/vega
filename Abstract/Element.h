@@ -106,6 +106,9 @@ public:
     virtual bool isMatrixElement() const {
         return false;
     }
+    virtual bool effective() const {
+        return not empty();
+    }
 };
 
 class RecoveryPoint {
@@ -508,6 +511,9 @@ public:
 	bool isMatrixElement() const override final {
 		return true;
 	}
+    virtual bool effective() const override {
+        return nodePositions().size() >= 1;
+    }
 	virtual bool validate() const override {
 		return true;
 	}
