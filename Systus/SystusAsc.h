@@ -85,7 +85,7 @@ public:
 
     SystusMatrix(systus_ascid_t id, int nbNodes, int nbDOFS);
     //SystusMatrix(const SystusMatrix& that) = delete;
-    virtual ~SystusMatrix();
+    virtual ~SystusMatrix() = default;
 
     void setValue(int i, int j, int dofi, int dofj, double value);
     /**

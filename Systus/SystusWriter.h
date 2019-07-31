@@ -280,10 +280,7 @@ private:
      **/
     // vs 2013 compiler bug	in initializer list {{3,6}, {4,3}} not supported
     std::map<int, int> numberOfDofBySystusOption = boost::assign::map_list_of(3, 6)(4, 3);
-    /** Converts a vega node Id in its ASC counterpart (i.e add one!)
-     *  Now useless, as we now used the model id, which (normally) start to one.
-     **/
-    int getAscNodeId(const int vega_id) const;
+
     /** Converts a vega DOFS to its ASC material counterpart.
      *  Return the number of material field filled.
      **/

@@ -116,6 +116,7 @@ protected:
             int original_id = NO_ORIGINAL_ID);
 public:
     const int nodePosition;
+    const int nodeId;
     const DOF dof;
     const DOFS getDOFSForNode(const int nodePosition) const override final;
     std::set<int> nodePositions() const override final;

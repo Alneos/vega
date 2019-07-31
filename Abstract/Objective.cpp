@@ -98,7 +98,7 @@ Assertion::Assertion(Model& model, Type type, double tolerance, int original_id)
 
 NodalAssertion::NodalAssertion(Model& model, Type type, double tolerance, int nodeId,
         DOF dof, int original_id) :
-        Assertion(model, type, tolerance, original_id), nodePosition(model.mesh.findOrReserveNode(nodeId)), dof(dof) {
+        Assertion(model, type, tolerance, original_id), nodePosition(model.mesh.findOrReserveNode(nodeId)), nodeId(nodeId), dof(dof) {
 }
 
 const DOFS NodalAssertion::getDOFSForNode(const int nodePosition) const {

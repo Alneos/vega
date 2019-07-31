@@ -76,9 +76,6 @@ SystusMatrix::SystusMatrix(systus_ascid_t id, int nbDOFS, int nbNodes ) :
 
 }
 
-SystusMatrix::~SystusMatrix(){
-}
-
 void SystusMatrix::setValue(int i, int j, int dofi, int dofj, double value){
 
     int pos = (dofi-1) + nbDOFS*(dofj-1) + nbDOFS*nbDOFS*(i-1)+ nbDOFS*nbDOFS*nbNodes*(j-1);

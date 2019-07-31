@@ -101,11 +101,6 @@ const int SystusWriter::DampingAccessId=41;
 const int SystusWriter::MassAccessId=42;
 const int SystusWriter::StiffnessAccessId=43;
 
-/** Converts a vega node Id in its ASC counterpart (i.e add one!) **/
-int SystusWriter::getAscNodeId(const int vega_id) const {
-    return vega_id+1;
-}
-
 int SystusWriter::DOFSToMaterial(const DOFS dofs, ostream& out) const {
     int nelem=0;
     if (dofs.contains(DOF::DX))
@@ -3405,11 +3400,11 @@ void SystusWriter::writeNodalDisplacementAssertion(Assertion& assertion, ostream
 //    }
     if (!is_equal(nda.instant, -1))
         handleWritingError("Instant in NodalDisplacementAssertion not supported");
-    int nodePos = getAscNodeId(nda.nodePosition);
-    int dofPos = getAscNodeId(nda.dof.position);
+    int nodeId = nda.nodeId;
+    int dofPos = nda.dof.position + 1;
 
     out << scientific;
-    out << "displacement = node_displacement(1" << "," << nodePos << ");" << endl;
+    out << "displacement = node_displacement(1" << "," << nodeId << ");" << endl;
     out << "diff = abs((displacement[" << dofPos << "]-(" << nda.value << "))/("
             << (abs(nda.value) >= 1e-9 ? nda.value : 1.) << "));" << endl;
 
@@ -3420,7 +3415,7 @@ void SystusWriter::writeNodalDisplacementAssertion(Assertion& assertion, ostream
     << endl;
     out << "if (diff > abs(" << nda.tolerance
             << ")) fprintf(iResu,\" NOOK \"); else fprintf(iResu,\" OK   \");" << endl;
-    out << "fprintf(iResu,\"" << setw(8) << nodePos << "     " << setw(8) << dofPos << "     "
+    out << "fprintf(iResu,\"" << setw(8) << nodeId << "     " << setw(8) << dofPos << "     "
             << nda.value
             << " %e %e " << nda.tolerance << " \\n\\n\", displacement[" << dofPos << "], diff);"
             << endl;
@@ -3430,16 +3425,16 @@ void SystusWriter::writeNodalDisplacementAssertion(Assertion& assertion, ostream
 void SystusWriter::writeNodalComplexDisplacementAssertion(Assertion& assertion, ostream& out) {
     NodalComplexDisplacementAssertion& ncda = dynamic_cast<NodalComplexDisplacementAssertion&>(assertion);
 
-    int nodePos = getAscNodeId(ncda.nodePosition);
-    int dofPos = getAscNodeId(ncda.dof.position);
+    int nodeId = ncda.nodeId;
+    int dofPos = ncda.dof.position;
     double puls = ncda.frequency*2*M_PI;
     out << scientific;
     out << "nb_map = number_of_tran_maps(1);" << endl;
     out << "nume_ordre = 1;" << endl;
     out << "puls = time_map(nume_ordre);" << endl;
     out << "while (nume_ordre<nb_map-1 && abs(puls - " << puls << ")/" << max(puls, 1.) << "> 1e-5){nume_ordre=nume_ordre+1; puls = time_map(nume_ordre);}" << endl;
-    out << "displacement = trans_node_displacement(nume_ordre," << nodePos << ");" << endl;
-    out << "phase = trans_node_displacement(nume_ordre+1," << nodePos << ");" << endl;
+    out << "displacement = trans_node_displacement(nume_ordre," << nodeId << ");" << endl;
+    out << "phase = trans_node_displacement(nume_ordre+1," << nodeId << ");" << endl;
     out << "displacement_real = displacement[" << dofPos << "]*cos(phase["<< dofPos <<"]);" << endl;
     out << "displacement_imag = displacement[" << dofPos << "]*sin(phase["<< dofPos <<"]);" << endl;
     out << "diff = (abs(displacement_real-(" << ncda.value.real() << ")) + abs(displacement_imag-(" << ncda.value.imag() << ")))"
@@ -3452,7 +3447,7 @@ void SystusWriter::writeNodalComplexDisplacementAssertion(Assertion& assertion, 
     << "VALE_CALC                     ERREUR       TOLE\\n\");"
     << endl;
     out << "if (diff > abs(" << ncda.tolerance << ")) fprintf(iResu,\" NOOK \"); else fprintf(iResu,\" OK   \");" << endl;
-    out << "fprintf(iResu,\"" << setw(8) << nodePos << "     " << setw(8) << dofPos << "     " << ncda.frequency << " "
+    out << "fprintf(iResu,\"" << setw(8) << nodeId << "     " << setw(8) << dofPos << "     " << ncda.frequency << " "
             << ncda.value << " (%e,%e) %e " << ncda.tolerance << " \\n\\n\", displacement_real, displacement_imag, diff);"
             << endl;
     out.unsetf(ios::scientific);
