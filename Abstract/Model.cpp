@@ -956,6 +956,15 @@ void Model::removeIneffectives() {
             cout << "Removed empty " << *elementSet << endl;
         this->elementSets.erase(elementSet->getReference());
     }
+
+    for (const int& unusedNodePosition : mesh.nodes.reservedButUnusedNodePositions) {
+        for (auto& nodeGroup : mesh.getNodeGroups()) {
+            if (nodeGroup->containsNodePosition(unusedNodePosition)) {
+                nodeGroup->removeNodeByPosition(unusedNodePosition);
+            }
+        }
+    }
+
 }
 
 void Model::removeUnassignedMaterials() {

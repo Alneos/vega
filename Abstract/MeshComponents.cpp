@@ -284,6 +284,10 @@ void NodeGroup::removeNodeByPosition(int nodePosition) {
 	}
 }
 
+bool NodeGroup::containsNodePosition(int nodePosition) const {
+    return _nodePositions.find(nodePosition) != _nodePositions.end();
+}
+
 const std::set<int> NodeGroup::nodePositions() const {
 	return _nodePositions;
 }

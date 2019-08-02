@@ -55,6 +55,7 @@ public:
 	std::map<int, int> mainNodePartByCellPart;
 	std::map<int, std::set<int>> cellPartsByNodePart;
 	std::map<std::set<int>, int> interfaceNodePartByCellParts;
+	std::set<int> reservedButUnusedNodePositions;
 
 	NodeStorage(Mesh& mesh, LogLevel logLevel);
 	NodeIterator begin() const;

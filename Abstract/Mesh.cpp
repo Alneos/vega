@@ -217,11 +217,16 @@ int Mesh::findOrReserveNode(int nodeId, int cellPartId) {
         nodePosition = addNode(nodeId, NodeStorage::RESERVED_POSITION, NodeStorage::RESERVED_POSITION,
                 NodeStorage::RESERVED_POSITION, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, mainNodePart);
         nodes.nodepositionById[nodeId] = nodePosition;
+        nodes.reservedButUnusedNodePositions.insert(nodePosition);
         if (this->logLevel >= LogLevel::TRACE) {
             cout << "Reserve node id:" << nodeId << " position:" << nodePosition << endl;
         }
 	} else if (cellPartId != Globals::UNAVAILABLE_INT) {
         auto& nodeData = nodes.nodeDatas[nodePosition];
+        auto unusedNodeIt = nodes.reservedButUnusedNodePositions.find(nodePosition);
+        if (unusedNodeIt != nodes.reservedButUnusedNodePositions.end()) {
+            nodes.reservedButUnusedNodePositions.erase(unusedNodeIt);
+        }
         if (nodeData.nodePart == 0) {
             // Node exists but this is the first cell containing it
             nodeData.nodePart = mainNodePart;

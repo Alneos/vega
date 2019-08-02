@@ -2535,21 +2535,25 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
      */
     set<int> pids={};
     for (const auto& cellGroup : cellGroups) {
-        if (cellGroup->isUseful){
-            nbGroups++;
-            osgr << nbGroups << " " << cellGroup->getName() << " 2 0 ";
-            osgr << "\"PART_ID "<< getPartId(cellGroup->getName(), pids) << "\"  \"\"  ";
-            osgr << "\"PART built in VEGA from "<< cellGroup->getComment() << "\"";
-            for (const auto& cell : cellGroup->getCells())
-                osgr << " " << cell.id;
-            osgr << endl;
-        }
+        if (not cellGroup->isUseful)
+            continue;
+        if (cellGroup->empty())
+            continue;
+        nbGroups++;
+        osgr << nbGroups << " \"" << cellGroup->getName() << "\" 2 0 ";
+        osgr << "\"PART_ID "<< getPartId(cellGroup->getName(), pids) << "\"  \"\"  ";
+        osgr << "\"PART built in VEGA from "<< cellGroup->getComment() << "\"";
+        for (const auto& cell : cellGroup->getCells())
+            osgr << " " << cell.id;
+        osgr << endl;
     }
 
     // Write NodeGroups
     for (const auto& nodeGroup : nodeGroups) {
+        if (nodeGroup->empty())
+            continue;
         nbGroups++;
-        osgr << nbGroups << " " << nodeGroup->getName() << " 1 0 ";
+        osgr << nbGroups << " \"" << nodeGroup->getName() << "\" 1 0 ";
         osgr << "\"No method\"  \"\"  ";
         osgr << "\"Group built in VEGA from "<< nodeGroup->getComment() << "\"";
         for (int id : nodeGroup->getNodeIds())
@@ -3426,7 +3430,7 @@ void SystusWriter::writeNodalComplexDisplacementAssertion(Assertion& assertion, 
     NodalComplexDisplacementAssertion& ncda = dynamic_cast<NodalComplexDisplacementAssertion&>(assertion);
 
     int nodeId = ncda.nodeId;
-    int dofPos = ncda.dof.position;
+    int dofPos = ncda.dof.position + 1;
     double puls = ncda.frequency*2*M_PI;
     out << scientific;
     out << "nb_map = number_of_tran_maps(1);" << endl;

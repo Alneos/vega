@@ -273,8 +273,9 @@ void NastranParser::addSet(NastranTokenizer& tok, Model& model) {
     } else if (parts.size() >= 3) {
         handleParsingError("multiple = in SET should never happen", tok, model);
     }
-    string setid = trim_copy(parts[0].substr(4));
-    shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup("SET_"+setid,NodeGroup::NO_ORIGINAL_ID,"SET");
+    const string setid = trim_copy(parts[0].substr(4));
+    const string groupName = "SET_"+setid;
+    shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup(groupName,NodeGroup::NO_ORIGINAL_ID,"SET");
     vector<string> parvalparts;
     trim(parts[1]);boost::to_upper(parts[1]);
     if (parts[1] != "ALL") {
@@ -283,6 +284,7 @@ void NastranParser::addSet(NastranTokenizer& tok, Model& model) {
             nodeGroup->addNodeId(stoi(nodeId));
         }
     } else {
+        model.mesh.removeGroup(groupName);
         handleParsingWarning("ALL in SET not yet implemented, ignoring", tok, model);
     }
 }

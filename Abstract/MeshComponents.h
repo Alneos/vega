@@ -304,6 +304,7 @@ public:
     void addNode(const Node& node);
     void addNodeByPosition(int nodePosition);
     void removeNodeByPosition(int nodePosition);
+    bool containsNodePosition(int nodePosition) const;
     const std::set<int> nodePositions() const override;
     bool empty() const override;
     const std::set<int> getNodeIds() const;
