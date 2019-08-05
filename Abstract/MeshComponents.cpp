@@ -393,55 +393,6 @@ ostream &operator<<(ostream &out, const Node& node) {
 	return out;
 }
 
-NodeIterator::NodeIterator(const NodeStorage *nodeStorage, int position) :
-		nodeStorage(nodeStorage), position(position), endPosition(nodeStorage->mesh.countNodes()) {
-}
-
-void NodeIterator::increment() {
-	position++;
-	if (position > endPosition) {
-		throw out_of_range(
-				"Iterator on nodes in position " + to_string(position)
-						+ " after end.");
-	}
-}
-
-bool NodeIterator::hasNext() const {
-	return (position < endPosition);
-}
-
-bool NodeIterator::equal(NodeIterator const& other) const {
-	//this.mesh == other.mesh
-	return this->position == other.position;
-}
-
-NodeIterator& NodeIterator::operator ++() {
-	increment();
-	return *this;
-}
-
-NodeIterator NodeIterator::operator ++(int) {
-	increment();
-	return *this;
-}
-
-bool NodeIterator::operator ==(const NodeIterator& rhs) const {
-	return this->position == rhs.position;
-}
-
-bool NodeIterator::operator !=(const NodeIterator& rhs) const {
-	return this->position != rhs.position;
-}
-
-const Node NodeIterator::operator *() {
-	return nodeStorage->mesh.findNode(position);
-}
-
-const Node NodeIterator::next() {
-	const Node& result(nodeStorage->mesh.findNode(position));
-	this->increment();
-	return result;
-}
 ///////////////////////////////////////////////////////////////////////////////
 /*                             Cells                                         */
 ///////////////////////////////////////////////////////////////////////////////

@@ -57,17 +57,56 @@ NodeStorage::NodeStorage(Mesh& mesh, LogLevel logLevel) :
 	nodeDatas.reserve(4096);
 }
 
-NodeIterator NodeStorage::begin() const {
-	return NodeIterator(this, 0);
+NodeStorage::NodeIterator NodeStorage::begin() const {
+	return NodeStorage::NodeIterator(*this, nodepositionById.begin());
 }
 
-NodeIterator NodeStorage::end() const {
-	return NodeIterator(this, static_cast<int>(nodeDatas.size()));
+NodeStorage::NodeIterator NodeStorage::end() const {
+	return NodeStorage::NodeIterator(*this, nodepositionById.end());
 }
 
-CellData::CellData(int id, const CellType& type, bool isvirtual, int elementId, int cellTypePosition) :
-		id(id), typeCode(type.code), isvirtual(isvirtual), elementId(
-				elementId), cellTypePosition(cellTypePosition) {
+NodeStorage::NodeIterator::NodeIterator(const NodeStorage& nodeStorage, mapid_iterator currentIdIterator) :
+		nodeStorage(nodeStorage), currentIdIterator(currentIdIterator) {
+}
+
+void NodeStorage::NodeIterator::increment() {
+	currentIdIterator++;
+}
+
+bool NodeStorage::NodeIterator::hasNext() const {
+	return currentIdIterator != nodeStorage.nodepositionById.end();
+}
+
+bool NodeStorage::NodeIterator::equal(NodeStorage::NodeIterator const& other) const {
+	//this.mesh == other.mesh
+	return this->currentIdIterator == other.currentIdIterator;
+}
+
+NodeStorage::NodeIterator& NodeStorage::NodeIterator::operator ++() {
+	increment();
+	return *this;
+}
+
+NodeStorage::NodeIterator NodeStorage::NodeIterator::operator ++(int) {
+	throw logic_error("not yet implemented");
+}
+
+bool NodeStorage::NodeIterator::operator ==(const NodeStorage::NodeIterator& rhs) const {
+	return this->currentIdIterator == rhs.currentIdIterator;
+}
+
+bool NodeStorage::NodeIterator::operator !=(const NodeStorage::NodeIterator& rhs) const {
+	return this->currentIdIterator != rhs.currentIdIterator;
+}
+
+const Node NodeStorage::NodeIterator::operator *() {
+	return nodeStorage.mesh.findNode(this->currentIdIterator->second);
+}
+
+const Node NodeStorage::NodeIterator::next() {
+	const Node& result(nodeStorage.mesh.findNode(this->currentIdIterator->second));
+	this->increment();
+	return result;
 }
 
 bool NodeStorage::validate() const {
@@ -83,6 +122,11 @@ bool NodeStorage::validate() const {
 		cout << "All the reserved nodes have been defined." << endl;
 	}
 	return validNodes;
+}
+
+CellData::CellData(int id, const CellType& type, bool isvirtual, int elementId, int cellTypePosition) :
+		id(id), typeCode(type.code), isvirtual(isvirtual), elementId(
+				elementId), cellTypePosition(cellTypePosition) {
 }
 
 /******************************************************************************

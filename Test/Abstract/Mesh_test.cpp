@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE( test_node_iterator )
     }
 
     int i = 0;
-    NodeIterator nodeIterator = mesh.nodes.begin();
+    auto nodeIterator = mesh.nodes.begin();
     cout << "NODE" << *nodeIterator << endl;
     //(*nodeIterator).buildGlobalXYZ();
     Node node = *nodeIterator;
@@ -142,10 +142,10 @@ BOOST_AUTO_TEST_CASE( test_node_iterator )
     }
     BOOST_CHECK_EQUAL(4, i);
 
-    nodeIterator = mesh.nodes.begin();
-    for (i = 0; nodeIterator.hasNext(); i++)
+    auto nodeIterator2 = mesh.nodes.begin();
+    for (i = 0; nodeIterator2.hasNext(); i++)
     {
-        const Node node2 = nodeIterator.next();
+        const Node node2 = nodeIterator2.next();
         cout << node2 << endl;
     }
     BOOST_CHECK_EQUAL(mesh.countNodes(), i);

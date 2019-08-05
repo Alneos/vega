@@ -401,25 +401,6 @@ public:
     bool empty() const override;
 };
 
-class NodeIterator final: public std::iterator<std::input_iterator_tag, const Node> {
-    const NodeStorage* nodeStorage;
-    unsigned int position;
-    unsigned int endPosition;
-    void increment();
-    bool equal(NodeIterator const& other) const;
-    friend NodeStorage;
-    NodeIterator(const NodeStorage* nodes, int position);
-public:
-    //java style iteration
-    bool hasNext() const;
-    const Node next();
-    NodeIterator& operator++();
-    NodeIterator operator++(int);
-    bool operator==(const NodeIterator& rhs) const;
-    bool operator!=(const NodeIterator& rhs) const;
-    const Node operator*();
-};
-
 class CellIterator final: public std::iterator<std::input_iterator_tag, const Cell> {
     friend CellStorage;
     const CellStorage* cellStorage;

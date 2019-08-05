@@ -44,9 +44,9 @@ class NodeStorage final {
 private:
 	friend Mesh;
 	friend NodeGroup;
-
 	const LogLevel logLevel;
 	std::vector<NodeData> nodeDatas;
+	typedef std::map<int, int>::const_iterator mapid_iterator;
 	std::map<int, int> nodepositionById;
 	static const double RESERVED_POSITION;
 	static int lastNodePart;
@@ -57,11 +57,35 @@ public:
 	std::map<std::set<int>, int> interfaceNodePartByCellParts;
 	std::set<int> reservedButUnusedNodePositions;
 
+    class NodeIterator final: public std::iterator<std::input_iterator_tag, const Node> {
+        friend NodeStorage;
+        void increment();
+        bool equal(NodeIterator const& other) const;
+        NodeIterator(const NodeStorage& nodeStorage, mapid_iterator currentIdIterator);
+        const NodeStorage& nodeStorage;
+        mapid_iterator currentIdIterator;
+    public:
+        //java style iteration
+        bool hasNext() const;
+        const Node next();
+        NodeIterator& operator++();
+        NodeIterator operator++(int);
+        bool operator==(const NodeIterator& rhs) const;
+        bool operator!=(const NodeIterator& rhs) const;
+        const Node operator*();
+    };
+
 	NodeStorage(Mesh& mesh, LogLevel logLevel);
 	NodeIterator begin() const;
 	NodeIterator end() const;
 	const std::vector<NodeData>& getNodeDatas() const {
 	    return nodeDatas;
+	}
+	int getMinNodeId() const {
+	    return nodepositionById.begin()->first;
+	}
+	int getMaxNodeId() const {
+	    return nodepositionById.rbegin()->first;
 	}
 	bool validate() const;
 };
@@ -112,7 +136,6 @@ public:
 class Mesh final {
 
 private:
-	friend NodeIterator;
 	friend CellIterator;
 	//access flag debug on model
 	friend CellGroup;
