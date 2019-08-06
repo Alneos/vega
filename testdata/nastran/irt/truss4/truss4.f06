@@ -1,0 +1,207 @@
+
+
+
+
+
+
+                                  ****
+                                *      *
+                               *        *
+                               *  N A S T R A N
+                               *        *
+                                *      *
+                                  ****
+
+
+                            INTEL COMPUTER SYSTEMS   
+                                 LINUX VERSION 
+
+                          SYSTEM RELEASE -  1995 ED.
+
+                                DISTRIBUTED BY
+
+         COMPUTER SOFTWARE MANAGEMENT AND INFORMATION CENTER (COSMIC)
+                 UNIVERSITY OF GEORGIA, ATHENS, GEORGIA 30602
+                 PHONE: (706)542-3265      FAX: (706)542-4807
+1                                                                           /    95 INTEL LINUX NASTRAN    / AUG  6, 19 / PAGE     2
+                                                                                                                                    
+0                                                                                                                                   
+                                                                                                         
+                                                                                                         
+                         INSTALLATION CENTER USER INFORMATION GIVEN IN THIS SECTION                      
+                                                                                                         
+                                     *********************************************                       
+                                     *                                           *                       
+                                     *  PLEASE READ THE COMMENT IN DEMO PROBLEM  *                       
+                                     *  D01002A ABOUT SYSTEM TIMING CONSTANTS    *                       
+                                     *                                           *                       
+                                     *********************************************                       
+                                                                                                         
+                         ===X=    TOP OF PAGE REQUEST IF 'X' IS REPLACED BY '='                          
+                                                                                                         
+1                                                                           /    95 INTEL LINUX NASTRAN    / AUG  6, 19 / PAGE     3
+                                                                                                                                    
+0                                                                                                                                   
+0*** USER INFORMATION MESSAGE 225, GINO TIME CONSTANTS ARE BEING COMPUTED
+     (SEE NASINFO FILE FOR ELIMINATION OF THESE COMPUTATIONS)
+1                                                                           /    95 INTEL LINUX NASTRAN    / AUG  6, 19 / PAGE     4
+                                                                                                                                    
+0        N A S T R A N    E X E C U T I V E    C O N T R O L    D E C K    E C H O                                                  
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+     $                                                                               
+     $  FILENAME - TRUSS4.DAT                                                        
+     $                                                                               
+     ID LINEAR,TRUSS4                                                                
+     SOL 1,1                                                                         
+     TIME 2                                                                          
+     CEND                                                                            
+0*** APP  DECLARATION CARD MISSING.  DISPLACEMENT IS SELECTED BY DEFAULT
+1     LINEAR STATICS USER'S GUIDE                                           /    95 INTEL LINUX NASTRAN    / AUG  6, 19 / PAGE     5
+      TRUSS STRUCTURE                                                                                                               
+0                                                                                                                                   
+0                                        C A S E    C O N T R O L   D E C K   E C H O                                               
+                 CARD                                                                                                               
+                 COUNT                                                                                                              
+                  1      TITLE = LINEAR STATICS USER'S GUIDE                                             
+                  2      SUBTITLE = TRUSS STRUCTURE                                                      
+                  3      LOAD = 10                                                                       
+                  4      SPC = 11                                                                        
+                  5      DISPLACEMENT = ALL                                                              
+                  6      SET 1  = 3,4                                                                    
+                  7      SET 2  = 1,2                                                                    
+                  8      SET 3  = 3 THRU 5                                                               
+                  9      $                                                                               
+                 10      SUBCASE 1                                                                       
+                 11        LABEL = POINT4A10                                                             
+                 12        LOAD = 10                                                                     
+                 13        ELFORCE = 2                                                                   
+                 14      $                                                                               
+                 15      SUBCASE 2                                                                       
+                 16        LABEL = POINT4B                                                               
+                 17        ELFORCE = 3                                                                   
+                 18        DISPLACEMENT = NONE                                                           
+                 19      $                                                                               
+                 20      SUBCASE 3                                                                       
+                 21        LABEL = POINT LOAD AT GRID POINT 3                                            
+                 22        LOAD = 11                                                                     
+                 23        DISPLACEMENT = 1                                                              
+                 24        ELFORCE = 1                                                                   
+                 25      BEGIN BULK                                                                      
+
+
+                        (NO. OF UNSORTED BULK DATA CARDS READ =    35, INCLUDING   0 COMMENT CARDS)
+0*** USER INFORMATION MESSAGE 207, BULK DATA DECK IS NOT SORTED. NASTRAN WILL RE-ORDER THE INPUT DECK.
+1     LINEAR STATICS USER'S GUIDE                                           /    95 INTEL LINUX NASTRAN    / AUG  6, 19 / PAGE     6
+      TRUSS STRUCTURE                                                                                                               
+0                                                                                                                                   
+0                                                 S O R T E D   B U L K    D A T A    E C H O                                       
+                     CARD                                                                                                           
+                     COUNT        ---1--- +++2+++ ---3--- +++4+++ ---5--- +++6+++ ---7--- +++8+++ ---9--- +++10+++                  
+                    1-        CROD    1       21      2       3                                               
+                    2-        CROD    2       21      2       4                                               
+                    3-        CROD    3       21      1       3                                               
+                    4-        CROD    4       21      1       4                                               
+                    5-        CROD    5       21      3       4                                               
+                    6-        FORCE   10      4               1000.   0.      -1.     0.                      
+                    7-        FORCE   11      3               2000.   1.      0.      0.                      
+                    8-        GRID    1               0.      0.      0.              3456                    
+                    9-        GRID    2               0.      120.    0.              3456                    
+                   10-        GRID    3               600.    120.    0.              3456                    
+                   11-        GRID    4               600.    0.      0.              3456                    
+                   12-        MAT1    22      30.E6           .3                                              
+                   13-        PROD    21      22      4.      1.27                                            
+                   14-        SPC1    11      123456  1       2                                               
+                              ENDDATA
+0*** USER INFORMATION MESSAGE -  GRID-POINT RESEQUENCING PROCESSOR BANDIT IS NOT USED DUE TO
+     SMALL PROBLEM SIZE
+0          **NO ERRORS FOUND - EXECUTE NASTRAN PROGRAM**
+0*** USER INFORMATION MESSAGE 238, TURN DIAG 38 ON FOR ADDITIONAL ELEMENT PROCESSING INFORMATION
+
+1     LINEAR STATICS USER'S GUIDE                                           /    95 INTEL LINUX NASTRAN    / AUG  6, 19 / PAGE     7
+      TRUSS STRUCTURE                                                                                                               
+
+                                                                                                                                    
+
+
+
+
+0*** USER INFORMATION MESSAGE 3113,
+     EMG MODULE PROCESSING DOUBLE PRECISION ROD      ELEMENTS (ELEMENT TYPE   1) STARTING WITH ID        1
+0*** USER INFORMATION MESSAGE 3035
+     FOR SUBCASE NUMBER     1, EPSILON SUB E =   0.0000000E+00
+0*** USER INFORMATION MESSAGE 3035
+     FOR SUBCASE NUMBER     2, EPSILON SUB E =   0.0000000E+00
+0*** USER INFORMATION MESSAGE 3035
+     FOR SUBCASE NUMBER     3, EPSILON SUB E =  -6.0691850E-15
+0*** SYSTEM WARNING MESSAGE 3022
++                                 (SEE PROG. MANUAL SEC. 4.9.7, OR USERS' MANUAL P. 6.5-3)
+     DATA BLOCK ONRGY1   MAY BE REQUIRED AS INPUT AND IS NOT OUTPUT BY A PREVIOUS MODULE IN THE CURRENT DMAP ROUTE.
+1     LINEAR STATICS USER'S GUIDE                                           /    95 INTEL LINUX NASTRAN    / AUG  6, 19 / PAGE     8
+      TRUSS STRUCTURE                                                                                                               
+0     POINT4A10                                                                                              SUBCASE 1              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             1      G      0.0            0.0            0.0            0.0            0.0            0.0                           
+             2      G      0.0            0.0            0.0            0.0            0.0            0.0                           
+             3      G      1.247578E-02  -1.285377E-01   0.0            0.0            0.0            0.0                           
+             4      G     -1.252422E-02  -1.290368E-01   0.0            0.0            0.0            0.0                           
+1     LINEAR STATICS USER'S GUIDE                                           /    95 INTEL LINUX NASTRAN    / AUG  6, 19 / PAGE     9
+      TRUSS STRUCTURE                                                                                                               
+0     POINT LOAD AT GRID POINT 3                                                                             SUBCASE 3              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             3      G      7.578219E-03  -2.504843E-02   0.0            0.0            0.0            0.0                           
+             4      G     -2.421781E-03  -2.495156E-02   0.0            0.0            0.0            0.0                           
+1     LINEAR STATICS USER'S GUIDE                                           /    95 INTEL LINUX NASTRAN    / AUG  6, 19 / PAGE    10
+      TRUSS STRUCTURE                                                                                                               
+0     POINT4A10                                                                                              SUBCASE 1              
+ 
+                                           F O R C E S   I N   R O D   E L E M E N T S     ( C R O D )
+       ELEMENT           AXIAL                                     ELEMENT           AXIAL
+         ID.             FORCE          TORQUE                       ID.             FORCE          TORQUE
+             1        2.495156E+03   0.0                                 2        2.554449E+03   0.0                                
+1     LINEAR STATICS USER'S GUIDE                                           /    95 INTEL LINUX NASTRAN    / AUG  6, 19 / PAGE    11
+      TRUSS STRUCTURE                                                                                                               
+0     POINT4B                                                                                                SUBCASE 2              
+ 
+                                           F O R C E S   I N   R O D   E L E M E N T S     ( C R O D )
+       ELEMENT           AXIAL                                     ELEMENT           AXIAL
+         ID.             FORCE          TORQUE                       ID.             FORCE          TORQUE
+             3       -2.544571E+03   0.0                                 4       -2.504844E+03   0.0                                
+             5        4.990234E+02   0.0                                                                                            
+1     LINEAR STATICS USER'S GUIDE                                           /    95 INTEL LINUX NASTRAN    / AUG  6, 19 / PAGE    12
+      TRUSS STRUCTURE                                                                                                               
+0     POINT LOAD AT GRID POINT 3                                                                             SUBCASE 3              
+ 
+                                           F O R C E S   I N   R O D   E L E M E N T S     ( C R O D )
+       ELEMENT           AXIAL                                     ELEMENT           AXIAL
+         ID.             FORCE          TORQUE                       ID.             FORCE          TORQUE
+             3        4.939485E+02   0.0                                 4       -4.843562E+02   0.0                                
+1     LINEAR STATICS USER'S GUIDE                                           /    95 INTEL LINUX NASTRAN    / AUG  6, 19 / PAGE    13
+      TRUSS STRUCTURE                                                                                                               
+
+                                                                                                                                    
+
+
+
+
+0*** SYSTEM WARNING MESSAGE 3022
++                                 (SEE PROG. MANUAL SEC. 4.9.7, OR USERS' MANUAL P. 6.5-3)
+     DATA BLOCK ONRGY1   MAY BE REQUIRED AS INPUT AND IS NOT OUTPUT BY A PREVIOUS MODULE IN THE CURRENT DMAP ROUTE.
+
+
+
+
+                                        * * * END OF JOB * * *
+1
+ JOB TITLE =  LINEAR STATICS USER'S GUIDE                                        
+ DATE:  8/ 6/19
+ END TIME: 11:19: 6
+ TOTAL WALL CLOCK TIME      0 SEC.
+ 

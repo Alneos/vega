@@ -278,10 +278,18 @@ void NastranParser::addSet(NastranTokenizer& tok, Model& model) {
     shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup(groupName,NodeGroup::NO_ORIGINAL_ID,"SET");
     vector<string> parvalparts;
     trim(parts[1]);boost::to_upper(parts[1]);
+
     if (parts[1] != "ALL") {
         split(parvalparts, parts[1], boost::is_any_of(", "), boost::algorithm::token_compress_on);
-        for (const auto& nodeId : parvalparts) {
-            nodeGroup->addNodeId(stoi(nodeId));
+        for (size_t i = 0;i < parvalparts.size(); i++) {
+            if (i + 2 < parvalparts.size() and parvalparts[i+1] == "THRU") {
+                for (int j = stoi(parvalparts[i]); j <= stoi(parvalparts[i+2]); j++) {
+                    nodeGroup->addNodeId(j);
+                }
+                i += 2;
+            } else {
+                nodeGroup->addNodeId(stoi(parvalparts[i]));
+            }
         }
     } else {
         model.mesh.removeGroup(groupName);

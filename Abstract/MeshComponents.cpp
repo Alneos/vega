@@ -247,9 +247,6 @@ const string& Group::getComment() const {
 	return this->comment;
 }
 
-Group::~Group() {
-
-}
 /*******************
  * NodeGroup
  */

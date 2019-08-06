@@ -216,6 +216,10 @@ BOOST_AUTO_TEST_CASE( truss3 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/truss3/truss3.nas", RUN_ASTER, true, 0.000001);
 }
 
+BOOST_AUTO_TEST_CASE( truss4 ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/truss4/truss4.nas", RUN_ASTER, true, 0.000001);
+}
+
 BOOST_AUTO_TEST_CASE( truss5 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/truss5/truss5.nas", RUN_ASTER, true, 0.000001);
 }
