@@ -527,6 +527,27 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
         listValue.markAsWritten();
         break;
 	}
+    case Value::Type::SET: {
+		SetValueBase& setValue = dynamic_cast<SetValueBase&>(value);
+
+		ostringstream list_concept_ss;
+		list_concept_ss << "LST" << setfill('0') << setw(5) << setValue.getId();
+		concept_name = list_concept_ss.str();
+		out << concept_name << "=DEFI_LIST_REEL(" << endl;
+		out << "                        VALE = (";
+		if (setValue.isintegral()) {
+		    const SetValue<int>& setIntValue = dynamic_cast<SetValue<int>&>(value);
+            for (const int val : setIntValue.getSet()) {
+                out << val << ",";
+            }
+		} else {
+		    throw logic_error("non-integral set not yet implemented");
+		}
+        out << ")," << endl;
+        out << "                        );" << endl << endl;
+        setValue.markAsWritten();
+        break;
+	}
 	case Value::Type::STEP_RANGE: {
 		StepRange& stepRange = dynamic_cast<StepRange&>(value);
         ostringstream list_concept_ss;

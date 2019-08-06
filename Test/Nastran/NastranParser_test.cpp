@@ -23,7 +23,7 @@ using namespace vega;
 
 //____________________________________________________________________________//
 
-/*BOOST_AUTO_TEST_CASE( test_model_read ) {
+BOOST_AUTO_TEST_CASE( test_model_read ) {
 	string testLocation = fs::path(
 	PROJECT_BASE_DIR "/testdata/nastran/alneos/test4a/test4a.dat").make_preferred().string();
 	nastran::NastranParser parser;
@@ -129,8 +129,9 @@ BOOST_AUTO_TEST_CASE( test_issue24_multilineset ) {
 	try {
 		const unique_ptr<Model> model = parser.parse(
 				ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
-        BOOST_CHECK_EQUAL(model->mesh.getNodeGroups().size(), 1);
-        BOOST_CHECK_EQUAL(model->mesh.getNodeGroups()[0]->nodePositions().size(), 16);
+        const auto& setValue = static_pointer_cast<SetValue<int>> (model->find(Reference<NamedValue>{Value::Type::SET, 1}));
+        BOOST_CHECK(setValue != nullptr);
+        BOOST_CHECK_EQUAL(setValue->getSet().size(), 16);
 	} catch (exception& e) {
 		cout << e.what() << endl;
 		BOOST_FAIL(string("Parse threw exception ") + e.what());
@@ -194,9 +195,12 @@ BOOST_AUTO_TEST_CASE(nastran_set_in_subcase) {
         model->finish();
         BOOST_CHECK_EQUAL(model->analyses.size(), 1);
         const auto& analysis = model->analyses.first();
-        BOOST_CHECK_EQUAL(model->mesh.getNodeGroups().size(), 2);
-        const auto& group = model->mesh.findGroup("SET_100");
-        BOOST_CHECK(group != nullptr);
+        const auto& setValue100 = static_pointer_cast<SetValue<int>> (model->find(Reference<NamedValue>{Value::Type::SET, 100}));
+        BOOST_CHECK(setValue100 != nullptr);
+        BOOST_CHECK_EQUAL(setValue100->getSet().size(), 2);
+        const auto& setValue200 = static_pointer_cast<SetValue<int>> (model->find(Reference<NamedValue>{Value::Type::SET, 200}));
+        BOOST_CHECK(setValue200 != nullptr);
+        BOOST_CHECK_EQUAL(setValue200->getSet().size(), 2);
 	}
 	catch (exception& e) {
 		cerr << e.what() << endl;
@@ -204,7 +208,7 @@ BOOST_AUTO_TEST_CASE(nastran_set_in_subcase) {
 
 		BOOST_FAIL(string("Parse threw exception ") + e.what());
 	}
-}*/
+}
 
 BOOST_AUTO_TEST_CASE(nastran_set_THRU) {
 	string testLocation = fs::path(
@@ -216,9 +220,9 @@ BOOST_AUTO_TEST_CASE(nastran_set_THRU) {
         model->finish();
         BOOST_CHECK_EQUAL(model->analyses.size(), 1);
         const auto& analysis = model->analyses.first();
-        BOOST_CHECK_EQUAL(model->mesh.getNodeGroups().size(), 3);
-        const auto& group = model->mesh.findGroup("SET_3");
-        BOOST_CHECK(group != nullptr);
+        const auto& setValue = static_pointer_cast<SetValue<int>> (model->find(Reference<NamedValue>{Value::Type::SET, 3}));
+        BOOST_CHECK(setValue != nullptr);
+        BOOST_CHECK_EQUAL(setValue->getSet().size(), 3);
 	}
 	catch (exception& e) {
 		cerr << e.what() << endl;

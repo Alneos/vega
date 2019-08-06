@@ -273,10 +273,9 @@ void NastranParser::addSet(NastranTokenizer& tok, Model& model) {
     } else if (parts.size() >= 3) {
         handleParsingError("multiple = in SET should never happen", tok, model);
     }
-    const string setid = trim_copy(parts[0].substr(4));
-    const string groupName = "SET_"+setid;
-    shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup(groupName,NodeGroup::NO_ORIGINAL_ID,"SET");
+    const int setid = stoi(trim_copy(parts[0].substr(4)));
     vector<string> parvalparts;
+    set<int> values;
     trim(parts[1]);boost::to_upper(parts[1]);
 
     if (parts[1] != "ALL") {
@@ -284,15 +283,16 @@ void NastranParser::addSet(NastranTokenizer& tok, Model& model) {
         for (size_t i = 0;i < parvalparts.size(); i++) {
             if (i + 2 < parvalparts.size() and parvalparts[i+1] == "THRU") {
                 for (int j = stoi(parvalparts[i]); j <= stoi(parvalparts[i+2]); j++) {
-                    nodeGroup->addNodeId(j);
+                    values.insert(j);
                 }
                 i += 2;
             } else {
-                nodeGroup->addNodeId(stoi(parvalparts[i]));
+                values.insert(stoi(parvalparts[i]));
             }
         }
+        const auto& setValue = make_shared<SetValue<int>>(model, values, setid);
+        model.add(setValue);
     } else {
-        model.mesh.removeGroup(groupName);
         handleParsingWarning("ALL in SET not yet implemented, ignoring", tok, model);
     }
 }
@@ -806,6 +806,13 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
                         nodalOutput->complexOutput = NodalDisplacementOutput::ComplexOutputType::PHASE_MAGNITUDE;
                     }
                 }
+
+                const auto& setValue = static_pointer_cast<SetValue<int>> (model.find(Reference<NamedValue>{Value::Type::SET, id}));
+                shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup("SET_" + to_string(id), NodeGroup::NO_ORIGINAL_ID);
+                for (const int nodeId : setValue->getSet()) {
+                    nodeGroup->addNodeId(nodeId);
+                }
+                setValue->markAsWritten();
                 nodalOutput->addNodeGroup("SET_" + to_string(id));
                 model.add(nodalOutput);
                 analysis->add(nodalOutput->getReference());

@@ -53,6 +53,7 @@ public:
         SPREAD_RANGE,
         FUNCTION_TABLE,
         LIST,
+        SET,
         DYNA_PHASE,
         VECTOR,
         VECTORFUNCTION
@@ -98,9 +99,6 @@ public:
     const std::string str() const;// override;
 };
 
-/**
- * The generic vega::Value class is useful to store information on simple values such as a table or a function
- */
 class NamedValue: public Value, public Identifiable<NamedValue> {
 private:
     friend std::ostream &operator<<(std::ostream&, const NamedValue&);    //output
@@ -120,17 +118,16 @@ public:
     virtual bool isintegral() const = 0;
 };
 
-
 template<class T> class ListValue: public ListValueBase {
     std::list<T> alist;
 public:
     ListValue(const Model&, std::list<T> values, int original_id = NO_ORIGINAL_ID):
         ListValueBase(model, original_id), alist(values) {
     }
-    const std::list<T> getList() const {
+    std::list<T> getList() const {
         return alist;
     }
-    const std::list<T> getReverseList() const {
+    std::list<T> getReverseList() const {
         std::list<T> alist2 = alist; alist2.reverse();
         return alist2;
     }
@@ -142,6 +139,37 @@ public:
     }
     bool iszero() const override {
         return alist.empty();
+    }
+    bool isintegral() const override {
+        return std::is_integral<T>::value;
+    }
+};
+
+class SetValueBase: public NamedValue {
+public:
+    SetValueBase(const Model&, int original_id = NO_ORIGINAL_ID):
+        NamedValue(model, Value::Type::SET, original_id) {
+    }
+    virtual bool isintegral() const = 0;
+};
+
+template<class T> class SetValue: public SetValueBase {
+    std::set<T> aset;
+public:
+    SetValue(const Model&, std::set<T> values, int original_id = NO_ORIGINAL_ID):
+        SetValueBase(model, original_id), aset(values) {
+    }
+    std::set<T> getSet() const  {
+        return aset;
+    }
+    bool empty() const {
+        return aset.size() == 0;
+    }
+    void scale(double factor) override {
+        std::transform(aset.begin(), aset.end(), std::inserter(aset, aset.begin()), [factor](T d) -> T { return static_cast<T>(d * factor); });
+    }
+    bool iszero() const override {
+        return aset.empty();
     }
     bool isintegral() const override {
         return std::is_integral<T>::value;
