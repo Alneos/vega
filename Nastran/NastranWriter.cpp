@@ -709,13 +709,16 @@ string NastranWriter::writeModel(Model& model,
             out << "DISP = ALL" << endl;
 		}
 	}
+    if (isCosmic()) {
+        out << "MAXLINES=999999" << endl;
+	}
 	out << "$" << endl;
 	out << "TITLE=Vega Exported Model" << endl;
 	out << "BEGIN BULK" << endl;
-	if (not isCosmic()) {
-        out << "PARAM,PRGPST,NO" << endl;
-	} else {
+	if (isCosmic()) {
         out << "PARAM,AUTOSPC,1" << endl;
+	} else {
+        out << "PARAM,PRGPST,NO" << endl;
     }
 
 	for (const auto& coordinateSystemEntry : model.mesh.coordinateSystemStorage.coordinateSystemByRef) {
