@@ -190,8 +190,7 @@ void NastranWriter::writeSOL(const Model& model, ofstream& out) const
     {
 	auto& firstAnalysis = *model.analyses.begin();
 	string analysisLabel;
-	switch(dialect) {
-    case(Dialect::COSMIC95): {
+	if (isCosmic()) {
         switch (firstAnalysis->type) {
         case (Analysis::Type::LINEAR_MECA_STAT): {
             analysisLabel = "1,1";
@@ -208,10 +207,7 @@ void NastranWriter::writeSOL(const Model& model, ofstream& out) const
         default:
             out << "$ WARN analysis " << *firstAnalysis << " not supported. Skipping." << endl;
         }
-
-        break;
-    }
-    case(Dialect::MODERN): {
+    } else {
         switch (firstAnalysis->type) {
         case (Analysis::Type::LINEAR_MECA_STAT): {
             analysisLabel = "101";
@@ -232,11 +228,7 @@ void NastranWriter::writeSOL(const Model& model, ofstream& out) const
         default:
             out << "$ WARN analysis " << *firstAnalysis << " not supported. Skipping." << endl;
         }
-        break;
     }
-	default:
-		handleWritingError("Unsupported dialect");
-	}
 
 	out << "SOL " << analysisLabel << endl;
 	firstAnalysis->markAsWritten();
@@ -280,7 +272,7 @@ void NastranWriter::writeCells(const Model& model, ofstream& out) const
 		for (const Cell& cell : elementSet->getCellsIncludingGroups()) {
 			string keyword;
 			if (elementSet->isBeam()) {
-				keyword = "CBEAM";
+                keyword = isCosmic() ? "CBAR" : "CBEAM";
             } else if (elementSet->isDiscrete() and cell.type.code == CellType::Code::SEG2_CODE) {
                 keyword = "CBUSH";
 			} else if (elementSet->isShell()) {
@@ -298,10 +290,10 @@ void NastranWriter::writeCells(const Model& model, ofstream& out) const
 					keyword = "CQUAD8";
 					break;
 				default:
-					throw logic_error("Unimplemented type");
+					handleWritingError("Unimplemented type");
 				}
 			} else if (elementSet->type == ElementSet::Type::CONTINUUM) {
-			    if (dialect == Dialect::COSMIC95) {
+			    if (isCosmic()) {
                     switch (cell.type.code) {
                     case CellType::Code::HEXA8_CODE:
                         keyword = "CIHEX1";
@@ -314,7 +306,7 @@ void NastranWriter::writeCells(const Model& model, ofstream& out) const
                         keyword = "CTETRA";
                         break;
                     default:
-                        throw logic_error("Unimplemented type");
+                        handleWritingError("Unimplemented type");
                     }
 			    } else {
                     switch (cell.type.code) {
@@ -327,7 +319,7 @@ void NastranWriter::writeCells(const Model& model, ofstream& out) const
                         keyword = "CTETRA";
                         break;
                     default:
-                        throw logic_error("Unimplemented type");
+                        handleWritingError("Unimplemented type");
                     }
 			    }
 			}
@@ -341,7 +333,14 @@ void NastranWriter::writeCells(const Model& model, ofstream& out) const
                 for (unsigned int i2 = 0; i2 < cell.type.numNodes; i2++)
                     nasConnect[med2nastranNodeConnectByCellType[i2]] = cell.nodeIds[i2];
             }
-			out << Line(keyword).add(cell.id).add(elementSet->bestId()).add(nasConnect);
+            vector<double> x1x2x3;
+            string F;
+            if (elementSet->isBeam() and cell.orientation != nullptr) {
+                const auto& v = cell.orientation->getV();
+                x1x2x3 = {v.x(), v.y(), v.z()};
+                F = "1";
+            }
+			out << Line(keyword).add(cell.id).add(elementSet->bestId()).add(nasConnect).add(x1x2x3).add(F);
 		}
 	}
 }
@@ -472,7 +471,7 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
             Line grav("GRAV");
             grav.add(loadingSet->bestId());
             if (gravity->hasCoordinateSystem()) {
-                throw logic_error("Coordinate System ID writing not yet implemented");
+                handleWritingError("Coordinate System ID writing not yet implemented");
             } else {
                 grav.add(0);
             }
@@ -486,32 +485,38 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
 				Loading::Type::FORCE_SURFACE);
         for (shared_ptr<Loading> loading : forceSurfaces) {
             shared_ptr<ForceSurface> forceSurface = dynamic_pointer_cast<ForceSurface>(loading);
-            Line pload4("PLOAD4");
-            pload4.add(loadingSet->bestId());
-            const auto& cellIds = forceSurface->getCellIdsIncludingGroups();
-            if (cellIds.size() > 1) {
-                throw logic_error("Unimplemented multiple cells in PLOAD4");
+            const auto& cellPositions = forceSurface->getCellPositionsIncludingGroups();
+            for (const int cellPosition: cellPositions) {
+                const Cell& cell = model.mesh.findCell(cellPosition);
+                Line pload4("PLOAD4");
+                pload4.add(loadingSet->bestId());
+                pload4.add(cell.id);
+                pload4.add(forceSurface->getForce().norm());
+                pload4.add("");
+                pload4.add("");
+                pload4.add("");
+                if (!forceSurface->getMoment().iszero()) {
+                    handleWritingError("Unimplemented moment in PLOAD4");
+                }
+                // TODO LD must recalculate two opposite nodes... hack
+                if (cell.type.dimension == SpaceDimension::DIMENSION_3D) {
+                    pload4.add(forceSurface->getApplicationFaceNodeIds()[0]);
+                    pload4.add(forceSurface->getApplicationFaceNodeIds()[2]);
+                } else {
+                    pload4.add("");
+                    pload4.add("");
+                }
+                if (forceSurface->hasCoordinateSystem()) {
+                    shared_ptr<CoordinateSystem> coordinateSystem = model.mesh.findCoordinateSystem(forceSurface->csref);
+                    pload4.add(coordinateSystem->bestId());
+                    pload4.add(coordinateSystem->vectorToGlobal(forceSurface->getForce().normalized()));
+                } else {
+                    pload4.add(0);
+                    pload4.add(forceSurface->getForce().normalized());
+                }
+                out << pload4;
             }
-            pload4.add(*cellIds.begin());
-            pload4.add(forceSurface->getForce().norm());
-            pload4.add(0.0);
-            pload4.add(0.0);
-            pload4.add(0.0);
-            if (!forceSurface->getMoment().iszero()) {
-                throw logic_error("Unimplemented moment in PLOAD4");
-            }
-            // TODO LD must recalculate two opposite nodes... hack
-            pload4.add(forceSurface->getApplicationFaceNodeIds()[0]);
-            pload4.add(forceSurface->getApplicationFaceNodeIds()[2]);
-            if (forceSurface->hasCoordinateSystem()) {
-                shared_ptr<CoordinateSystem> coordinateSystem = model.mesh.findCoordinateSystem(forceSurface->csref);
-                pload4.add(coordinateSystem->bestId());
-                pload4.add(coordinateSystem->vectorToGlobal(forceSurface->getForce().normalized()));
-            } else {
-                pload4.add(0);
-                pload4.add(forceSurface->getForce().normalized());
-            }
-            out << pload4;
+
             forceSurface->markAsWritten();
         }
 
@@ -522,7 +527,7 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
             Line force("FORCE");
             force.add(loadingSet->bestId());
             if (nodalForce->nodePositions().size() != 1) {
-                throw logic_error("Multiple nodes in nodal force, not yet implemented (but easy)");
+                handleWritingError("Multiple nodes in nodal force, not yet implemented (but easy)");
             }
             int nodePosition = *(nodalForce->nodePositions().begin());
             force.add(model.mesh.findNodeId(nodePosition));
@@ -533,7 +538,7 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
             force.add(forceVector.y());
             force.add(forceVector.z());
             if (!nodalForce->getMomentInGlobalCS(nodePosition).iszero()) {
-                throw logic_error("Unimplemented moment in FORCE");
+                handleWritingError("Unimplemented moment in FORCE");
             }
             out << force;
             nodalForce->markAsWritten();
@@ -560,7 +565,8 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 		truss->markAsWritten();
 	}
 	for (shared_ptr<Beam> beam : model.getBeams()) {
-		Line pbeam("PBEAM");
+	    string beamModel = isCosmic() ? "PBAR" : "PBEAM";
+		Line pbeam(beamModel);
 		pbeam.add(beam->bestId());
 		pbeam.add(beam->material->bestId());
 		pbeam.add(beam->getAreaCrossSection());
@@ -579,7 +585,7 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 		shell->markAsWritten();
 	}
 	for (shared_ptr<ElementSet> continuum : model.elementSets.filter(ElementSet::Type::CONTINUUM)) {
-	    string keyword = dialect == Dialect::COSMIC95 ? "PIHEX" : "PSOLID";
+	    string keyword = isCosmic() ? "PIHEX" : "PSOLID";
 		Line psolid(keyword);
 		psolid.add(continuum->bestId());
 		psolid.add(continuum->material->bestId());
@@ -589,7 +595,7 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
     for (shared_ptr<ElementSet> elementSet: model.elementSets.filter(ElementSet::Type::DISCRETE_0D)) {
         shared_ptr<const DiscretePoint> discretePoint = dynamic_pointer_cast<const DiscretePoint>(elementSet);
         if (discretePoint->hasStiffness() or discretePoint->hasDamping()) {
-            throw logic_error("discrete not completely written");
+            handleWritingError("discrete not completely written");
         }
         for (int nodePosition: discretePoint->nodePositions()) {
             Line conm1("CONM1");
@@ -622,7 +628,7 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
     for (shared_ptr<ElementSet> elementSet: model.elementSets.filter(ElementSet::Type::STRUCTURAL_SEGMENT)) {
         shared_ptr<const StructuralSegment> segment = dynamic_pointer_cast<const StructuralSegment>(elementSet);
         if (segment->hasMass()) {
-            throw logic_error("discrete not completely written");
+            handleWritingError("discrete not completely written");
         }
         Line pbush("PBUSH");
         pbush.add(segment->bestId());
@@ -680,12 +686,37 @@ string NastranWriter::writeModel(Model& model,
 			string typeName = constraintSet->stringByType.find(constraintSet->type)->second;
 			out << "  " << typeName << "=" << constraintSet->bestId() << endl;
 		}
+		vector<shared_ptr<Objective>> displacementOutputs = model.objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT);
+		if (displacementOutputs.size() >= 1) {
+            int setNum = 1;
+            for (const auto& objective : displacementOutputs) {
+                const auto& displacementOutput = dynamic_pointer_cast<const NodalDisplacementOutput>(objective);
+                out << "SET " << setNum << " = ";
+                bool firstNode = true;
+                for (int nodePosition : displacementOutput->getNodePositionsIncludingGroups()) {
+                    if (not firstNode)
+                        out << ",";
+                    else
+                        firstNode = false;
+                    out << model.mesh.findNodeId(nodePosition);
+                }
+                out << endl;
+
+                out << "DISP = " << setNum << endl;
+                setNum++;
+            }
+		} else {
+            out << "DISP = ALL" << endl;
+		}
 	}
 	out << "$" << endl;
 	out << "TITLE=Vega Exported Model" << endl;
 	out << "BEGIN BULK" << endl;
-	out << "PARAM,PRGPST,NO" << endl;
-	out << "PARAM,AUTOSPC,1" << endl;
+	if (not isCosmic()) {
+        out << "PARAM,PRGPST,NO" << endl;
+	} else {
+        out << "PARAM,AUTOSPC,1" << endl;
+    }
 
 	for (const auto& coordinateSystemEntry : model.mesh.coordinateSystemStorage.coordinateSystemByRef) {
         shared_ptr<CoordinateSystem> coordinateSystem = coordinateSystemEntry.second;
@@ -706,7 +737,7 @@ string NastranWriter::writeModel(Model& model,
 				out << Line("CORD2C").add(coordinateSystem->bestId()).add(coordinateSystem->getOrigin());
 				break;
 			default:
-				throw logic_error("Unimplemented coordinate system type");
+				handleWritingError("Unimplemented coordinate system type");
 		}
 	}
 	writeRuler(out);

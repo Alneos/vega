@@ -655,11 +655,11 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
 
         const auto& material = elementSet->material;
         if (material == nullptr){
-            throw logic_error("Error: ElementSet::RBAR have no material.");
+            handleWritingError("Error: ElementSet::RBAR have no material.");
         }
         const auto& nature = material->findNature(Nature::NatureType::NATURE_RIGID);
         if (nature == nullptr) {
-            throw logic_error("Error: ElementSet::RBAR have no RIGID nature.");
+            handleWritingError("Error: ElementSet::RBAR have no RIGID nature.");
         }
 
         // We update the material with the needed value
@@ -694,10 +694,10 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
             vector<int> nodes = cell.nodeIds;
 
             if (nodes.size()!=2){
-                throw logic_error("Error: ElementSet::RBAR cells must have exactly two nodes.");
+                handleWritingError("Error: ElementSet::RBAR cells must have exactly two nodes.");
             }
             if (nodes[0]!=masterId){
-                throw logic_error("Error: the first node of ElementSet::RBAR cells must be the master node.");
+                handleWritingError("Error: the first node of ElementSet::RBAR cells must be the master node.");
             }
 
             if (systusOption == SystusOption::CONTINUOUS)
@@ -726,7 +726,7 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
                 break;
             }
             default:
-                throw logic_error("Not (yet) implemented, maybe nothing to do in this case?");
+                handleWritingError("Not (yet) implemented, maybe nothing to do in this case?");
             }
         }
         rbars->markAsWritten();
@@ -743,11 +743,11 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
 
         const auto& material = elementSet->material;
         if (material == nullptr){
-            throw logic_error("Error: ElementSet::RBE3 have no material.");
+            handleWritingError("Error: ElementSet::RBE3 have no material.");
         }
         shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_RIGID);
         if (!nature) {
-            throw logic_error("Error: ElementSet::RBE3 have no RIGID nature.");
+            handleWritingError("Error: ElementSet::RBE3 have no RIGID nature.");
         }
 
         // We dont change the nature, it has already been correctly filed.
@@ -780,10 +780,10 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
 
             vector<int> nodes = cell.nodeIds;
             if (nodes.size()!=2){
-                throw logic_error("Error: ElementSet::RBE3 cells must have exactly two nodes.");
+                handleWritingError("Error: ElementSet::RBE3 cells must have exactly two nodes.");
             }
             if (nodes[0]!=masterId){
-                throw logic_error("Error: the first node of ElementSet::RBE3 cells must be the master node.");
+                handleWritingError("Error: the first node of ElementSet::RBE3 cells must be the master node.");
             }
 
             if (systusOption == SystusOption::CONTINUOUS)
@@ -803,7 +803,7 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
                 break;
             }
             default:
-                throw logic_error("Not (yet) implemented, maybe nothing to do in this case?");
+                handleWritingError("Not (yet) implemented, maybe nothing to do in this case?");
             }
         }
         rbe3->markAsWritten();
@@ -819,11 +819,11 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
 
         const auto& material = elementSet->material;
         if (material == nullptr){
-            throw logic_error("Error: ElementSet::Lmpc have no material.");
+            handleWritingError("Error: ElementSet::Lmpc have no material.");
         }
         shared_ptr<Nature> nature = material->findNature(Nature::NatureType::NATURE_RIGID);
         if (!nature) {
-            throw logic_error("Error: ElementSet::Lmpc have no RIGID nature.");
+            handleWritingError("Error: ElementSet::Lmpc have no RIGID nature.");
         }
 
         // We update the material with the needed value

@@ -60,6 +60,9 @@ private:
     static const std::unordered_map<CellType::Code, std::vector<int>, EnumClassHash> med2nastranNodeConnectByCellType; /**< see NastranParser.h */
     Dialect dialect;
 	std::string getNasFilename(const Model& model, const std::string& outputPath) const;
+	bool isCosmic() const {
+	    return dialect == Dialect::COSMIC95;
+	}
 	void writeSOL(const Model& model, std::ofstream& out) const;
 	void writeCells(const Model& model, std::ofstream& out) const;
 	void writeNodes(const Model& model, std::ofstream& out) const;

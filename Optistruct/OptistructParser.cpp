@@ -110,7 +110,7 @@ void OptistructParser::parseSET(nastran::NastranTokenizer& tok, Model& model) {
     tok.skipToNotEmpty();
 
     if (subtype != "LIST") {
-        throw logic_error("Unsupported SUBTYPE value in SET");
+        handleParsingError("Unsupported SUBTYPE value in SET", tok, model);
     }
 
     if (type == "GRID") {
@@ -145,7 +145,7 @@ void OptistructParser::parseSET(nastran::NastranTokenizer& tok, Model& model) {
         const auto& frequencyRange = make_shared<FrequencySearch>(model, FrequencySearch::FrequencyType::LIST, *frequencyValue, FrequencySearch::NormType::MASS, sid);
         model.add(frequencyRange);
     } else {
-        throw logic_error("Unsupported TYPE value in SET");
+        handleParsingError("Unsupported TYPE value in SET", tok, model);
     }
 
 }

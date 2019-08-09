@@ -541,7 +541,7 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
                 out << val << ",";
             }
 		} else {
-		    throw logic_error("non-integral set not yet implemented");
+		    handleWritingError("non-integral set not yet implemented");
 		}
         out << ")," << endl;
         out << "                        );" << endl << endl;
@@ -1739,7 +1739,7 @@ void AsterWriter::writeForceLine(const LoadSet& loadset, ostream& out) {
                 out << "MZ";
                 break;
             default:
-                throw logic_error("DOF not yet handled");
+                handleWritingError("DOF not yet handled");
             }
             out << "=" << asternameByValue[forceLine->force] << ",";
             writeCellContainer(*forceLine, out);
@@ -1851,7 +1851,7 @@ shared_ptr<NonLinearStrategy> AsterWriter::getNonLinearStrategy(
 	shared_ptr<vega::Objective> strategy = nonLinAnalysis.model.find(
 			nonLinAnalysis.strategy_reference);
     if (strategy == nullptr) {
-        throw logic_error("Cannot find nonlinear strategy" + to_str(nonLinAnalysis.strategy_reference));
+        handleWritingError("Cannot find nonlinear strategy" + to_str(nonLinAnalysis.strategy_reference));
     }
 	switch (strategy->type) {
 	case Objective::Type::NONLINEAR_STRATEGY: {

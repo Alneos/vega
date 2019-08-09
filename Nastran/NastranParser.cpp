@@ -336,12 +336,12 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
              numbers. Each name must be with a factor including 1.0.
                  */
                 if (line.find_first_of(", *") != std::string::npos) {
-                    throw logic_error("complex names not yet implemented");
+                    handleParsingError("complex names not yet implemented", tok, model);
                 }
                 istringstream iss(line);
                 int num = 0;
                 if (!(iss >> num).fail()) {
-                    throw logic_error("set references not yet implemented " + to_string(num));
+                    handleParsingError("set references not yet implemented " + to_string(num), tok, model);
                 }
                 /*
                 The matrix must be symmetric in form (field 4 on DMIG Bulk Data entry must contain the integer 6).
@@ -371,12 +371,12 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
              numbers. Each name must be with a factor including 1.0.
                  */
                 if (line.find_first_of(", *") != std::string::npos) {
-                    throw logic_error("complex names not yet implemented");
+                    handleParsingError("complex names not yet implemented", tok, model);
                 }
                 istringstream iss(line);
                 int num = 0;
                 if (!(iss >> num).fail()) {
-                    throw logic_error("set references not yet implemented " + to_string(num));
+                    handleParsingError("set references not yet implemented " + to_string(num), tok, model);
                 }
                 /*
                 The matrix must be symmetric in form (field 4 on DMIG Bulk Data entry must contain the integer 6).
@@ -403,12 +403,12 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
              numbers. Each name must be with a factor including 1.0.
                  */
                 if (line.find_first_of(", *") != std::string::npos) {
-                    throw logic_error("complex names not yet implemented");
+                    handleParsingError("complex names not yet implemented", tok, model);
                 }
                 istringstream iss(line);
                 int num = 0;
                 if (!(iss >> num).fail()) {
-                    throw logic_error("set references not yet implemented " + to_string(num));
+                    handleParsingError("set references not yet implemented " + to_string(num), tok, model);
                 }
                 /*
                 The matrix must be symmetric in form (field 4 on DMIG Bulk Data entry must contain the integer 6).
@@ -446,7 +446,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                         vector<string> parvalparts;
                         split(parvalparts, parts[0], boost::is_any_of(" "), boost::algorithm::token_compress_on);
                         if (parts.size() >= 2) {
-                            throw logic_error("multiple spaces in parameter not yet implemented");
+                            handleParsingError("multiple spaces in parameter not yet implemented", tok, model);
                         }
                         context[keyword] = parvalparts[1];
                     } else {
@@ -807,7 +807,7 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
                     }
                 }
 
-                const auto& setValue = static_pointer_cast<SetValue<int>> (model.find(Reference<NamedValue>{Value::Type::SET, id}));
+                const auto& setValue = dynamic_pointer_cast<SetValue<int>> (model.find(Reference<NamedValue>{Value::Type::SET, id}));
                 shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup("SET_" + to_string(id), NodeGroup::NO_ORIGINAL_ID);
                 for (const int nodeId : setValue->getSet()) {
                     nodeGroup->addNodeId(nodeId);
@@ -2225,42 +2225,42 @@ void NastranParser::parsePBUSH(NastranTokenizer& tok, Model& model) {
                 if (tok.nextString() == "RIGID")
                     k1 = DBL_MAX;
                 else
-                    throw logic_error("Unsupported value (for now)");
+                    handleParsingError("Unsupported value (for now)", tok, model);
             if (tok.isNextDouble() or tok.isNextEmpty())
                 k2=tok.nextDouble(true, 0.0);
             else
                 if (tok.nextString() == "RIGID")
                     k2 = DBL_MAX;
                 else
-                    throw logic_error("Unsupported value (for now)");
+                    handleParsingError("Unsupported value (for now)", tok, model);
             if (tok.isNextDouble() or tok.isNextEmpty())
                 k3=tok.nextDouble(true, 0.0);
             else
                 if (tok.nextString() == "RIGID")
                     k3 = DBL_MAX;
                 else
-                    throw logic_error("Unsupported value (for now)");
+                    handleParsingError("Unsupported value (for now)", tok, model);
             if (tok.isNextDouble() or tok.isNextEmpty())
                 k4=tok.nextDouble(true, 0.0);
             else
                 if (tok.nextString() == "RIGID")
                     k4 = DBL_MAX;
                 else
-                    throw logic_error("Unsupported value (for now)");
+                    handleParsingError("Unsupported value (for now)", tok, model);
             if (tok.isNextDouble() or tok.isNextEmpty())
                 k5=tok.nextDouble(true, 0.0);
             else
                 if (tok.nextString() == "RIGID")
                     k5 = DBL_MAX;
                 else
-                    throw logic_error("Unsupported value (for now)");
+                    handleParsingError("Unsupported value (for now)", tok, model);
             if (tok.isNextDouble() or tok.isNextEmpty())
                 k6=tok.nextDouble(true, 0.0);
             else
                 if (tok.nextString() == "RIGID")
                     k6 = DBL_MAX;
                 else
-                    throw logic_error("Unsupported value (for now)");
+                    handleParsingError("Unsupported value (for now)", tok, model);
         }else if (flag=="B"){ // Force-Per-velocity Damping (Default 0.0)
             b1=tok.nextDouble(true, 0.0);
             b2=tok.nextDouble(true, 0.0);
@@ -3124,7 +3124,7 @@ void NastranParser::parseSET3(NastranTokenizer& tok, Model& model) {
             cellGroup->addCellId(tok.nextInt());
         }
     } else {
-        throw logic_error("Unsupported DES value in SET3");
+        handleParsingError("Unsupported DES value in SET3", tok, model);
     }
 
 }
@@ -3181,11 +3181,11 @@ void NastranParser::parseSPC1(NastranTokenizer& tok, Model& model) {
 
     // Nodes are added to the constraint Node Group
     string name = string("SPC1") + "_" + to_string(set_id);
-    shared_ptr<NodeGroup> spcNodeGroup = model.mesh.findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPC1");
+    //shared_ptr<NodeGroup> spcNodeGroup = model.mesh.findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPC1");
 
     // Parsing Nodes
     for(int gridId : tok.nextInts()) {
-        spcNodeGroup->addNodeId(gridId);
+        //spcNodeGroup->addNodeId(gridId);
         spc->addNodeId(gridId);
     }
 
