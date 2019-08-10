@@ -2248,9 +2248,15 @@
 		<Unit filename="testdata/nastran/irt/cbush1b/cbush1b.f06" />
 		<Unit filename="testdata/nastran/irt/cbush1b/readme.txt" />
 		<Unit filename="testdata/nastran/irt/coverage/MeshHexaLin.bdf" />
+		<Unit filename="testdata/nastran/irt/coverage/MeshHexaLin.f06" />
+		<Unit filename="testdata/nastran/irt/coverage/MeshHexaQuad.bdf" />
+		<Unit filename="testdata/nastran/irt/coverage/MeshPentaLin.bdf" />
+		<Unit filename="testdata/nastran/irt/coverage/MeshPentaQuad.bdf" />
 		<Unit filename="testdata/nastran/irt/coverage/MeshSegLin.bdf" />
+		<Unit filename="testdata/nastran/irt/coverage/MeshSegLin.f06" />
 		<Unit filename="testdata/nastran/irt/coverage/MeshSegQuad.bdf" />
 		<Unit filename="testdata/nastran/irt/coverage/MeshTetraLin.bdf" />
+		<Unit filename="testdata/nastran/irt/coverage/MeshTetraLin.f06" />
 		<Unit filename="testdata/nastran/irt/coverage/MeshTetraQuad.bdf" />
 		<Unit filename="testdata/nastran/irt/dmigstfl/dmigstfl.f06" />
 		<Unit filename="testdata/nastran/irt/dmigstfl/dmigstfl.nas" />

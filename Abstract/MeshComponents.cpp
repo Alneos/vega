@@ -473,8 +473,12 @@ const vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
 		return vector<int>(nodeIds.begin(), nodeIds.end());
 	}
 	vector<int> nodePositions;
-	//node2 is on the opposite face
-	if (type.code == CellType::TETRA4.code) { //|| cellType == CellType::TETRA10
+	switch(type.code) {
+    case CellType::Code::TETRA4_CODE: {
+        //node2 is on the opposite face
+        if (node2connectivityPos == Globals::UNAVAILABLE_INT) {
+            throw logic_error("Need two nodes to find a face on " + type.to_str() + " element type");
+        }
 		vector<vector<int> > faceids = FACE_BY_CELLTYPE.find(CellType::TETRA4.code)->second;
 		for (vector<int> faceid : faceids) {
 			//0 based
@@ -482,7 +486,12 @@ const vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
 				nodePositions.assign(faceid.begin(), faceid.end());
 			}
 		}
-	} else if (type.code == CellType::HEXA8.code) {
+        break;
+    }
+    case CellType::Code::HEXA8_CODE: {
+        if (node2connectivityPos == Globals::UNAVAILABLE_INT) {
+            throw logic_error("Need two nodes to find a face on " + type.to_str() + " element type");
+        }
 		vector<vector<int> > faceids = FACE_BY_CELLTYPE.find(CellType::HEXA8.code)->second;
 		for (vector<int> faceid : faceids) {
 			//0 based
@@ -493,7 +502,9 @@ const vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
 				break;
 			}
 		}
-    } else if (type.code == CellType::PENTA6.code) {
+        break;
+    }
+    case CellType::Code::PENTA6_CODE: {
         vector<vector<int> > faceids = FACE_BY_CELLTYPE.find(CellType::PENTA6.code)->second;
         for (vector<int> faceid : faceids) {
             if (find(faceid.begin(), faceid.end(), node1connectivityPos + 1) == faceid.end()) {
@@ -513,9 +524,13 @@ const vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
                 }
 			}
 		}
-	} else {
+        break;
+    }
+    default: {
 		throw logic_error("FaceidfromtwoNodes not implemented for " + type.to_str() + " element type");
+    }
 	}
+
 	vector<int> faceConnectivity;
 	faceConnectivity.reserve(nodePositions.size());
 	for (int nodenum : nodePositions) {

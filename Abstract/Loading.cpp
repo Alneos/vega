@@ -624,6 +624,12 @@ ForceSurfaceTwoNodes::ForceSurfaceTwoNodes(Model& model, int nodeId1, int nodeId
 				model.mesh.findOrReserveNode(nodeId2)) {
 }
 
+ForceSurfaceTwoNodes::ForceSurfaceTwoNodes(Model& model, int nodeId1,
+		const VectorialValue& force, const VectorialValue& moment, const int original_id) :
+		ForceSurface(model, force, moment, original_id), nodePosition1(
+				model.mesh.findOrReserveNode(nodeId1)), nodePosition2(Globals::UNAVAILABLE_INT) {
+}
+
 vector<int> ForceSurfaceTwoNodes::getApplicationFaceNodeIds() const {
 	const auto& cells = getCellsIncludingGroups();
 	if (cells.size() != 1) {
@@ -633,8 +639,11 @@ vector<int> ForceSurfaceTwoNodes::getApplicationFaceNodeIds() const {
         cout << "ForceSurfaceTwoNodes getApplicationFaceNodeIds() called" << endl;
 	}
 	const int nodeId1 = model.mesh.findNodeId(nodePosition1);
-	const int nodeId2 = model.mesh.findNodeId(nodePosition2);
-	const vector<int>& nodeIds = cells.begin()->faceids_from_two_nodes(nodeId1, nodeId2);
+	int nodeId2 = Globals::UNAVAILABLE_INT;
+	if (nodePosition2 != Globals::UNAVAILABLE_INT) {
+        nodeId2 = model.mesh.findNodeId(nodePosition2);
+	}
+    const vector<int>& nodeIds = cells.begin()->faceids_from_two_nodes(nodeId1, nodeId2);
 	return nodeIds;
 }
 

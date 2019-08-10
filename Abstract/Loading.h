@@ -355,6 +355,8 @@ public:
 
 	ForceSurfaceTwoNodes(Model&, int nodeId1, int nodeId2, const VectorialValue& force,
 			const VectorialValue& moment, const int original_id = NO_ORIGINAL_ID);
+	ForceSurfaceTwoNodes(Model&, int nodeId1, const VectorialValue& force,
+			const VectorialValue& moment, const int original_id = NO_ORIGINAL_ID);
 	virtual std::vector<int> getApplicationFaceNodeIds() const override;
 	std::shared_ptr<Loading> clone() const override;
 };

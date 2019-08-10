@@ -25,7 +25,7 @@ using namespace vega;
 
 //____________________________________________________________________________//
 
-/*BOOST_AUTO_TEST_CASE( test_seg2 ) {
+BOOST_AUTO_TEST_CASE( test_seg2 ) {
     Solver solver(SolverName::NASTRAN);
     string solverVersion = "";
     fs::path inputFname = fs::path(PROJECT_BASE_DIR "/testdata/nastran/irt/coverage/MeshSegLin.bdf");
@@ -51,14 +51,14 @@ using namespace vega;
 
 		BOOST_FAIL(string("Parse threw exception ") + e.what());
 	}
-}*/
+}
 
-BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
+BOOST_AUTO_TEST_CASE( test_3d_cantilever_hexa ) {
     Solver solver(SolverName::NASTRAN);
     string solverVersion = "";
     fs::path inputFname = fs::path(PROJECT_BASE_DIR "/testdata/nastran/irt/coverage/MeshHexaLin.bdf");
     fs::path testOutputBase = fs::path(PROJECT_BINARY_DIR "/Testing/nastrancoverage");
-    fs::path outputPath = (testOutputBase / "test_3d_cantilever").make_preferred();
+    fs::path outputPath = (testOutputBase / "test_3d_cantilever_hexa").make_preferred();
     fs::create_directories(outputPath);
     string testLocation = inputFname.make_preferred().string();
 	ConfigurationParameters::TranslationMode translationMode = ConfigurationParameters::TranslationMode::MODE_STRICT;
@@ -67,7 +67,36 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
 	nastran::NastranWriter writer;
 	try {
         ConfigurationParameters configuration = ConfigurationParameters(inputFname.string(), solver,
-            solverVersion, "test_3d_cantilever", outputPath.string(), LogLevel::DEBUG, translationMode, "",
+            solverVersion, "test_3d_cantilever_hexa", outputPath.string(), LogLevel::DEBUG, translationMode, "",
+            0.02, false, false, "", "", "lagrangian", 0.0, 0.0, "auto", "systus", {}, "table", 9, "direct",
+            nastranOutputSyntax);
+		const unique_ptr<Model> model = parser.parse(configuration);
+        model->finish();
+        fs::path modelFile = outputPath / fs::path(writer.writeModel(*model, configuration));
+	}
+	catch (exception& e) {
+		cerr << e.what() << endl;
+		BOOST_TEST_MESSAGE(string("Application exception") + e.what());
+
+		BOOST_FAIL(string("Parse threw exception ") + e.what());
+	}
+}
+
+BOOST_AUTO_TEST_CASE( test_3d_cantilever_tetra ) {
+    Solver solver(SolverName::NASTRAN);
+    string solverVersion = "";
+    fs::path inputFname = fs::path(PROJECT_BASE_DIR "/testdata/nastran/irt/coverage/MeshTetraLin.bdf");
+    fs::path testOutputBase = fs::path(PROJECT_BINARY_DIR "/Testing/nastrancoverage");
+    fs::path outputPath = (testOutputBase / "test_3d_cantilever_tetra").make_preferred();
+    fs::create_directories(outputPath);
+    string testLocation = inputFname.make_preferred().string();
+	ConfigurationParameters::TranslationMode translationMode = ConfigurationParameters::TranslationMode::MODE_STRICT;
+    string nastranOutputSyntax = "modern";
+	nastran::NastranParser parser;
+	nastran::NastranWriter writer;
+	try {
+        ConfigurationParameters configuration = ConfigurationParameters(inputFname.string(), solver,
+            solverVersion, "test_3d_cantilever_tetra", outputPath.string(), LogLevel::DEBUG, translationMode, "",
             0.02, false, false, "", "", "lagrangian", 0.0, 0.0, "auto", "systus", {}, "table", 9, "direct",
             nastranOutputSyntax);
 		const unique_ptr<Model> model = parser.parse(configuration);
