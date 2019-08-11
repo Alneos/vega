@@ -48,6 +48,10 @@ bool SpaceDimension::operator==(const SpaceDimension &other) const {
 	return this->code == other.code;
 }
 
+bool SpaceDimension::operator!=(const SpaceDimension &other) const {
+	return this->code != other.code;
+}
+
 unordered_map<CellType::Code, CellType*, EnumClassHash> CellType::typeByCode;
 
 CellType::CellType(CellType::Code code, int numNodes, SpaceDimension dimension,
@@ -462,6 +466,22 @@ int Cell::findNodeIdPosition(int node_id2) const {
 	return static_cast<int>(node2connectivityPos);
 }
 
+const map<int, vector<int>> Cell::nodeIdsByFaceNum() const {
+    vector<vector<int> > nodeConnectivityPosByFace = FACE_BY_CELLTYPE.find(type.code)->second;
+    int faceNum = 1;
+    map<int, vector<int>> result;
+    for (vector<int> nodeConnectivityPos : nodeConnectivityPosByFace) {
+        vector<int> faceConnectivity;
+        faceConnectivity.reserve(nodeConnectivityPos.size());
+        for (int nodenum : nodeConnectivityPos) {
+            faceConnectivity.push_back(nodeIds[nodenum - 1]);
+        }
+        result[faceNum] = faceConnectivity;
+        faceNum++;
+    }
+    return result;
+}
+
 const vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
 	int node1connectivityPos = findNodeIdPosition(nodeId1);
     int node2connectivityPos = Globals::UNAVAILABLE_INT;
@@ -622,6 +642,12 @@ NodeContainer::NodeContainer(Mesh& mesh) :
 
 void NodeContainer::addNodeId(int nodeId) {
 	nodePositions.insert(mesh.findOrReserveNode(nodeId));
+}
+
+void NodeContainer::addNodeIds(const vector<int>& otherIds) {
+    for(const int nodeId : otherIds) {
+        nodePositions.insert(mesh.findOrReserveNode(nodeId));
+    }
 }
 
 void NodeContainer::addNodePosition(int nodePosition) {

@@ -61,6 +61,11 @@ BOOST_AUTO_TEST_CASE( test_faceIds )
     vector<int> expectedFace2NodeIds = { 105, 108, 107, 106 };
     BOOST_CHECK_EQUAL_COLLECTIONS(face2NodeIds.begin(), face2NodeIds.end(),
                                   expectedFace2NodeIds.begin(), expectedFace2NodeIds.end());
+    map<int, vector<int>> nodeIdsByFaceNum = hexa.nodeIdsByFaceNum();
+    BOOST_CHECK_EQUAL_COLLECTIONS(nodeIdsByFaceNum[1].begin(), nodeIdsByFaceNum[1].end(),
+                                  expectedFace1NodeIds.begin(), expectedFace1NodeIds.end());
+    BOOST_CHECK_EQUAL_COLLECTIONS(nodeIdsByFaceNum[2].begin(), nodeIdsByFaceNum[2].end(),
+                                  expectedFace2NodeIds.begin(), expectedFace2NodeIds.end());
 }
 
 BOOST_AUTO_TEST_CASE( test_faceIds_pload4 )

@@ -296,7 +296,10 @@ void SinglePointConstraint::setDOFS(const DOFS& dofs, const ValueOrReference& va
 }
 
 void SinglePointConstraint::addNodeId(int nodeId) {
-    int nodePosition = model.mesh.findOrReserveNode(nodeId);
+    addNodePosition(model.mesh.findOrReserveNode(nodeId));
+}
+
+void SinglePointConstraint::addNodePosition(int nodePosition) {
     if (group == nullptr) {
         _nodePositions.insert(nodePosition);
     } else {
@@ -304,8 +307,14 @@ void SinglePointConstraint::addNodeId(int nodeId) {
             shared_ptr<NodeGroup> const ngroup = dynamic_pointer_cast<NodeGroup>(group);
             ngroup->addNodeByPosition(nodePosition);
         } else {
-            throw logic_error("SPC:: addNodeId on unknown group type");
+            throw logic_error("SPC:: addNode on unknown group type");
         }
+    }
+}
+
+void SinglePointConstraint::addNodeIds(const vector<int>& otherIds) {
+    for (int nodeId : otherIds) {
+        addNodeId(nodeId);
     }
 }
 
@@ -313,13 +322,8 @@ set<int> SinglePointConstraint::nodePositions() const {
     set<int> result;
     result.insert(_nodePositions.begin(), _nodePositions.end());
     if (group != nullptr) {
-        if (this->group->type == Group::Type::NODEGROUP) {
-            shared_ptr<NodeGroup> const ngroup = dynamic_pointer_cast<NodeGroup>(group);
-            set<int> nodePositions = ngroup->nodePositions();
-            result.insert(nodePositions.begin(), nodePositions.end());
-        } else {
-            throw logic_error("SPC:: getAllNodes on unknown group type");
-        }
+        const set<int>& nodePositions = group->nodePositions();
+        result.insert(nodePositions.begin(), nodePositions.end());
     }
     return result;
 }

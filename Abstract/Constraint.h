@@ -168,6 +168,8 @@ public:
 	std::shared_ptr<Group> group;
 
 	void addNodeId(int nodeId);
+	void addNodePosition(int nodePosition);
+	void addNodeIds(const std::vector<int>& otherIds);
 	void setDOF(const DOF& dof, const ValueOrReference& value);
 	void setDOFS(const DOFS& dofs, const ValueOrReference& value);
 	double getDoubleForDOF(const DOF& dof) const;

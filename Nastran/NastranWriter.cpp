@@ -589,6 +589,13 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 		Line psolid(keyword);
 		psolid.add(continuum->bestId());
 		psolid.add(continuum->material->bestId());
+		if (continuum->modelType == ModelType::TRIDIMENSIONAL) {
+            psolid.add(0);
+            psolid.add("THREE");
+            psolid.add("GRID");
+            psolid.add("FULL");
+            psolid.add("SMECH");
+		}
 		out << psolid;
 		continuum->markAsWritten();
 	}

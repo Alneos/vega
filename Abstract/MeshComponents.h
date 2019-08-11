@@ -86,6 +86,7 @@ public:
         return this->code > other.code;
     }
     bool operator==(const SpaceDimension &other) const;
+    bool operator!=(const SpaceDimension &other) const;
 };
 
 class CellType final {
@@ -342,6 +343,7 @@ public:
     int cellTypePosition;
     int cspos; /**< Id of local Coordinate System **/
     std::shared_ptr<OrientationCoordinateSystem> orientation;
+    const std::map<int, std::vector<int>> nodeIdsByFaceNum() const;
 
     /**
      * @param nodeId1: grid point connected to a corner of the face.
@@ -444,6 +446,7 @@ public:
      * Adds a nodeId to the current set
      */
     void addNodeId(int nodeId);
+    void addNodeIds(const std::vector<int>& otherIds);
     void addNodePosition(int nodePosition);
     void addNodeGroup(const std::string& groupName);
     void add(const Node& node);
