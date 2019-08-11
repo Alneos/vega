@@ -173,9 +173,9 @@ BOOST_AUTO_TEST_CASE( coverage_testseg2 ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/coverage/MeshSegLin.bdf", RUN_SYSTUS, true, 0.005);
 }
 
-BOOST_AUTO_TEST_CASE( coverage_testhexalin ) {
-	CommandLineUtils::nastranStudy2Systus("/irt/coverage/MeshHexaLin.bdf", RUN_SYSTUS, true, 0.00001);
-}
+//BOOST_AUTO_TEST_CASE( coverage_testhexalin ) {
+//	CommandLineUtils::nastranStudy2Systus("/irt/coverage/MeshHexaLin.bdf", RUN_SYSTUS, true, 0.00001);
+//}
 
 BOOST_AUTO_TEST_CASE( coverage_testtetralin ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/coverage/MeshTetraLin.bdf", RUN_SYSTUS, true, 0.00001);
