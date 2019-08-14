@@ -506,7 +506,7 @@ const vector<shared_ptr<LoadSet>> Model::getActiveLoadSets() const {
 
 const vector<shared_ptr<ConstraintSet>> Model::getCommonConstraintSets() const {
     vector<shared_ptr<ConstraintSet>> result;
-    map<shared_ptr<ConstraintSet>, int> map;
+    map<shared_ptr<ConstraintSet>, size_t> map;
     for (const auto& analyse : analyses) {
         for (const auto& constraintSet : analyse->getConstraintSets()) {
             map[constraintSet] += 1;
@@ -522,7 +522,7 @@ const vector<shared_ptr<ConstraintSet>> Model::getCommonConstraintSets() const {
 
 const vector<shared_ptr<LoadSet>> Model::getCommonLoadSets() const {
     vector<shared_ptr<LoadSet>> result;
-    map<shared_ptr<LoadSet>, int> map;
+    map<shared_ptr<LoadSet>, size_t> map;
     for (const auto& analyse : analyses) {
         for (const auto& loadSet : analyse->getLoadSets()) {
             map[loadSet] += 1;
@@ -543,7 +543,7 @@ const vector<shared_ptr<LoadSet>> Model::getCommonLoadSets() const {
 
 const set<shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> Model::getUncommonConstraintSets() const {
     set<shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> result;
-    map<shared_ptr<ConstraintSet>, int, ptrLess<ConstraintSet>> amap;
+    map<shared_ptr<ConstraintSet>, size_t, ptrLess<ConstraintSet>> amap;
     for (const auto& analyse : analyses) {
         for (const auto& constraintSet : analyse->getConstraintSets()) {
             amap[constraintSet] += 1;
@@ -559,7 +559,7 @@ const set<shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> Model::getUncommonC
 
 const set<shared_ptr<LoadSet>, ptrLess<LoadSet>> Model::getUncommonLoadSets() const {
     set<shared_ptr<LoadSet>, ptrLess<LoadSet>> result;
-    map<shared_ptr<LoadSet>, int, ptrLess<LoadSet>> lmap;
+    map<shared_ptr<LoadSet>, size_t, ptrLess<LoadSet>> lmap;
     for (const auto& analyse : analyses) {
         for (const auto& loadSet : analyse->getLoadSets()) {
             lmap[loadSet] += 1;
@@ -691,7 +691,7 @@ void Model::assignMaterial(int material_id, const CellContainer& materialAssign)
     if (it != material_assignment_by_material_id.end()) {
         it->second.add(materialAssign);
     } else {
-        material_assignment_by_material_id.insert(make_pair(material_id, materialAssign));
+        material_assignment_by_material_id.insert({material_id, materialAssign});
     }
 }
 
@@ -886,7 +886,7 @@ void Model::generateMaterialAssignments() {
                     } else {
                         CellContainer assignment(mesh);
                         assignment.add(*(element));
-                        material_assignment_by_material_id.insert(make_pair(mat_id, assignment));
+                        material_assignment_by_material_id.insert({mat_id, assignment});
                     }
                 }
             }
@@ -1313,7 +1313,7 @@ void Model::removeRedundantSpcs() {
                     DOFS dofsToRemove;
                     DOFS blockedDofs = spc->getDOFSForNode(nodePosition);
                     for (const DOF dof : blockedDofs) {
-                        pair<int, DOF> key = make_pair(nodePosition, dof);
+                        pair<int, DOF> key{nodePosition, dof};
                         double spcValue = spc->getDoubleForDOF(dof);
                         auto entry = spcvalueByNodeAndDof.find(key);
                         if (entry == spcvalueByNodeAndDof.end()) {
@@ -1449,9 +1449,9 @@ void Model::splitDirectMatrices(const unsigned int sizeMax){
             // We attribute a elementSet to the pair (sI, sJ), and create it if needed
             pair<int, int> ps;
             if (sI<sJ){
-                ps = make_pair(sI,sJ);
+                ps = {sI,sJ};
             }else{
-                ps = make_pair(sJ,sI);
+                ps = {sJ,sI};
             }
             auto it2 = esToAddByStackNumber.find(ps);
             shared_ptr<ElementSet> newElementSet = nullptr;
@@ -1467,9 +1467,9 @@ void Model::splitDirectMatrices(const unsigned int sizeMax){
                 int stF = ps.first - ps.first%2;
                 int stS = ps.second - ps.second%2;
                 if (stF == stS){
-                    esToAddByStackNumber[make_pair(stF,stF)]=newElementSet;
-                    esToAddByStackNumber[make_pair(stF,stF+1)]=newElementSet;
-                    esToAddByStackNumber[make_pair(stF+1,stF+1)]=newElementSet;
+                    esToAddByStackNumber[{stF,stF}]=newElementSet;
+                    esToAddByStackNumber[{stF,stF+1}]=newElementSet;
+                    esToAddByStackNumber[{stF+1,stF+1}]=newElementSet;
                 }
             }else{
                 newElementSet = it2->second;
@@ -2012,14 +2012,14 @@ bool Model::validate() {
     bool meshValid = mesh.validate();
 
     // Sizes are stocked now, because validation remove invalid objects.
-    int sizeMat = materials.size();     string sMat = ( (sizeMat > 1) ? "s are " : " is ");
-    int sizeEle = elementSets.size();   string sEle = ( (sizeEle > 1) ? "s are " : " is ");
-    int sizeLoa = loadings.size();      string sLoa = ( (sizeLoa > 1) ? "s are " : " is ");
-    int sizeLos = loadSets.size();      string sLos = ( (sizeLos > 1) ? "s are " : " is ");
-    int sizeCon = constraints.size();   string sCon = ( (sizeCon > 1) ? "s are " : " is ");
-    int sizeCos = constraintSets.size();string sCos = ( (sizeCos > 1) ? "s are " : " is ");
-    int sizeAna = analyses.size();      string sAna = ( (sizeAna > 1) ? "es are " : "is is ");
-    int sizeTar = targets.size();       string sTar = ( (sizeTar > 1) ? "s are " : " is ");
+    size_t sizeMat = materials.size();     string sMat = ( (sizeMat > 1) ? "s are " : " is ");
+    size_t sizeEle = elementSets.size();   string sEle = ( (sizeEle > 1) ? "s are " : " is ");
+    size_t sizeLoa = loadings.size();      string sLoa = ( (sizeLoa > 1) ? "s are " : " is ");
+    size_t sizeLos = loadSets.size();      string sLos = ( (sizeLos > 1) ? "s are " : " is ");
+    size_t sizeCon = constraints.size();   string sCon = ( (sizeCon > 1) ? "s are " : " is ");
+    size_t sizeCos = constraintSets.size();string sCos = ( (sizeCos > 1) ? "s are " : " is ");
+    size_t sizeAna = analyses.size();      string sAna = ( (sizeAna > 1) ? "es are " : "is is ");
+    size_t sizeTar = targets.size();       string sTar = ( (sizeTar > 1) ? "s are " : " is ");
 
     bool validMat = materials.validate();
     bool validEle = elementSets.validate();
@@ -2049,14 +2049,14 @@ bool Model::validate() {
 bool Model::checkWritten() const {
 
     // Sizes are stocked now, because validation remove invalid objects.
-    int sizeMat = materials.size();
-    int sizeEle = elementSets.size();
-    int sizeLoa = loadings.size();
-    int sizeLos = loadSets.size();
-    int sizeCon = constraints.size();
-    int sizeCos = constraintSets.size();
-    int sizeAna = analyses.size();
-    int sizeTar = targets.size();
+    size_t sizeMat = materials.size();
+    size_t sizeEle = elementSets.size();
+    size_t sizeLoa = loadings.size();
+    size_t sizeLos = loadSets.size();
+    size_t sizeCon = constraints.size();
+    size_t sizeCos = constraintSets.size();
+    size_t sizeAna = analyses.size();
+    size_t sizeTar = targets.size();
 
     bool validMat = materials.checkWritten();
     bool validEle = elementSets.checkWritten();

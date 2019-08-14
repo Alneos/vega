@@ -114,7 +114,7 @@ void NastranParser::addProperty(NastranTokenizer& tok, int property_id, int cell
     if (cellGroup == nullptr) {
         string cellGroupName = "PROP_" + to_string(property_id);
         string comment = cellGroupName;
-        auto commentEntry = tok.labelByCommentTypeAndId.find(make_pair(NastranTokenizer::CommentType::COMP, property_id));
+        auto commentEntry = tok.labelByCommentTypeAndId.find({NastranTokenizer::CommentType::COMP, property_id});
         if (commentEntry != tok.labelByCommentTypeAndId.end())
             comment = commentEntry->second;
         cellGroup = model.mesh.createCellGroup(cellGroupName, property_id, comment);
@@ -147,6 +147,9 @@ int NastranParser::parseOrientation(int point1, int point2, NastranTokenizer& to
         x1 = tok.nextDouble();
         x2 = tok.nextDouble();
         x3 = tok.nextDouble();
+        if (is_zero(x1) and is_zero(x2) and is_zero(x3)) {
+            x2 = 1; // LD Hack, should find a better solution for a ill-defined segment orientation
+        }
         ocs = make_shared<OrientationCoordinateSystem>(model.mesh, point1, point2, VectorialValue(x1,x2,x3));
     }
     const int idOCS = model.mesh.addOrFindOrientation(*ocs);

@@ -969,7 +969,7 @@ void MatrixElement::addComponent(const int nodeid1, const DOF dof1, const int no
 		myDof1 = dof2;
 		myDof2 = dof1;
 	}
-	auto it = submatrixByNodes.find(make_pair(nodePosition1, nodePosition2));
+	auto it = submatrixByNodes.find({nodePosition1, nodePosition2});
 	shared_ptr<DOFMatrix> subMatrix = nullptr;
 	if (it != submatrixByNodes.end()) {
 		subMatrix = it->second;
@@ -982,7 +982,7 @@ void MatrixElement::addComponent(const int nodeid1, const DOF dof1, const int no
 	    } else {
             throw logic_error("not yet implemented");
 	    }
-		this->submatrixByNodes[make_pair(nodePosition1, nodePosition2)] = subMatrix;
+		this->submatrixByNodes[{nodePosition1, nodePosition2}] = subMatrix;
 	}
     subMatrix->addComponent(myDof1, myDof2, value);
 }
@@ -994,7 +994,7 @@ void MatrixElement::clear() {
 
 const shared_ptr<const DOFMatrix> MatrixElement::findSubmatrix(const int nodePosition1, const int nodePosition2) const {
 	shared_ptr<DOFMatrix> result = make_shared<DOFMatrix>(matrixType);
-	auto it = submatrixByNodes.find(make_pair(nodePosition1, nodePosition2));
+	auto it = submatrixByNodes.find({nodePosition1, nodePosition2});
 	if (it != submatrixByNodes.end()) {
 		std::copy(it->second->componentByDofs.begin(), it->second->componentByDofs.end(),
 				std::inserter(result->componentByDofs, result->componentByDofs.end()));
@@ -1029,7 +1029,7 @@ const DOFS MatrixElement::getDOFSForNode(const int nodePosition) const {
 const set<pair<int, int>> MatrixElement::nodePairs() const {
 	set<pair<int, int>> result;
 	for (const auto& kv : submatrixByNodes) {
-		result.insert(make_pair(kv.first.first, kv.first.second));
+		result.insert({kv.first.first, kv.first.second});
 	}
 	return result;
 }
@@ -1043,7 +1043,7 @@ const std::set<std::pair<int, int>> MatrixElement::findInPairs(int nodePosition)
 		if (kv.first.first == kv.first.second) {
 			continue;
 		}
-		result.insert(make_pair(kv.first.first, kv.first.second));
+		result.insert({kv.first.first, kv.first.second});
 	}
 	return result;
 }
@@ -1178,7 +1178,7 @@ int ScalarSpring::getNbDOFSSpring() const{
 bool ScalarSpring::hasTranslations() const {
 	for (const DOF dof1 : DOFS::TRANSLATIONS) {
 		for (const DOF dof2 : DOFS::TRANSLATIONS) {
-            auto codeIter = this->cellpositionByDOFS.find(make_pair(dof1, dof2));
+            auto codeIter = this->cellpositionByDOFS.find({dof1, dof2});
             if (codeIter != this->cellpositionByDOFS.end()) {
 				return true;
             }
@@ -1190,7 +1190,7 @@ bool ScalarSpring::hasTranslations() const {
 bool ScalarSpring::hasRotations() const {
 	for (const DOF dof1 : DOFS::ROTATIONS) {
 		for (const DOF dof2 : DOFS::ROTATIONS) {
-            auto codeIter = this->cellpositionByDOFS.find(make_pair(dof1, dof2));
+            auto codeIter = this->cellpositionByDOFS.find({dof1, dof2});
             if (codeIter != this->cellpositionByDOFS.end()) {
 				return true;
             }
@@ -1215,7 +1215,7 @@ vector<double> ScalarSpring::asStiffnessVector(bool addRotationsIfNotPresent) co
 						break;
 					}
 					DOF rowcode = DOF::findByPosition(rowdof);
-                    auto codeIter = this->cellpositionByDOFS.find(make_pair(rowcode, colcode));
+                    auto codeIter = this->cellpositionByDOFS.find({rowcode, colcode});
                     if (codeIter != this->cellpositionByDOFS.end() and colindex == 1 and row_element_index <= 2) {
                         result.push_back(stiffness);
                     } else {
@@ -1244,7 +1244,7 @@ vector<double> ScalarSpring::asDampingVector(bool addRotationsIfNotPresent) cons
 						break;
 					}
 					DOF rowcode = DOF::findByPosition(rowdof);
-                    auto codeIter = this->cellpositionByDOFS.find(make_pair(rowcode, colcode));
+                    auto codeIter = this->cellpositionByDOFS.find({rowcode, colcode});
                     if (codeIter != this->cellpositionByDOFS.end() and colindex == 1 and row_element_index <= 2) {
                         result.push_back(damping);
                     } else {

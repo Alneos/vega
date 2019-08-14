@@ -144,7 +144,7 @@ bool NastranTokenizer::readLineSkipComment(string& line) {
                 bool isPart2Int = all_of(commentParts[1].begin(), commentParts[1].end(), ::isdigit);
                 auto result = commentTypeByString.find(commentParts[0]);
                 if (isPart2Int and result != commentTypeByString.end()) {
-                    labelByCommentTypeAndId[make_pair(result->second, stoi(commentParts[1]))] = commentParts[2];
+                    labelByCommentTypeAndId[{result->second, stoi(commentParts[1])}] = commentParts[2];
                 }
             }
 		}

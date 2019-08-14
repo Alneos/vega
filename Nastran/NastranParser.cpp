@@ -347,7 +347,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                 The matrix must be symmetric in form (field 4 on DMIG Bulk Data entry must contain the integer 6).
                 */
                 const auto& matrix = make_shared<DampingMatrix>(model, MatrixType::SYMMETRIC); // LD : TODO string identifier here
-                directMatrixByName.insert(make_pair(line, matrix->getReference()));
+                directMatrixByName.insert({line, matrix->getReference()});
                 model.add(matrix);
             } else if (keyword == "CEND") {
                 //Nothing to do
@@ -382,7 +382,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                 The matrix must be symmetric in form (field 4 on DMIG Bulk Data entry must contain the integer 6).
                 */
                 const auto& matrix = make_shared<StiffnessMatrix>(model, MatrixType::SYMMETRIC); // LD : TODO string identifier here
-                directMatrixByName.insert(make_pair(line, matrix->getReference()));
+                directMatrixByName.insert({line, matrix->getReference()});
                 model.add(matrix);
             } else if (keyword == "M2GG") {
                 // Selects direct input mass matrix or matrices.
@@ -414,7 +414,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                 The matrix must be symmetric in form (field 4 on DMIG Bulk Data entry must contain the integer 6).
                 */
                 const auto& matrix = make_shared<MassMatrix>(model, MatrixType::SYMMETRIC); // LD : TODO string identifier here
-                directMatrixByName.insert(make_pair(line, matrix->getReference()));
+                directMatrixByName.insert({line, matrix->getReference()});
                 model.add(matrix);
             } else if (keyword == "SUBCASE") {
                 keyword = parseSubcase(tok, model, context);
@@ -643,7 +643,7 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
     if (it1 != context.end())
         labelAnalysis = trim_copy(it1->second);
     else {
-        auto commentEntry = tok.labelByCommentTypeAndId.find(make_pair(NastranTokenizer::CommentType::LOADSTEP, analysis_id));
+        auto commentEntry = tok.labelByCommentTypeAndId.find({NastranTokenizer::CommentType::LOADSTEP, analysis_id});
         if (commentEntry != tok.labelByCommentTypeAndId.end())
             labelAnalysis = commentEntry->second;
     }
@@ -847,7 +847,7 @@ void NastranParser::addCombinationAnalysis(NastranTokenizer& tok, Model& model, 
     if (label != context.end())
         labelAnalysis = trim_copy(label->second);
     else {
-        auto commentEntry = tok.labelByCommentTypeAndId.find(make_pair(NastranTokenizer::CommentType::LOADSTEP, analysis_id));
+        auto commentEntry = tok.labelByCommentTypeAndId.find({NastranTokenizer::CommentType::LOADSTEP, analysis_id});
         if (commentEntry != tok.labelByCommentTypeAndId.end())
             labelAnalysis = commentEntry->second;
     }

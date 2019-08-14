@@ -105,7 +105,7 @@ double AsterModel::getMemjeveux() const {
 }
 double AsterModel::getTpmax() const {
     double time = 3600.0 * model.mesh.countNodes() / 300000.0;
-    time = max<double>(360.,time) * max(1,model.analyses.size());
+    time = max<double>(360.,time) * max(1, static_cast<int>(model.analyses.size()));
     return time;
 }
 

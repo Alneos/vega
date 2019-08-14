@@ -985,6 +985,11 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 	//orientations
 	bool orientationsPrinted = false;
 	for (const auto& it : asterModel.model.mesh.cellGroupNameByCspos){
+        if (asterModel.model.elementSets.filter(ElementSet::Type::CONTINUUM).size() == asterModel.model.elementSets.size()) {
+            // LD workaround for case no beams, discrete, shells, composites... only solids in model, but segments in geometry
+            // TODO : probably this loop should be applyed to elementSets and not over groups!!
+            continue;
+        }
         std::shared_ptr<vega::CoordinateSystem> cs= asterModel.model.mesh.getCoordinateSystemByPosition(it.first);
 		if (cs->type!=CoordinateSystem::Type::RELATIVE){
 		   //handleWritingError("Coordinate System of Group "+ it.second+" is not an ORIENTATION.");

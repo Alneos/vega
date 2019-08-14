@@ -54,6 +54,7 @@ SET_TARGET_PROPERTIES(NastranCoverage_test PROPERTIES LINK_SEARCH_END_STATIC ${S
 target_link_libraries(
  NastranCoverage_test
  nastran
+ aster
 )
 
 add_test(NAME NastranCoverage COMMAND NastranCoverage_test)

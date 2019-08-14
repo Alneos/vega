@@ -217,7 +217,7 @@ private:
         iterator end() const {return iterator(by_id, by_id.end());}
         std::shared_ptr<T> first() const {return *begin();};
         std::shared_ptr<T> last() const {return by_id.rbegin()->second;};
-        int size() const {return static_cast<int>(by_id.size());}
+        size_t size() const {return by_id.size();}
         bool empty() const {return by_id.size() == 0;}
         void add(std::shared_ptr<T> T_ptr);
         void erase(const Reference<T> ref);

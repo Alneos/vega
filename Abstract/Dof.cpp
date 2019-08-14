@@ -292,9 +292,9 @@ void DOFMatrix::addComponent(const DOF dof1, const DOF dof2, const double value)
         throw logic_error("Cannot assign non-zero value out of diagonal for a diagonal matrix");
     }
 	if (matrixType == MatrixType::SYMMETRIC and dof1 > dof2) {
-		componentByDofs[make_pair(dof2, dof1)] = value;
+		componentByDofs[{dof2, dof1}] = value;
 	} else {
-		componentByDofs[make_pair(dof1, dof2)] = value;
+		componentByDofs[{dof1, dof2}] = value;
 	}
 }
 
@@ -302,12 +302,12 @@ double DOFMatrix::findComponent(const DOF dof1, const DOF dof2) const {
     if (matrixType == MatrixType::DIAGONAL and dof1 != dof2) {
         return 0.0;
 	} else if (matrixType == MatrixType::SYMMETRIC and dof1 > dof2) {
-		auto it = componentByDofs.find(make_pair(dof2, dof1));
+		auto it = componentByDofs.find({dof2, dof1});
 		if (it != componentByDofs.end()) {
 			return it->second;
 		}
 	} else {
-		auto it = componentByDofs.find(make_pair(dof1, dof2));
+		auto it = componentByDofs.find({dof1, dof2});
 		if (it != componentByDofs.end()) {
 			return it->second;
 		}
@@ -395,7 +395,7 @@ bool DOFMatrix::isSymmetric() const {
         return true;
     }
 	for (const auto& kv : componentByDofs) {
-	    const auto& kv2 = componentByDofs.find(make_pair(kv.first.second, kv.first.first));
+	    const auto& kv2 = componentByDofs.find({kv.first.second, kv.first.first});
 		if (kv2 == componentByDofs.end()) {
             if (!is_zero(kv.second)) {
                 return false;

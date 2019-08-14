@@ -180,8 +180,7 @@ public:
 	 */
 	virtual ExitCode execSolver(const ConfigurationParameters &configuration,
 			std::string modelFile) = 0;
-	virtual ~Runner() {
-	}
+	virtual ~Runner() = default;
 protected:
 	void deletePreviousResultFiles(std::string currentModel,
 			const std::vector<std::string> extensions);

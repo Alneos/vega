@@ -505,8 +505,25 @@ int Mesh::generateSkinCell(const vector<int>& faceIds, const SpaceDimension& dim
                 "CellType not found connections:"
                         + to_string(faceIds.size()));
     }
-    int cellPosition = addCell(Cell::AUTO_ID, *cellTypeFound, faceIds, true);
-    return cellPosition;
+    return addCell(Cell::AUTO_ID, *cellTypeFound, faceIds, true);
+}
+
+pair<Cell, int> Mesh::volcellAndFaceNum_from_skincell(const Cell& skinCell) const {
+    const set<int> surfOrderedNodeIds(skinCell.nodeIds.begin(), skinCell.nodeIds.end());
+    for (const auto& cellEntry : this->cellPositionsByType) {
+        if (cellEntry.first.dimension != SpaceDimension::DIMENSION_3D)
+            continue;
+        for (const int cellPosition : cellEntry.second) {
+            const Cell& volCell = this->findCell(cellPosition);
+            for (const auto& faceEntry : volCell.nodeIdsByFaceNum()) {
+                const vector<int>& faceNodeIds = faceEntry.second;
+                const set<int> faceOrderedNodeIds(faceNodeIds.begin(), faceNodeIds.end());
+                if (faceOrderedNodeIds == surfOrderedNodeIds) //< Must be ordered for set comparison
+                    return {volCell, faceEntry.first};
+            }
+        }
+    }
+    throw logic_error("Cannot find volume cell corresponding to surface cell id : " + to_string(skinCell.id));
 }
 
 shared_ptr<CellGroup> Mesh::getOrCreateCellGroupForCS(int cspos){

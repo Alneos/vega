@@ -57,12 +57,7 @@ unordered_map<CellType::Code, CellType*, EnumClassHash> CellType::typeByCode;
 CellType::CellType(CellType::Code code, int numNodes, SpaceDimension dimension,
 		const string& description) :
 		code(code), numNodes(numNodes), dimension(dimension), description(description), specificSize{numNodes>0} {
-	typeByCode.insert(make_pair(code, this));
-}
-
-CellType::CellType(const CellType& other) :
-		code(other.code), numNodes(other.numNodes), dimension(other.dimension), description(
-				other.description), specificSize(other.specificSize) {
+	typeByCode.insert({code, this});
 }
 
 bool CellType::operator==(const CellType &other) const {
@@ -466,7 +461,7 @@ int Cell::findNodeIdPosition(int node_id2) const {
 	return static_cast<int>(node2connectivityPos);
 }
 
-const map<int, vector<int>> Cell::nodeIdsByFaceNum() const {
+map<int, vector<int>> Cell::nodeIdsByFaceNum() const {
     vector<vector<int> > nodeConnectivityPosByFace = FACE_BY_CELLTYPE.find(type.code)->second;
     int faceNum = 1;
     map<int, vector<int>> result;
@@ -482,7 +477,7 @@ const map<int, vector<int>> Cell::nodeIdsByFaceNum() const {
     return result;
 }
 
-const vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
+vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
 	int node1connectivityPos = findNodeIdPosition(nodeId1);
     int node2connectivityPos = Globals::UNAVAILABLE_INT;
 	if (nodeId2 != Globals::UNAVAILABLE_INT) {
@@ -492,6 +487,7 @@ const vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
 	if (type.dimension == SpaceDimension::DIMENSION_2D) {
 		return vector<int>(nodeIds.begin(), nodeIds.end());
 	}
+	const vector<vector<int>>& faceids = FACE_BY_CELLTYPE.find(type.code)->second;
 	vector<int> nodePositions;
 	switch(type.code) {
     case CellType::Code::TETRA4_CODE: {
@@ -499,7 +495,6 @@ const vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
         if (node2connectivityPos == Globals::UNAVAILABLE_INT) {
             throw logic_error("Need two nodes to find a face on " + type.to_str() + " element type");
         }
-		vector<vector<int> > faceids = FACE_BY_CELLTYPE.find(CellType::TETRA4.code)->second;
 		for (vector<int> faceid : faceids) {
 			//0 based
 			if (find(faceid.begin(), faceid.end(), node2connectivityPos + 1) == faceid.end()) {
@@ -512,7 +507,6 @@ const vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
         if (node2connectivityPos == Globals::UNAVAILABLE_INT) {
             throw logic_error("Need two nodes to find a face on " + type.to_str() + " element type");
         }
-		vector<vector<int> > faceids = FACE_BY_CELLTYPE.find(CellType::HEXA8.code)->second;
 		for (vector<int> faceid : faceids) {
 			//0 based
 			if (find(faceid.begin(), faceid.end(), node2connectivityPos + 1) != faceid.end()
@@ -525,7 +519,7 @@ const vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
         break;
     }
     case CellType::Code::PENTA6_CODE: {
-        vector<vector<int> > faceids = FACE_BY_CELLTYPE.find(CellType::PENTA6.code)->second;
+
         for (vector<int> faceid : faceids) {
             if (find(faceid.begin(), faceid.end(), node1connectivityPos + 1) == faceid.end()) {
                 continue;
@@ -557,6 +551,34 @@ const vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
 		faceConnectivity.push_back(nodeIds[nodenum - 1]);
 	}
 	return faceConnectivity;
+}
+
+pair<int, int> Cell::two_nodeids_from_facenum(int faceNum) const {
+    auto nodeIds_By_FaceNum = nodeIdsByFaceNum();
+    const vector<int>& faceNodeIds = nodeIds_By_FaceNum[faceNum];
+	switch(type.code) {
+    case CellType::Code::TETRA4_CODE: {
+        //node2 is on the opposite face
+        set<int> cellOrderedNodeIds{nodeIds.begin(), nodeIds.end()};
+        const set<int> faceOrderedNodeIds(faceNodeIds.begin(), faceNodeIds.end());
+        vector<int> v_difference;
+
+        set_difference(cellOrderedNodeIds.begin(), cellOrderedNodeIds.end(),
+                              faceOrderedNodeIds.begin(), faceOrderedNodeIds.end(),
+                              back_inserter(v_difference));
+        return {faceNodeIds[0], v_difference[0]};
+    }
+    case CellType::Code::HEXA8_CODE: {
+        return {faceNodeIds[0], faceNodeIds[1]};
+    }
+    case CellType::Code::PENTA6_CODE: {
+        int nodeId2 = Globals::UNAVAILABLE_INT;
+        return {faceNodeIds[0], nodeId2};
+    }
+    default: {
+		throw logic_error("two_nodeids_from_facenum not implemented for " + type.to_str() + " element type");
+    }
+	}
 }
 
 ostream &operator<<(ostream &out, const Cell& cell) {

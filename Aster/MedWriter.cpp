@@ -66,8 +66,8 @@ NodeGroup2Families::NodeGroup2Families(int nnodes, const vector<shared_ptr<NodeG
 						fam.name = nodeGroup->getName();
 					}
 					fam.groups.push_back(nodeGroup);
-					newFamilyByOldfamily.insert(make_pair(oldFamilyId, currentFamilyId));
-					familyByFamilyId.insert(make_pair(currentFamilyId, fam));
+					newFamilyByOldfamily.insert({oldFamilyId, currentFamilyId});
+					familyByFamilyId.insert({currentFamilyId, fam});
 				} else {
 					newFamilyId = newFamilyPair->second;
 				}

@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE( test_model_read ) {
 	try {
 		const unique_ptr<Model> model = parser.parse(
 				ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
-		int num_materials = model->materials.size();
+		size_t num_materials = model->materials.size();
 		BOOST_CHECK_EQUAL(1, num_materials);
 #if defined VDEBUG && defined __GNUC_
 		VALGRIND_CHECK_VALUE_IS_DEFINED(model);
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE( test_include ) {
 	try {
 		const unique_ptr<Model> model = parser.parse(
 				ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
-		int num_materials = model->materials.size();
+		size_t num_materials = model->materials.size();
 		BOOST_CHECK_EQUAL(2, num_materials);
 	} catch (exception& e) {
 		cout << e.what() << endl;

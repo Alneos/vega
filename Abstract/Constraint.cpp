@@ -924,7 +924,7 @@ void SurfaceSlide::makeCellsFromSurfaceSlide() {
             masterFaceNodeIds.push_back(faceIds);
             for (size_t i = 0 ; i < masterFaces.size() ; ++i) {
                 node_box b = bg::return_envelope<node_box>(masterFaces[i]);
-                rtree.insert(std::make_pair(b, i));
+                rtree.insert({b, i});
             }
         }
     }

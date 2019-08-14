@@ -197,7 +197,7 @@ private:
     friend std::ostream &operator<<(std::ostream &out, const CellType& cellType); //output
 
 public:
-    CellType(const CellType& other);
+    CellType(const CellType& other) = default;
     Code code;
     unsigned int numNodes;
     SpaceDimension dimension;
@@ -343,7 +343,7 @@ public:
     int cellTypePosition;
     int cspos; /**< Id of local Coordinate System **/
     std::shared_ptr<OrientationCoordinateSystem> orientation;
-    const std::map<int, std::vector<int>> nodeIdsByFaceNum() const;
+    std::map<int, std::vector<int>> nodeIdsByFaceNum() const;
 
     /**
      * @param nodeId1: grid point connected to a corner of the face.
@@ -365,7 +365,8 @@ public:
      * different for each of the four faces of a CTETRA element. </p>
      */
 
-    const std::vector<int> faceids_from_two_nodes(int nodeId1, int nodeId2 = Globals::UNAVAILABLE_INT) const;
+    std::vector<int> faceids_from_two_nodes(int nodeId1, int nodeId2 = Globals::UNAVAILABLE_INT) const;
+    std::pair<int, int> two_nodeids_from_facenum(int faceNum) const;
 
     /**
      * Returns the name used in med file for this cell

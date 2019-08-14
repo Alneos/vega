@@ -37,6 +37,9 @@
 #include <libunwind.h>
 #endif
 
+// https://stackoverflow.com/a/54293978
+#define CHECK_ENUM_CLASS_EQUAL(L, R) BOOST_CHECK_EQUAL(static_cast<int>(L), static_cast<int>(R))
+
 namespace vega {
 
 class Globals {

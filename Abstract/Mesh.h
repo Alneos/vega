@@ -264,6 +264,7 @@ public:
     };
 	const Cell findCell(int cellPosition) const;
 	int generateSkinCell(const std::vector<int>& faceIds, const SpaceDimension& dimension);
+    std::pair<Cell, int> volcellAndFaceNum_from_skincell(const Cell& skinCell) const;
 	bool hasCell(int cellId) const;
 
 	/**

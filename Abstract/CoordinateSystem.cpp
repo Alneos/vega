@@ -461,7 +461,7 @@ int CoordinateSystemStorage::add(const CoordinateSystem& coordinateSystem){
     }
 
     Reference<CoordinateSystem> csref = coordinateSystem;
-    refByPosition.insert(make_pair<>(cpos, csref));
+    refByPosition.insert({cpos, csref});
     //refByPosition[cpos] = csref;
     coordinateSystemByRef[csref] = coordinateSystem.clone();
 
@@ -518,7 +518,7 @@ int CoordinateSystemStorage::reserve(const Reference<CoordinateSystem> csref) {
     int cpos= cs_next_position;
     cs_next_position++;
 
-    refByPosition.insert(make_pair<>(cpos, csref));
+    refByPosition.insert({cpos, csref});
 
     if (this->logLevel >= LogLevel::TRACE) {
         cout << "Reserve coordinate system :" << csref << " in position:" << cpos << endl;
