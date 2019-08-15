@@ -482,6 +482,15 @@ DOFCoefs::DOFCoefs(DOFS dofs, double val) {
     }
 }
 
+DOFCoefs::DOFCoefs(DOF dof, double val) {
+    for(const DOF dof2 : DOFS::ALL_DOFS) {
+        if (dof2 == dof)
+            coefs[dof2.position] = val;
+        else
+            coefs[dof2.position] = Globals::UNAVAILABLE_DOUBLE;
+    }
+}
+
 DOFS DOFCoefs::getDOFS() const {
     DOFS dofs;
     for(const DOF dof : DOFS::ALL_DOFS) {
@@ -501,6 +510,10 @@ bool DOFCoefs::isEmpty() const {
 
 double DOFCoefs::getValue(const DOF dof) const {
     return coefs[dof.position];
+}
+
+void DOFCoefs::setValue(const DOF dof, double val) {
+    coefs[dof.position] = val;
 }
 
 DOFCoefs& DOFCoefs::operator+=(const DOFCoefs& rv) {
@@ -524,7 +537,7 @@ DOFCoefs& DOFCoefs::operator*=(const double factor) {
 }
 
 double DOFCoefs::operator[](const int i) {
-    if (i < 0 || i > 5)
+    if (i < 0 || i > 6)
         return 0; // TODO LD: why this case ???
     return coefs[i];
 }

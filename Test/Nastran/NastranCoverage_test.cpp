@@ -15,6 +15,8 @@
 
 #include "../../Aster/AsterWriter.h"
 #include "../../Aster/AsterRunner.h"
+#include "../../Systus/SystusWriter.h"
+#include "../../Systus/SystusRunner.h"
 #include "build_properties.h"
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
@@ -57,12 +59,23 @@ using namespace vega;
 }*/
 
 BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
-    Solver solver(SolverName::CODE_ASTER);
     string solverVersion = "";
     fs::path inputFpath = fs::path(PROJECT_BASE_DIR "/testdata/nastran/irt/coverage");
     fs::path testOutputBase = fs::path(PROJECT_BINARY_DIR "/Testing/nastrancoverage");
 	ConfigurationParameters::TranslationMode translationMode = ConfigurationParameters::TranslationMode::MODE_STRICT;
     string nastranOutputSyntax = "modern";
+    map<SolverName, unique_ptr<Writer>> writerBySolverName;
+    writerBySolverName[SolverName::CODE_ASTER] = make_unique<aster::AsterWriter>();
+    writerBySolverName[SolverName::SYSTUS] = make_unique<systus::SystusWriter>();
+    writerBySolverName[SolverName::NASTRAN] = make_unique<nastran::NastranWriter>();
+    map<SolverName, unique_ptr<Runner>> runnerBySolverName;
+    runnerBySolverName[SolverName::CODE_ASTER] = make_unique<aster::AsterRunner>();
+    runnerBySolverName[SolverName::SYSTUS] = make_unique<systus::SystusRunner>();
+    map<SolverName, bool> canrunBySolverName = {
+        {SolverName::CODE_ASTER, RUN_ASTER},
+        {SolverName::SYSTUS, false}, // to be fixed
+        {SolverName::NASTRAN, false}, // cosmic cannot handle PLOAD4 on volume cells
+    };
     const map<CellType, string>& meshByCellType = {
         {CellType::TETRA4, "MeshTetraLin"},
         {CellType::PYRA5, "MeshPyraLin"},
@@ -74,111 +87,124 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
         {CellType::HEXA20, "MeshHexaQuad"},
     };
 	try {
-	    for (const auto& cellMeshEntry : meshByCellType) {
-            const CellType& cellType = cellMeshEntry.first;
-            cout << "Using mesh of " + cellType.description << endl;
-            fs::path outputPath = (testOutputBase / ("test_3d_cantilever_" + cellType.description)).make_preferred();
-            fs::create_directories(outputPath);
-            fs::path inputFname = (inputFpath / (cellMeshEntry.second + ".bdf")).make_preferred();
-            fs::path testFname = (inputFpath / (cellMeshEntry.second + ".f06")).make_preferred();
+	    for (const auto& writerEntry : writerBySolverName) {
+            const SolverName& solverName = writerEntry.first;
+            const Solver& solver{solverName};
+            const auto& writer = writerEntry.second;
+            for (const auto& cellMeshEntry : meshByCellType) {
+                const CellType& cellType = cellMeshEntry.first;
+                cout << "Using mesh of " + cellType.description << endl;
+                fs::path outputPath = (testOutputBase / ("test_3d_cantilever_" + solver.to_str() + "_" + cellType.description)).make_preferred();
+                fs::create_directories(outputPath);
+                fs::path inputFname = (inputFpath / (cellMeshEntry.second + ".bdf")).make_preferred();
+                fs::path testFname = (inputFpath / (cellMeshEntry.second + ".f06")).make_preferred();
 
-            ConfigurationParameters configuration = ConfigurationParameters(inputFname.string(), solver,
-                solverVersion, "test_3d_cantilever_" + cellType.description, outputPath.string(), LogLevel::DEBUG, translationMode, testFname.string(),
-                0.02, false, false, "", "", "lagrangian", 0.0, 0.0, "auto", "systus", {}, "table", 9, "direct",
-                nastranOutputSyntax);
-            nastran::NastranParser parser;
-            unique_ptr<Model> model = parser.parse(configuration);
+                ConfigurationParameters configuration = ConfigurationParameters(inputFname.string(), solver,
+                    solverVersion, "test_3d_cantilever_" + cellType.description, outputPath.string(), LogLevel::DEBUG, translationMode, testFname.string(),
+                    0.02, false, false, "", "", "lagrangian", 0.0, 0.0, "auto", "systus", {}, "table", 9, "direct",
+                    nastranOutputSyntax);
+                nastran::NastranParser parser;
+                unique_ptr<Model> model = parser.parse(configuration);
 
-            if (model->mesh.getCellGroups().empty()) {
-                throw logic_error("No cell group has been found in mesh, maybe BEGIN_BULK is missing?");
-            }
-            const auto& x0group = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(6));
-            if (x0group == nullptr) {
-                throw logic_error("missing constraint group in mesh");
-            }
-            const auto& volgroup = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(9));
-            if (volgroup == nullptr) {
-                throw logic_error("missing volume group in mesh");
-            }
-            const auto& x300group = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(8));
-            if (x300group == nullptr) {
-                throw logic_error("missing loading group in mesh");
-            }
-
-            // Add constraintset
-            int spcSetId = 1;
-            const auto& constraintSet = make_shared<ConstraintSet>(*model, ConstraintSet::Type::SPC, spcSetId);
-            model->add(constraintSet);
-
-            // Add loadset
-            int loadSetId = 1;
-            const auto& loadSet = make_shared<LoadSet>(*model, LoadSet::Type::LOAD, loadSetId);
-            model->add(loadSet);
-
-            // Add output
-            const auto& nodalOutput = make_shared<NodalDisplacementOutput>(*model);
-            for (const int nodePosition : x300group->nodePositions()) {
-                nodalOutput->addNodePosition(nodePosition);
-            }
-            model->add(nodalOutput);
-
-            // Add Analysis
-            int analysisId = 1;
-            const auto& analysis = make_shared<LinearMecaStat>(*model, "coverage", analysisId);
-            analysis->add(*loadSet);
-            analysis->add(*constraintSet);
-            analysis->add(*nodalOutput);
-            model->add(analysis);
-
-            // Define material
-            int matId = 1;
-            double youngModulus = 200000;
-            double poissonNumber = 0.3;
-            shared_ptr<Material> material = model->getOrCreateMaterial(matId);
-            material->addNature(make_shared<ElasticNature>(*model, youngModulus, poissonNumber));
-
-            // Assign material and model
-            int partId = 1;
-            const auto& continuum = make_shared<Continuum>(*model, ModelType::TRIDIMENSIONAL, partId);
-            continuum->assignMaterial(matId);
-            continuum->add(*volgroup);
-            model->add(continuum);
-
-            // Add constraint
-            const auto& spc = make_shared<SinglePointConstraint>(*model, DOFS::TRANSLATIONS, 0.0, x0group);
-            model->add(spc);
-            model->addConstraintIntoConstraintSet(*spc, *constraintSet);
-
-            // Add load
-            for (const Cell& surfCell : x300group->getCells()) {
-                const auto volCellAndFacenum = model->mesh.volcellAndFaceNum_from_skincell(surfCell);
-                const Cell& volCell = volCellAndFacenum.first;
-                const int faceNum = volCellAndFacenum.second;
-                const pair<int, int> applicationNodeIds = volCell.two_nodeids_from_facenum(faceNum);
-
-                shared_ptr<ForceSurface> forceSurfaceTwoNodes = nullptr;
-                if (applicationNodeIds.second == Globals::UNAVAILABLE_INT) {
-                    forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(*model, applicationNodeIds.first,
-                        VectorialValue(0.0, 0.0, -0.5), VectorialValue(0.0, 0.0, 0.0));
-                } else {
-                    forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(*model, applicationNodeIds.first, applicationNodeIds.second,
-                        VectorialValue(0.0, 0.0, -0.5), VectorialValue(0.0, 0.0, 0.0));
+                if (model->mesh.getCellGroups().empty()) {
+                    throw logic_error("No cell group has been found in mesh, maybe BEGIN_BULK is missing?");
                 }
-                forceSurfaceTwoNodes->add(volCell);
-                model->add(forceSurfaceTwoNodes);
-                model->addLoadingIntoLoadSet(*forceSurfaceTwoNodes, *loadSet);
+                const auto& x0group = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(6));
+                if (x0group == nullptr) {
+                    throw logic_error("missing constraint group in mesh");
+                }
+                const auto& volgroup = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(9));
+                if (volgroup == nullptr) {
+                    throw logic_error("missing volume group in mesh");
+                }
+                const auto& x300group = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(8));
+                if (x300group == nullptr) {
+                    throw logic_error("missing loading group in mesh");
+                }
 
+                // Add constraintset
+                int spcSetId = 1;
+                const auto& constraintSet = make_shared<ConstraintSet>(*model, ConstraintSet::Type::SPC, spcSetId);
+                model->add(constraintSet);
+
+                // Add output
+                const auto& nodalOutput = make_shared<NodalDisplacementOutput>(*model);
+                for (const int nodePosition : x300group->nodePositions()) {
+                    nodalOutput->addNodePosition(nodePosition);
+                }
+                model->add(nodalOutput);
+
+                // Define material
+                int matId = 1;
+                double youngModulus = 200000;
+                double poissonNumber = 0.3;
+                shared_ptr<Material> material = model->getOrCreateMaterial(matId);
+                material->addNature(make_shared<ElasticNature>(*model, youngModulus, poissonNumber));
+
+                // Assign material and model
+                int partId = 1;
+                const auto& continuum = make_shared<Continuum>(*model, ModelType::TRIDIMENSIONAL, partId);
+                continuum->assignMaterial(matId);
+                continuum->add(*volgroup);
+                model->add(continuum);
+
+                // Add constraint
+                const auto& spc = make_shared<SinglePointConstraint>(*model, DOFS::TRANSLATIONS, 0.0, x0group);
+                model->add(spc);
+                model->addConstraintIntoConstraintSet(*spc, *constraintSet);
+
+                // Add Analyses
+                int analysisId = 1;
+                int loadSetId = 1;
+                for (const DOF& loadDirection : DOFS::TRANSLATIONS) {
+                    DOFCoefs loadingCoefs(DOFS::ALL_DOFS, 0.0);
+                    loadingCoefs.setValue(loadDirection, -0.5);
+                    const VectorialValue& force{loadingCoefs.getValue(DOF::DX), loadingCoefs.getValue(DOF::DY), loadingCoefs.getValue(DOF::DZ)};
+                    const auto& analysis = make_shared<LinearMecaStat>(*model, "coverage", analysisId);
+
+                    // Add loadset
+                    const auto& loadSet = make_shared<LoadSet>(*model, LoadSet::Type::LOAD, loadSetId);
+                    model->add(loadSet);
+
+                    analysis->add(*loadSet);
+                    analysis->add(*constraintSet);
+                    analysis->add(*nodalOutput);
+                    model->add(analysis);
+
+                    // Add load
+                    for (const Cell& surfCell : x300group->getCells()) {
+                        const auto volCellAndFacenum = model->mesh.volcellAndFaceNum_from_skincell(surfCell);
+                        const Cell& volCell = volCellAndFacenum.first;
+                        const int faceNum = volCellAndFacenum.second;
+                        const pair<int, int> applicationNodeIds = volCell.two_nodeids_from_facenum(faceNum);
+
+                        shared_ptr<ForceSurface> forceSurfaceTwoNodes = nullptr;
+                        if (applicationNodeIds.second == Globals::UNAVAILABLE_INT) {
+                            forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(*model, applicationNodeIds.first,
+                                force, VectorialValue(0.0, 0.0, 0.0));
+                        } else {
+                            forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(*model, applicationNodeIds.first, applicationNodeIds.second,
+                                force, VectorialValue(0.0, 0.0, 0.0));
+                        }
+                        forceSurfaceTwoNodes->add(volCell);
+                        model->add(forceSurfaceTwoNodes);
+                        model->addLoadingIntoLoadSet(*forceSurfaceTwoNodes, *loadSet);
+
+                    }
+                    loadSetId++;
+                    analysisId++;
+                }
+
+                model->finish();
+                fs::path modelFile = fs::path(writer->writeModel(*model, configuration));
+                const auto& runnerIt = runnerBySolverName.find(solverName);
+                if (canrunBySolverName[solverName] and runnerIt != runnerBySolverName.end()) {
+                    Runner::ExitCode exitCode = runnerIt->second->execSolver(configuration, modelFile.string());
+                    BOOST_CHECK_EQUAL(static_cast<int>(exitCode), static_cast<int>(Runner::ExitCode::OK));
+                }
             }
-            model->finish();
-            aster::AsterWriter asterWriter;
-            fs::path modelFile = fs::path(asterWriter.writeModel(*model, configuration));
-            aster::AsterRunner asterRunner;
-            Runner::ExitCode exitCode = asterRunner.execSolver(configuration, modelFile.string());
-            BOOST_CHECK_EQUAL(static_cast<int>(exitCode), static_cast<int>(Runner::ExitCode::OK));
 	    }
-
-	}
-	catch (exception& e) {
+	} catch (exception& e) {
 		cerr << e.what() << endl;
 		BOOST_TEST_MESSAGE(string("Application exception") + e.what());
 

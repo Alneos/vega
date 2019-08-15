@@ -196,9 +196,11 @@ public:
             double rz = 0);
 
     DOFCoefs(DOFS dofs, double val = 0);
+    DOFCoefs(DOF dof, double val = 0);
     DOFS getDOFS() const;
     bool isEmpty() const;
     double getValue(const DOF dof) const;
+    void setValue(const DOF dof, double val);
     DOFCoefs& operator+=(const DOFCoefs&);
     DOFCoefs& operator*=(const double factor);
     double operator[](const int);
