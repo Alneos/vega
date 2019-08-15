@@ -66,7 +66,8 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
     const map<CellType, string>& meshByCellType = {
         {CellType::HEXA8, "MeshHexaLin"},
         {CellType::TETRA4, "MeshTetraLin"},
-        {CellType::PENTA6, "MeshPentaLin"}
+        {CellType::PENTA6, "MeshPentaLin"},
+        {CellType::PYRA5, "MeshPyraLin"},
     };
 	try {
 	    for (const auto& cellMeshEntry : meshByCellType) {
@@ -84,9 +85,21 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
             nastran::NastranParser parser;
             unique_ptr<Model> model = parser.parse(configuration);
 
+            if (model->mesh.getCellGroups().empty()) {
+                throw logic_error("No cell group has been found in mesh, maybe BEGIN_BULK is missing?");
+            }
             const auto& x0group = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(6));
+            if (x0group == nullptr) {
+                throw logic_error("missing constraint group in mesh");
+            }
             const auto& volgroup = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(9));
+            if (volgroup == nullptr) {
+                throw logic_error("missing volume group in mesh");
+            }
             const auto& x300group = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(8));
+            if (x300group == nullptr) {
+                throw logic_error("missing loading group in mesh");
+            }
 
             // Add constraintset
             int spcSetId = 1;

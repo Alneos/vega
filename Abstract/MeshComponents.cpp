@@ -429,11 +429,21 @@ unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::init_fa
         {2,5,6,3} //
     };
 
+    vector<vector<int> > hexa20list = { //
+        {1,9,2,10,3,11,4,12}, //
+        {5,13,8,14,7,15,6,16}, //
+        {1,17,5,13,6,18,2,9}, //
+        {2,18,6,14,7,19,3,10}, //
+        {3,16,7,15,8,20,4,11}, //
+        {1,12,4,20,8,16,5,17} //
+    };
+
 	unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > result = {
         {CellType::HEXA8.code, hexa8list}, //
         {CellType::TETRA4.code, tetra4list}, //
         {CellType::PYRA5.code, pyra5list}, //
         {CellType::PENTA6.code, penta6list}, //
+        {CellType::HEXA20.code, hexa20list}, //
     };
 	return result;
 }
@@ -462,7 +472,10 @@ int Cell::findNodeIdPosition(int node_id2) const {
 }
 
 map<int, vector<int>> Cell::nodeIdsByFaceNum() const {
-    vector<vector<int> > nodeConnectivityPosByFace = FACE_BY_CELLTYPE.find(type.code)->second;
+    const auto& it = FACE_BY_CELLTYPE.find(type.code);
+    if (it == FACE_BY_CELLTYPE.end())
+        throw logic_error("Missing FACE_BY_CELLTYPE configuration for cell type :" + type.description);
+    vector<vector<int> > nodeConnectivityPosByFace = it->second;
     int faceNum = 1;
     map<int, vector<int>> result;
     for (vector<int> nodeConnectivityPos : nodeConnectivityPosByFace) {
@@ -518,6 +531,7 @@ vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
 		}
         break;
     }
+    case CellType::Code::PYRA5_CODE:
     case CellType::Code::PENTA6_CODE: {
 
         for (vector<int> faceid : faceids) {
@@ -567,6 +581,14 @@ pair<int, int> Cell::two_nodeids_from_facenum(int faceNum) const {
                               faceOrderedNodeIds.begin(), faceOrderedNodeIds.end(),
                               back_inserter(v_difference));
         return {faceNodeIds[0], v_difference[0]};
+    }
+    case CellType::Code::PYRA5_CODE: {
+        if (faceNodeIds.size() == 4) {
+            return {faceNodeIds[0], faceNodeIds[1]};
+        } else {
+            int nodeId2 = Globals::UNAVAILABLE_INT;
+            return {faceNodeIds[0], nodeId2};
+        }
     }
     case CellType::Code::HEXA8_CODE: {
         return {faceNodeIds[0], faceNodeIds[1]};
