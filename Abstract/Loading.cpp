@@ -643,8 +643,7 @@ vector<int> ForceSurfaceTwoNodes::getApplicationFaceNodeIds() const {
 	if (nodePosition2 != Globals::UNAVAILABLE_INT) {
         nodeId2 = model.mesh.findNodeId(nodePosition2);
 	}
-    const vector<int>& nodeIds = cells.begin()->faceids_from_two_nodes(nodeId1, nodeId2);
-	return nodeIds;
+	return cells.begin()->faceids_from_two_nodes(nodeId1, nodeId2);;
 }
 
 shared_ptr<Loading> ForceSurfaceTwoNodes::clone() const {

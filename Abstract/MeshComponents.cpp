@@ -428,7 +428,26 @@ unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::init_fa
         {1,3,6,4}, //
         {2,5,6,3} //
     };
-
+    vector<vector<int> > tetra10list = { //
+        {1,5,2,6,3,7}, //
+        {1,8,4,9,2,5}, //
+        {1,7,3,10,4,8}, //
+        {2,9,4,10,3,6} //
+    };
+    vector<vector<int> > pyra13list = { //
+        {1,6,2,7,3,8,4,9}, //
+        {1,10,5,11,2,6}, //
+        {1,9,4,13,5,10}, //
+        {4,8,3,12,5,13}, //
+        {2,11,5,12,3,7}, //
+    };
+    vector<vector<int> > penta15list = { //
+        {1,7,2,8,3,9}, //
+        {4,12,6,11,5,10}, //
+        {1,13,4,10,5,14,2,7}, //
+        {1,9,3,15,6,12,4,13}, //
+        {2,14,5,11,6,15,3,8} //
+    };
     vector<vector<int> > hexa20list = { //
         {1,9,2,10,3,11,4,12}, //
         {5,13,8,14,7,15,6,16}, //
@@ -443,6 +462,9 @@ unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::init_fa
         {CellType::TETRA4.code, tetra4list}, //
         {CellType::PYRA5.code, pyra5list}, //
         {CellType::PENTA6.code, penta6list}, //
+        {CellType::TETRA10.code, tetra10list}, //
+        {CellType::PYRA13.code, pyra13list}, //
+        {CellType::PENTA15.code, penta15list}, //
         {CellType::HEXA20.code, hexa20list}, //
     };
 	return result;
@@ -503,7 +525,8 @@ vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
 	const vector<vector<int>>& faceids = FACE_BY_CELLTYPE.find(type.code)->second;
 	vector<int> nodePositions;
 	switch(type.code) {
-    case CellType::Code::TETRA4_CODE: {
+    case CellType::Code::TETRA4_CODE:
+    case CellType::Code::TETRA10_CODE: {
         //node2 is on the opposite face
         if (node2connectivityPos == Globals::UNAVAILABLE_INT) {
             throw logic_error("Need two nodes to find a face on " + type.to_str() + " element type");
@@ -516,7 +539,8 @@ vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
 		}
         break;
     }
-    case CellType::Code::HEXA8_CODE: {
+    case CellType::Code::HEXA8_CODE:
+    case CellType::Code::HEXA20_CODE: {
         if (node2connectivityPos == Globals::UNAVAILABLE_INT) {
             throw logic_error("Need two nodes to find a face on " + type.to_str() + " element type");
         }
@@ -532,7 +556,9 @@ vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
         break;
     }
     case CellType::Code::PYRA5_CODE:
-    case CellType::Code::PENTA6_CODE: {
+    case CellType::Code::PYRA13_CODE:
+    case CellType::Code::PENTA6_CODE:
+    case CellType::Code::PENTA15_CODE: {
 
         for (vector<int> faceid : faceids) {
             if (find(faceid.begin(), faceid.end(), node1connectivityPos + 1) == faceid.end()) {
@@ -540,8 +566,8 @@ vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
             }
 			if (nodeId2 == Globals::UNAVAILABLE_INT) {
                 // nodePosition2 must be omitted for a **triangular** surface on a
-                // CPENTA element.
-                if (faceid.size() == 3) {
+                // CPENTA element. 6 nodes for quadratic
+                if (faceid.size() == 3 or faceid.size() == 6) {
                     nodePositions.assign(faceid.begin(), faceid.end());
                     break;
                 }
@@ -571,7 +597,8 @@ pair<int, int> Cell::two_nodeids_from_facenum(int faceNum) const {
     auto nodeIds_By_FaceNum = nodeIdsByFaceNum();
     const vector<int>& faceNodeIds = nodeIds_By_FaceNum[faceNum];
 	switch(type.code) {
-    case CellType::Code::TETRA4_CODE: {
+    case CellType::Code::TETRA4_CODE:
+    case CellType::Code::TETRA10_CODE: {
         //node2 is on the opposite face
         set<int> cellOrderedNodeIds{nodeIds.begin(), nodeIds.end()};
         const set<int> faceOrderedNodeIds(faceNodeIds.begin(), faceNodeIds.end());
@@ -582,20 +609,20 @@ pair<int, int> Cell::two_nodeids_from_facenum(int faceNum) const {
                               back_inserter(v_difference));
         return {faceNodeIds[0], v_difference[0]};
     }
-    case CellType::Code::PYRA5_CODE: {
-        if (faceNodeIds.size() == 4) {
+    case CellType::Code::PYRA5_CODE:
+    case CellType::Code::PENTA6_CODE:
+    case CellType::Code::PYRA13_CODE:
+    case CellType::Code::PENTA15_CODE: {
+        if (faceNodeIds.size() == 4 or faceNodeIds.size() == 8) {
             return {faceNodeIds[0], faceNodeIds[1]};
         } else {
             int nodeId2 = Globals::UNAVAILABLE_INT;
             return {faceNodeIds[0], nodeId2};
         }
     }
-    case CellType::Code::HEXA8_CODE: {
+    case CellType::Code::HEXA8_CODE:
+    case CellType::Code::HEXA20_CODE: {
         return {faceNodeIds[0], faceNodeIds[1]};
-    }
-    case CellType::Code::PENTA6_CODE: {
-        int nodeId2 = Globals::UNAVAILABLE_INT;
-        return {faceNodeIds[0], nodeId2};
     }
     default: {
 		throw logic_error("two_nodeids_from_facenum not implemented for " + type.to_str() + " element type");

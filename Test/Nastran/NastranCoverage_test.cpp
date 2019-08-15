@@ -64,10 +64,14 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
 	ConfigurationParameters::TranslationMode translationMode = ConfigurationParameters::TranslationMode::MODE_STRICT;
     string nastranOutputSyntax = "modern";
     const map<CellType, string>& meshByCellType = {
-        {CellType::HEXA8, "MeshHexaLin"},
         {CellType::TETRA4, "MeshTetraLin"},
-        {CellType::PENTA6, "MeshPentaLin"},
         {CellType::PYRA5, "MeshPyraLin"},
+        {CellType::PENTA6, "MeshPentaLin"},
+        {CellType::HEXA8, "MeshHexaLin"},
+        {CellType::TETRA10, "MeshTetraQuad"},
+        {CellType::PYRA13, "MeshPyraQuad"},
+        {CellType::PENTA15, "MeshPentaQuad"},
+        {CellType::HEXA20, "MeshHexaQuad"},
     };
 	try {
 	    for (const auto& cellMeshEntry : meshByCellType) {

@@ -517,6 +517,8 @@ pair<Cell, int> Mesh::volcellAndFaceNum_from_skincell(const Cell& skinCell) cons
             const Cell& volCell = this->findCell(cellPosition);
             for (const auto& faceEntry : volCell.nodeIdsByFaceNum()) {
                 const vector<int>& faceNodeIds = faceEntry.second;
+                if (faceNodeIds.size() != surfOrderedNodeIds.size())
+                    continue;
                 const set<int> faceOrderedNodeIds(faceNodeIds.begin(), faceNodeIds.end());
                 if (faceOrderedNodeIds == surfOrderedNodeIds) //< Must be ordered for set comparison
                     return {volCell, faceEntry.first};
