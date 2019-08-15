@@ -34,6 +34,9 @@ const string AsterWriter::toString() const {
 
 string AsterWriter::writeModel(Model& model,
 		const ConfigurationParameters &configuration) {
+    if (configuration.outputSolver.getSolverName() != SolverName::CODE_ASTER) {
+        handleWritingError("Translation required for a different solver : " + configuration.outputSolver.to_str() + ", so cannot write it.");
+    }
 	asterModel = make_unique<AsterModel>(model, configuration);
 //string currentOutFile = asterModel.getOutputFileName();
 
@@ -472,6 +475,26 @@ void AsterWriter::writeLireMaillage(const AsterModel& asterModel, ostream& out) 
                     << slaveSurface->surfaceCellGroup->getName()
                     << "'),";
             out << ")," << endl;
+		}
+		out << "                             )," << endl;
+		out << "                   )" << endl << endl;
+	}
+
+	for (const auto& constraintSet : asterModel.model.constraintSets) {
+        const auto& spcs = constraintSet->getConstraintsByType(Constraint::Type::SPC);
+        if (spcs.empty()) {
+            continue;
+        }
+        out << mail_name << "=DEFI_GROUP(reuse="<< mail_name << ",";
+        out << "MAILLAGE=" << mail_name << "," << endl;
+        out << "         CREA_GROUP_NO=(" << endl;
+		for (const auto& constraint : spcs) {
+		    const auto& spc = dynamic_pointer_cast<SinglePointConstraint>(constraint);
+		    if (spc->group != nullptr and spc->group->type == Group::Type::CELLGROUP) {
+                out << "                             _F(";
+                out << "GROUP_MA=('" << spc->group->getName() << "'),";
+                out << ")," << endl;
+		    }
 		}
 		out << "                             )," << endl;
 		out << "                   )" << endl << endl;

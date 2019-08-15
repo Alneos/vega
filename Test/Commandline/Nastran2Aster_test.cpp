@@ -280,9 +280,5 @@ BOOST_AUTO_TEST_CASE( coverage_testseg2 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/coverage/MeshSegLin.bdf", RUN_ASTER, true, 0.005);
 }
 
-BOOST_AUTO_TEST_CASE( coverage_testpentalin ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/coverage/MeshPentaLin.bdf", RUN_ASTER, true, 0.00001);
-}
-
 } /* namespace test */
 } /* namespace vega */

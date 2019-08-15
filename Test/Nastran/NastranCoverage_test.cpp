@@ -57,16 +57,21 @@ using namespace vega;
 }*/
 
 BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
-    Solver solver(SolverName::NASTRAN);
+    Solver solver(SolverName::CODE_ASTER);
     string solverVersion = "";
     fs::path inputFpath = fs::path(PROJECT_BASE_DIR "/testdata/nastran/irt/coverage");
     fs::path testOutputBase = fs::path(PROJECT_BINARY_DIR "/Testing/nastrancoverage");
 	ConfigurationParameters::TranslationMode translationMode = ConfigurationParameters::TranslationMode::MODE_STRICT;
     string nastranOutputSyntax = "modern";
-    const map<CellType, string>& meshByCellType = {{CellType::HEXA8, "MeshHexaLin"}, {CellType::TETRA4, "MeshTetraLin"}};
+    const map<CellType, string>& meshByCellType = {
+        {CellType::HEXA8, "MeshHexaLin"},
+        {CellType::TETRA4, "MeshTetraLin"},
+        {CellType::PENTA6, "MeshPentaLin"}
+    };
 	try {
 	    for (const auto& cellMeshEntry : meshByCellType) {
             const CellType& cellType = cellMeshEntry.first;
+            cout << "Using mesh of " + cellType.description << endl;
             fs::path outputPath = (testOutputBase / ("test_3d_cantilever_" + cellType.description)).make_preferred();
             fs::create_directories(outputPath);
             fs::path inputFname = (inputFpath / (cellMeshEntry.second + ".bdf")).make_preferred();
@@ -151,8 +156,8 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
             aster::AsterWriter asterWriter;
             fs::path modelFile = fs::path(asterWriter.writeModel(*model, configuration));
             aster::AsterRunner asterRunner;
-            //Runner::ExitCode exitCode = asterRunner.execSolver(configuration, modelFile.string());
-            //BOOST_CHECK_EQUAL(static_cast<int>(exitCode), static_cast<int>(Runner::ExitCode::OK));
+            Runner::ExitCode exitCode = asterRunner.execSolver(configuration, modelFile.string());
+            BOOST_CHECK_EQUAL(static_cast<int>(exitCode), static_cast<int>(Runner::ExitCode::OK));
 	    }
 
 	}

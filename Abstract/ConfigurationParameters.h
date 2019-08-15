@@ -60,7 +60,8 @@ private:
 public:
     Solver(SolverName name);
     SolverName getSolverName() const;
-    static Solver fromString(std::string solverTypeName);
+    std::string to_str() const;
+    static Solver fromString(const std::string solverTypeName);
 };
 /**
  * Contains configuration of model operations most of them done during finish()
@@ -68,9 +69,8 @@ public:
  */
 class ModelConfiguration {
 public:
-    ModelConfiguration();
-    virtual ~ModelConfiguration() {
-    }
+    ModelConfiguration() = default;
+    virtual ~ModelConfiguration() = default;
 
     bool virtualDiscrets = false;
     LogLevel logLevel = LogLevel::INFO;

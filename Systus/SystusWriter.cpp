@@ -367,6 +367,11 @@ string SystusWriter::writeModel(Model& model,
     cout << "Writing to SYSTUS (version " << systusModel.getSystusVersionString()<<")"<< endl;
 
     string path = systusModel.configuration.outputPath;
+
+    if (configuration.outputSolver.getSolverName() != SolverName::SYSTUS) {
+        handleWritingError("Translation required for a different solver : " + configuration.outputSolver.to_str() + ", so cannot write it.");
+    }
+
     if (!fs::exists(path)) {
         throw iostream::failure("Directory " + path + " don't exist.");
     }

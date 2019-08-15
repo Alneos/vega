@@ -98,7 +98,7 @@ SolverName Solver::getSolverName() const {
     return solverName;
 }
 
-Solver Solver::fromString(string name) {
+Solver Solver::fromString(const string name) {
     string normalizedSolverName = boost::to_upper_copy(boost::trim_copy(name));
     if (normalizedSolverName.empty()) {
         throw invalid_argument("SolverTypeName empty");
@@ -110,7 +110,13 @@ Solver Solver::fromString(string name) {
     return Solver(solverIterator->second);
 }
 
-ModelConfiguration::ModelConfiguration() {
+string Solver::to_str() const {
+
+    const auto& it = Solver::SOLVERNAME_BY_SOLVER.left.find(solverName);
+    if (it == Solver::SOLVERNAME_BY_SOLVER.left.end()) {
+        throw logic_error("Solver name string : " + to_string(static_cast<int>(solverName)) + " not (yet) configured in map.");
+    }
+    return it->second;
 }
 
 }

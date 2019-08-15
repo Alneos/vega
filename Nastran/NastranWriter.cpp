@@ -657,6 +657,10 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 string NastranWriter::writeModel(Model& model,
 		const vega::ConfigurationParameters &configuration) {
 
+    if (configuration.outputSolver.getSolverName() != SolverName::NASTRAN) {
+        handleWritingError("Translation required for a different solver : " + configuration.outputSolver.to_str() + ", so cannot write it.");
+    }
+
     if (configuration.nastranOutputDialect == "cosmic95") {
         dialect = Dialect::COSMIC95;
     } else {
