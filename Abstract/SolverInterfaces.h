@@ -122,7 +122,7 @@ private:
 	std::string msg;
 
 public:
-	WritingException(std::string message, std::string key = std::string(""), std::string filename = std::string(""));
+	WritingException(std::string message, std::string key = "", std::string filename = "");
 	operator const char*() const;
 	const char* what() const throw () override;
 	virtual ~WritingException() throw ();

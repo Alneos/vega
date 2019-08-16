@@ -19,8 +19,8 @@ BOOST_AUTO_TEST_CASE(read_tut_01_csv) {
 	string testLocation(PROJECT_BASE_DIR "/testdata/unitTest/resultReaders/tut01.csv");
 	boost::filesystem::path resultPath = fs::path(testLocation).make_preferred();
 
-	ConfigurationParameters params{string(""), SolverName::CODE_ASTER, string(""), string(""),
-			string("."), LogLevel::INFO,
+	ConfigurationParameters params{"", SolverName::CODE_ASTER, "", "",
+			".", LogLevel::INFO,
 			ConfigurationParameters::TranslationMode::BEST_EFFORT, resultPath};
 	result::CSVResultReader reader;
 	unique_ptr<Model> model = make_unique<Model>("tut_01", "", SolverName::CODE_ASTER,

@@ -20,6 +20,7 @@
 #include "build_properties.h"
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
 #include <iostream>
 #if defined VDEBUG && defined __GNUC_ && !defined(_WIN32)
 #include <valgrind/memcheck.h>
@@ -73,7 +74,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
     runnerBySolverName[SolverName::SYSTUS] = make_unique<systus::SystusRunner>();
     map<SolverName, bool> canrunBySolverName = {
         {SolverName::CODE_ASTER, RUN_ASTER},
-        {SolverName::SYSTUS, false}, // to be fixed
+        {SolverName::SYSTUS, RUN_SYSTUS}, // to be fixed
         {SolverName::NASTRAN, false}, // cosmic cannot handle PLOAD4 on volume cells
     };
     const map<CellType, string>& meshByCellType = {
@@ -86,6 +87,11 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
         {CellType::PENTA15, "MeshPentaQuad"},
         {CellType::HEXA20, "MeshHexaQuad"},
     };
+    const set<Loading::Type> loadingTypes = {
+        Loading::Type::FORCE_SURFACE,
+        Loading::Type::NORMAL_PRESSION_FACE,
+//        Loading::Type::NODAL_FORCE,
+    };
 	try {
 	    for (const auto& writerEntry : writerBySolverName) {
             const SolverName& solverName = writerEntry.first;
@@ -94,7 +100,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
             for (const auto& cellMeshEntry : meshByCellType) {
                 const CellType& cellType = cellMeshEntry.first;
                 cout << "Using mesh of " + cellType.description << endl;
-                fs::path outputPath = (testOutputBase / ("test_3d_cantilever_" + solver.to_str() + "_" + cellType.description)).make_preferred();
+                fs::path outputPath = (testOutputBase / boost::to_lower_copy(solver.to_str()) / ("test_3d_cantilever_" + cellType.description)).make_preferred();
                 fs::create_directories(outputPath);
                 fs::path inputFname = (inputFpath / (cellMeshEntry.second + ".bdf")).make_preferred();
                 fs::path testFname = (inputFpath / (cellMeshEntry.second + ".f06")).make_preferred();
@@ -156,43 +162,86 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                 // Add Analyses
                 int analysisId = 1;
                 int loadSetId = 1;
-                for (const DOF& loadDirection : DOFS::TRANSLATIONS) {
-                    DOFCoefs loadingCoefs(DOFS::ALL_DOFS, 0.0);
-                    loadingCoefs.setValue(loadDirection, -0.5);
-                    const VectorialValue& force{loadingCoefs.getValue(DOF::DX), loadingCoefs.getValue(DOF::DY), loadingCoefs.getValue(DOF::DZ)};
-                    const auto& analysis = make_shared<LinearMecaStat>(*model, "coverage", analysisId);
 
-                    // Add loadset
-                    const auto& loadSet = make_shared<LoadSet>(*model, LoadSet::Type::LOAD, loadSetId);
-                    model->add(loadSet);
+                for (const auto& loadingType : loadingTypes) {
+                    switch (loadingType) {
+                        case Loading::Type::FORCE_SURFACE : {
+                            for (const DOF& loadDirection : DOFS::TRANSLATIONS) {
+                                DOFCoefs loadingCoefs(DOFS::ALL_DOFS, 0.0);
+                                loadingCoefs.setValue(loadDirection, -0.5);
+                                const VectorialValue& force{loadingCoefs.getValue(DOF::DX), loadingCoefs.getValue(DOF::DY), loadingCoefs.getValue(DOF::DZ)};
+                                const auto& analysis = make_shared<LinearMecaStat>(*model, "PLOAD4", analysisId);
+                                const auto& loadSet = make_shared<LoadSet>(*model, LoadSet::Type::LOAD, loadSetId);
+                                model->add(loadSet);
 
-                    analysis->add(*loadSet);
-                    analysis->add(*constraintSet);
-                    analysis->add(*nodalOutput);
-                    model->add(analysis);
-
-                    // Add load
-                    for (const Cell& surfCell : x300group->getCells()) {
-                        const auto volCellAndFacenum = model->mesh.volcellAndFaceNum_from_skincell(surfCell);
-                        const Cell& volCell = volCellAndFacenum.first;
-                        const int faceNum = volCellAndFacenum.second;
-                        const pair<int, int> applicationNodeIds = volCell.two_nodeids_from_facenum(faceNum);
-
-                        shared_ptr<ForceSurface> forceSurfaceTwoNodes = nullptr;
-                        if (applicationNodeIds.second == Globals::UNAVAILABLE_INT) {
-                            forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(*model, applicationNodeIds.first,
-                                force, VectorialValue(0.0, 0.0, 0.0));
-                        } else {
-                            forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(*model, applicationNodeIds.first, applicationNodeIds.second,
-                                force, VectorialValue(0.0, 0.0, 0.0));
+                                analysis->add(*loadSet);
+                                analysis->add(*constraintSet);
+                                analysis->add(*nodalOutput);
+                                model->add(analysis);
+                                for (const Cell& surfCell : x300group->getCells()) {
+                                    const auto volCellAndFacenum = model->mesh.volcellAndFaceNum_from_skincell(surfCell);
+                                    const Cell& volCell = volCellAndFacenum.first;
+                                    const int faceNum = volCellAndFacenum.second;
+                                    const pair<int, int> applicationNodeIds = volCell.two_nodeids_from_facenum(faceNum);
+                                    shared_ptr<ForceSurface> forceSurfaceTwoNodes = nullptr;
+                                    if (applicationNodeIds.second == Globals::UNAVAILABLE_INT) {
+                                        forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(*model, applicationNodeIds.first,
+                                            force, VectorialValue(0.0, 0.0, 0.0));
+                                    } else {
+                                        forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(*model, applicationNodeIds.first, applicationNodeIds.second,
+                                            force, VectorialValue(0.0, 0.0, 0.0));
+                                    }
+                                    forceSurfaceTwoNodes->add(volCell);
+                                    model->add(forceSurfaceTwoNodes);
+                                    model->addLoadingIntoLoadSet(*forceSurfaceTwoNodes, *loadSet);
+                                }
+                                loadSetId++;
+                                analysisId++;
+                            }
+                            break;
                         }
-                        forceSurfaceTwoNodes->add(volCell);
-                        model->add(forceSurfaceTwoNodes);
-                        model->addLoadingIntoLoadSet(*forceSurfaceTwoNodes, *loadSet);
+                        case Loading::Type::NORMAL_PRESSION_FACE : {
+                            const auto& analysis = make_shared<LinearMecaStat>(*model, "PLOAD2", analysisId);
+                            const auto& loadSet = make_shared<LoadSet>(*model, LoadSet::Type::LOAD, loadSetId);
+                            model->add(loadSet);
 
+                            analysis->add(*loadSet);
+                            analysis->add(*constraintSet);
+                            analysis->add(*nodalOutput);
+                            model->add(analysis);
+                            const auto& normalPressionFace = make_shared<NormalPressionFace>(*model, 5.0);
+                            normalPressionFace->add(*x300group);
+                            continuum->add(*x300group);
+                            model->add(normalPressionFace);
+                            model->addLoadingIntoLoadSet(*normalPressionFace, *loadSet);
+                            loadSetId++;
+                            analysisId++;
+                            break;
+                        }
+                        case Loading::Type::NODAL_FORCE : {
+                            const auto& analysis = make_shared<LinearMecaStat>(*model, "coverage", analysisId);
+                            const auto& loadSet = make_shared<LoadSet>(*model, LoadSet::Type::LOAD, loadSetId);
+                            model->add(loadSet);
+
+                            analysis->add(*loadSet);
+                            analysis->add(*constraintSet);
+                            analysis->add(*nodalOutput);
+                            model->add(analysis);
+                            for (const Cell& surfCell : x300group->getCells()) {
+                                auto nodeIds = surfCell.nodeIds;
+                                // TODO handle quad nodes ???
+                                //const auto& staticPressure = make_shared<StaticPressure>(model, g1, g2, g3, g4, p);
+                                //model->add(forceSurfaceTwoNodes);
+                                //model->addLoadingIntoLoadSet(*forceSurfaceTwoNodes, *loadSet);
+                            }
+                            loadSetId++;
+                            analysisId++;
+                            break;
+                        }
+                        default:
+                            throw logic_error("Loading type not yet implemented");
                     }
-                    loadSetId++;
-                    analysisId++;
+
                 }
 
                 model->finish();

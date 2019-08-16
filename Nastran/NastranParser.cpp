@@ -438,7 +438,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                 addSet(tok, model);
             } else {
                 if (tok.nextSymbolType != NastranTokenizer::SymbolType::SYMBOL_FIELD) {
-                    context[keyword] = string("");
+                    context[keyword] = "";
                 } else {
                     vector<string> parts;
                     split(parts, tok.currentRawDataLine(), boost::is_any_of("="), boost::algorithm::token_compress_on);

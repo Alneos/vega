@@ -68,13 +68,13 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
             + folderSuffix;
     fs::path sourceFname(string(PROJECT_BASE_DIR) + "/testdata/" + folderPrefix + inputFname);
     fs::path stem = sourceFname.stem();
-    string message = string("Processing : ") + sourceFname.string();
+    string message = "Processing : " + sourceFname.string();
     BOOST_TEST_MESSAGE(message);
 
     //outputPath
     const fs::path inputRelativePath = fs::path(inputFname).parent_path();
     fs::path outputPath = (fs::path(testOutputBase.c_str()) / inputRelativePath).make_preferred();
-    const string outputPathEscaped = string("\"") + outputPath.string() + string("\"");
+    const string outputPathEscaped = "\"" + outputPath.string() + "\"";
 
     //tests
     bool hasTests;
@@ -84,9 +84,9 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
         fs::path csvTests = sourceFname.parent_path() / (stem.string() + ".csv");
         hasTests = fs::exists(nastranTests) || fs::exists(csvTests);
         if (fs::exists(nastranTests)) {
-			test_file = string("\"") + nastranTests.string() + string("\"");
+			test_file = "\"" + nastranTests.string() + "\"";
         } else {
-        	test_file = string("\"") + csvTests.string() + string("\"");
+        	test_file = "\"" + csvTests.string() + "\"";
         }
     } else {
         hasTests = false;
@@ -123,7 +123,7 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
         argv1.push_back(toleranceString.c_str());
     }
 
-    string quotedSource = string("\"") + sourceFname.make_preferred().string() + "\"";
+    string quotedSource = "\"" + sourceFname.make_preferred().string() + "\"";
     argv1.push_back(quotedSource.c_str());
     argv1.push_back(inputSolverString.c_str());
     argv1.push_back(outputSolverString.c_str());

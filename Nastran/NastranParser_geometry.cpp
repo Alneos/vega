@@ -164,7 +164,7 @@ void NastranParser::parseCBAR(NastranTokenizer& tok, Model& model) {
     int cpos = parseOrientation(point1, point2, tok, model);
     string offt = tok.nextString(true);
     if (!offt.empty() && offt != "GGG") {
-        string message = string("OFFT ") + offt + string(" not supported and taken as GGG.");
+        string message = "OFFT " + offt + " not supported and taken as GGG.";
         handleParsingWarning(message, tok, model);
     }
 
@@ -172,7 +172,7 @@ void NastranParser::parseCBAR(NastranTokenizer& tok, Model& model) {
     int pa = tok.nextInt(true);
     int pb = tok.nextInt(true);
     if ((pa != Globals::UNAVAILABLE_INT) || (pb != Globals::UNAVAILABLE_INT)) {
-        string message = string("Pin flags (PA, PB) not supported and dismissed.");
+        string message = "Pin flags (PA, PB) not supported and dismissed.";
         handleParsingWarning(message, tok, model);
     }
     // Offset vectors : not supported
@@ -199,7 +199,7 @@ void NastranParser::parseCBEAM(NastranTokenizer& tok, Model& model) {
     int cpos = parseOrientation(point1, point2, tok, model);
     string offt = tok.nextString(true);
     if (!offt.empty() && offt != "GGG") {
-        string message = string("OFFT ") + offt + string(" not supported and taken as GGG.");
+        string message = "OFFT " + offt + " not supported and taken as GGG.";
         handleParsingWarning(message, tok, model);
     }
 
@@ -207,7 +207,7 @@ void NastranParser::parseCBEAM(NastranTokenizer& tok, Model& model) {
     int pa = tok.nextInt(true);
     int pb = tok.nextInt(true);
     if ((pa != Globals::UNAVAILABLE_INT) || (pb != Globals::UNAVAILABLE_INT)) {
-        string message = string("Pin flags (PA, PB) not supported and dismissed.");
+        string message = "Pin flags (PA, PB) not supported and dismissed.";
         handleParsingWarning(message, tok, model);
     }
 
@@ -277,8 +277,8 @@ void NastranParser::parseCBUSH(NastranTokenizer& tok, Model& model) {
         double s2=tok.nextDouble(true);
         double s3=tok.nextDouble(true);
         if (ocid!=-1){
-            handleParsingWarning(string("OCID keyword not supported. Default (-1) used."), tok, model);
-            handleParsingWarning(string("S1 S2 S3 dismissed :")+to_string(s1)+ string(" ")+to_string(s2)+ string(" ")+to_string(s3), tok, model);
+            handleParsingWarning("OCID keyword not supported. Default (-1) used.", tok, model);
+            handleParsingWarning("S1 S2 S3 dismissed :"+to_string(s1)+ " "+to_string(s2)+ " "+to_string(s3), tok, model);
             ocid=-1;
         }
     }
