@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
     runnerBySolverName[SolverName::SYSTUS] = make_unique<systus::SystusRunner>();
     map<SolverName, bool> canrunBySolverName = {
         {SolverName::CODE_ASTER, RUN_ASTER},
-        {SolverName::SYSTUS, RUN_SYSTUS}, // to be fixed
+        {SolverName::SYSTUS, RUN_SYSTUS},
         {SolverName::NASTRAN, false}, // cosmic cannot handle PLOAD4 on volume cells
     };
     const map<CellType, string>& meshByCellType = {
@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                 // Add Analyses
                 int analysisId = 1;
                 int loadSetId = 1;
-                double f = 100.0;
+                //double f = 100.0;
                 double p = 0.5;
                 for (const auto& loadingType : loadingTypes) {
                     switch (loadingType) {
@@ -210,11 +210,21 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                             analysis->add(*constraintSet);
                             analysis->add(*nodalOutput);
                             model->add(analysis);
-                            const auto& normalPressionFace = make_shared<NormalPressionFace>(*model, f);
-                            normalPressionFace->add(*x300group);
-                            continuum->add(*x300group);
-                            model->add(normalPressionFace);
-                            model->addLoadingIntoLoadSet(*normalPressionFace, *loadSet);
+                            for (const Cell& surfCell : x300group->getCells()) {
+                                const auto volCellAndFacenum = model->mesh.volcellAndFaceNum_from_skincell(surfCell);
+                                const Cell& volCell = volCellAndFacenum.first;
+                                const int faceNum = volCellAndFacenum.second;
+                                const pair<int, int> applicationNodeIds = volCell.two_nodeids_from_facenum(faceNum);
+                                shared_ptr<NormalPressionFace> pressionFace = nullptr;
+                                if (applicationNodeIds.second == Globals::UNAVAILABLE_INT) {
+                                    pressionFace = make_shared<NormalPressionFaceTwoNodes>(*model, applicationNodeIds.first, p);
+                                } else {
+                                    pressionFace = make_shared<NormalPressionFaceTwoNodes>(*model, applicationNodeIds.first, applicationNodeIds.second, p);
+                                }
+                                pressionFace->add(volCell);
+                                model->add(pressionFace);
+                                model->addLoadingIntoLoadSet(*pressionFace, *loadSet);
+                            }
                             loadSetId++;
                             analysisId++;
                             break;

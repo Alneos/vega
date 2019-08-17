@@ -232,35 +232,6 @@ void NastranWriter::writeSOL(const Model& model, ofstream& out) const
 
 	out << "SOL " << analysisLabel << endl;
 	firstAnalysis->markAsWritten();
-	if (model.analyses.size() >= 2) {
-        for (auto& analysis : model.analyses) {
-            out << "SUBCASE " << analysis->bestId() << endl;
-            for (const auto& loadSet : analysis->getLoadSets()) {
-                switch (loadSet->type) {
-                case LoadSet::Type::LOAD: {
-                    out << "LOAD=" << loadSet->bestId() << endl;
-                    loadSet->markAsWritten();
-                    break;
-                }
-                default:
-                    handleWritingError("LoadSet type not (yet) implemented");
-                }
-            }
-            for (const auto& constraintSet : analysis->getConstraintSets()) {
-                switch (constraintSet->type) {
-                case ConstraintSet::Type::SPC: {
-                    out << "SPC=" << constraintSet->bestId() << endl;
-                    constraintSet->markAsWritten();
-                    break;
-                }
-                default:
-                    handleWritingError("LoadSet type not (yet) implemented");
-                }
-            }
-            analysis->markAsWritten();
-        }
-	}
-
 }
 
 void NastranWriter::writeCells(const Model& model, ofstream& out) const
@@ -520,6 +491,32 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
             forceSurface->markAsWritten();
         }
 
+		const auto& normalPressionFaces = loadingSet->getLoadingsByType(
+				Loading::Type::NORMAL_PRESSION_FACE);
+        for (shared_ptr<Loading> loading : normalPressionFaces) {
+            shared_ptr<NormalPressionFace> normalPressionFace = dynamic_pointer_cast<NormalPressionFace>(loading);
+            for (const int cellPosition: normalPressionFace->getCellPositionsIncludingGroups()) {
+                const Cell& cell = model.mesh.findCell(cellPosition);
+                Line pload4("PLOAD4");
+                pload4.add(loadingSet->bestId());
+                pload4.add(cell.id);
+                pload4.add(normalPressionFace->intensity);
+                pload4.add("");
+                pload4.add("");
+                pload4.add("");
+                // TODO LD must recalculate two opposite nodes... hack
+                if (cell.type.dimension == SpaceDimension::DIMENSION_3D) {
+                    pload4.add(normalPressionFace->getApplicationFaceNodeIds()[0]);
+                    pload4.add(normalPressionFace->getApplicationFaceNodeIds()[2]);
+                } else {
+                    pload4.add("");
+                    pload4.add("");
+                }
+                out << pload4;
+            }
+            normalPressionFace->markAsWritten();
+        }
+
 		const auto& nodalForces = loadingSet->getLoadingsByType(
 				Loading::Type::NODAL_FORCE);
         for (shared_ptr<Loading> loading : nodalForces) {
@@ -702,7 +699,7 @@ string NastranWriter::writeModel(Model& model,
             int setNum = 1;
             for (const auto& objective : displacementOutputs) {
                 const auto& displacementOutput = dynamic_pointer_cast<const NodalDisplacementOutput>(objective);
-                out << "SET " << setNum << " = ";
+                out << "  SET " << setNum << " = ";
                 bool firstNode = true;
                 for (int nodePosition : displacementOutput->getNodePositionsIncludingGroups()) {
                     if (not firstNode)
@@ -713,12 +710,13 @@ string NastranWriter::writeModel(Model& model,
                 }
                 out << endl;
 
-                out << "DISP = " << setNum << endl;
+                out << "  DISP = " << setNum << endl;
                 setNum++;
             }
 		} else {
-            out << "DISP = ALL" << endl;
+            out << "  DISP = ALL" << endl;
 		}
+		analysis->markAsWritten();
 	}
     if (isCosmic()) {
         out << "MAXLINES=999999" << endl;

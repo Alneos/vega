@@ -1,7 +1,1155 @@
+1
+ 
+ 
+ 
+ 
+                      Warning: This computer program is protected by copyright law and international treaties.       
+                  Unauthorized use, reproduction or distribution of this computer program, or any portion of it, may 
+                                          result in severe civil and criminal penalties.                             
+                         Copyright (C) 2012 MSC.Software Corporation and its licensors. All rights reserved.         
+ 
+ 
+                                              * * * * * * * * * * * * * * * * * * * *
+                                              * * * * * * * * * * * * * * * * * * * *
+                                              * *                                 * *
+                                              * *           MSC.SOFTWARE          * *
+                                              * *               CORP              * *
+                                              * *                                 * *
+                                              * *      M S C   N a s t r a n      * *
+                                              * *                                 * *
+                                              * *                                 * *
+                                              * *                                 * *
+                                              * *     Version 2012.2.0-CL151760   * *
+                                              * *                                 * *
+                                              * *                                 * *
+                                              * *                                 * *
+                                              * *          JUL  6, 2012           * *
+                                              * *                                 * *
+                                              * *       x86-64 Based System       * *
+                                              * *        MODEL Intel x8664        * *
+                                              * *     Linux 4.15.0-58-generic     * *
+                                              * *       Compiled for x8664        * *
+                                              * *                                 * *
+                                              * * * * * * * * * * * * * * * * * * * *
+                                              * * * * * * * * * * * * * * * * * * * *
+1News file -  (May 29, 2012):
+  
+               Welcome to MSC Nastran 2012.2
+  
+   Details of the release can be found in the Release Guide available
+   electronically in the installation documentation sub-directory.
+   Additional information can be found at the Nastran Product Support page:
+  
+      http://simcompanion.mscsoftware.com
+  
+   The support page provides links to this valuable information:
+      * A searchable Knowledge Base containing examples and answers to thousands
+        frequently asked questions written by MSC.Software subject-matter experts
+      * Peer-to-peer Discussion Forums enabling you to post questions for your
+        MSC.Software products and receive answers from other users worldwide.
+      * A list of known issues with the product and any workarounds.
+      * Instructions on how to contact technical support
+      * A mechanism for sending us product feedback or enhancement requests.
+      * Hardware and software requirements.
+      * Examples and Tutorials
+      * and much more.
+  
+   For information on training, please visit our Training web site
+  
+      http://www.mscsoftware.com/Contents/Services/Training/
+  
+   MSC Nastran brings powerful new features and enhancements for engineering
+   solutions. For a detailed description of features added to MSC Nastran 2012.2
+   Release Guide.
+   The highlights for the 2012.1 release include:
+      * MD and MSC Products have been consolidated into one release.
+      * Improved Performance when using ACMS especially with Parallel Processing
+      * A New Method for Complex Eigenvalue Analysis which has Greater Accuracy
+      * Improved performance for the Solution of Nonsymmetric systems encountered
+        with Exterior Acoustics, Friction and complex Lanczos
+      * Support of GPU computing
+      * Structural Interior - Exterior Acoustics can be performed using Weakly
+        Coupled Procedure which is Faster in SOL 111 and SOL 200
+      * Complex stress recovery for Shells in SOL 108,109, 111 and 112.
+      * Improved coupling with ACTRAN for modeling of Trimming material in SOL 10
+        and SOL 111
+      * Panel Participation Factor may be obtained for the Structural Response an
+        may be utilized in optimization.
+      * Easier to use Linear Contact Capability in SOL 400
+      * Improved Time Stepping procedure in SOL 400
+      * Coupled Thermal-Structural Analysis with SOL 700
+      * Wood and Ice Model in SOL 700
+      * Improved Computational Performance for FSI simulations on Parallel Proces
+      * Improved Splining techniques in Aeroelastic calculations
+ The highlights for the 2012.2 release include:
+1     * Reduction in I/O times for large models which had significant I/O in
+        previous releases
+      * Improved performance when using SOL 400 for nonlinear analysis
+      * The Segment-to-Segment Contact Procedure is expanded for Large Deformatio
+        and Friction
+      * User can easily add mass to CBUSH elements
+  
+  
+  
+  
+  
+  
+  
+  
+  
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     1
+                                                                                                                                    
+0        N A S T R A N    F I L E    A N D    S Y S T E M    P A R A M E T E R    E C H O                                           
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+     NASTRAN BUFFSIZE=8193 $(/MSC/MSC_NASTRAN/20122/CONF/NAST20122RC[3])             
+     $ MESHTETRALIN.BDF                                                              
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     2
+                                                                                                                                    
+0        N A S T R A N    E X E C U T I V E    C O N T R O L    E C H O                                                             
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+     ID MESHTETRALIN.BDF,NASTRAN                                                             
+     SOL 101                                                                                 
+     APP   DISP                                                                              
+     TIME  10000                                                                             
+     CEND                                                                                    
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     3
+                                                                                                                                    
+0                                                                                                                                   
+0                                        C A S E    C O N T R O L    E C H O                                                        
+                 COMMAND                                                                                                            
+                 COUNT                                                                                                              
+                  1      SUBCASE 1                                                                               
+                  2        LOAD=1                                                                                
+                  3        SPC=1                                                                                 
+                  4      SET 1 = 7,8,9,10,11,12,129,130,131,132,200                                              
+                  5      DISP = 1                                                                                
+                  6      SUBCASE 2                                                                               
+                  7        LOAD=2                                                                                
+                  8        SPC=1                                                                                 
+                  9      SET 1 = 7,8,9,10,11,12,129,130,131,132,200                                              
+                 10      DISP = 1                                                                                
+                 11      SUBCASE 3                                                                               
+                 12        LOAD=3                                                                                
+                 13        SPC=1                                                                                 
+                 14      SET 1 = 7,8,9,10,11,12,129,130,131,132,200                                              
+                 15      DISP = 1                                                                                
+                 16      SUBCASE 4                                                                               
+                 17        LOAD=4                                                                                
+                 18        SPC=1                                                                                 
+                 19      SET 1 = 7,8,9,10,11,12,129,130,131,132,200                                              
+                 20      DISP = 1                                                                                
+                 21      SUBCASE 5                                                                               
+                 22        LOAD=5                                                                                
+                 23        SPC=1                                                                                 
+                 24      SET 1 = 7,8,9,10,11,12,129,130,131,132,200                                              
+                 25      DISP = 1                                                                                
+                 26      $                                                                                       
+                 27      TITLE=VEGA EXPORTED MODEL                                                               
+                 28      BEGIN BULK                                                                              
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     4
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                    1-        CTETRA  537     1       168     169     167     184
+                    2-        CTETRA  538     1       23      22      190     52
+                    3-        CTETRA  539     1       61      60      178     157
+                    4-        CTETRA  540     1       74      73      141     170
+                    5-        CTETRA  541     1       73      74      141     103
+                    6-        CTETRA  542     1       150     24      53      54
+                    7-        CTETRA  543     1       180     65      64      161
+                    8-        CTETRA  544     1       160     196     92      179
+                    9-        CTETRA  545     1       6       13      168     136
+                   10-        CTETRA  546     1       79      108     146     78
+                   11-        CTETRA  547     1       13      139     6       168
+                   12-        CTETRA  548     1       64      180     161     196
+                   13-        CTETRA  549     1       105     171     144     76
+                   14-        CTETRA  550     1       114     176     152     153
+                   15-        CTETRA  551     1       6       136     168     134
+                   16-        CTETRA  552     1       92      179     159     160
+                   17-        CTETRA  553     1       167     138     168     184
+                   18-        CTETRA  554     1       166     165     183     127
+                   19-        CTETRA  555     1       20      50      146     189
+                   20-        CTETRA  556     1       63      62      179     159
+                   21-        CTETRA  557     1       152     85      192     176
+                   22-        CTETRA  558     1       128     166     183     127
+                   23-        CTETRA  559     1       82      110     111     149
+                   24-        CTETRA  560     1       79      78      146     189
+                   25-        CTETRA  561     1       34      33      179     63
+                   26-        CTETRA  562     1       104     75      187     143
+                   27-        CTETRA  563     1       166     132     183     41
+                   28-        CTETRA  564     1       179     196     34      160
+                   29-        CTETRA  565     1       42      6       139     134
+                   30-        CTETRA  566     1       160     121     92      93
+                   31-        CTETRA  567     1       104     143     187     142
+                   32-        CTETRA  568     1       166     40      41      183
+                   33-        CTETRA  569     1       142     103     74      104
+                   34-        CTETRA  570     1       94      162     95      197
+                   35-        CTETRA  571     1       194     156     60      59
+                   36-        CTETRA  572     1       45      187     16      46
+                   37-        CTETRA  573     1       3       1       135     71
+                   38-        CTETRA  574     1       146     145     172     107
+                   39-        CTETRA  575     1       61      195     62      158
+                   40-        CTETRA  576     1       129     8       128     9
+                   41-        CTETRA  577     1       142     187     45      46
+                   42-        CTETRA  578     1       42      5       6       134
+                   43-        CTETRA  579     1       115     193     154     87
+                   44-        CTETRA  580     1       168     136     199     134
+                   45-        CTETRA  581     1       23      24      53      174
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     5
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                   46-        CTETRA  582     1       154     193     177     87
+                   47-        CTETRA  583     1       38      67      164     68
+                   48-        CTETRA  584     1       154     116     115     87
+                   49-        CTETRA  585     1       141     185     186     170
+                   50-        CTETRA  586     1       165     127     126     98
+                   51-        CTETRA  587     1       99      127     183     98
+                   52-        CTETRA  588     1       188     48      47      144
+                   53-        CTETRA  589     1       146     189     78      172
+                   54-        CTETRA  590     1       51      190     52      148
+                   55-        CTETRA  591     1       179     158     62      195
+                   56-        CTETRA  592     1       126     182     165     98
+                   57-        CTETRA  593     1       165     182     183     98
+                   58-        CTETRA  594     1       128     127     183     99
+                   59-        CTETRA  595     1       113     85      192     152
+                   60-        CTETRA  596     1       128     99      183     200
+                   61-        CTETRA  597     1       115     193     153     154
+                   62-        CTETRA  598     1       142     187     74      141
+                   63-        CTETRA  599     1       48      19      172     188
+                   64-        CTETRA  600     1       124     96      95      181
+                   65-        CTETRA  601     1       124     96      181     163
+                   66-        CTETRA  602     1       128     200     183     166
+                   67-        CTETRA  603     1       150     191     83      111
+                   68-        CTETRA  604     1       141     74      170     187
+                   69-        CTETRA  605     1       90      119     158     157
+                   70-        CTETRA  606     1       171     47      46      143
+                   71-        CTETRA  607     1       36      162     197     66
+                   72-        CTETRA  608     1       194     30      177     59
+                   73-        CTETRA  609     1       12      10      132     41
+                   74-        CTETRA  610     1       101     72      137     167
+                   75-        CTETRA  611     1       91      158     179     195
+                   76-        CTETRA  612     1       190     80      147     173
+                   77-        CTETRA  613     1       62      63      179     33
+                   78-        CTETRA  614     1       185     140     186     169
+                   79-        CTETRA  615     1       166     200     130     129
+                   80-        CTETRA  616     1       94      180     162     197
+                   81-        CTETRA  617     1       150     149     53      204
+                   82-        CTETRA  618     1       99      131     200     9
+                   83-        CTETRA  619     1       186     140     139     169
+                   84-        CTETRA  620     1       42      43      139     13
+                   85-        CTETRA  621     1       82      149     174     81
+                   86-        CTETRA  622     1       53      149     201     174
+                   87-        CTETRA  623     1       53      24      150     204
+                   88-        CTETRA  624     1       139     169     168     13
+                   89-        CTETRA  625     1       139     43      14      13
+                   90-        CTETRA  626     1       73      185     141     170
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     6
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                   91-        CTETRA  627     1       199     134     133     138
+                   92-        CTETRA  628     1       195     61      62      32
+                   93-        CTETRA  629     1       148     81      110     109
+                   94-        CTETRA  630     1       137     138     100     167
+                   95-        CTETRA  631     1       186     169     139     14
+                   96-        CTETRA  632     1       188     145     144     106
+                   97-        CTETRA  633     1       139     140     167     169
+                   98-        CTETRA  634     1       186     14      139     43
+                   99-        CTETRA  635     1       75      171     143     105
+                  100-        CTETRA  636     1       71      184     135     137
+                  101-        CTETRA  637     1       116     177     154     155
+                  102-        CTETRA  638     1       7       131     99      9
+                  103-        CTETRA  639     1       89      194     156     178
+                  104-        CTETRA  640     1       88      156     89      194
+                  105-        CTETRA  641     1       189     50      147     173
+                  106-        CTETRA  642     1       176     114     152     85
+                  107-        CTETRA  643     1       183     127     165     98
+                  108-        CTETRA  644     1       75      171     105     76
+                  109-        CTETRA  645     1       176     85      86      114
+                  110-        CTETRA  646     1       56      176     153     152
+                  111-        CTETRA  647     1       100     133     3       2
+                  112-        CTETRA  648     1       111     191     82      149
+                  113-        CTETRA  649     1       188     144     47      171
+                  114-        CTETRA  650     1       130     70      12      41
+                  115-        CTETRA  651     1       77      107     172     145
+                  116-        CTETRA  652     1       82      191     174     149
+                  117-        CTETRA  653     1       40      166     41      70
+                  118-        CTETRA  654     1       78      107     172     77
+                  119-        CTETRA  655     1       51      147     50      173
+                  120-        CTETRA  656     1       166     70      130     41
+                  121-        CTETRA  657     1       57      193     58      154
+                  122-        CTETRA  658     1       111     83      82      191
+                  123-        CTETRA  659     1       188     171     47      18
+                  124-        CTETRA  660     1       51      21      22      173
+                  125-        CTETRA  661     1       183     200     99      131
+                  126-        CTETRA  662     1       177     30      29      59
+                  127-        CTETRA  663     1       169     168     167     139
+                  128-        CTETRA  664     1       163     96      181     198
+                  129-        CTETRA  665     1       93      180     161     94
+                  130-        CTETRA  666     1       161     180     93      196
+                  131-        CTETRA  667     1       110     149     82      81
+                  132-        CTETRA  668     1       130     200     166     132
+                  133-        CTETRA  669     1       71      184     137     72
+                  134-        CTETRA  670     1       50      21      51      173
+                  135-        CTETRA  671     1       180     65      161     162
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     7
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  136-        CTETRA  672     1       141     170     16      187
+                  137-        CTETRA  673     1       89      178     157     90
+                  138-        CTETRA  674     1       79      147     80      173
+                  139-        CTETRA  675     1       89      90      157     118
+                  140-        CTETRA  676     1       175     55      54      151
+                  141-        CTETRA  677     1       89      118     157     156
+                  142-        CTETRA  678     1       160     121     93      122
+                  143-        CTETRA  679     1       181     162     124     163
+                  144-        CTETRA  680     1       144     171     188     76
+                  145-        CTETRA  681     1       119     118     157     90
+                  146-        CTETRA  682     1       106     107     77      145
+                  147-        CTETRA  683     1       90      157     158     195
+                  148-        CTETRA  684     1       50      189     147     146
+                  149-        CTETRA  685     1       56      192     176     152
+                  150-        CTETRA  686     1       60      178     156     194
+                  151-        CTETRA  687     1       58      177     155     154
+                  152-        CTETRA  688     1       168     136     135     199
+                  153-        CTETRA  689     1       60      61      178     31
+                  154-        CTETRA  690     1       104     142     187     74
+                  155-        CTETRA  691     1       203     175     26      192
+                  156-        CTETRA  692     1       175     26      25      55
+                  157-        CTETRA  693     1       60      178     157     156
+                  158-        CTETRA  694     1       92      160     159     121
+                  159-        CTETRA  695     1       200     129     128     9
+                  160-        CTETRA  696     1       161     162     123     94
+                  161-        CTETRA  697     1       102     101     185     72
+                  162-        CTETRA  698     1       48      49      172     19
+                  163-        CTETRA  699     1       137     199     3       138
+                  164-        CTETRA  700     1       202     40      69      165
+                  165-        CTETRA  701     1       137     184     135     199
+                  166-        CTETRA  702     1       47      171     144     143
+                  167-        CTETRA  703     1       3       199     133     138
+                  168-        CTETRA  704     1       3       138     100     137
+                  169-        CTETRA  705     1       150     24      25      191
+                  170-        CTETRA  706     1       47      17      18      171
+                  171-        CTETRA  707     1       84      192     175     151
+                  172-        CTETRA  708     1       100     138     3       133
+                  173-        CTETRA  709     1       162     94      95      123
+                  174-        CTETRA  710     1       159     179     91      158
+                  175-        CTETRA  711     1       197     162     181     66
+                  176-        CTETRA  712     1       139     6       168     134
+                  177-        CTETRA  713     1       192     56      176     27
+                  178-        CTETRA  714     1       58      59      177     29
+                  179-        CTETRA  715     1       177     116     154     87
+                  180-        CTETRA  716     1       49      50      146     20
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     8
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  181-        CTETRA  717     1       75      143     104     105
+                  182-        CTETRA  718     1       92      121     159     120
+                  183-        CTETRA  719     1       160     122     93      161
+                  184-        CTETRA  720     1       113     192     84      151
+                  185-        CTETRA  721     1       113     152     192     151
+                  186-        CTETRA  722     1       166     165     40      183
+                  187-        CTETRA  723     1       130     11      12      70
+                  188-        CTETRA  724     1       90      195     158     91
+                  189-        CTETRA  725     1       115     114     153     86
+                  190-        CTETRA  726     1       64      180     196     35
+                  191-        CTETRA  727     1       159     158     91      120
+                  192-        CTETRA  728     1       203     192     56      152
+                  193-        CTETRA  729     1       198     96      97      125
+                  194-        CTETRA  730     1       150     111     83      112
+                  195-        CTETRA  731     1       143     171     144     105
+                  196-        CTETRA  732     1       186     43      139     140
+                  197-        CTETRA  733     1       84      112     113     151
+                  198-        CTETRA  734     1       81      190     201     174
+                  199-        CTETRA  735     1       135     199     3       137
+                  200-        CTETRA  736     1       202     39      69      40
+                  201-        CTETRA  737     1       55      175     54      25
+                  202-        CTETRA  738     1       175     54      25      150
+                  203-        CTETRA  739     1       174     190     201     23
+                  204-        CTETRA  740     1       113     85      152     114
+                  205-        CTETRA  741     1       53      174     201     23
+                  206-        CTETRA  742     1       197     66      181     37
+                  207-        CTETRA  743     1       68      198     182     164
+                  208-        CTETRA  744     1       66      162     181     163
+                  209-        CTETRA  745     1       124     96      163     125
+                  210-        CTETRA  746     1       137     167     100     101
+                  211-        CTETRA  747     1       126     97      164     182
+                  212-        CTETRA  748     1       155     194     177     59
+                  213-        CTETRA  749     1       164     182     97      198
+                  214-        CTETRA  750     1       164     165     126     182
+                  215-        CTETRA  751     1       160     161     93      196
+                  216-        CTETRA  752     1       156     88      89      117
+                  217-        CTETRA  753     1       68      198     38      39
+                  218-        CTETRA  754     1       197     162     95      181
+                  219-        CTETRA  755     1       46      187     16      17
+                  220-        CTETRA  756     1       14      44      186     15
+                  221-        CTETRA  757     1       159     92      91      179
+                  222-        CTETRA  758     1       171     143     46      187
+                  223-        CTETRA  759     1       186     141     44      140
+                  224-        CTETRA  760     1       3       71      135     137
+                  225-        CTETRA  761     1       20      189     146     172
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     9
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  226-        CTETRA  762     1       27      28      57      176
+                  227-        CTETRA  763     1       171     187     46      17
+                  228-        CTETRA  764     1       153     193     57      154
+                  229-        CTETRA  765     1       64      196     161     160
+                  230-        CTETRA  766     1       166     165     69      40
+                  231-        CTETRA  767     1       143     46      187     142
+                  232-        CTETRA  768     1       99      200     128     9
+                  233-        CTETRA  769     1       166     200     183     132
+                  234-        CTETRA  770     1       160     93      92      196
+                  235-        CTETRA  771     1       186     44      14      43
+                  236-        CTETRA  772     1       86      193     115     87
+                  237-        CTETRA  773     1       202     165     69      68
+                  238-        CTETRA  774     1       84      192     113     85
+                  239-        CTETRA  775     1       148     149     110     81
+                  240-        CTETRA  776     1       153     193     86      176
+                  241-        CTETRA  777     1       34      63      179     160
+                  242-        CTETRA  778     1       69      70      166     40
+                  243-        CTETRA  779     1       79      173     189     147
+                  244-        CTETRA  780     1       38      68      164     198
+                  245-        CTETRA  781     1       150     112     83      175
+                  246-        CTETRA  782     1       27      57      56      176
+                  247-        CTETRA  783     1       56      57      153     176
+                  248-        CTETRA  784     1       65      180     64      35
+                  249-        CTETRA  785     1       132     200     183     131
+                  250-        CTETRA  786     1       48      188     172     145
+                  251-        CTETRA  787     1       15      141     186     170
+                  252-        CTETRA  788     1       139     13      6       42
+                  253-        CTETRA  789     1       31      194     60      30
+                  254-        CTETRA  790     1       185     72      101     167
+                  255-        CTETRA  791     1       106     77      188     145
+                  256-        CTETRA  792     1       163     198     164     125
+                  257-        CTETRA  793     1       62      32      33      195
+                  258-        CTETRA  794     1       188     19      18      48
+                  259-        CTETRA  795     1       161     123     122     94
+                  260-        CTETRA  796     1       201     190     148     52
+                  261-        CTETRA  797     1       49      19      20      172
+                  262-        CTETRA  798     1       128     200     166     129
+                  263-        CTETRA  799     1       35      180     36      65
+                  264-        CTETRA  800     1       38      163     181     198
+                  265-        CTETRA  801     1       40      182     183     165
+                  266-        CTETRA  802     1       164     97      126     125
+                  267-        CTETRA  803     1       124     162     95      123
+                  268-        CTETRA  804     1       141     15      186     44
+                  269-        CTETRA  805     1       38      198     164     163
+                  270-        CTETRA  806     1       38      163     164     67
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    10
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  271-        CTETRA  807     1       53      23      201     52
+                  272-        CTETRA  808     1       64      196     34      35
+                  273-        CTETRA  809     1       155     116     177     88
+                  274-        CTETRA  810     1       181     38      67      163
+                  275-        CTETRA  811     1       194     59      60      30
+                  276-        CTETRA  812     1       180     94      162     161
+                  277-        CTETRA  813     1       198     68      182     39
+                  278-        CTETRA  814     1       106     76      188     77
+                  279-        CTETRA  815     1       144     76      106     105
+                  280-        CTETRA  816     1       89      156     157     178
+                  281-        CTETRA  817     1       186     140     44      43
+                  282-        CTETRA  818     1       199     138     137     184
+                  283-        CTETRA  819     1       102     140     141     185
+                  284-        CTETRA  820     1       101     140     185     167
+                  285-        CTETRA  821     1       168     138     199     184
+                  286-        CTETRA  822     1       102     140     185     101
+                  287-        CTETRA  823     1       36      65      180     162
+                  288-        CTETRA  824     1       81      174     201     149
+                  289-        CTETRA  825     1       36      180     197     162
+                  290-        CTETRA  826     1       190     173     51      22
+                  291-        CTETRA  827     1       168     138     139     134
+                  292-        CTETRA  828     1       34      196     64      160
+                  293-        CTETRA  829     1       193     57      58      28
+                  294-        CTETRA  830     1       155     156     194     59
+                  295-        CTETRA  831     1       167     72      137     184
+                  296-        CTETRA  832     1       171     17      46      47
+                  297-        CTETRA  833     1       188     77      172     145
+                  298-        CTETRA  834     1       146     172     49      20
+                  299-        CTETRA  835     1       188     18      47      48
+                  300-        CTETRA  836     1       29      193     58      28
+                  301-        CTETRA  837     1       150     112     175     151
+                  302-        CTETRA  838     1       190     173     147     51
+                  303-        CTETRA  839     1       13      136     6       4
+                  304-        CTETRA  840     1       93      161     122     94
+                  305-        CTETRA  841     1       150     191     111     149
+                  306-        CTETRA  842     1       176     28      57      193
+                  307-        CTETRA  843     1       153     193     115     86
+                  308-        CTETRA  844     1       167     169     185     184
+                  309-        CTETRA  845     1       102     185     73      72
+                  310-        CTETRA  846     1       53      52      201     149
+                  311-        CTETRA  847     1       139     138     168     167
+                  312-        CTETRA  848     1       79      189     146     147
+                  313-        CTETRA  849     1       88      116     177     87
+                  314-        CTETRA  850     1       12      132     130     41
+                  315-        CTETRA  851     1       14      169     139     13
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    11
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  316-        CTETRA  852     1       23      190     201     52
+                  317-        CTETRA  853     1       141     15      16      170
+                  318-        CTETRA  854     1       157     195     178     61
+                  319-        CTETRA  855     1       185     72      167     184
+                  320-        CTETRA  856     1       119     120     91      158
+                  321-        CTETRA  857     1       142     141     45      187
+                  322-        CTETRA  858     1       58      193     177     154
+                  323-        CTETRA  859     1       177     193     58      29
+                  324-        CTETRA  860     1       199     138     168     134
+                  325-        CTETRA  861     1       137     138     167     184
+                  326-        CTETRA  862     1       157     195     61      158
+                  327-        CTETRA  863     1       175     83      84      112
+                  328-        CTETRA  864     1       58      59      155     177
+                  329-        CTETRA  865     1       20      50      189     21
+                  330-        CTETRA  866     1       95      162     124     181
+                  331-        CTETRA  867     1       204     24      150     191
+                  332-        CTETRA  868     1       150     175     83      191
+                  333-        CTETRA  869     1       202     68      69      39
+                  334-        CTETRA  870     1       36      162     66      65
+                  335-        CTETRA  871     1       164     198     97      125
+                  336-        CTETRA  872     1       90      91      158     119
+                  337-        CTETRA  873     1       190     51      52      22
+                  338-        CTETRA  874     1       144     76      188     106
+                  339-        CTETRA  875     1       62      33      179     195
+                  340-        CTETRA  876     1       117     118     89      156
+                  341-        CTETRA  877     1       175     112     84      151
+                  342-        CTETRA  878     1       163     96      198     125
+                  343-        CTETRA  879     1       190     51      147     148
+                  344-        CTETRA  880     1       73      103     141     102
+                  345-        CTETRA  881     1       130     132     166     41
+                  346-        CTETRA  882     1       25      191     175     150
+                  347-        CTETRA  883     1       97      182     126     98
+                  348-        CTETRA  884     1       150     151     175     54
+                  349-        CTETRA  885     1       80      147     108     109
+                  350-        CTETRA  886     1       31      178     60      194
+                  351-        CTETRA  887     1       109     80      190     81
+                  352-        CTETRA  888     1       25      24      150     54
+                  353-        CTETRA  889     1       141     187     16      45
+                  354-        CTETRA  890     1       109     147     190     80
+                  355-        CTETRA  891     1       153     176     86      114
+                  356-        CTETRA  892     1       44      15      45      141
+                  357-        CTETRA  893     1       36      66      197     37
+                  358-        CTETRA  894     1       141     45      16      15
+                  359-        CTETRA  895     1       56      26      27      192
+                  360-        CTETRA  896     1       203     55      26      175
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    12
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  361-        CTETRA  897     1       203     152     56      55
+                  362-        CTETRA  898     1       203     55      56      26
+                  363-        CTETRA  899     1       75      187     143     171
+                  364-        CTETRA  900     1       203     26      56      192
+                  365-        CTETRA  901     1       79      147     146     108
+                  366-        CTETRA  902     1       181     163     67      66
+                  367-        CTETRA  903     1       181     66      67      37
+                  368-        CTETRA  904     1       146     172     78      107
+                  369-        CTETRA  905     1       181     37      67      38
+                  370-        CTETRA  906     1       135     184     168     199
+                  371-        CTETRA  907     1       108     147     80      79
+                  372-        CTETRA  908     1       155     88      117     116
+                  373-        CTETRA  909     1       146     107     78      108
+                  374-        CTETRA  910     1       194     156     155     88
+                  375-        CTETRA  911     1       177     194     155     88
+                  376-        CTETRA  912     1       68      165     164     182
+                  377-        CTETRA  913     1       188     48      144     145
+                  378-        CTETRA  914     1       157     195     90      178
+                  379-        CTETRA  915     1       57      193     153     176
+                  380-        CTETRA  916     1       146     145     49      172
+                  381-        CTETRA  917     1       142     141     74      103
+                  382-        CTETRA  918     1       109     81      190     148
+                  383-        CTETRA  919     1       204     191     150     149
+                  384-        CTETRA  920     1       189     21      50      173
+                  385-        CTETRA  921     1       109     148     190     147
+                  386-        CTETRA  922     1       104     74      187     75
+                  387-        CTETRA  923     1       178     32      61      195
+                  388-        CTETRA  924     1       159     120     91      92
+                  389-        CTETRA  925     1       185     141     186     140
+                  390-        CTETRA  926     1       73      102     141     185
+                  391-        CTETRA  927     1       31      61      178     32
+                  392-        CTETRA  928     1       48      145     172     49
+                  393-        CTETRA  929     1       167     140     185     169
+                  394-        CTETRA  930     1       179     159     62      158
+                  395-        CTETRA  931     1       179     63      159     160
+                  396-        CTETRA  932     1       64      63      34      160
+                  397-        CTETRA  933     1       155     156     117     88
+                  398-        CTETRA  934     1       81      149     201     148
+                  399-        CTETRA  935     1       81      148     201     190
+                  400-        CTETRA  936     1       201     52      148     149
+                  401-        CTETRA  937     1       182     40      202     165
+                  402-        CTETRA  938     1       182     39      202     40
+                  403-        CTETRA  939     1       182     165     202     68
+                  404-        CTETRA  940     1       182     68      202     39
+                  405-        CTETRA  941     1       151     175     203     192
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    13
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  406-        CTETRA  942     1       151     192     203     152
+                  407-        CTETRA  943     1       151     55      203     175
+                  408-        CTETRA  944     1       151     152     203     55
+                  409-        CTETRA  945     1       204     149     53      174
+                  410-        CTETRA  946     1       53      24      204     174
+                  411-        CTETRA  947     1       174     24      204     191
+                  412-        CTETRA  948     1       174     191     204     149
+                  413-        FORCE   4       7       0       1.      .011481 0.      0.
+                  414-        FORCE   4       8       0       1.      .011481 0.      0.
+                  415-        FORCE   4       9       0       1.      .00851660.      0.
+                  416-        FORCE   4       9       0       1.      .00868830.      0.
+                  417-        FORCE   4       10      0       1.      .01006  0.      0.
+                  418-        FORCE   4       11      0       1.      .01006  0.      0.
+                  419-        FORCE   4       12      0       1.      .00503020.      0.
+                  420-        FORCE   4       129     0       1.      .00892970.      0.
+                  421-        FORCE   4       130     0       1.      .00592820.      0.
+                  422-        FORCE   4       131     0       1.      .00869480.      0.
+                  423-        GRID    1               0.      0.      0.
+                  424-        GRID    2               0.      -10.    0.
+                  425-        GRID    3               0.      -5.     0.
+                  426-        GRID    4               0.      0.      20.
+                  427-        GRID    5               0.      -10.    20.
+                  428-        GRID    6               0.      -5.     20.
+                  429-        GRID    7               300.    3.33E-140.
+                  430-        GRID    8               300.    -10.    0.
+                  431-        GRID    9               300.    -5.     0.
+                  432-        GRID    10              300.    3.33E-1420.
+                  433-        GRID    11              300.    -10.    20.
+                  434-        GRID    12              300.    -5.     20.
+                  435-        GRID    13              5.4655  0.      20.
+                  436-        GRID    14              13.06   1.45E-1520.
+                  437-        GRID    15              23.181  2.57E-1520.
+                  438-        GRID    16              33.301  3.7E-15 20.
+                  439-        GRID    17              44.716  4.96E-1520.
+                  440-        GRID    18              55.002  6.11E-1520.
+                  441-        GRID    19              65.122  7.23E-1520.
+                  442-        GRID    20              75.243  8.35E-1520.
+                  443-        GRID    21              86.823  9.64E-1520.
+                  444-        GRID    22              96.944  1.08E-1420.
+                  445-        GRID    23              107.06  1.19E-1420.
+                  446-        GRID    24              117.18  1.3E-14 20.
+                  447-        GRID    25              128.43  1.43E-1420.
+                  448-        GRID    26              138.83  1.54E-1420.
+                  449-        GRID    27              148.95  1.65E-1420.
+                  450-        GRID    28              159.07  1.77E-1420.
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    14
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  451-        GRID    29              170.59  1.89E-1420.
+                  452-        GRID    30              180.72  2.01E-1420.
+                  453-        GRID    31              190.84  2.12E-1420.
+                  454-        GRID    32              200.96  2.23E-1420.
+                  455-        GRID    33              212.08  2.35E-1420.
+                  456-        GRID    34              222.66  2.47E-1420.
+                  457-        GRID    35              232.78  2.58E-1420.
+                  458-        GRID    36              242.9   2.7E-14 20.
+                  459-        GRID    37              254.48  2.83E-1420.
+                  460-        GRID    38              264.6   2.94E-1420.
+                  461-        GRID    39              274.72  3.05E-1420.
+                  462-        GRID    40              284.84  3.16E-1420.
+                  463-        GRID    41              293.89  3.26E-1420.
+                  464-        GRID    42              5.4506  -10.    20.
+                  465-        GRID    43              13.012  -10.    20.
+                  466-        GRID    44              23.108  -10.    20.
+                  467-        GRID    45              33.204  -10.    20.
+                  468-        GRID    46              44.567  -10.    20.
+                  469-        GRID    47              54.856  -10.    20.
+                  470-        GRID    48              64.953  -10.    20.
+                  471-        GRID    49              75.049  -10.    20.
+                  472-        GRID    50              86.605  -10.    20.
+                  473-        GRID    51              96.701  -10.    20.
+                  474-        GRID    52              106.8   -10.    20.
+                  475-        GRID    53              116.89  -10.    20.
+                  476-        GRID    54              128.05  -10.    20.
+                  477-        GRID    55              138.49  -10.    20.
+                  478-        GRID    56              148.59  -10.    20.
+                  479-        GRID    57              158.68  -10.    20.
+                  480-        GRID    58              170.18  -10.    20.
+                  481-        GRID    59              180.28  -10.    20.
+                  482-        GRID    60              190.38  -10.    20.
+                  483-        GRID    61              200.47  -10.    20.
+                  484-        GRID    62              211.46  -10.    20.
+                  485-        GRID    63              222.12  -10.    20.
+                  486-        GRID    64              232.22  -10.    20.
+                  487-        GRID    65              242.32  -10.    20.
+                  488-        GRID    66              253.87  -10.    20.
+                  489-        GRID    67              263.97  -10.    20.
+                  490-        GRID    68              274.06  -10.    20.
+                  491-        GRID    69              284.16  -10.    20.
+                  492-        GRID    70              293.75  -10.    20.
+                  493-        GRID    71              5.4506  0.      0.
+                  494-        GRID    72              13.012  1.44E-150.
+                  495-        GRID    73              23.108  2.57E-150.
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    15
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  496-        GRID    74              33.204  3.69E-150.
+                  497-        GRID    75              44.567  4.95E-150.
+                  498-        GRID    76              54.856  6.09E-150.
+                  499-        GRID    77              64.953  7.21E-150.
+                  500-        GRID    78              75.049  8.33E-150.
+                  501-        GRID    79              86.605  9.62E-150.
+                  502-        GRID    80              96.701  1.07E-140.
+                  503-        GRID    81              106.8   1.19E-140.
+                  504-        GRID    82              116.89  1.3E-14 0.
+                  505-        GRID    83              128.05  1.42E-140.
+                  506-        GRID    84              138.49  1.54E-140.
+                  507-        GRID    85              148.59  1.65E-140.
+                  508-        GRID    86              158.68  1.76E-140.
+                  509-        GRID    87              170.18  1.89E-140.
+                  510-        GRID    88              180.28  2E-14   0.
+                  511-        GRID    89              190.38  2.11E-140.
+                  512-        GRID    90              200.47  2.23E-140.
+                  513-        GRID    91              211.46  2.35E-140.
+                  514-        GRID    92              222.12  2.47E-140.
+                  515-        GRID    93              232.22  2.58E-140.
+                  516-        GRID    94              242.32  2.69E-140.
+                  517-        GRID    95              253.87  2.82E-140.
+                  518-        GRID    96              263.97  2.93E-140.
+                  519-        GRID    97              274.06  3.04E-140.
+                  520-        GRID    98              284.16  3.15E-140.
+                  521-        GRID    99              293.75  3.26E-140.
+                  522-        GRID    100             5.4048  -10.    0.
+                  523-        GRID    101             12.863  -10.    0.
+                  524-        GRID    102             22.885  -10.    0.
+                  525-        GRID    103             32.906  -10.    0.
+                  526-        GRID    104             44.109  -10.    0.
+                  527-        GRID    105             54.41   -10.    0.
+                  528-        GRID    106             64.432  -10.    0.
+                  529-        GRID    107             74.454  -10.    0.
+                  530-        GRID    108             86.935  -10.    0.
+                  531-        GRID    109             96.957  -10.    0.
+                  532-        GRID    110             106.98  -10.    0.
+                  533-        GRID    111             117.    -10.    0.
+                  534-        GRID    112             129.15  -10.    0.
+                  535-        GRID    113             139.41  -10.    0.
+                  536-        GRID    114             149.43  -10.    0.
+                  537-        GRID    115             159.45  -10.    0.
+                  538-        GRID    116             170.88  -10.    0.
+                  539-        GRID    117             180.9   -10.    0.
+                  540-        GRID    118             190.92  -10.    0.
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    16
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  541-        GRID    119             200.94  -10.    0.
+                  542-        GRID    120             211.95  -10.    0.
+                  543-        GRID    121             222.45  -10.    0.
+                  544-        GRID    122             232.47  -10.    0.
+                  545-        GRID    123             242.49  -10.    0.
+                  546-        GRID    124             254.97  -10.    0.
+                  547-        GRID    125             264.99  -10.    0.
+                  548-        GRID    126             275.02  -10.    0.
+                  549-        GRID    127             285.04  -10.    0.
+                  550-        GRID    128             293.96  -10.    0.
+                  551-        GRID    129             300.    -10.    5.8068
+                  552-        GRID    130             300.    -10.    13.373
+                  553-        GRID    131             300.    3.33E-145.8068
+                  554-        GRID    132             300.    3.33E-1413.373
+                  555-        GRID    133             0.      -10.    5.8068
+                  556-        GRID    134             0.      -10.    13.373
+                  557-        GRID    135             0.      0.      5.8068
+                  558-        GRID    136             0.      0.      13.373
+                  559-        GRID    137             7.4033  -5.069  0.
+                  560-        GRID    138             4.7968  -10.    7.6376
+                  561-        GRID    139             8.7679  -10.    13.348
+                  562-        GRID    140             17.156  -10.    9.7511
+                  563-        GRID    141             27.597  -10.    9.6773
+                  564-        GRID    142             38.26   -10.    9.4795
+                  565-        GRID    143             49.786  -10.    9.5067
+                  566-        GRID    144             59.669  -10.    9.5673
+                  567-        GRID    145             70.107  -10.    9.5862
+                  568-        GRID    146             80.67   -10.    9.5553
+                  569-        GRID    147             91.673  -10.    9.3954
+                  570-        GRID    148             101.85  -10.    9.6495
+                  571-        GRID    149             112.    -10.    9.5447
+                  572-        GRID    150             122.27  -10.    10.025
+                  573-        GRID    151             134.06  -10.    9.5676
+                  574-        GRID    152             144.05  -10.    9.6431
+                  575-        GRID    153             154.12  -10.    9.3687
+                  576-        GRID    154             164.82  -10.    9.3192
+                  577-        GRID    155             175.49  -10.    9.3304
+                  578-        GRID    156             185.47  -10.    9.3419
+                  579-        GRID    157             195.7   -10.    9.4333
+                  580-        GRID    158             205.95  -10.    9.4017
+                  581-        GRID    159             217.4   -10.    9.5128
+                  582-        GRID    160             227.32  -10.    9.5472
+                  583-        GRID    161             237.77  -10.    9.3909
+                  584-        GRID    162             248.33  -10.    9.5344
+                  585-        GRID    163             259.37  -10.    9.3949
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    17
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  586-        GRID    164             269.61  -10.    9.6486
+                  587-        GRID    165             280.02  -10.    9.5098
+                  588-        GRID    166             291.33  -10.    9.6482
+                  589-        GRID    167             10.173  -10.    6.0696
+                  590-        GRID    168             5.3171  0.      11.469
+                  591-        GRID    169             11.269  1.25E-1513.005
+                  592-        GRID    170             27.214  3.02E-159.6949
+                  593-        GRID    171             50.025  5.55E-159.7239
+                  594-        GRID    172             70.311  7.81E-159.6904
+                  595-        GRID    173             91.559  1.02E-149.6897
+                  596-        GRID    174             111.99  1.24E-149.6609
+                  597-        GRID    175             133.79  1.49E-149.7032
+                  598-        GRID    176             154.03  1.71E-149.6897
+                  599-        GRID    177             175.24  1.95E-149.6901
+                  600-        GRID    178             195.65  2.17E-149.7088
+                  601-        GRID    179             217.45  2.41E-149.7228
+                  602-        GRID    180             237.77  2.64E-149.6907
+                  603-        GRID    181             259.05  2.88E-149.6916
+                  604-        GRID    182             279.88  3.11E-149.7108
+                  605-        GRID    183             291.27  3.23E-149.6554
+                  606-        GRID    184             8.8663  0.      5.7981
+                  607-        GRID    185             16.782  1.86E-156.4733
+                  608-        GRID    186             18.509  2.05E-1513.942
+                  609-        GRID    187             38.141  4.23E-159.5875
+                  610-        GRID    188             60.084  6.67E-159.7051
+                  611-        GRID    189             80.93   8.99E-159.5528
+                  612-        GRID    190             101.82  1.13E-149.6979
+                  613-        GRID    191             122.15  1.36E-149.3629
+                  614-        GRID    192             143.82  1.6E-14 9.702
+                  615-        GRID    193             164.63  1.83E-149.5522
+                  616-        GRID    194             185.49  2.06E-149.7038
+                  617-        GRID    195             205.79  2.28E-149.7396
+                  618-        GRID    196             227.53  2.53E-149.7051
+                  619-        GRID    197             248.39  2.76E-149.5533
+                  620-        GRID    198             269.4   2.99E-149.707
+                  621-        GRID    199             0.      -5.067  7.7505
+                  622-        GRID    200             300.    -5.067  7.7505
+                  623-        GRID    201             108.09  -5.022  12.359
+                  624-        GRID    202             279.68  -5.025  16.765
+                  625-        GRID    203             140.83  -5.438  14.396
+                  626-        GRID    204             117.15  -4.984  12.824
+                  627-        MAT1    1       200000. 76923.  .3      0.
+                  628-        PARAM   PRGPST  NO
+                  629-        PLOAD4  1       576     .5                              129     9       +
+                  630-        +       0       -1.     0.      0.
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    18
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  631-        PLOAD4  1       609     .5                              12      10      +
+                  632-        +       0       -1.     0.      0.
+                  633-        PLOAD4  1       615     .5                              130     200     +
+                  634-        +       0       -1.     0.      0.
+                  635-        PLOAD4  1       618     .5                              200     131     +
+                  636-        +       0       -1.     0.      0.
+                  637-        PLOAD4  1       638     .5                              7       9       +
+                  638-        +       0       -1.     0.      0.
+                  639-        PLOAD4  1       668     .5                              130     132     +
+                  640-        +       0       -1.     0.      0.
+                  641-        PLOAD4  1       695     .5                              200     9       +
+                  642-        +       0       -1.     0.      0.
+                  643-        PLOAD4  1       723     .5                              130     11      +
+                  644-        +       0       -1.     0.      0.
+                  645-        PLOAD4  1       785     .5                              132     131     +
+                  646-        +       0       -1.     0.      0.
+                  647-        PLOAD4  1       850     .5                              12      132     +
+                  648-        +       0       -1.     0.      0.
+                  649-        PLOAD4  2       576     .5                              129     9       +
+                  650-        +       0       0.      -1.     0.
+                  651-        PLOAD4  2       609     .5                              12      10      +
+                  652-        +       0       0.      -1.     0.
+                  653-        PLOAD4  2       615     .5                              130     200     +
+                  654-        +       0       0.      -1.     0.
+                  655-        PLOAD4  2       618     .5                              200     131     +
+                  656-        +       0       0.      -1.     0.
+                  657-        PLOAD4  2       638     .5                              7       9       +
+                  658-        +       0       0.      -1.     0.
+                  659-        PLOAD4  2       668     .5                              130     132     +
+                  660-        +       0       0.      -1.     0.
+                  661-        PLOAD4  2       695     .5                              200     9       +
+                  662-        +       0       0.      -1.     0.
+                  663-        PLOAD4  2       723     .5                              130     11      +
+                  664-        +       0       0.      -1.     0.
+                  665-        PLOAD4  2       785     .5                              132     131     +
+                  666-        +       0       0.      -1.     0.
+                  667-        PLOAD4  2       850     .5                              12      132     +
+                  668-        +       0       0.      -1.     0.
+                  669-        PLOAD4  3       576     .5                              129     9       +
+                  670-        +       0       0.      0.      -1.
+                  671-        PLOAD4  3       609     .5                              12      10      +
+                  672-        +       0       0.      0.      -1.
+                  673-        PLOAD4  3       615     .5                              130     200     +
+                  674-        +       0       0.      0.      -1.
+                  675-        PLOAD4  3       618     .5                              200     131     +
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    19
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  676-        +       0       0.      0.      -1.
+                  677-        PLOAD4  3       638     .5                              7       9       +
+                  678-        +       0       0.      0.      -1.
+                  679-        PLOAD4  3       668     .5                              130     132     +
+                  680-        +       0       0.      0.      -1.
+                  681-        PLOAD4  3       695     .5                              200     9       +
+                  682-        +       0       0.      0.      -1.
+                  683-        PLOAD4  3       723     .5                              130     11      +
+                  684-        +       0       0.      0.      -1.
+                  685-        PLOAD4  3       785     .5                              132     131     +
+                  686-        +       0       0.      0.      -1.
+                  687-        PLOAD4  3       850     .5                              12      132     +
+                  688-        +       0       0.      0.      -1.
+                  689-        PLOAD4  5       576     .5                              129     9
+                  690-        PLOAD4  5       609     .5                              12      10
+                  691-        PLOAD4  5       615     .5                              130     200
+                  692-        PLOAD4  5       618     .5                              200     131
+                  693-        PLOAD4  5       638     .5                              7       9
+                  694-        PLOAD4  5       668     .5                              130     132
+                  695-        PLOAD4  5       695     .5                              200     9
+                  696-        PLOAD4  5       723     .5                              130     11
+                  697-        PLOAD4  5       785     .5                              132     131
+                  698-        PLOAD4  5       850     .5                              12      132
+                  699-        PSOLID  1       1       0       THREE   GRID    FULL    SMECH
+                  700-        SPC1    1       123     1       2       3       4       5       6       +
+                  701-        +       133     134     135     136     199
+                              ENDDATA
+                        TOTAL COUNT= 702
+                              INPUT BULK DATA ENTRY COUNT = 707
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    20
+                                                                                                                                    
+0                                                                                                                                   
+                                        M O D E L   S U M M A R Y          BULK = 0
+                                   ENTRY NAME        NUMBER OF ENTRIES
+                                   ----------        -----------------
+                                       CTETRA                      412
+                                        FORCE                       10
+                                         GRID                      204
+                                         MAT1                        1
+                                        PARAM                        1
+                                       PLOAD4                       40
+                                       PSOLID                        1
+                                         SPC1                        1
+
+ ^^^     
+ ^^^ >>> IFP OPERATIONS COMPLETE <<< 
+ ^^^     
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    21
+                                                                                                                                    
+0                                                                                                                                   
+ *** USER INFORMATION MESSAGE 7310 (VECPRN)
+     ORIGIN OF SUPERELEMENT BASIC COORDINATE SYSTEM WILL BE USED AS REFERENCE LOCATION.
+     RESULTANTS ABOUT ORIGIN OF SUPERELEMENT BASIC COORDINATE SYSTEM IN SUPERELEMENT BASIC SYSTEM COORDINATES.
+0                                                  OLOAD    RESULTANT       
+  SUBCASE/    LOAD
+  DAREA ID    TYPE       T1            T2            T3            R1            R2            R3
+0        1     FX   -1.402035E+02     ----          ----          ----      -1.442572E+03 -7.925207E+02                             
+               FY       ----       0.000000E+00     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----       0.000000E+00  0.000000E+00  0.000000E+00     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS -1.402035E+02  0.000000E+00  0.000000E+00  0.000000E+00 -1.442572E+03 -7.925207E+02
+0        2     FX    0.000000E+00     ----          ----          ----       0.000000E+00  0.000000E+00                             
+               FY       ----      -1.402035E+02     ----       1.442572E+03     ----      -4.173072E+04                             
+               FZ       ----          ----       0.000000E+00  0.000000E+00  0.000000E+00     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  0.000000E+00 -1.402035E+02  0.000000E+00  1.442572E+03  0.000000E+00 -4.173072E+04
+0        3     FX    0.000000E+00     ----          ----          ----       0.000000E+00  0.000000E+00                             
+               FY       ----       0.000000E+00     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----      -1.402035E+02  7.925207E+02  4.173072E+04     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  0.000000E+00  0.000000E+00 -1.402035E+02  7.925207E+02  4.173072E+04  0.000000E+00
+0        4     FX    8.886980E-02     ----          ----          ----       6.846238E-01  4.751645E-01                             
+               FY       ----       0.000000E+00     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----       0.000000E+00  0.000000E+00  0.000000E+00     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  8.886980E-02  0.000000E+00  0.000000E+00  0.000000E+00  6.846238E-01  4.751645E-01
+0        5     FX    4.181627E+01     ----          ----          ----       5.007179E+02  1.861746E+02                             
+               FY       ----       6.548870E+01     ----      -6.284173E+02     ----       1.947873E+04                             
+               FZ       ----          ----       1.019075E-01 -4.842010E+01 -3.035530E+01     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  4.181627E+01  6.548870E+01  1.019075E-01 -6.768374E+02  4.703625E+02  1.966491E+04
+  
+ *** SYSTEM INFORMATION MESSAGE 4159 (DFMSA)
+     THE DECOMPOSITION OF KLL      YIELDS A MAXIMUM MATRIX-TO-FACTOR-DIAGONAL RATIO OF    7.475430E+02
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    22
+                                                                                                                                    
+0                                                                                                            SUBCASE 1              
+ *** USER INFORMATION MESSAGE 5293 (SSG3A)
+    FOR DATA BLOCK KLL     
+    LOAD SEQ. NO.             EPSILON              EXTERNAL WORK      EPSILONS LARGER THAN 0.001 ARE FLAGGED WITH ASTERISKS
+                1         -1.9494425E-13          7.3608488E-02
+                2         -3.0209366E-11          7.0142517E+01
+                3         -3.6970678E-12          4.5152752E+01
+                4          3.0497490E-13          3.3760863E-08
+                5         -4.3161384E-11          1.5216649E+01
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    23
+                                                                                                                                    
 0                                                                                                            SUBCASE 1              
  
                                              D I S P L A C E M E N T   V E C T O R
  
       POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
-           138      G     -5.227603E-03  -3.942797E-02  -4.709046E-01   0.0            0.0            0.0
+             7      G     -8.898898E-04  -3.201355E-03   7.661800E-04   0.0            0.0            0.0
+             8      G     -1.095227E-03  -3.210394E-03   7.699017E-04   0.0            0.0            0.0
+             9      G     -9.870852E-04  -3.205075E-03   7.697550E-04   0.0            0.0            0.0
+            10      G     -9.783142E-04  -3.197861E-03   7.796556E-04   0.0            0.0            0.0
+            11      G     -1.182072E-03  -3.198223E-03   7.833502E-04   0.0            0.0            0.0
+            12      G     -1.093077E-03  -3.197686E-03   7.829182E-04   0.0            0.0            0.0
+           129      G     -1.126305E-03  -3.208878E-03   7.732137E-04   0.0            0.0            0.0
+           130      G     -1.161928E-03  -3.205215E-03   7.800910E-04   0.0            0.0            0.0
+           131      G     -9.128652E-04  -3.201828E-03   7.696908E-04   0.0            0.0            0.0
+           132      G     -9.516468E-04  -3.196857E-03   7.760868E-04   0.0            0.0            0.0
+           200      G     -1.030832E-03  -3.202964E-03   7.727466E-04   0.0            0.0            0.0
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    24
+                                                                                                                                    
+0                                                                                                            SUBCASE 2              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             7      G      2.143827E-02  -1.013110E+00  -5.513984E-02   0.0            0.0            0.0
+             8      G     -2.806585E-02  -1.013113E+00  -5.431440E-02   0.0            0.0            0.0
+             9      G     -3.316759E-03  -1.013103E+00  -5.472628E-02   0.0            0.0            0.0
+            10      G      2.802456E-02  -1.011438E+00  -5.515720E-02   0.0            0.0            0.0
+            11      G     -2.146697E-02  -1.011438E+00  -5.430582E-02   0.0            0.0            0.0
+            12      G      3.278653E-03  -1.011443E+00  -5.473607E-02   0.0            0.0            0.0
+           129      G     -2.615443E-02  -1.012636E+00  -5.431406E-02   0.0            0.0            0.0
+           130      G     -2.365006E-02  -1.012002E+00  -5.431250E-02   0.0            0.0            0.0
+           131      G      2.335035E-02  -1.012628E+00  -5.514213E-02   0.0            0.0            0.0
+           132      G      2.583341E-02  -1.011991E+00  -5.515155E-02   0.0            0.0            0.0
+           200      G     -1.096037E-03  -1.012465E+00  -5.472474E-02   0.0            0.0            0.0
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    25
+                                                                                                                                    
+0                                                                                                            SUBCASE 3              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             7      G     -3.053344E-02  -5.410656E-02  -6.513997E-01   0.0            0.0            0.0
+             8      G     -3.361006E-02  -5.410684E-02  -6.519080E-01   0.0            0.0            0.0
+             9      G     -3.207048E-02  -5.410630E-02  -6.516473E-01   0.0            0.0            0.0
+            10      G      3.367117E-02  -5.511875E-02  -6.513858E-01   0.0            0.0            0.0
+            11      G      3.060396E-02  -5.510621E-02  -6.518954E-01   0.0            0.0            0.0
+            12      G      3.213808E-02  -5.511244E-02  -6.516534E-01   0.0            0.0            0.0
+           129      G     -1.496114E-02  -5.439891E-02  -6.519035E-01   0.0            0.0            0.0
+           130      G      9.333095E-03  -5.477701E-02  -6.519009E-01   0.0            0.0            0.0
+           131      G     -1.188324E-02  -5.439952E-02  -6.513907E-01   0.0            0.0            0.0
+           132      G      1.240351E-02  -5.477963E-02  -6.513875E-01   0.0            0.0            0.0
+           200      G     -7.205272E-03  -5.449702E-02  -6.516486E-01   0.0            0.0            0.0
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    26
+                                                                                                                                    
+0                                                                                                            SUBCASE 4              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             7      G      9.698019E-07   1.591299E-06   4.817126E-06   0.0            0.0            0.0
+             8      G      1.069904E-06   1.617212E-06   4.815519E-06   0.0            0.0            0.0
+             9      G      9.940442E-07   1.603995E-06   4.812986E-06   0.0            0.0            0.0
+            10      G      3.303899E-07   1.590660E-06   4.774726E-06   0.0            0.0            0.0
+            11      G      4.341042E-07   1.611794E-06   4.771189E-06   0.0            0.0            0.0
+            12      G      3.566374E-07   1.601177E-06   4.777517E-06   0.0            0.0            0.0
+           129      G      8.418919E-07   1.607869E-06   4.796806E-06   0.0            0.0            0.0
+           130      G      5.997072E-07   1.604669E-06   4.784592E-06   0.0            0.0            0.0
+           131      G      7.410906E-07   1.600011E-06   4.799412E-06   0.0            0.0            0.0
+           132      G      4.936427E-07   1.601134E-06   4.789776E-06   0.0            0.0            0.0
+           200      G      7.247619E-07   1.603656E-06   4.795609E-06   0.0            0.0            0.0
+1   VEGA EXPORTED MODEL                                                      AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    27
+                                                                                                                                    
+0                                                                                                            SUBCASE 5              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             7      G     -9.761334E-03   4.717413E-01   2.421142E-02   0.0            0.0            0.0
+             8      G      1.326797E-02   4.717634E-01   2.383564E-02   0.0            0.0            0.0
+             9      G      1.753475E-03   4.717524E-01   2.402708E-02   0.0            0.0            0.0
+            10      G     -1.262832E-02   4.709805E-01   2.422502E-02   0.0            0.0            0.0
+            11      G      1.039515E-02   4.709789E-01   2.383083E-02   0.0            0.0            0.0
+            12      G     -1.111178E-03   4.709811E-01   2.403086E-02   0.0            0.0            0.0
+           129      G      1.243673E-02   4.715444E-01   2.383556E-02   0.0            0.0            0.0
+           130      G      1.134537E-02   4.712473E-01   2.383710E-02   0.0            0.0            0.0
+           131      G     -1.059656E-02   4.715320E-01   2.421710E-02   0.0            0.0            0.0
+           132      G     -1.167492E-02   4.712409E-01   2.422202E-02   0.0            0.0            0.0
+           200      G      7.963991E-04   4.714622E-01   2.402594E-02   0.0            0.0            0.0
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    28
+                                                                                                                                    
+0                                                                                                                                   
+ * * * *  D B D I C T   P R I N T  * * * *      SUBDMAP = PRTSUM  ,  DMAP STATEMENT NO.     41
+
+
+
+0                                   * * * *  A N A L Y S I S  S U M M A R Y  T A B L E  * * * *
+0 SEID  PEID PROJ VERS APRCH      SEMG SEMR SEKR SELG SELR MODES DYNRED SOLLIN PVALID SOLNL LOOPID DESIGN CYCLE SENSITIVITY
+ --------------------------------------------------------------------------------------------------------------------------
+     0     0    1    8 '        '    T    T    T    T    T     F      F      T      0     F     -1            0           F
+0SEID = SUPERELEMENT ID.
+ PEID = PRIMARY SUPERELEMENT ID OF IMAGE SUPERELEMENT.
+ PROJ = PROJECT ID NUMBER.
+ VERS = VERSION ID.
+ APRCH = BLANK FOR STRUCTURAL ANALYSIS.  HEAT FOR HEAT TRANSFER ANALYSIS.
+ SEMG = STIFFNESS AND MASS MATRIX GENERATION STEP.
+ SEMR = MASS MATRIX REDUCTION STEP (INCLUDES EIGENVALUE SOLUTION FOR MODES).
+ SEKR = STIFFNESS MATRIX REDUCTION STEP.
+ SELG = LOAD MATRIX GENERATION STEP.
+ SELR = LOAD MATRIX REDUCTION STEP. 
+ MODES = T (TRUE) IF NORMAL MODES OR BUCKLING MODES CALCULATED.
+ DYNRED = T (TRUE) MEANS GENERALIZED DYNAMIC AND/OR COMPONENT MODE REDUCTION PERFORMED.
+ SOLLIN = T (TRUE) IF LINEAR SOLUTION EXISTS IN DATABASE.
+ PVALID = P-DISTRIBUTION ID OF P-VALUE FOR P-ELEMENTS
+ LOOPID = THE LAST LOOPID VALUE USED IN THE NONLINEAR ANALYSIS.  USEFUL FOR RESTARTS.
+ SOLNL = T (TRUE) IF NONLINEAR SOLUTION EXISTS IN DATABASE.
+ DESIGN CYCLE = THE LAST DESIGN CYCLE (ONLY VALID IN OPTIMIZATION).
+ SENSITIVITY = SENSITIVITY MATRIX GENERATION FLAG.
+ 
+ No PARAM values were set in the Control File.
+ 
+1                                        * * * END OF JOB * * *
+ 
+ 
+ No Symbolic Replacement variables or values were specified.
 

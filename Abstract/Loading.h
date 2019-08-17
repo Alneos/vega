@@ -418,6 +418,7 @@ public:
 	const int nodePosition1;
 	const int nodePosition2;
 	NormalPressionFaceTwoNodes(Model&, int nodeId1, int nodeId2, double intensity, const int original_id = NO_ORIGINAL_ID);
+	NormalPressionFaceTwoNodes(Model&, int nodeId1, double intensity, const int original_id = NO_ORIGINAL_ID);
 	virtual std::vector<int> getApplicationFaceNodeIds() const override;
 	std::shared_ptr<Loading> clone() const override;
 };

@@ -1,6 +1,982 @@
-0                                                                                                            SUBCASE 1
+1
+ 
+ 
+ 
+ 
+                      Warning: This computer program is protected by copyright law and international treaties.       
+                  Unauthorized use, reproduction or distribution of this computer program, or any portion of it, may 
+                                          result in severe civil and criminal penalties.                             
+                         Copyright (C) 2012 MSC.Software Corporation and its licensors. All rights reserved.         
+ 
+ 
+                                              * * * * * * * * * * * * * * * * * * * *
+                                              * * * * * * * * * * * * * * * * * * * *
+                                              * *                                 * *
+                                              * *           MSC.SOFTWARE          * *
+                                              * *               CORP              * *
+                                              * *                                 * *
+                                              * *      M S C   N a s t r a n      * *
+                                              * *                                 * *
+                                              * *                                 * *
+                                              * *                                 * *
+                                              * *     Version 2012.2.0-CL151760   * *
+                                              * *                                 * *
+                                              * *                                 * *
+                                              * *                                 * *
+                                              * *          JUL  6, 2012           * *
+                                              * *                                 * *
+                                              * *       x86-64 Based System       * *
+                                              * *        MODEL Intel x8664        * *
+                                              * *     Linux 4.15.0-58-generic     * *
+                                              * *       Compiled for x8664        * *
+                                              * *                                 * *
+                                              * * * * * * * * * * * * * * * * * * * *
+                                              * * * * * * * * * * * * * * * * * * * *
+1News file -  (May 29, 2012):
+  
+               Welcome to MSC Nastran 2012.2
+  
+   Details of the release can be found in the Release Guide available
+   electronically in the installation documentation sub-directory.
+   Additional information can be found at the Nastran Product Support page:
+  
+      http://simcompanion.mscsoftware.com
+  
+   The support page provides links to this valuable information:
+      * A searchable Knowledge Base containing examples and answers to thousands
+        frequently asked questions written by MSC.Software subject-matter experts
+      * Peer-to-peer Discussion Forums enabling you to post questions for your
+        MSC.Software products and receive answers from other users worldwide.
+      * A list of known issues with the product and any workarounds.
+      * Instructions on how to contact technical support
+      * A mechanism for sending us product feedback or enhancement requests.
+      * Hardware and software requirements.
+      * Examples and Tutorials
+      * and much more.
+  
+   For information on training, please visit our Training web site
+  
+      http://www.mscsoftware.com/Contents/Services/Training/
+  
+   MSC Nastran brings powerful new features and enhancements for engineering
+   solutions. For a detailed description of features added to MSC Nastran 2012.2
+   Release Guide.
+   The highlights for the 2012.1 release include:
+      * MD and MSC Products have been consolidated into one release.
+      * Improved Performance when using ACMS especially with Parallel Processing
+      * A New Method for Complex Eigenvalue Analysis which has Greater Accuracy
+      * Improved performance for the Solution of Nonsymmetric systems encountered
+        with Exterior Acoustics, Friction and complex Lanczos
+      * Support of GPU computing
+      * Structural Interior - Exterior Acoustics can be performed using Weakly
+        Coupled Procedure which is Faster in SOL 111 and SOL 200
+      * Complex stress recovery for Shells in SOL 108,109, 111 and 112.
+      * Improved coupling with ACTRAN for modeling of Trimming material in SOL 10
+        and SOL 111
+      * Panel Participation Factor may be obtained for the Structural Response an
+        may be utilized in optimization.
+      * Easier to use Linear Contact Capability in SOL 400
+      * Improved Time Stepping procedure in SOL 400
+      * Coupled Thermal-Structural Analysis with SOL 700
+      * Wood and Ice Model in SOL 700
+      * Improved Computational Performance for FSI simulations on Parallel Proces
+      * Improved Splining techniques in Aeroelastic calculations
+ The highlights for the 2012.2 release include:
+1     * Reduction in I/O times for large models which had significant I/O in
+        previous releases
+      * Improved performance when using SOL 400 for nonlinear analysis
+      * The Segment-to-Segment Contact Procedure is expanded for Large Deformatio
+        and Friction
+      * User can easily add mass to CBUSH elements
+  
+  
+  
+  
+  
+  
+  
+  
+  
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     1
+                                                                                                                                    
+0        N A S T R A N    F I L E    A N D    S Y S T E M    P A R A M E T E R    E C H O                                           
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+     NASTRAN BUFFSIZE=8193 $(/MSC/MSC_NASTRAN/20122/CONF/NAST20122RC[3])             
+     $ MESHHEXALIN.BDF                                                               
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     2
+                                                                                                                                    
+0        N A S T R A N    E X E C U T I V E    C O N T R O L    E C H O                                                             
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+     ID MESHHEXALIN.BDF,NASTRAN                                                              
+     SOL 101                                                                                 
+     APP   DISP                                                                              
+     TIME  10000                                                                             
+     CEND                                                                                    
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     3
+                                                                                                                                    
+0                                                                                                                                   
+0                                        C A S E    C O N T R O L    E C H O                                                        
+                 COMMAND                                                                                                            
+                 COUNT                                                                                                              
+                  1      SUBCASE 1                                                                               
+                  2        LOAD=1                                                                                
+                  3        SPC=1                                                                                 
+                  4      SET 1 = 3,4,7,8,39,99,131,132,250                                                       
+                  5      DISP = 1                                                                                
+                  6      SUBCASE 2                                                                               
+                  7        LOAD=2                                                                                
+                  8        SPC=1                                                                                 
+                  9      SET 1 = 3,4,7,8,39,99,131,132,250                                                       
+                 10      DISP = 1                                                                                
+                 11      SUBCASE 3                                                                               
+                 12        LOAD=3                                                                                
+                 13        SPC=1                                                                                 
+                 14      SET 1 = 3,4,7,8,39,99,131,132,250                                                       
+                 15      DISP = 1                                                                                
+                 16      SUBCASE 4                                                                               
+                 17        LOAD=4                                                                                
+                 18        SPC=1                                                                                 
+                 19      SET 1 = 3,4,7,8,39,99,131,132,250                                                       
+                 20      DISP = 1                                                                                
+                 21      SUBCASE 5                                                                               
+                 22        LOAD=5                                                                                
+                 23        SPC=1                                                                                 
+                 24      SET 1 = 3,4,7,8,39,99,131,132,250                                                       
+                 25      DISP = 1                                                                                
+                 26      $                                                                                       
+                 27      TITLE=VEGA EXPORTED MODEL                                                               
+                 28      BEGIN BULK                                                                              
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     4
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                    1-        CHEXA   385     1       1       9       133     10      130     220     +
+                    2-        +       251     249
+                    3-        CHEXA   386     1       130     220     251     249     5       69      +
+                    4-        +       162     70
+                    5-        CHEXA   387     1       10      133     134     11      249     251     +
+                    6-        +       252     248
+                    7-        CHEXA   388     1       249     251     252     248     70      162     +
+                    8-        +       163     71
+                    9-        CHEXA   389     1       11      134     135     12      248     252     +
+                   10-        +       253     247
+                   11-        CHEXA   390     1       248     252     253     247     71      163     +
+                   12-        +       164     72
+                   13-        CHEXA   391     1       12      135     136     13      247     253     +
+                   14-        +       254     246
+                   15-        CHEXA   392     1       247     253     254     246     72      164     +
+                   16-        +       165     73
+                   17-        CHEXA   393     1       13      136     137     14      246     254     +
+                   18-        +       255     245
+                   19-        CHEXA   394     1       246     254     255     245     73      165     +
+                   20-        +       166     74
+                   21-        CHEXA   395     1       14      137     138     15      245     255     +
+                   22-        +       256     244
+                   23-        CHEXA   396     1       245     255     256     244     74      166     +
+                   24-        +       167     75
+                   25-        CHEXA   397     1       15      138     139     16      244     256     +
+                   26-        +       257     243
+                   27-        CHEXA   398     1       244     256     257     243     75      167     +
+                   28-        +       168     76
+                   29-        CHEXA   399     1       16      139     140     17      243     257     +
+                   30-        +       258     242
+                   31-        CHEXA   400     1       243     257     258     242     76      168     +
+                   32-        +       169     77
+                   33-        CHEXA   401     1       17      140     141     18      242     258     +
+                   34-        +       259     241
+                   35-        CHEXA   402     1       242     258     259     241     77      169     +
+                   36-        +       170     78
+                   37-        CHEXA   403     1       18      141     142     19      241     259     +
+                   38-        +       260     240
+                   39-        CHEXA   404     1       241     259     260     240     78      170     +
+                   40-        +       171     79
+                   41-        CHEXA   405     1       19      142     143     20      240     260     +
+                   42-        +       261     239
+                   43-        CHEXA   406     1       240     260     261     239     79      171     +
+                   44-        +       172     80
+                   45-        CHEXA   407     1       20      143     144     21      239     261     +
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     5
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                   46-        +       262     238
+                   47-        CHEXA   408     1       239     261     262     238     80      172     +
+                   48-        +       173     81
+                   49-        CHEXA   409     1       21      144     145     22      238     262     +
+                   50-        +       263     237
+                   51-        CHEXA   410     1       238     262     263     237     81      173     +
+                   52-        +       174     82
+                   53-        CHEXA   411     1       22      145     146     23      237     263     +
+                   54-        +       264     236
+                   55-        CHEXA   412     1       237     263     264     236     82      174     +
+                   56-        +       175     83
+                   57-        CHEXA   413     1       23      146     147     24      236     264     +
+                   58-        +       265     235
+                   59-        CHEXA   414     1       236     264     265     235     83      175     +
+                   60-        +       176     84
+                   61-        CHEXA   415     1       24      147     148     25      235     265     +
+                   62-        +       266     234
+                   63-        CHEXA   416     1       235     265     266     234     84      176     +
+                   64-        +       177     85
+                   65-        CHEXA   417     1       25      148     149     26      234     266     +
+                   66-        +       267     233
+                   67-        CHEXA   418     1       234     266     267     233     85      177     +
+                   68-        +       178     86
+                   69-        CHEXA   419     1       26      149     150     27      233     267     +
+                   70-        +       268     232
+                   71-        CHEXA   420     1       233     267     268     232     86      178     +
+                   72-        +       179     87
+                   73-        CHEXA   421     1       27      150     151     28      232     268     +
+                   74-        +       269     231
+                   75-        CHEXA   422     1       232     268     269     231     87      179     +
+                   76-        +       180     88
+                   77-        CHEXA   423     1       28      151     152     29      231     269     +
+                   78-        +       270     230
+                   79-        CHEXA   424     1       231     269     270     230     88      180     +
+                   80-        +       181     89
+                   81-        CHEXA   425     1       29      152     153     30      230     270     +
+                   82-        +       271     229
+                   83-        CHEXA   426     1       230     270     271     229     89      181     +
+                   84-        +       182     90
+                   85-        CHEXA   427     1       30      153     154     31      229     271     +
+                   86-        +       272     228
+                   87-        CHEXA   428     1       229     271     272     228     90      182     +
+                   88-        +       183     91
+                   89-        CHEXA   429     1       31      154     155     32      228     272     +
+                   90-        +       273     227
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     6
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                   91-        CHEXA   430     1       228     272     273     227     91      183     +
+                   92-        +       184     92
+                   93-        CHEXA   431     1       32      155     156     33      227     273     +
+                   94-        +       274     226
+                   95-        CHEXA   432     1       227     273     274     226     92      184     +
+                   96-        +       185     93
+                   97-        CHEXA   433     1       33      156     157     34      226     274     +
+                   98-        +       275     225
+                   99-        CHEXA   434     1       226     274     275     225     93      185     +
+                  100-        +       186     94
+                  101-        CHEXA   435     1       34      157     158     35      225     275     +
+                  102-        +       276     224
+                  103-        CHEXA   436     1       225     275     276     224     94      186     +
+                  104-        +       187     95
+                  105-        CHEXA   437     1       35      158     159     36      224     276     +
+                  106-        +       277     223
+                  107-        CHEXA   438     1       224     276     277     223     95      187     +
+                  108-        +       188     96
+                  109-        CHEXA   439     1       36      159     160     37      223     277     +
+                  110-        +       278     222
+                  111-        CHEXA   440     1       223     277     278     222     96      188     +
+                  112-        +       189     97
+                  113-        CHEXA   441     1       37      160     161     38      222     278     +
+                  114-        +       279     221
+                  115-        CHEXA   442     1       222     278     279     221     97      189     +
+                  116-        +       190     98
+                  117-        CHEXA   443     1       38      161     39      3       221     279     +
+                  118-        +       250     132
+                  119-        CHEXA   444     1       221     279     250     132     98      190     +
+                  120-        +       99      7
+                  121-        CHEXA   445     1       9       2       40      133     220     129     +
+                  122-        +       191     251
+                  123-        CHEXA   446     1       220     129     191     251     69      6       +
+                  124-        +       100     162
+                  125-        CHEXA   447     1       133     40      41      134     251     191     +
+                  126-        +       192     252
+                  127-        CHEXA   448     1       251     191     192     252     162     100     +
+                  128-        +       101     163
+                  129-        CHEXA   449     1       134     41      42      135     252     192     +
+                  130-        +       193     253
+                  131-        CHEXA   450     1       252     192     193     253     163     101     +
+                  132-        +       102     164
+                  133-        CHEXA   451     1       135     42      43      136     253     193     +
+                  134-        +       194     254
+                  135-        CHEXA   452     1       253     193     194     254     164     102     +
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     7
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  136-        +       103     165
+                  137-        CHEXA   453     1       136     43      44      137     254     194     +
+                  138-        +       195     255
+                  139-        CHEXA   454     1       254     194     195     255     165     103     +
+                  140-        +       104     166
+                  141-        CHEXA   455     1       137     44      45      138     255     195     +
+                  142-        +       196     256
+                  143-        CHEXA   456     1       255     195     196     256     166     104     +
+                  144-        +       105     167
+                  145-        CHEXA   457     1       138     45      46      139     256     196     +
+                  146-        +       197     257
+                  147-        CHEXA   458     1       256     196     197     257     167     105     +
+                  148-        +       106     168
+                  149-        CHEXA   459     1       139     46      47      140     257     197     +
+                  150-        +       198     258
+                  151-        CHEXA   460     1       257     197     198     258     168     106     +
+                  152-        +       107     169
+                  153-        CHEXA   461     1       140     47      48      141     258     198     +
+                  154-        +       199     259
+                  155-        CHEXA   462     1       258     198     199     259     169     107     +
+                  156-        +       108     170
+                  157-        CHEXA   463     1       141     48      49      142     259     199     +
+                  158-        +       200     260
+                  159-        CHEXA   464     1       259     199     200     260     170     108     +
+                  160-        +       109     171
+                  161-        CHEXA   465     1       142     49      50      143     260     200     +
+                  162-        +       201     261
+                  163-        CHEXA   466     1       260     200     201     261     171     109     +
+                  164-        +       110     172
+                  165-        CHEXA   467     1       143     50      51      144     261     201     +
+                  166-        +       202     262
+                  167-        CHEXA   468     1       261     201     202     262     172     110     +
+                  168-        +       111     173
+                  169-        CHEXA   469     1       144     51      52      145     262     202     +
+                  170-        +       203     263
+                  171-        CHEXA   470     1       262     202     203     263     173     111     +
+                  172-        +       112     174
+                  173-        CHEXA   471     1       145     52      53      146     263     203     +
+                  174-        +       204     264
+                  175-        CHEXA   472     1       263     203     204     264     174     112     +
+                  176-        +       113     175
+                  177-        CHEXA   473     1       146     53      54      147     264     204     +
+                  178-        +       205     265
+                  179-        CHEXA   474     1       264     204     205     265     175     113     +
+                  180-        +       114     176
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     8
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  181-        CHEXA   475     1       147     54      55      148     265     205     +
+                  182-        +       206     266
+                  183-        CHEXA   476     1       265     205     206     266     176     114     +
+                  184-        +       115     177
+                  185-        CHEXA   477     1       148     55      56      149     266     206     +
+                  186-        +       207     267
+                  187-        CHEXA   478     1       266     206     207     267     177     115     +
+                  188-        +       116     178
+                  189-        CHEXA   479     1       149     56      57      150     267     207     +
+                  190-        +       208     268
+                  191-        CHEXA   480     1       267     207     208     268     178     116     +
+                  192-        +       117     179
+                  193-        CHEXA   481     1       150     57      58      151     268     208     +
+                  194-        +       209     269
+                  195-        CHEXA   482     1       268     208     209     269     179     117     +
+                  196-        +       118     180
+                  197-        CHEXA   483     1       151     58      59      152     269     209     +
+                  198-        +       210     270
+                  199-        CHEXA   484     1       269     209     210     270     180     118     +
+                  200-        +       119     181
+                  201-        CHEXA   485     1       152     59      60      153     270     210     +
+                  202-        +       211     271
+                  203-        CHEXA   486     1       270     210     211     271     181     119     +
+                  204-        +       120     182
+                  205-        CHEXA   487     1       153     60      61      154     271     211     +
+                  206-        +       212     272
+                  207-        CHEXA   488     1       271     211     212     272     182     120     +
+                  208-        +       121     183
+                  209-        CHEXA   489     1       154     61      62      155     272     212     +
+                  210-        +       213     273
+                  211-        CHEXA   490     1       272     212     213     273     183     121     +
+                  212-        +       122     184
+                  213-        CHEXA   491     1       155     62      63      156     273     213     +
+                  214-        +       214     274
+                  215-        CHEXA   492     1       273     213     214     274     184     122     +
+                  216-        +       123     185
+                  217-        CHEXA   493     1       156     63      64      157     274     214     +
+                  218-        +       215     275
+                  219-        CHEXA   494     1       274     214     215     275     185     123     +
+                  220-        +       124     186
+                  221-        CHEXA   495     1       157     64      65      158     275     215     +
+                  222-        +       216     276
+                  223-        CHEXA   496     1       275     215     216     276     186     124     +
+                  224-        +       125     187
+                  225-        CHEXA   497     1       158     65      66      159     276     216     +
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     9
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  226-        +       217     277
+                  227-        CHEXA   498     1       276     216     217     277     187     125     +
+                  228-        +       126     188
+                  229-        CHEXA   499     1       159     66      67      160     277     217     +
+                  230-        +       218     278
+                  231-        CHEXA   500     1       277     217     218     278     188     126     +
+                  232-        +       127     189
+                  233-        CHEXA   501     1       160     67      68      161     278     218     +
+                  234-        +       219     279
+                  235-        CHEXA   502     1       278     218     219     279     189     127     +
+                  236-        +       128     190
+                  237-        CHEXA   503     1       161     68      4       39      279     219     +
+                  238-        +       131     250
+                  239-        CHEXA   504     1       279     219     131     250     190     128     +
+                  240-        +       8       99
+                  241-        FORCE   4       3       0       1.      .005    0.      0.
+                  242-        FORCE   4       4       0       1.      .005    0.      0.
+                  243-        FORCE   4       7       0       1.      .005    0.      0.
+                  244-        FORCE   4       8       0       1.      .005    0.      0.
+                  245-        GRID    1               0.      0.      20.
+                  246-        GRID    2               0.      0.      0.
+                  247-        GRID    3               300.    3.33E-1420.
+                  248-        GRID    4               300.    3.33E-140.
+                  249-        GRID    5               0.      -10.    20.
+                  250-        GRID    6               0.      -10.    0.
+                  251-        GRID    7               300.    -10.    20.
+                  252-        GRID    8               300.    -10.    0.
+                  253-        GRID    9               0.      0.      10.
+                  254-        GRID    10              10.     0.      20.
+                  255-        GRID    11              20.     2.22E-1520.
+                  256-        GRID    12              30.     3.33E-1520.
+                  257-        GRID    13              40.     4.44E-1520.
+                  258-        GRID    14              50.     5.55E-1520.
+                  259-        GRID    15              60.     6.66E-1520.
+                  260-        GRID    16              70.     7.77E-1520.
+                  261-        GRID    17              80.     8.88E-1520.
+                  262-        GRID    18              90.     9.99E-1520.
+                  263-        GRID    19              100.    1.11E-1420.
+                  264-        GRID    20              110.    1.22E-1420.
+                  265-        GRID    21              120.    1.33E-1420.
+                  266-        GRID    22              130.    1.44E-1420.
+                  267-        GRID    23              140.    1.55E-1420.
+                  268-        GRID    24              150.    1.67E-1420.
+                  269-        GRID    25              160.    1.78E-1420.
+                  270-        GRID    26              170.    1.89E-1420.
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    10
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  271-        GRID    27              180.    2E-14   20.
+                  272-        GRID    28              190.    2.11E-1420.
+                  273-        GRID    29              200.    2.22E-1420.
+                  274-        GRID    30              210.    2.33E-1420.
+                  275-        GRID    31              220.    2.44E-1420.
+                  276-        GRID    32              230.    2.55E-1420.
+                  277-        GRID    33              240.    2.66E-1420.
+                  278-        GRID    34              250.    2.78E-1420.
+                  279-        GRID    35              260.    2.89E-1420.
+                  280-        GRID    36              270.    3E-14   20.
+                  281-        GRID    37              280.    3.11E-1420.
+                  282-        GRID    38              290.    3.22E-1420.
+                  283-        GRID    39              300.    3.33E-1410.
+                  284-        GRID    40              10.     0.      0.
+                  285-        GRID    41              20.     2.22E-150.
+                  286-        GRID    42              30.     3.33E-150.
+                  287-        GRID    43              40.     4.44E-150.
+                  288-        GRID    44              50.     5.55E-150.
+                  289-        GRID    45              60.     6.66E-150.
+                  290-        GRID    46              70.     7.77E-150.
+                  291-        GRID    47              80.     8.88E-150.
+                  292-        GRID    48              90.     9.99E-150.
+                  293-        GRID    49              100.    1.11E-140.
+                  294-        GRID    50              110.    1.22E-140.
+                  295-        GRID    51              120.    1.33E-140.
+                  296-        GRID    52              130.    1.44E-140.
+                  297-        GRID    53              140.    1.55E-140.
+                  298-        GRID    54              150.    1.67E-140.
+                  299-        GRID    55              160.    1.78E-140.
+                  300-        GRID    56              170.    1.89E-140.
+                  301-        GRID    57              180.    2E-14   0.
+                  302-        GRID    58              190.    2.11E-140.
+                  303-        GRID    59              200.    2.22E-140.
+                  304-        GRID    60              210.    2.33E-140.
+                  305-        GRID    61              220.    2.44E-140.
+                  306-        GRID    62              230.    2.55E-140.
+                  307-        GRID    63              240.    2.66E-140.
+                  308-        GRID    64              250.    2.78E-140.
+                  309-        GRID    65              260.    2.89E-140.
+                  310-        GRID    66              270.    3E-14   0.
+                  311-        GRID    67              280.    3.11E-140.
+                  312-        GRID    68              290.    3.22E-140.
+                  313-        GRID    69              0.      -10.    10.
+                  314-        GRID    70              10.     -10.    20.
+                  315-        GRID    71              20.     -10.    20.
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    11
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  316-        GRID    72              30.     -10.    20.
+                  317-        GRID    73              40.     -10.    20.
+                  318-        GRID    74              50.     -10.    20.
+                  319-        GRID    75              60.     -10.    20.
+                  320-        GRID    76              70.     -10.    20.
+                  321-        GRID    77              80.     -10.    20.
+                  322-        GRID    78              90.     -10.    20.
+                  323-        GRID    79              100.    -10.    20.
+                  324-        GRID    80              110.    -10.    20.
+                  325-        GRID    81              120.    -10.    20.
+                  326-        GRID    82              130.    -10.    20.
+                  327-        GRID    83              140.    -10.    20.
+                  328-        GRID    84              150.    -10.    20.
+                  329-        GRID    85              160.    -10.    20.
+                  330-        GRID    86              170.    -10.    20.
+                  331-        GRID    87              180.    -10.    20.
+                  332-        GRID    88              190.    -10.    20.
+                  333-        GRID    89              200.    -10.    20.
+                  334-        GRID    90              210.    -10.    20.
+                  335-        GRID    91              220.    -10.    20.
+                  336-        GRID    92              230.    -10.    20.
+                  337-        GRID    93              240.    -10.    20.
+                  338-        GRID    94              250.    -10.    20.
+                  339-        GRID    95              260.    -10.    20.
+                  340-        GRID    96              270.    -10.    20.
+                  341-        GRID    97              280.    -10.    20.
+                  342-        GRID    98              290.    -10.    20.
+                  343-        GRID    99              300.    -10.    10.
+                  344-        GRID    100             10.     -10.    0.
+                  345-        GRID    101             20.     -10.    0.
+                  346-        GRID    102             30.     -10.    0.
+                  347-        GRID    103             40.     -10.    0.
+                  348-        GRID    104             50.     -10.    0.
+                  349-        GRID    105             60.     -10.    0.
+                  350-        GRID    106             70.     -10.    0.
+                  351-        GRID    107             80.     -10.    0.
+                  352-        GRID    108             90.     -10.    0.
+                  353-        GRID    109             100.    -10.    0.
+                  354-        GRID    110             110.    -10.    0.
+                  355-        GRID    111             120.    -10.    0.
+                  356-        GRID    112             130.    -10.    0.
+                  357-        GRID    113             140.    -10.    0.
+                  358-        GRID    114             150.    -10.    0.
+                  359-        GRID    115             160.    -10.    0.
+                  360-        GRID    116             170.    -10.    0.
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    12
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  361-        GRID    117             180.    -10.    0.
+                  362-        GRID    118             190.    -10.    0.
+                  363-        GRID    119             200.    -10.    0.
+                  364-        GRID    120             210.    -10.    0.
+                  365-        GRID    121             220.    -10.    0.
+                  366-        GRID    122             230.    -10.    0.
+                  367-        GRID    123             240.    -10.    0.
+                  368-        GRID    124             250.    -10.    0.
+                  369-        GRID    125             260.    -10.    0.
+                  370-        GRID    126             270.    -10.    0.
+                  371-        GRID    127             280.    -10.    0.
+                  372-        GRID    128             290.    -10.    0.
+                  373-        GRID    129             0.      -5.     0.
+                  374-        GRID    130             0.      -5.     20.
+                  375-        GRID    131             300.    -5.     0.
+                  376-        GRID    132             300.    -5.     20.
+                  377-        GRID    133             10.     0.      10.
+                  378-        GRID    134             20.     2.22E-1510.
+                  379-        GRID    135             30.     3.33E-1510.
+                  380-        GRID    136             40.     4.44E-1510.
+                  381-        GRID    137             50.     5.55E-1510.
+                  382-        GRID    138             60.     6.66E-1510.
+                  383-        GRID    139             70.     7.77E-1510.
+                  384-        GRID    140             80.     8.88E-1510.
+                  385-        GRID    141             90.     9.99E-1510.
+                  386-        GRID    142             100.    1.11E-1410.
+                  387-        GRID    143             110.    1.22E-1410.
+                  388-        GRID    144             120.    1.33E-1410.
+                  389-        GRID    145             130.    1.44E-1410.
+                  390-        GRID    146             140.    1.55E-1410.
+                  391-        GRID    147             150.    1.67E-1410.
+                  392-        GRID    148             160.    1.78E-1410.
+                  393-        GRID    149             170.    1.89E-1410.
+                  394-        GRID    150             180.    2E-14   10.
+                  395-        GRID    151             190.    2.11E-1410.
+                  396-        GRID    152             200.    2.22E-1410.
+                  397-        GRID    153             210.    2.33E-1410.
+                  398-        GRID    154             220.    2.44E-1410.
+                  399-        GRID    155             230.    2.55E-1410.
+                  400-        GRID    156             240.    2.66E-1410.
+                  401-        GRID    157             250.    2.78E-1410.
+                  402-        GRID    158             260.    2.89E-1410.
+                  403-        GRID    159             270.    3E-14   10.
+                  404-        GRID    160             280.    3.11E-1410.
+                  405-        GRID    161             290.    3.22E-1410.
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    13
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  406-        GRID    162             10.     -10.    10.
+                  407-        GRID    163             20.     -10.    10.
+                  408-        GRID    164             30.     -10.    10.
+                  409-        GRID    165             40.     -10.    10.
+                  410-        GRID    166             50.     -10.    10.
+                  411-        GRID    167             60.     -10.    10.
+                  412-        GRID    168             70.     -10.    10.
+                  413-        GRID    169             80.     -10.    10.
+                  414-        GRID    170             90.     -10.    10.
+                  415-        GRID    171             100.    -10.    10.
+                  416-        GRID    172             110.    -10.    10.
+                  417-        GRID    173             120.    -10.    10.
+                  418-        GRID    174             130.    -10.    10.
+                  419-        GRID    175             140.    -10.    10.
+                  420-        GRID    176             150.    -10.    10.
+                  421-        GRID    177             160.    -10.    10.
+                  422-        GRID    178             170.    -10.    10.
+                  423-        GRID    179             180.    -10.    10.
+                  424-        GRID    180             190.    -10.    10.
+                  425-        GRID    181             200.    -10.    10.
+                  426-        GRID    182             210.    -10.    10.
+                  427-        GRID    183             220.    -10.    10.
+                  428-        GRID    184             230.    -10.    10.
+                  429-        GRID    185             240.    -10.    10.
+                  430-        GRID    186             250.    -10.    10.
+                  431-        GRID    187             260.    -10.    10.
+                  432-        GRID    188             270.    -10.    10.
+                  433-        GRID    189             280.    -10.    10.
+                  434-        GRID    190             290.    -10.    10.
+                  435-        GRID    191             10.     -5.     0.
+                  436-        GRID    192             20.     -5.     0.
+                  437-        GRID    193             30.     -5.     0.
+                  438-        GRID    194             40.     -5.     0.
+                  439-        GRID    195             50.     -5.     0.
+                  440-        GRID    196             60.     -5.     0.
+                  441-        GRID    197             70.     -5.     0.
+                  442-        GRID    198             80.     -5.     0.
+                  443-        GRID    199             90.     -5.     0.
+                  444-        GRID    200             100.    -5.     0.
+                  445-        GRID    201             110.    -5.     0.
+                  446-        GRID    202             120.    -5.     0.
+                  447-        GRID    203             130.    -5.     0.
+                  448-        GRID    204             140.    -5.     0.
+                  449-        GRID    205             150.    -5.     0.
+                  450-        GRID    206             160.    -5.     0.
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    14
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  451-        GRID    207             170.    -5.     0.
+                  452-        GRID    208             180.    -5.     0.
+                  453-        GRID    209             190.    -5.     0.
+                  454-        GRID    210             200.    -5.     0.
+                  455-        GRID    211             210.    -5.     0.
+                  456-        GRID    212             220.    -5.     0.
+                  457-        GRID    213             230.    -5.     0.
+                  458-        GRID    214             240.    -5.     0.
+                  459-        GRID    215             250.    -5.     0.
+                  460-        GRID    216             260.    -5.     0.
+                  461-        GRID    217             270.    -5.     0.
+                  462-        GRID    218             280.    -5.     0.
+                  463-        GRID    219             290.    -5.     0.
+                  464-        GRID    220             0.      -5.     10.
+                  465-        GRID    221             290.    -5.     20.
+                  466-        GRID    222             280.    -5.     20.
+                  467-        GRID    223             270.    -5.     20.
+                  468-        GRID    224             260.    -5.     20.
+                  469-        GRID    225             250.    -5.     20.
+                  470-        GRID    226             240.    -5.     20.
+                  471-        GRID    227             230.    -5.     20.
+                  472-        GRID    228             220.    -5.     20.
+                  473-        GRID    229             210.    -5.     20.
+                  474-        GRID    230             200.    -5.     20.
+                  475-        GRID    231             190.    -5.     20.
+                  476-        GRID    232             180.    -5.     20.
+                  477-        GRID    233             170.    -5.     20.
+                  478-        GRID    234             160.    -5.     20.
+                  479-        GRID    235             150.    -5.     20.
+                  480-        GRID    236             140.    -5.     20.
+                  481-        GRID    237             130.    -5.     20.
+                  482-        GRID    238             120.    -5.     20.
+                  483-        GRID    239             110.    -5.     20.
+                  484-        GRID    240             100.    -5.     20.
+                  485-        GRID    241             90.     -5.     20.
+                  486-        GRID    242             80.     -5.     20.
+                  487-        GRID    243             70.     -5.     20.
+                  488-        GRID    244             60.     -5.     20.
+                  489-        GRID    245             50.     -5.     20.
+                  490-        GRID    246             40.     -5.     20.
+                  491-        GRID    247             30.     -5.     20.
+                  492-        GRID    248             20.     -5.     20.
+                  493-        GRID    249             10.     -5.     20.
+                  494-        GRID    250             300.    -5.     10.
+                  495-        GRID    251             10.     -5.     10.
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    15
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  496-        GRID    252             20.     -5.     10.
+                  497-        GRID    253             30.     -5.     10.
+                  498-        GRID    254             40.     -5.     10.
+                  499-        GRID    255             50.     -5.     10.
+                  500-        GRID    256             60.     -5.     10.
+                  501-        GRID    257             70.     -5.     10.
+                  502-        GRID    258             80.     -5.     10.
+                  503-        GRID    259             90.     -5.     10.
+                  504-        GRID    260             100.    -5.     10.
+                  505-        GRID    261             110.    -5.     10.
+                  506-        GRID    262             120.    -5.     10.
+                  507-        GRID    263             130.    -5.     10.
+                  508-        GRID    264             140.    -5.     10.
+                  509-        GRID    265             150.    -5.     10.
+                  510-        GRID    266             160.    -5.     10.
+                  511-        GRID    267             170.    -5.     10.
+                  512-        GRID    268             180.    -5.     10.
+                  513-        GRID    269             190.    -5.     10.
+                  514-        GRID    270             200.    -5.     10.
+                  515-        GRID    271             210.    -5.     10.
+                  516-        GRID    272             220.    -5.     10.
+                  517-        GRID    273             230.    -5.     10.
+                  518-        GRID    274             240.    -5.     10.
+                  519-        GRID    275             250.    -5.     10.
+                  520-        GRID    276             260.    -5.     10.
+                  521-        GRID    277             270.    -5.     10.
+                  522-        GRID    278             280.    -5.     10.
+                  523-        GRID    279             290.    -5.     10.
+                  524-        MAT1    1       200000. 76923.  .3      0.
+                  525-        PARAM   PRGPST  NO
+                  526-        PLOAD4  1       443     .5                              38      132     +
+                  527-        +       0       -1.     0.      0.
+                  528-        PLOAD4  1       444     .5                              221     7       +
+                  529-        +       0       -1.     0.      0.
+                  530-        PLOAD4  1       503     .5                              161     250     +
+                  531-        +       0       -1.     0.      0.
+                  532-        PLOAD4  1       504     .5                              279     99      +
+                  533-        +       0       -1.     0.      0.
+                  534-        PLOAD4  2       443     .5                              38      132     +
+                  535-        +       0       0.      -1.     0.
+                  536-        PLOAD4  2       444     .5                              221     7       +
+                  537-        +       0       0.      -1.     0.
+                  538-        PLOAD4  2       503     .5                              161     250     +
+                  539-        +       0       0.      -1.     0.
+                  540-        PLOAD4  2       504     .5                              279     99      +
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    16
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  541-        +       0       0.      -1.     0.
+                  542-        PLOAD4  3       443     .5                              38      132     +
+                  543-        +       0       0.      0.      -1.
+                  544-        PLOAD4  3       444     .5                              221     7       +
+                  545-        +       0       0.      0.      -1.
+                  546-        PLOAD4  3       503     .5                              161     250     +
+                  547-        +       0       0.      0.      -1.
+                  548-        PLOAD4  3       504     .5                              279     99      +
+                  549-        +       0       0.      0.      -1.
+                  550-        PLOAD4  5       443     .5                              38      132
+                  551-        PLOAD4  5       444     .5                              221     7
+                  552-        PLOAD4  5       503     .5                              161     250
+                  553-        PLOAD4  5       504     .5                              279     99
+                  554-        PSOLID  1       1       0       THREE   GRID    FULL    SMECH
+                  555-        SPC1    1       123     1       2       5       6       9       69      +
+                  556-        +       129     130     220
+                              ENDDATA
+                        TOTAL COUNT= 557
+                              INPUT BULK DATA ENTRY COUNT = 562
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    17
+                                                                                                                                    
+0                                                                                                                                   
+                                        M O D E L   S U M M A R Y          BULK = 0
+                                   ENTRY NAME        NUMBER OF ENTRIES
+                                   ----------        -----------------
+                                        CHEXA                      120
+                                        FORCE                        4
+                                         GRID                      279
+                                         MAT1                        1
+                                        PARAM                        1
+                                       PLOAD4                       16
+                                       PSOLID                        1
+                                         SPC1                        1
 
+ ^^^     
+ ^^^ >>> IFP OPERATIONS COMPLETE <<< 
+ ^^^     
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    18
+                                                                                                                                    
+0                                                                                                                                   
+ *** USER INFORMATION MESSAGE 7310 (VECPRN)
+     ORIGIN OF SUPERELEMENT BASIC COORDINATE SYSTEM WILL BE USED AS REFERENCE LOCATION.
+     RESULTANTS ABOUT ORIGIN OF SUPERELEMENT BASIC COORDINATE SYSTEM IN SUPERELEMENT BASIC SYSTEM COORDINATES.
+0                                                  OLOAD    RESULTANT       
+  SUBCASE/    LOAD
+  DAREA ID    TYPE       T1            T2            T3            R1            R2            R3
+0        1     FX   -1.000000E+02     ----          ----          ----      -1.500000E+03 -5.000000E+02                             
+               FY       ----       0.000000E+00     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----       0.000000E+00  0.000000E+00  0.000000E+00     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS -1.000000E+02  0.000000E+00  0.000000E+00  0.000000E+00 -1.500000E+03 -5.000000E+02
+0        2     FX    0.000000E+00     ----          ----          ----       0.000000E+00  0.000000E+00                             
+               FY       ----      -1.000000E+02     ----       1.500000E+03     ----      -2.950000E+04                             
+               FZ       ----          ----       0.000000E+00  0.000000E+00  0.000000E+00     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  0.000000E+00 -1.000000E+02  0.000000E+00  1.500000E+03  0.000000E+00 -2.950000E+04
+0        3     FX    0.000000E+00     ----          ----          ----       0.000000E+00  0.000000E+00                             
+               FY       ----       0.000000E+00     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----      -1.000000E+02  5.000000E+02  2.950000E+04     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  0.000000E+00  0.000000E+00 -1.000000E+02  5.000000E+02  2.950000E+04  0.000000E+00
+0        4     FX    2.000000E-02     ----          ----          ----       2.000000E-01  9.999999E-02                             
+               FY       ----       0.000000E+00     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----       0.000000E+00  0.000000E+00  0.000000E+00     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  2.000000E-02  0.000000E+00  0.000000E+00  0.000000E+00  2.000000E-01  9.999999E-02
+0        5     FX    0.000000E+00     ----          ----          ----       0.000000E+00  0.000000E+00                             
+               FY       ----       0.000000E+00     ----       0.000000E+00     ----       0.000000E+00                             
+               FZ       ----          ----      -1.000000E+02  5.000000E+02  2.950000E+04     ----                                  
+               MX       ----          ----          ----       0.000000E+00     ----          ----                                  
+               MY       ----          ----          ----          ----       0.000000E+00     ----                                  
+               MZ       ----          ----          ----          ----          ----       0.000000E+00                             
+             TOTALS  0.000000E+00  0.000000E+00 -1.000000E+02  5.000000E+02  2.950000E+04  0.000000E+00
+  
+ *** SYSTEM INFORMATION MESSAGE 4159 (DFMSA)
+     THE DECOMPOSITION OF KLL      YIELDS A MAXIMUM MATRIX-TO-FACTOR-DIAGONAL RATIO OF    5.040998E+02
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    19
+                                                                                                                                    
+0                                                                                                            SUBCASE 1              
+ *** USER INFORMATION MESSAGE 5293 (SSG3A)
+    FOR DATA BLOCK KLL     
+    LOAD SEQ. NO.             EPSILON              EXTERNAL WORK      EPSILONS LARGER THAN 0.001 ARE FLAGGED WITH ASTERISKS
+                1          3.4991554E-13          6.0669091E-02
+                2          3.6571725E-11          8.8347603E+01
+                3          1.7906544E-11          2.8326040E+01
+                4          4.6704029E-15          1.6362500E-09
+                5          1.7906544E-11          2.8326040E+01
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    20
+                                                                                                                                    
+0                                                                                                            SUBCASE 1              
+ 
                                              D I S P L A C E M E N T   V E C T O R
-
+ 
       POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
-           250      G      2.609024E-15  -4.361281E-11  -5.958402E-01   0.0            0.0            0.0
+             3      G     -1.712511E-03   3.690061E-06   1.488493E-02   0.0            0.0            0.0
+             4      G      2.441489E-04  -7.218007E-07   1.487840E-02   0.0            0.0            0.0
+             7      G     -1.712511E-03  -3.690060E-06   1.488493E-02   0.0            0.0            0.0
+             8      G      2.441489E-04   7.218023E-07   1.487840E-02   0.0            0.0            0.0
+            39      G     -7.353724E-04   1.493228E-06   1.487965E-02   0.0            0.0            0.0
+            99      G     -7.353724E-04  -1.493226E-06   1.487965E-02   0.0            0.0            0.0
+           131      G      2.442587E-04   8.040373E-13   1.487901E-02   0.0            0.0            0.0
+           132      G     -1.713299E-03   7.978475E-13   1.488554E-02   0.0            0.0            0.0
+           250      G     -7.357228E-04   8.009414E-13   1.488027E-02   0.0            0.0            0.0
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    21
+                                                                                                                                    
+0                                                                                                            SUBCASE 2              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             3      G      4.497756E-02  -1.813711E+00   1.770327E-03   0.0            0.0            0.0
+             4      G      4.492561E-02  -1.806552E+00   1.783434E-03   0.0            0.0            0.0
+             7      G     -4.497756E-02  -1.813711E+00  -1.770327E-03   0.0            0.0            0.0
+             8      G     -4.492561E-02  -1.806552E+00  -1.783434E-03   0.0            0.0            0.0
+            39      G      4.495177E-02  -1.810140E+00   1.776322E-03   0.0            0.0            0.0
+            99      G     -4.495177E-02  -1.810140E+00  -1.776322E-03   0.0            0.0            0.0
+           131      G     -1.438669E-12  -1.806551E+00  -3.124245E-11   0.0            0.0            0.0
+           132      G      1.520345E-12  -1.813711E+00  -3.124276E-11   0.0            0.0            0.0
+           250      G      4.118927E-14  -1.810139E+00  -3.124243E-11   0.0            0.0            0.0
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    22
+                                                                                                                                    
+0                                                                                                            SUBCASE 3              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             3      G      2.880624E-02   8.841023E-07  -5.809429E-01   0.0            0.0            0.0
+             4      G     -2.879493E-02   3.699106E-06  -5.809140E-01   0.0            0.0            0.0
+             7      G      2.880624E-02  -8.841646E-07  -5.809429E-01   0.0            0.0            0.0
+             8      G     -2.879493E-02  -3.699169E-06  -5.809140E-01   0.0            0.0            0.0
+            39      G      1.466719E-06   2.336534E-06  -5.809270E-01   0.0            0.0            0.0
+            99      G      1.466718E-06  -2.336597E-06  -5.809270E-01   0.0            0.0            0.0
+           131      G     -2.879544E-02  -3.143220E-11  -5.809144E-01   0.0            0.0            0.0
+           132      G      2.880754E-02  -3.117850E-11  -5.809434E-01   0.0            0.0            0.0
+           250      G      1.828774E-06  -3.130536E-11  -5.809275E-01   0.0            0.0            0.0
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    23
+                                                                                                                                    
+0                                                                                                            SUBCASE 4              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             3      G      1.636250E-07  -3.008444E-09  -4.394479E-09   0.0            0.0            0.0
+             4      G      1.636250E-07  -3.008444E-09   4.394479E-09   0.0            0.0            0.0
+             7      G      1.636250E-07   3.008444E-09  -4.394479E-09   0.0            0.0            0.0
+             8      G      1.636250E-07   3.008444E-09   4.394479E-09   0.0            0.0            0.0
+            39      G      1.395135E-07   1.362199E-09  -5.396262E-19   0.0            0.0            0.0
+            99      G      1.395135E-07  -1.362199E-09  -5.454958E-19   0.0            0.0            0.0
+           131      G      1.485377E-07  -8.411269E-18   4.213767E-09   0.0            0.0            0.0
+           132      G      1.485377E-07  -8.422929E-18  -4.213767E-09   0.0            0.0            0.0
+           250      G      1.462831E-07  -8.417149E-18  -5.425643E-19   0.0            0.0            0.0
+1   VEGA EXPORTED MODEL                                                      AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    24
+                                                                                                                                    
+0                                                                                                            SUBCASE 5              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             3      G      2.880624E-02   8.841023E-07  -5.809429E-01   0.0            0.0            0.0
+             4      G     -2.879493E-02   3.699106E-06  -5.809140E-01   0.0            0.0            0.0
+             7      G      2.880624E-02  -8.841646E-07  -5.809429E-01   0.0            0.0            0.0
+             8      G     -2.879493E-02  -3.699169E-06  -5.809140E-01   0.0            0.0            0.0
+            39      G      1.466719E-06   2.336534E-06  -5.809270E-01   0.0            0.0            0.0
+            99      G      1.466718E-06  -2.336597E-06  -5.809270E-01   0.0            0.0            0.0
+           131      G     -2.879544E-02  -3.143220E-11  -5.809144E-01   0.0            0.0            0.0
+           132      G      2.880754E-02  -3.117850E-11  -5.809434E-01   0.0            0.0            0.0
+           250      G      1.828774E-06  -3.130536E-11  -5.809275E-01   0.0            0.0            0.0
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    25
+                                                                                                                                    
+0                                                                                                                                   
+ * * * *  D B D I C T   P R I N T  * * * *      SUBDMAP = PRTSUM  ,  DMAP STATEMENT NO.     41
+
+
+
+0                                   * * * *  A N A L Y S I S  S U M M A R Y  T A B L E  * * * *
+0 SEID  PEID PROJ VERS APRCH      SEMG SEMR SEKR SELG SELR MODES DYNRED SOLLIN PVALID SOLNL LOOPID DESIGN CYCLE SENSITIVITY
+ --------------------------------------------------------------------------------------------------------------------------
+     0     0    1    2 '        '    T    T    T    T    T     F      F      T      0     F     -1            0           F
+0SEID = SUPERELEMENT ID.
+ PEID = PRIMARY SUPERELEMENT ID OF IMAGE SUPERELEMENT.
+ PROJ = PROJECT ID NUMBER.
+ VERS = VERSION ID.
+ APRCH = BLANK FOR STRUCTURAL ANALYSIS.  HEAT FOR HEAT TRANSFER ANALYSIS.
+ SEMG = STIFFNESS AND MASS MATRIX GENERATION STEP.
+ SEMR = MASS MATRIX REDUCTION STEP (INCLUDES EIGENVALUE SOLUTION FOR MODES).
+ SEKR = STIFFNESS MATRIX REDUCTION STEP.
+ SELG = LOAD MATRIX GENERATION STEP.
+ SELR = LOAD MATRIX REDUCTION STEP. 
+ MODES = T (TRUE) IF NORMAL MODES OR BUCKLING MODES CALCULATED.
+ DYNRED = T (TRUE) MEANS GENERALIZED DYNAMIC AND/OR COMPONENT MODE REDUCTION PERFORMED.
+ SOLLIN = T (TRUE) IF LINEAR SOLUTION EXISTS IN DATABASE.
+ PVALID = P-DISTRIBUTION ID OF P-VALUE FOR P-ELEMENTS
+ LOOPID = THE LAST LOOPID VALUE USED IN THE NONLINEAR ANALYSIS.  USEFUL FOR RESTARTS.
+ SOLNL = T (TRUE) IF NONLINEAR SOLUTION EXISTS IN DATABASE.
+ DESIGN CYCLE = THE LAST DESIGN CYCLE (ONLY VALID IN OPTIMIZATION).
+ SENSITIVITY = SENSITIVITY MATRIX GENERATION FLAG.
+ 
+ No PARAM values were set in the Control File.
+ 
+1                                        * * * END OF JOB * * *
+ 
+ 
+ No Symbolic Replacement variables or values were specified.
+

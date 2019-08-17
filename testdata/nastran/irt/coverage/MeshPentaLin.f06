@@ -1,7 +1,828 @@
-0                                                                                                            SUBCASE 1              
+1
  
-                                             D I S P L A C E M E N T   V E C T O R
  
-      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
-           312      G     -6.168075E-06  -1.401070E-03  -1.879576E-03   0.0            0.0            0.0
+ 
+ 
+                      Warning: This computer program is protected by copyright law and international treaties.       
+                  Unauthorized use, reproduction or distribution of this computer program, or any portion of it, may 
+                                          result in severe civil and criminal penalties.                             
+                         Copyright (C) 2012 MSC.Software Corporation and its licensors. All rights reserved.         
+ 
+ 
+                                              * * * * * * * * * * * * * * * * * * * *
+                                              * * * * * * * * * * * * * * * * * * * *
+                                              * *                                 * *
+                                              * *           MSC.SOFTWARE          * *
+                                              * *               CORP              * *
+                                              * *                                 * *
+                                              * *      M S C   N a s t r a n      * *
+                                              * *                                 * *
+                                              * *                                 * *
+                                              * *                                 * *
+                                              * *     Version 2012.2.0-CL151760   * *
+                                              * *                                 * *
+                                              * *                                 * *
+                                              * *                                 * *
+                                              * *          JUL  6, 2012           * *
+                                              * *                                 * *
+                                              * *       x86-64 Based System       * *
+                                              * *        MODEL Intel x8664        * *
+                                              * *     Linux 4.15.0-58-generic     * *
+                                              * *       Compiled for x8664        * *
+                                              * *                                 * *
+                                              * * * * * * * * * * * * * * * * * * * *
+                                              * * * * * * * * * * * * * * * * * * * *
+1News file -  (May 29, 2012):
+  
+               Welcome to MSC Nastran 2012.2
+  
+   Details of the release can be found in the Release Guide available
+   electronically in the installation documentation sub-directory.
+   Additional information can be found at the Nastran Product Support page:
+  
+      http://simcompanion.mscsoftware.com
+  
+   The support page provides links to this valuable information:
+      * A searchable Knowledge Base containing examples and answers to thousands
+        frequently asked questions written by MSC.Software subject-matter experts
+      * Peer-to-peer Discussion Forums enabling you to post questions for your
+        MSC.Software products and receive answers from other users worldwide.
+      * A list of known issues with the product and any workarounds.
+      * Instructions on how to contact technical support
+      * A mechanism for sending us product feedback or enhancement requests.
+      * Hardware and software requirements.
+      * Examples and Tutorials
+      * and much more.
+  
+   For information on training, please visit our Training web site
+  
+      http://www.mscsoftware.com/Contents/Services/Training/
+  
+   MSC Nastran brings powerful new features and enhancements for engineering
+   solutions. For a detailed description of features added to MSC Nastran 2012.2
+   Release Guide.
+   The highlights for the 2012.1 release include:
+      * MD and MSC Products have been consolidated into one release.
+      * Improved Performance when using ACMS especially with Parallel Processing
+      * A New Method for Complex Eigenvalue Analysis which has Greater Accuracy
+      * Improved performance for the Solution of Nonsymmetric systems encountered
+        with Exterior Acoustics, Friction and complex Lanczos
+      * Support of GPU computing
+      * Structural Interior - Exterior Acoustics can be performed using Weakly
+        Coupled Procedure which is Faster in SOL 111 and SOL 200
+      * Complex stress recovery for Shells in SOL 108,109, 111 and 112.
+      * Improved coupling with ACTRAN for modeling of Trimming material in SOL 10
+        and SOL 111
+      * Panel Participation Factor may be obtained for the Structural Response an
+        may be utilized in optimization.
+      * Easier to use Linear Contact Capability in SOL 400
+      * Improved Time Stepping procedure in SOL 400
+      * Coupled Thermal-Structural Analysis with SOL 700
+      * Wood and Ice Model in SOL 700
+      * Improved Computational Performance for FSI simulations on Parallel Proces
+      * Improved Splining techniques in Aeroelastic calculations
+ The highlights for the 2012.2 release include:
+1     * Reduction in I/O times for large models which had significant I/O in
+        previous releases
+      * Improved performance when using SOL 400 for nonlinear analysis
+      * The Segment-to-Segment Contact Procedure is expanded for Large Deformatio
+        and Friction
+      * User can easily add mass to CBUSH elements
+  
+  
+  
+  
+  
+  
+  
+  
+  
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     1
+                                                                                                                                    
+0        N A S T R A N    F I L E    A N D    S Y S T E M    P A R A M E T E R    E C H O                                           
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+     NASTRAN BUFFSIZE=8193 $(/MSC/MSC_NASTRAN/20122/CONF/NAST20122RC[3])             
+     $ MESHPENTALIN.BDF                                                              
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     2
+                                                                                                                                    
+0        N A S T R A N    E X E C U T I V E    C O N T R O L    E C H O                                                             
+0                                                                                                                                   
+                                                                                                                                    
+                                                                                                                                    
+     ID MESHPENTALIN.BDF,NASTRAN                                                             
+     SOL 101                                                                                 
+     APP   DISP                                                                              
+     TIME  10000                                                                             
+     CEND                                                                                    
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     3
+                                                                                                                                    
+0                                                                                                                                   
+0                                        C A S E    C O N T R O L    E C H O                                                        
+                 COMMAND                                                                                                            
+                 COUNT                                                                                                              
+                  1      SUBCASE 1                                                                               
+                  2        LOAD=1                                                                                
+                  3        SPC=1                                                                                 
+                  4      SET 1 = 7,8,9,10,11,12,17,18,19,20,312                                                  
+                  5      DISP = 1                                                                                
+                  6      SUBCASE 2                                                                               
+                  7        LOAD=2                                                                                
+                  8        SPC=1                                                                                 
+                  9      SET 1 = 7,8,9,10,11,12,17,18,19,20,312                                                  
+                 10      DISP = 1                                                                                
+                 11      SUBCASE 3                                                                               
+                 12        LOAD=3                                                                                
+                 13        SPC=1                                                                                 
+                 14      SET 1 = 7,8,9,10,11,12,17,18,19,20,312                                                  
+                 15      DISP = 1                                                                                
+                 16      SUBCASE 4                                                                               
+                 17        LOAD=4                                                                                
+                 18        SPC=1                                                                                 
+                 19      SET 1 = 7,8,9,10,11,12,17,18,19,20,312                                                  
+                 20      DISP = 1                                                                                
+                 21      SUBCASE 5                                                                               
+                 22        LOAD=5                                                                                
+                 23        SPC=1                                                                                 
+                 24      SET 1 = 7,8,9,10,11,12,17,18,19,20,312                                                  
+                 25      DISP = 1                                                                                
+                 26      $                                                                                       
+                 27      TITLE=VEGA EXPORTED MODEL                                                               
+                 28      BEGIN BULK                                                                              
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     4
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                    1-        FORCE   4       7       0       1.      .011014 0.      0.
+                    2-        FORCE   4       8       0       1.      .011014 0.      0.
+                    3-        FORCE   4       9       0       1.      .00667620.      0.
+                    4-        FORCE   4       9       0       1.      .00667620.      0.
+                    5-        FORCE   4       10      0       1.      .010956 0.      0.
+                    6-        FORCE   4       11      0       1.      .010956 0.      0.
+                    7-        FORCE   4       12      0       1.      .00665710.      0.
+                    8-        FORCE   4       12      0       1.      .00665710.      0.
+                    9-        FORCE   4       17      0       1.      .00848  0.      0.
+                   10-        FORCE   4       18      0       1.      .00848  0.      0.
+                   11-        GRID    1               0.      0.      0.
+                   12-        GRID    2               0.      -10.    0.
+                   13-        GRID    3               0.      -5.     0.
+                   14-        GRID    4               0.      0.      20.
+                   15-        GRID    5               0.      -10.    20.
+                   16-        GRID    6               0.      -5.     20.
+                   17-        GRID    7               300.    3.33E-140.
+                   18-        GRID    8               300.    -10.    0.
+                   19-        GRID    9               300.    -5.     0.
+                   20-        GRID    10              300.    3.33E-1420.
+                   21-        GRID    11              300.    -10.    20.
+                   22-        GRID    12              300.    -5.     20.
+                   23-        GRID    13              0.      -10.    6.0532
+                   24-        GRID    14              0.      -10.    13.915
+                   25-        GRID    15              0.      0.      6.0532
+                   26-        GRID    16              0.      0.      13.915
+                   27-        GRID    17              300.    -10.    13.915
+                   28-        GRID    18              300.    3.46E-1413.915
+                   29-        GRID    19              300.    3.46E-146.0532
+                   30-        GRID    20              300.    -10.    6.0532
+                   31-        GRID    21              10.     0.      0.
+                   32-        GRID    22              20.     2.22E-150.
+                   33-        GRID    23              30.     3.33E-150.
+                   34-        GRID    24              40.     4.44E-150.
+                   35-        GRID    25              50.     5.55E-150.
+                   36-        GRID    26              60.     6.66E-150.
+                   37-        GRID    27              70.     7.77E-150.
+                   38-        GRID    28              80.     8.88E-150.
+                   39-        GRID    29              90.     9.99E-150.
+                   40-        GRID    30              100.    1.11E-140.
+                   41-        GRID    31              110.    1.22E-140.
+                   42-        GRID    32              120.    1.33E-140.
+                   43-        GRID    33              130.    1.44E-140.
+                   44-        GRID    34              140.    1.55E-140.
+                   45-        GRID    35              150.    1.67E-140.
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     5
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                   46-        GRID    36              160.    1.78E-140.
+                   47-        GRID    37              170.    1.89E-140.
+                   48-        GRID    38              180.    2E-14   0.
+                   49-        GRID    39              190.    2.11E-140.
+                   50-        GRID    40              200.    2.22E-140.
+                   51-        GRID    41              210.    2.33E-140.
+                   52-        GRID    42              220.    2.44E-140.
+                   53-        GRID    43              230.    2.55E-140.
+                   54-        GRID    44              240.    2.66E-140.
+                   55-        GRID    45              250.    2.78E-140.
+                   56-        GRID    46              260.    2.89E-140.
+                   57-        GRID    47              270.    3E-14   0.
+                   58-        GRID    48              280.    3.11E-140.
+                   59-        GRID    49              290.    3.22E-140.
+                   60-        GRID    50              10.     -10.    0.
+                   61-        GRID    51              20.     -10.    0.
+                   62-        GRID    52              30.     -10.    0.
+                   63-        GRID    53              40.     -10.    0.
+                   64-        GRID    54              50.     -10.    0.
+                   65-        GRID    55              60.     -10.    0.
+                   66-        GRID    56              70.     -10.    0.
+                   67-        GRID    57              80.     -10.    0.
+                   68-        GRID    58              90.     -10.    0.
+                   69-        GRID    59              100.    -10.    0.
+                   70-        GRID    60              110.    -10.    0.
+                   71-        GRID    61              120.    -10.    0.
+                   72-        GRID    62              130.    -10.    0.
+                   73-        GRID    63              140.    -10.    0.
+                   74-        GRID    64              150.    -10.    0.
+                   75-        GRID    65              160.    -10.    0.
+                   76-        GRID    66              170.    -10.    0.
+                   77-        GRID    67              180.    -10.    0.
+                   78-        GRID    68              190.    -10.    0.
+                   79-        GRID    69              200.    -10.    0.
+                   80-        GRID    70              210.    -10.    0.
+                   81-        GRID    71              220.    -10.    0.
+                   82-        GRID    72              230.    -10.    0.
+                   83-        GRID    73              240.    -10.    0.
+                   84-        GRID    74              250.    -10.    0.
+                   85-        GRID    75              260.    -10.    0.
+                   86-        GRID    76              270.    -10.    0.
+                   87-        GRID    77              280.    -10.    0.
+                   88-        GRID    78              290.    -10.    0.
+                   89-        GRID    79              10.     0.      20.
+                   90-        GRID    80              20.     2.22E-1520.
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     6
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                   91-        GRID    81              30.     3.33E-1520.
+                   92-        GRID    82              40.     4.44E-1520.
+                   93-        GRID    83              50.     5.55E-1520.
+                   94-        GRID    84              60.     6.66E-1520.
+                   95-        GRID    85              70.     7.77E-1520.
+                   96-        GRID    86              80.     8.88E-1520.
+                   97-        GRID    87              90.     9.99E-1520.
+                   98-        GRID    88              100.    1.11E-1420.
+                   99-        GRID    89              110.    1.22E-1420.
+                  100-        GRID    90              120.    1.33E-1420.
+                  101-        GRID    91              130.    1.44E-1420.
+                  102-        GRID    92              140.    1.55E-1420.
+                  103-        GRID    93              150.    1.67E-1420.
+                  104-        GRID    94              160.    1.78E-1420.
+                  105-        GRID    95              170.    1.89E-1420.
+                  106-        GRID    96              180.    2E-14   20.
+                  107-        GRID    97              190.    2.11E-1420.
+                  108-        GRID    98              200.    2.22E-1420.
+                  109-        GRID    99              210.    2.33E-1420.
+                  110-        GRID    100             220.    2.44E-1420.
+                  111-        GRID    101             230.    2.55E-1420.
+                  112-        GRID    102             240.    2.66E-1420.
+                  113-        GRID    103             250.    2.78E-1420.
+                  114-        GRID    104             260.    2.89E-1420.
+                  115-        GRID    105             270.    3E-14   20.
+                  116-        GRID    106             280.    3.11E-1420.
+                  117-        GRID    107             290.    3.22E-1420.
+                  118-        GRID    108             10.     -10.    20.
+                  119-        GRID    109             20.     -10.    20.
+                  120-        GRID    110             30.     -10.    20.
+                  121-        GRID    111             40.     -10.    20.
+                  122-        GRID    112             50.     -10.    20.
+                  123-        GRID    113             60.     -10.    20.
+                  124-        GRID    114             70.     -10.    20.
+                  125-        GRID    115             80.     -10.    20.
+                  126-        GRID    116             90.     -10.    20.
+                  127-        GRID    117             100.    -10.    20.
+                  128-        GRID    118             110.    -10.    20.
+                  129-        GRID    119             120.    -10.    20.
+                  130-        GRID    120             130.    -10.    20.
+                  131-        GRID    121             140.    -10.    20.
+                  132-        GRID    122             150.    -10.    20.
+                  133-        GRID    123             160.    -10.    20.
+                  134-        GRID    124             170.    -10.    20.
+                  135-        GRID    125             180.    -10.    20.
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     7
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  136-        GRID    126             190.    -10.    20.
+                  137-        GRID    127             200.    -10.    20.
+                  138-        GRID    128             210.    -10.    20.
+                  139-        GRID    129             220.    -10.    20.
+                  140-        GRID    130             230.    -10.    20.
+                  141-        GRID    131             240.    -10.    20.
+                  142-        GRID    132             250.    -10.    20.
+                  143-        GRID    133             260.    -10.    20.
+                  144-        GRID    134             270.    -10.    20.
+                  145-        GRID    135             280.    -10.    20.
+                  146-        GRID    136             290.    -10.    20.
+                  147-        GRID    137             10.     -10.    13.915
+                  148-        GRID    138             20.     -10.    13.915
+                  149-        GRID    139             30.     -10.    13.915
+                  150-        GRID    140             40.     -10.    13.915
+                  151-        GRID    141             50.     -10.    13.915
+                  152-        GRID    142             60.     -10.    13.915
+                  153-        GRID    143             70.     -10.    13.915
+                  154-        GRID    144             80.     -10.    13.915
+                  155-        GRID    145             90.     -10.    13.915
+                  156-        GRID    146             100.    -10.    13.915
+                  157-        GRID    147             110.    -10.    13.915
+                  158-        GRID    148             120.    -10.    13.915
+                  159-        GRID    149             130.    -10.    13.915
+                  160-        GRID    150             140.    -10.    13.915
+                  161-        GRID    151             150.    -10.    13.915
+                  162-        GRID    152             160.    -10.    13.915
+                  163-        GRID    153             170.    -10.    13.915
+                  164-        GRID    154             180.    -10.    13.915
+                  165-        GRID    155             190.    -10.    13.915
+                  166-        GRID    156             200.    -10.    13.915
+                  167-        GRID    157             210.    -10.    13.915
+                  168-        GRID    158             220.    -10.    13.915
+                  169-        GRID    159             230.    -10.    13.915
+                  170-        GRID    160             240.    -10.    13.915
+                  171-        GRID    161             250.    -10.    13.915
+                  172-        GRID    162             260.    -10.    13.915
+                  173-        GRID    163             270.    -10.    13.915
+                  174-        GRID    164             280.    -10.    13.915
+                  175-        GRID    165             290.    -10.    13.915
+                  176-        GRID    166             10.     -10.    6.0532
+                  177-        GRID    167             20.     -10.    6.0532
+                  178-        GRID    168             30.     -10.    6.0532
+                  179-        GRID    169             40.     -10.    6.0532
+                  180-        GRID    170             50.     -10.    6.0532
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     8
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  181-        GRID    171             60.     -10.    6.0532
+                  182-        GRID    172             70.     -10.    6.0532
+                  183-        GRID    173             80.     -10.    6.0532
+                  184-        GRID    174             90.     -10.    6.0532
+                  185-        GRID    175             100.    -10.    6.0532
+                  186-        GRID    176             110.    -10.    6.0532
+                  187-        GRID    177             120.    -10.    6.0532
+                  188-        GRID    178             130.    -10.    6.0532
+                  189-        GRID    179             140.    -10.    6.0532
+                  190-        GRID    180             150.    -10.    6.0532
+                  191-        GRID    181             160.    -10.    6.0532
+                  192-        GRID    182             170.    -10.    6.0532
+                  193-        GRID    183             180.    -10.    6.0532
+                  194-        GRID    184             190.    -10.    6.0532
+                  195-        GRID    185             200.    -10.    6.0532
+                  196-        GRID    186             210.    -10.    6.0532
+                  197-        GRID    187             220.    -10.    6.0532
+                  198-        GRID    188             230.    -10.    6.0532
+                  199-        GRID    189             240.    -10.    6.0532
+                  200-        GRID    190             250.    -10.    6.0532
+                  201-        GRID    191             260.    -10.    6.0532
+                  202-        GRID    192             270.    -10.    6.0532
+                  203-        GRID    193             280.    -10.    6.0532
+                  204-        GRID    194             290.    -10.    6.0532
+                  205-        GRID    195             10.     0.      6.0532
+                  206-        GRID    196             20.     2.22E-156.0532
+                  207-        GRID    197             30.     3.33E-156.0532
+                  208-        GRID    198             40.     4.44E-156.0532
+                  209-        GRID    199             50.     5.55E-156.0532
+                  210-        GRID    200             60.     6.66E-156.0532
+                  211-        GRID    201             70.     7.77E-156.0532
+                  212-        GRID    202             80.     8.88E-156.0532
+                  213-        GRID    203             90.     9.99E-156.0532
+                  214-        GRID    204             100.    1.11E-146.0532
+                  215-        GRID    205             110.    1.22E-146.0532
+                  216-        GRID    206             120.    1.33E-146.0532
+                  217-        GRID    207             130.    1.44E-146.0532
+                  218-        GRID    208             140.    1.55E-146.0532
+                  219-        GRID    209             150.    1.67E-146.0532
+                  220-        GRID    210             160.    1.78E-146.0532
+                  221-        GRID    211             170.    1.89E-146.0532
+                  222-        GRID    212             180.    2E-14   6.0532
+                  223-        GRID    213             190.    2.11E-146.0532
+                  224-        GRID    214             200.    2.22E-146.0532
+                  225-        GRID    215             210.    2.33E-146.0532
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE     9
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  226-        GRID    216             220.    2.44E-146.0532
+                  227-        GRID    217             230.    2.55E-146.0532
+                  228-        GRID    218             240.    2.66E-146.0532
+                  229-        GRID    219             250.    2.78E-146.0532
+                  230-        GRID    220             260.    2.89E-146.0532
+                  231-        GRID    221             270.    3E-14   6.0532
+                  232-        GRID    222             280.    3.11E-146.0532
+                  233-        GRID    223             290.    3.22E-146.0532
+                  234-        GRID    224             10.     0.      13.915
+                  235-        GRID    225             20.     2.22E-1513.915
+                  236-        GRID    226             30.     3.33E-1513.915
+                  237-        GRID    227             40.     4.44E-1513.915
+                  238-        GRID    228             50.     5.55E-1513.915
+                  239-        GRID    229             60.     6.66E-1513.915
+                  240-        GRID    230             70.     7.77E-1513.915
+                  241-        GRID    231             80.     8.88E-1513.915
+                  242-        GRID    232             90.     9.99E-1513.915
+                  243-        GRID    233             100.    1.11E-1413.915
+                  244-        GRID    234             110.    1.22E-1413.915
+                  245-        GRID    235             120.    1.33E-1413.915
+                  246-        GRID    236             130.    1.44E-1413.915
+                  247-        GRID    237             140.    1.55E-1413.915
+                  248-        GRID    238             150.    1.67E-1413.915
+                  249-        GRID    239             160.    1.78E-1413.915
+                  250-        GRID    240             170.    1.89E-1413.915
+                  251-        GRID    241             180.    2E-14   13.915
+                  252-        GRID    242             190.    2.11E-1413.915
+                  253-        GRID    243             200.    2.22E-1413.915
+                  254-        GRID    244             210.    2.33E-1413.915
+                  255-        GRID    245             220.    2.44E-1413.915
+                  256-        GRID    246             230.    2.55E-1413.915
+                  257-        GRID    247             240.    2.66E-1413.915
+                  258-        GRID    248             250.    2.78E-1413.915
+                  259-        GRID    249             260.    2.89E-1413.915
+                  260-        GRID    250             270.    3E-14   13.915
+                  261-        GRID    251             280.    3.11E-1413.915
+                  262-        GRID    252             290.    3.22E-1413.915
+                  263-        GRID    253             10.     -5.     0.
+                  264-        GRID    254             20.     -5.     0.
+                  265-        GRID    255             30.     -5.     0.
+                  266-        GRID    256             40.     -5.     0.
+                  267-        GRID    257             50.     -5.     0.
+                  268-        GRID    258             60.     -5.     0.
+                  269-        GRID    259             70.     -5.     0.
+                  270-        GRID    260             80.     -5.     0.
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    10
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  271-        GRID    261             90.     -5.     0.
+                  272-        GRID    262             100.    -5.     0.
+                  273-        GRID    263             110.    -5.     0.
+                  274-        GRID    264             120.    -5.     0.
+                  275-        GRID    265             130.    -5.     0.
+                  276-        GRID    266             140.    -5.     0.
+                  277-        GRID    267             150.    -5.     0.
+                  278-        GRID    268             160.    -5.     0.
+                  279-        GRID    269             170.    -5.     0.
+                  280-        GRID    270             180.    -5.     0.
+                  281-        GRID    271             190.    -5.     0.
+                  282-        GRID    272             200.    -5.     0.
+                  283-        GRID    273             210.    -5.     0.
+                  284-        GRID    274             220.    -5.     0.
+                  285-        GRID    275             230.    -5.     0.
+                  286-        GRID    276             240.    -5.     0.
+                  287-        GRID    277             250.    -5.     0.
+                  288-        GRID    278             260.    -5.     0.
+                  289-        GRID    279             270.    -5.     0.
+                  290-        GRID    280             280.    -5.     0.
+                  291-        GRID    281             290.    -5.     0.
+                  292-        GRID    282             0.      -5.     9.9857
+                  293-        GRID    283             290.    -5.     20.
+                  294-        GRID    284             280.    -5.     20.
+                  295-        GRID    285             270.    -5.     20.
+                  296-        GRID    286             260.    -5.     20.
+                  297-        GRID    287             250.    -5.     20.
+                  298-        GRID    288             240.    -5.     20.
+                  299-        GRID    289             230.    -5.     20.
+                  300-        GRID    290             220.    -5.     20.
+                  301-        GRID    291             210.    -5.     20.
+                  302-        GRID    292             200.    -5.     20.
+                  303-        GRID    293             190.    -5.     20.
+                  304-        GRID    294             180.    -5.     20.
+                  305-        GRID    295             170.    -5.     20.
+                  306-        GRID    296             160.    -5.     20.
+                  307-        GRID    297             150.    -5.     20.
+                  308-        GRID    298             140.    -5.     20.
+                  309-        GRID    299             130.    -5.     20.
+                  310-        GRID    300             120.    -5.     20.
+                  311-        GRID    301             110.    -5.     20.
+                  312-        GRID    302             100.    -5.     20.
+                  313-        GRID    303             90.     -5.     20.
+                  314-        GRID    304             80.     -5.     20.
+                  315-        GRID    305             70.     -5.     20.
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    11
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  316-        GRID    306             60.     -5.     20.
+                  317-        GRID    307             50.     -5.     20.
+                  318-        GRID    308             40.     -5.     20.
+                  319-        GRID    309             30.     -5.     20.
+                  320-        GRID    310             20.     -5.     20.
+                  321-        GRID    311             10.     -5.     20.
+                  322-        GRID    312             300.    -5.     9.9857
+                  323-        GRID    313             290.    -5.     9.9857
+                  324-        GRID    314             280.    -5.     9.9857
+                  325-        GRID    315             270.    -5.     9.9857
+                  326-        GRID    316             260.    -5.     9.9857
+                  327-        GRID    317             250.    -5.     9.9857
+                  328-        GRID    318             240.    -5.     9.9857
+                  329-        GRID    319             230.    -5.     9.9857
+                  330-        GRID    320             220.    -5.     9.9857
+                  331-        GRID    321             210.    -5.     9.9857
+                  332-        GRID    322             200.    -5.     9.9857
+                  333-        GRID    323             190.    -5.     9.9857
+                  334-        GRID    324             180.    -5.     9.9857
+                  335-        GRID    325             170.    -5.     9.9857
+                  336-        GRID    326             160.    -5.     9.9857
+                  337-        GRID    327             150.    -5.     9.9857
+                  338-        GRID    328             140.    -5.     9.9857
+                  339-        GRID    329             130.    -5.     9.9857
+                  340-        GRID    330             120.    -5.     9.9857
+                  341-        GRID    331             110.    -5.     9.9857
+                  342-        GRID    332             100.    -5.     9.9857
+                  343-        GRID    333             90.     -5.     9.9857
+                  344-        GRID    334             80.     -5.     9.9857
+                  345-        GRID    335             70.     -5.     9.9857
+                  346-        GRID    336             60.     -5.     9.9857
+                  347-        GRID    337             50.     -5.     9.9857
+                  348-        GRID    338             40.     -5.     9.9857
+                  349-        GRID    339             30.     -5.     9.9857
+                  350-        GRID    340             20.     -5.     9.9857
+                  351-        GRID    341             10.     -5.     9.9857
+                  352-        MAT1    1       200000. 76923.  .3      0.
+                  353-        PARAM   PRGPST  NO
+                  354-        PLOAD4  1       461     .5                              11      12      +
+                  355-        +       0       -1.     0.      0.
+                  356-        PLOAD4  1       491     .5                              12      10      +
+                  357-        +       0       -1.     0.      0.
+                  358-        PLOAD4  1       521     .5                              7       9       +
+                  359-        +       0       -1.     0.      0.
+                  360-        PLOAD4  1       551     .5                              9       8       +
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    12
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  361-        +       0       -1.     0.      0.
+                  362-        PLOAD4  1       581     .5                              20      17      +
+                  363-        +       0       -1.     0.      0.
+                  364-        PLOAD4  1       611     .5                              9       20      +
+                  365-        +       0       -1.     0.      0.
+                  366-        PLOAD4  1       641     .5                              17      12      +
+                  367-        +       0       -1.     0.      0.
+                  368-        PLOAD4  1       671     .5                              18      19      +
+                  369-        +       0       -1.     0.      0.
+                  370-        PLOAD4  1       701     .5                              19      9       +
+                  371-        +       0       -1.     0.      0.
+                  372-        PLOAD4  1       731     .5                              312     12      +
+                  373-        +       0       -1.     0.      0.
+                  374-        PLOAD4  2       461     .5                              11      12      +
+                  375-        +       0       0.      -1.     0.
+                  376-        PLOAD4  2       491     .5                              12      10      +
+                  377-        +       0       0.      -1.     0.
+                  378-        PLOAD4  2       521     .5                              7       9       +
+                  379-        +       0       0.      -1.     0.
+                  380-        PLOAD4  2       551     .5                              9       8       +
+                  381-        +       0       0.      -1.     0.
+                  382-        PLOAD4  2       581     .5                              20      17      +
+                  383-        +       0       0.      -1.     0.
+                  384-        PLOAD4  2       611     .5                              9       20      +
+                  385-        +       0       0.      -1.     0.
+                  386-        PLOAD4  2       641     .5                              17      12      +
+                  387-        +       0       0.      -1.     0.
+                  388-        PLOAD4  2       671     .5                              18      19      +
+                  389-        +       0       0.      -1.     0.
+                  390-        PLOAD4  2       701     .5                              19      9       +
+                  391-        +       0       0.      -1.     0.
+                  392-        PLOAD4  2       731     .5                              312     12      +
+                  393-        +       0       0.      -1.     0.
+                  394-        PLOAD4  3       461     .5                              11      12      +
+                  395-        +       0       0.      0.      -1.
+                  396-        PLOAD4  3       491     .5                              12      10      +
+                  397-        +       0       0.      0.      -1.
+                  398-        PLOAD4  3       521     .5                              7       9       +
+                  399-        +       0       0.      0.      -1.
+                  400-        PLOAD4  3       551     .5                              9       8       +
+                  401-        +       0       0.      0.      -1.
+                  402-        PLOAD4  3       581     .5                              20      17      +
+                  403-        +       0       0.      0.      -1.
+                  404-        PLOAD4  3       611     .5                              9       20      +
+                  405-        +       0       0.      0.      -1.
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    13
+                                                                                                                                    
+0                                                                                                                                   
+                                                  S O R T E D   B U L K   D A T A   E C H O                                         
+                 ENTRY                                                                                                              
+                 COUNT        .   1  ..   2  ..   3  ..   4  ..   5  ..   6  ..   7  ..   8  ..   9  ..  10  .                      
+                  406-        PLOAD4  3       641     .5                              17      12      +
+                  407-        +       0       0.      0.      -1.
+                  408-        PLOAD4  3       671     .5                              18      19      +
+                  409-        +       0       0.      0.      -1.
+                  410-        PLOAD4  3       701     .5                              19      9       +
+                  411-        +       0       0.      0.      -1.
+                  412-        PLOAD4  3       731     .5                              312     12      +
+                  413-        +       0       0.      0.      -1.
+                  414-        PLOAD4  5       461     .5                              11      12
+                  415-        PLOAD4  5       491     .5                              12      10
+                  416-        PLOAD4  5       521     .5                              7       9
+                  417-        PLOAD4  5       551     .5                              9       8
+                  418-        PLOAD4  5       581     .5                              20      17
+                  419-        PLOAD4  5       611     .5                              9       20
+                  420-        PLOAD4  5       641     .5                              17      12
+                  421-        PLOAD4  5       671     .5                              18      19
+                  422-        PLOAD4  5       701     .5                              19      9
+                  423-        PLOAD4  5       731     .5                              312     12
+                  424-        PSOLID  1       1       0       THREE   GRID    FULL    SMECH
+                  425-        SPC1    1       123     1       2       3       4       5       6       +
+                  426-        +       13      14      15      16      282
+                              ENDDATA
+                        TOTAL COUNT= 427
+                              INPUT BULK DATA ENTRY COUNT = 432
+1                                                                            AUGUST  17, 2019  MSC.NASTRAN  7/ 6/12   PAGE    14
+                                                                                                                                    
+0                                                                                                                                   
+                                        M O D E L   S U M M A R Y          BULK = 0
+                                   ENTRY NAME        NUMBER OF ENTRIES
+                                   ----------        -----------------
+                                        FORCE                       10
+                                         GRID                      341
+                                         MAT1                        1
+                                        PARAM                        1
+                                       PLOAD4                       40
+                                       PSOLID                        1
+                                         SPC1                        1
 
+ ^^^     
+ ^^^ >>> IFP OPERATIONS COMPLETE <<< 
+ ^^^     
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =1 REFERENCES ELEMENT ID =461
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =1 REFERENCES ELEMENT ID =491
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =1 REFERENCES ELEMENT ID =521
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =1 REFERENCES ELEMENT ID =551
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =1 REFERENCES ELEMENT ID =581
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =1 REFERENCES ELEMENT ID =611
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =1 REFERENCES ELEMENT ID =641
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =1 REFERENCES ELEMENT ID =671
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =1 REFERENCES ELEMENT ID =701
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =1 REFERENCES ELEMENT ID =731
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =2 REFERENCES ELEMENT ID =461
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =2 REFERENCES ELEMENT ID =491
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =2 REFERENCES ELEMENT ID =521
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =2 REFERENCES ELEMENT ID =551
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =2 REFERENCES ELEMENT ID =581
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =2 REFERENCES ELEMENT ID =611
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =2 REFERENCES ELEMENT ID =641
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =2 REFERENCES ELEMENT ID =671
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =2 REFERENCES ELEMENT ID =701
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =2 REFERENCES ELEMENT ID =731
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =3 REFERENCES ELEMENT ID =461
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =3 REFERENCES ELEMENT ID =491
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =3 REFERENCES ELEMENT ID =521
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =3 REFERENCES ELEMENT ID =551
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =3 REFERENCES ELEMENT ID =581
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =3 REFERENCES ELEMENT ID =611
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =3 REFERENCES ELEMENT ID =641
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =3 REFERENCES ELEMENT ID =671
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =3 REFERENCES ELEMENT ID =701
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =3 REFERENCES ELEMENT ID =731
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =5 REFERENCES ELEMENT ID =461
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =5 REFERENCES ELEMENT ID =491
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =5 REFERENCES ELEMENT ID =521
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =5 REFERENCES ELEMENT ID =551
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =5 REFERENCES ELEMENT ID =581
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =5 REFERENCES ELEMENT ID =611
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =5 REFERENCES ELEMENT ID =641
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =5 REFERENCES ELEMENT ID =671
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =5 REFERENCES ELEMENT ID =701
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+ *** USER FATAL MESSAGE 4577 (GP3C)
+     PLOAD4 LOAD SET =5 REFERENCES ELEMENT ID =731
+     WHICH WAS NOT FOUND AMONG TRIA3, TRIAR, TRIA6, QUAD4, QUADR, QUAD8, HEXA, PENTA, TETRA OR
+     HYPERELASTIC SOLID ELEMENTS IN THE PROBLEM.
+0FATAL ERROR
+1                                        * * * END OF JOB * * *
+ 
+ 
+ No Symbolic Replacement variables or values were specified.
+
+ *** SYSTEM INFORMATION MESSAGE 1156 (XCLNUP)
+     GINO FILE      101 WAS LEFT OPEN AT PROGRAM TERMINATION.
+ *** SYSTEM INFORMATION MESSAGE 1156 (XCLNUP)
+     GINO FILE      302 WAS LEFT OPEN AT PROGRAM TERMINATION.

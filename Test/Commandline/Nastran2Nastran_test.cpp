@@ -8,7 +8,7 @@
  *      Author: devel
  */
 
-#define BOOST_TEST_MODULE nastran2aster_test
+#define BOOST_TEST_MODULE nastran2nastran_test
 #define BOOST_TEST_IGNORE_NON_ZERO_CHILD_CODE
 //#define BOOST_TEST_IGNORE_SIGCHLD
 

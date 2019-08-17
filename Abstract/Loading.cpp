@@ -720,13 +720,22 @@ NormalPressionFaceTwoNodes::NormalPressionFaceTwoNodes(Model& model, int nodeId1
 				model.mesh.findOrReserveNode(nodeId2)) {
 }
 
+NormalPressionFaceTwoNodes::NormalPressionFaceTwoNodes(Model& model, int nodeId1,
+		double intensity, const int original_id) :
+		NormalPressionFace(model, intensity, original_id), nodePosition1(
+				model.mesh.findOrReserveNode(nodeId1)), nodePosition2(Globals::UNAVAILABLE_INT) {
+}
+
 vector<int> NormalPressionFaceTwoNodes::getApplicationFaceNodeIds() const {
 	const auto& cells = getCellsIncludingGroups();
 	if (cells.size() != 1) {
 		throw logic_error("More than one cell specified for a NormalPressionFaceTwoNodes");
 	}
 	const int nodeId1 = model.mesh.findNodeId(nodePosition1);
-	const int nodeId2 = model.mesh.findNodeId(nodePosition2);
+    int nodeId2 = Globals::UNAVAILABLE_INT;
+	if (nodePosition2 != Globals::UNAVAILABLE_INT) {
+        nodeId2 = model.mesh.findNodeId(nodePosition2);
+	}
 	const vector<int>& faceIds = cells.begin()->faceids_from_two_nodes(nodeId1, nodeId2);
 	return faceIds;
 }
