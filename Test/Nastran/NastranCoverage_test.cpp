@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
     const set<Loading::Type> loadingTypes = {
         Loading::Type::FORCE_SURFACE,
         Loading::Type::NORMAL_PRESSION_FACE,
-//        Loading::Type::NODAL_FORCE,
+        Loading::Type::NODAL_FORCE,
     };
 	try {
 	    for (const auto& writerEntry : writerBySolverName) {
@@ -162,13 +162,14 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                 // Add Analyses
                 int analysisId = 1;
                 int loadSetId = 1;
-
+                double f = 100.0;
+                double p = 0.5;
                 for (const auto& loadingType : loadingTypes) {
                     switch (loadingType) {
                         case Loading::Type::FORCE_SURFACE : {
                             for (const DOF& loadDirection : DOFS::TRANSLATIONS) {
                                 DOFCoefs loadingCoefs(DOFS::ALL_DOFS, 0.0);
-                                loadingCoefs.setValue(loadDirection, -0.5);
+                                loadingCoefs.setValue(loadDirection, -p);
                                 const VectorialValue& force{loadingCoefs.getValue(DOF::DX), loadingCoefs.getValue(DOF::DY), loadingCoefs.getValue(DOF::DZ)};
                                 const auto& analysis = make_shared<LinearMecaStat>(*model, "PLOAD4", analysisId);
                                 const auto& loadSet = make_shared<LoadSet>(*model, LoadSet::Type::LOAD, loadSetId);
@@ -209,7 +210,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                             analysis->add(*constraintSet);
                             analysis->add(*nodalOutput);
                             model->add(analysis);
-                            const auto& normalPressionFace = make_shared<NormalPressionFace>(*model, 5.0);
+                            const auto& normalPressionFace = make_shared<NormalPressionFace>(*model, f);
                             normalPressionFace->add(*x300group);
                             continuum->add(*x300group);
                             model->add(normalPressionFace);
@@ -227,12 +228,26 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                             analysis->add(*constraintSet);
                             analysis->add(*nodalOutput);
                             model->add(analysis);
+
                             for (const Cell& surfCell : x300group->getCells()) {
-                                auto nodeIds = surfCell.nodeIds;
-                                // TODO handle quad nodes ???
-                                //const auto& staticPressure = make_shared<StaticPressure>(model, g1, g2, g3, g4, p);
-                                //model->add(forceSurfaceTwoNodes);
-                                //model->addLoadingIntoLoadSet(*forceSurfaceTwoNodes, *loadSet);
+                                const auto& cornerNodeIds = surfCell.cornerNodeIds();
+                                shared_ptr<Loading> staticPressure = nullptr;
+                                switch (cornerNodeIds.size()) {
+                                    case 3: {
+                                        staticPressure = make_shared<StaticPressure>(*model, cornerNodeIds[0], cornerNodeIds[1], cornerNodeIds[2], Globals::UNAVAILABLE_INT, p);
+                                        break;
+                                    }
+                                    case 4: {
+                                        staticPressure = make_shared<StaticPressure>(*model, cornerNodeIds[0], cornerNodeIds[1], cornerNodeIds[2], cornerNodeIds[3], p);
+                                        break;
+                                    }
+                                    default: {
+                                        throw logic_error("Cannot apply NODAL_FORCE with given node ids");
+                                    }
+                                }
+
+                                model->add(staticPressure);
+                                model->addLoadingIntoLoadSet(*staticPressure, *loadSet);
                             }
                             loadSetId++;
                             analysisId++;

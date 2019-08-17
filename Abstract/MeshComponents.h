@@ -325,6 +325,10 @@ private:
      * Every face is identified by the nodes that belongs to that face
      */
     static const std::unordered_map<CellType::Code, std::vector<std::vector<int>>, EnumClassHash > FACE_BY_CELLTYPE;
+    /**
+     * Corner node ids
+     */
+    static const std::unordered_map<CellType::Code, std::vector<int>, EnumClassHash > CORNERNODEIDS_BY_CELLTYPE;
     static std::unordered_map<CellType::Code, std::vector<std::vector<int>>, EnumClassHash > init_faceByCelltype();
     static int auto_cell_id;
     Cell(int id, const CellType &type, const std::vector<int> &nodeIds, int position, const std::vector<int> &nodePositions, bool isvirtual,
@@ -344,6 +348,7 @@ public:
     int cspos; /**< Id of local Coordinate System **/
     std::shared_ptr<OrientationCoordinateSystem> orientation;
     std::map<int, std::vector<int>> nodeIdsByFaceNum() const;
+    std::vector<int> cornerNodeIds() const;
 
     /**
      * @param nodeId1: grid point connected to a corner of the face.

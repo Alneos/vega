@@ -470,6 +470,25 @@ unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::init_fa
 	return result;
 }
 
+// http://www.code-aster.org/outils/med/html/connectivites.html
+// https://hammi.extra.cea.fr/static/MED/web_med/logiciels/medV2.1.4_doc_html/html/modele_de_donnees.html
+const unordered_map<CellType::Code, vector<int>, EnumClassHash > Cell::CORNERNODEIDS_BY_CELLTYPE = {
+    {CellType::SEG2.code, {0, 1}},
+    {CellType::SEG3.code, {0, 1}},
+    {CellType::TRI3.code, {0, 1, 2}},
+    {CellType::TRI6.code, {0, 1, 2}},
+    {CellType::QUAD4.code, {0, 1, 2, 3}},
+    {CellType::QUAD8.code, {0, 1, 2, 3}},
+    {CellType::TETRA4.code, {0, 1, 2, 3}},
+    {CellType::TETRA10.code, {0, 1, 2, 3}},
+    {CellType::PYRA5.code, {0, 1, 2, 3, 4}},
+    {CellType::PYRA13.code, {0, 1, 2, 3, 4}},
+    {CellType::PENTA6.code, {0, 1, 2, 3, 4, 5}},
+    {CellType::PENTA15.code, {0, 1, 2, 3, 4, 5}},
+    {CellType::HEXA8.code, {0, 1, 2, 3, 4, 5, 6, 7}},
+    {CellType::HEXA20.code, {0, 1, 2, 3, 4, 5, 6, 7}},
+};
+
 Cell::Cell(int id, const CellType &type, const std::vector<int> &nodeIds, int position,
 		const std::vector<int> &nodePositions, bool isvirtual,
 		int cspos, int element_id, int cellTypePosition,
@@ -497,7 +516,7 @@ map<int, vector<int>> Cell::nodeIdsByFaceNum() const {
     const auto& it = FACE_BY_CELLTYPE.find(type.code);
     if (it == FACE_BY_CELLTYPE.end())
         throw logic_error("Missing FACE_BY_CELLTYPE configuration for cell type :" + type.description);
-    vector<vector<int> > nodeConnectivityPosByFace = it->second;
+    const vector<vector<int> >& nodeConnectivityPosByFace = it->second;
     int faceNum = 1;
     map<int, vector<int>> result;
     for (vector<int> nodeConnectivityPos : nodeConnectivityPosByFace) {
@@ -591,6 +610,19 @@ vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
 		faceConnectivity.push_back(nodeIds[nodenum - 1]);
 	}
 	return faceConnectivity;
+}
+
+vector<int> Cell::cornerNodeIds() const {
+    const auto& it = CORNERNODEIDS_BY_CELLTYPE.find(type.code);
+    if (it == CORNERNODEIDS_BY_CELLTYPE.end())
+        throw logic_error("Missing CORNERNODEIDS_BY_CELLTYPE configuration for cell type :" + type.description);
+    const vector<int>& nodeConnectivityPositions = it->second;
+    vector<int> result;
+    result.reserve(nodeConnectivityPositions.size());
+    for (int nodenum : nodeConnectivityPositions) {
+        result.push_back(nodeIds[nodenum]);
+    }
+    return result;
 }
 
 pair<int, int> Cell::two_nodeids_from_facenum(int faceNum) const {
