@@ -56,6 +56,7 @@ target_link_libraries(
  nastran
  aster
  systus
+ resultReaders
 )
 
 add_test(NAME NastranCoverage COMMAND NastranCoverage_test)

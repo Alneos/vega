@@ -17,6 +17,7 @@
 #include "../../Aster/AsterRunner.h"
 #include "../../Systus/SystusWriter.h"
 #include "../../Systus/SystusRunner.h"
+#include "../../ResultReaders/ResultReadersFacade.h"
 #include "build_properties.h"
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
@@ -90,7 +91,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
     const set<Loading::Type> loadingTypes = {
         Loading::Type::FORCE_SURFACE,
         Loading::Type::NORMAL_PRESSION_FACE,
-        Loading::Type::NODAL_FORCE,
+//        Loading::Type::NODAL_FORCE,
     };
 	try {
 	    for (const auto& writerEntry : writerBySolverName) {
@@ -242,6 +243,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                             for (const Cell& surfCell : x300group->getCells()) {
                                 const auto& cornerNodeIds = surfCell.cornerNodeIds();
                                 shared_ptr<Loading> staticPressure = nullptr;
+                                // LD careful here: PLOAD2 only works on shells and only on linear cells!
                                 switch (cornerNodeIds.size()) {
                                     case 3: {
                                         staticPressure = make_shared<StaticPressure>(*model, cornerNodeIds[0], cornerNodeIds[1], cornerNodeIds[2], Globals::UNAVAILABLE_INT, p);
@@ -267,6 +269,12 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                             throw logic_error("Loading type not yet implemented");
                     }
 
+                }
+
+                unique_ptr<ResultReader> resultReader = result::ResultReadersFacade::getResultReader(
+                        configuration);
+                if (resultReader != nullptr) {
+                    resultReader->add_assertions(configuration, *model);
                 }
 
                 model->finish();

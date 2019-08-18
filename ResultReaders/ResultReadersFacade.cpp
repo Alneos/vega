@@ -20,10 +20,6 @@ namespace result {
 namespace fs = boost::filesystem;
 using namespace std;
 
-ResultReadersFacade::ResultReadersFacade() {
-
-}
-
 unique_ptr<ResultReader> ResultReadersFacade::getResultReader(
 		const ConfigurationParameters& configuration) {
 	unique_ptr<ResultReader> result;

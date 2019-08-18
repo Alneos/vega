@@ -33,10 +33,6 @@ namespace result {
 using boost::algorithm::trim;
 using boost::algorithm::trim_copy;
 
-F06Parser::F06Parser() {
-	lineNumber = 0;
-}
-
 int F06Parser::readDisplacementSection(Model& model,
 		const ConfigurationParameters& configuration, ifstream& istream,
 		vector<shared_ptr<Assertion>>& assertions, double loadStep) {

@@ -17,7 +17,7 @@ namespace result {
 
 class ResultReadersFacade {
 private:
-	ResultReadersFacade();
+	ResultReadersFacade() = default;
 public:
 	/**
 	 * Returns an empty shared pointer if the result file isn't specified

@@ -654,7 +654,7 @@ pair<int, int> Cell::two_nodeids_from_facenum(int faceNum) const {
     }
     case CellType::Code::HEXA8_CODE:
     case CellType::Code::HEXA20_CODE: {
-        return {faceNodeIds[0], faceNodeIds[1]};
+        return {faceNodeIds[0], faceNodeIds[2]};
     }
     default: {
 		throw logic_error("two_nodeids_from_facenum not implemented for " + type.to_str() + " element type");

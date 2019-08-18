@@ -480,24 +480,30 @@ void AsterWriter::writeLireMaillage(const AsterModel& asterModel, ostream& out) 
 		out << "                   )" << endl << endl;
 	}
 
+	bool firstCreaGroupNo = true;
 	for (const auto& constraintSet : asterModel.model.constraintSets) {
         const auto& spcs = constraintSet->getConstraintsByType(Constraint::Type::SPC);
         if (spcs.empty()) {
             continue;
         }
-        out << mail_name << "=DEFI_GROUP(reuse="<< mail_name << ",";
-        out << "MAILLAGE=" << mail_name << "," << endl;
-        out << "         CREA_GROUP_NO=(" << endl;
 		for (const auto& constraint : spcs) {
 		    const auto& spc = dynamic_pointer_cast<SinglePointConstraint>(constraint);
 		    if (spc->group != nullptr and spc->group->type == Group::Type::CELLGROUP) {
+                if (firstCreaGroupNo) {
+                    out << mail_name << "=DEFI_GROUP(reuse="<< mail_name << ",";
+                    out << "MAILLAGE=" << mail_name << "," << endl;
+                    out << "         CREA_GROUP_NO=(" << endl;
+                    firstCreaGroupNo = false;
+                }
                 out << "                             _F(";
                 out << "GROUP_MA=('" << spc->group->getName() << "'),";
                 out << ")," << endl;
 		    }
 		}
-		out << "                             )," << endl;
-		out << "                   )" << endl << endl;
+		if (not firstCreaGroupNo) {
+            out << "                             )," << endl;
+            out << "                   )" << endl << endl;
+		}
 	}
 }
 

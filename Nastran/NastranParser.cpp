@@ -73,6 +73,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "CORD2R", &NastranParser::parseCORD2R },
                 { "CORD2S", &NastranParser::parseCORD2S },
                 { "CPENTA", &NastranParser::parseCPENTA },
+                { "CPYRA", &NastranParser::parseCPYRAM },
                 { "CPYRAM", &NastranParser::parseCPYRAM },
                 { "CQUAD", &NastranParser::parseCQUAD },
                 { "CQUAD4", &NastranParser::parseCQUAD4 },
@@ -2628,8 +2629,14 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, Model& model) {
         model.add(normalPressionFace);
         model.addLoadingIntoLoadSet(*normalPressionFace, loadSetReference);
     } else if (not has_direction and g1 != Globals::UNAVAILABLE_INT) {
-        const auto& pressionFaceTwoNodes = make_shared<NormalPressionFaceTwoNodes>(model, g1, g3_or_4,
+        shared_ptr<NormalPressionFaceTwoNodes> pressionFaceTwoNodes = nullptr;
+        if (g3_or_4 != Globals::UNAVAILABLE_INT) {
+            pressionFaceTwoNodes = make_shared<NormalPressionFaceTwoNodes>(model, g1, g3_or_4,
                 p1);
+        } else {
+            pressionFaceTwoNodes = make_shared<NormalPressionFaceTwoNodes>(model, g1,
+                p1);
+        }
         for(int cellId = eid1; cellId <= eid2; cellId++) {
             pressionFaceTwoNodes->addCellId(cellId);
         }

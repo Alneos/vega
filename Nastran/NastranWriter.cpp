@@ -276,6 +276,14 @@ void NastranWriter::writeCells(const Model& model, ofstream& out) const
                     case CellType::Code::TETRA10_CODE:
                         keyword = "CTETRA";
                         break;
+                    case CellType::Code::PENTA6_CODE:
+                    case CellType::Code::PENTA15_CODE:
+                        keyword = "CPENTA";
+                        break;
+                    case CellType::Code::PYRA5_CODE:
+                    case CellType::Code::PYRA13_CODE:
+                        keyword = "CPYRA";
+                        break;
                     default:
                         handleWritingError("Unimplemented type");
                     }
@@ -288,6 +296,14 @@ void NastranWriter::writeCells(const Model& model, ofstream& out) const
                     case CellType::Code::TETRA4_CODE:
                     case CellType::Code::TETRA10_CODE:
                         keyword = "CTETRA";
+                        break;
+                    case CellType::Code::PENTA6_CODE:
+                    case CellType::Code::PENTA15_CODE:
+                        keyword = "CPENTA";
+                        break;
+                    case CellType::Code::PYRA5_CODE:
+                    case CellType::Code::PYRA13_CODE:
+                        keyword = "CPYRA";
                         break;
                     default:
                         handleWritingError("Unimplemented type");
@@ -455,7 +471,10 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
 		const auto& forceSurfaces = loadingSet->getLoadingsByType(
 				Loading::Type::FORCE_SURFACE);
         for (shared_ptr<Loading> loading : forceSurfaces) {
-            shared_ptr<ForceSurface> forceSurface = dynamic_pointer_cast<ForceSurface>(loading);
+            shared_ptr<ForceSurfaceTwoNodes> forceSurface = dynamic_pointer_cast<ForceSurfaceTwoNodes>(loading);
+            if (forceSurface == nullptr) {
+                handleWritingError("Need to implement writing other ForceSurface subclasses");
+            }
             const auto& cellPositions = forceSurface->getCellPositionsIncludingGroups();
             for (const int cellPosition: cellPositions) {
                 const Cell& cell = model.mesh.findCell(cellPosition);
@@ -469,12 +488,14 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
                 if (!forceSurface->getMoment().iszero()) {
                     handleWritingError("Unimplemented moment in PLOAD4");
                 }
-                // TODO LD must recalculate two opposite nodes... hack
-                if (cell.type.dimension == SpaceDimension::DIMENSION_3D) {
-                    pload4.add(forceSurface->getApplicationFaceNodeIds()[0]);
-                    pload4.add(forceSurface->getApplicationFaceNodeIds()[2]);
+
+                const int nodeId1 = model.mesh.findNodeId(forceSurface->nodePosition1);
+                pload4.add(nodeId1);
+                int nodeId2 = Globals::UNAVAILABLE_INT;
+                if (forceSurface->nodePosition2 != Globals::UNAVAILABLE_INT) {
+                    nodeId2 = model.mesh.findNodeId(forceSurface->nodePosition2);
+                    pload4.add(nodeId2);
                 } else {
-                    pload4.add("");
                     pload4.add("");
                 }
                 if (forceSurface->hasCoordinateSystem()) {
@@ -494,7 +515,10 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
 		const auto& normalPressionFaces = loadingSet->getLoadingsByType(
 				Loading::Type::NORMAL_PRESSION_FACE);
         for (shared_ptr<Loading> loading : normalPressionFaces) {
-            shared_ptr<NormalPressionFace> normalPressionFace = dynamic_pointer_cast<NormalPressionFace>(loading);
+            shared_ptr<NormalPressionFaceTwoNodes> normalPressionFace = dynamic_pointer_cast<NormalPressionFaceTwoNodes>(loading);
+            if (normalPressionFace == nullptr) {
+                handleWritingError("Need to implement writing other NormalPressionFace subclasses");
+            }
             for (const int cellPosition: normalPressionFace->getCellPositionsIncludingGroups()) {
                 const Cell& cell = model.mesh.findCell(cellPosition);
                 Line pload4("PLOAD4");
@@ -504,12 +528,13 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
                 pload4.add("");
                 pload4.add("");
                 pload4.add("");
-                // TODO LD must recalculate two opposite nodes... hack
-                if (cell.type.dimension == SpaceDimension::DIMENSION_3D) {
-                    pload4.add(normalPressionFace->getApplicationFaceNodeIds()[0]);
-                    pload4.add(normalPressionFace->getApplicationFaceNodeIds()[2]);
+                const int nodeId1 = model.mesh.findNodeId(normalPressionFace->nodePosition1);
+                pload4.add(nodeId1);
+                int nodeId2 = Globals::UNAVAILABLE_INT;
+                if (normalPressionFace->nodePosition2 != Globals::UNAVAILABLE_INT) {
+                    nodeId2 = model.mesh.findNodeId(normalPressionFace->nodePosition2);
+                    pload4.add(nodeId2);
                 } else {
-                    pload4.add("");
                     pload4.add("");
                 }
                 out << pload4;
@@ -684,6 +709,29 @@ string NastranWriter::writeModel(Model& model,
 	out << "APP   DISP" << endl;
 	out << "TIME  10000" << endl;
 	out << "CEND" << endl;
+    vector<shared_ptr<Objective>> displacementOutputs = model.objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT);
+    if (displacementOutputs.size() >= 1) {
+        for (const auto& objective : displacementOutputs) {
+            const auto& displacementOutput = dynamic_pointer_cast<const NodalDisplacementOutput>(objective);
+            out << "  SET " << objective->bestId() << " = ";
+            bool firstNode = true;
+            int nodeCount = 1;
+            for (int nodePosition : displacementOutput->getNodePositionsIncludingGroups()) {
+                if (not firstNode)
+                    out << ",";
+                else {
+                    firstNode = false;
+                }
+                if (nodeCount % 8 == 0)
+                    out << endl; // To avoid long lines
+                out << model.mesh.findNodeId(nodePosition);
+                nodeCount++;
+            }
+            out << endl;
+        }
+    } else {
+        out << "  DISP = ALL" << endl;
+    }
 	for (const auto& analysis : model.analyses) {
 		out << "SUBCASE " << analysis->bestId() << endl;
 		for (shared_ptr<LoadSet> loadSet : analysis->getLoadSets()) {
@@ -694,27 +742,15 @@ string NastranWriter::writeModel(Model& model,
 			string typeName = constraintSet->stringByType.find(constraintSet->type)->second;
 			out << "  " << typeName << "=" << constraintSet->bestId() << endl;
 		}
-		vector<shared_ptr<Objective>> displacementOutputs = model.objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT);
-		if (displacementOutputs.size() >= 1) {
-            int setNum = 1;
-            for (const auto& objective : displacementOutputs) {
-                const auto& displacementOutput = dynamic_pointer_cast<const NodalDisplacementOutput>(objective);
-                out << "  SET " << setNum << " = ";
-                bool firstNode = true;
-                for (int nodePosition : displacementOutput->getNodePositionsIncludingGroups()) {
-                    if (not firstNode)
-                        out << ",";
-                    else
-                        firstNode = false;
-                    out << model.mesh.findNodeId(nodePosition);
-                }
-                out << endl;
-
-                out << "  DISP = " << setNum << endl;
-                setNum++;
+		for (shared_ptr<Objective> objective : analysis->getObjectives()) {
+            switch (objective->type) {
+            case Objective::Type::NODAL_DISPLACEMENT_OUTPUT: {
+                out << "  DISP = " << objective->bestId() << endl;
+                break;
             }
-		} else {
-            out << "  DISP = ALL" << endl;
+            default:
+                continue;
+            }
 		}
 		analysis->markAsWritten();
 	}

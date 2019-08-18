@@ -19,7 +19,7 @@ class Model;
 namespace result {
 class F06Parser: public vega::ResultReader {
 private:
-	int lineNumber;
+	int lineNumber = 0;
 	bool readLine(std::istream &istream, std::string& line);
 	int addAssertionsToModel(int currentSubcase, double loadStep, Model &model,
 			const ConfigurationParameters&, std::ifstream& istream);
@@ -38,7 +38,7 @@ private:
 	static const int NO_SUBCASE = -1;
 
 public:
-	F06Parser();
+	F06Parser() = default;
 	F06Parser(const F06Parser& that) = delete;
 	virtual void add_assertions(const ConfigurationParameters& configuration,
 			Model& model) override;

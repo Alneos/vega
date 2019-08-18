@@ -39,6 +39,7 @@ const map<Value::Type, string> Value::stringByType = {
     { Value::Type::FUNCTION_TABLE, "FUNCTION_TABLE" },
     { Value::Type::DYNA_PHASE, "DYNA_PHASE" },
     { Value::Type::LIST, "LIST" },
+    { Value::Type::SET, "SET" },
     { Value::Type::VECTOR, "VECTOR" },
     { Value::Type::VECTORFUNCTION, "VECTORFUNCTION" },
 };
