@@ -747,9 +747,15 @@ void NodeContainer::addNodeId(int nodeId) {
 	nodePositions.insert(mesh.findOrReserveNode(nodeId));
 }
 
-void NodeContainer::addNodeIds(const vector<int>& otherIds) {
-    for(const int nodeId : otherIds) {
-        nodePositions.insert(mesh.findOrReserveNode(nodeId));
+void NodeContainer::addNodeIds(const set<int>& range) {
+    for(const int nodePosition : range) {
+        nodePositions.insert(mesh.findOrReserveNode(nodePosition));
+    }
+}
+
+void NodeContainer::addNodeIds(const vector<int>& range) {
+    for(const int nodePosition : range) {
+        nodePositions.insert(mesh.findOrReserveNode(nodePosition));
     }
 }
 

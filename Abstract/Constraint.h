@@ -59,6 +59,12 @@ public:
 	virtual bool isContact() const {
 	    return false;
 	}
+	virtual bool isNodeLoading() const {
+		return false;
+	}
+	virtual bool isCellLoading() const {
+		return false;
+	}
 	virtual void removeNode(int nodePosition) = 0;
 };
 
@@ -89,22 +95,33 @@ public:
 	bool hasContacts() const;
 };
 
-class HomogeneousConstraint: public Constraint {
+/**
+ * Represent constraint applied on nodes
+ */
+class NodeConstraint: public Constraint, public NodeContainer {
+protected:
+	NodeConstraint(Model&, Constraint::Type, const int original_id = NO_ORIGINAL_ID);
+public:
+	std::set<int> nodePositions() const override final;
+	bool isNodeLoading() const override final {
+		return true;
+	}
+};
+
+class MasterSlaveConstraint: public NodeConstraint {
 protected:
 	DOFS dofs;
 	int masterPosition;
-	std::set<int> slavePositions;
-	HomogeneousConstraint(Model& model, Type type, const DOFS& dofs, int masterId =
+	MasterSlaveConstraint(Model& model, Type type, const DOFS& dofs, int masterId =
 			UNAVAILABLE_MASTER, int original_id = NO_ORIGINAL_ID, const std::set<int>& slaveIds =
 			std::set<int>());
 public:
-    virtual ~HomogeneousConstraint() = default;
+    virtual ~MasterSlaveConstraint() = default;
 	static const int UNAVAILABLE_MASTER;
 	virtual void addSlave(int slaveId);
 	virtual int getMaster() const;
 	virtual bool hasMaster() const;
-	virtual std::set<int> getSlaves() const;
-	std::set<int> nodePositions() const override;
+	virtual std::set<int> getSlaves() const final;
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	const DOFS getDOFS() const;
 	void removeNode(int nodePosition) override;
@@ -115,7 +132,7 @@ public:
  * Responsible of being a constraint for all its elements
  * where they must be limited to rigid movements for some dofs
  */
-class QuasiRigidConstraint: public HomogeneousConstraint {
+class QuasiRigidConstraint: public MasterSlaveConstraint {
 
 public:
 	QuasiRigidConstraint(Model& model, const DOFS& dofs, int masterId = UNAVAILABLE_MASTER,
@@ -123,17 +140,16 @@ public:
 	inline bool isCompletelyRigid() const {
 		return this->dofs == DOFS::ALL_DOFS;
 	}
-	std::set<int> getSlaves() const override; /** Get the two nodes bound by this Quasi-Rigid constraint */
 };
 
-class RigidConstraint: public HomogeneousConstraint {
+class RigidConstraint: public MasterSlaveConstraint {
 
 public:
 	RigidConstraint(Model& model, int masterId = UNAVAILABLE_MASTER, int original_id =
 			NO_ORIGINAL_ID, const std::set<int>& slaveIds = std::set<int>());
 };
 
-class RBE3 final: public HomogeneousConstraint {
+class RBE3 final: public MasterSlaveConstraint {
 	std::map<int, DOFS> slaveDofsByPosition;
 	std::map<int, double> slaveCoefByPosition;
 public:

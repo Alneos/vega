@@ -452,7 +452,10 @@ public:
      * Adds a nodeId to the current set
      */
     void addNodeId(int nodeId);
-    void addNodeIds(const std::vector<int>& otherIds);
+
+    /** Should be template but uses incomplete type Mesh, so cannot put the implementation inside header */
+    void addNodeIds(const std::set<int>& range);
+    void addNodeIds(const std::vector<int>& range);
     void addNodePosition(int nodePosition);
     void addNodeGroup(const std::string& groupName);
     void add(const Node& node);

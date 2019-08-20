@@ -82,7 +82,7 @@ public:
      */
     bool addSkinToModel = false;
     bool emulateLocalDisplacement = false;
-    bool displayHomogeneousConstraint = false;
+    bool displayMasterSlaveConstraint = false;
     bool emulateAdditionalMass = false;
     bool replaceCombinedLoadSets = false;
     bool removeIneffectives = false;

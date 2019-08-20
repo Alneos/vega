@@ -40,7 +40,7 @@ private:
     void generateSkin();
     void emulateLocalDisplacementConstraint();
     void emulateAdditionalMass();
-    void generateBeamsToDisplayHomogeneousConstraint();
+    void generateBeamsToDisplayMasterSlaveConstraint();
     /**
      * Generate material assignment if the input model and the output model
      * differs: some solver (Nastran) wants the materials assigned to the

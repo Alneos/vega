@@ -800,7 +800,7 @@ void Model::emulateAdditionalMass() {
         elementSets.add(elementSet);
 }
 
-void Model::generateBeamsToDisplayHomogeneousConstraint() {
+void Model::generateBeamsToDisplayMasterSlaveConstraint() {
 
     shared_ptr<CellGroup> virtualGroupRigid = nullptr;
     shared_ptr<CellGroup> virtualGroupRBE3 = nullptr;
@@ -817,7 +817,7 @@ void Model::generateBeamsToDisplayHomogeneousConstraint() {
                         virtualBeam->assignMaterial(getVirtualMaterial());
                     }
                     ostringstream oss;
-                    oss << "created by generateBeamsToDisplayHomogeneousConstraint() because of rigid constraint: " << constraint;
+                    oss << "created by generateBeamsToDisplayMasterSlaveConstraint() because of rigid constraint: " << constraint;
                     virtualGroupRigid = mesh.createCellGroup("VRigid", Group::NO_ORIGINAL_ID, oss.str());
                     virtualBeam->add(*virtualGroupRigid);
                     this->add(virtualBeam);
@@ -842,7 +842,7 @@ void Model::generateBeamsToDisplayHomogeneousConstraint() {
                         virtualBeam->assignMaterial(getVirtualMaterial());
                     }
                     ostringstream oss;
-                    oss << "created by generateBeamsToDisplayHomogeneousConstraint() because of rbe3 constraint: " << constraint;
+                    oss << "created by generateBeamsToDisplayMasterSlaveConstraint() because of rbe3 constraint: " << constraint;
                     virtualGroupRBE3 = mesh.createCellGroup("VRBE3", Group::NO_ORIGINAL_ID, oss.str());
                     virtualBeam->add(*virtualGroupRBE3);
                     this->add(virtualBeam);
@@ -1931,8 +1931,8 @@ void Model::finish() {
         emulateLocalDisplacementConstraint();
     }
 
-    if (this->configuration.displayHomogeneousConstraint) {
-        generateBeamsToDisplayHomogeneousConstraint();
+    if (this->configuration.displayMasterSlaveConstraint) {
+        generateBeamsToDisplayMasterSlaveConstraint();
     }
 
     if (this->configuration.emulateAdditionalMass) {

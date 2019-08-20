@@ -2811,13 +2811,13 @@ void NastranParser::parseRBAR(NastranTokenizer& tok, Model& model) {
         cna = 123456;
     }
     if (cna != 0) {
-        const auto& qrc = make_shared<QuasiRigidConstraint>(model, DOFS::nastranCodeToDOFS(cna), HomogeneousConstraint::UNAVAILABLE_MASTER, original_id);
+        const auto& qrc = make_shared<QuasiRigidConstraint>(model, DOFS::nastranCodeToDOFS(cna), MasterSlaveConstraint::UNAVAILABLE_MASTER, original_id);
         qrc->addSlave(ga);
         qrc->addSlave(gb);
         model.add(qrc);
         model.addConstraintIntoConstraintSet(*qrc, *model.commonConstraintSet);
     } else if (cnb != 0) {
-        const auto& qrc = make_shared<QuasiRigidConstraint>(model, DOFS::nastranCodeToDOFS(cnb), HomogeneousConstraint::UNAVAILABLE_MASTER, original_id);
+        const auto& qrc = make_shared<QuasiRigidConstraint>(model, DOFS::nastranCodeToDOFS(cnb), MasterSlaveConstraint::UNAVAILABLE_MASTER, original_id);
         qrc->addSlave(ga);
         qrc->addSlave(gb);
         model.add(qrc);
@@ -2840,7 +2840,7 @@ void NastranParser::parseRBAR1(NastranTokenizer& tok, Model& model) {
     int gb = tok.nextInt();
     int cna = tok.nextInt(true, 0);
 
-    const auto& qrc = make_shared<QuasiRigidConstraint>(model, DOFS::nastranCodeToDOFS(cna), HomogeneousConstraint::UNAVAILABLE_MASTER, original_id);
+    const auto& qrc = make_shared<QuasiRigidConstraint>(model, DOFS::nastranCodeToDOFS(cna), MasterSlaveConstraint::UNAVAILABLE_MASTER, original_id);
     qrc->addSlave(ga);
     qrc->addSlave(gb);
     model.add(qrc);

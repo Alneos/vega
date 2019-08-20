@@ -131,51 +131,50 @@ ostream &operator<<(ostream &out, const ConstraintSet& constraintSet) {
     return out;
 }
 
-const int HomogeneousConstraint::UNAVAILABLE_MASTER = INT_MIN;
-
-HomogeneousConstraint::HomogeneousConstraint(Model& model, Type type, const DOFS& dofs,
-        int masterId, int original_id, const set<int>& slaveIds) :
-        Constraint(model, type, original_id), dofs(dofs),
-        masterPosition{masterId == UNAVAILABLE_MASTER ? UNAVAILABLE_MASTER : model.mesh.findOrReserveNode(masterId)},
-        slavePositions(model.mesh.findOrReserveNodes(slaveIds)) {
+NodeConstraint::NodeConstraint(Model& model, Constraint::Type type, int original_id) :
+		Constraint(model, type, original_id), NodeContainer(model.mesh) {
 }
 
-int HomogeneousConstraint::getMaster() const {
-    if (this->masterPosition != HomogeneousConstraint::UNAVAILABLE_MASTER) {
+set<int> NodeConstraint::nodePositions() const {
+	return getNodePositionsIncludingGroups();
+}
+
+const int MasterSlaveConstraint::UNAVAILABLE_MASTER = INT_MIN;
+
+MasterSlaveConstraint::MasterSlaveConstraint(Model& model, Type type, const DOFS& dofs,
+        int masterId, int original_id, const set<int>& slaveIds) :
+        NodeConstraint(model, type, original_id), dofs(dofs),
+        masterPosition{masterId == UNAVAILABLE_MASTER ? UNAVAILABLE_MASTER : model.mesh.findOrReserveNode(masterId)} {
+    if (masterPosition != UNAVAILABLE_MASTER) {
+        addNodePosition(masterPosition);
+    }
+    addNodeIds(slaveIds);
+}
+
+int MasterSlaveConstraint::getMaster() const {
+    if (this->masterPosition != MasterSlaveConstraint::UNAVAILABLE_MASTER) {
         return this->masterPosition;
     } else {
         throw logic_error("getMaster: automatic resolution of master id not implemented");
     }
 }
 
-bool HomogeneousConstraint::hasMaster() const {
-    return this->masterPosition != HomogeneousConstraint::UNAVAILABLE_MASTER;
+bool MasterSlaveConstraint::hasMaster() const {
+    return this->masterPosition != MasterSlaveConstraint::UNAVAILABLE_MASTER;
 }
 
 /** Getter for dofs data. **/
-const DOFS HomogeneousConstraint::getDOFS() const {
+const DOFS MasterSlaveConstraint::getDOFS() const {
     return this->dofs;
 }
 
-void HomogeneousConstraint::addSlave(int slaveId) {
-    this->slavePositions.insert(model.mesh.findOrReserveNode(slaveId));
+void MasterSlaveConstraint::addSlave(int slaveId) {
+    addNodeId(slaveId);
 }
 
-set<int> HomogeneousConstraint::nodePositions() const {
-    set<int> result;
-    if (this->masterPosition != UNAVAILABLE_MASTER) {
-        result.insert(masterPosition);
-    }
-
-    for (int slavePosition : slavePositions) {
-        result.insert(slavePosition);
-    }
-    return result;
-}
-
-const DOFS HomogeneousConstraint::getDOFSForNode(int nodePosition) const {
-    if (nodePosition == masterPosition
-            || slavePositions.find(nodePosition) != slavePositions.end()) {
+const DOFS MasterSlaveConstraint::getDOFSForNode(int nodePosition) const {
+    const auto& nodes = nodePositions();
+    if (nodes.find(nodePosition) != nodes.end()) {
         return this->dofs;
     } else {
         return DOFS::NO_DOFS;
@@ -183,42 +182,38 @@ const DOFS HomogeneousConstraint::getDOFSForNode(int nodePosition) const {
 
 }
 
-void HomogeneousConstraint::removeNode(int nodePosition) {
+void MasterSlaveConstraint::removeNode(int nodePosition) {
     UNUSEDV(nodePosition);
-    throw logic_error("removeNode for HomogeneousConstraint not implemented");
+    throw logic_error("removeNode for MasterSlaveConstraint not implemented");
 }
 
-bool HomogeneousConstraint::ineffective() const {
-    return masterPosition == UNAVAILABLE_MASTER && slavePositions.size() == 0;
+bool MasterSlaveConstraint::ineffective() const {
+    return empty();
 }
 
-set<int> HomogeneousConstraint::getSlaves() const {
-    if (this->masterPosition != HomogeneousConstraint::UNAVAILABLE_MASTER) {
-        return this->slavePositions;
+set<int> MasterSlaveConstraint::getSlaves() const {
+    if (this->masterPosition != MasterSlaveConstraint::UNAVAILABLE_MASTER) {
+        std::set<int> result = getNodePositionsIncludingGroups();
+        result.erase(result.find(this->masterPosition));
+        return result;
     } else {
-        throw logic_error("getSlaves: automatic resolution of master id not implemented");
+        return getNodePositionsIncludingGroups();
     }
 }
 
 QuasiRigidConstraint::QuasiRigidConstraint(Model& model, const DOFS& dofs, int masterId,
         int constraintGroup, const set<int>& slaveIds) :
-        HomogeneousConstraint(model, Constraint::Type::QUASI_RIGID, dofs, masterId, constraintGroup, slaveIds) {
+        MasterSlaveConstraint(model, Constraint::Type::QUASI_RIGID, dofs, masterId, constraintGroup, slaveIds) {
 
 }
-
-set<int> QuasiRigidConstraint::getSlaves() const {
-    return this->slavePositions;
-}
-
-
 
 RigidConstraint::RigidConstraint(Model& model, int masterId, int constraintGroup,
         const set<int>& slaveIds) :
-        HomogeneousConstraint(model, Constraint::Type::RIGID, DOFS::ALL_DOFS, masterId, constraintGroup, slaveIds) {
+        MasterSlaveConstraint(model, Constraint::Type::RIGID, DOFS::ALL_DOFS, masterId, constraintGroup, slaveIds) {
 }
 
 RBE3::RBE3(Model& model, int masterId, const DOFS dofs, int original_id) :
-        HomogeneousConstraint(model, Constraint::Type::RBE3, dofs, masterId, original_id) {
+        MasterSlaveConstraint(model, Constraint::Type::RBE3, dofs, masterId, original_id) {
 }
 
 void RBE3::addSlave(int slaveId) {
@@ -227,7 +222,7 @@ void RBE3::addSlave(int slaveId) {
 
 void RBE3::addRBE3Slave(int slaveId, DOFS slaveDOFS, double slaveCoef) {
     int nodePosition = model.mesh.findOrReserveNode(slaveId);
-    slavePositions.insert(nodePosition);
+    addNodePosition(nodePosition);
     slaveDofsByPosition[nodePosition] = slaveDOFS;
     slaveCoefByPosition[nodePosition] = slaveCoef;
 }

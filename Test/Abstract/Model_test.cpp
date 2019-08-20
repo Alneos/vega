@@ -528,8 +528,8 @@ BOOST_AUTO_TEST_CASE(test_rbe3_assertions_not_removed) {
 	BOOST_CHECK(model.validate());
 	BOOST_CHECK_EQUAL(model.analyses.size(), 1);
 	BOOST_CHECK_EQUAL(model.objectives.size(), 2);
-	vector<shared_ptr<Assertion>> assertions = model.analyses.first()->getAssertions();
-	BOOST_CHECK_EQUAL(assertions.size(), static_cast<size_t>(2));
+	const auto& assertions = model.analyses.first()->getAssertions();
+	BOOST_CHECK_EQUAL(assertions.size(), 2);
 }
 
 BOOST_AUTO_TEST_CASE(test_spc_dof_remove) {
