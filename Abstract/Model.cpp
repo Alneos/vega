@@ -1898,7 +1898,7 @@ void Model::finish() {
     }
 
     for (shared_ptr<ElementSet> elementSet : elementSets) {
-        for (int nodePosition : elementSet->nodePositions()) {
+        for (int nodePosition : elementSet->getNodePositionsIncludingGroups()) {
             mesh.allowDOFS(nodePosition,elementSet->getDOFSForNode(nodePosition));
         }
     }

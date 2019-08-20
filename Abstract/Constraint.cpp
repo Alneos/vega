@@ -791,7 +791,7 @@ set<int> ZoneContact::nodePositions() const {
     if (masterBoundary == nullptr) {
         throw logic_error("Cannot find master body boundary");
     }
-    const auto& masterNodePositions = masterBoundary->nodePositions();
+    const auto& masterNodePositions = masterBoundary->getNodePositionsIncludingGroups();
     result.insert(masterNodePositions.begin(), masterNodePositions.end());
     const auto& slaveBody = dynamic_pointer_cast<ContactBody>(model.find(slave));
     if (slaveBody == nullptr) {
@@ -801,7 +801,7 @@ set<int> ZoneContact::nodePositions() const {
     if (slaveBoundary == nullptr) {
         throw logic_error("Cannot find slave body boundary");
     }
-    const auto& slaveNodePositions = slaveBoundary->nodePositions();
+    const auto& slaveNodePositions = slaveBoundary->getNodePositionsIncludingGroups();
     result.insert(slaveNodePositions.begin(), slaveNodePositions.end());
     return result;
 }

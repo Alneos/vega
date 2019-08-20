@@ -85,6 +85,9 @@ public:
     virtual bool validate() const override;
     virtual std::shared_ptr<ElementSet> clone() const = 0;
     virtual const DOFS getDOFSForNode(const int nodePosition) const = 0;
+    std::set<int> nodePositions() const {
+        return getNodePositionsIncludingGroups();
+    }
     virtual double getAdditionalRho() const {
         return 0;
     }
@@ -502,9 +505,9 @@ public:
 	/**
 	 * Clear all nodes and submatrices of the Matrix.
 	 */
-	void clear();
+	void clear() override final;
 	const std::shared_ptr<const DOFMatrix> findSubmatrix(const int nodePosition1, const int nodePosition2) const;
-	std::set<int> nodePositions() const override;
+	std::set<int> nodePositions() const;
 	const std::set<std::pair<int, int>> nodePairs() const;
 	const std::set<std::pair<int, int>> findInPairs(int nodePosition) const;
 	const DOFS getDOFSForNode(const int nodePosition) const override final;
@@ -512,7 +515,7 @@ public:
 		return true;
 	}
     virtual bool effective() const override {
-        return nodePositions().size() >= 1;
+        return not submatrixByNodes.empty();
     }
 	virtual bool validate() const override {
 		return true;
