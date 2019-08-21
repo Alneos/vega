@@ -139,6 +139,10 @@ set<int> NodeConstraint::nodePositions() const {
 	return getNodePositionsIncludingGroups();
 }
 
+bool NodeConstraint::ineffective() const {
+    return empty();
+}
+
 const int MasterSlaveConstraint::UNAVAILABLE_MASTER = INT_MIN;
 
 MasterSlaveConstraint::MasterSlaveConstraint(Model& model, Type type, const DOFS& dofs,
@@ -182,13 +186,9 @@ const DOFS MasterSlaveConstraint::getDOFSForNode(int nodePosition) const {
 
 }
 
-void MasterSlaveConstraint::removeNode(int nodePosition) {
+void MasterSlaveConstraint::removeNodePosition(int nodePosition) {
     UNUSEDV(nodePosition);
-    throw logic_error("removeNode for MasterSlaveConstraint not implemented");
-}
-
-bool MasterSlaveConstraint::ineffective() const {
-    return empty();
+    throw logic_error("removeNodePosition for MasterSlaveConstraint not implemented");
 }
 
 set<int> MasterSlaveConstraint::getSlaves() const {
@@ -255,29 +255,28 @@ const DOFS RBE3::getDOFSForNode(int nodePosition) const {
 const ValueOrReference& SinglePointConstraint::NO_SPC = ValueOrReference::EMPTY_VALUE;
 
 SinglePointConstraint::SinglePointConstraint(Model& _model,
-        const array<ValueOrReference, 6>& _spcs, shared_ptr<Group> _group, int original_id) :
-        Constraint(_model, Constraint::Type::SPC, original_id), spcs(_spcs), group(_group) {
+        const array<ValueOrReference, 6>& _spcs, int original_id) :
+        NodeConstraint(_model, Constraint::Type::SPC, original_id), spcs(_spcs) {
 }
 
 SinglePointConstraint::SinglePointConstraint(Model& _model,
-        const array<ValueOrReference, 3>& _spcs, shared_ptr<Group> _group, int original_id) :
-        Constraint(_model, Constraint::Type::SPC, original_id), spcs( { { NO_SPC, NO_SPC, NO_SPC, NO_SPC, NO_SPC,
-                NO_SPC } }), group(_group) {
+        const array<ValueOrReference, 3>& _spcs, int original_id) :
+        NodeConstraint(_model, Constraint::Type::SPC, original_id), spcs( { { NO_SPC, NO_SPC, NO_SPC, NO_SPC, NO_SPC,
+                NO_SPC } }) {
     copy_n(_spcs.begin(), 3, spcs.begin());
 }
 
-SinglePointConstraint::SinglePointConstraint(Model& _model, DOFS dofs, double value, shared_ptr<Group> _group,
-        int original_id) :
-        Constraint(_model, Constraint::Type::SPC, original_id), spcs( { { NO_SPC, NO_SPC, NO_SPC, NO_SPC, NO_SPC,
-                NO_SPC } }), group(_group) {
+SinglePointConstraint::SinglePointConstraint(Model& _model, DOFS dofs, double value, int original_id) :
+        NodeConstraint(_model, Constraint::Type::SPC, original_id), spcs( { { NO_SPC, NO_SPC, NO_SPC, NO_SPC, NO_SPC,
+                NO_SPC } }) {
     for (DOF dof : dofs) {
         setDOF(dof, value);
     }
 }
 
-SinglePointConstraint::SinglePointConstraint(Model& _model, shared_ptr<Group> _group, int original_id) :
-        Constraint(_model, Constraint::Type::SPC, original_id), spcs( { { NO_SPC, NO_SPC, NO_SPC, NO_SPC, NO_SPC,
-                NO_SPC } }), group(_group) {
+SinglePointConstraint::SinglePointConstraint(Model& _model, int original_id) :
+        NodeConstraint(_model, Constraint::Type::SPC, original_id), spcs( { { NO_SPC, NO_SPC, NO_SPC, NO_SPC, NO_SPC,
+                NO_SPC } }) {
 }
 
 void SinglePointConstraint::setDOF(const DOF& dof, const ValueOrReference& value) {
@@ -287,53 +286,6 @@ void SinglePointConstraint::setDOF(const DOF& dof, const ValueOrReference& value
 void SinglePointConstraint::setDOFS(const DOFS& dofs, const ValueOrReference& value) {
     for (DOF dof : dofs) {
         spcs[dof.position] = value;
-    }
-}
-
-void SinglePointConstraint::addNodeId(int nodeId) {
-    addNodePosition(model.mesh.findOrReserveNode(nodeId));
-}
-
-void SinglePointConstraint::addNodePosition(int nodePosition) {
-    if (group == nullptr) {
-        _nodePositions.insert(nodePosition);
-    } else {
-        if (group->type == Group::Type::NODEGROUP) {
-            shared_ptr<NodeGroup> const ngroup = dynamic_pointer_cast<NodeGroup>(group);
-            ngroup->addNodeByPosition(nodePosition);
-        } else {
-            throw logic_error("SPC:: addNode on unknown group type");
-        }
-    }
-}
-
-void SinglePointConstraint::addNodeIds(const vector<int>& otherIds) {
-    for (int nodeId : otherIds) {
-        addNodeId(nodeId);
-    }
-}
-
-set<int> SinglePointConstraint::nodePositions() const {
-    set<int> result;
-    result.insert(_nodePositions.begin(), _nodePositions.end());
-    if (group != nullptr) {
-        const set<int>& nodePositions = group->nodePositions();
-        result.insert(nodePositions.begin(), nodePositions.end());
-    }
-    return result;
-}
-
-void SinglePointConstraint::removeNode(int nodePosition) {
-    if (_nodePositions.find(nodePosition) != _nodePositions.end()) {
-        _nodePositions.erase(nodePosition);
-    }
-    if (group != nullptr) {
-        if (group->type == Group::Type::NODEGROUP) {
-            shared_ptr<NodeGroup> const ngroup = dynamic_pointer_cast<NodeGroup>(group);
-            ngroup->removeNodeByPosition(nodePosition);
-        } else {
-            throw logic_error("SPC:: removeNode on unknown group type");
-        }
     }
 }
 
@@ -422,7 +374,7 @@ void SinglePointConstraint::emulateLocalDisplacementConstraint() {
                     lmpcs.insert(lmpc);
                 }
             }
-            this->removeNode(nodePosition);
+            this->removeNodePosition(nodePosition);
         }
     }
     const auto& constraintSets = model.getConstraintSetsByConstraint(this->getReference());
@@ -481,7 +433,7 @@ const DOFS LinearMultiplePointConstraint::getDOFSForNode(int nodePosition) const
     return dofs;
 }
 
-void LinearMultiplePointConstraint::removeNode(int nodePosition) {
+void LinearMultiplePointConstraint::removeNodePosition(int nodePosition) {
     dofCoefsByNodePosition.erase(nodePosition);
 }
 
@@ -554,7 +506,7 @@ set<int> GapTwoNodes::nodePositions() const {
     return result;
 }
 
-void GapTwoNodes::removeNode(int nodePosition) {
+void GapTwoNodes::removeNodePosition(int nodePosition) {
     directionNodePositionByconstrainedNodePosition.erase(nodePosition);
 }
 
@@ -610,7 +562,7 @@ set<int> GapNodeDirection::nodePositions() const {
     return result;
 }
 
-void GapNodeDirection::removeNode(int nodePosition) {
+void GapNodeDirection::removeNodePosition(int nodePosition) {
     directionBynodePosition.erase(nodePosition);
 }
 
@@ -674,7 +626,7 @@ set<int> SlideContact::nodePositions() const {
     return result;
 }
 
-void SlideContact::removeNode(int nodePosition) {
+void SlideContact::removeNodePosition(int nodePosition) {
     UNUSEDV(nodePosition);
     throw logic_error("Not yet implemented");
 }
@@ -713,7 +665,7 @@ set<int> SurfaceContact::nodePositions() const {
     return result;
 }
 
-void SurfaceContact::removeNode(int nodePosition) {
+void SurfaceContact::removeNodePosition(int nodePosition) {
     UNUSEDV(nodePosition);
     throw logic_error("Not yet implemented");
 }
@@ -806,7 +758,7 @@ set<int> ZoneContact::nodePositions() const {
     return result;
 }
 
-void ZoneContact::removeNode(int nodePosition) {
+void ZoneContact::removeNodePosition(int nodePosition) {
     UNUSEDV(nodePosition);
     throw logic_error("Not yet implemented");
 }
@@ -864,7 +816,7 @@ set<int> SurfaceSlide::nodePositions() const {
     return result;
 }
 
-void SurfaceSlide::removeNode(int nodePosition) {
+void SurfaceSlide::removeNodePosition(int nodePosition) {
     UNUSEDV(nodePosition);
     throw logic_error("Not yet implemented");
 }

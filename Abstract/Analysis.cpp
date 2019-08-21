@@ -340,7 +340,7 @@ void Analysis::removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition,  
             }
         }
     }
-    spc.removeNode(nodePosition);
+    spc.removeNodePosition(nodePosition);
 }
 
 void Analysis::addBoundaryDOFS(int nodePosition, const DOFS dofs) {

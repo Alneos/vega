@@ -65,7 +65,7 @@ public:
 	virtual bool isCellLoading() const {
 		return false;
 	}
-	virtual void removeNode(int nodePosition) = 0;
+	virtual void removeNodePosition(int nodePosition) = 0;
 };
 
 /**
@@ -106,6 +106,10 @@ public:
 	bool isNodeLoading() const override final {
 		return true;
 	}
+	bool ineffective() const override;
+	virtual void removeNodePosition(int nodePosition) override {
+	    NodeContainer::removeNodePosition(nodePosition);
+	}
 };
 
 class MasterSlaveConstraint: public NodeConstraint {
@@ -124,8 +128,7 @@ public:
 	virtual std::set<int> getSlaves() const final;
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	const DOFS getDOFS() const;
-	void removeNode(int nodePosition) override;
-	bool ineffective() const override;
+	void removeNodePosition(int nodePosition) override;
 };
 
 /**
@@ -161,37 +164,27 @@ public:
 	double getCoefForNode(int nodePosition) const;
 };
 
-class SinglePointConstraint: public Constraint {
-	std::set<int> _nodePositions;
+class SinglePointConstraint: public NodeConstraint {
 	std::array<ValueOrReference, 6> spcs;
 public:
 	//GC: static initialization order is undefined. A reference is needed here to
 	//prevent undefined behaviour.
 	static const ValueOrReference& NO_SPC;
-	SinglePointConstraint(Model& model, const std::array<ValueOrReference, 6>& spcs, std::shared_ptr<Group> group =
-	nullptr, int original_id = NO_ORIGINAL_ID);
+	SinglePointConstraint(Model& model, const std::array<ValueOrReference, 6>& spcs, int original_id = NO_ORIGINAL_ID);
 
-	SinglePointConstraint(Model& model, const std::array<ValueOrReference, 3>& spcs, std::shared_ptr<Group> group =
-	nullptr, int original_id = NO_ORIGINAL_ID);
+	SinglePointConstraint(Model& model, const std::array<ValueOrReference, 3>& spcs, int original_id = NO_ORIGINAL_ID);
 
-	SinglePointConstraint(Model& model, std::shared_ptr<Group> group = nullptr, int original_id = NO_ORIGINAL_ID);
+	SinglePointConstraint(Model& model, int original_id = NO_ORIGINAL_ID);
 	/**
 	 * Constructor for backward compatibility.
 	 * The value is assigned to all the dof present in DOFS.
 	 */
-	SinglePointConstraint(Model& model, DOFS dofs, double value = 0, std::shared_ptr<Group> group = nullptr,
-			int original_id = NO_ORIGINAL_ID);
-	std::shared_ptr<Group> group;
+	SinglePointConstraint(Model& model, DOFS dofs, double value = 0, int original_id = NO_ORIGINAL_ID);
 
-	void addNodeId(int nodeId);
-	void addNodePosition(int nodePosition);
-	void addNodeIds(const std::vector<int>& otherIds);
 	void setDOF(const DOF& dof, const ValueOrReference& value);
 	void setDOFS(const DOFS& dofs, const ValueOrReference& value);
 	double getDoubleForDOF(const DOF& dof) const;
 	std::shared_ptr<Value> getReferenceForDOF(const DOF& dof) const;
-	virtual std::set<int> nodePositions() const override;
-	void removeNode(int nodePosition) override;
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	void emulateLocalDisplacementConstraint();
 	bool hasReferences() const;
@@ -215,7 +208,7 @@ public:
     std::vector<int> sortNodePositionByCoefs() const;
     std::set<int> nodePositions() const override;
     const DOFS getDOFSForNode(int nodePosition) const override;
-    void removeNode(int nodePosition) override;
+    void removeNodePosition(int nodePosition) override;
     bool ineffective() const override;
 };
 
@@ -253,7 +246,7 @@ public:
 	std::set<int> nodePositions() const override;
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	std::vector<std::shared_ptr<GapParticipation>> getGaps() const override;
-	void removeNode(int nodePosithasFunctionsion) override;
+	void removeNodePosition(int nodePosithasFunctionsion) override;
 	bool ineffective() const override;
 };
 
@@ -267,7 +260,7 @@ public:
 	std::set<int> nodePositions() const override;
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	std::vector<std::shared_ptr<GapParticipation>> getGaps() const override;
-	void removeNode(int nodePosition) override;
+	void removeNodePosition(int nodePosition) override;
 	bool ineffective() const override;
 };
 
@@ -287,7 +280,7 @@ public:
     int coordinateSystemPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
 	std::set<int> nodePositions() const override;
 	const DOFS getDOFSForNode(int nodePosition) const override;
-	void removeNode(int nodePosition) override;
+	void removeNodePosition(int nodePosition) override;
 	bool ineffective() const override;
 };
 
@@ -303,7 +296,7 @@ public:
     std::shared_ptr<CellGroup> slaveCellGroup = nullptr;
 	std::set<int> nodePositions() const override;
 	const DOFS getDOFSForNode(int nodePosition) const override;
-	void removeNode(int nodePosition) override;
+	void removeNodePosition(int nodePosition) override;
 	void makeBoundarySurfaces();
 	bool ineffective() const override;
 };
@@ -318,7 +311,7 @@ public:
     const Reference<Target> slave;
 	std::set<int> nodePositions() const override;
 	const DOFS getDOFSForNode(int nodePosition) const override;
-	void removeNode(int nodePosition) override;
+	void removeNodePosition(int nodePosition) override;
 	bool ineffective() const override;
 };
 
@@ -332,7 +325,7 @@ public:
     const Reference<Target> slave;
 	std::set<int> nodePositions() const override;
 	const DOFS getDOFSForNode(int nodePosition) const override;
-	void removeNode(int nodePosition) override;
+	void removeNodePosition(int nodePosition) override;
 	bool ineffective() const override;
 	void makeCellsFromSurfaceSlide();
 };

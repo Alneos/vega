@@ -511,6 +511,9 @@ public:
     void addNodeGroup(const std::string& groupName);
     void add(const Node& node);
     void add(const NodeGroup& nodeGroup);
+    void add(const CellGroup& cellGroup) {
+        CellContainer::add(cellGroup);
+    }
     void add(const NodeContainer& nodeContainer);
     void removeNodePosition(int nodePosition);
     virtual std::set<int> getNodePositionsExcludingGroups() const override final;

@@ -54,7 +54,8 @@ BOOST_AUTO_TEST_CASE( test_model_spc ) {
 	shared_ptr<vega::CellGroup> gm2 = model.mesh.createCellGroup("GM2");
 	gm2->addCellId(28);
 	gm2->addCellId(30);
-	const auto& spc1 = make_shared<SinglePointConstraint>(model,array<ValueOrReference, 3>{{ 0, 0, 0 }}, gn1);
+	const auto& spc1 = make_shared<SinglePointConstraint>(model,array<ValueOrReference, 3>{{ 0, 0, 0 }});
+	spc1->add(*gn1);
 	model.add(spc1);
 	model.finish();
 
@@ -604,17 +605,17 @@ BOOST_AUTO_TEST_CASE( test_indentifiable_sort )
 {
     // https://github.com/Alneos/vega/issues/15
     Model model{"cs test model", "10.3", SolverName::NASTRAN};
-    const auto& spc2 = make_shared<SinglePointConstraint>(model,nullptr, 2);
-    const auto& spc1 = make_shared<SinglePointConstraint>(model,nullptr, 1);
+    const auto& spc2 = make_shared<SinglePointConstraint>(model, 2);
+    const auto& spc1 = make_shared<SinglePointConstraint>(model, 1);
     BOOST_CHECK(*spc1 < *spc2);
     BOOST_CHECK(spc1->getReference() < spc2->getReference());
     BOOST_CHECK_EQUAL(*spc1, *spc1);
     BOOST_CHECK(! (*spc1 == *spc2));
-    const auto& spc3 = make_shared<SinglePointConstraint>(model,nullptr);
+    const auto& spc3 = make_shared<SinglePointConstraint>(model);
     BOOST_CHECK(*spc1 < *spc3);
     BOOST_CHECK(*spc2 < *spc3);
     BOOST_CHECK_EQUAL(*spc3, *spc3);
-    const auto& spc4 = make_shared<SinglePointConstraint>(model,nullptr);
+    const auto& spc4 = make_shared<SinglePointConstraint>(model);
     BOOST_CHECK(*spc1 < *spc4);
     BOOST_CHECK(*spc2 < *spc4);
     BOOST_CHECK(*spc3 < *spc4);

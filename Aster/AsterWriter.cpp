@@ -483,32 +483,6 @@ void AsterWriter::writeLireMaillage(const AsterModel& asterModel, ostream& out) 
 		out << "                             )," << endl;
 		out << "                   )" << endl << endl;
 	}
-
-	bool firstCreaGroupNo = true;
-	for (const auto& constraintSet : asterModel.model.constraintSets) {
-        const auto& spcs = constraintSet->getConstraintsByType(Constraint::Type::SPC);
-        if (spcs.empty()) {
-            continue;
-        }
-		for (const auto& constraint : spcs) {
-		    const auto& spc = dynamic_pointer_cast<SinglePointConstraint>(constraint);
-		    if (spc->group != nullptr and spc->group->type == Group::Type::CELLGROUP) {
-                if (firstCreaGroupNo) {
-                    out << mail_name << "=DEFI_GROUP(reuse="<< mail_name << ",";
-                    out << "MAILLAGE=" << mail_name << "," << endl;
-                    out << "         CREA_GROUP_NO=(" << endl;
-                    firstCreaGroupNo = false;
-                }
-                out << "                             _F(";
-                out << "GROUP_MA=('" << spc->group->getName() << "'),";
-                out << ")," << endl;
-		    }
-		}
-		if (not firstCreaGroupNo) {
-            out << "                             )," << endl;
-            out << "                   )" << endl << endl;
-		}
-	}
 }
 
 void AsterWriter::writeAffeModele(const AsterModel& asterModel, ostream& out) {
@@ -1384,17 +1358,7 @@ void AsterWriter::writeSPC(const AsterModel& asterModel, const ConstraintSet& cs
 						<< endl;
 			} else {
 				out << "                             _F(";
-				if (spc->group == nullptr) {
-					out << "NOEUD=(";
-					for (int nodePosition : spc->nodePositions()) {
-						out << "'"
-								<< Node::MedName(nodePosition)
-								<< "', ";
-					}
-					out << "),";
-				} else {
-					out << "GROUP_NO='" << spc->group->getName() << "',";
-				}
+				writeNodeContainer(*spc, out);
 				//parameter 0 ignored
 				for (const DOF dof : spc->getDOFSForNode(0)) {
 					if (dof == DOF::DX)
@@ -1851,6 +1815,7 @@ void AsterWriter::writeNodeContainer(const NodeContainer& nodeContainer, ostream
       }
       out << "),";
     }
+    writeCellContainer(nodeContainer, out);
 }
 
 void AsterWriter::writeCellContainer(const CellContainer& cellContainer, ostream& out) {

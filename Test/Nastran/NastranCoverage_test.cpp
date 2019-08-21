@@ -169,7 +169,8 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                 model->add(continuum);
 
                 // Add constraint
-                const auto& spc = make_shared<SinglePointConstraint>(*model, DOFS::TRANSLATIONS, 0.0, x0group);
+                const auto& spc = make_shared<SinglePointConstraint>(*model, DOFS::TRANSLATIONS, 0.0);
+                spc->add(*x0group);
                 model->add(spc);
                 model->addConstraintIntoConstraintSet(*spc, *constraintSet);
 

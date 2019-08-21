@@ -45,7 +45,8 @@ BOOST_AUTO_TEST_CASE( test_medwriter_spc ) {
 	shared_ptr<vega::CellGroup> gm2 = model.mesh.createCellGroup("GM2");
 	gm2->addCellId(28);
 	gm2->addCellId(30);
-	const auto spc1 = make_shared<SinglePointConstraint>(model,array<ValueOrReference, 3>{{ 0, 0, 0 }}, gn1);
+	const auto spc1 = make_shared<SinglePointConstraint>(model,array<ValueOrReference, 3>{{ 0, 0, 0 }});
+	spc1->add(*gn1);
 	model.add(spc1);
 	model.finish();
 
