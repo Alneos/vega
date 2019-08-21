@@ -496,7 +496,7 @@ CellLoading::CellLoading(Model& model, Loading::Type type, int original_id,
 }
 
 set<int> CellLoading::nodePositions() const {
-	return CellContainer::nodePositions();
+	return CellContainer::getNodePositionsIncludingGroups();
 }
 
 bool CellLoading::cellDimensionGreatherThan(SpaceDimension dimension) {

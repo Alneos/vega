@@ -989,6 +989,7 @@ void MatrixElement::addComponent(const int nodeid1, const DOF dof1, const int no
 
 void MatrixElement::clear() {
     submatrixByNodes.clear();
+    CellContainer::clear();
 }
 
 

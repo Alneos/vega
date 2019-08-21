@@ -435,15 +435,62 @@ public:
 };
 
 /**
+ * This class represents a container of cells or groups of cells.
+ * It can split the groups into single cells.
+ *
+ */
+class CellContainer {
+    std::set<int> cellPositions;
+    std::set<std::string> cellGroupNames;
+    const Mesh& mesh;
+public:
+    CellContainer(const Mesh& mesh);
+    virtual ~CellContainer() = default;
+
+    /**
+     * Adds a cellId to the current set
+     */
+    void addCellPosition(int cellPosition);
+    void addCellId(int cellId);
+    void addCellIds(const std::vector<int>& otherIds);
+    void addCellGroup(const std::string& groupName);
+    void add(const Cell& cell);
+    void add(const CellGroup& cellGroup);
+    void add(const CellContainer& cellContainer);
+    std::set<Cell> getCellsIncludingGroups() const;
+    std::set<Cell> getCellsExcludingGroups() const;
+    void removeCellsNotInAGroup();
+
+    std::set<int> getCellIdsIncludingGroups() const;
+    std::set<int> getCellPositionsIncludingGroups() const;
+    std::set<int> getCellPositionsExcludingGroups() const;
+
+    virtual std::set<int> getNodePositionsExcludingGroups() const;
+    virtual std::set<int> getNodePositionsIncludingGroups() const;
+
+    /**
+     * True if the container contains some cellGroup
+     */
+    bool hasCellGroups() const;
+    virtual bool empty() const;
+    virtual void clear();
+    /**
+     * True if the cellContainer contains some spare cell, not inserted
+     * in any group.
+     */
+    bool hasCells() const;
+    std::vector<std::shared_ptr<CellGroup>> getCellGroups() const;
+};
+
+/**
  * This class represents a container of nodes or groups of nodes.
  * It can split the groups into single nodes.
  *
  */
-class NodeContainer {
+class NodeContainer : public CellContainer {
+    Mesh& mesh; // because CellContainer mesh needs to be const
     std::set<int> nodePositions;
-    std::set<std::string> groupNames;
-protected:
-    Mesh& mesh;
+    std::set<std::string> nodeGroupNames;
 public:
     NodeContainer(Mesh& mesh);
     virtual ~NodeContainer() = default;
@@ -461,62 +508,17 @@ public:
     void add(const Node& node);
     void add(const NodeGroup& nodeGroup);
     void add(const NodeContainer& nodeContainer);
-    const std::set<int> getNodePositionsExcludingGroups() const;
-    const std::set<int> getNodePositionsIncludingGroups() const;
-    const std::vector<std::shared_ptr<NodeGroup>> getNodeGroups() const;
+    void removeNodePosition(int nodePosition);
+    virtual std::set<int> getNodePositionsExcludingGroups() const override final;
+    virtual std::set<int> getNodePositionsIncludingGroups() const override final;
+    virtual std::set<int> getNodeIdsIncludingGroups() const final;
+    std::vector<std::shared_ptr<NodeGroup>> getNodeGroups() const;
 
     // True if the container contains some nodeGroup
     bool hasNodeGroups() const;
-    bool empty() const;
-    void clear();
+    bool empty() const override final;
+    void clear() override final;
     bool hasNodes() const; /**< True if the container contains some spare nodes, not inserted in any group. */
-};
-
-/**
- * This class represents a container of cells or groups of cells.
- * It can split the groups into single cells.
- *
- */
-class CellContainer {
-    std::set<int> cellPositions;
-    std::set<std::string> groupNames;
-protected:
-    const Mesh& mesh;
-public:
-    CellContainer(const Mesh& mesh);
-    virtual ~CellContainer() = default;
-
-    /**
-     * Adds a cellId to the current set
-     */
-    void addCellPosition(int cellPosition);
-    void addCellId(int cellId);
-    void addCellIds(const std::vector<int>& otherIds);
-    void addCellGroup(const std::string& groupName);
-    void add(const Cell& cell);
-    void add(const CellGroup& cellGroup);
-    void add(const CellContainer& cellContainer);
-    const std::set<Cell> getCellsIncludingGroups() const;
-    void removeCellsNotInAGroup();
-
-    const std::set<int> getCellIdsIncludingGroups() const;
-    const std::set<int> getCellPositionsIncludingGroups() const;
-    const std::set<int> getCellPositionsExcludingGroups() const;
-
-    virtual std::set<int> nodePositions() const;
-
-    /**
-     * True if the container contains some cellGroup
-     */
-    bool hasCellGroups() const;
-    bool empty() const;
-    void clear();
-    /**
-     * True if the cellContainer contains some spare cell, not inserted
-     * in any group.
-     */
-    bool hasCells() const;
-    const std::vector<std::shared_ptr<CellGroup>> getCellGroups() const;
 };
 
 } /* namespace vega */
