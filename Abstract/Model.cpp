@@ -789,10 +789,11 @@ void Model::emulateAdditionalMass() {
             shared_ptr<CellGroup> newCellGroup = mesh.createCellGroup(
                     "VAM_" + to_string(newElementSets.size()), Group::NO_ORIGINAL_ID, oss.str());
             newElementSet->add(*newCellGroup);
-            for (const auto& cell : elementSet->getCellsIncludingGroups()) {
-                int cellPosition = mesh.addCell(Cell::AUTO_ID, cell.type, cell.nodeIds, cell.isvirtual,
+            for (const int cellPosition : elementSet->cellPositions()) {
+                const Cell& cell = mesh.findCell(cellPosition);
+                int newCellPosition = mesh.addCell(Cell::AUTO_ID, cell.type, cell.nodeIds, cell.isvirtual,
                         cell.cspos, cell.elementId);
-                newCellGroup->addCellPosition(cellPosition);
+                newCellGroup->addCellPosition(newCellPosition);
             }
         }
     }
@@ -877,15 +878,19 @@ void Model::generateMaterialAssignments() {
     } else {
         //generate or update material assignments from elementSets
         for (shared_ptr<ElementSet> element : elementSets) {
+            const auto& cellElementSet = dynamic_pointer_cast<CellElementSet>(element);
+            if (cellElementSet == nullptr) {
+                throw logic_error("Assigning an ElementSet which is not a CellContainer to a Material not yet implemeted");
+            }
             if (element->material) {
                 int mat_id = element->material->getId();
                 auto material_assignment_entry = material_assignment_by_material_id.find(mat_id);
-                if (!element->empty()) {
+                if (element->effective()) {
                     if (material_assignment_entry != material_assignment_by_material_id.end()) {
-                        material_assignment_entry->second.add(*element);
+                        material_assignment_entry->second.add(*cellElementSet);
                     } else {
                         CellContainer assignment(mesh);
-                        assignment.add(*(element));
+                        assignment.add(*cellElementSet);
                         material_assignment_by_material_id.insert({mat_id, assignment});
                     }
                 }
@@ -1064,10 +1069,11 @@ void Model::replaceDirectMatrices()
             const int nodeId = mesh.findNodeId(nodePosition);
             DOFS owned;
             for (const auto elementSetI : elementSets) {
-                if (elementSetI->empty()) {
+                if (not elementSetI->effective()) {
                     continue;
                 }
-                for (const Cell& cell : elementSetI->getCellsIncludingGroups()) {
+                for (const int cellPosition : elementSetI->cellPositions()) {
+                    const Cell& cell = mesh.findCell(cellPosition);
                     for (int cellNodeId : cell.nodeIds) {
                         if (cellNodeId == nodeId) {
                             if (elementSetI->isBeam() or elementSetI->isShell()) {
@@ -1516,7 +1522,7 @@ void Model::makeCellsFromDirectMatrices(){
             continue;
         }
         // If cells already exists, we do nothing
-        if (!elementSetM->empty()){
+        if (elementSetM->effective()){
             //TODO: Display informative message in debug mode.
             continue;
         }
@@ -2134,8 +2140,8 @@ void Model::assignVirtualMaterial() {
 
 void Model::assignElementsToCells() {
     for (shared_ptr<ElementSet> element : elementSets) {
-        if (!element->empty()) {
-            mesh.assignElementId(*element, element->getId());
+        for (int cellPosition : element->cellPositions()) {
+            mesh.assignElementId(cellPosition, element->getId());
         }
     }
 }

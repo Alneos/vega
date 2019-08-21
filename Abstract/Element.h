@@ -38,7 +38,7 @@ private:
 	static const ModelType TRIDIMENSIONAL_SI;
 };
 
-class ElementSet: public Identifiable<ElementSet>, public CellContainer {
+class ElementSet: public Identifiable<ElementSet> {
     friend std::ostream &operator<<(std::ostream&, const ElementSet&);    //output
 public:
     enum class Type {
@@ -79,15 +79,15 @@ public:
     std::shared_ptr<Material> material;
     void assignMaterial(int materialId);
     void assignMaterial(std::shared_ptr<Material> material) {
-        this->material = std::move(material);
+        this->material = material;
     }
     const ModelType getModelType() const;
+    virtual void add(const CellGroup& cellGroup) = 0;
     virtual bool validate() const override;
     virtual std::shared_ptr<ElementSet> clone() const = 0;
     virtual const DOFS getDOFSForNode(const int nodePosition) const = 0;
-    virtual std::set<int> nodePositions() const {
-        return getNodePositionsIncludingGroups();
-    }
+    virtual std::set<int> nodePositions() const = 0;
+    virtual std::set<int> cellPositions() const = 0;
     virtual double getAdditionalRho() const {
         return 0;
     }
@@ -109,7 +109,24 @@ public:
     virtual bool isMatrixElement() const {
         return false;
     }
-    virtual bool effective() const {
+    virtual bool effective() const = 0;
+};
+
+class CellElementSet: public ElementSet, public CellContainer {
+protected:
+    CellElementSet(Model&, Type, const ModelType& modelType = ModelType::TRIDIMENSIONAL,
+            int original_id = NO_ORIGINAL_ID);
+public:
+    virtual std::set<int> nodePositions() const override {
+        return getNodePositionsIncludingGroups();
+    }
+    virtual std::set<int> cellPositions() const override {
+        return getCellPositionsIncludingGroups();
+    }
+    virtual void add(const CellGroup& cellGroup) override final {
+        CellContainer::add(cellGroup);
+    };
+    virtual bool effective() const override {
         return not empty();
     }
 };
@@ -124,7 +141,7 @@ public:
     const VectorialValue getGlobalCoords(const int cellId) const;
 };
 
-class Beam: public ElementSet {
+class Beam: public CellElementSet {
 public:
 	enum class BeamModel {
 		EULER,
@@ -271,7 +288,7 @@ public:
 	double getShearAreaFactorZ() const override;
 };
 
-class Shell: public ElementSet {
+class Shell: public CellElementSet {
 
 public:
 	const double thickness;
@@ -310,7 +327,7 @@ public:
 	}
 };
 
-class Composite: public ElementSet {
+class Composite: public CellElementSet {
     std::vector<CompositeLayer> layers;
 	public:
 	Composite(Model&, int original_id = NO_ORIGINAL_ID);
@@ -328,7 +345,7 @@ class Composite: public ElementSet {
 	const DOFS getDOFSForNode(const int nodePosition) const override final;
 };
 
-class Continuum: public ElementSet {
+class Continuum: public CellElementSet {
 
 public:
 	Continuum(Model&, const ModelType& modelType, int original_id = NO_ORIGINAL_ID);
@@ -338,7 +355,7 @@ public:
 	const DOFS getDOFSForNode(const int nodePosition) const override final;
 };
 
-class Skin: public ElementSet {
+class Skin: public CellElementSet {
 
 public:
 	Skin(Model&, const ModelType& modelType, int original_id = NO_ORIGINAL_ID);
@@ -348,7 +365,7 @@ public:
 	const DOFS getDOFSForNode(const int nodePosition) const override final;
 };
 
-class Discrete: public ElementSet {
+class Discrete: public CellElementSet {
 public:
 	static const double NOT_BOUNDED;
 	const MatrixType matrixType;
@@ -459,7 +476,7 @@ public:
 };
 
 
-class NodalMass: public ElementSet {
+class NodalMass: public CellElementSet {
 	const double m;
 	public:
 	const double ixx;
@@ -495,7 +512,7 @@ class NodalMass: public ElementSet {
 };
 
 /* Matrix for a group nodes.*/
-class MatrixElement : public ElementSet {
+class MatrixElement : public CellElementSet {
 private:
 	std::map<std::pair<int, int>, std::shared_ptr<DOFMatrix>> submatrixByNodes;
 public:
@@ -553,7 +570,7 @@ public:
  * RigidSet is a the parent virtual class for Rigid ElementSet,
  * like RBAR and RBE3.
  */
-class RigidSet: public ElementSet {
+class RigidSet: public CellElementSet {
 protected:
     RigidSet(Model&, Type type, int master_id, int original_id = NO_ORIGINAL_ID);
 public:

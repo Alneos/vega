@@ -34,7 +34,7 @@ ModelType::ModelType(string name, const SpaceDimension dimension) :
 }
 
 ElementSet::ElementSet(Model& model, Type type, const ModelType& modelType, int original_id) :
-		Identifiable(original_id), CellContainer(model.mesh), model(model), type(type), modelType(modelType), material(
+		Identifiable(original_id), model(model), type(type), modelType(modelType), material(
 		nullptr) {
 }
 
@@ -81,11 +81,6 @@ const ModelType ElementSet::getModelType() const {
 bool ElementSet::validate() const {
 	bool validElement = true;
 
-	if (empty()) {
-		cerr << *this << " has no cells assigned." << endl;
-		validElement = false;
-	}
-
 	if (material == nullptr && model.configuration.partitionModel) {
 		cerr << *this << " has no material assigned, "
 				<< "and config. param partitionModel is set to True." << endl;
@@ -94,8 +89,12 @@ bool ElementSet::validate() const {
 	return validElement;
 }
 
+CellElementSet::CellElementSet(Model& model, Type type, const ModelType& modelType, int original_id) :
+		ElementSet(model, type, modelType, original_id), CellContainer(model.mesh) {
+}
+
 Continuum::Continuum(Model& model, const ModelType& modelType, int original_id) :
-		ElementSet(model, ElementSet::Type::CONTINUUM, modelType, original_id) {
+		CellElementSet(model, ElementSet::Type::CONTINUUM, modelType, original_id) {
 
 }
 
@@ -105,7 +104,7 @@ const DOFS Continuum::getDOFSForNode(const int nodePosition) const {
 }
 
 Skin::Skin(Model& model, const ModelType& modelType, int original_id) :
-		ElementSet(model, ElementSet::Type::SKIN, modelType, original_id) {
+		CellElementSet(model, ElementSet::Type::SKIN, modelType, original_id) {
 
 }
 
@@ -116,7 +115,7 @@ const DOFS Skin::getDOFSForNode(const int nodePosition) const {
 
 Beam::Beam(Model& model, Type type, const ModelType& modelType, BeamModel beamModel,
 		double additional_mass, int original_id) :
-		ElementSet(model, type, modelType, original_id), beamModel(beamModel), additional_mass(
+		CellElementSet(model, type, modelType, original_id), beamModel(beamModel), additional_mass(
 				additional_mass) {
 }
 
@@ -315,7 +314,7 @@ double GenericSectionBeam::getInvShearAreaFactorZ() const {
 
 
 Shell::Shell(Model& model, double thickness, double additional_mass, int original_id) :
-		ElementSet(model, ElementSet::Type::SHELL, model.modelType, original_id), thickness(thickness), additional_mass(
+		CellElementSet(model, ElementSet::Type::SHELL, model.modelType, original_id), thickness(thickness), additional_mass(
 				additional_mass) {
 }
 
@@ -329,7 +328,7 @@ CompositeLayer::CompositeLayer(int materialId, double thickness, double orientat
 }
 
 Composite::Composite(Model& model, int original_id) :
-		ElementSet(model, ElementSet::Type::COMPOSITE, model.modelType, original_id) {
+		CellElementSet(model, ElementSet::Type::COMPOSITE, model.modelType, original_id) {
 }
 
 void Composite::addLayer(int materialId, double thickness, double orientation) {
@@ -350,7 +349,7 @@ const DOFS Composite::getDOFSForNode(const int nodePosition) const {
 }
 
 Discrete::Discrete(Model& model, ElementSet::Type type, MatrixType matrixType, int original_id) :
-		ElementSet(model, type, model.modelType, original_id), matrixType(matrixType) {
+		CellElementSet(model, type, model.modelType, original_id), matrixType(matrixType) {
 }
 
 const double Discrete::NOT_BOUNDED = -DBL_MAX;
@@ -834,7 +833,7 @@ std::shared_ptr<ElementSet> StructuralSegment::clone() const{
 
 NodalMass::NodalMass(Model& model, double m, double ixx, double iyy, double izz, double ixy,
 		double iyz, double ixz, double ex, double ey, double ez, int original_id) :
-		ElementSet(model, ElementSet::Type::NODAL_MASS, model.modelType, original_id), m(m), ixx(ixx), iyy(iyy), izz(izz), ixy(
+		CellElementSet(model, ElementSet::Type::NODAL_MASS, model.modelType, original_id), m(m), ixx(ixx), iyy(iyy), izz(izz), ixy(
 				ixy), iyz(iyz), ixz(ixz), ex(ex), ey(ey), ez(ez) {
 }
 
@@ -953,7 +952,7 @@ double ISectionBeam::getShearAreaFactorZ() const {
 }
 
 MatrixElement::MatrixElement(Model& model, Type type, MatrixType matrixType, int original_id) :
-		ElementSet(model, type, modelType, original_id), matrixType(matrixType) {
+		CellElementSet(model, type, modelType, original_id), matrixType(matrixType) {
 }
 
 void MatrixElement::addComponent(const int nodeid1, const DOF dof1, const int nodeid2, const DOF dof2, const double value) {
@@ -1077,7 +1076,7 @@ void DampingMatrix::addDamping(const int nodeid1, const DOF dof1, const int node
 
 
 RigidSet::RigidSet(Model& model, Type type, int master_id, int original_id) :
-                ElementSet(model, type, model.modelType, original_id), masterId(master_id){
+                CellElementSet(model, type, model.modelType, original_id), masterId(master_id){
 }
 
 

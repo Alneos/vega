@@ -757,6 +757,20 @@ void CellContainer::addCellIds(const vector<int>& otherIds) {
     }
 }
 
+void CellContainer::addCellIds(const set<int>& otherIds) {
+    for(const int cellId : otherIds) {
+        cellPositions.insert(mesh.findCellPosition(cellId));
+    }
+}
+
+void CellContainer::addCellPositions(const vector<int>& otherPositions) {
+    cellPositions.insert(otherPositions.begin(), otherPositions.end());
+}
+
+void CellContainer::addCellPositions(const set<int>& otherPositions) {
+    cellPositions.insert(otherPositions.begin(), otherPositions.end());
+}
+
 void CellContainer::addCellGroup(const string& groupName) {
 	shared_ptr<Group> group = mesh.findGroup(groupName);
 	if (group == nullptr) {
@@ -865,7 +879,7 @@ void CellContainer::clear() {
 }
 
 bool CellContainer::hasCells() const {
-	return !cellPositions.empty();
+	return not cellPositions.empty();
 }
 
 vector<shared_ptr<CellGroup>> CellContainer::getCellGroups() const {

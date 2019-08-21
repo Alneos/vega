@@ -131,17 +131,18 @@ BOOST_AUTO_TEST_CASE( test_Elements ) {
 	model.finish();
 	BOOST_CHECK(model.validate());
 	const vector<shared_ptr<ElementSet>> beams = model.elementSets.filter(ElementSet::Type::RECTANGULAR_SECTION_BEAM);
-	BOOST_CHECK_EQUAL(static_cast<size_t>(1), beams.size());
+	BOOST_CHECK_EQUAL(1, beams.size());
 	BOOST_CHECK(model.elementSets.contains(ElementSet::Type::RECTANGULAR_SECTION_BEAM));
 
 //no virtual elements
 
 	const vector<shared_ptr<ElementSet>> discrets = model.elementSets.filter(ElementSet::Type::DISCRETE_0D);
-	BOOST_CHECK_EQUAL(static_cast<size_t>(0), discrets.size());
+	BOOST_CHECK_EQUAL(0, discrets.size());
 	BOOST_CHECK(not model.elementSets.contains(ElementSet::Type::DISCRETE_0D));
 	CellContainer assignment = model.getOrCreateMaterial(1)->getAssignment();
 
 	BOOST_CHECK(assignment.hasCellGroups());
+    BOOST_CHECK(not assignment.getCellGroups().empty());
 	BOOST_CHECK_EQUAL(assignment.getCellGroups()[0]->getName(), "GM1");
 
 }

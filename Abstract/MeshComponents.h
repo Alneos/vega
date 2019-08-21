@@ -452,7 +452,11 @@ public:
      */
     void addCellPosition(int cellPosition);
     void addCellId(int cellId);
+    // These methods should be templated but this class is based on incomplete types (Mesh) so cannot move the function implementation inside header :..(
     void addCellIds(const std::vector<int>& otherIds);
+    void addCellPositions(const std::vector<int>& otherPositions);
+    void addCellIds(const std::set<int>& otherIds);
+    void addCellPositions(const std::set<int>& otherPositions);
     void addCellGroup(const std::string& groupName);
     void add(const Cell& cell);
     void add(const CellGroup& cellGroup);

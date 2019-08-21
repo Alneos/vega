@@ -271,7 +271,9 @@ public:
 	 * Assign an elementId (an integer) to a group of cells.
 	 * Cells must have been previously defined.
 	 */
-	void assignElementId(const CellContainer&, int elementId);
+	inline void assignElementId(int cellPosition, int elementId) {
+	    cells.cellDatas[cellPosition].elementId = elementId;
+    }
 
 	const MeshStatistics calcStats();
 

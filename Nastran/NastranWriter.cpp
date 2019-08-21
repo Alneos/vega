@@ -237,10 +237,11 @@ void NastranWriter::writeSOL(const Model& model, ofstream& out) const
 void NastranWriter::writeCells(const Model& model, ofstream& out) const
 		{
 	for (const auto& elementSet : model.elementSets) {
-		if (elementSet->isDiscrete() || elementSet->isMatrixElement()) {
+		if (elementSet->isMatrixElement()) {
 			continue;
 		}
-		for (const Cell& cell : elementSet->getCellsIncludingGroups()) {
+		for (const int cellPosition : elementSet->cellPositions()) {
+            const Cell& cell = model.mesh.findCell(cellPosition);
 			string keyword;
 			if (elementSet->isBeam()) {
                 keyword = isCosmic() ? "CBAR" : "CBEAM";

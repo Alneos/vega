@@ -584,7 +584,7 @@ double SystusWriter::generateRbarStiffness(const SystusModel& systusModel){
         maxYoungModulus=0.0;
         for (const auto& elementSet : systusModel.model.elementSets) {
             const auto& material = elementSet->material;
-            if (!elementSet->empty() and material != nullptr){
+            if (elementSet->effective() and material != nullptr){
                 const auto& nature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
                 if (nature) {
                     const ElasticNature& elasticNature = dynamic_cast<const ElasticNature&>(*nature);
@@ -694,8 +694,8 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
             rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
         }
 
-        for (const Cell& cell : elementSet->getCellsIncludingGroups()) {
-
+        for (const int cellPosition : elementSet->cellPositions()) {
+            const Cell& cell = mesh.findCell(cellPosition);
             vector<int> nodes = cell.nodeIds;
 
             if (nodes.size()!=2){
@@ -781,8 +781,8 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
         }
 
         // Updating the cells
-        for (const Cell& cell : elementSet->getCellsIncludingGroups()) {
-
+        for (const int cellPosition : elementSet->cellPositions()) {
+            const Cell& cell = mesh.findCell(cellPosition);
             vector<int> nodes = cell.nodeIds;
             if (nodes.size()!=2){
                 handleWritingError("Error: ElementSet::RBE3 cells must have exactly two nodes.");
@@ -848,7 +848,8 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
         // With a Lagrangian formulation, we add a Lagrange node.
         // Lagrange node must NOT have an orientation, as they inherit it from the original node.
         if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
-            for (const Cell& cell : elementSet->getCellsIncludingGroups()) {
+            for (const int cellPosition : elementSet->cellPositions()) {
+                const Cell& cell = mesh.findCell(cellPosition);
                 vector<int> nodes = cell.nodeIds;
                 const Node& first = mesh.findNode(cell.nodePositions[0]);
                 int first_lagr_position = mesh.addNode(Node::AUTO_ID, first.lx, first.ly, first.lz, first.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
@@ -2365,8 +2366,11 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
             cout << "Writing elementSet " << *elementSet << endl;
         }
 
-        for (auto& cellGroup : elementSet->getCellGroups()) {
-            cellGroup->isUseful=false;
+        const auto& cellElementSet = dynamic_pointer_cast<CellElementSet>(elementSet);
+        if (cellElementSet != nullptr) {
+            for (auto& cellGroup : cellElementSet->getCellGroups()) {
+                cellGroup->isUseful=false;
+            }
         }
 
         int dim = 0;
@@ -2465,10 +2469,14 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
             typecell = 0;
         }
         }
-        for (auto& cellGroup : elementSet->getCellGroups()) {
-            cellGroup->isUseful=true;
+
+        if (cellElementSet != nullptr) {
+            for (auto& cellGroup : cellElementSet->getCellGroups()) {
+                cellGroup->isUseful=true;
+            }
         }
-        for (const Cell& cell : elementSet->getCellsIncludingGroups()) {
+        for (const int cellPosition : elementSet->cellPositions()) {
+            const Cell& cell = mesh.findCell(cellPosition);
 
             if (systusModel.model.configuration.logLevel >= LogLevel::DEBUG){
                 cout << "Writing cell id " << cell.id << "from " << elementSet->name << endl;
@@ -2585,7 +2593,7 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
     for (const auto& elementSet : systusModel.model.elementSets) {
         const auto& material = elementSet->material;
         //ModelType modelType = elementSet->getModelType();
-        if (elementSet->empty()) {
+        if (not elementSet->effective()) {
             continue;
         }
 
@@ -2920,7 +2928,7 @@ void SystusWriter::writeMasses(const SystusModel &systusModel, ostream& out) {
     out << "BEGIN_MASSES " << masses.size() << endl;
     if (masses.size() > 0) {
         for (const auto& mass : masses) {
-            if (mass->empty()) {
+            if (not mass->effective()) {
                 continue;
             }
             shared_ptr<NodalMass> nodalMass = dynamic_pointer_cast<NodalMass>(mass);
@@ -2943,7 +2951,7 @@ void SystusWriter::writeMasses(const SystusModel &systusModel, ostream& out) {
                 out << "VALUES 3 " << nodalMass->getMass() << " " << nodalMass->getMass() << " "
                         << nodalMass->getMass();
             }
-            for (const auto& cell : mass->getCellsIncludingGroups()) {
+            for (const auto& cell : nodalMass->getCellsIncludingGroups()) {
                 // NODEi
                 out << " " << cell.nodeIds[0];
             }

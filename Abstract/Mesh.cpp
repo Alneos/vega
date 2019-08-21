@@ -749,13 +749,6 @@ vector<shared_ptr<CellGroup>> Mesh::getCellGroups() const {
 	return groups;
 }
 
-void Mesh::assignElementId(const CellContainer& cellContainer, int elementId) {
-	for (int cellPosition : cellContainer.getCellPositionsIncludingGroups()) {
-		CellData& cellData = cells.cellDatas[cellPosition];
-		cellData.elementId = elementId;
-	}
-}
-
 shared_ptr<Group> Mesh::findGroup(string groupName) const {
 	auto groupIterator = groupByName.find(groupName);
 	if (groupIterator == groupByName.end())
