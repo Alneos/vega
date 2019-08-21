@@ -192,7 +192,7 @@ public:
 };
 
 
-class LinearMultiplePointConstraint: public Constraint {
+class LinearMultiplePointConstraint: public     Constraint {
 private:
     std::map<int, DOFCoefs> dofCoefsByNodePosition;
 public:
@@ -206,7 +206,7 @@ public:
      * Sort all nodes positions by increasing coefs. Usefull to fuse various LMPC into ones.
      */
     std::vector<int> sortNodePositionByCoefs() const;
-    std::set<int> nodePositions() const override;
+    std::set<int> nodePositions() const override final;
     const DOFS getDOFSForNode(int nodePosition) const override;
     void removeNodePosition(int nodePosition) override;
     bool ineffective() const override;

@@ -1521,13 +1521,13 @@ void Model::makeCellsFromDirectMatrices(){
             //TODO: Display informative message in debug mode.
             continue;
         }
+        shared_ptr<MatrixElement> matrix = dynamic_pointer_cast<MatrixElement>(elementSetM);
+
         // If cells already exists, we do nothing
-        if (elementSetM->effective()){
+        if (!matrix->empty()){
             //TODO: Display informative message in debug mode.
             continue;
         }
-
-        shared_ptr<MatrixElement> matrix = dynamic_pointer_cast<MatrixElement>(elementSetM);
 
         // If matrix is void, we do nothing (should not happen)
         if (matrix->nodePositions().size()==0){

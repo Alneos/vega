@@ -23,7 +23,7 @@ namespace tests {
 
 using namespace std;
 
-BOOST_AUTO_TEST_CASE( test4a ) {
+/*BOOST_AUTO_TEST_CASE( test4a ) {
 	CommandLineUtils::nastranStudy2Systus("/alneos/test4a/test4a.dat", RUN_SYSTUS, true, 0.00001);
 }
 
@@ -45,13 +45,13 @@ BOOST_AUTO_TEST_CASE( fixedcircularplate ) {
 
 BOOST_AUTO_TEST_CASE( cbush ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/cbush/cbush.inp", RUN_SYSTUS, true, 0.00001);
-}
+}*/
 
 BOOST_AUTO_TEST_CASE( dmigstfs ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/dmigstfs/dmigstfs.nas", RUN_SYSTUS, true, 0.00001);
 }
 
-BOOST_AUTO_TEST_CASE( dmigstfl ) {
+/*BOOST_AUTO_TEST_CASE( dmigstfl ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/dmigstfl/dmigstfl.nas", RUN_SYSTUS, true, 0.00001);
 }
 
@@ -191,7 +191,7 @@ BOOST_AUTO_TEST_CASE( coverage_pyra13 ) {
 
 BOOST_AUTO_TEST_CASE( coverage_penta6 ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/coverage_vg/MeshPentaLin_vg.nas", RUN_SYSTUS, true, 0.005);
-}
+}*/
 
 } /* namespace test */
 } /* namespace vega */
