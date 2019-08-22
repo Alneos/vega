@@ -156,7 +156,7 @@ const unordered_map<CellType::Code, vector<int>, EnumClassHash> NastranWriter::m
                 { CellType::Code::PYRA5_CODE, { 0, 3, 2, 1, 4 } },
                 { CellType::Code::PYRA13_CODE, { 0, 3, 2, 1, 4, 8, 7, 6, 5, 9, 12, 11, 10 } },
                 { CellType::Code::PENTA6_CODE, { 0, 2, 1, 3, 5, 4 } },
-                { CellType::Code::PENTA15_CODE, { 0, 2, 1, 3, 5, 4, 8, 7, 6, 12, 14, 13, 11, 10, 9 } },
+                { CellType::Code::PENTA15_CODE, { 0, 2, 1, 3, 5, 4, 8, 7, 6, 14, 13, 12, 9, 11, 10 } },
                 { CellType::Code::HEXA8_CODE, { 0, 3, 2, 1, 4, 7, 6, 5 } },
                 { CellType::Code::HEXA20_CODE, { 0, 3, 2, 1, 4, 7, 6, 5, 11, 10, 9, 8, 16, 19, 18, 17, 15,
                         14, 13, 12 } }

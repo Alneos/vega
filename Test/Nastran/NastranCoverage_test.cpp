@@ -87,19 +87,19 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
     runnerBySolverName[SolverName::CODE_ASTER] = make_unique<aster::AsterRunner>();
     runnerBySolverName[SolverName::SYSTUS] = make_unique<systus::SystusRunner>();
     map<SolverName, bool> canrunBySolverName = {
-        {SolverName::CODE_ASTER, RUN_ASTER},
-        {SolverName::SYSTUS, RUN_SYSTUS},
+//        {SolverName::CODE_ASTER, RUN_ASTER},
+//        {SolverName::SYSTUS, RUN_SYSTUS},
         {SolverName::NASTRAN, false}, // cosmic cannot handle PLOAD4 on volume cells
     };
     const map<CellType, string>& meshByCellType = {
-        {CellType::TETRA4, "MeshTetraLin"},
-        {CellType::PYRA5, "MeshPyraLin"},
-        {CellType::PENTA6, "MeshPentaLin"},
-        {CellType::HEXA8, "MeshHexaLin"},
-        {CellType::TETRA10, "MeshTetraQuad"},
-        {CellType::PYRA13, "MeshPyraQuad"},
+//        {CellType::TETRA4, "MeshTetraLin"},
+//        {CellType::PYRA5, "MeshPyraLin"},
+//        {CellType::PENTA6, "MeshPentaLin"},
+//        {CellType::HEXA8, "MeshHexaLin"},
+//        {CellType::TETRA10, "MeshTetraQuad"},
+//        {CellType::PYRA13, "MeshPyraQuad"},
         {CellType::PENTA15, "MeshPentaQuad"},
-        {CellType::HEXA20, "MeshHexaQuad"},
+//        {CellType::HEXA20, "MeshHexaQuad"},
     };
     const set<Loading::Type> loadingTypes = {
         Loading::Type::FORCE_SURFACE,
