@@ -41,6 +41,7 @@ ostream &operator<<(ostream &out, const Line& line) {
             string newlinesep = "+" + to_string(++Line::newlineCounter);
 			out << newlinesep << endl;
 			out << setw(line.fieldLength) << newlinesep;
+			fieldCount++;
 		}
 		out << field;
 	}

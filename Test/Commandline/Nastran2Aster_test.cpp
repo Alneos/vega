@@ -284,12 +284,16 @@ BOOST_AUTO_TEST_CASE( coverage_tetra4 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/coverage_vg/MeshTetraLin_vg.nas", RUN_ASTER, true, 0.005);
 }
 
-////BOOST_AUTO_TEST_CASE( coverage_tetra10 ) {
-////	CommandLineUtils::nastranStudy2Aster("/irt/coverage_vg/MeshTetraQuad_vg.nas", RUN_ASTER, true, 0.005);
-////}
+BOOST_AUTO_TEST_CASE( coverage_tetra10 ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/coverage_vg/MeshTetraQuad_vg.nas", RUN_ASTER, true, 0.005);
+}
 
 BOOST_AUTO_TEST_CASE( coverage_hexa8 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/coverage_vg/MeshHexaLin_vg.nas", RUN_ASTER, true, 0.005);
+}
+
+BOOST_AUTO_TEST_CASE( coverage_hexa20 ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/coverage_vg/MeshHexaQuad_vg.nas", RUN_ASTER, true, 0.005);
 }
 
 BOOST_AUTO_TEST_CASE( coverage_pyra5 ) {
@@ -304,9 +308,9 @@ BOOST_AUTO_TEST_CASE( coverage_penta6 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/coverage_vg/MeshPentaLin_vg.nas", RUN_ASTER, true, 0.005);
 }
 
-////BOOST_AUTO_TEST_CASE( coverage_penta15 ) {
-////	CommandLineUtils::nastranStudy2Aster("/irt/coverage_vg/MeshPentaQuad_vg.nas", RUN_ASTER, true, 0.005);
-////}
+BOOST_AUTO_TEST_CASE( coverage_penta15 ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/coverage_vg/MeshPentaQuad_vg.nas", RUN_ASTER, true, 0.005);
+}
 
 
 } /* namespace test */
