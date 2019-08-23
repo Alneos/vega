@@ -280,12 +280,12 @@ public:
  * See Nastran PLOAD
  */
 class StaticPressure: public NodalForce {
+public:
     const int node_position1;
     const int node_position2;
     const int node_position3;
     const int node_position4 = Globals::UNAVAILABLE_INT;
     double magnitude;
-public:
     StaticPressure(Model&, const int node1_id, const int node2_id,
             const int node3_id, const int node4_id, double magnitude, const int original_id = NO_ORIGINAL_ID);
     const VectorialValue getForceInGlobalCS(const int) const override;

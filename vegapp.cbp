@@ -1460,6 +1460,39 @@
 					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
+			<Target title="NastranCoverage_test">
+				<Option output="build/bin/NastranCoverage_test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="bin" />
+				<Option object_output="./" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DBOOST_TEST_DYN_LINK" />
+					<Add directory="build" />
+					<Add directory="include" />
+					<Add directory="/usr/include" />
+					<Add directory="/usr/include/c++/5" />
+					<Add directory="/usr/include/c++/5/backward" />
+					<Add directory="/usr/include/hdf5/serial" />
+					<Add directory="/usr/include/x86_64-linux-gnu" />
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
+					<Add directory="/usr/lib/openmpi/include" />
+					<Add directory="/usr/lib/openmpi/include/openmpi" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
+					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
+					<Add directory="/usr/local/include" />
+				</Compiler>
+				<MakeCommands>
+					<Build command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 NastranCoverage_test' />
+					<CompileFile command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
+					<Clean command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<DistClean command='/usr/bin/make -f &quot;Test/Commandline/Makefile&quot;  VERBOSE=1 clean' />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
 			<Target title="NastranParser_test">
 				<Option output="build/bin/NastranParser_test" prefix_auto="0" extension_auto="0" />
 				<Option working_dir="bin" />
@@ -1552,39 +1585,6 @@
 				</Compiler>
 				<MakeCommands>
 					<Build command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 NastranWriter_test' />
-					<CompileFile command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
-					<Clean command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 clean' />
-					<DistClean command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 clean' />
-					<AskRebuildNeeded command="$make -q -f $makefile $target" />
-					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
-				</MakeCommands>
-			</Target>
-			<Target title="NastranCoverage_test">
-				<Option output="build/bin/NastranCoverage_test" prefix_auto="0" extension_auto="0" />
-				<Option working_dir="bin" />
-				<Option object_output="./" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-DBOOST_TEST_DYN_LINK" />
-					<Add directory="build" />
-					<Add directory="include" />
-					<Add directory="/usr/include" />
-					<Add directory="/usr/include/c++/5" />
-					<Add directory="/usr/include/c++/5/backward" />
-					<Add directory="/usr/include/hdf5/serial" />
-					<Add directory="/usr/include/x86_64-linux-gnu" />
-					<Add directory="/usr/include/x86_64-linux-gnu/c++/5" />
-					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include" />
-					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
-					<Add directory="/usr/lib/openmpi/include" />
-					<Add directory="/usr/lib/openmpi/include/openmpi" />
-					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent" />
-					<Add directory="/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include" />
-					<Add directory="/usr/local/include" />
-				</Compiler>
-				<MakeCommands>
-					<Build command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 NastranCoverage_test' />
 					<CompileFile command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 &quot;$file&quot;' />
 					<Clean command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 clean' />
 					<DistClean command='/usr/bin/make -f &quot;Test/Nastran/Makefile&quot;  VERBOSE=1 clean' />
@@ -2036,6 +2036,7 @@
 		<Unit filename="Test/Commandline/Nastran2Aster_test.cpp" />
 		<Unit filename="Test/Commandline/Nastran2Nastran_test.cpp" />
 		<Unit filename="Test/Commandline/Nastran2Systus_test.cpp" />
+		<Unit filename="Test/Commandline/NastranCoverage_test.cpp" />
 		<Unit filename="Test/Commandline/Optistruct2Aster_test.cpp" />
 		<Unit filename="Test/Commandline/Optistruct2Nastran_test.cpp" />
 		<Unit filename="Test/Commandline/Optistruct2Systus_test.cpp" />

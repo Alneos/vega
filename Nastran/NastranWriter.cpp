@@ -158,8 +158,8 @@ const unordered_map<CellType::Code, vector<int>, EnumClassHash> NastranWriter::m
                 { CellType::Code::PENTA6_CODE, { 0, 2, 1, 3, 5, 4 } },
                 { CellType::Code::PENTA15_CODE, { 0, 2, 1, 3, 5, 4, 8, 7, 6, 14, 13, 12, 9, 11, 10 } },
                 { CellType::Code::HEXA8_CODE, { 0, 3, 2, 1, 4, 7, 6, 5 } },
-                { CellType::Code::HEXA20_CODE, { 0, 3, 2, 1, 4, 7, 6, 5, 11, 10, 9, 8, 16, 19, 18, 17, 15,
-                        14, 13, 12 } }
+                { CellType::Code::HEXA20_CODE, { 0, 3, 2, 1, 4, 7, 6, 5, 11, 10, 9, 8, 19, 18, 17, 16, 12,
+                        15, 14, 13 } }
         };
 
 const string NastranWriter::toString() const {
@@ -547,6 +547,9 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
 		const auto& nodalForces = loadingSet->getLoadingsByType(
 				Loading::Type::NODAL_FORCE);
         for (shared_ptr<Loading> loading : nodalForces) {
+            if (dynamic_pointer_cast<StaticPressure>(loading) != nullptr)
+                continue;
+
             shared_ptr<NodalForce> nodalForce = dynamic_pointer_cast<NodalForce>(loading);
             Line force("FORCE");
             force.add(loadingSet->bestId());
@@ -567,6 +570,25 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
             out << force;
             nodalForce->markAsWritten();
         }
+
+        for (shared_ptr<Loading> loading : nodalForces) {
+            shared_ptr<StaticPressure> staticPressure = dynamic_pointer_cast<StaticPressure>(loading);
+            if (staticPressure == nullptr)
+                continue;
+
+            Line pload("PLOAD");
+            pload.add(loadingSet->bestId());
+            pload.add(staticPressure->magnitude);
+            pload.add(model.mesh.findNodeId(staticPressure->node_position1));
+            pload.add(model.mesh.findNodeId(staticPressure->node_position2));
+            pload.add(model.mesh.findNodeId(staticPressure->node_position3));
+            if (staticPressure->node_position4 != Globals::UNAVAILABLE_INT) {
+                pload.add(model.mesh.findNodeId(staticPressure->node_position4));
+            }
+            out << pload;
+            staticPressure->markAsWritten();
+        }
+
 		loadingSet->markAsWritten();
 	}
 }

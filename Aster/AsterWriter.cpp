@@ -1647,29 +1647,43 @@ void AsterWriter::writeNodalForce(const AsterModel& asterModel, const LoadSet& l
   UNUSEDV(asterModel);
 	const auto& nodalForces = loadSet.getLoadingsByType(Loading::Type::NODAL_FORCE);
 	if (nodalForces.size() > 0) {
-		out << "                      FORCE_NODALE=(" << endl;
+        map<int, pair<VectorialValue, VectorialValue>> forceAndMomentByPosition;
 		for (shared_ptr<Loading> loading : nodalForces) {
 			shared_ptr<NodalForce> nodal_force = dynamic_pointer_cast<NodalForce>(loading);
 			for(const int nodePosition : nodal_force->nodePositions()) {
                 VectorialValue force = nodal_force->getForceInGlobalCS(nodePosition);
                 VectorialValue moment = nodal_force->getMomentInGlobalCS(nodePosition);
-                out << "                                    _F(NOEUD='"
-                        << Node::MedName(nodePosition) << "',";
-                if (!is_zero(force.x()))
-                    out << "FX=" << force.x() << ",";
-                if (!is_zero(force.y()))
-                    out << "FY=" << force.y() << ",";
-                if (!is_zero(force.z()))
-                    out << "FZ=" << force.z() << ",";
-                if (!is_zero(moment.x()))
-                    out << "MX=" << moment.x() << ",";
-                if (!is_zero(moment.y()))
-                    out << "MY=" << moment.y() << ",";
-                if (!is_zero(moment.z()))
-                    out << "MZ=" << moment.z() << ",";
-                out << ")," << endl;
-                nodal_force->markAsWritten();
+
+                const auto& it = forceAndMomentByPosition.find(nodePosition);
+                if (it == forceAndMomentByPosition.end()) {
+                    forceAndMomentByPosition[nodePosition] = {force, moment};
+                } else {
+                    forceAndMomentByPosition[nodePosition] = {force+it->second.first, moment+it->second.second};
+                }
 			}
+			nodal_force->markAsWritten();
+		}
+
+		out << "                      FORCE_NODALE=(" << endl;
+		for (const auto& forceAndMomentEntry : forceAndMomentByPosition) {
+            int nodePosition = forceAndMomentEntry.first;
+            VectorialValue force = forceAndMomentEntry.second.first;
+            VectorialValue moment = forceAndMomentEntry.second.second;
+            out << "                                    _F(NOEUD='"
+                    << Node::MedName(nodePosition) << "',";
+            if (!is_zero(force.x()))
+                out << "FX=" << force.x() << ",";
+            if (!is_zero(force.y()))
+                out << "FY=" << force.y() << ",";
+            if (!is_zero(force.z()))
+                out << "FZ=" << force.z() << ",";
+            if (!is_zero(moment.x()))
+                out << "MX=" << moment.x() << ",";
+            if (!is_zero(moment.y()))
+                out << "MY=" << moment.y() << ",";
+            if (!is_zero(moment.z()))
+                out << "MZ=" << moment.z() << ",";
+            out << ")," << endl;
 		}
 		out << "                                    )," << endl;
 	}

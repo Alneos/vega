@@ -2362,7 +2362,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
     out << "BEGIN_ELEMENTS " << mesh.countCells() << endl;
     for (const auto& elementSet : systusModel.model.elementSets) {
 
-        if (systusModel.model.configuration.logLevel >= LogLevel::DEBUG){
+        if (systusModel.model.configuration.logLevel >= LogLevel::TRACE){
             cout << "Writing elementSet " << *elementSet << endl;
         }
 
@@ -2478,7 +2478,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
         for (const int cellPosition : elementSet->cellPositions()) {
             const Cell& cell = mesh.findCell(cellPosition);
 
-            if (systusModel.model.configuration.logLevel >= LogLevel::DEBUG){
+            if (systusModel.model.configuration.logLevel >= LogLevel::TRACE){
                 cout << "Writing cell id " << cell.id << "from " << elementSet->name << endl;
             }
             auto systus2med_it = systus2medNodeConnectByCellType.find(cell.type.code);

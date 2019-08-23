@@ -68,11 +68,17 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
             + folderSuffix;
     fs::path sourceFname(string(PROJECT_BASE_DIR) + "/testdata/" + folderPrefix + inputFname);
     fs::path stem = sourceFname.stem();
+    fs::path inputRelativePath = fs::path(inputFname).parent_path();
+    if (not fs::exists(sourceFname)) {
+        // trying to interpret input as absolute path
+        sourceFname = fs::path(inputFname);
+        inputRelativePath = sourceFname.parent_path().filename();
+    }
     string message = "Processing : " + sourceFname.string();
     BOOST_TEST_MESSAGE(message);
 
     //outputPath
-    const fs::path inputRelativePath = fs::path(inputFname).parent_path();
+
     fs::path outputPath = (fs::path(testOutputBase.c_str()) / inputRelativePath).make_preferred();
     const string outputPathEscaped = "\"" + outputPath.string() + "\"";
 

@@ -107,6 +107,23 @@ if(ENABLE_SYSTUS)
     add_test(NAME Optistruct2Systus_test COMMAND Optistruct2Systus_test)
 endif(ENABLE_SYSTUS)
 
+add_executable(
+ NastranCoverage_test
+ NastranCoverage_test.cpp
+)
+
+SET_TARGET_PROPERTIES(NastranCoverage_test PROPERTIES LINK_SEARCH_START_STATIC ${STATIC_LINKING})
+SET_TARGET_PROPERTIES(NastranCoverage_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINKING})
+
+target_link_libraries(
+ NastranCoverage_test
+ nastran
+ command_line_test_utils
+ commandline
+)
+
+add_test(NAME NastranCoverage COMMAND NastranCoverage_test)
+
 #uncomment to see details of each test method (update tests.cmake with
 #the batch file ../update_tests.sh
 #include(tests.cmake)
