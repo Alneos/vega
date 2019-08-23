@@ -76,8 +76,8 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
 	ConfigurationParameters::TranslationMode translationMode = ConfigurationParameters::TranslationMode::MODE_STRICT;
     string nastranOutputSyntax = "modern";
     map<SolverName, bool> canrunBySolverName = {
-//        {SolverName::CODE_ASTER, RUN_ASTER},
-        {SolverName::SYSTUS, RUN_SYSTUS},
+        {SolverName::CODE_ASTER, RUN_ASTER},
+//        {SolverName::SYSTUS, RUN_SYSTUS},
 //        {SolverName::NASTRAN, false}, // cosmic cannot handle PLOAD4 on volume cells
     };
     const map<CellType, string>& meshByCellType = {
