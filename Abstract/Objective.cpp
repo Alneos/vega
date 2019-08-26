@@ -212,5 +212,9 @@ NodalDisplacementOutput::NodalDisplacementOutput(Model& model, int original_id) 
         Output(model, Objective::Type::NODAL_DISPLACEMENT_OUTPUT, original_id), NodeContainer(model.mesh) {
 }
 
+VonMisesStressOutput::VonMisesStressOutput(Model& model, int original_id) :
+        Output(model, Objective::Type::VONMISES_STRESS_OUTPUT, original_id), CellContainer(model.mesh) {
+}
+
 } /* namespace vega */
 

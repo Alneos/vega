@@ -680,9 +680,6 @@ CellIterator::CellIterator(const CellStorage* cellStorage, const CellType &cellT
 				begin ? 0 : endPosition) {
 }
 
-CellIterator::~CellIterator() {
-}
-
 const Cell CellIterator::next() {
 	Cell result = dereference();
 	increment(1);
@@ -783,6 +780,12 @@ void CellContainer::addCellGroup(const string& groupName) {
 
 void CellContainer::add(const Cell& cell) {
 	cellPositions.insert(cell.position);
+}
+
+void CellContainer::add(const Group& group) {
+    if (group.type != Group::Type::CELLGROUP)
+        throw invalid_argument("Invalid Group type");
+	this->cellGroupNames.insert(group.getName());
 }
 
 void CellContainer::add(const CellGroup& cellGroup) {
@@ -927,6 +930,21 @@ void NodeContainer::addNodeIds(const vector<int>& range) {
 
 void NodeContainer::addNodePosition(int nodePosition) {
 	nodePositions.insert(nodePosition);
+}
+
+void NodeContainer::add(const Group& group) {
+    switch(group.type) {
+    case Group::Type::CELLGROUP: {
+        CellContainer::add(group);
+        break;
+    }
+    case Group::Type::NODEGROUP: {
+        this->nodeGroupNames.insert(group.getName());
+        break;
+    }
+    default:
+        throw invalid_argument("Invalid Group type");
+    }
 }
 
 void NodeContainer::addNodeGroup(const string& groupName) {

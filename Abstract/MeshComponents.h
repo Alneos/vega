@@ -338,7 +338,7 @@ public:
     static const int UNAVAILABLE_CELL = INT_MIN;
     int id;
     int position;
-    int hasOrientation;
+    bool hasOrientation;
     CellType type;
     std::vector<int> nodeIds;
     std::vector<int> nodePositions;
@@ -424,7 +424,7 @@ public:
     static const bool POSITION_BEGIN = true;
     static const bool POSITION_END = false;
 
-    virtual ~CellIterator();
+    virtual ~CellIterator() = default;
     bool hasNext() const;
     const Cell next();
     CellIterator& operator++();
@@ -459,7 +459,8 @@ public:
     void addCellPositions(const std::set<int>& otherPositions);
     void addCellGroup(const std::string& groupName);
     void add(const Cell& cell);
-    void add(const CellGroup& cellGroup);
+    virtual void add(const Group& group);
+    virtual void add(const CellGroup& cellGroup);
     void add(const CellContainer& cellContainer);
     std::set<Cell> getCellsIncludingGroups() const;
     std::set<Cell> getCellsExcludingGroups() const;
@@ -510,10 +511,8 @@ public:
     void addNodePosition(int nodePosition);
     void addNodeGroup(const std::string& groupName);
     void add(const Node& node);
-    void add(const NodeGroup& nodeGroup);
-    void add(const CellGroup& cellGroup) {
-        CellContainer::add(cellGroup);
-    }
+    virtual void add(const Group& group) override final;
+    virtual void add(const NodeGroup& nodeGroup) final;
     void add(const NodeContainer& nodeContainer);
     void removeNodePosition(int nodePosition);
     virtual std::set<int> getNodePositionsExcludingGroups() const override final;

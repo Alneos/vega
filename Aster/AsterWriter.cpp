@@ -123,30 +123,46 @@ void AsterWriter::writeExport(AsterModel &model, ostream& out) {
 
 void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out) {
 	if (not asterModel.model.analyses.empty()) {
+
+		for (const auto& analysis : asterModel.model.analyses) {
+
+			const auto& vonMisesOutputs = asterModel.model.objectives.filter(Objective::Type::VONMISES_STRESS_OUTPUT);
+
+			for (const auto& output : vonMisesOutputs) {
+                const auto& vonMisesOutput = dynamic_pointer_cast<VonMisesStressOutput>(output);
+                out << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
+                        << endl;
+                out << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
+                out << "           MODELE=MODMECA," << endl;
+                out << "           CONTRAINTE =('SIEQ_NOEU')," << endl;
+                writeCellContainer(*vonMisesOutput, out);
+                out << ")" << endl;
+			}
+		}
+
 		out << "IMPR_RESU(FORMAT='RESULTAT'," << endl;
 		out << "          RESU=(" << endl;
-		for (const auto& it : asterModel.model.analyses) {
-			const Analysis& analysis = *it;
-			switch (analysis.type) {
+		for (const auto& analysis : asterModel.model.analyses) {
+			switch (analysis->type) {
             case (Analysis::Type::COMBINATION):
 			case (Analysis::Type::LINEAR_MECA_STAT): {
-				out << "                _F(RESULTAT=RESU" << analysis.getId()
+				out << "                _F(RESULTAT=RESU" << analysis->getId()
 						<< ", NOM_CHAM='DEPL'," << " VALE_MAX='OUI'," << " VALE_MIN='OUI',),"
 						<< endl;
 				break;
 			}
 			case (Analysis::Type::LINEAR_MODAL): {
-				//out << "                _F(RESULTAT=RESU" << analysis.getId()
+				//out << "                _F(RESULTAT=RESU" << analysis->getId()
 				//		<< ", TOUT_PARA='OUI', TOUT_CHAM='NON')," << endl;
 				break;
 			}
             case (Analysis::Type::LINEAR_BUCKLING): {
-				out << "                _F(RESULTAT=RESU" << analysis.getId()
+				out << "                _F(RESULTAT=RESU" << analysis->getId()
 						<< ", NOM_PARA='CHAR_CRIT', TOUT_CHAM='NON')," << endl;
 				break;
 			}
 			case (Analysis::Type::LINEAR_DYNA_DIRECT_FREQ): {
-				out << "                _F(RESULTAT=RESU" << analysis.getId()
+				out << "                _F(RESULTAT=RESU" << analysis->getId()
 						<< ", NOM_PARA='FREQ', TOUT_CHAM='NON')," << endl;
 				break;
 			}
@@ -154,25 +170,25 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 				break;
 			}
 			case (Analysis::Type::NONLINEAR_MECA_STAT): {
-				out << "                _F(RESULTAT=RESU" << analysis.getId()
+				out << "                _F(RESULTAT=RESU" << analysis->getId()
 						<< ", NOM_CHAM='DEPL'," << " VALE_MAX='OUI'," << " VALE_MIN='OUI',),"
 						<< endl;
 				break;
 			}
 			default:
-				out << "# WARN analysis " << analysis << " not supported. Skipping." << endl;
+				out << "# WARN analysis " << *analysis << " not supported. Skipping." << endl;
 			}
 		}
 		out << "                )," << endl;
 		out << "          );" << endl << endl;
+
 		out << "IMPR_RESU(FORMAT='MED',UNITE=80," << endl;
 		out << "          RESU=(" << endl;
-		for (const auto& it : asterModel.model.analyses) {
-			const Analysis& analysis = *it;
-			switch (analysis.type) {
+		for (const auto& analysis : asterModel.model.analyses) {
+			switch (analysis->type) {
             case (Analysis::Type::COMBINATION):
 			case (Analysis::Type::LINEAR_MECA_STAT): {
-				out << "                _F(RESULTAT=RESU" << analysis.getId()
+				out << "                _F(RESULTAT=RESU" << analysis->getId()
 						<< ", NOM_CHAM=('DEPL'";
 				if (calc_sigm) {
 					out << ",'" << sigm_noeu << "'";
@@ -183,38 +199,38 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 			case (Analysis::Type::NONLINEAR_MECA_STAT):
 			case (Analysis::Type::LINEAR_BUCKLING):
 			case (Analysis::Type::LINEAR_MODAL): {
-				out << "                _F(RESULTAT=RESU" << analysis.getId()
+				out << "                _F(RESULTAT=RESU" << analysis->getId()
 						<< ", NOM_CHAM = 'DEPL',)," << endl;
 				break;
 			}
 			case (Analysis::Type::LINEAR_DYNA_DIRECT_FREQ): {
-				out << "                _F(RESULTAT=RESU" << analysis.getId()
+				out << "                _F(RESULTAT=RESU" << analysis->getId()
 						<< ", PARTIE='REEL')," << endl;
 				break;
 			}
 			case (Analysis::Type::LINEAR_DYNA_MODAL_FREQ): {
-				out << "                _F(RESULTAT=MODES" << analysis.getId()
+				out << "                _F(RESULTAT=MODES" << analysis->getId()
 						<< ", NOM_CHAM = 'DEPL',)," << endl;
-				out << "                _F(RESULTAT=RESU" << analysis.getId()
+				out << "                _F(RESULTAT=RESU" << analysis->getId()
 						<< ", PARTIE='REEL')," << endl;
 				break;
 			}
 			default:
-				out << "# WARN analysis " << analysis << " not supported. Skipping." << endl;
+				out << "# WARN analysis " << *analysis << " not supported. Skipping." << endl;
 			}
 		}
 		out << "                )," << endl;
 		out << "          );" << endl << endl;
-		for (const auto& it : asterModel.model.analyses) {
-			const Analysis& analysis = *it;
 
-			vector<shared_ptr<Objective>> displacementOutputs = asterModel.model.objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT);
-			out << "RETB" << analysis.getId();
+		for (const auto& analysis : asterModel.model.analyses) {
+
+			const auto& displacementOutputs = asterModel.model.objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT);
+			out << "RETB" << analysis->getId();
 			if (displacementOutputs.size() >= 1) {
                 out << "=POST_RELEVE_T(ACTION=(" << endl;
                 for (auto output : displacementOutputs) {
                     shared_ptr<const NodalDisplacementOutput> displacementOutput = dynamic_pointer_cast<const NodalDisplacementOutput>(output);
-                    out << "                _F(INTITULE='DISP" << output->bestId() << "',OPERATION='EXTRACTION',RESULTAT=RESU" << analysis.getId() << ",";
+                    out << "                _F(INTITULE='DISP" << output->bestId() << "',OPERATION='EXTRACTION',RESULTAT=RESU" << analysis->getId() << ",";
                     writeNodeContainer(*displacementOutput, out);
                     out << "NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
                 }
@@ -222,13 +238,13 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 			} else {
 
                 out << "=CREA_TABLE(RESU=(" << endl;
-                switch (analysis.type) {
+                switch (analysis->type) {
                 case (Analysis::Type::COMBINATION):
                 case (Analysis::Type::LINEAR_MODAL):
                 case (Analysis::Type::LINEAR_BUCKLING):
                 case (Analysis::Type::NONLINEAR_MECA_STAT):
                 case (Analysis::Type::LINEAR_MECA_STAT): {
-                    out << "                _F(RESULTAT=RESU" << analysis.getId()
+                    out << "                _F(RESULTAT=RESU" << analysis->getId()
                             << ",TOUT='OUI',NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
                     break;
                 }
@@ -236,21 +252,21 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
                     break;
                 }
                 case (Analysis::Type::LINEAR_DYNA_MODAL_FREQ): {
-                    out << "                _F(RESULTAT=MODES" << analysis.getId()
+                    out << "                _F(RESULTAT=MODES" << analysis->getId()
                             << ",TOUT='OUI',NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
                     break;
                 }
                 default:
-                    out << "# WARN analysis " << analysis << " not supported. Skipping." << endl;
+                    out << "# WARN analysis " << *analysis << " not supported. Skipping." << endl;
                 }
 			out << "),)" << endl << endl;
 			}
 
 			out << "unite=DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
-			out << "             FICHIER='REPE_OUT/tbresu_" << analysis.getId() << ".csv')" << endl
+			out << "             FICHIER='REPE_OUT/tbresu_" << analysis->getId() << ".csv')" << endl
 					<< endl;
 
-			out << "IMPR_TABLE(TABLE=RETB" << analysis.getId() << "," << endl;
+			out << "IMPR_TABLE(TABLE=RETB" << analysis->getId() << "," << endl;
 			out << "           FORMAT='TABLEAU'," << endl;
 			out << "           UNITE=unite," << endl;
 			out << "           SEPARATEUR=' ,'," << endl;
@@ -331,6 +347,8 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
             out << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
 			out << "             UNITE=" << unit << ")" << endl << endl;
 		}
+
+
 	}
 }
 
@@ -1004,7 +1022,7 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
             // TODO : probably this loop should be applyed to elementSets and not over groups!!
             continue;
         }
-        std::shared_ptr<vega::CoordinateSystem> cs= asterModel.model.mesh.getCoordinateSystemByPosition(it.first);
+        shared_ptr<vega::CoordinateSystem> cs= asterModel.model.mesh.getCoordinateSystemByPosition(it.first);
 		if (cs->type!=CoordinateSystem::Type::RELATIVE){
 		   //handleWritingError("Coordinate System of Group "+ it.second+" is not an ORIENTATION.");
 		   continue;
@@ -1013,7 +1031,7 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 			out << "                    ORIENTATION=(" << endl;
 			orientationsPrinted = true;
 		}
-		std::shared_ptr<OrientationCoordinateSystem> ocs = std::dynamic_pointer_cast<OrientationCoordinateSystem>(cs);
+		shared_ptr<OrientationCoordinateSystem> ocs = dynamic_pointer_cast<OrientationCoordinateSystem>(cs);
 
 		out << "                                 _F(CARA ='VECT_Y',VALE=(";
 		out << ocs->getV().x() << "," << ocs->getV().y() << "," << ocs->getV().z() << ")";
@@ -1771,8 +1789,8 @@ void AsterWriter::writeForceLine(const LoadSet& loadset, ostream& out) {
 	}
 
 	if (forcesOnGeometry.size() >= 1) {
-		cerr << "ERROR! force_arete not implemented" << endl;
-		out << "# warn! force_arete not implemented" << endl;
+        handleWritingWarning("# warn! force_arete not implemented");
+
 	}
 
 }

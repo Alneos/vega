@@ -276,10 +276,6 @@ BOOST_AUTO_TEST_CASE( gpstress ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/gpstress/gpstress.nas", RUN_ASTER, true, 0.00001);
 }
 
-BOOST_AUTO_TEST_CASE( coverage_testseg2 ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/coverage/MeshSegLin.bdf", RUN_ASTER, true, 0.005);
-}
-
 
 } /* namespace test */
 } /* namespace vega */

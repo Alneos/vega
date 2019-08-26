@@ -41,33 +41,6 @@ namespace tests {
 
 //____________________________________________________________________________//
 
-/*BOOST_AUTO_TEST_CASE( test_seg2 ) {
-    Solver solver(SolverName::NASTRAN);
-    string solverVersion = "";
-    fs::path inputFname = fs::path(PROJECT_BASE_DIR "/testdata/nastran/irt/coverage/MeshSegLin.bdf");
-    fs::path testOutputBase = fs::path(PROJECT_BINARY_DIR "/Testing/nastrancoverage");
-    fs::path outputPath = (testOutputBase / "test_seg2").make_preferred();
-    fs::create_directories(outputPath);
-    string testLocation = inputFname.make_preferred().string();
-	ConfigurationParameters::TranslationMode translationMode = ConfigurationParameters::TranslationMode::MODE_STRICT;
-	nastran::NastranParser parser;
-	nastran::NastranWriter writer;
-	nastran::NastranRunner runner;
-	try {
-        ConfigurationParameters configuration = ConfigurationParameters(inputFname.string(), solver,
-            solverVersion, "test_seg2", outputPath.string(), LogLevel::DEBUG, translationMode);
-		const unique_ptr<Model> model = parser.parse(configuration);
-        model->finish();
-        fs::path modelFile = outputPath / fs::path(writer.writeModel(*model, configuration));
-        runner.execSolver(configuration, modelFile.string());
-	}
-	catch (exception& e) {
-		cerr << e.what() << endl;
-		BOOST_TEST_MESSAGE(string("Application exception") + e.what());
-
-		BOOST_FAIL(string("Parse threw exception ") + e.what());
-	}
-}*/
 
 BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
     string solverVersion = "";
@@ -77,10 +50,11 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
     string nastranOutputSyntax = "modern";
     map<SolverName, bool> canrunBySolverName = {
         {SolverName::CODE_ASTER, RUN_ASTER},
-//        {SolverName::SYSTUS, RUN_SYSTUS},
+        {SolverName::SYSTUS, RUN_SYSTUS},
 //        {SolverName::NASTRAN, false}, // cosmic cannot handle PLOAD4 on volume cells
     };
     const map<CellType, string>& meshByCellType = {
+        {CellType::SEG2, "MeshSegLin"},
         {CellType::TETRA4, "MeshTetraLin"},
         {CellType::PYRA5, "MeshPyraLin"},
         {CellType::PENTA6, "MeshPentaLin"},
@@ -91,14 +65,22 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
         {CellType::HEXA20, "MeshHexaQuad"},
     };
     enum class LoadingTest {
+        FORCE_NODALE,
         FORCE_SURFACE,
         NORMAL_PRESSION_FACE,
         STATIC_PRESSURE
     };
-    const set<LoadingTest> loadingTests = {
-        LoadingTest::FORCE_SURFACE,
-        LoadingTest::NORMAL_PRESSION_FACE,
-        LoadingTest::STATIC_PRESSURE,
+    const map<SpaceDimension, vector<LoadingTest>> loadingTestsBySpaceDimension = {
+        {SpaceDimension::DIMENSION_1D, {
+                                        LoadingTest::FORCE_NODALE,
+                                       }},
+        {SpaceDimension::DIMENSION_2D, {
+                                       }},
+        {SpaceDimension::DIMENSION_3D, {
+                                        LoadingTest::FORCE_SURFACE,
+                                        LoadingTest::NORMAL_PRESSION_FACE,
+                                        LoadingTest::STATIC_PRESSURE,
+                                       }},
     };
 	try {
         const Solver& nastranSolver{SolverName::NASTRAN};
@@ -121,15 +103,27 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
             if (model->mesh.getCellGroups().empty()) {
                 throw logic_error("No cell group has been found in mesh, maybe BEGIN_BULK is missing?");
             }
-            const auto& x0group = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(6));
+            shared_ptr<Group> x0group = nullptr;
+            if (cellType.dimension == SpaceDimension::DIMENSION_1D) {
+                x0group = dynamic_pointer_cast<NodeGroup>(model->mesh.findGroup(6));
+            } else {
+                x0group = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(6));
+            }
             if (x0group == nullptr) {
                 throw logic_error("missing constraint group in mesh");
             }
+
             const auto& volgroup = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(9));
             if (volgroup == nullptr) {
                 throw logic_error("missing volume group in mesh");
             }
-            const auto& x300group = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(8));
+
+            shared_ptr<Group> x300group = nullptr;
+            if (cellType.dimension == SpaceDimension::DIMENSION_1D) {
+                x300group = dynamic_pointer_cast<NodeGroup>(model->mesh.findGroup(8));
+            } else {
+                x300group = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(8));
+            }
             if (x300group == nullptr) {
                 throw logic_error("missing loading group in mesh");
             }
@@ -141,10 +135,14 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
 
             // Add output
             const auto& nodalOutput = make_shared<NodalDisplacementOutput>(*model);
-            for (const int nodePosition : x300group->nodePositions()) {
-                nodalOutput->addNodePosition(nodePosition);
-            }
+            nodalOutput->add(*x300group);
             model->add(nodalOutput);
+
+            if (cellType.dimension > SpaceDimension::DIMENSION_1D) {
+                const auto& vmisOutput = make_shared<VonMisesStressOutput>(*model);
+                vmisOutput->add(*x0group);
+                model->add(vmisOutput);
+            }
 
             // Define material
             int matId = 1;
@@ -154,14 +152,31 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
             material->addNature(make_shared<ElasticNature>(*model, youngModulus, poissonNumber));
 
             // Assign material and model
-            int partId = 1;
-            const auto& continuum = make_shared<Continuum>(*model, ModelType::TRIDIMENSIONAL, partId);
-            continuum->assignMaterial(matId);
-            continuum->add(*volgroup);
-            model->add(continuum);
+            double beamWidth = 10;
+            double beamHeight = 20;
+            shared_ptr<ElementSet> elementSet = nullptr;
+            switch(cellType.dimension.code) {
+            case SpaceDimension::Code::DIMENSION1D_CODE: {
+                elementSet = make_shared<RectangularSectionBeam>(*model, beamWidth, beamHeight, Beam::BeamModel::TIMOSHENKO, 0.0, volgroup->bestId());
+                break;
+            }
+            case SpaceDimension::Code::DIMENSION2D_CODE: {
+                elementSet = make_shared<Shell>(*model, beamWidth, 0.0, volgroup->bestId());
+                break;
+            }
+            case SpaceDimension::Code::DIMENSION3D_CODE: {
+                elementSet = make_shared<Continuum>(*model, ModelType::TRIDIMENSIONAL, volgroup->bestId());
+                break;
+            }
+            default:
+                throw invalid_argument("Dimension coverage not yet implemented");
+            }
+            elementSet->assignMaterial(matId);
+            elementSet->add(*volgroup);
+            model->add(elementSet);
 
             // Add constraint
-            const auto& spc = make_shared<SinglePointConstraint>(*model, DOFS::TRANSLATIONS, 0.0);
+            const auto& spc = make_shared<SinglePointConstraint>(*model, DOFS::ALL_DOFS, 0.0);
             spc->add(*x0group);
             model->add(spc);
             model->addConstraintIntoConstraintSet(*spc, *constraintSet);
@@ -169,10 +184,31 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
             // Add Analyses
             int analysisId = 1;
             int loadSetId = 1;
-            //double f = 100.0;
-            double p = 0.5;
-            for (const auto& loadingTest : loadingTests) {
+            double f = 100.0;
+            double p = f / (beamHeight*beamWidth);
+            for (const auto& loadingTest : loadingTestsBySpaceDimension.at(cellType.dimension)) {
                 switch (loadingTest) {
+                    case LoadingTest::FORCE_NODALE : {
+                        for (const DOF& loadDirection : DOFS::TRANSLATIONS) {
+                            DOFCoefs loadingCoefs(DOFS::ALL_DOFS, 0.0);
+                            loadingCoefs.setValue(loadDirection, -f);
+                            const VectorialValue& force{loadingCoefs.getValue(DOF::DX), loadingCoefs.getValue(DOF::DY), loadingCoefs.getValue(DOF::DZ)};
+                            const auto& analysis = make_shared<LinearMecaStat>(*model, "FORCE", analysisId);
+                            const auto& loadSet = make_shared<LoadSet>(*model, LoadSet::Type::LOAD, loadSetId);
+                            model->add(loadSet);
+                            analysis->add(*loadSet);
+                            analysis->add(*constraintSet);
+                            analysis->add(*nodalOutput);
+                            model->add(analysis);
+                            const auto& forceLoading = make_shared<NodalForce>(*model, force);
+                            forceLoading->add(*x300group);
+                            model->add(forceLoading);
+                            model->addLoadingIntoLoadSet(*forceLoading, *loadSet);
+                            loadSetId++;
+                            analysisId++;
+                        }
+                        break;
+                    }
                     case LoadingTest::FORCE_SURFACE : {
                         for (const DOF& loadDirection : DOFS::TRANSLATIONS) {
                             DOFCoefs loadingCoefs(DOFS::ALL_DOFS, 0.0);
@@ -186,7 +222,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                             analysis->add(*constraintSet);
                             analysis->add(*nodalOutput);
                             model->add(analysis);
-                            for (const Cell& surfCell : x300group->getCells()) {
+                            for (const Cell& surfCell : dynamic_pointer_cast<CellGroup>(x300group)->getCells()) {
                                 const auto volCellAndFacenum = model->mesh.volcellAndFaceNum_from_skincell(surfCell);
                                 const Cell& volCell = volCellAndFacenum.first;
                                 const int faceNum = volCellAndFacenum.second;
@@ -194,10 +230,10 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                                 shared_ptr<ForceSurface> forceSurfaceTwoNodes = nullptr;
                                 if (applicationNodeIds.second == Globals::UNAVAILABLE_INT) {
                                     forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(*model, applicationNodeIds.first,
-                                        force, VectorialValue(0.0, 0.0, 0.0));
+                                        force);
                                 } else {
                                     forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(*model, applicationNodeIds.first, applicationNodeIds.second,
-                                        force, VectorialValue(0.0, 0.0, 0.0));
+                                        force);
                                 }
                                 forceSurfaceTwoNodes->add(volCell);
                                 model->add(forceSurfaceTwoNodes);
@@ -217,7 +253,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                         analysis->add(*constraintSet);
                         analysis->add(*nodalOutput);
                         model->add(analysis);
-                        for (const Cell& surfCell : x300group->getCells()) {
+                        for (const Cell& surfCell : dynamic_pointer_cast<CellGroup>(x300group)->getCells()) {
                             const auto volCellAndFacenum = model->mesh.volcellAndFaceNum_from_skincell(surfCell);
                             const Cell& volCell = volCellAndFacenum.first;
                             const int faceNum = volCellAndFacenum.second;
@@ -246,7 +282,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                         analysis->add(*nodalOutput);
                         model->add(analysis);
 
-                        for (const Cell& surfCell : x300group->getCells()) {
+                        for (const Cell& surfCell : dynamic_pointer_cast<CellGroup>(x300group)->getCells()) {
                             const auto& cornerNodeIds = surfCell.cornerNodeIds();
                             shared_ptr<Loading> staticPressure = nullptr;
                             // LD careful here: PLOAD2 only works on shells and only on linear cells!

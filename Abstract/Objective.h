@@ -52,6 +52,7 @@ public:
         NONLINEAR_STRATEGY,
         ARC_LENGTH_METHOD,
         NODAL_DISPLACEMENT_OUTPUT,
+        VONMISES_STRESS_OUTPUT,
     };
 protected:
     const Model& model;
@@ -247,6 +248,11 @@ public:
     };
     NodalDisplacementOutput(Model& model, int original_id = NO_ORIGINAL_ID);
     ComplexOutputType complexOutput;
+};
+
+class VonMisesStressOutput: public Output, public CellContainer {
+public:
+    VonMisesStressOutput(Model& model, int original_id = NO_ORIGINAL_ID);
 };
 
 

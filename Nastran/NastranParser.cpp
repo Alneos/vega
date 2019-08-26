@@ -809,6 +809,8 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
                 }
 
                 const auto& setValue = dynamic_pointer_cast<SetValue<int>> (model.find(Reference<NamedValue>{Value::Type::SET, id}));
+                if (setValue == nullptr)
+                    handleParsingError("DISP referencing unknown SET id:" + to_string(id), tok, model);
                 shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup("SET_" + to_string(id), NodeGroup::NO_ORIGINAL_ID);
                 for (const int nodeId : setValue->getSet()) {
                     nodeGroup->addNodeId(nodeId);
@@ -817,6 +819,25 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
                 nodalOutput->addNodeGroup("SET_" + to_string(id));
                 model.add(nodalOutput);
                 analysis->add(nodalOutput->getReference());
+            }
+        } else if (!key.compare(0, 4, "STRESS")) {
+            if (id != 0) {
+                shared_ptr<VonMisesStressOutput> stressOutput = nullptr;
+                for (const auto& option:options) {
+                    if (option == "VMIS") {
+                        stressOutput = make_shared<VonMisesStressOutput>(model);
+                    }
+                }
+
+                const auto& setValue = dynamic_pointer_cast<SetValue<int>> (model.find(Reference<NamedValue>{Value::Type::SET, id}));
+                shared_ptr<CellGroup> cellGroup = model.mesh.createCellGroup("SET_" + to_string(id), CellGroup::NO_ORIGINAL_ID);
+                for (const int cellId : setValue->getSet()) {
+                    cellGroup->addCellId(cellId);
+                }
+                setValue->markAsWritten();
+                stressOutput->addCellGroup("SET_" + to_string(id));
+                model.add(stressOutput);
+                analysis->add(stressOutput->getReference());
             }
         }
     }
@@ -3127,12 +3148,12 @@ void NastranParser::parseSET3(NastranTokenizer& tok, Model& model) {
     string des = tok.nextString();
 
     if (des == "GRID") {
-        shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SET3");
+        shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup(name,sid,"SET3");
         while (tok.isNextInt()) {
             nodeGroup->addNodeId(tok.nextInt());
         }
     } else if (des == "ELEM") {
-        shared_ptr<CellGroup> cellGroup = model.mesh.createCellGroup(name,CellGroup::NO_ORIGINAL_ID,"SET3");
+        shared_ptr<CellGroup> cellGroup = model.mesh.createCellGroup(name,sid,"SET3");
         while (tok.isNextInt()) {
             cellGroup->addCellId(tok.nextInt());
         }

@@ -117,6 +117,7 @@ protected:
     CellElementSet(Model&, Type, const ModelType& modelType = ModelType::TRIDIMENSIONAL,
             int original_id = NO_ORIGINAL_ID);
 public:
+    using CellContainer::add;
     virtual std::set<int> nodePositions() const override {
         return getNodePositionsIncludingGroups();
     }

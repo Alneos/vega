@@ -324,10 +324,11 @@ void NastranWriter::writeCells(const Model& model, ofstream& out) const
             }
             vector<double> x1x2x3;
             string F;
-            if (elementSet->isBeam() and cell.orientation != nullptr) {
+            if (elementSet->isBeam() and cell.hasOrientation) {
                 const auto& v = cell.orientation->getV();
                 x1x2x3 = {v.x(), v.y(), v.z()};
-                F = "1";
+                if (isCosmic())
+                    F = "1";
             }
 			out << Line(keyword).add(cell.id).add(elementSet->bestId()).add(nasConnect).add(x1x2x3).add(F);
 		}
@@ -733,14 +734,14 @@ string NastranWriter::writeModel(Model& model,
 	out << "APP   DISP" << endl;
 	out << "TIME  10000" << endl;
 	out << "CEND" << endl;
-    vector<shared_ptr<Objective>> displacementOutputs = model.objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT);
+    const auto& displacementOutputs = model.objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT);
     if (displacementOutputs.size() >= 1) {
         for (const auto& objective : displacementOutputs) {
             const auto& displacementOutput = dynamic_pointer_cast<const NodalDisplacementOutput>(objective);
             out << "  SET " << objective->bestId() << " = ";
             bool firstNode = true;
             int nodeCount = 1;
-            for (int nodePosition : displacementOutput->getNodePositionsIncludingGroups()) {
+            for (int nodeId : displacementOutput->getNodeIdsIncludingGroups()) {
                 if (not firstNode)
                     out << ",";
                 else {
@@ -748,13 +749,36 @@ string NastranWriter::writeModel(Model& model,
                 }
                 if (nodeCount % 8 == 0)
                     out << endl; // To avoid long lines
-                out << model.mesh.findNodeId(nodePosition);
+                out << nodeId;
                 nodeCount++;
             }
             out << endl;
+            out << "  DISP = " << objective->bestId() << endl;
         }
     } else {
         out << "  DISP = ALL" << endl;
+    }
+    const auto& vonMisesOutputs = model.objectives.filter(Objective::Type::VONMISES_STRESS_OUTPUT);
+    if (vonMisesOutputs.size() >= 1) {
+        for (const auto& objective : vonMisesOutputs) {
+            const auto& displacementOutput = dynamic_pointer_cast<const VonMisesStressOutput>(objective);
+            out << "  SET " << objective->bestId() << " = ";
+            bool firstNode = true;
+            int nodeCount = 1;
+            for (int nodeId : displacementOutput->getCellIdsIncludingGroups()) {
+                if (not firstNode)
+                    out << ",";
+                else {
+                    firstNode = false;
+                }
+                if (nodeCount % 8 == 0)
+                    out << endl; // To avoid long lines
+                out << nodeId;
+                nodeCount++;
+            }
+            out << endl;
+            out << "  STRESS(VONMISES) = " << objective->bestId() << endl;
+        }
     }
 	for (const auto& analysis : model.analyses) {
 		out << "SUBCASE " << analysis->bestId() << endl;

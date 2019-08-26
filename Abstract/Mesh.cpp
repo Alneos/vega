@@ -487,8 +487,11 @@ const Cell Mesh::findCell(int cellPosition) const {
 		const NodeData &nodeData = nodes.nodeDatas[nodePositions[i]];
 		nodeIds[i] = nodeData.id;
 	}
+	shared_ptr<OrientationCoordinateSystem> ocs = nullptr;
+	if (cellData.csPos!=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID)
+        ocs = dynamic_pointer_cast<OrientationCoordinateSystem>(coordinateSystemStorage.findByPosition(cellData.csPos));
 	// Should stay as a "return unnamed" so that compiler can avoid rvalue copy
-	return Cell(cellData.id, *type, nodeIds, cellPosition, nodePositions, false, cellData.csPos, cellData.elementId, cellData.cellTypePosition);
+	return Cell(cellData.id, *type, nodeIds, cellPosition, nodePositions, false, cellData.csPos, cellData.elementId, cellData.cellTypePosition, ocs);
 }
 
 int Mesh::generateSkinCell(const vector<int>& faceIds, const SpaceDimension& dimension) {

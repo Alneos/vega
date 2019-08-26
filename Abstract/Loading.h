@@ -225,7 +225,7 @@ public:
  */
 class NodalForce: public NodeLoading {
 public:
-	NodalForce(Model&, const VectorialValue& force, const VectorialValue& moment,
+	NodalForce(Model&, const VectorialValue& force, const VectorialValue& moment = {},
 			const int original_id = NO_ORIGINAL_ID, const Reference<CoordinateSystem> csref =
 					CoordinateSystem::GLOBAL_COORDINATE_SYSTEM);
 	NodalForce(Model&, double fx, double fy = 0, double fz = 0, double mx = 0,
@@ -354,9 +354,9 @@ public:
 	const int nodePosition2;
 
 	ForceSurfaceTwoNodes(Model&, int nodeId1, int nodeId2, const VectorialValue& force,
-			const VectorialValue& moment, const int original_id = NO_ORIGINAL_ID);
+			const VectorialValue& moment = {}, const int original_id = NO_ORIGINAL_ID);
 	ForceSurfaceTwoNodes(Model&, int nodeId1, const VectorialValue& force,
-			const VectorialValue& moment, const int original_id = NO_ORIGINAL_ID);
+			const VectorialValue& moment = {}, const int original_id = NO_ORIGINAL_ID);
 	virtual std::vector<int> getApplicationFaceNodeIds() const override;
 	std::shared_ptr<Loading> clone() const override;
 };
