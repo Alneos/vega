@@ -783,9 +783,10 @@ void CellContainer::add(const Cell& cell) {
 }
 
 void CellContainer::add(const Group& group) {
-    if (group.type != Group::Type::CELLGROUP)
+    if (group.type != Group::Type::CELLGROUP) {
         throw invalid_argument("Invalid Group type");
-	this->cellGroupNames.insert(group.getName());
+    }
+    this->cellGroupNames.insert(group.getName());
 }
 
 void CellContainer::add(const CellGroup& cellGroup) {
