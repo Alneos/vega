@@ -658,7 +658,7 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
 		break;
 	}
 	default:
-		handleWritingError(string("NamedValue not yet implemented"));
+		handleWritingError("NamedValue not yet implemented");
 	}
 	asternameByValue[value] = concept_name;
 

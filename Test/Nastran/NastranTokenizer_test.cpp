@@ -69,14 +69,14 @@ BOOST_AUTO_TEST_CASE(nastran_short_with_tabs) {
     //comments are skipped
     tokenizer.nextLine();
     BOOST_CHECK(tokenizer.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_KEYWORD);
-    BOOST_CHECK_EQUAL(tokenizer.nextString(), string("KEYWORD"));
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), "KEYWORD");
     BOOST_CHECK(tokenizer.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_FIELD);
-    BOOST_CHECK_EQUAL(tokenizer.nextString(), string("12345"));
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), "12345");
     BOOST_CHECK(tokenizer.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_FIELD);
-    BOOST_CHECK_EQUAL(tokenizer.nextString(), string("123"));
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), "123");
     BOOST_CHECK(tokenizer.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_FIELD);
-    BOOST_CHECK_EQUAL(tokenizer.nextString(true,""), string(""));
-    BOOST_CHECK_EQUAL(tokenizer.nextString(), string("1234567"));
+    BOOST_CHECK_EQUAL(tokenizer.nextString(true,""), "");
+    BOOST_CHECK_EQUAL(tokenizer.nextString(), "1234567");
 }
 
 //BOOST_AUTO_TEST_CASE(comments_and_empty_lines) {

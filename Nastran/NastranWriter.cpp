@@ -593,7 +593,7 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
             double x2 = it->first;
             double p2 = it->second;
             if (++it != functionTable->getEndValuesXY())
-                throw logic_error("More than two values in function table for force line");
+                handleWritingWarning("More than two values in function table for force line, ignoring from the third.");
             for (const int cellId: forceLine->getCellIdsIncludingGroups()) {
                 Line pload1("PLOAD1");
                 pload1.add(loadingSet->bestId());
@@ -616,23 +616,21 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
                 continue;
 
             const auto& nodalForce = dynamic_pointer_cast<NodalForce>(loading);
-            Line force("FORCE");
-            force.add(loadingSet->bestId());
-            if (nodalForce->nodePositions().size() != 1) {
-                handleWritingError("Multiple nodes in nodal force, not yet implemented (but easy)");
+            for (int nodePosition : nodalForce->getNodePositionsIncludingGroups()) {
+                Line force("FORCE");
+                force.add(loadingSet->bestId());
+                force.add(model.mesh.findNodeId(nodePosition));
+                force.add(0);
+                const auto& forceVector = nodalForce->getForceInGlobalCS(nodePosition);
+                force.add(1.0);
+                force.add(forceVector.x());
+                force.add(forceVector.y());
+                force.add(forceVector.z());
+                if (!nodalForce->getMomentInGlobalCS(nodePosition).iszero()) {
+                    handleWritingError("Unimplemented moment in FORCE");
+                }
+                out << force;
             }
-            int nodePosition = *(nodalForce->nodePositions().begin());
-            force.add(model.mesh.findNodeId(nodePosition));
-            force.add(0);
-            const auto& forceVector = nodalForce->getForceInGlobalCS(nodePosition);
-            force.add(1.0);
-            force.add(forceVector.x());
-            force.add(forceVector.y());
-            force.add(forceVector.z());
-            if (!nodalForce->getMomentInGlobalCS(nodePosition).iszero()) {
-                handleWritingError("Unimplemented moment in FORCE");
-            }
-            out << force;
             nodalForce->markAsWritten();
         }
 

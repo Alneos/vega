@@ -57,6 +57,7 @@ const ModelConfiguration ConfigurationParameters::getModelConfiguration() const 
         configuration.autoDetectAnalysis = true;
         configuration.removeConstrainedImposed = true;
         configuration.replaceRigidSegments = true;
+        configuration.changeParametricForceLineToAbsolute = true;
     } else if (this->outputSolver.getSolverName() == SolverName::SYSTUS) {
         configuration.createSkin = true;
         configuration.emulateAdditionalMass = true;

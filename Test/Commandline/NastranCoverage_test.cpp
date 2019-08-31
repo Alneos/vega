@@ -31,6 +31,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 #include <iostream>
+#include <thread>         // std::this_thread::sleep_for
+#include <chrono>         // std::chrono::seconds
 #if defined VDEBUG && defined __GNUC_ && !defined(_WIN32)
 #include <valgrind/memcheck.h>
 #endif
@@ -50,7 +52,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
     string nastranOutputSyntax = "modern";
     map<SolverName, bool> canrunBySolverName = {
         {SolverName::CODE_ASTER, RUN_ASTER},
-//        {SolverName::SYSTUS, RUN_SYSTUS},
+        //{SolverName::SYSTUS, RUN_SYSTUS},
         {SolverName::NASTRAN, false}, // cosmic cannot handle PLOAD4 on volume cells
     };
     const map<CellType, string>& meshByCellType = {
@@ -77,7 +79,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
     const map<SpaceDimension, vector<LoadingTest>> loadingTestsBySpaceDimension = {
         {SpaceDimension::DIMENSION_1D, {
                                         LoadingTest::FORCE_NODALE,
-                                        //LoadingTest::FORCE_BEAM,
+                                        LoadingTest::FORCE_BEAM,
                                        }},
         {SpaceDimension::DIMENSION_2D, {
                                         LoadingTest::FORCE_NODALE,
@@ -387,6 +389,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
             for (const auto& canRunEntry : canrunBySolverName) {
                 const SolverName& solverName = canRunEntry.first;
                 CommandLineUtils::run(modelFile.string(), nastranSolver.getSolverName(), solverName, canRunEntry.second, true, 0.002);
+                std::this_thread::sleep_for (std::chrono::seconds(1));
             }
         }
 	} catch (exception& e) {

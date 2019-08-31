@@ -164,6 +164,12 @@ public:
      */
     bool replaceRigidSegments = false;
 
+    /**
+     * Replace parametric functions (ex: ABSC coordinates, like PLOAD1 with LR option in Nastran)
+     * with absolute (X,Y,Z coordinates)
+     */
+    bool changeParametricForceLineToAbsolute = false;
+
 };
 // TODO: THe Configuration Parameters should be much more generalized. With this,
 // it's a pain in the keyboard to add options!!

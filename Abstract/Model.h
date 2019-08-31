@@ -127,6 +127,12 @@ private:
     void replaceRigidSegments();
 
     /**
+     * Replace parametric functions (ex: ABSC coordinates, like PLOAD1 with LR option in Nastran)
+     * with absolute (X,Y,Z coordinates)
+     */
+    void changeParametricForceLineToAbsolute();
+
+    /**
      * Get a non rigid material (virtual)
      */
     std::shared_ptr<Material> getVirtualMaterial();

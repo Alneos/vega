@@ -150,7 +150,7 @@ FunctionTable::FunctionTable(const Model& model, Interpolation parameter, Interp
 }
 
 void FunctionTable::setXY(const double X, const double Y) {
-    valuesXY.push_back(pair<double, double>(X, Y));
+    valuesXY.push_back({X, Y});
 }
 
 const vector<pair<double, double>>::const_iterator FunctionTable::getBeginValuesXY() const {

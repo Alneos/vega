@@ -52,6 +52,7 @@ public:
         STEP_RANGE,
         SPREAD_RANGE,
         FUNCTION_TABLE,
+        FUNCTIONXYZ_TABLE,
         LIST,
         SET,
         DYNA_PHASE,
@@ -257,6 +258,12 @@ public:
         PARAX,
         ABSC
     };
+    enum class Interpolation {
+        LINEAR,
+        LOGARITHMIC,
+        CONSTANT,
+        NONE
+    };
 protected:
     ParaName paraX;
     ParaName paraY;
@@ -312,14 +319,7 @@ public:
 class FunctionTable: public Function {
 protected:
     std::vector<std::pair<double, double> > valuesXY;
-    public:
-    enum class Interpolation {
-        LINEAR,
-        LOGARITHMIC,
-        CONSTANT,
-        NONE
-    };
-
+public:
     const Interpolation parameter;
     const Interpolation value;
     const Interpolation left;
@@ -362,54 +362,54 @@ public:
  * @see vega expression.pyx VectorialValue
  */
 class VectorialValue final : public Value {//: public TriValue {
-	private:
-		ublas::vector<double> value;
-		VectorialValue(ublas::vector<double>& value);
-		friend std::ostream& operator<<(std::ostream& os, const VectorialValue& obj);
-    public:
-        VectorialValue();
-		VectorialValue(double x, double y, double z);
-		VectorialValue(std::initializer_list<double> c);
-		inline double x() const {
-			return value[0];
-		}
+private:
+    ublas::vector<double> value;
+    VectorialValue(ublas::vector<double>& value);
+    friend std::ostream& operator<<(std::ostream& os, const VectorialValue& obj);
+public:
+    VectorialValue();
+    VectorialValue(double x, double y, double z);
+    VectorialValue(std::initializer_list<double> c);
+    inline double x() const {
+        return value[0];
+    }
 
-		inline double y() const {
-			return value[1];
-		}
+    inline double y() const {
+        return value[1];
+    }
 
-		inline double z() const {
-			return value[2];
-		}
+    inline double z() const {
+        return value[2];
+    }
 
-		VectorialValue normalized() const;
-		void scale(double factor) override;
-		VectorialValue scaled(double factor) const;
-		double dot(const VectorialValue &v) const;
-		double norm() const;
-		bool iszero() const override;
-		/**
-		 *  Cross product with another VectorialValue. Result is ("this" x "other")
-		 **/
-		VectorialValue cross(const VectorialValue& other) const;
-		/**
-		 *  Return a vector orthonormal to "other", computed from this->value
-		 **/
-		VectorialValue orthonormalized(const VectorialValue& other) const;
-		friend const VectorialValue operator+(const VectorialValue&, const VectorialValue&);
-		friend const VectorialValue operator-(const VectorialValue&, const VectorialValue&);
-		friend const VectorialValue operator*(const double&, const VectorialValue&);
-		friend const VectorialValue operator/(const VectorialValue&, const double&);
-		VectorialValue& operator=(const VectorialValue&);
-		friend bool operator==(const VectorialValue&, const VectorialValue&);
-		friend bool operator!=(const VectorialValue&, const VectorialValue&);
+    VectorialValue normalized() const;
+    void scale(double factor) override;
+    VectorialValue scaled(double factor) const;
+    double dot(const VectorialValue &v) const;
+    double norm() const;
+    bool iszero() const override;
+    /**
+     *  Cross product with another VectorialValue. Result is ("this" x "other")
+     **/
+    VectorialValue cross(const VectorialValue& other) const;
+    /**
+     *  Return a vector orthonormal to "other", computed from this->value
+     **/
+    VectorialValue orthonormalized(const VectorialValue& other) const;
+    friend const VectorialValue operator+(const VectorialValue&, const VectorialValue&);
+    friend const VectorialValue operator-(const VectorialValue&, const VectorialValue&);
+    friend const VectorialValue operator*(const double&, const VectorialValue&);
+    friend const VectorialValue operator/(const VectorialValue&, const double&);
+    VectorialValue& operator=(const VectorialValue&);
+    friend bool operator==(const VectorialValue&, const VectorialValue&);
+    friend bool operator!=(const VectorialValue&, const VectorialValue&);
 
-        static const VectorialValue O;
-		static const VectorialValue X;
-		static const VectorialValue Y;
-		static const VectorialValue Z;
-		static const VectorialValue XYZ[3];
-	};
+    static const VectorialValue O;
+    static const VectorialValue X;
+    static const VectorialValue Y;
+    static const VectorialValue Z;
+    static const VectorialValue XYZ[3];
+};
 
 /**
  * Adapter class: it can represent a double value, a reference or an empty value.

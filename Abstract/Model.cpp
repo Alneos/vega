@@ -1893,6 +1893,40 @@ void Model::addAutoAnalysis() {
     }
 }
 
+void Model::changeParametricForceLineToAbsolute() {
+    for (const auto& loading: this->loadings.filter(Loading::Type::FORCE_LINE)) {
+        const auto& forceLine = static_pointer_cast<ForceLine>(loading);
+        if (not forceLine->hasFunctions())
+            continue;
+        if (forceLine->getCellPositionsIncludingGroups().size() != 1)
+            throw logic_error("Conversion of more than one cell per ForceLine not yet implemented (but should be doable)");
+        const int cellPosition = *(forceLine->getCellPositionsIncludingGroups().begin());
+        const Cell& cell = mesh.findCell(cellPosition);
+        const Node& node1 = mesh.findNode(cell.nodePositions[0]);
+        const Node& node2 = mesh.findNode(cell.nodePositions[1]);
+        if (is_equal(node1.x, node2.x))
+            throw logic_error("Need to implement beams oriented on the Y or Z axis too.");
+        const auto& functionTable = dynamic_pointer_cast<FunctionTable>(forceLine->force);
+        if (functionTable == nullptr)
+            throw logic_error("Cannot convert to absolute this kind of Function");
+        if (functionTable->getParaX() != Function::ParaName::ABSC)
+            continue;
+        const auto& absoluteFunction = make_shared<FunctionTable>(*this, functionTable->parameter, functionTable->value, functionTable->left, functionTable->right, functionTable->getOriginalId());
+        absoluteFunction->setParaX(Function::ParaName::PARAX);
+        absoluteFunction->setParaY(functionTable->getParaY());
+
+        if (cell.nodePositions.size() != 2)
+            throw logic_error("Conversion of cell without two nodeids per ForceLine not yet implemented (but should be doable)");
+        for (auto it = functionTable->getBeginValuesXY(); it != functionTable->getEndValuesXY(); it++) {
+            double absc = it->first;
+            double val = it->second;
+            absoluteFunction->setXY(node1.x * (1-absc) + node2.x * absc, val);
+        }
+        this->add(absoluteFunction);
+        forceLine->force = absoluteFunction;
+    }
+}
+
 void Model::finish() {
     if (finished) {
         return;
@@ -2003,6 +2037,10 @@ void Model::finish() {
 
     assignElementsToCells();
     generateMaterialAssignments();
+
+    if (this->configuration.changeParametricForceLineToAbsolute) {
+        changeParametricForceLineToAbsolute();
+    }
 
     if (this->configuration.removeIneffectives) {
         removeUnassignedMaterials();
