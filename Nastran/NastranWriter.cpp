@@ -371,8 +371,8 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
 		{
 	for (const auto& constraintSet : model.constraintSets) {
 		const auto& spcs = constraintSet->getConstraintsByType(Constraint::Type::SPC);
-        for (shared_ptr<Constraint> constraint : spcs) {
-            shared_ptr<SinglePointConstraint> spc = dynamic_pointer_cast<
+        for (const auto& constraint : spcs) {
+            const auto& spc = dynamic_pointer_cast<
                     SinglePointConstraint>(constraint);
             for (int nodePosition : spc->nodePositions()) {
                 const int nodeId = model.mesh.findNodeId(nodePosition);
@@ -383,8 +383,8 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
             spc->markAsWritten();
         }
 		const auto& rigidConstraints = constraintSet->getConstraintsByType(Constraint::Type::RIGID);
-        for (shared_ptr<Constraint> constraint : rigidConstraints) {
-            shared_ptr<RigidConstraint> rigid =
+        for (const auto& constraint : rigidConstraints) {
+            const auto& rigid =
                     dynamic_pointer_cast<RigidConstraint>(constraint);
             Line rbe2("RBE2");
             rbe2.add(constraintSet->bestId());
@@ -401,8 +401,8 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
 
 		const auto& quasiRigidConstraints = constraintSet->getConstraintsByType(
 				Constraint::Type::QUASI_RIGID);
-        for (shared_ptr<Constraint> constraint : quasiRigidConstraints) {
-            shared_ptr<QuasiRigidConstraint> quasiRigid =
+        for (const auto& constraint : quasiRigidConstraints) {
+            const auto& quasiRigid =
                     dynamic_pointer_cast<QuasiRigidConstraint>(constraint);
             if (not quasiRigid->hasMaster() and quasiRigid->getSlaves().size() == 2) {
                 Line rbar("RBAR");
@@ -431,8 +431,8 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
 
 		const auto& rbe3Constraints = constraintSet->getConstraintsByType(
 				Constraint::Type::RBE3);
-        for (shared_ptr<Constraint> constraint : rbe3Constraints) {
-            shared_ptr<RBE3> rbe3Constraint =
+        for (const auto& constraint : rbe3Constraints) {
+            const auto& rbe3Constraint =
                     dynamic_pointer_cast<RBE3>(constraint);
             Line rbe3("RBE3");
             rbe3.add(constraintSet->bestId());
@@ -456,8 +456,8 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
 		{
 	for (const auto& loadingSet : model.loadSets) {
 		const auto& gravities = loadingSet->getLoadingsByType(Loading::Type::GRAVITY);
-        for (shared_ptr<Loading> loading : gravities) {
-            shared_ptr<Gravity> gravity = dynamic_pointer_cast<Gravity>(loading);
+        for (const auto& loading : gravities) {
+            const auto& gravity = dynamic_pointer_cast<Gravity>(loading);
             Line grav("GRAV");
             grav.add(loadingSet->bestId());
             if (gravity->hasCoordinateSystem()) {
@@ -473,8 +473,8 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
 
 		const auto& forceSurfaces = loadingSet->getLoadingsByType(
 				Loading::Type::FORCE_SURFACE);
-        for (shared_ptr<Loading> loading : forceSurfaces) {
-            shared_ptr<ForceSurfaceTwoNodes> forceSurface = dynamic_pointer_cast<ForceSurfaceTwoNodes>(loading);
+        for (const auto& loading : forceSurfaces) {
+            const auto& forceSurface = dynamic_pointer_cast<ForceSurfaceTwoNodes>(loading);
             if (forceSurface == nullptr) {
                 handleWritingError("Need to implement writing other ForceSurface subclasses");
             }
@@ -517,16 +517,14 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
 
 		const auto& normalPressionFaces = loadingSet->getLoadingsByType(
 				Loading::Type::NORMAL_PRESSION_FACE);
-        for (shared_ptr<Loading> loading : normalPressionFaces) {
-            shared_ptr<NormalPressionFaceTwoNodes> normalPressionFace = dynamic_pointer_cast<NormalPressionFaceTwoNodes>(loading);
-            if (normalPressionFace == nullptr) {
-                handleWritingError("Need to implement writing other NormalPressionFace subclasses");
-            }
-            for (const int cellPosition: normalPressionFace->getCellPositionsIncludingGroups()) {
-                const Cell& cell = model.mesh.findCell(cellPosition);
+        for (const auto& loading : normalPressionFaces) {
+            const auto& normalPressionFace = dynamic_pointer_cast<NormalPressionFaceTwoNodes>(loading);
+            if (normalPressionFace == nullptr)
+                continue;
+            for (const int cellId: normalPressionFace->getCellIdsIncludingGroups()) {
                 Line pload4("PLOAD4");
                 pload4.add(loadingSet->bestId());
-                pload4.add(cell.id);
+                pload4.add(cellId);
                 pload4.add(normalPressionFace->intensity);
                 pload4.add("");
                 pload4.add("");
@@ -545,13 +543,79 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
             normalPressionFace->markAsWritten();
         }
 
+        for (const auto& loading : normalPressionFaces) {
+            const auto& normalPressionFaceTN = dynamic_pointer_cast<NormalPressionFaceTwoNodes>(loading);
+            if (normalPressionFaceTN != nullptr)
+                continue; // TODO LD: improve this thing, probably using a subtype
+            const auto& normalPressionFace = dynamic_pointer_cast<NormalPressionFace>(loading);
+            if (normalPressionFace == nullptr)
+                continue;
+            for (const int cellId: normalPressionFace->getCellIdsIncludingGroups()) {
+                Line pload2("PLOAD2");
+                pload2.add(loadingSet->bestId());
+                pload2.add(normalPressionFace->intensity);
+                pload2.add(cellId);
+                out << pload2;
+            }
+            normalPressionFace->markAsWritten();
+        }
+
+        for (const auto& loading : loadingSet->getLoadingsByType(Loading::Type::FORCE_LINE)) {
+            const auto& forceLine = dynamic_pointer_cast<ForceLine>(loading);
+            string forceType;
+            switch(forceLine->dof.code) {
+            case DOF::Code::DX_CODE:
+                forceType = "FX";
+                break;
+            case DOF::Code::DY_CODE:
+                forceType = "FY";
+                break;
+            case DOF::Code::DZ_CODE:
+                forceType = "FZ";
+                break;
+            case DOF::Code::RX_CODE:
+                forceType = "MX";
+                break;
+            case DOF::Code::RY_CODE:
+                forceType = "MY";
+                break;
+            case DOF::Code::RZ_CODE:
+                forceType = "MZ";
+                break;
+            default:
+                handleWritingError("DOF not yet handled");
+            }
+            const auto& functionTable = dynamic_pointer_cast<FunctionTable>(forceLine->force);
+            auto it = functionTable->getBeginValuesXY();
+            double x1 = it->first;
+            double p1 = it->second;
+            it++;
+            double x2 = it->first;
+            double p2 = it->second;
+            if (++it != functionTable->getEndValuesXY())
+                throw logic_error("More than two values in function table for force line");
+            for (const int cellId: forceLine->getCellIdsIncludingGroups()) {
+                Line pload1("PLOAD1");
+                pload1.add(loadingSet->bestId());
+                pload1.add(cellId);
+                pload1.add(forceType);
+                pload1.add("FR");
+                pload1.add(x1);
+                pload1.add(p1);
+                pload1.add(x2);
+                pload1.add(p2);
+                out << pload1;
+            }
+            forceLine->markAsWritten();
+        }
+
 		const auto& nodalForces = loadingSet->getLoadingsByType(
 				Loading::Type::NODAL_FORCE);
-        for (shared_ptr<Loading> loading : nodalForces) {
+        for (const auto& loading : nodalForces) {
             if (dynamic_pointer_cast<StaticPressure>(loading) != nullptr)
                 continue;
 
-            shared_ptr<NodalForce> nodalForce = dynamic_pointer_cast<NodalForce>(loading);
+            const auto& nodalForce = dynamic_pointer_cast<NodalForce>(loading);
             Line force("FORCE");
             force.add(loadingSet->bestId());
             if (nodalForce->nodePositions().size() != 1) {
@@ -572,8 +636,8 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
             nodalForce->markAsWritten();
         }
 
-        for (shared_ptr<Loading> loading : nodalForces) {
-            shared_ptr<StaticPressure> staticPressure = dynamic_pointer_cast<StaticPressure>(loading);
+        for (const auto& loading : nodalForces) {
+            const auto& staticPressure = dynamic_pointer_cast<StaticPressure>(loading);
             if (staticPressure == nullptr)
                 continue;
 
@@ -602,7 +666,7 @@ void NastranWriter::writeRuler(ofstream& out) const
 
 void NastranWriter::writeElements(const Model& model, ofstream& out) const
 		{
-	for (shared_ptr<Beam> truss : model.getTrusses()) {
+	for (const auto& truss : model.getTrusses()) {
 		Line prod("PROD");
 		prod.add(truss->bestId());
 		prod.add(truss->material->bestId());
@@ -611,7 +675,7 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 		out << truss;
 		truss->markAsWritten();
 	}
-	for (shared_ptr<Beam> beam : model.getBeams()) {
+	for (const auto& beam : model.getBeams()) {
 	    string beamModel = isCosmic() ? "PBAR" : "PBEAM";
 		Line pbeam(beamModel);
 		pbeam.add(beam->bestId());
@@ -624,14 +688,16 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 		out << pbeam;
 		beam->markAsWritten();
 	}
-	for (shared_ptr<ElementSet> shell : model.elementSets.filter(ElementSet::Type::SHELL)) {
+	for (const auto& elementSet : model.elementSets.filter(ElementSet::Type::SHELL)) {
+		const auto& shell = dynamic_pointer_cast<Shell>(elementSet);
 		Line pshell("PSHELL");
 		pshell.add(shell->bestId());
 		pshell.add(shell->material->bestId());
+		pshell.add(shell->thickness);
 		out << pshell;
 		shell->markAsWritten();
 	}
-	for (shared_ptr<ElementSet> continuum : model.elementSets.filter(ElementSet::Type::CONTINUUM)) {
+	for (const auto& continuum : model.elementSets.filter(ElementSet::Type::CONTINUUM)) {
 	    string keyword = isCosmic() ? "PIHEX" : "PSOLID";
 		Line psolid(keyword);
 		psolid.add(continuum->bestId());
@@ -646,8 +712,8 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 		out << psolid;
 		continuum->markAsWritten();
 	}
-    for (shared_ptr<ElementSet> elementSet: model.elementSets.filter(ElementSet::Type::DISCRETE_0D)) {
-        shared_ptr<const DiscretePoint> discretePoint = dynamic_pointer_cast<const DiscretePoint>(elementSet);
+    for (const auto& elementSet: model.elementSets.filter(ElementSet::Type::DISCRETE_0D)) {
+        const auto& discretePoint = dynamic_pointer_cast<const DiscretePoint>(elementSet);
         if (discretePoint->hasStiffness() or discretePoint->hasDamping()) {
             handleWritingError("discrete not completely written");
         }
@@ -667,8 +733,8 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
             elementSet->markAsWritten();
         }
 	}
-    for (shared_ptr<ElementSet> elementSet: model.elementSets.filter(ElementSet::Type::NODAL_MASS)) {
-        shared_ptr<const NodalMass> mass = dynamic_pointer_cast<const NodalMass>(elementSet);
+    for (const auto& elementSet: model.elementSets.filter(ElementSet::Type::NODAL_MASS)) {
+        const auto& mass = dynamic_pointer_cast<const NodalMass>(elementSet);
         for (int nodePosition: mass->nodePositions()) {
             Line conm2("CONM2");
             conm2.add(mass->bestId());
@@ -679,8 +745,8 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
             elementSet->markAsWritten();
         }
 	}
-    for (shared_ptr<ElementSet> elementSet: model.elementSets.filter(ElementSet::Type::STRUCTURAL_SEGMENT)) {
-        shared_ptr<const StructuralSegment> segment = dynamic_pointer_cast<const StructuralSegment>(elementSet);
+    for (const auto& elementSet: model.elementSets.filter(ElementSet::Type::STRUCTURAL_SEGMENT)) {
+        const auto& segment = dynamic_pointer_cast<const StructuralSegment>(elementSet);
         if (segment->hasMass()) {
             handleWritingError("discrete not completely written");
         }
@@ -782,15 +848,15 @@ string NastranWriter::writeModel(Model& model,
     }
 	for (const auto& analysis : model.analyses) {
 		out << "SUBCASE " << analysis->bestId() << endl;
-		for (shared_ptr<LoadSet> loadSet : analysis->getLoadSets()) {
+		for (const auto& loadSet : analysis->getLoadSets()) {
 			string typeName = loadSet->stringByType.find(loadSet->type)->second;
 			out << "  " << typeName << "=" << loadSet->bestId() << endl;
 		}
-		for (shared_ptr<ConstraintSet> constraintSet : analysis->getConstraintSets()) {
+		for (const auto& constraintSet : analysis->getConstraintSets()) {
 			string typeName = constraintSet->stringByType.find(constraintSet->type)->second;
 			out << "  " << typeName << "=" << constraintSet->bestId() << endl;
 		}
-		for (shared_ptr<Objective> objective : analysis->getObjectives()) {
+		for (const auto& objective : analysis->getObjectives()) {
             switch (objective->type) {
             case Objective::Type::NODAL_DISPLACEMENT_OUTPUT: {
                 out << "  DISP = " << objective->bestId() << endl;

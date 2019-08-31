@@ -877,7 +877,7 @@ void Model::generateMaterialAssignments() {
         }
     } else {
         //generate or update material assignments from elementSets
-        for (shared_ptr<ElementSet> element : elementSets) {
+        for (const auto& element : elementSets) {
             const auto& cellElementSet = dynamic_pointer_cast<CellElementSet>(element);
             if (cellElementSet == nullptr) {
                 throw logic_error("Assigning an ElementSet which is not a CellContainer to a Material not yet implemeted");
@@ -992,13 +992,13 @@ void Model::removeUnassignedMaterials() {
 void Model::replaceCombinedLoadSets() {
     for (const auto& loadSet : this->loadSets) {
         for (const auto& kv : loadSet->embedded_loadsets) {
-            shared_ptr<LoadSet> otherloadSet = this->find(kv.first);
+            const auto& otherloadSet = this->find(kv.first);
             if (otherloadSet == nullptr) {
                 throw logic_error("CombinedLoadSet: missing loadSet " + to_str(kv.first));
             }
             double coefficient = kv.second;
-            for (shared_ptr<Loading> loading : otherloadSet->getLoadings()) {
-                shared_ptr<Loading> newLoading = loading->clone();
+            for (const auto& loading : otherloadSet->getLoadings()) {
+                const auto& newLoading = loading->clone();
                 newLoading->resetId();
                 newLoading->scale(coefficient);
                 this->add(newLoading);
@@ -1312,8 +1312,8 @@ void Model::removeRedundantSpcs() {
             if (spcs.size() == 0) {
                 continue;
             }
-            for (shared_ptr<Constraint> constraint : spcs) {
-                shared_ptr<SinglePointConstraint> spc = dynamic_pointer_cast<SinglePointConstraint>(
+            for (const auto& constraint : spcs) {
+                const auto& spc = dynamic_pointer_cast<SinglePointConstraint>(
                         constraint);
                 for (int nodePosition : spc->nodePositions()) {
                     DOFS dofsToRemove;
@@ -1357,8 +1357,8 @@ void Model::removeConstrainedImposed() {
             if (loads.size() == 0) {
                 continue;
             }
-            for (shared_ptr<Loading> load : loads) {
-                shared_ptr<ImposedDisplacement> impo = dynamic_pointer_cast<ImposedDisplacement>(
+            for (const auto& load : loads) {
+                const auto& impo = dynamic_pointer_cast<ImposedDisplacement>(
                         load);
                 for (int nodePosition : impo->nodePositions()) {
                     imposedDofsByNodeId[nodePosition] = impo->getDOFSForNode(nodePosition);
@@ -1370,8 +1370,8 @@ void Model::removeConstrainedImposed() {
             if (spcs.size() == 0) {
                 continue;
             }
-            for (shared_ptr<Constraint> constraint : spcs) {
-                shared_ptr<SinglePointConstraint> spc = dynamic_pointer_cast<SinglePointConstraint>(
+            for (const auto& constraint : spcs) {
+                const auto& spc = dynamic_pointer_cast<SinglePointConstraint>(
                         constraint);
                 for (int nodePosition : spc->nodePositions()) {
                     DOFS imposedDofs = imposedDofsByNodeId[nodePosition];
@@ -1903,7 +1903,7 @@ void Model::finish() {
         coordinateSystemEntry.second->build();
     }
 
-    for (shared_ptr<ElementSet> elementSet : elementSets) {
+    for (const auto& elementSet : elementSets) {
         for (int nodePosition : elementSet->nodePositions()) {
             mesh.allowDOFS(nodePosition,elementSet->getDOFSForNode(nodePosition));
         }
@@ -1917,7 +1917,7 @@ void Model::finish() {
         generateSkin();
     }
 
-    for (shared_ptr<Analysis> analysis : analyses) {
+    for (const auto& analysis : analyses) {
         for (const auto& boundaryCondition : analysis->getBoundaryConditions()) {
             for(int nodePosition: boundaryCondition->nodePositions()) {
                 analysis->addBoundaryDOFS(nodePosition,
@@ -2073,7 +2073,7 @@ bool Model::checkWritten() const {
     bool validAna = analyses.checkWritten();
     bool validTar = true;
 
-    for (shared_ptr<Analysis> analysis : analyses) {
+    for (const auto& analysis : analyses) {
         if (not analysis->isWritten()) {
             continue;
         }
@@ -2130,16 +2130,16 @@ bool Model::checkWritten() const {
 }
 
 void Model::assignVirtualMaterial() {
-    for (shared_ptr<ElementSet> element : elementSets.filter(ElementSet::Type::STRUCTURAL_SEGMENT)) {
+    for (const auto& element : elementSets.filter(ElementSet::Type::STRUCTURAL_SEGMENT)) {
         element->assignMaterial(getVirtualMaterial());
     }
-    for (shared_ptr<ElementSet> element : elementSets.filter(ElementSet::Type::NODAL_MASS)) {
+    for (const auto& element : elementSets.filter(ElementSet::Type::NODAL_MASS)) {
         element->assignMaterial(getVirtualMaterial());
     }
 }
 
 void Model::assignElementsToCells() {
-    for (shared_ptr<ElementSet> element : elementSets) {
+    for (const auto& element : elementSets) {
         for (int cellPosition : element->cellPositions()) {
             mesh.assignElementId(cellPosition, element->getId());
         }

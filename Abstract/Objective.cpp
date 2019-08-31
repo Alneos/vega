@@ -69,7 +69,7 @@ const set<shared_ptr<Objective>, ptrLess<Objective> > ObjectiveSet::getObjective
 const set<shared_ptr<Objective>, ptrLess<Objective> > ObjectiveSet::getObjectivesByType(
         Objective::Type type) const {
     set<shared_ptr<Objective>, ptrLess<Objective> > result;
-    for (shared_ptr<Objective> objective : getObjectives()) {
+    for (const auto& objective : getObjectives()) {
         if (objective->type == type) {
             result.insert(objective);
         }

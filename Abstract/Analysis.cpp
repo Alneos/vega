@@ -84,7 +84,7 @@ const vector<shared_ptr<LoadSet>> Analysis::getLoadSets() const {
 
 const vector<shared_ptr<BoundaryCondition>> Analysis::getBoundaryConditions() const {
     vector<shared_ptr<BoundaryCondition>> result;
-    for (shared_ptr<ConstraintSet> constraintSet : getConstraintSets()) {
+    for (const auto& constraintSet : getConstraintSets()) {
         if (constraintSet == nullptr) {
             continue;
         }
@@ -94,7 +94,7 @@ const vector<shared_ptr<BoundaryCondition>> Analysis::getBoundaryConditions() co
             }
         }
     }
-    for (shared_ptr<LoadSet> loadSet : getLoadSets()) {
+    for (const auto& loadSet : getLoadSets()) {
         if (loadSet == nullptr) {
             continue;
         }

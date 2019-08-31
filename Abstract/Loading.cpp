@@ -80,7 +80,7 @@ const set<shared_ptr<Loading>, ptrLess<Loading> > LoadSet::getLoadings() const {
 
 const set<shared_ptr<Loading>, ptrLess<Loading> > LoadSet::getLoadingsByType(Loading::Type loadingType) const {
 	set<shared_ptr<Loading>, ptrLess<Loading> > result;
-	for (shared_ptr<Loading> loading : getLoadings()) {
+	for (const auto& loading : getLoadings()) {
 		if (loading->type == loadingType) {
 			result.insert(loading);
 		}
@@ -100,7 +100,7 @@ bool LoadSet::validate() const {
 }
 
 bool LoadSet::hasFunctions() const {
-    for (shared_ptr<Loading> loading : getLoadings()) {
+    for (const auto& loading : getLoadings()) {
 		if (loading->hasFunctions()) {
 			return true;
 		}

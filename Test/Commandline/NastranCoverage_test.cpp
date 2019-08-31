@@ -50,11 +50,13 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
     string nastranOutputSyntax = "modern";
     map<SolverName, bool> canrunBySolverName = {
         {SolverName::CODE_ASTER, RUN_ASTER},
-        {SolverName::SYSTUS, RUN_SYSTUS},
-//        {SolverName::NASTRAN, false}, // cosmic cannot handle PLOAD4 on volume cells
+//        {SolverName::SYSTUS, RUN_SYSTUS},
+        {SolverName::NASTRAN, false}, // cosmic cannot handle PLOAD4 on volume cells
     };
     const map<CellType, string>& meshByCellType = {
         {CellType::SEG2, "MeshSegLin"},
+        {CellType::TRI3, "MeshTriaLin"},
+        {CellType::QUAD4, "MeshQuadLin"},
         {CellType::TETRA4, "MeshTetraLin"},
         {CellType::PYRA5, "MeshPyraLin"},
         {CellType::PENTA6, "MeshPentaLin"},
@@ -66,20 +68,26 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
     };
     enum class LoadingTest {
         FORCE_NODALE,
+        FORCE_BEAM,
         FORCE_SURFACE,
+        NORMAL_PRESSION_SHELL,
         NORMAL_PRESSION_FACE,
         STATIC_PRESSURE
     };
     const map<SpaceDimension, vector<LoadingTest>> loadingTestsBySpaceDimension = {
         {SpaceDimension::DIMENSION_1D, {
                                         LoadingTest::FORCE_NODALE,
+                                        //LoadingTest::FORCE_BEAM,
                                        }},
         {SpaceDimension::DIMENSION_2D, {
+                                        LoadingTest::FORCE_NODALE,
+                                        LoadingTest::NORMAL_PRESSION_SHELL,
                                        }},
         {SpaceDimension::DIMENSION_3D, {
                                         LoadingTest::FORCE_SURFACE,
                                         LoadingTest::NORMAL_PRESSION_FACE,
                                         LoadingTest::STATIC_PRESSURE,
+                                        LoadingTest::FORCE_NODALE,
                                        }},
     };
 	try {
@@ -103,26 +111,29 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
             if (model->mesh.getCellGroups().empty()) {
                 throw logic_error("No cell group has been found in mesh, maybe BEGIN_BULK is missing?");
             }
+            const int constraintGroupId = 6;
             shared_ptr<Group> x0group = nullptr;
             if (cellType.dimension == SpaceDimension::DIMENSION_1D) {
-                x0group = dynamic_pointer_cast<NodeGroup>(model->mesh.findGroup(6));
+                x0group = dynamic_pointer_cast<NodeGroup>(model->mesh.findGroup(constraintGroupId));
             } else {
-                x0group = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(6));
+                x0group = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(constraintGroupId));
             }
             if (x0group == nullptr) {
                 throw logic_error("missing constraint group in mesh");
             }
 
-            const auto& volgroup = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(9));
+            const int bodyGroupId = 9;
+            const auto& volgroup = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(bodyGroupId));
             if (volgroup == nullptr) {
                 throw logic_error("missing volume group in mesh");
             }
 
+            const int loadGroupId = 8;
             shared_ptr<Group> x300group = nullptr;
             if (cellType.dimension == SpaceDimension::DIMENSION_1D) {
-                x300group = dynamic_pointer_cast<NodeGroup>(model->mesh.findGroup(8));
+                x300group = dynamic_pointer_cast<NodeGroup>(model->mesh.findGroup(loadGroupId));
             } else {
-                x300group = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(8));
+                x300group = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(loadGroupId));
             }
             if (x300group == nullptr) {
                 throw logic_error("missing loading group in mesh");
@@ -191,7 +202,24 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                     case LoadingTest::FORCE_NODALE : {
                         for (const DOF& loadDirection : DOFS::TRANSLATIONS) {
                             DOFCoefs loadingCoefs(DOFS::ALL_DOFS, 0.0);
-                            loadingCoefs.setValue(loadDirection, -f);
+                            double intensity;
+                            switch (cellType.dimension.code) {
+                            case SpaceDimension::Code::DIMENSION1D_CODE: {
+                                intensity = f;
+                                break;
+                            }
+                            case SpaceDimension::Code::DIMENSION2D_CODE: {
+                                intensity = f / beamHeight;
+                                break;
+                            }
+                            case SpaceDimension::Code::DIMENSION3D_CODE: {
+                                intensity = p;
+                                break;
+                            }
+                            default:
+                                throw logic_error("Nodal force coverage on this cell type not yet implemented");
+                            }
+                            loadingCoefs.setValue(loadDirection, -intensity);
                             const VectorialValue& force{loadingCoefs.getValue(DOF::DX), loadingCoefs.getValue(DOF::DY), loadingCoefs.getValue(DOF::DZ)};
                             const auto& analysis = make_shared<LinearMecaStat>(*model, "FORCE", analysisId);
                             const auto& loadSet = make_shared<LoadSet>(*model, LoadSet::Type::LOAD, loadSetId);
@@ -244,8 +272,46 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                         }
                         break;
                     }
-                    case LoadingTest::NORMAL_PRESSION_FACE : {
+                    case LoadingTest::FORCE_BEAM : {
+                        const auto& analysis = make_shared<LinearMecaStat>(*model, "PLOAD1", analysisId);
+                        const auto& loadSet = make_shared<LoadSet>(*model, LoadSet::Type::LOAD, loadSetId);
+                        for (const DOF& loadDirection : DOFS::ALL_DOFS) {
+                            const auto& force = make_shared<FunctionTable>(*model, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::NONE, FunctionTable::Interpolation::NONE);
+                            force->setParaX(FunctionTable::ParaName::PARAX);
+                            force->setXY(0.0, -f);
+                            force->setXY(1.0, -f);
+                            const auto& forceLine = make_shared<ForceLine>(*model, force, loadDirection);
+                            forceLine->add(*volgroup);
+                            model->add(forceLine);
+                            model->addLoadingIntoLoadSet(*forceLine, *loadSet);
+                        }
+                        analysis->add(*loadSet);
+                        analysis->add(*constraintSet);
+                        analysis->add(*nodalOutput);
+                        model->add(analysis);
+                        loadSetId++;
+                        analysisId++;
+                        break;
+                    }
+                    case LoadingTest::NORMAL_PRESSION_SHELL : {
                         const auto& analysis = make_shared<LinearMecaStat>(*model, "PLOAD2", analysisId);
+                        const auto& loadSet = make_shared<LoadSet>(*model, LoadSet::Type::LOAD, loadSetId);
+                        model->add(loadSet);
+
+                        analysis->add(*loadSet);
+                        analysis->add(*constraintSet);
+                        analysis->add(*nodalOutput);
+                        model->add(analysis);
+                        shared_ptr<NormalPressionFace> pressionFace = make_shared<NormalPressionFace>(*model, p);
+                        pressionFace->add(*volgroup);
+                        model->add(pressionFace);
+                        model->addLoadingIntoLoadSet(*pressionFace, *loadSet);
+                        loadSetId++;
+                        analysisId++;
+                        break;
+                    }
+                    case LoadingTest::NORMAL_PRESSION_FACE : {
+                        const auto& analysis = make_shared<LinearMecaStat>(*model, "PLOAD4", analysisId);
                         const auto& loadSet = make_shared<LoadSet>(*model, LoadSet::Type::LOAD, loadSetId);
                         model->add(loadSet);
 

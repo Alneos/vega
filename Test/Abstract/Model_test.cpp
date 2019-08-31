@@ -320,7 +320,7 @@ BOOST_AUTO_TEST_CASE(test_Analysis) {
 // LoadSet2 is missing in the model
 	BOOST_CHECK_EQUAL(1, model.loadSets.size());
 	BOOST_CHECK_EQUAL(static_cast<size_t>(1), analysis->getLoadSets().size());
-	for (shared_ptr<LoadSet> ls : analysis->getLoadSets()) {
+	for (const auto& ls : analysis->getLoadSets()) {
 		if (ls != nullptr)
 			cout << "Found loadset:" << *ls << endl;
 	}
@@ -329,7 +329,7 @@ BOOST_AUTO_TEST_CASE(test_Analysis) {
 
 	auto& loadings = model.getLoadingsByLoadSet(loadSet1);
 	BOOST_CHECK_EQUAL(static_cast<size_t>(2), loadings.size());
-	for (shared_ptr<Loading> loading : loadings) {
+	for (const auto& loading : loadings) {
 		BOOST_CHECK(loading->getId() == force1->getId() or loading->getId() == force2->getId());
 	}
 }

@@ -2495,8 +2495,8 @@ void NastranParser::parsePLOAD1(NastranTokenizer& tok, Model& model) {
     int eid = tok.nextInt();
     string type = tok.nextString();
     string scale = tok.nextString();
-    shared_ptr<FunctionTable> force = make_shared<FunctionTable>(model, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::NONE, FunctionTable::Interpolation::NONE);
-    force->setParaX(FunctionTable::ParaName::PARAX);
+    const auto& force = make_shared<FunctionTable>(model, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::NONE, FunctionTable::Interpolation::NONE);
+    force->setParaX(FunctionTable::ParaName::ABSC);
     DOF dof = DOF::DX;
     double x1 = tok.nextDouble(true, 0.0);
     double p1 = tok.nextDouble(true, 0.0);
@@ -2527,7 +2527,7 @@ void NastranParser::parsePLOAD1(NastranTokenizer& tok, Model& model) {
         effx2 = x2;
         effp1 = p1;
         effp2 = p2;
-    } else if (scale == "FRPR") {
+    } else if (scale == "FRPR" or scale == "FR") {
         /* If SCALE = FRPR (fractional projected), the Xi values are ratios of the actual distance to the length of the bar
          * and (X1 ≠ X2) the distributed load is input in terms of the projected length of the bar.*/
         // TODO LD: encapsulate all this in mesh/cell/node (but it needs model)

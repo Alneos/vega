@@ -33,26 +33,27 @@ namespace fs = boost::filesystem;
 using namespace std;
 
 const map<Function::ParaName, string> AsterModel::NomParaByParaName = {
-        { Function::ParaName::NO_PARA_NAME, "'NO_PARA_NAME'" },
-        { Function::ParaName::FREQ, "'FREQ'" },
-        { Function::ParaName::AMOR, "'AMOR'" },
-        { Function::ParaName::STRESS, "'SIGM'" },
-        { Function::ParaName::STRAIN, "'EPSI'" },
-        { Function::ParaName::PARAX, "'X'" }
+        { Function::ParaName::NO_PARA_NAME, "NO_PARA_NAME" },
+        { Function::ParaName::FREQ, "FREQ" },
+        { Function::ParaName::AMOR, "AMOR" },
+        { Function::ParaName::STRESS, "SIGM" },
+        { Function::ParaName::STRAIN, "EPSI" },
+        { Function::ParaName::PARAX, "X" },
+        { Function::ParaName::ABSC, "ABSC" },
 };
 
 const map<FunctionTable::Interpolation, string> AsterModel::InterpolationByInterpolation = {
-        { FunctionTable::Interpolation::LINEAR, "'LIN'" },
-        { FunctionTable::Interpolation::LOGARITHMIC, "'LOG'" },
-        { FunctionTable::Interpolation::CONSTANT, "''" },
-        { FunctionTable::Interpolation::NONE, "'NON'" },
+        { FunctionTable::Interpolation::LINEAR, "LIN" },
+        { FunctionTable::Interpolation::LOGARITHMIC, "LOG" },
+        { FunctionTable::Interpolation::CONSTANT, "" },
+        { FunctionTable::Interpolation::NONE, "NON" },
 };
 
 const map<FunctionTable::Interpolation, string> AsterModel::ProlongementByInterpolation = {
-        { FunctionTable::Interpolation::LINEAR, "'LINEAIRE'" },
-        { FunctionTable::Interpolation::LOGARITHMIC, "''" },
-        { FunctionTable::Interpolation::CONSTANT, "'CONSTANT'" },
-        { FunctionTable::Interpolation::NONE, "'EXCLU'" },
+        { FunctionTable::Interpolation::LINEAR, "LINEAIRE" },
+        { FunctionTable::Interpolation::LOGARITHMIC, "" },
+        { FunctionTable::Interpolation::CONSTANT, "CONSTANT" },
+        { FunctionTable::Interpolation::NONE, "EXCLU" },
 };
 
 const vector<string> AsterModel::DofByPosition = {

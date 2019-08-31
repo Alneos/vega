@@ -87,7 +87,7 @@ const set<shared_ptr<Constraint>, ptrLess<Constraint> > ConstraintSet::getConstr
 const set<shared_ptr<Constraint>, ptrLess<Constraint> > ConstraintSet::getConstraintsByType(
         Constraint::Type type) const {
     set<shared_ptr<Constraint>, ptrLess<Constraint> > result;
-    for (shared_ptr<Constraint> constraint : getConstraints()) {
+    for (const auto& constraint : getConstraints()) {
         if (constraint->type == type) {
             result.insert(constraint);
         }
@@ -109,7 +109,7 @@ const map<ConstraintSet::Type, string> ConstraintSet::stringByType = {
     };
 
 bool ConstraintSet::hasFunctions() const {
-    for (shared_ptr<Constraint> constraint : getConstraints()) {
+    for (const auto& constraint : getConstraints()) {
 		if (constraint->hasFunctions()) {
 			return true;
 		}
@@ -118,7 +118,7 @@ bool ConstraintSet::hasFunctions() const {
 }
 
 bool ConstraintSet::hasContacts() const {
-    for (shared_ptr<Constraint> constraint : getConstraints()) {
+    for (const auto& constraint : getConstraints()) {
 		if (constraint->isContact()) {
 			return true;
 		}

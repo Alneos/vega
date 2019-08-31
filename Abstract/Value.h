@@ -254,7 +254,8 @@ public:
         STRAIN,
         INST,
         AMOR,
-        PARAX
+        PARAX,
+        ABSC
     };
 protected:
     ParaName paraX;
