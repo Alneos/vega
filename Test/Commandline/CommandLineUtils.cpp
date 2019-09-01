@@ -31,7 +31,7 @@ using namespace boost::algorithm;
 using namespace std;
 
 void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName outputSolver,
-        bool runSolver, bool strict, double tolerance) {
+        bool runSolver, bool strict, double tolerance, bool isNastranCosmic) {
     cout << "-------------------------------------------------------------------------------" << endl;
     cout << "----- Starting : " << boost::unit_test::framework::current_test_case().p_name << " -----" << endl;
     cout << "-------------------------------------------------------------------------------" << endl;
@@ -127,6 +127,9 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
         argv1.push_back(test_file.c_str());
         argv1.push_back("--tolerance");
         argv1.push_back(toleranceString.c_str());
+    }
+    if (not isNastranCosmic) {
+        argv1.push_back("--nastran.OutputDialect=modern");
     }
 
     string quotedSource = "\"" + sourceFname.make_preferred().string() + "\"";

@@ -817,11 +817,11 @@ string NastranWriter::writeModel(Model& model,
                 nodeCount++;
             }
             out << endl;
-            out << "  DISP = " << objective->bestId() << endl;
+            //out << "  DISP = " << objective->bestId() << endl;
         }
-    } else {
-        out << "  DISP = ALL" << endl;
-    }
+    }// else {
+    //    out << "  DISP = ALL" << endl;
+    //}
     const auto& vonMisesOutputs = model.objectives.filter(Objective::Type::VONMISES_STRESS_OUTPUT);
     if (vonMisesOutputs.size() >= 1) {
         for (const auto& objective : vonMisesOutputs) {

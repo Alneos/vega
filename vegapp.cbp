@@ -2043,7 +2043,6 @@
 		<Unit filename="Test/Nastran/CMakeLists.txt">
 			<Option virtualFolder="CMake Files/Test/Nastran/" />
 		</Unit>
-		<Unit filename="Test/Nastran/NastranCoverage_test.cpp" />
 		<Unit filename="Test/Nastran/NastranParser_test.cpp">
 			<Option target="nastran_tests" />
 			<Option target="all" />
@@ -2255,7 +2254,6 @@
 		<Unit filename="testdata/nastran/irt/coverage/MeshPentaQuad.bdf" />
 		<Unit filename="testdata/nastran/irt/coverage/MeshSegLin.bdf" />
 		<Unit filename="testdata/nastran/irt/coverage/MeshSegLin.f06" />
-		<Unit filename="testdata/nastran/irt/coverage/MeshSegQuad.bdf" />
 		<Unit filename="testdata/nastran/irt/coverage/MeshTetraLin.bdf" />
 		<Unit filename="testdata/nastran/irt/coverage/MeshTetraLin.f06" />
 		<Unit filename="testdata/nastran/irt/coverage/MeshTetraQuad.bdf" />

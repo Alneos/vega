@@ -2496,7 +2496,6 @@ void NastranParser::parsePLOAD1(NastranTokenizer& tok, Model& model) {
     string type = tok.nextString();
     string scale = tok.nextString();
     const auto& force = make_shared<FunctionTable>(model, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::NONE, FunctionTable::Interpolation::NONE);
-    force->setParaX(FunctionTable::ParaName::ABSC);
     DOF dof = DOF::DX;
     double x1 = tok.nextDouble(true, 0.0);
     double p1 = tok.nextDouble(true, 0.0);
@@ -2523,6 +2522,7 @@ void NastranParser::parsePLOAD1(NastranTokenizer& tok, Model& model) {
 
     if (scale == "LE") {
         /* If SCALE = LE, the total load applied to the bar is P1(X2 - X1) in the yb direction. */
+        force->setParaX(FunctionTable::ParaName::PARAX);
         effx1 = x1;
         effx2 = x2;
         effp1 = p1;
@@ -2531,17 +2531,20 @@ void NastranParser::parsePLOAD1(NastranTokenizer& tok, Model& model) {
         /* If SCALE = FRPR (fractional projected), the Xi values are ratios of the actual distance to the length of the bar
          * and (X1 ≠ X2) the distributed load is input in terms of the projected length of the bar.*/
         // TODO LD: encapsulate all this in mesh/cell/node (but it needs model)
-        int cellPos = model.mesh.findCellPosition(eid);
-        const Cell& cell = model.mesh.findCell(cellPos);
-        std::shared_ptr<OrientationCoordinateSystem> ocs = cell.orientation;
-        const Node& firstNode = model.mesh.findNode(cell.nodePositions.front());
-        const Node& lastNode = model.mesh.findNode(cell.nodePositions.back());
-        const VectorialValue& barvect = VectorialValue(lastNode.x - firstNode.x, lastNode.y - firstNode.y, lastNode.z - firstNode.z);
-        double dist = barvect.norm();
+        force->setParaX(FunctionTable::ParaName::ABSC);
+//        int cellPos = model.mesh.findCellPosition(eid);
+//        const Cell& cell = model.mesh.findCell(cellPos);
+//        std::shared_ptr<OrientationCoordinateSystem> ocs = cell.orientation;
+//        const Node& firstNode = model.mesh.findNode(cell.nodePositions.front());
+//        const Node& lastNode = model.mesh.findNode(cell.nodePositions.back());
+//        const VectorialValue& barvect = VectorialValue(lastNode.x - firstNode.x, lastNode.y - firstNode.y, lastNode.z - firstNode.z);
+//        double dist = barvect.norm();
         /* If SCALE = LE (length), the Xi values are actual distances along the bar x-axis,
          * and (if X1 ≠ X2) Pi are load intensities per unit length of the bar. */
-        effx1 = x1 * dist;
-        effx2 = x2 * dist;
+//        effx1 = x1 * dist;
+//        effx2 = x2 * dist;
+        effx1 = x1;
+        effx2 = x2;
         effp1 = p1;
         effp2 = p2;
     } else {

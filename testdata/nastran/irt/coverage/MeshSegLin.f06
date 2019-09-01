@@ -1,0 +1,27 @@
+0                                                                                                            SUBCASE 1              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             2      G     -7.500000E-04   0.0            0.0            0.0            0.0            0.0
+                                                                                                                                    
+0                                                                                                            SUBCASE 2              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             2      G      0.0           -2.701896E+00   0.0            0.0            0.0           -1.349973E-02
+                                                                                                                                    
+0                                                                                                            SUBCASE 3              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             2      G      0.0            0.0           -6.769466E-01   0.0            3.374983E-03   0.0
+                                                                                                                                    
+0                                                                                                            SUBCASE 4              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             2      G     -1.125000E-01  -3.067364E+02  -7.555462E+01   0.0            3.341233E-01  -1.363473E+00
