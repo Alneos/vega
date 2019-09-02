@@ -65,7 +65,7 @@ void NastranParser::parseParamAUTOSPC(NastranTokenizer& tok, Model& model) {
 
     string value = tok.nextString(true, "NO");
     if (value == "YES") {
-        handleParsingError("unsupported AUTOSPC value in parseParamAUTOSPC. ",
+        handleParsingWarning("unsupported AUTOSPC value in parseParamAUTOSPC. ",
                 tok, model);
     }
 }

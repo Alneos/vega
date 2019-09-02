@@ -173,5 +173,9 @@ BOOST_AUTO_TEST_CASE( gpstress ) {
 //	CommandLineUtils::nastranStudy2Systus("/irt/hexa1/hexa1.nas", RUN_SYSTUS, true, 0.00001);
 //}
 
+//BOOST_AUTO_TEST_CASE( q4sdcon ) {
+//	CommandLineUtils::nastranStudy2Systus("/irt/q4sdcon/q4sdcon.nas", RUN_SYSTUS, true, 0.00001);
+//}
+
 } /* namespace test */
 } /* namespace vega */
