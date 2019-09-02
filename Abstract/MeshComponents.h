@@ -233,9 +233,9 @@ public:
     Type type;
     std::string comment; ///< A comment string, usually used to retain the command which created the group.
     bool isUseful; ///< A boolean that can be used by Writer to keep or discard group.
-    const std::string& getName() const;
-    const std::string& getComment() const;
-    virtual const std::set<int> nodePositions() const = 0;
+    std::string getName() const;
+    std::string getComment() const;
+    virtual std::set<int> nodePositions() const = 0;
     virtual bool empty() const = 0;
     virtual ~Group() = default;
     Group(const Group& that) = delete;
@@ -273,7 +273,7 @@ public:
     double z; /**< Z coordinate of the Node in the Global Coordinate System **/
     const int positionCS;     /**< Vega Position of the CS used to compute the position of node. **/
     const int displacementCS; /**< Vega Position of the CS used to compute displacement, loadings, etc. **/
-    inline static const std::string MedName(const int nodePosition) {
+    inline static std::string MedName(const int nodePosition) {
         if (nodePosition == Node::UNAVAILABLE_NODE) {
           throw std::logic_error("Node position " + std::to_string(nodePosition) + " not found.");
         }
@@ -291,26 +291,6 @@ public:
     inline bool operator==(const Node& other) const {
         return this->position == other.position;
     }
-};
-
-class NodeGroup final : public Group {
-private:
-    friend Mesh;
-    // Positions of the nodes participating to the group
-    std::set<int> _nodePositions;
-    NodeGroup(Mesh& mesh, const std::string& name, int groupId, const std::string& comment="    ");
-public:
-    // Add a node using its numerical id. If the node hasn't been yet defined it reserve position in the model.
-    void addNodeId(int nodeId);
-    void addNode(const Node& node);
-    void addNodeByPosition(int nodePosition);
-    void removeNodeByPosition(int nodePosition);
-    bool containsNodePosition(int nodePosition) const;
-    const std::set<int> nodePositions() const override;
-    bool empty() const override;
-    const std::set<int> getNodeIds() const;
-    const std::vector<Node> getNodes() const;
-    NodeGroup(const NodeGroup& that) = delete;
 };
 
 /**
@@ -391,24 +371,6 @@ public:
     }
 };
 
-class CellGroup final: public Group {
-    friend Mesh;
-    std::set<int> _cellPositions;
-    CellGroup(Mesh& mesh, const std::string & name, int id = NO_ORIGINAL_ID, const std::string & comment = "");
-    CellGroup(const CellGroup& that) = delete;
-public:
-    void addCellId(int cellId);
-    void addCellIds(const std::vector<int>& cellIds);
-    void addCellPosition(int cellPosition);
-    bool containsCellPosition(int cellPosition) const;
-    void removeCellPosition(int cellPosition);
-    const std::vector<Cell> getCells();
-    const std::vector<int> cellPositions();
-    const std::vector<int> cellIds();
-    const std::set<int> nodePositions() const override;
-    bool empty() const override;
-};
-
 class CellIterator final: public std::iterator<std::input_iterator_tag, const Cell> {
     friend CellStorage;
     const CellStorage* cellStorage;
@@ -433,6 +395,8 @@ public:
     bool operator!=(const CellIterator& rhs) const;
     const Cell operator*() const;
 };
+
+class CellGroup;
 
 /**
  * This class represents a container of cells or groups of cells.
@@ -462,9 +426,11 @@ public:
     virtual void add(const Group& group);
     virtual void add(const CellGroup& cellGroup);
     void add(const CellContainer& cellContainer);
+    bool containsCellPosition(int cellPosition) const;
     std::set<Cell> getCellsIncludingGroups() const;
     std::set<Cell> getCellsExcludingGroups() const;
-    void removeCellsNotInAGroup();
+    void removeCellPositionExcludingGroups(int cellPosition);
+    void removeAllCellsExcludingGroups();
 
     std::set<int> getCellIdsIncludingGroups() const;
     std::set<int> getCellPositionsIncludingGroups() const;
@@ -483,9 +449,29 @@ public:
      * True if the cellContainer contains some spare cell, not inserted
      * in any group.
      */
-    bool hasCells() const;
+    bool hasCellsExcludingGroups() const;
+    bool hasCellsIncludingGroups() const;
     std::vector<std::shared_ptr<CellGroup>> getCellGroups() const;
 };
+
+class CellGroup final: public Group, private CellContainer {
+    friend Mesh;
+    CellGroup(Mesh& mesh, const std::string & name, int id = NO_ORIGINAL_ID, const std::string & comment = "");
+    CellGroup(const CellGroup& that) = delete;
+public:
+    void addCellId(int cellId);
+    void addCellIds(const std::vector<int>& cellIds);
+    void addCellPosition(int cellPosition);
+    bool containsCellPosition(int cellPosition) const;
+    void removeCellPosition(int cellPosition);
+    std::set<Cell> getCells();
+    std::set<int> cellPositions();
+    std::set<int> cellIds();
+    std::set<int> nodePositions() const override;
+    bool empty() const override;
+};
+
+class NodeGroup;
 
 /**
  * This class represents a container of nodes or groups of nodes.
@@ -514,17 +500,40 @@ public:
     virtual void add(const Group& group) override final;
     virtual void add(const NodeGroup& nodeGroup) final;
     void add(const NodeContainer& nodeContainer);
-    void removeNodePosition(int nodePosition);
+    bool containsNodePositionExcludingGroups(int nodePosition) const;
+    void removeNodePositionExcludingGroups(int nodePosition);
     virtual std::set<int> getNodePositionsExcludingGroups() const override final;
     virtual std::set<int> getNodePositionsIncludingGroups() const override final;
     virtual std::set<int> getNodeIdsIncludingGroups() const final;
+    virtual std::set<int> getNodeIdsExcludingGroups() const final;
+    virtual std::set<Node> getNodesExcludingGroups() const final;
     std::vector<std::shared_ptr<NodeGroup>> getNodeGroups() const;
 
     // True if the container contains some nodeGroup
     bool hasNodeGroups() const;
-    bool empty() const override final;
+    bool empty() const override;
     void clear() override final;
-    bool hasNodes() const; /**< True if the container contains some spare nodes, not inserted in any group. */
+    bool hasNodesExcludingGroups() const; /**< True if the container contains some spare nodes, not inserted in any group. */
+    bool hasNodesIncludingGroups() const;
+};
+
+
+class NodeGroup final : public Group, private NodeContainer {
+private:
+    friend Mesh;
+    NodeGroup(Mesh& mesh, const std::string& name, int groupId, const std::string& comment="    ");
+public:
+    // Add a node using its numerical id. If the node hasn't been yet defined it reserve position in the model.
+    void addNodeId(int nodeId);
+    void addNode(const Node& node);
+    void addNodeByPosition(int nodePosition);
+    void removeNodeByPosition(int nodePosition);
+    bool containsNodePosition(int nodePosition) const;
+    std::set<int> nodePositions() const override;
+    bool empty() const override;
+    std::set<int> getNodeIds() const;
+    std::set<Node> getNodes() const;
+    NodeGroup(const NodeGroup& that) = delete;
 };
 
 } /* namespace vega */

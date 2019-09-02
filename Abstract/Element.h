@@ -128,7 +128,7 @@ public:
         CellContainer::add(cellGroup);
     };
     virtual bool effective() const override {
-        return not empty();
+        return CellContainer::hasCellsIncludingGroups();
     }
 };
 

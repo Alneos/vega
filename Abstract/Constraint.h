@@ -108,7 +108,7 @@ public:
 	}
 	bool ineffective() const override;
 	virtual void removeNodePosition(int nodePosition) override {
-	    NodeContainer::removeNodePosition(nodePosition);
+	    NodeContainer::removeNodePositionExcludingGroups(nodePosition);
 	}
 };
 

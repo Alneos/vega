@@ -238,11 +238,11 @@ Group::Group(Mesh& mesh, const string& name, Type type, int _id, const string& c
                 Identifiable(_id), mesh(mesh), name(name), type(type), comment(comment), isUseful(false) {
 }
 
-const string& Group::getName() const {
+string Group::getName() const {
 	return this->name;
 }
 
-const string& Group::getComment() const {
+string Group::getComment() const {
 	return this->comment;
 }
 
@@ -250,117 +250,83 @@ const string& Group::getComment() const {
  * NodeGroup
  */
 NodeGroup::NodeGroup(Mesh& mesh, const string& name, int groupId, const string& comment) :
-		Group(mesh, name, Group::Type::NODEGROUP, groupId, comment) {
+		Group(mesh, name, Group::Type::NODEGROUP, groupId, comment), NodeContainer(mesh) {
 }
 
 void NodeGroup::addNodeId(int nodeId) {
-	int nodePosition = this->mesh.findOrReserveNode(nodeId);
-	_nodePositions.insert(nodePosition);
+	NodeContainer::addNodeId(nodeId);
 }
 
 void NodeGroup::addNode(const Node& node) {
-	_nodePositions.insert(node.position);
+	NodeContainer::add(node);
 }
 
 void NodeGroup::addNodeByPosition(int nodePosition) {
-	_nodePositions.insert(nodePosition);
+	NodeContainer::addNodePosition(nodePosition);
 }
 
 void NodeGroup::removeNodeByPosition(int nodePosition) {
-	if (_nodePositions.find(nodePosition) == _nodePositions.end()) {
-		throw logic_error("Node position not present : " + to_string(nodePosition));
-	}
-	for (auto it = _nodePositions.begin(); it != _nodePositions.end();) {
-		if (*it == nodePosition) {
-			_nodePositions.erase(it);
-			return;
-		} else {
-			it++;
-		}
-	}
+	NodeContainer::removeNodePositionExcludingGroups(nodePosition);
 }
 
 bool NodeGroup::containsNodePosition(int nodePosition) const {
-    return _nodePositions.find(nodePosition) != _nodePositions.end();
+    return NodeContainer::containsNodePositionExcludingGroups(nodePosition);
 }
 
-const std::set<int> NodeGroup::nodePositions() const {
-	return _nodePositions;
+std::set<int> NodeGroup::nodePositions() const {
+	return NodeContainer::getNodePositionsExcludingGroups();
 }
 
 bool NodeGroup::empty() const {
-	return _nodePositions.size() == 0;
+	return NodeContainer::empty();
 }
 
-const set<int> NodeGroup::getNodeIds() const {
-	set<int> nodeIds;
-	for (int position : _nodePositions) {
-		nodeIds.insert(mesh.nodes.nodeDatas[position].id);
-	}
-	return nodeIds;
+set<int> NodeGroup::getNodeIds() const {
+	return NodeContainer::getNodeIdsExcludingGroups();
 }
 
-const vector<Node> NodeGroup::getNodes() const {
-	vector<Node> result;
-	for (int nodePosition : _nodePositions) {
-		result.push_back(mesh.findNode(nodePosition));
-	}
-	return result;
+set<Node> NodeGroup::getNodes() const {
+	return NodeContainer::getNodesExcludingGroups();
 }
 
 CellGroup::CellGroup(Mesh& mesh, const string& name, int groupId, const string& comment ) :
-		Group(mesh, name, Group::Type::CELLGROUP, groupId, comment) {
-
+		Group(mesh, name, Group::Type::CELLGROUP, groupId, comment), CellContainer(mesh) {
 }
 
 void CellGroup::addCellId(int cellId) {
-	_cellPositions.insert(mesh.findCellPosition(cellId));
+	CellContainer::addCellId(cellId);
 }
 
 void CellGroup::addCellPosition(int cellPosition) {
-	_cellPositions.insert(cellPosition);
+	CellContainer::addCellPosition(cellPosition);
 }
 
 bool CellGroup::containsCellPosition(int cellPosition) const {
-	return _cellPositions.find(cellPosition) != _cellPositions.end();
+	return CellContainer::containsCellPosition(cellPosition);
 }
 
 void CellGroup::removeCellPosition(int cellPosition) {
-	_cellPositions.erase(cellPosition);
+    CellContainer::removeCellPositionExcludingGroups(cellPosition);
 }
 
-const vector<Cell> CellGroup::getCells() {
-	vector<Cell> result;
-	for (int cellPosition : _cellPositions) {
-		result.push_back(mesh.findCell(cellPosition));
-	}
-	return result;
+set<Cell> CellGroup::getCells() {
+	return CellContainer::getCellsIncludingGroups();
 }
 
-const vector<int> CellGroup::cellPositions() {
-	vector<int> result{_cellPositions.begin(), _cellPositions.end()};
-	return result;
+set<int> CellGroup::cellPositions() {
+	return CellContainer::getCellPositionsIncludingGroups();
 }
 
-const vector<int> CellGroup::cellIds() {
-	vector<int> result;
-    for (int cellPosition : _cellPositions) {
-		result.push_back(mesh.findCellId(cellPosition));
-	}
-	return result;
+set<int> CellGroup::cellIds() {
+	return CellContainer::getCellIdsIncludingGroups();
 }
 
-const set<int> CellGroup::nodePositions() const {
-	set<int> result;
-	for (int cellPosition : _cellPositions) {
-		const Cell& cell = mesh.findCell(cellPosition);
-		result.insert(cell.nodePositions.begin(), cell.nodePositions.end());
-	}
-	return result;
+set<int> CellGroup::nodePositions() const {
+	return CellContainer::getNodePositionsIncludingGroups();
 }
 
 bool CellGroup::empty() const {
-	return _cellPositions.size() == 0;
+	return CellContainer::empty();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -804,6 +770,15 @@ void CellContainer::add(const CellContainer& cellContainer) {
 	}
 }
 
+bool CellContainer::containsCellPosition(int cellPosition) const {
+	return cellPositions.find(cellPosition) != cellPositions.end();
+}
+
+void CellContainer::removeCellPositionExcludingGroups(int cellPosition) {
+	cellPositions.erase(cellPosition);
+}
+
+
 set<Cell> CellContainer::getCellsExcludingGroups() const {
 	set<Cell> cells;
 	for (int cellPosition : cellPositions) {
@@ -824,7 +799,7 @@ set<Cell> CellContainer::getCellsIncludingGroups() const {
 	return cells;
 }
 
-void CellContainer::removeCellsNotInAGroup() {
+void CellContainer::removeAllCellsExcludingGroups() {
     cellPositions.clear();
 }
 
@@ -876,7 +851,7 @@ set<int> CellContainer::getNodePositionsExcludingGroups() const {
 }
 
 bool CellContainer::empty() const {
-	return cellGroupNames.empty() and cellPositions.empty();
+	return not hasCellsIncludingGroups();
 }
 
 void CellContainer::clear() {
@@ -884,8 +859,19 @@ void CellContainer::clear() {
 	cellPositions.clear();
 }
 
-bool CellContainer::hasCells() const {
+bool CellContainer::hasCellsExcludingGroups() const {
 	return not cellPositions.empty();
+}
+
+bool CellContainer::hasCellsIncludingGroups() const {
+	if (not cellPositions.empty())
+        return true;
+    for (string groupName : cellGroupNames) {
+        shared_ptr<CellGroup> group = dynamic_pointer_cast<CellGroup>(mesh.findGroup(groupName));
+        if (not group->empty())
+            return true;
+    }
+    return false;
 }
 
 vector<shared_ptr<CellGroup>> CellContainer::getCellGroups() const {
@@ -956,7 +942,7 @@ void NodeContainer::addNodeGroup(const string& groupName) {
 	nodeGroupNames.insert(groupName);
 }
 
-void NodeContainer::removeNodePosition(int nodePosition) {
+void NodeContainer::removeNodePositionExcludingGroups(int nodePosition) {
 	nodePositions.erase(nodePositions.find(nodePosition));
 }
 
@@ -1010,8 +996,28 @@ set<int> NodeContainer::getNodeIdsIncludingGroups() const {
 	return result;
 }
 
+set<int> NodeContainer::getNodeIdsExcludingGroups() const {
+    set<int> result;
+	for (const int nodePosition : getNodePositionsExcludingGroups()) {
+	    result.insert(mesh.findNodeId(nodePosition));
+	}
+	return result;
+}
+
+set<Node> NodeContainer::getNodesExcludingGroups() const {
+    set<Node> result;
+	for (const int nodePosition : getNodePositionsExcludingGroups()) {
+	    result.insert(mesh.findNode(nodePosition));
+	}
+	return result;
+}
+
+bool NodeContainer::containsNodePositionExcludingGroups(int nodePosition) const {
+	return nodePositions.find(nodePosition) != nodePositions.end();
+}
+
 bool NodeContainer::empty() const {
-	return nodeGroupNames.empty() and nodePositions.empty() and CellContainer::empty();
+	return nodeGroupNames.empty() and nodePositions.empty() and not hasNodesIncludingGroups() and CellContainer::empty();
 }
 
 void NodeContainer::clear() {
@@ -1020,8 +1026,19 @@ void NodeContainer::clear() {
 	CellContainer::clear();
 }
 
-bool NodeContainer::hasNodes() const {
+bool NodeContainer::hasNodesExcludingGroups() const {
 	return not nodePositions.empty();
+}
+
+bool NodeContainer::hasNodesIncludingGroups() const {
+	if (not nodePositions.empty())
+        return true;
+	for (string groupName : nodeGroupNames) {
+		shared_ptr<NodeGroup> group = dynamic_pointer_cast<NodeGroup>(mesh.findGroup(groupName));
+        if (not group->empty())
+            return true;
+    }
+    return CellContainer::empty();
 }
 
 bool NodeContainer::hasNodeGroups() const {

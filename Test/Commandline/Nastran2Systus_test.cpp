@@ -169,5 +169,9 @@ BOOST_AUTO_TEST_CASE( gpstress ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/gpstress/gpstress.nas", RUN_SYSTUS, true, 0.00001);
 }
 
+//BOOST_AUTO_TEST_CASE( hexa1 ) {
+//	CommandLineUtils::nastranStudy2Systus("/irt/hexa1/hexa1.nas", RUN_SYSTUS, true, 0.00001);
+//}
+
 } /* namespace test */
 } /* namespace vega */

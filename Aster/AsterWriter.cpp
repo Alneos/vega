@@ -1826,6 +1826,8 @@ void AsterWriter::writeNodeContainer(const NodeContainer& nodeContainer, ostream
     if (nodeContainer.hasNodeGroups()) {
       out << "GROUP_NO=(";
       for (const auto& nodeGroup : nodeContainer.getNodeGroups()) {
+        if (nodeGroup->empty())
+            continue;
         cnode++;
         out << "'" << nodeGroup->getName() << "',";
         if (cnode % 6 == 0) {
@@ -1834,7 +1836,7 @@ void AsterWriter::writeNodeContainer(const NodeContainer& nodeContainer, ostream
       }
       out << "),";
     }
-    if (nodeContainer.hasNodes()) {
+    if (nodeContainer.hasNodesExcludingGroups()) {
       out << "NOEUD=(";
       for (int nodePosition : nodeContainer.getNodePositionsExcludingGroups()) {
         cnode++;
@@ -1853,6 +1855,8 @@ void AsterWriter::writeCellContainer(const CellContainer& cellContainer, ostream
     if (cellContainer.hasCellGroups()) {
       out << "GROUP_MA=(";
       for (const auto& cellGroup : cellContainer.getCellGroups()) {
+        if (cellGroup->empty())
+            continue; // empty cell groups are useless and will probably never be created in mesh, causing errors.
         celem++;
         out << "'" << cellGroup->getName() << "',";
         if (celem % 6 == 0) {
@@ -1861,7 +1865,7 @@ void AsterWriter::writeCellContainer(const CellContainer& cellContainer, ostream
       }
       out << "),";
     }
-    if (cellContainer.hasCells()) {
+    if (cellContainer.hasCellsExcludingGroups()) {
         // Creating single cell groups to avoid using MAILLE
       out << "MAILLE=(";
       //out << "GROUP_MA=(";
