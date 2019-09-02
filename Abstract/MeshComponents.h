@@ -442,7 +442,7 @@ public:
     /**
      * True if the container contains some cellGroup
      */
-    bool hasCellGroups() const;
+    virtual bool hasCellGroups() const;
     virtual bool empty() const;
     virtual void clear();
     /**
@@ -451,7 +451,7 @@ public:
      */
     bool hasCellsExcludingGroups() const;
     bool hasCellsIncludingGroups() const;
-    std::vector<std::shared_ptr<CellGroup>> getCellGroups() const;
+    virtual std::vector<std::shared_ptr<CellGroup>> getCellGroups() const;
 };
 
 class CellGroup final: public Group, private CellContainer {
@@ -507,10 +507,10 @@ public:
     virtual std::set<int> getNodeIdsIncludingGroups() const final;
     virtual std::set<int> getNodeIdsExcludingGroups() const final;
     virtual std::set<Node> getNodesExcludingGroups() const final;
-    std::vector<std::shared_ptr<NodeGroup>> getNodeGroups() const;
+    virtual std::vector<std::shared_ptr<NodeGroup>> getNodeGroups() const;
 
     // True if the container contains some nodeGroup
-    bool hasNodeGroups() const;
+    virtual bool hasNodeGroups() const;
     bool empty() const override;
     void clear() override final;
     bool hasNodesExcludingGroups() const; /**< True if the container contains some spare nodes, not inserted in any group. */

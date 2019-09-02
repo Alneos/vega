@@ -306,7 +306,7 @@ public:
     void remove(const Reference<Constraint> , const int, const int, const ConstraintSet::Type);
     /**
      * Retrieve any kind of object from the model, by giving a reference.
-     * Return 0 if the object is not found in the model.
+     * Return nullptr if the object is not found in the model.
      */
     template<typename T>
     const std::shared_ptr<T> find(const Reference<T>) const;

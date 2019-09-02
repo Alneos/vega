@@ -801,22 +801,12 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
             }
         } else if (!key.compare(0, 4, "DISP")) {
             if (id != 0) {
-                auto nodalOutput = make_shared<NodalDisplacementOutput>(model);
+                auto nodalOutput = make_shared<NodalDisplacementOutput>(model, make_shared<Reference<NamedValue>>(Value::Type::SET, id));
                 for (const auto& option:options) {
                     if (option == "PHASE") {
                         nodalOutput->complexOutput = NodalDisplacementOutput::ComplexOutputType::PHASE_MAGNITUDE;
                     }
                 }
-
-                const auto& setValue = dynamic_pointer_cast<SetValue<int>> (model.find(Reference<NamedValue>{Value::Type::SET, id}));
-                if (setValue == nullptr)
-                    handleParsingError("DISP referencing unknown SET id:" + to_string(id), tok, model);
-                shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup("SET_" + to_string(id), NodeGroup::NO_ORIGINAL_ID);
-                for (const int nodeId : setValue->getSet()) {
-                    nodeGroup->addNodeId(nodeId);
-                }
-                setValue->markAsWritten();
-                nodalOutput->addNodeGroup("SET_" + to_string(id));
                 model.add(nodalOutput);
                 analysis->add(nodalOutput->getReference());
             }
@@ -825,17 +815,9 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
                 shared_ptr<VonMisesStressOutput> stressOutput = nullptr;
                 for (const auto& option:options) {
                     if (option == "VMIS") {
-                        stressOutput = make_shared<VonMisesStressOutput>(model);
+                        stressOutput = make_shared<VonMisesStressOutput>(model, make_shared<Reference<NamedValue>>(Value::Type::SET, id));
                     }
                 }
-
-                const auto& setValue = dynamic_pointer_cast<SetValue<int>> (model.find(Reference<NamedValue>{Value::Type::SET, id}));
-                shared_ptr<CellGroup> cellGroup = model.mesh.createCellGroup("SET_" + to_string(id), CellGroup::NO_ORIGINAL_ID);
-                for (const int cellId : setValue->getSet()) {
-                    cellGroup->addCellId(cellId);
-                }
-                setValue->markAsWritten();
-                stressOutput->addCellGroup("SET_" + to_string(id));
                 model.add(stressOutput);
                 analysis->add(stressOutput->getReference());
             }

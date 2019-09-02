@@ -208,12 +208,54 @@ Output::Output(Model& model, Type type, int original_id) :
         Objective(model, type, original_id) {
 }
 
-NodalDisplacementOutput::NodalDisplacementOutput(Model& model, int original_id) :
-        Output(model, Objective::Type::NODAL_DISPLACEMENT_OUTPUT, original_id), NodeContainer(model.mesh) {
+NodalDisplacementOutput::NodalDisplacementOutput(Model& model, shared_ptr<Reference<NamedValue>> collection, int original_id) :
+        Output(model, Objective::Type::NODAL_DISPLACEMENT_OUTPUT, original_id), NodeContainer(model.mesh), collection(collection) {
 }
 
-VonMisesStressOutput::VonMisesStressOutput(Model& model, int original_id) :
-        Output(model, Objective::Type::VONMISES_STRESS_OUTPUT, original_id), CellContainer(model.mesh) {
+vector<shared_ptr<NodeGroup>> NodalDisplacementOutput::getNodeGroups() const {
+    vector<shared_ptr<NodeGroup>>&& nodeGroups = NodeContainer::getNodeGroups();
+    if (collection != nullptr) {
+        const auto& setValue = dynamic_pointer_cast<SetValue<int>>(model.find(*collection));
+        if (setValue == nullptr)
+            throw logic_error("Cannot find set of displacement output nodes");
+
+        shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup("SET_" + to_string(setValue->getOriginalId()));
+        for (const int nodeId : setValue->getSet()) {
+            nodeGroup->addNodeId(nodeId);
+        }
+        setValue->markAsWritten();
+        nodeGroups.push_back(nodeGroup);
+    }
+    return nodeGroups;
+}
+
+bool NodalDisplacementOutput::hasNodeGroups() const {
+    return collection != nullptr or NodeContainer::hasNodeGroups();
+}
+
+VonMisesStressOutput::VonMisesStressOutput(Model& model, shared_ptr<Reference<NamedValue>> collection, int original_id) :
+        Output(model, Objective::Type::VONMISES_STRESS_OUTPUT, original_id), CellContainer(model.mesh), collection(collection) {
+}
+
+vector<shared_ptr<CellGroup>> VonMisesStressOutput::getCellGroups() const {
+    vector<shared_ptr<CellGroup>>&& cellGroups = CellContainer::getCellGroups();
+    if (collection != nullptr) {
+        const auto& setValue = dynamic_pointer_cast<SetValue<int>>(model.find(*collection));
+        if (setValue == nullptr)
+            throw logic_error("Cannot find set of displacement output nodes");
+
+        shared_ptr<CellGroup> cellGroup = model.mesh.createCellGroup("SET_" + to_string(setValue->getOriginalId()));
+        for (const int cellId : setValue->getSet()) {
+            cellGroup->addCellId(cellId);
+        }
+        setValue->markAsWritten();
+        cellGroups.push_back(cellGroup);
+    }
+    return cellGroups;
+}
+
+bool VonMisesStressOutput::hasCellGroups() const {
+    return collection != nullptr or CellContainer::hasCellGroups();
 }
 
 } /* namespace vega */
