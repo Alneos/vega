@@ -219,12 +219,14 @@ vector<shared_ptr<NodeGroup>> NodalDisplacementOutput::getNodeGroups() const {
         if (setValue == nullptr)
             throw logic_error("Cannot find set of displacement output nodes");
 
-        shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup("SET_" + to_string(setValue->getOriginalId()));
-        for (const int nodeId : setValue->getSet()) {
-            nodeGroup->addNodeId(nodeId);
+        if (not model.mesh.hasGroup(setValue->getOriginalId())) {
+            shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup("SET_" + to_string(setValue->getOriginalId()), NodeGroup::NO_ORIGINAL_ID, "SET");
+            for (const int nodeId : setValue->getSet()) {
+                nodeGroup->addNodeId(nodeId);
+            }
+            setValue->markAsWritten();
+            nodeGroups.push_back(nodeGroup);
         }
-        setValue->markAsWritten();
-        nodeGroups.push_back(nodeGroup);
     }
     return nodeGroups;
 }
@@ -244,12 +246,14 @@ vector<shared_ptr<CellGroup>> VonMisesStressOutput::getCellGroups() const {
         if (setValue == nullptr)
             throw logic_error("Cannot find set of displacement output nodes");
 
-        shared_ptr<CellGroup> cellGroup = model.mesh.createCellGroup("SET_" + to_string(setValue->getOriginalId()));
-        for (const int cellId : setValue->getSet()) {
-            cellGroup->addCellId(cellId);
+        if (not model.mesh.hasGroup(setValue->getOriginalId())) {
+            shared_ptr<CellGroup> cellGroup = model.mesh.createCellGroup("SET_" + to_string(setValue->getOriginalId()), CellGroup::NO_ORIGINAL_ID, "SET");
+            for (const int cellId : setValue->getSet()) {
+                cellGroup->addCellId(cellId);
+            }
+            setValue->markAsWritten();
+            cellGroups.push_back(cellGroup);
         }
-        setValue->markAsWritten();
-        cellGroups.push_back(cellGroup);
     }
     return cellGroups;
 }

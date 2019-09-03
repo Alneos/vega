@@ -137,6 +137,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "RFORCE", &NastranParser::parseRFORCE },
                 { "RLOAD1", &NastranParser::parseRLOAD1 },
                 { "RLOAD2", &NastranParser::parseRLOAD2 },
+                { "SET1", &NastranParser::parseSET1 },
                 { "SET3", &NastranParser::parseSET3 },
                 { "SLOAD", &NastranParser::parseSLOAD },
                 { "SPC", &NastranParser::parseSPC },
@@ -3124,6 +3125,14 @@ void NastranParser::parseRLOAD2(NastranTokenizer& tok, Model& model) {
     if (functionTableP_original_id>0){
         model.add(dynamicExcitation->getFunctionTablePPlaceHolder());
     }
+}
+
+void NastranParser::parseSET1(NastranTokenizer& tok, Model& model) {
+    // page 2454 Set Definition Defines a list of structural grid points or element ID's.
+    int sid = tok.nextInt();
+    const auto& ids = tok.nextInts();
+    const auto& setValue = make_shared<SetValue<int>>(model, set<int>{ids.begin(), ids.end()}, sid);
+    model.add(setValue);
 }
 
 void NastranParser::parseSET3(NastranTokenizer& tok, Model& model) {

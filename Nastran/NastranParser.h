@@ -719,7 +719,14 @@ private:
     void parseRLOAD2(NastranTokenizer& tok, Model& model);
 
     /**
-     * Parse the SET keyword (page 2464 of MDN Nastran 2006 Quick Reference Guide.)
+     * Parse the SET1 keyword (page 2482 of MDN Nastran 2006 Quick Reference Guide.)
+     * Set Definition Defines a list of structural grid points or element ID's.
+     * Fully supported.
+     */
+    void parseSET1(NastranTokenizer& tok, Model& model);
+
+    /**
+     * Parse the SET3 keyword (page 2457 of MDN Nastran 2006 Quick Reference Guide.)
      * Fully supported.
      */
     void parseSET3(NastranTokenizer& tok, Model& model);

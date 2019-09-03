@@ -170,6 +170,8 @@ public:
 	 * If it does not exists, create and return a NodeGroup with specified name, groupId and comment.
 	 **/
 	std::shared_ptr<NodeGroup> findOrCreateNodeGroup(const std::string& name, const int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
+	bool hasGroup(const int groupId) const;
+	bool hasGroup(const std::string& name) const;
 	std::vector<std::shared_ptr<NodeGroup>> getNodeGroups() const;
 	std::shared_ptr<CellGroup> createCellGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
 	void renameGroup(const std::string& oldname, const std::string& newname, const std::string& comment);

@@ -658,25 +658,33 @@ shared_ptr<NodeGroup> Mesh::findOrCreateNodeGroup(const string& name, int group_
 	}
 }
 
-shared_ptr<CellGroup> Mesh::createCellGroup(const string& name, int group_id, const string & comment) {
+bool Mesh::hasGroup(const int groupId) const {
+    return groupById.find(groupId) != groupById.end();
+}
+
+bool Mesh::hasGroup(const string& name) const {
+    return groupByName.find(name) != groupByName.end();
+}
+
+shared_ptr<CellGroup> Mesh::createCellGroup(const string& name, int groupId, const string & comment) {
 	if (name.empty()) {
 		throw invalid_argument("Can't create a cellGroup with empty name.");
 	}
 	if (this->groupByName.find(name) != this->groupByName.end()) {
 		throw invalid_argument("Another group exists with same name: " + name);
 	}
-	if (group_id != CellGroup::NO_ORIGINAL_ID
-			&& this->groupById.find(group_id) != this->groupById.end()) {
-		string errorMessage = "Another group exists with same id: " + to_string(group_id);
+	if (groupId != CellGroup::NO_ORIGINAL_ID
+			&& this->groupById.find(groupId) != this->groupById.end()) {
+		string errorMessage = "Another group exists with same id: " + to_string(groupId);
 		if (logLevel >= LogLevel::DEBUG) {
             stacktrace();
         }
 		throw invalid_argument(errorMessage);
 	}
-	shared_ptr<CellGroup> group= shared_ptr<CellGroup>(new CellGroup(*this, name, group_id, comment));
+	shared_ptr<CellGroup> group= shared_ptr<CellGroup>(new CellGroup(*this, name, groupId, comment));
 	this->groupByName[name] = group;
-	if (group_id != CellGroup::NO_ORIGINAL_ID) {
-		this->groupById[group_id] = group;
+	if (groupId != CellGroup::NO_ORIGINAL_ID) {
+		this->groupById[groupId] = group;
 	}
 
 	if (this->logLevel >= LogLevel::TRACE) {

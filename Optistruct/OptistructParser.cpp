@@ -104,7 +104,7 @@ void OptistructParser::parseSET(nastran::NastranTokenizer& tok, Model& model) {
     // https://www.sharcnet.ca/Software/Hyperworks/help/hwsolvers/set_bulk_data.htm
     // https://knowledge.autodesk.com/support/nastran/learn-explore/caas/CloudHelp/cloudhelp/2019/ENU/NSTRN-Reference/files/GUID-B2CE1526-DEDE-4694-B944-83880E9047A1-htm.html
     int sid = tok.nextInt();
-    string name = string("SET") + "_" + to_string(sid);
+    string name = "SET_" + to_string(sid);
     string type = tok.nextString();
     string subtype = tok.nextString(true, "LIST");
     tok.skipToNotEmpty();
@@ -114,15 +114,22 @@ void OptistructParser::parseSET(nastran::NastranTokenizer& tok, Model& model) {
     }
 
     if (type == "GRID") {
+        const auto& ids = tok.nextInts();
+        const auto& setValue = make_shared<SetValue<int>>(model, set<int>{ids.begin(), ids.end()}, sid);
+        model.add(setValue);
         shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SET");
         while(!tok.isEmptyUntilNextKeyword()) {
-            for (const auto& id : tok.nextInts()) {
+            for (const auto& id : ids) {
                 nodeGroup->addNodeId(id);
             }
             tok.skipToNotEmpty();
         }
+        setValue->markAsWritten();
         tok.skipToNextKeyword();
     } else if (type == "ELEM") {
+        const auto& ids = tok.nextInts();
+        const auto& setValue = make_shared<SetValue<int>>(model, set<int>{ids.begin(), ids.end()}, sid);
+        model.add(setValue);
         shared_ptr<CellGroup> cellGroup = model.mesh.createCellGroup(name,CellGroup::NO_ORIGINAL_ID,"SET");
         while(!tok.isEmptyUntilNextKeyword()) {
             for (const auto& id : tok.nextInts()) {
@@ -130,6 +137,7 @@ void OptistructParser::parseSET(nastran::NastranTokenizer& tok, Model& model) {
             }
             tok.skipToNotEmpty();
         }
+        setValue->markAsWritten();
         tok.skipToNextKeyword();
     } else if (type == "FREQ") {
         list<double> values;
@@ -140,6 +148,9 @@ void OptistructParser::parseSET(nastran::NastranTokenizer& tok, Model& model) {
             tok.skipToNotEmpty();
         }
         tok.skipToNextKeyword();
+        const auto& setValue = make_shared<SetValue<double>>(model, set<double>{values.begin(), values.end()}, sid);
+        model.add(setValue);
+        setValue->markAsWritten();
         const auto& frequencyValue = make_shared<ListValue<double>>(model, values);
         model.add(frequencyValue);
         const auto& frequencyRange = make_shared<FrequencySearch>(model, FrequencySearch::FrequencyType::LIST, *frequencyValue, FrequencySearch::NormType::MASS, sid);
