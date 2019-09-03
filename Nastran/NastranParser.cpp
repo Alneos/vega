@@ -3143,14 +3143,22 @@ void NastranParser::parseSET3(NastranTokenizer& tok, Model& model) {
 
     if (des == "GRID") {
         shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup(name,sid,"SET3");
-        while (tok.isNextInt()) {
-            nodeGroup->addNodeId(tok.nextInt());
+        const auto& ids = tok.nextInts();
+        const auto& setValue = make_shared<SetValue<int>>(model, set<int>{ids.begin(), ids.end()}, sid);
+        for (int id : ids) {
+            nodeGroup->addNodeId(id);
         }
+        setValue->markAsWritten();
+        model.add(setValue);
     } else if (des == "ELEM") {
         shared_ptr<CellGroup> cellGroup = model.mesh.createCellGroup(name,sid,"SET3");
-        while (tok.isNextInt()) {
-            cellGroup->addCellId(tok.nextInt());
+        const auto& ids = tok.nextInts();
+        const auto& setValue = make_shared<SetValue<int>>(model, set<int>{ids.begin(), ids.end()}, sid);
+        for (int id : ids) {
+            cellGroup->addCellId(id);
         }
+        setValue->markAsWritten();
+        model.add(setValue);
     } else {
         handleParsingError("Unsupported DES value in SET3", tok, model);
     }

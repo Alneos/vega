@@ -219,14 +219,17 @@ vector<shared_ptr<NodeGroup>> NodalDisplacementOutput::getNodeGroups() const {
         if (setValue == nullptr)
             throw logic_error("Cannot find set of displacement output nodes");
         const string& groupName = "SET_" + to_string(setValue->getOriginalId());
+        shared_ptr<NodeGroup> nodeGroup = nullptr;
         if (not model.mesh.hasGroup(groupName)) {
-            shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup(groupName, NodeGroup::NO_ORIGINAL_ID, "SET");
+            nodeGroup = model.mesh.findOrCreateNodeGroup(groupName, NodeGroup::NO_ORIGINAL_ID, "SET");
             for (const int nodeId : setValue->getSet()) {
                 nodeGroup->addNodeId(nodeId);
             }
             setValue->markAsWritten();
-            nodeGroups.push_back(nodeGroup);
+        } else {
+            nodeGroup = model.mesh.findOrCreateNodeGroup(groupName, NodeGroup::NO_ORIGINAL_ID, "SET");
         }
+        nodeGroups.push_back(nodeGroup);
     }
     return nodeGroups;
 }
@@ -246,14 +249,17 @@ vector<shared_ptr<CellGroup>> VonMisesStressOutput::getCellGroups() const {
         if (setValue == nullptr)
             throw logic_error("Cannot find set of displacement output nodes");
         const string& groupName = "SET_" + to_string(setValue->getOriginalId());
+        shared_ptr<CellGroup> cellGroup = nullptr;
         if (not model.mesh.hasGroup(groupName)) {
-            shared_ptr<CellGroup> cellGroup = model.mesh.createCellGroup(groupName, CellGroup::NO_ORIGINAL_ID, "SET");
+            cellGroup = model.mesh.createCellGroup(groupName, CellGroup::NO_ORIGINAL_ID, "SET");
             for (const int cellId : setValue->getSet()) {
                 cellGroup->addCellId(cellId);
             }
             setValue->markAsWritten();
-            cellGroups.push_back(cellGroup);
+        } else {
+            cellGroup = model.mesh.createCellGroup(groupName, CellGroup::NO_ORIGINAL_ID, "SET");
         }
+        cellGroups.push_back(cellGroup);
     }
     return cellGroups;
 }

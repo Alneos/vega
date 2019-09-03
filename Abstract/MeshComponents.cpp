@@ -934,13 +934,13 @@ void NodeContainer::add(const Group& group) {
     }
 }
 
-void NodeContainer::addNodeGroup(const string& groupName) {
-	shared_ptr<Group> group = mesh.findGroup(groupName);
-	if (group == nullptr) {
-		throw logic_error("Group name: [" + groupName + "] not found.");
-	}
-	nodeGroupNames.insert(groupName);
-}
+//void NodeContainer::addNodeGroup(const string& groupName) {
+//	shared_ptr<Group> group = mesh.findGroup(groupName);
+//	if (group == nullptr) {
+//		throw logic_error("Group name: [" + groupName + "] not found.");
+//	}
+//	nodeGroupNames.insert(groupName);
+//}
 
 void NodeContainer::removeNodePositionExcludingGroups(int nodePosition) {
 	nodePositions.erase(nodePositions.find(nodePosition));

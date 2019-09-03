@@ -495,7 +495,7 @@ public:
     void addNodeIds(const std::set<int>& range);
     void addNodeIds(const std::vector<int>& range);
     void addNodePosition(int nodePosition);
-    void addNodeGroup(const std::string& groupName);
+    //void addNodeGroup(const std::string& groupName);
     void add(const Node& node);
     virtual void add(const Group& group) override final;
     virtual void add(const NodeGroup& nodeGroup) final;
