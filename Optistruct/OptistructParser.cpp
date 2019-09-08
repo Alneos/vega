@@ -118,12 +118,10 @@ void OptistructParser::parseSET(nastran::NastranTokenizer& tok, Model& model) {
         const auto& setValue = make_shared<SetValue<int>>(model, set<int>{ids.begin(), ids.end()}, sid);
         model.add(setValue);
         shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SET");
-        while(!tok.isEmptyUntilNextKeyword()) {
-            for (const auto& id : ids) {
-                nodeGroup->addNodeId(id);
-            }
-            tok.skipToNotEmpty();
+        for (const auto& id : ids) {
+            nodeGroup->addNodeId(id);
         }
+        tok.skipToNotEmpty();
         setValue->markAsWritten();
         tok.skipToNextKeyword();
     } else if (type == "ELEM") {
@@ -131,12 +129,10 @@ void OptistructParser::parseSET(nastran::NastranTokenizer& tok, Model& model) {
         const auto& setValue = make_shared<SetValue<int>>(model, set<int>{ids.begin(), ids.end()}, sid);
         model.add(setValue);
         shared_ptr<CellGroup> cellGroup = model.mesh.createCellGroup(name,CellGroup::NO_ORIGINAL_ID,"SET");
-        while(!tok.isEmptyUntilNextKeyword()) {
-            for (const auto& id : tok.nextInts()) {
-                cellGroup->addCellId(id);
-            }
-            tok.skipToNotEmpty();
+        for (const auto& id : tok.nextInts()) {
+            cellGroup->addCellId(id);
         }
+        tok.skipToNotEmpty();
         setValue->markAsWritten();
         tok.skipToNextKeyword();
     } else if (type == "FREQ") {
