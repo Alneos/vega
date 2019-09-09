@@ -117,6 +117,7 @@ public:
         NamedValue(model, Value::Type::LIST, original_id) {
     }
     virtual bool isintegral() const = 0;
+    virtual bool empty() const = 0;
 };
 
 template<class T> class ListValue: public ListValueBase {
@@ -132,7 +133,7 @@ public:
         std::list<T> alist2 = alist; alist2.reverse();
         return alist2;
     }
-    bool empty() const {
+    bool empty() const override {
         return alist.size() == 0;
     }
     void scale(double factor) override {
@@ -152,6 +153,7 @@ public:
         NamedValue(model, Value::Type::SET, original_id) {
     }
     virtual bool isintegral() const = 0;
+    virtual bool empty() const = 0;
 };
 
 template<class T> class SetValue: public SetValueBase {
@@ -163,7 +165,7 @@ public:
     std::set<T> getSet() const  {
         return aset;
     }
-    bool empty() const {
+    bool empty() const override {
         return aset.size() == 0;
     }
     void scale(double factor) override {

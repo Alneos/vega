@@ -533,82 +533,88 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
 	switch (value.type) {
 	case Value::Type::LIST: {
 		ListValueBase& listValue = dynamic_cast<ListValueBase&>(value);
-
-		ostringstream list_concept_ss;
-		list_concept_ss << "LST" << setfill('0') << setw(5) << listValue.getId();
-		concept_name = list_concept_ss.str();
-		out << concept_name << "=DEFI_LIST_REEL(" << endl;
-		out << "                        VALE = (";
-		if (listValue.isintegral()) {
-		    const ListValue<int>& listIntValue = dynamic_cast<ListValue<int>&>(value);
-            for (const int val : listIntValue.getList()) {
-                out << val << ",";
+        if (not listValue.empty()) {
+            ostringstream list_concept_ss;
+            list_concept_ss << "LST" << setfill('0') << setw(5) << listValue.getId();
+            concept_name = list_concept_ss.str();
+            out << concept_name << "=DEFI_LIST_REEL(" << endl;
+            out << "                        VALE = (";
+            if (listValue.isintegral()) {
+                const ListValue<int>& listIntValue = dynamic_cast<ListValue<int>&>(value);
+                for (const int val : listIntValue.getList()) {
+                    out << val << ",";
+                }
+            } else {
+                const ListValue<double>& listDblValue = dynamic_cast<ListValue<double>&>(value);
+                for (const double val : listDblValue.getList()) {
+                    out << val << ",";
+                }
             }
-		} else {
-		    const ListValue<double>& listDblValue = dynamic_cast<ListValue<double>&>(value);
-            for (const double val : listDblValue.getList()) {
-                out << val << ",";
-            }
-		}
-        out << ")," << endl;
-        out << "                        );" << endl << endl;
+            out << ")," << endl;
+            out << "                        );" << endl << endl;
+        }
         listValue.markAsWritten();
         break;
 	}
     case Value::Type::SET: {
 		SetValueBase& setValue = dynamic_cast<SetValueBase&>(value);
-
-		ostringstream list_concept_ss;
-		list_concept_ss << "LST" << setfill('0') << setw(5) << setValue.getId();
-		concept_name = list_concept_ss.str();
-		out << concept_name << "=DEFI_LIST_REEL(" << endl;
-		out << "                        VALE = (";
-		if (setValue.isintegral()) {
-		    const SetValue<int>& setIntValue = dynamic_cast<SetValue<int>&>(value);
-            for (const int val : setIntValue.getSet()) {
-                out << val << ",";
+        if (not setValue.empty()) {
+            ostringstream list_concept_ss;
+            list_concept_ss << "LST" << setfill('0') << setw(5) << setValue.getId();
+            concept_name = list_concept_ss.str();
+            out << concept_name << "=DEFI_LIST_REEL(" << endl;
+            out << "                        VALE = (";
+            if (setValue.isintegral()) {
+                const SetValue<int>& setIntValue = dynamic_cast<SetValue<int>&>(value);
+                for (const int val : setIntValue.getSet()) {
+                    out << val << ",";
+                }
+            } else {
+                handleWritingError("non-integral set not yet implemented");
             }
-		} else {
-		    handleWritingError("non-integral set not yet implemented");
-		}
-        out << ")," << endl;
-        out << "                        );" << endl << endl;
+            out << ")," << endl;
+            out << "                        );" << endl << endl;
+        }
         setValue.markAsWritten();
         break;
 	}
 	case Value::Type::STEP_RANGE: {
 		StepRange& stepRange = dynamic_cast<StepRange&>(value);
-        ostringstream list_concept_ss;
-        list_concept_ss << "LST" << setfill('0') << setw(5) << stepRange.getId();
-        concept_name = list_concept_ss.str();
-		if (not is_equal(stepRange.end, Globals::UNAVAILABLE_DOUBLE)) {
-            out << concept_name << "=DEFI_LIST_REEL(" << endl;
-            out << "                        DEBUT = " << stepRange.start << "," << endl;
-            out << "                        INTERVALLE = _F(JUSQU_A = " << stepRange.end << "," << endl;
-            out << "                                        NOMBRE = " << stepRange.count << endl;
-            out << "                                        )," << endl;
-            out << "                        );" << endl << endl;
-            stepRange.markAsWritten();
-		} else {
-            out << "# Ignoring " << concept_name << " because: no end value" << endl;
+		if (not stepRange.iszero()) {
+            ostringstream list_concept_ss;
+            list_concept_ss << "LST" << setfill('0') << setw(5) << stepRange.getId();
+            concept_name = list_concept_ss.str();
+            if (not is_equal(stepRange.end, Globals::UNAVAILABLE_DOUBLE)) {
+                out << concept_name << "=DEFI_LIST_REEL(" << endl;
+                out << "                        DEBUT = " << stepRange.start << "," << endl;
+                out << "                        INTERVALLE = _F(JUSQU_A = " << stepRange.end << "," << endl;
+                out << "                                        NOMBRE = " << stepRange.count << endl;
+                out << "                                        )," << endl;
+                out << "                        );" << endl << endl;
+            } else {
+                out << "# Ignoring " << concept_name << " because: no end value" << endl;
+            }
 		}
+		stepRange.markAsWritten();
 		break;
 	}
 	case Value::Type::SPREAD_RANGE: {
         SpreadRange& spreadRange = dynamic_cast<SpreadRange&>(value);
-        ostringstream list_concept_ss;
-        list_concept_ss << "LST" << setfill('0') << setw(5) << spreadRange.getId();
-        concept_name = list_concept_ss.str();
-        out << concept_name << "=DEFI_LIST_FREQ(" << endl;
-        out << "                        DEBUT = " << spreadRange.start << "," << endl;
-        out << "                        INTERVALLE = _F(JUSQU_A = " << spreadRange.end << "," << endl;
-        out << "                                        NOMBRE = " << spreadRange.count << endl;
-        out << "                                        )," << endl;
-        out << "                        RAFFINEMENT = _F(LIST_RAFFINE = XXXX" << "," << endl;
-        out << "                                        CRITERE = 'RELATIF'," << endl;
-        out << "                                        DISPERSION = " << spreadRange.spread << endl;
-        out << "                                        )," << endl;
-        out << "                        );" << endl << endl;
+        if (not spreadRange.iszero()) {
+            ostringstream list_concept_ss;
+            list_concept_ss << "LST" << setfill('0') << setw(5) << spreadRange.getId();
+            concept_name = list_concept_ss.str();
+            out << concept_name << "=DEFI_LIST_FREQ(" << endl;
+            out << "                        DEBUT = " << spreadRange.start << "," << endl;
+            out << "                        INTERVALLE = _F(JUSQU_A = " << spreadRange.end << "," << endl;
+            out << "                                        NOMBRE = " << spreadRange.count << endl;
+            out << "                                        )," << endl;
+            out << "                        RAFFINEMENT = _F(LIST_RAFFINE = XXXX" << "," << endl;
+            out << "                                        CRITERE = 'RELATIF'," << endl;
+            out << "                                        DISPERSION = " << spreadRange.spread << endl;
+            out << "                                        )," << endl;
+            out << "                        );" << endl << endl;
+        }
         spreadRange.markAsWritten();
         break;
 		}
