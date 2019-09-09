@@ -230,10 +230,9 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                             analysis->add(*constraintSet);
                             analysis->add(*nodalOutput);
                             model->add(analysis);
-                            const auto& forceLoading = make_shared<NodalForce>(*model, force);
+                            const auto& forceLoading = make_shared<NodalForce>(*model, loadSet, force);
                             forceLoading->add(*x300group);
                             model->add(forceLoading);
-                            model->addLoadingIntoLoadSet(*forceLoading, *loadSet);
                             loadSetId++;
                             analysisId++;
                         }
@@ -259,15 +258,14 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                                 const pair<int, int> applicationNodeIds = volCell.two_nodeids_from_facenum(faceNum);
                                 shared_ptr<ForceSurface> forceSurfaceTwoNodes = nullptr;
                                 if (applicationNodeIds.second == Globals::UNAVAILABLE_INT) {
-                                    forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(*model, applicationNodeIds.first,
+                                    forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(*model, loadSet, applicationNodeIds.first,
                                         force);
                                 } else {
-                                    forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(*model, applicationNodeIds.first, applicationNodeIds.second,
+                                    forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(*model, loadSet, applicationNodeIds.first, applicationNodeIds.second,
                                         force);
                                 }
                                 forceSurfaceTwoNodes->add(volCell);
                                 model->add(forceSurfaceTwoNodes);
-                                model->addLoadingIntoLoadSet(*forceSurfaceTwoNodes, *loadSet);
                             }
                             loadSetId++;
                             analysisId++;
@@ -282,10 +280,9 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                             force->setParaX(FunctionTable::ParaName::PARAX);
                             force->setXY(0.0, -f);
                             force->setXY(1.0, -f);
-                            const auto& forceLine = make_shared<ForceLine>(*model, force, loadDirection);
+                            const auto& forceLine = make_shared<ForceLine>(*model, loadSet, force, loadDirection);
                             forceLine->add(*volgroup);
                             model->add(forceLine);
-                            model->addLoadingIntoLoadSet(*forceLine, *loadSet);
                         }
                         analysis->add(*loadSet);
                         analysis->add(*constraintSet);
@@ -304,10 +301,9 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                         analysis->add(*constraintSet);
                         analysis->add(*nodalOutput);
                         model->add(analysis);
-                        shared_ptr<NormalPressionFace> pressionFace = make_shared<NormalPressionFace>(*model, p);
+                        shared_ptr<NormalPressionFace> pressionFace = make_shared<NormalPressionFace>(*model, loadSet, p);
                         pressionFace->add(*volgroup);
                         model->add(pressionFace);
-                        model->addLoadingIntoLoadSet(*pressionFace, *loadSet);
                         loadSetId++;
                         analysisId++;
                         break;
@@ -328,13 +324,12 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                             const pair<int, int> applicationNodeIds = volCell.two_nodeids_from_facenum(faceNum);
                             shared_ptr<NormalPressionFace> pressionFace = nullptr;
                             if (applicationNodeIds.second == Globals::UNAVAILABLE_INT) {
-                                pressionFace = make_shared<NormalPressionFaceTwoNodes>(*model, applicationNodeIds.first, p);
+                                pressionFace = make_shared<NormalPressionFaceTwoNodes>(*model, loadSet, applicationNodeIds.first, p);
                             } else {
-                                pressionFace = make_shared<NormalPressionFaceTwoNodes>(*model, applicationNodeIds.first, applicationNodeIds.second, p);
+                                pressionFace = make_shared<NormalPressionFaceTwoNodes>(*model, loadSet, applicationNodeIds.first, applicationNodeIds.second, p);
                             }
                             pressionFace->add(volCell);
                             model->add(pressionFace);
-                            model->addLoadingIntoLoadSet(*pressionFace, *loadSet);
                         }
                         loadSetId++;
                         analysisId++;
@@ -356,11 +351,11 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                             // LD careful here: PLOAD2 only works on shells and only on linear cells!
                             switch (cornerNodeIds.size()) {
                                 case 3: {
-                                    staticPressure = make_shared<StaticPressure>(*model, cornerNodeIds[0], cornerNodeIds[1], cornerNodeIds[2], Globals::UNAVAILABLE_INT, p);
+                                    staticPressure = make_shared<StaticPressure>(*model, loadSet, cornerNodeIds[0], cornerNodeIds[1], cornerNodeIds[2], Globals::UNAVAILABLE_INT, p);
                                     break;
                                 }
                                 case 4: {
-                                    staticPressure = make_shared<StaticPressure>(*model, cornerNodeIds[0], cornerNodeIds[1], cornerNodeIds[2], cornerNodeIds[3], p);
+                                    staticPressure = make_shared<StaticPressure>(*model, loadSet, cornerNodeIds[0], cornerNodeIds[1], cornerNodeIds[2], cornerNodeIds[3], p);
                                     break;
                                 }
                                 default: {
@@ -369,7 +364,6 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                             }
 
                             model->add(staticPressure);
-                            model->addLoadingIntoLoadSet(*staticPressure, *loadSet);
                         }
                         loadSetId++;
                         analysisId++;

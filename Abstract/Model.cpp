@@ -187,20 +187,20 @@ void Model::remove(const Reference<Constraint> constraintReference) {
     constraints.erase(constraintReference);
 }
 
-void Model::remove(const Reference<Constraint> refC, const int idCS, const int originalIdCS, const ConstraintSet::Type csT) {
+void Model::remove(const Reference<Constraint> refC, const Reference<ConstraintSet> refCSet) {
 
-    const auto & cR = constraintReferences_by_constraintSet_ids[idCS];
+    const auto & cR = constraintReferences_by_constraintSet_ids[refCSet.id];
     for (const auto& it2 : cR) {
         if (it2 == refC){
-            constraintReferences_by_constraintSet_ids[idCS].erase(it2);
+            constraintReferences_by_constraintSet_ids[refCSet.id].erase(it2);
             break; // iterator is invalid now
         }
     }
-    if (originalIdCS!= Identifiable<ConstraintSet>::NO_ORIGINAL_ID){
-        const auto & cR2 = constraintReferences_by_constraintSet_original_ids_by_constraintSet_type[csT][originalIdCS];
+    if (refCSet.has_original_id()){
+        const auto & cR2 = constraintReferences_by_constraintSet_original_ids_by_constraintSet_type[refCSet.type][refCSet.original_id];
         for (const auto& it3 : cR2) {
             if (it3 == refC){
-                constraintReferences_by_constraintSet_original_ids_by_constraintSet_type[csT][originalIdCS].erase(it3);
+                constraintReferences_by_constraintSet_original_ids_by_constraintSet_type[refCSet.type][refCSet.original_id].erase(it3);
                 break; // iterator is invalid now
             }
         }
@@ -1620,13 +1620,12 @@ void Model::makeCellsFromLMPC(){
     // We don't do this during the loop because some LMPC may be used by several analysis.
     for (const auto& analysis : this->analyses) {
         for (const auto& constraintSet : analysis->getConstraintSets()) {
-            const int idConstraintSet = constraintSet->getId();
-            const int originalIdConstraintSet = constraintSet->getOriginalId();
-            const ConstraintSet::Type natConstraintSet = constraintSet->type;
             for (const auto& constraint : constraintSet->getConstraintsByType(Constraint::Type::LMPC)) {
-                remove(constraint->getReference(), idConstraintSet, originalIdConstraintSet, natConstraintSet);
-                constraintSet->markAsWritten();
+                remove(constraint->getReference(), constraintSet->getReference());
+                constraint->markAsWritten();
             }
+            if (constraintSet->empty())
+                constraintSet->markAsWritten();
         }
     }
 }
@@ -1634,11 +1633,6 @@ void Model::makeCellsFromLMPC(){
 void Model::makeCellsFromRBE(){
 
     for (const auto& constraintSet : this->getCommonConstraintSets()) {
-
-        const int idConstraintSet = constraintSet->getId();
-        const int originalIdConstraintSet = constraintSet->getOriginalId();
-        const ConstraintSet::Type natConstraintSet = constraintSet->type;
-
 
         // Translation of RBAR and RBE2 (RBE2 are viewed as an assembly of RBAR)
         // See Systus Reference Analysis Manual: RIGID BODY Element (page 498)
@@ -1769,18 +1763,16 @@ void Model::makeCellsFromRBE(){
         }
 
         for(const auto& constraint: toBeRemoved) {
-            remove(constraint->getReference(), idConstraintSet, originalIdConstraintSet, natConstraintSet);
-            constraintSet->markAsWritten();
+            remove(constraint->getReference(), constraintSet->getReference());
+            constraint->markAsWritten();
         }
+        if (constraintSet->empty())
+            constraintSet->markAsWritten();
     }
 }
 
 void Model::makeCellsFromSurfaceSlide() {
     for (const auto& constraintSet : this->getCommonConstraintSets()) {
-
-        const int idConstraintSet = constraintSet->getId();
-        const int originalIdConstraintSet = constraintSet->getOriginalId();
-        const ConstraintSet::Type natConstraintSet = constraintSet->type;
 
         vector<shared_ptr<Constraint>> toBeRemoved;
         for ( auto& constraint : constraintSet->getConstraintsByType(Constraint::Type::SURFACE_SLIDE_CONTACT)) {
@@ -1790,9 +1782,11 @@ void Model::makeCellsFromSurfaceSlide() {
         }
 
         for(const auto& constraint: toBeRemoved) {
-            remove(constraint->getReference(), idConstraintSet, originalIdConstraintSet, natConstraintSet);
-            constraintSet->markAsWritten();
+            remove(constraint->getReference(), constraintSet->getReference());
+            constraint->markAsWritten();
         }
+        if (constraintSet->empty())
+            constraintSet->markAsWritten();
     }
 }
 
@@ -1970,6 +1964,12 @@ void Model::finish() {
     if (this->configuration.emulateLocalDisplacement) {
         emulateLocalDisplacementConstraint();
     }
+
+//    for (const auto& constraint : constraints.filter(Constraint::Type::RIGID)) {
+//        shared_ptr<RigidConstraint> rigid = dynamic_pointer_cast<RigidConstraint>(
+//                constraint);
+//        rigid->emulateWithMPCs();
+//    }
 
     if (this->configuration.displayMasterSlaveConstraint) {
         generateBeamsToDisplayMasterSlaveConstraint();

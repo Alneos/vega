@@ -212,6 +212,62 @@ RigidConstraint::RigidConstraint(Model& model, int masterId, int constraintGroup
         MasterSlaveConstraint(model, Constraint::Type::RIGID, DOFS::ALL_DOFS, masterId, constraintGroup, slaveIds) {
 }
 
+void RigidConstraint::emulateWithMPCs() {
+    if (not hasMaster())
+        throw logic_error("Emulation without master not (yet) implemented");
+    const Node& master = model.mesh.findNode(getMaster());
+    set<shared_ptr<LinearMultiplePointConstraint>, ptrLess<Constraint>> lmpcs;
+    int slaveIndex = 0;
+    const auto& slavePositions = getSlaves();
+    for (int slavePosition : slavePositions) {
+
+        const Node& slave = model.mesh.findNode(slavePosition);
+        VectorialValue distMaster{master.x - slave.x, master.y - slave.y, master.z - slave.z};
+        shared_ptr<LinearMultiplePointConstraint> lmpc =
+                make_shared<LinearMultiplePointConstraint>(model, 0.0);
+        lmpc->addParticipation(master.id, distMaster.x(), distMaster.y(), distMaster.z());
+        lmpc->addParticipation(slave.id, -distMaster.x(), -distMaster.y(), -distMaster.z());
+        lmpcs.insert(lmpc);
+        int previousSlaveIndex = 0;
+        int relCount = 1;
+        for (int previousSlavePosition : slavePositions) {
+            if (previousSlavePosition == slavePosition)
+                continue;
+            const Node& previousSlave = model.mesh.findNode(previousSlavePosition);
+            VectorialValue distPreviousSlave{previousSlave.x - slave.x, previousSlave.y - slave.y, previousSlave.z - slave.z};
+            if (is_zero(distMaster.dot(distPreviousSlave)))
+                continue; // avoiding colinearity
+            shared_ptr<LinearMultiplePointConstraint> lmpc2 =
+                    make_shared<LinearMultiplePointConstraint>(model, 0.0);
+            lmpc2->addParticipation(previousSlave.id, distPreviousSlave.x(), distPreviousSlave.y(), distPreviousSlave.z());
+            lmpc2->addParticipation(slave.id, -distPreviousSlave.x(), -distPreviousSlave.y(), -distPreviousSlave.z());
+            lmpcs.insert(lmpc2);
+            previousSlaveIndex++;
+            relCount++;
+            if (relCount == 3)
+                break;
+        }
+        slaveIndex++;
+    }
+    const auto& constraintSets = model.getConstraintSetsByConstraint(this->getReference());
+    for (const auto& lmpc : lmpcs) {
+        model.add(lmpc);
+        for (const auto& constraintSet : constraintSets) {
+            if (model.configuration.logLevel >= LogLevel::TRACE)
+                cout << "Adding mpc emulation for rigid constraint:" << *lmpc << " to constraintset: " << *constraintSet << ";" << endl;
+            model.addConstraintIntoConstraintSet(lmpc->getReference(),
+                    constraintSet->getReference());
+        }
+    }
+    for (const auto& constraintSet : constraintSets) {
+        if (model.configuration.logLevel >= LogLevel::TRACE)
+            cout << "removing rigid constraint:" << *this << " from constraintset: " << *constraintSet << ";" << endl;
+        model.remove(this->getReference(),
+                constraintSet->getReference());
+        this->markAsWritten();
+    }
+}
+
 RBE3::RBE3(Model& model, int masterId, const DOFS dofs, int original_id) :
         MasterSlaveConstraint(model, Constraint::Type::RBE3, dofs, masterId, original_id) {
 }

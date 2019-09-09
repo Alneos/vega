@@ -150,6 +150,7 @@ class RigidConstraint: public MasterSlaveConstraint {
 public:
 	RigidConstraint(Model& model, int masterId = UNAVAILABLE_MASTER, int original_id =
 			NO_ORIGINAL_ID, const std::set<int>& slaveIds = std::set<int>());
+	void emulateWithMPCs();
 };
 
 class RBE3 final: public MasterSlaveConstraint {

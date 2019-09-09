@@ -17,9 +17,12 @@ namespace vega {
 
 using namespace std;
 
-Loading::Loading(Model& model, Loading::Type type,
+Loading::Loading(Model& model, const std::shared_ptr<LoadSet> loadset, Loading::Type type,
 		const int original_id, const Reference<CoordinateSystem> csref) :
-		Identifiable(original_id), model(model), type(type), csref(csref) {
+		Identifiable(original_id), model(model), type(type), loadset(loadset), csref(csref) {
+    if (loadset != nullptr) {
+        model.addLoadingIntoLoadSet(this->getReference(), loadset->getReference());
+    }
 }
 
 const string Loading::name = "Loading";
@@ -59,23 +62,35 @@ LoadSet::LoadSet(Model& model, Type type, int original_id) :
 		Identifiable(original_id), model(model), type(type) {
 }
 
+LoadSet::LoadSet(Model& model, const Reference<LoadSet>& loadSetRef) :
+		Identifiable(loadSetRef.original_id), model(model), type(loadSetRef.type) {
+}
+
 const string LoadSet::name = "LoadSet";
 
 const map<LoadSet::Type, string> LoadSet::stringByType = { { LoadSet::Type::LOAD, "LOAD" }, { LoadSet::Type::DLOAD, "DLOAD" }, {
 		LoadSet::Type::EXCITEID, "EXCITEID" }, { LoadSet::Type::LOADSET, "LOADSET" }, { LoadSet::Type::ALL, "ALL" } };
+
+string LoadSet::getGroupName(Loading::Type loadingType) {
+    string loadingGroupName = Loading::stringByType.find(loadingType)->second;
+    if (loadingGroupName.size() >= 15) {
+        // LD Workaround to try to limit group name size (max 24 chars in Aster)
+        loadingGroupName = "TYPE" + to_string(static_cast<int>(loadingType));
+    }
+    return stringByType.find(this->type)->second + "_" + loadingGroupName + "_ID" + to_string(this->bestId());
+}
 
 ostream &operator<<(ostream &out, const LoadSet& loadset) {
 	out << to_str(loadset);
 	return out;
 }
 
-int LoadSet::size() const {
-	return static_cast<int>(getLoadings().size());
+size_t LoadSet::size() const {
+	return getLoadings().size();
 }
 
 const set<shared_ptr<Loading>, ptrLess<Loading> > LoadSet::getLoadings() const {
-	const auto& result = model.getLoadingsByLoadSet(this->getReference());
-	return result;
+	return model.getLoadingsByLoadSet(this->getReference());
 }
 
 const set<shared_ptr<Loading>, ptrLess<Loading> > LoadSet::getLoadingsByType(Loading::Type loadingType) const {
@@ -89,8 +104,7 @@ const set<shared_ptr<Loading>, ptrLess<Loading> > LoadSet::getLoadingsByType(Loa
 }
 
 bool LoadSet::validate() const {
-	const auto& loadings = getLoadings();
-	if (loadings.size() == 0 ) { //or loadings.find(0) != loadings.end()) {
+	if (empty()) { //or loadings.find(0) != loadings.end()) {
         if (model.configuration.logLevel >= LogLevel::INFO) {
             cout << "Loadset " << *this << " is not valid, no loads associated" << endl;
         }
@@ -112,22 +126,22 @@ shared_ptr<LoadSet> LoadSet::clone() const {
 	return make_shared<LoadSet>(*this);
 }
 
-NodeLoading::NodeLoading(Model& model, Loading::Type type, int original_id,
+NodeLoading::NodeLoading(Model& model, const std::shared_ptr<LoadSet> loadset, Loading::Type type, int original_id,
 		const Reference<CoordinateSystem> csref) :
-		Loading(model, type, original_id, csref), NodeContainer(model.mesh) {
+		Loading(model, loadset, type, original_id, csref), NodeContainer(model.mesh) {
 }
 
 set<int> NodeLoading::nodePositions() const {
 	return NodeContainer::getNodePositionsIncludingGroups();
 }
 
-VolumicLoading::VolumicLoading(Model& model, Loading::Type type, int original_id) :
-    Loading(model, type, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM) {
+VolumicLoading::VolumicLoading(Model& model, const std::shared_ptr<LoadSet> loadset, Loading::Type type, int original_id) :
+    Loading(model, loadset, type, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM) {
 }
 
-Gravity::Gravity(Model& model, double scalingFactor, const VectorialValue& gravityVector,
+Gravity::Gravity(Model& model, const std::shared_ptr<LoadSet> loadset, double scalingFactor, const VectorialValue& gravityVector,
 		const int original_id) :
-		VolumicLoading(model, Loading::Type::GRAVITY, original_id), scalingFactor(
+		VolumicLoading(model, loadset, Loading::Type::GRAVITY, original_id), scalingFactor(
 				scalingFactor), gravityVector(gravityVector) {
 }
 
@@ -164,8 +178,8 @@ bool Gravity::ineffective() const {
 	return is_zero(scalingFactor) or gravityVector.iszero();
 }
 
-Rotation::Rotation(Model& model, const int original_id) :
-		VolumicLoading(model, Loading::Type::ROTATION, original_id) {
+Rotation::Rotation(Model& model, const std::shared_ptr<LoadSet> loadset, const int original_id) :
+		VolumicLoading(model, loadset, Loading::Type::ROTATION, original_id) {
 }
 
 const DOFS Rotation::getDOFSForNode(const int nodePosition) const {
@@ -181,9 +195,9 @@ bool Rotation::ineffective() const {
 	return is_zero(getSpeed()) or getAxis().iszero();
 }
 
-RotationCenter::RotationCenter(Model& model, double speed, double center_x, double center_y,
+RotationCenter::RotationCenter(Model& model, const std::shared_ptr<LoadSet> loadset, double speed, double center_x, double center_y,
 		double center_z, double axis_x, double axis_y, double axis_z, const int original_id) :
-		Rotation(model, original_id), speed(speed), axis(axis_x, axis_y, axis_z), center(center_x,
+		Rotation(model, loadset, original_id), speed(speed), axis(axis_x, axis_y, axis_z), center(center_x,
 				center_y, center_z) {
 }
 
@@ -207,9 +221,9 @@ void RotationCenter::scale(const double factor) {
 	speed *= factor;
 }
 
-RotationNode::RotationNode(Model& model, double speed, const int node_id, double axis_x,
+RotationNode::RotationNode(Model& model, const std::shared_ptr<LoadSet> loadset, double speed, const int node_id, double axis_x,
 		double axis_y, double axis_z, const int original_id) :
-		Rotation(model, original_id), speed(speed), axis(axis_x, axis_y, axis_z), node_position(
+		Rotation(model, loadset, original_id), speed(speed), axis(axis_x, axis_y, axis_z), node_position(
 				model.mesh.findOrReserveNode(node_id)) {
 }
 
@@ -234,8 +248,8 @@ void RotationNode::scale(const double factor) {
 	speed *= factor;
 }
 
-ImposedDisplacement::ImposedDisplacement(Model& model, DOFS dofs, double value, const int original_id, const Reference<CoordinateSystem> csref) :
-    NodeLoading(model, Loading::Type::IMPOSED_DISPLACEMENT, original_id, csref), displacements(dofs, value) {
+ImposedDisplacement::ImposedDisplacement(Model& model, const std::shared_ptr<LoadSet> loadset, DOFS dofs, double value, const int original_id, const Reference<CoordinateSystem> csref) :
+    NodeLoading(model, loadset, Loading::Type::IMPOSED_DISPLACEMENT, original_id, csref), displacements(dofs, value) {
 }
 
 const DOFS ImposedDisplacement::getDOFSForNode(int nodePosition) const {
@@ -262,14 +276,14 @@ void ImposedDisplacement::scale(const double factor) {
     }
 }
 
-NodalForce::NodalForce(Model& model, const VectorialValue& force,
+NodalForce::NodalForce(Model& model, const std::shared_ptr<LoadSet> loadset, const VectorialValue& force,
 		const VectorialValue& moment, const int original_id, const Reference<CoordinateSystem> csref) :
-		NodeLoading(model, Loading::Type::NODAL_FORCE, original_id, csref), force(force), moment(moment) {
+		NodeLoading(model, loadset, Loading::Type::NODAL_FORCE, original_id, csref), force(force), moment(moment) {
 }
 
-NodalForce::NodalForce(Model& model, double fx, double fy, double fz, double mx,
+NodalForce::NodalForce(Model& model, const std::shared_ptr<LoadSet> loadset, double fx, double fy, double fz, double mx,
 		double my, double mz, const int original_id, const Reference<CoordinateSystem> csref) :
-		NodeLoading(model, Loading::Type::NODAL_FORCE, original_id, csref), force(fx, fy, fz), moment(mx, my, mz) {
+		NodeLoading(model, loadset, Loading::Type::NODAL_FORCE, original_id, csref), force(fx, fy, fz), moment(mx, my, mz) {
 }
 
 const VectorialValue NodalForce::localToGlobal(int nodePosition, const VectorialValue& vectorialValue) const {
@@ -336,9 +350,9 @@ bool NodalForce::ineffective() const {
 	return force.iszero() and moment.iszero();
 }
 
-NodalForceTwoNodes::NodalForceTwoNodes(Model& model, const int node1_id,
+NodalForceTwoNodes::NodalForceTwoNodes(Model& model, const std::shared_ptr<LoadSet> loadset, const int node1_id,
 		const int node2_id, double magnitude, const int original_id) :
-		NodalForce(model, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM), node_position1(
+		NodalForce(model, loadset, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM), node_position1(
 				model.mesh.findOrReserveNode(node1_id)), node_position2(
 				model.mesh.findOrReserveNode(node2_id)), magnitude(magnitude) {
 }
@@ -363,9 +377,9 @@ bool NodalForceTwoNodes::ineffective() const {
 	return is_zero(magnitude) or force.iszero();
 }
 
-NodalForceFourNodes::NodalForceFourNodes(Model& model, const int node1_id,
+NodalForceFourNodes::NodalForceFourNodes(Model& model, const std::shared_ptr<LoadSet> loadset, const int node1_id,
         const int node2_id, const int node3_id, const int node4_id, double magnitude, const int original_id) :
-        NodalForce(model, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM),
+        NodalForce(model, loadset, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, original_id, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM),
                 node_position1(model.mesh.findOrReserveNode(node1_id)),
                 node_position2(model.mesh.findOrReserveNode(node2_id)),
                 node_position3(model.mesh.findOrReserveNode(node3_id)),
@@ -395,9 +409,9 @@ bool NodalForceFourNodes::ineffective() const {
     return is_zero(magnitude);
 }
 
-StaticPressure::StaticPressure(Model& model, const int node1_id,
+StaticPressure::StaticPressure(Model& model, const std::shared_ptr<LoadSet> loadset, const int node1_id,
         const int node2_id, const int node3_id, const int node4_id, double magnitude, const int original_id) :
-        NodalForce(model, original_id, 0.0, 0.0, 0.0, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID),
+        NodalForce(model, loadset, original_id, 0.0, 0.0, 0.0, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID),
                 node_position1(model.mesh.findOrReserveNode(node1_id)),
                 node_position2(model.mesh.findOrReserveNode(node2_id)),
                 node_position3(model.mesh.findOrReserveNode(node3_id)),
@@ -493,9 +507,9 @@ bool StaticPressure::ineffective() const {
     return is_zero(magnitude);
 }
 
-CellLoading::CellLoading(Model& model, Loading::Type type, int original_id,
+CellLoading::CellLoading(Model& model, const std::shared_ptr<LoadSet> loadset, Loading::Type type, int original_id,
 		const Reference<CoordinateSystem> csref) :
-		Loading(model, type, original_id, csref), CellContainer(model.mesh) {
+		Loading(model, loadset, type, original_id, csref), CellContainer(model.mesh) {
 }
 
 set<int> CellLoading::nodePositions() const {
@@ -549,29 +563,42 @@ bool CellLoading::appliedToGeometry() {
 }
 
 void CellLoading::createSkin() {
-    vector<int> faceIds = this->getApplicationFaceNodeIds();
+    const auto& faceIds = this->getApplicationFaceNodeIds();
     if (faceIds.size() >= 1) {
-        //addedSkin = true;
         const int cellPosition = model.mesh.generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
-        this->clear(); //< To remove the volumic cell and then add the skin at its place
-        //this->addCellId(cell.id);
-        // LD Workaround for problem "cannot write cell names"
+
+        // LD : try to solve https://github.com/Alneos/vega/issues/25 but it should be done only for loadings that can be grouped together (i.e. same pressure values, same directions etc)
+        /*shared_ptr<CellGroup> cellGrp;
+        if (loadset != nullptr) {
+            string groupName = loadset->getGroupName(this->type);
+            if (not model.mesh.hasGroup(groupName)) {
+                cellGrp = model.mesh.createCellGroup(groupName, Group::NO_ORIGINAL_ID, "LoadSet cell group over skin element");
+            } else {
+                cellGrp = dynamic_pointer_cast<CellGroup>(model.mesh.findGroup(groupName));
+            }
+        } else {
+            // LD Workaround for problem "cannot write cell names"
+            cellGrp = model.mesh.createCellGroup(Cell::MedName(cellPosition), Group::NO_ORIGINAL_ID, "Single cell group over skin element");
+        }*/
         shared_ptr<CellGroup> cellGrp = model.mesh.createCellGroup(Cell::MedName(cellPosition), Group::NO_ORIGINAL_ID, "Single cell group over skin element");
-        cellGrp->addCellPosition(cellPosition);
+
+        this->clear(); //< To remove the volumic cell and then add the skin at its place
         this->add(*cellGrp);
+
+        cellGrp->addCellPosition(cellPosition);
+
         // LD : Workaround for Aster problem : MODELISA6_96
         //  les 1 mailles imprimées ci-dessus n'appartiennent pas au modèle et pourtant elles ont été affectées dans le mot-clé facteur : !
         //   ! FORCE_FACE
         const auto& skin = make_shared<Skin>(model, model.modelType);
         skin->add(*cellGrp);
         model.add(skin);
-        //this->add(*mappl);
     }
 }
 
-ForceSurface::ForceSurface(Model& model, const VectorialValue& force,
+ForceSurface::ForceSurface(Model& model, const std::shared_ptr<LoadSet> loadset, const VectorialValue& force,
 		const VectorialValue& moment, const int original_id) :
-		CellLoading(model, Loading::Type::FORCE_SURFACE, original_id,
+		CellLoading(model, loadset, Loading::Type::FORCE_SURFACE, original_id,
 				CoordinateSystem::GLOBAL_COORDINATE_SYSTEM), force(force), moment(moment) {
 }
 
@@ -620,16 +647,16 @@ bool ForceSurface::validate() const {
 	return true;
 }
 
-ForceSurfaceTwoNodes::ForceSurfaceTwoNodes(Model& model, int nodeId1, int nodeId2,
+ForceSurfaceTwoNodes::ForceSurfaceTwoNodes(Model& model, const std::shared_ptr<LoadSet> loadset, int nodeId1, int nodeId2,
 		const VectorialValue& force, const VectorialValue& moment, const int original_id) :
-		ForceSurface(model, force, moment, original_id), nodePosition1(
+		ForceSurface(model, loadset, force, moment, original_id), nodePosition1(
 				model.mesh.findOrReserveNode(nodeId1)), nodePosition2(
 				model.mesh.findOrReserveNode(nodeId2)) {
 }
 
-ForceSurfaceTwoNodes::ForceSurfaceTwoNodes(Model& model, int nodeId1,
+ForceSurfaceTwoNodes::ForceSurfaceTwoNodes(Model& model, const std::shared_ptr<LoadSet> loadset, int nodeId1,
 		const VectorialValue& force, const VectorialValue& moment, const int original_id) :
-		ForceSurface(model, force, moment, original_id), nodePosition1(
+		ForceSurface(model, loadset, force, moment, original_id), nodePosition1(
 				model.mesh.findOrReserveNode(nodeId1)), nodePosition2(Globals::UNAVAILABLE_INT) {
 }
 
@@ -653,9 +680,9 @@ shared_ptr<Loading> ForceSurfaceTwoNodes::clone() const {
 	return make_shared<ForceSurfaceTwoNodes>(*this);
 }
 
-ForceLine::ForceLine(Model& model, const shared_ptr<NamedValue> force, DOF dof,
+ForceLine::ForceLine(Model& model, const std::shared_ptr<LoadSet> loadset, const shared_ptr<NamedValue> force, DOF dof,
 			const int original_id) :
-		CellLoading(model, Loading::Type::FORCE_LINE, original_id), force(force), dof(dof) {
+		CellLoading(model, loadset, Loading::Type::FORCE_LINE, original_id), force(force), dof(dof) {
 
 }
 
@@ -685,8 +712,8 @@ bool ForceLine::validate() const {
 	return true;
 }
 
-NormalPressionFace::NormalPressionFace(Model& model, double intensity, const int original_id) :
-		CellLoading(model, Loading::Type::NORMAL_PRESSION_FACE, original_id,
+NormalPressionFace::NormalPressionFace(Model& model, const std::shared_ptr<LoadSet> loadset, double intensity, const int original_id) :
+		CellLoading(model, loadset, Loading::Type::NORMAL_PRESSION_FACE, original_id,
 				CoordinateSystem::GLOBAL_COORDINATE_SYSTEM), intensity(intensity) {
 }
 
@@ -716,16 +743,16 @@ bool NormalPressionFace::validate() const {
 	return true;
 }
 
-NormalPressionFaceTwoNodes::NormalPressionFaceTwoNodes(Model& model, int nodeId1, int nodeId2,
+NormalPressionFaceTwoNodes::NormalPressionFaceTwoNodes(Model& model, const std::shared_ptr<LoadSet> loadset, int nodeId1, int nodeId2,
 		double intensity, const int original_id) :
-		NormalPressionFace(model, intensity, original_id), nodePosition1(
+		NormalPressionFace(model, loadset, intensity, original_id), nodePosition1(
 				model.mesh.findOrReserveNode(nodeId1)), nodePosition2(
 				model.mesh.findOrReserveNode(nodeId2)) {
 }
 
-NormalPressionFaceTwoNodes::NormalPressionFaceTwoNodes(Model& model, int nodeId1,
+NormalPressionFaceTwoNodes::NormalPressionFaceTwoNodes(Model& model, const std::shared_ptr<LoadSet> loadset, int nodeId1,
 		double intensity, const int original_id) :
-		NormalPressionFace(model, intensity, original_id), nodePosition1(
+		NormalPressionFace(model, loadset, intensity, original_id), nodePosition1(
 				model.mesh.findOrReserveNode(nodeId1)), nodePosition2(Globals::UNAVAILABLE_INT) {
 }
 
@@ -748,11 +775,11 @@ shared_ptr<Loading> NormalPressionFaceTwoNodes::clone() const {
 }
 
 
-DynamicExcitation::DynamicExcitation(Model& model, const Reference<NamedValue> dynaDelay, const Reference<NamedValue> dynaPhase,
+DynamicExcitation::DynamicExcitation(Model& model, const std::shared_ptr<LoadSet> loadset, const Reference<NamedValue> dynaDelay, const Reference<NamedValue> dynaPhase,
         const Reference<NamedValue> functionTableB, const Reference<NamedValue> functionTableP, const Reference<LoadSet> loadSet,
         const DynamicExcitationType excitType,
         const int original_id) :
-                Loading(model, Loading::Type::DYNAMIC_EXCITATION, original_id), dynaDelay(dynaDelay), dynaPhase(dynaPhase),
+                Loading(model, loadset, Loading::Type::DYNAMIC_EXCITATION, original_id), dynaDelay(dynaDelay), dynaPhase(dynaPhase),
                 functionTableB(functionTableB), functionTableP(functionTableP), loadSet(loadSet), excitType(excitType) {
 }
 
@@ -811,8 +838,8 @@ bool DynamicExcitation::ineffective() const {
     return false;
 }
 
-InitialTemperature::InitialTemperature(Model& model, const double temperature, const int original_id) :
-                NodeLoading(model, Loading::Type::INITIAL_TEMPERATURE, original_id), temperature(temperature) {
+InitialTemperature::InitialTemperature(Model& model, const std::shared_ptr<LoadSet> loadset, const double temperature, const int original_id) :
+                NodeLoading(model, loadset, Loading::Type::INITIAL_TEMPERATURE, original_id), temperature(temperature) {
 }
 
 shared_ptr<Loading> InitialTemperature::clone() const {

@@ -1156,7 +1156,7 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
 		if (loadSet.type == LoadSet::Type::DLOAD) {
 			continue;
 		}
-		if (loadSet.getLoadings().size() == 0) {
+		if (loadSet.empty()) {
             loadSet.markAsWritten();
 			continue;
 		}

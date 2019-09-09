@@ -24,6 +24,7 @@
 namespace vega {
 
 class Model;
+class LoadSet;
 
 /**
  * Base class for all Loadings
@@ -47,13 +48,14 @@ public:
 	};
 protected:
 	Model& model;
-	Loading(Model&, Loading::Type, const int original_id =
+	Loading(Model&, const std::shared_ptr<LoadSet> loadset, Loading::Type, const int original_id =
 			NO_ORIGINAL_ID, const Reference<CoordinateSystem> csref = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM);
 public:
 	const Type type;
 public:
 	static const std::string name;
 	static const std::map<Type, std::string> stringByType;
+	const std::shared_ptr<LoadSet> loadset;
 	const Reference<CoordinateSystem> csref;
 	inline bool hasCoordinateSystem() const {
 		return csref
@@ -88,15 +90,17 @@ public:
 		ALL
 	};
 	LoadSet(Model&, Type type = Type::LOAD, int original_id = NO_ORIGINAL_ID);
+	LoadSet(Model&, const Reference<LoadSet>& loadSetRef);
 	static constexpr int COMMON_SET_ID = 0;
 	std::vector<std::pair<Reference<LoadSet>, double>> embedded_loadsets;
 	const Type type;
 	static const std::string name;
 	static const std::map<Type, std::string> stringByType;
-	int size() const;
+	std::size_t size() const;
 	inline bool empty() const { return size() == 0;};
 	const std::set<std::shared_ptr<Loading>, ptrLess<Loading> > getLoadings() const;
 	const std::set<std::shared_ptr<Loading>, ptrLess<Loading> > getLoadingsByType(Loading::Type) const;
+	std::string getGroupName(Loading::Type);
 	bool validate() const override;
 	std::shared_ptr<LoadSet> clone() const;
 	bool hasFunctions() const;
@@ -108,7 +112,7 @@ public:
  */
 class NodeLoading: public Loading, public NodeContainer {
 protected:
-	NodeLoading(Model&, Loading::Type, const int original_id = NO_ORIGINAL_ID,
+	NodeLoading(Model&, const std::shared_ptr<LoadSet> loadset, Loading::Type, const int original_id = NO_ORIGINAL_ID,
 			const Reference<CoordinateSystem> csref = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM);
 public:
 	std::set<int> nodePositions() const override final;
@@ -122,7 +126,7 @@ public:
 
 class VolumicLoading: public Loading {
 protected:
-	VolumicLoading(Model&, Loading::Type, const int original_id = NO_ORIGINAL_ID);
+	VolumicLoading(Model&, const std::shared_ptr<LoadSet> loadset, Loading::Type, const int original_id = NO_ORIGINAL_ID);
 };
 
 class Gravity: public VolumicLoading {
@@ -145,7 +149,7 @@ public:
 	/**
 	 * acceleration vector is given by scalingFactor * gravityVector.
 	 */
-	Gravity(Model&, double scalingFactor, const VectorialValue& gravityVector,
+	Gravity(Model&, const std::shared_ptr<LoadSet> loadset, double scalingFactor, const VectorialValue& gravityVector,
 			const int original_id = NO_ORIGINAL_ID);
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	std::set<int> nodePositions() const override;
@@ -156,7 +160,7 @@ public:
 
 class Rotation: public VolumicLoading {
 protected:
-	Rotation(Model& model, const int original_id = NO_ORIGINAL_ID);
+	Rotation(Model& model, const std::shared_ptr<LoadSet> loadset, const int original_id = NO_ORIGINAL_ID);
 public:
 	/**
 	 * Get rotation speed (in rad/s).
@@ -181,7 +185,7 @@ class RotationCenter: public Rotation {
 	const VectorialValue axis;
 	const VectorialValue center;
 public:
-	RotationCenter(Model& model, double speed, double center_x, double center_y,
+	RotationCenter(Model& model, const std::shared_ptr<LoadSet> loadset, double speed, double center_x, double center_y,
 			double center_z, double axis_x, double axis_y, double axis_z, const int original_id =
 					NO_ORIGINAL_ID);
 	double getSpeed() const override;
@@ -196,7 +200,7 @@ class RotationNode: public Rotation {
 	const VectorialValue axis;
 	const int node_position;
 public:
-	RotationNode(Model& model, double speed, const int node_id, double axis_x, double axis_y,
+	RotationNode(Model& model, const std::shared_ptr<LoadSet> loadset, double speed, const int node_id, double axis_x, double axis_y,
 			double axis_z, const int original_id = NO_ORIGINAL_ID);
 	double getSpeed() const override;
 	const VectorialValue getAxis() const override;
@@ -211,7 +215,7 @@ public:
 	/**
 	 * The value is assigned to all the dof present in DOFS.
 	 */
-	ImposedDisplacement(Model& model, DOFS dofs, double value, int original_id = NO_ORIGINAL_ID,
+	ImposedDisplacement(Model& model, const std::shared_ptr<LoadSet> loadset, DOFS dofs, double value, int original_id = NO_ORIGINAL_ID,
                      const Reference<CoordinateSystem> csref = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM);
 	double getDoubleForDOF(const DOF& dof) const;
 	const DOFS getDOFSForNode(int nodePosition) const override;
@@ -225,10 +229,10 @@ public:
  */
 class NodalForce: public NodeLoading {
 public:
-	NodalForce(Model&, const VectorialValue& force, const VectorialValue& moment = {},
+	NodalForce(Model&, const std::shared_ptr<LoadSet> loadset, const VectorialValue& force, const VectorialValue& moment = {},
 			const int original_id = NO_ORIGINAL_ID, const Reference<CoordinateSystem> csref =
 					CoordinateSystem::GLOBAL_COORDINATE_SYSTEM);
-	NodalForce(Model&, double fx, double fy = 0, double fz = 0, double mx = 0,
+	NodalForce(Model&, const std::shared_ptr<LoadSet> loadset, double fx, double fy = 0, double fz = 0, double mx = 0,
 			double my = 0, double mz = 0, const int original_id = NO_ORIGINAL_ID,
 			const Reference<CoordinateSystem> csref = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM);
 protected:
@@ -249,7 +253,7 @@ class NodalForceTwoNodes: public NodalForce {
 	const int node_position2;
 	double magnitude;
 public:
-	NodalForceTwoNodes(Model&, const int node1_id, const int node2_id,
+	NodalForceTwoNodes(Model&, const std::shared_ptr<LoadSet> loadset, const int node1_id, const int node2_id,
 			double magnitude, const int original_id = NO_ORIGINAL_ID);
 	const VectorialValue getForceInGlobalCS(const int) const override;
 	std::shared_ptr<Loading> clone() const override;
@@ -268,7 +272,7 @@ class NodalForceFourNodes: public NodalForce {
     const int node_position4;
     double magnitude;
 public:
-    NodalForceFourNodes(Model&, const int node1_id, const int node2_id,
+    NodalForceFourNodes(Model&, const std::shared_ptr<LoadSet> loadset, const int node1_id, const int node2_id,
             const int node3_id, const int node4_id, double magnitude, const int original_id = NO_ORIGINAL_ID);
     const VectorialValue getForceInGlobalCS(const int) const override;
     std::shared_ptr<Loading> clone() const override;
@@ -286,7 +290,7 @@ public:
     const int node_position3;
     const int node_position4 = Globals::UNAVAILABLE_INT;
     double magnitude;
-    StaticPressure(Model&, const int node1_id, const int node2_id,
+    StaticPressure(Model&, const std::shared_ptr<LoadSet> loadset, const int node1_id, const int node2_id,
             const int node3_id, const int node4_id, double magnitude, const int original_id = NO_ORIGINAL_ID);
     const VectorialValue getForceInGlobalCS(const int) const override;
     std::shared_ptr<Loading> clone() const override;
@@ -299,7 +303,7 @@ public:
  */
 class CellLoading: public Loading, public CellContainer {
 protected:
-	CellLoading(Model&, Loading::Type, const int original_id = NO_ORIGINAL_ID,
+	CellLoading(Model&, const std::shared_ptr<LoadSet> loadset, Loading::Type, const int original_id = NO_ORIGINAL_ID,
 			const Reference<CoordinateSystem> csref = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM);
 public:
 	/**
@@ -312,8 +316,9 @@ public:
 	bool isCellLoading() const override final {
 		return true;
 	}
-	//implement a function that tell if this force is applied to a
-	//geometrical element or to a Poutre.
+	/** implements a function that tell if this force is applied to a
+	 * geometrical element or to a Poutre.
+	 */
 	bool appliedToGeometry();
 	void createSkin();
 };
@@ -326,7 +331,7 @@ protected:
 	VectorialValue force;
 	VectorialValue moment;
 public:
-	ForceSurface(Model&, const VectorialValue& force, const VectorialValue& moment,
+	ForceSurface(Model&, const std::shared_ptr<LoadSet> loadset, const VectorialValue& force, const VectorialValue& moment,
 			const int original_id = NO_ORIGINAL_ID);
 	const VectorialValue getForce() const;
 	const VectorialValue getMoment() const;
@@ -338,11 +343,9 @@ public:
 		return SpaceDimension::DIMENSION_2D;
 	}
 	virtual std::vector<int> getApplicationFaceNodeIds() const override {
-	    std::cout << "ForceSurface getApplicationFaceNodeIds() called" << std::endl;
 	    return {};
     }
 	bool validate() const override;
-	//void createSkin() override;
 };
 
 /**
@@ -353,9 +356,9 @@ public:
 	const int nodePosition1;
 	const int nodePosition2;
 
-	ForceSurfaceTwoNodes(Model&, int nodeId1, int nodeId2, const VectorialValue& force,
+	ForceSurfaceTwoNodes(Model&, const std::shared_ptr<LoadSet> loadset, int nodeId1, int nodeId2, const VectorialValue& force,
 			const VectorialValue& moment = {}, const int original_id = NO_ORIGINAL_ID);
-	ForceSurfaceTwoNodes(Model&, int nodeId1, const VectorialValue& force,
+	ForceSurfaceTwoNodes(Model&, const std::shared_ptr<LoadSet> loadset, int nodeId1, const VectorialValue& force,
 			const VectorialValue& moment = {}, const int original_id = NO_ORIGINAL_ID);
 	virtual std::vector<int> getApplicationFaceNodeIds() const override;
 	std::shared_ptr<Loading> clone() const override;
@@ -369,7 +372,7 @@ public:
 
 	std::shared_ptr<NamedValue> force;
 	DOF dof;
-    ForceLine(Model&, const std::shared_ptr<NamedValue> force, DOF component,
+    ForceLine(Model&, const std::shared_ptr<LoadSet> loadset, const std::shared_ptr<NamedValue> force, DOF component,
 			const int original_id = NO_ORIGINAL_ID);
 
 	virtual std::shared_ptr<Loading> clone() const override;
@@ -384,7 +387,6 @@ public:
 	}
 	bool validate() const override;
 	std::vector<int> getApplicationFaceNodeIds() const override { return {};};
-//    void createSkin() override { /* no need for skin in forceline */ };
 };
 
 /**
@@ -394,7 +396,7 @@ class NormalPressionFace: public CellLoading {
 
 public:
 	double intensity;
-	NormalPressionFace(Model&, double intensity, const int original_id = NO_ORIGINAL_ID);
+	NormalPressionFace(Model&, const std::shared_ptr<LoadSet> loadset, double intensity, const int original_id = NO_ORIGINAL_ID);
 	const DOFS getDOFSForNode(const int nodePosition) const override;
 	bool validate() const override;
 	SpaceDimension getLoadingDimension() const override {
@@ -406,7 +408,6 @@ public:
 	virtual std::vector<int> getApplicationFaceNodeIds() const override {
 		return {};
 	}
-//	void createSkin() override;
 };
 
 /**
@@ -417,8 +418,8 @@ class NormalPressionFaceTwoNodes: public NormalPressionFace {
 public:
 	const int nodePosition1;
 	const int nodePosition2;
-	NormalPressionFaceTwoNodes(Model&, int nodeId1, int nodeId2, double intensity, const int original_id = NO_ORIGINAL_ID);
-	NormalPressionFaceTwoNodes(Model&, int nodeId1, double intensity, const int original_id = NO_ORIGINAL_ID);
+	NormalPressionFaceTwoNodes(Model&, const std::shared_ptr<LoadSet> loadset, int nodeId1, int nodeId2, double intensity, const int original_id = NO_ORIGINAL_ID);
+	NormalPressionFaceTwoNodes(Model&, const std::shared_ptr<LoadSet> loadset, int nodeId1, double intensity, const int original_id = NO_ORIGINAL_ID);
 	virtual std::vector<int> getApplicationFaceNodeIds() const override;
 	std::shared_ptr<Loading> clone() const override;
 };
@@ -440,7 +441,7 @@ public:
 		VELOCITY,
 		ACCELERATION
 	};
-    DynamicExcitation(Model&, const Reference<NamedValue> dynaDelay, const Reference<NamedValue> dynaPhase,
+    DynamicExcitation(Model&, const std::shared_ptr<LoadSet> loadset, const Reference<NamedValue> dynaDelay, const Reference<NamedValue> dynaPhase,
             const Reference<NamedValue> functionTableB, const Reference<NamedValue> functionTableP, const Reference<LoadSet>, const DynamicExcitationType excitType = DynamicExcitationType::LOAD, const int original_id =
                     NO_ORIGINAL_ID);
 
@@ -464,7 +465,7 @@ class InitialTemperature: public NodeLoading {
 protected:
 	double temperature;
 public:
-    InitialTemperature(Model&, double temperature, const int original_id = NO_ORIGINAL_ID);
+    InitialTemperature(Model&, const std::shared_ptr<LoadSet> loadset, double temperature, const int original_id = NO_ORIGINAL_ID);
 	const DOFS getDOFSForNode(const int nodePosition) const override;
 	std::shared_ptr<Loading> clone() const override;
 	void scale(const double factor) override;

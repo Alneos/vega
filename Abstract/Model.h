@@ -303,7 +303,7 @@ public:
     /**
      * Remove a constraint from a known reference set when we already know some informations
      */
-    void remove(const Reference<Constraint> , const int, const int, const ConstraintSet::Type);
+    void remove(const Reference<Constraint>, const Reference<ConstraintSet>);
     /**
      * Retrieve any kind of object from the model, by giving a reference.
      * Return nullptr if the object is not found in the model.

@@ -1194,7 +1194,7 @@ void NastranParser::parseCRIGD1(NastranTokenizer& tok, Model& model) {
 
 void NastranParser::parseDAREA(NastranTokenizer& tok, Model& model) {
     int loadset_id = tok.nextInt();
-    Reference<vega::LoadSet> loadset_ref(LoadSet::Type::EXCITEID, loadset_id);
+    const auto& loadSet = model.getOrCreateLoadSet(loadset_id, LoadSet::Type::EXCITEID);
     while (tok.isNextInt()) {
         int node_id = tok.nextInt();
         int ci = tok.nextInt(true, 123456);
@@ -1208,14 +1208,9 @@ void NastranParser::parseDAREA(NastranTokenizer& tok, Model& model) {
         double ry = dofs.contains(DOF::RY) ? ai : 0;
         double rz = dofs.contains(DOF::RZ) ? ai : 0;
 
-        const auto& force1 = make_shared<NodalForce>(model, tx, ty, tz, rx, ry, rz, Loading::NO_ORIGINAL_ID);
+        const auto& force1 = make_shared<NodalForce>(model, loadSet, tx, ty, tz, rx, ry, rz, Loading::NO_ORIGINAL_ID);
         force1->addNodeId(node_id);
         model.add(force1);
-        model.addLoadingIntoLoadSet(*force1, loadset_ref);
-    }
-    if (model.find(loadset_ref) == nullptr) {
-        const auto& loadSet = make_shared<LoadSet>(model, LoadSet::Type::EXCITEID, loadset_id);
-        model.add(loadSet);
     }
 }
 
@@ -1251,8 +1246,7 @@ void NastranParser::parseDLOAD(NastranTokenizer& tok, Model& model) {
         double scale = tok.nextDouble(true, 1);
         int rload2_id = tok.nextInt();
         Reference<LoadSet> loadSetReference(LoadSet::Type::DLOAD, rload2_id);
-        loadSetMaster->embedded_loadsets.push_back(
-                            pair<Reference<LoadSet>, double>(loadSetReference, S * scale));
+        loadSetMaster->embedded_loadsets.push_back({loadSetReference, S * scale});
     }
 }
 
@@ -1493,17 +1487,12 @@ void NastranParser::parseFORCE(NastranTokenizer& tok, Model& model) {
     double fy = tok.nextDouble(true,0.0) * force;
     double fz = tok.nextDouble(true,0.0) * force;
 
-    const auto& force1 = make_shared<NodalForce>(model, fx, fy, fz, 0., 0., 0., Loading::NO_ORIGINAL_ID,
+    const auto& loadSet = model.getOrCreateLoadSet(loadset_id, LoadSet::Type::LOAD);
+    const auto& force1 = make_shared<NodalForce>(model, loadSet, fx, fy, fz, 0., 0., 0., Loading::NO_ORIGINAL_ID,
             Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, csid));
     force1->addNodeId(node_id);
 
     model.add(force1);
-    Reference<vega::LoadSet> loadset_ref(LoadSet::Type::LOAD, loadset_id);
-    model.addLoadingIntoLoadSet(force1->getReference(), loadset_ref);
-    if (model.find(loadset_ref) == nullptr) {
-        const auto& loadSet = make_shared<LoadSet>(model, LoadSet::Type::LOAD, loadset_id);
-        model.add(loadSet);
-    }
 }
 
 void NastranParser::parseFORCE1(NastranTokenizer& tok, Model& model) {
@@ -1514,16 +1503,11 @@ void NastranParser::parseFORCE1(NastranTokenizer& tok, Model& model) {
     int node1 = tok.nextInt();
     int node2 = tok.nextInt();
 
-    const auto& force1 = make_shared<NodalForceTwoNodes>(model, node1, node2, force);
+    const auto& loadSet = model.getOrCreateLoadSet(loadset_id, LoadSet::Type::LOAD);
+    const auto& force1 = make_shared<NodalForceTwoNodes>(model, loadSet, node1, node2, force);
     force1->addNodeId(node_id);
 
     model.add(force1);
-    Reference<vega::LoadSet> loadset_ref(LoadSet::Type::LOAD, loadset_id);
-    model.addLoadingIntoLoadSet(force1->getReference(), loadset_ref);
-    if (model.find(loadset_ref) == nullptr) {
-        const auto& loadSet = make_shared<LoadSet>(model, LoadSet::Type::LOAD, loadset_id);
-        model.add(loadSet);
-    }
 }
 
 void NastranParser::parseFORCE2(NastranTokenizer& tok, Model& model) {
@@ -1535,16 +1519,11 @@ void NastranParser::parseFORCE2(NastranTokenizer& tok, Model& model) {
     int node3 = tok.nextInt();
     int node4 = tok.nextInt();
 
-    const auto& force2 = make_shared<NodalForceFourNodes>(model, node1, node2, node3, node4, force);
+    const auto& loadSet = model.getOrCreateLoadSet(sid, LoadSet::Type::LOAD);
+    const auto& force2 = make_shared<NodalForceFourNodes>(model, loadSet, node1, node2, node3, node4, force);
     force2->addNodeId(node_id);
 
     model.add(force2);
-    Reference<vega::LoadSet> loadset_ref(LoadSet::Type::LOAD, sid);
-    model.addLoadingIntoLoadSet(force2->getReference(), loadset_ref);
-    if (model.find(loadset_ref) == nullptr) {
-        const auto& loadSet = make_shared<LoadSet>(model, LoadSet::Type::LOAD, sid);
-        model.add(loadSet);
-    }
 }
 
 void NastranParser::parseFREQ(NastranTokenizer& tok, Model& model) {
@@ -1603,15 +1582,11 @@ void NastranParser::parseGRAV(NastranTokenizer& tok, Model& model) {
         string message = "MB not supported.";
         handleParsingWarning(message, tok, model);
     }
-    const auto& gravity = make_shared<Gravity>(model, acceleration, VectorialValue(x, y, z));
+
+    const auto& loadSet = model.getOrCreateLoadSet(sid, LoadSet::Type::LOAD);
+    const auto& gravity = make_shared<Gravity>(model, loadSet, acceleration, VectorialValue(x, y, z));
 
     model.add(gravity);
-    Reference<LoadSet> loadset_ref(LoadSet::Type::LOAD, sid);
-    model.addLoadingIntoLoadSet(gravity->getReference(), loadset_ref);
-    if (model.find(loadset_ref) == nullptr) {
-        const auto& loadSet = make_shared<LoadSet>(model, LoadSet::Type::LOAD, sid);
-        model.add(loadSet);
-    }
 }
 void NastranParser::parseInclude(NastranTokenizer& tok, Model& model) {
     string currentRawDataLine = tok.currentRawDataLine();
@@ -1647,8 +1622,7 @@ void NastranParser::parseLSEQ(NastranTokenizer& tok, Model& model) {
 //                    pair<Reference<LoadSet>, double>(dareaReference, 1.0));
     int loadSet_id = tok.nextInt();
     Reference<LoadSet> loadSetReference(LoadSet::Type::LOAD, loadSet_id);
-    loadSetMaster->embedded_loadsets.push_back(
-            pair<Reference<LoadSet>, double>(loadSetReference, 1.0));
+    loadSetMaster->embedded_loadsets.push_back({loadSetReference, 1.0});
 
 }
 
@@ -1660,8 +1634,7 @@ void NastranParser::parseLOAD(NastranTokenizer& tok, Model& model) {
         double scale = tok.nextDouble(true, 1);
         int loadSet_id = tok.nextInt();
         Reference<LoadSet> loadSetReference(LoadSet::Type::LOAD, loadSet_id);
-        loadSetMaster->embedded_loadsets.push_back(
-                pair<Reference<LoadSet>, double>(loadSetReference, S * scale));
+        loadSetMaster->embedded_loadsets.push_back({loadSetReference, S * scale});
     }
 }
 
@@ -1830,16 +1803,11 @@ void NastranParser::parseMOMENT(NastranTokenizer& tok, Model& model) {
     double fry = tok.nextDouble(true) * scale;
     double frz = tok.nextDouble(true) * scale;
 
-    const auto& force1 = make_shared<NodalForce>(model, VectorialValue(0, 0, 0), VectorialValue(frx, fry, frz),
+    const auto& loadSet = model.getOrCreateLoadSet(loadset_id, LoadSet::Type::LOAD);
+    const auto& force1 = make_shared<NodalForce>(model, loadSet, VectorialValue(0, 0, 0), VectorialValue(frx, fry, frz),
             Loading::NO_ORIGINAL_ID);
     force1->addNodeId(node_id);
     model.add(force1);
-    Reference<vega::LoadSet> loadset_ref(LoadSet::Type::LOAD, loadset_id);
-    model.addLoadingIntoLoadSet(force1->getReference(), loadset_ref);
-    if (model.find(loadset_ref) == nullptr) {
-        const auto& loadSet = make_shared<LoadSet>(model, LoadSet::Type::LOAD, loadset_id);
-        model.add(loadSet);
-    }
 }
 
 void NastranParser::parseMPC(NastranTokenizer& tok, Model& model) {
@@ -2463,14 +2431,9 @@ void NastranParser::parsePLOAD(NastranTokenizer& tok, Model& model) {
     int g2 = tok.nextInt();
     int g3 = tok.nextInt();
     int g4 = tok.nextInt(true, Globals::UNAVAILABLE_INT);
-    Reference<LoadSet> loadSetReference(LoadSet::Type::LOAD, loadset_id);
-    const auto& staticPressure = make_shared<StaticPressure>(model, g1, g2, g3, g4, p);
+    const auto& loadSet = model.getOrCreateLoadSet(loadset_id, LoadSet::Type::LOAD);
+    const auto& staticPressure = make_shared<StaticPressure>(model, loadSet, g1, g2, g3, g4, p);
     model.add(staticPressure);
-    model.addLoadingIntoLoadSet(staticPressure->getReference(), loadSetReference);
-    if (model.find(loadSetReference) == nullptr) {
-        const auto& loadSet = make_shared<LoadSet>(model, LoadSet::Type::LOAD, loadset_id);
-        model.add(loadSet);
-    }
 }
 
 void NastranParser::parsePLOAD1(NastranTokenizer& tok, Model& model) {
@@ -2550,31 +2513,21 @@ void NastranParser::parsePLOAD1(NastranTokenizer& tok, Model& model) {
         force->setXY(effx2 + effx2 / smalldistancefactor, 0.0);
     }
     model.add(force);
-    Reference<LoadSet> loadSetReference(LoadSet::Type::LOAD, loadset_id);
-    const auto& forceLine = make_shared<ForceLine>(model, force, dof);
+    const auto& loadSet = model.getOrCreateLoadSet(loadset_id, LoadSet::Type::LOAD);
+    const auto& forceLine = make_shared<ForceLine>(model, loadSet, force, dof);
     forceLine->addCellId(eid);
     model.add(forceLine);
-    model.addLoadingIntoLoadSet(*forceLine, loadSetReference);
-    if (model.find(loadSetReference) == nullptr) {
-        const auto& loadSet = make_shared<LoadSet>(model, LoadSet::Type::LOAD, loadset_id);
-        model.add(loadSet);
-    }
 }
 
 void NastranParser::parsePLOAD2(NastranTokenizer& tok, Model& model) {
     int loadset_id = tok.nextInt();
     double p = tok.nextDouble();
-    Reference<LoadSet> loadSetReference(LoadSet::Type::LOAD, loadset_id);
-    const auto& normalPressionFace = make_shared<NormalPressionFace>(model, p);
+    const auto& loadSet = model.getOrCreateLoadSet(loadset_id, LoadSet::Type::LOAD);
+    const auto& normalPressionFace = make_shared<NormalPressionFace>(model, loadSet, p);
     for(int cellId : tok.nextInts()) {
         normalPressionFace->addCellId(cellId);
     }
     model.add(normalPressionFace);
-    model.addLoadingIntoLoadSet(*normalPressionFace, loadSetReference);
-    if (model.find(loadSetReference) == nullptr) {
-        const auto& loadSet = make_shared<LoadSet>(model, LoadSet::Type::LOAD, loadset_id);
-        model.add(loadSet);
-    }
 }
 
 void NastranParser::parsePLOAD4(NastranTokenizer& tok, Model& model) {
@@ -2624,24 +2577,23 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, Model& model) {
         handleParsingWarning("LDIR field not supported: default (NORM) assumed.", tok, model);
     }
 
-    Reference<LoadSet> loadSetReference(LoadSet::Type::LOAD, loadset_id);
+    const auto& loadSet = model.getOrCreateLoadSet(loadset_id, LoadSet::Type::LOAD);
     bool has_direction = not (is_equal(n1, 0.0) and is_equal(n2, 0.0) and is_equal(n3, 0.0)
                               and cid == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     if (not has_direction and g1 == Globals::UNAVAILABLE_INT) {
-        const auto& normalPressionFace = make_shared<NormalPressionFace>(model, p1);
+        const auto& normalPressionFace = make_shared<NormalPressionFace>(model, loadSet, p1);
         for(int cellId = eid1; cellId <= eid2; cellId++) {
             normalPressionFace->addCellId(cellId);
         }
 
         model.add(normalPressionFace);
-        model.addLoadingIntoLoadSet(*normalPressionFace, loadSetReference);
     } else if (not has_direction and g1 != Globals::UNAVAILABLE_INT) {
         shared_ptr<NormalPressionFaceTwoNodes> pressionFaceTwoNodes = nullptr;
         if (g3_or_4 != Globals::UNAVAILABLE_INT) {
-            pressionFaceTwoNodes = make_shared<NormalPressionFaceTwoNodes>(model, g1, g3_or_4,
+            pressionFaceTwoNodes = make_shared<NormalPressionFaceTwoNodes>(model, loadSet, g1, g3_or_4,
                 p1);
         } else {
-            pressionFaceTwoNodes = make_shared<NormalPressionFaceTwoNodes>(model, g1,
+            pressionFaceTwoNodes = make_shared<NormalPressionFaceTwoNodes>(model, loadSet, g1,
                 p1);
         }
         for(int cellId = eid1; cellId <= eid2; cellId++) {
@@ -2649,14 +2601,13 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, Model& model) {
         }
 
         model.add(pressionFaceTwoNodes);
-        model.addLoadingIntoLoadSet(*pressionFaceTwoNodes, loadSetReference);
     } else if (has_direction and g1 != Globals::UNAVAILABLE_INT) {
         shared_ptr<ForceSurfaceTwoNodes> forceSurfaceTwoNodes = nullptr;
         if (g3_or_4 != Globals::UNAVAILABLE_INT) {
-            forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(model, g1, g3_or_4,
+            forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(model, loadSet, g1, g3_or_4,
 			VectorialValue(n1 * p1, n2 * p1, n3 * p1), VectorialValue(0, 0, 0));
         } else {
-            forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(model, g1,
+            forceSurfaceTwoNodes = make_shared<ForceSurfaceTwoNodes>(model, loadSet, g1,
 			VectorialValue(n1 * p1, n2 * p1, n3 * p1), VectorialValue(0, 0, 0));
         }
         for(int cellId = eid1; cellId <= eid2; cellId++) {
@@ -2664,20 +2615,14 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, Model& model) {
         }
 
         model.add(forceSurfaceTwoNodes);
-        model.addLoadingIntoLoadSet(*forceSurfaceTwoNodes, loadSetReference);
     } else {
-        const auto& forceSurface = make_shared<ForceSurface>(model, VectorialValue(n1 * p1, n2 * p1, n3 * p1),
+        const auto& forceSurface = make_shared<ForceSurface>(model, loadSet, VectorialValue(n1 * p1, n2 * p1, n3 * p1),
                 VectorialValue(0.0, 0.0, 0.0));
         for(int cellId = eid1; cellId <= eid2; cellId++) {
             forceSurface->addCellId(cellId);
         }
 
         model.add(forceSurface);
-        model.addLoadingIntoLoadSet(*forceSurface, loadSetReference);
-    }
-    if (!model.find(loadSetReference)) {
-        const auto& loadSet = make_shared<LoadSet>(model, LoadSet::Type::LOAD, loadset_id);
-        model.add(loadSet);
     }
 }
 
@@ -2935,13 +2880,10 @@ void NastranParser::parseRFORCE(NastranTokenizer& tok, Model& model) {
         string message = "MB not supported. Default (0) assumed.";
         handleParsingWarning(message, tok, model);
     }
-
-    const auto& rotation = make_shared<RotationNode>(model, a, g, r1, r2, r3);
+    const auto& loadset = model.getOrCreateLoadSet(sid, LoadSet::Type::LOAD);
+    const auto& rotation = make_shared<RotationNode>(model, loadset, a, g, r1, r2, r3);
 
     model.add(rotation);
-    shared_ptr<LoadSet> loadSet = model.getOrCreateLoadSet(sid, LoadSet::Type::LOAD);
-    model.addLoadingIntoLoadSet(rotation->getReference(), loadSet->getReference());
-
 }
 
 void NastranParser::parseRLOAD1(NastranTokenizer& tok, Model& model) {
@@ -3011,12 +2953,10 @@ void NastranParser::parseRLOAD1(NastranTokenizer& tok, Model& model) {
     else
         original_id = loadset_id;
 
-    const auto& dynamicExcitation = make_shared<DynamicExcitation>(model, dynaDelay_ref, dynaPhase_ref, functionTableC_ref, functionTableD_ref, darea->getReference(),
+    const auto& loadSet = model.getOrCreateLoadSet(loadset_id, LoadSet::Type::DLOAD);
+    const auto& dynamicExcitation = make_shared<DynamicExcitation>(model, loadSet, dynaDelay_ref, dynaPhase_ref, functionTableC_ref, functionTableD_ref, darea->getReference(),
             excitType, original_id);
     model.add(dynamicExcitation);
-
-    shared_ptr<LoadSet> loadSet = model.getOrCreateLoadSet(loadset_id, LoadSet::Type::DLOAD);
-    model.addLoadingIntoLoadSet(dynamicExcitation->getReference(), loadSet->getReference());
 
     // PlaceHolder to complete the Value attribute paraX of FunctionTable
     model.add(dynamicExcitation->getFunctionTableBPlaceHolder());
@@ -3105,20 +3045,18 @@ void NastranParser::parseRLOAD2(NastranTokenizer& tok, Model& model) {
     // else DynamicExcitation is created without original_id and is mapped to this loadSet
     int original_id;
     Reference<LoadSet> loadSetReference(LoadSet::Type::DLOAD, loadset_id);
-    if (model.find(loadSetReference) != nullptr)
-        original_id = Loading::NO_ORIGINAL_ID;
-    else
-        original_id = loadset_id;
-
-    const auto& dynamicExcitation = make_shared<DynamicExcitation>(model, dynaDelay_ref, dynaPhase_ref, functionTableB_ref, functionTableP_ref, excitRef,
-            excitType, original_id);
-    model.add(dynamicExcitation);
-
-    model.addLoadingIntoLoadSet(dynamicExcitation->getReference(), loadSetReference);
-    if (model.find(loadSetReference) == nullptr) {
+    auto loadSet = model.find(loadSetReference);
+    if (loadSet == nullptr) {
         const auto& loadSet = make_shared<LoadSet>(model, LoadSet::Type::DLOAD, loadset_id);
         model.add(loadSet);
+        original_id = loadset_id;
+    } else {
+        original_id = Loading::NO_ORIGINAL_ID;
     }
+
+    const auto& dynamicExcitation = make_shared<DynamicExcitation>(model, loadSet, dynaDelay_ref, dynaPhase_ref, functionTableB_ref, functionTableP_ref, excitRef,
+            excitType, original_id);
+    model.add(dynamicExcitation);
 
     // PlaceHolder to complete the Value attribute paraX of FunctionTable
     model.add(dynamicExcitation->getFunctionTableBPlaceHolder());
@@ -3169,22 +3107,15 @@ void NastranParser::parseSET3(NastranTokenizer& tok, Model& model) {
 // The "scalar" DOF is supposed to be DOF::DX
 void NastranParser::parseSLOAD(NastranTokenizer& tok, Model& model) {
     int loadset_id = tok.nextInt();
-    Reference<vega::LoadSet> loadset_ref(LoadSet::Type::LOAD, loadset_id);
+    const auto& loadSet = model.getOrCreateLoadSet(loadset_id, LoadSet::Type::LOAD);
 
     while (tok.isNextInt()) {
         int grid_id = tok.nextInt();
         double magnitude = tok.nextDouble();
-        const auto& force1 = make_shared<NodalForce>(model, magnitude, 0., 0., 0., 0., 0., Loading::NO_ORIGINAL_ID);
+        const auto& force1 = make_shared<NodalForce>(model, loadSet, magnitude, 0., 0., 0., 0., 0., Loading::NO_ORIGINAL_ID);
         force1->addNodeId(grid_id);
         model.add(force1);
-        model.addLoadingIntoLoadSet(force1->getReference(), loadset_ref);
     }
-
-    if (!model.find(loadset_ref)) {
-        const auto& loadSet = make_shared<LoadSet>(model, LoadSet::Type::LOAD, loadset_id);
-        model.add(loadSet);
-    }
-
 }
 void NastranParser::parseSPC(NastranTokenizer& tok, Model& model) {
     int spcSet_id = tok.nextInt();
@@ -3275,21 +3206,15 @@ void NastranParser::parseSPCD(NastranTokenizer& tok, Model& model) {
         d2 = tok.nextDouble();
         //g2pos = model.mesh.findNodePosition(g2);
     }
-    Reference<LoadSet> loadingSetReference(LoadSet::Type::LOAD, set_id);
-    if (!model.find(loadingSetReference)) {
-        const auto& loadingSet = make_shared<LoadSet>(model, LoadSet::Type::LOAD, set_id);
-        model.add(loadingSet);
-    }
+    const auto& loadSet = model.getOrCreateLoadSet(set_id, LoadSet::Type::LOAD);
 
-    const auto& spcd = make_shared<ImposedDisplacement>(model, DOFS::nastranCodeToDOFS(c1), d1);
+    const auto& spcd = make_shared<ImposedDisplacement>(model, loadSet, DOFS::nastranCodeToDOFS(c1), d1);
     spcd->addNodeId(g1);
     model.add(spcd);
-    model.addLoadingIntoLoadSet(spcd->getReference(), loadingSetReference);
     if (g2 != -1 and c2 != -1) {
-        const auto& spcd2 = make_shared<ImposedDisplacement>(model, DOFS::nastranCodeToDOFS(c2), d2);
+        const auto& spcd2 = make_shared<ImposedDisplacement>(model, loadSet, DOFS::nastranCodeToDOFS(c2), d2);
         spcd2->addNodeId(g2);
         model.add(spcd2);
-        model.addLoadingIntoLoadSet(spcd2->getReference(), loadingSetReference);
     }
 }
 
@@ -3463,35 +3388,28 @@ void NastranParser::parseTABLES1(NastranTokenizer& tok, Model& model) {
 
 void NastranParser::parseTEMP(NastranTokenizer& tok, Model& model) {
     int sid = tok.nextInt();
-    Reference<vega::LoadSet> loadset_ref(LoadSet::Type::LOAD, sid);
+    const auto& loadSet = model.getOrCreateLoadSet(sid, LoadSet::Type::LOAD);
+
     int g1 = tok.nextInt();
     double t1 = tok.nextDouble();
-    const auto& temp1 = make_shared<InitialTemperature>(model, t1);
+    const auto& temp1 = make_shared<InitialTemperature>(model, loadSet, t1);
     temp1->addNodeId(g1);
     model.add(temp1);
-    model.addLoadingIntoLoadSet(temp1->getReference(), loadset_ref);
 
     if (tok.isNextInt()) {
         int g2 = tok.nextInt();
         double t2 = tok.nextDouble();
-        const auto& temp2 = make_shared<InitialTemperature>(model, t2);
+        const auto& temp2 = make_shared<InitialTemperature>(model, loadSet, t2);
         temp2->addNodeId(g2);
         model.add(temp2);
-        model.addLoadingIntoLoadSet(temp2->getReference(), loadset_ref);
     }
 
     if (tok.isNextInt()) {
         int g3 = tok.nextInt();
         double t3 = tok.nextDouble();
-        const auto& temp3 = make_shared<InitialTemperature>(model, t3);
+        const auto& temp3 = make_shared<InitialTemperature>(model, loadSet, t3);
         temp3->addNodeId(g3);
         model.add(temp3);
-        model.addLoadingIntoLoadSet(temp3->getReference(), loadset_ref);
-    }
-
-    if (model.find(loadset_ref) == nullptr) {
-        const auto& loadSet = make_shared<LoadSet>(model, LoadSet::Type::LOAD, sid);
-        model.add(loadSet);
     }
 }
 
