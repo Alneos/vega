@@ -558,7 +558,9 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
 	}
     case Value::Type::SET: {
 		SetValueBase& setValue = dynamic_cast<SetValueBase&>(value);
-        if (not setValue.empty()) {
+		if (not setValue.isintegral()) {
+            handleWritingError("non-integral set not yet implemented");
+		} else if (not setValue.empty()) {
             ostringstream list_concept_ss;
             list_concept_ss << "LST" << setfill('0') << setw(5) << setValue.getId();
             concept_name = list_concept_ss.str();
