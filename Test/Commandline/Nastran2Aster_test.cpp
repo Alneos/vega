@@ -278,7 +278,7 @@ BOOST_AUTO_TEST_CASE( gpstress ) {
 
 BOOST_AUTO_TEST_CASE( test4a_rbe2 ) {
     // Tests NOOK
-	CommandLineUtils::nastranStudy2Aster("/irt/test4a_rbe2/test4a_rbe2.nas", false, true, 0.00001);
+	CommandLineUtils::nastranStudy2Aster("/irt/test4a_rbe2/test4a_rbe2.nas", RUN_ASTER, true, 0.00001);
 }
 
 } /* namespace test */
