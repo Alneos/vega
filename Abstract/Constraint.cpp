@@ -207,6 +207,17 @@ QuasiRigidConstraint::QuasiRigidConstraint(Model& model, const DOFS& dofs, int m
 
 }
 
+bool QuasiRigidConstraint::isCompletelyRigid() const {
+    if (this->dofs == DOFS::ALL_DOFS)
+        return true;
+    for (int nodePosition : nodePositions()) {
+        const Node& node = model.mesh.findNode(nodePosition);
+        if (node.dofs != this->dofs)
+            return false;
+    }
+    return true;
+}
+
 RigidConstraint::RigidConstraint(Model& model, int masterId, int constraintGroup,
         const set<int>& slaveIds) :
         MasterSlaveConstraint(model, Constraint::Type::RIGID, DOFS::ALL_DOFS, masterId, constraintGroup, slaveIds) {

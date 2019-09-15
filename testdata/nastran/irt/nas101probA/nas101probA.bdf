@@ -133,7 +133,7 @@ PARAM   COUPMASS1
 PARAM   NOCOMPS -1
 PARAM   WTMASS  .00259
 PSHELL  1       1       .125    1               1
-RBE2    52      999     123     6       12      18      24      30      +A
+RBE2    52      999     123456  6       12      18      24      30      +A
 +A      36      48      54      60      66
 SPC1    1       123456  1       7       13      19      25      31      +B
 +B      43      49      55      61

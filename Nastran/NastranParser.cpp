@@ -2809,17 +2809,21 @@ void NastranParser::parseRBAR1(NastranTokenizer& tok, Model& model) {
 void NastranParser::parseRBE2(NastranTokenizer& tok, Model& model) {
     int original_id = tok.nextInt();
     int masterId = tok.nextInt();
-    int dofs = tok.nextInt();
-    if (dofs != 123456) {
+    int cm = tok.nextInt();
+    const DOFS& dofs = DOFS::nastranCodeToDOFS(cm);
+    shared_ptr<MasterSlaveConstraint> constraint = nullptr;
+    if (dofs != DOFS::ALL_DOFS) {
         handleParsingWarning("QuasiRigid constraint not supported.",tok, model);
+        constraint = make_shared<QuasiRigidConstraint>(model, dofs, masterId, original_id);
+    } else {
+        constraint = make_shared<RigidConstraint>(model, masterId, original_id);
     }
 
-    const auto& qrc = make_shared<RigidConstraint>(model, masterId, original_id);
     while (tok.isNextInt()) {
-        qrc->addSlave(tok.nextInt());
+        constraint->addSlave(tok.nextInt());
     }
-    model.add(qrc);
-    model.addConstraintIntoConstraintSet(*qrc, *model.commonConstraintSet);
+    model.add(constraint);
+    model.addConstraintIntoConstraintSet(*constraint, *model.commonConstraintSet);
 
     double alpha = tok.nextDouble(true);
     if (!is_equal(alpha, Globals::UNAVAILABLE_DOUBLE)) {

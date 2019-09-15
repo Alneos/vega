@@ -1446,8 +1446,11 @@ void AsterWriter::writeLIAISON_SOLIDE(const AsterModel& asterModel, const Constr
 	const auto& rigidConstraints = cset.getConstraintsByType(Constraint::Type::RIGID);
 	const auto& quasiRigidConstraints = cset.getConstraintsByType(Constraint::Type::QUASI_RIGID);
 	vector<shared_ptr<Constraint>> constraints;
-	constraints.reserve(rigidConstraints.size() + quasiRigidConstraints.size());
-	constraints.assign(rigidConstraints.begin(), rigidConstraints.end());
+	//constraints.reserve(rigidConstraints.size() + quasiRigidConstraints.size());
+	//constraints.assign(rigidConstraints.begin(), rigidConstraints.end());
+	for (const auto& rigidConstraint : rigidConstraints) {
+        constraints.push_back(rigidConstraint);
+	}
 	for (const auto& quasiRigidConstraint : quasiRigidConstraints) {
 		if ((dynamic_pointer_cast<QuasiRigidConstraint>(quasiRigidConstraint)->isCompletelyRigid())) {
 			constraints.push_back(quasiRigidConstraint);

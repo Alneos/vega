@@ -15,7 +15,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Vega.  If not, see <http://www.gnu.org/licenses/>.
  *
- * NastranParser.cpp
+ * MedWriter.h
  *
  *  Created on: Nov 29, 2018
  *      Author: Luca Dall'Olio

@@ -140,9 +140,7 @@ class QuasiRigidConstraint: public MasterSlaveConstraint {
 public:
 	QuasiRigidConstraint(Model& model, const DOFS& dofs, int masterId = UNAVAILABLE_MASTER,
 			int original_id = NO_ORIGINAL_ID, const std::set<int>& slaveIds = std::set<int>());
-	inline bool isCompletelyRigid() const {
-		return this->dofs == DOFS::ALL_DOFS;
-	}
+	bool isCompletelyRigid() const;
 };
 
 class RigidConstraint: public MasterSlaveConstraint {

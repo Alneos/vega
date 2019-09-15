@@ -277,8 +277,27 @@ BOOST_AUTO_TEST_CASE( gpstress ) {
 }
 
 BOOST_AUTO_TEST_CASE( test4a_rbe2 ) {
-    // Tests NOOK
 	CommandLineUtils::nastranStudy2Aster("/irt/test4a_rbe2/test4a_rbe2.nas", RUN_ASTER, true, 0.00001);
+}
+
+BOOST_AUTO_TEST_CASE( rbe2_z ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_z/rbe2_z.nas", RUN_ASTER, true, 0.00001);
+}
+
+BOOST_AUTO_TEST_CASE( rbe2_y ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_y/rbe2_y.nas", RUN_ASTER, true, 0.00001);
+}
+
+BOOST_AUTO_TEST_CASE( rbe2_yz ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_yz/rbe2_yz.nas", RUN_ASTER, true, 0.00001);
+}
+
+BOOST_AUTO_TEST_CASE( rbe2_3nodes ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_3nodes/rbe2_3nodes.nas", RUN_ASTER, true, 0.00001);
+}
+
+BOOST_AUTO_TEST_CASE( rbe2_4nodes ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_4nodes/rbe2_4nodes.nas", RUN_ASTER, true, 0.00001);
 }
 
 } /* namespace test */

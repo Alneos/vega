@@ -1655,8 +1655,7 @@ void Model::makeCellsFromRBE(){
             const int masterId = mesh.findNodeId(rbe2->getMaster());
             for (int position : rbe2->getSlaves()){
                 const int slaveId = mesh.findNodeId(position);
-                vector<int> nodes = {masterId, slaveId};
-                int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
+                int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, {masterId, slaveId}, true);
                 group->addCellPosition(cellPosition);
             }
 
@@ -1673,29 +1672,40 @@ void Model::makeCellsFromRBE(){
             if (!(rbar->isCompletelyRigid())){
                 cerr << "QUASI_RIGID constraint not available yet. Constraint "+to_string(constraint->bestId())+ " translated as rigid constraint."<<endl;
             }
-            if (rbar->getSlaves().size()!=2){
-               throw logic_error("QUASI_RIGID constraint must have exactly two slaves.");
-            }
+            //if (rbar->getSlaves().size()!=2){
+            //   throw logic_error("QUASI_RIGID constraint must have exactly two slaves.");
+            //}
 
             // Creating an elementset, a CellGroup and a dummy rigid material
             shared_ptr<Material> materialRBAR = make_shared<Material>(*this);
             materialRBAR->addNature(make_shared<RigidNature>(*this, 1));
             this->add(materialRBAR);
 
-            // Master Node : first one. Slave Node : second and last one
-            const int masterNodeId = mesh.findNodeId(*rbar->getSlaves().begin());
-            const int slaveNodeId = mesh.findNodeId(*rbar->getSlaves().rbegin());
+            int masterId;
+            if (rbar->hasMaster()) {
+                masterId = mesh.findNodeId(rbar->getMaster());
+            } else {
+                masterId = mesh.findNodeId(*rbar->getSlaves().begin());
+            }
             shared_ptr<CellGroup> group = mesh.createCellGroup("RBAR_"+to_string(constraint->bestId()), CellGroup::NO_ORIGINAL_ID, "RBAR");
 
-            const auto& elementsetRBAR = make_shared<Rbar>(*this, masterNodeId);
+            const auto& elementsetRBAR = make_shared<Rbar>(*this, masterId);
             elementsetRBAR->add(*group);
             elementsetRBAR->assignMaterial(materialRBAR);
             this->add(elementsetRBAR);
 
             // Creating a cell and adding it to the CellGroup
-            vector<int> nodes = {masterNodeId, slaveNodeId};
-            int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
-            group->addCellPosition(cellPosition);
+            //vector<int> nodes = {masterNodeId, slaveNodeId};
+            //int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
+            //group->addCellPosition(cellPosition);
+
+            for (int position : rbar->getSlaves()) {
+                const int slaveId = mesh.findNodeId(position);
+                if (not rbar->hasMaster() and slaveId == masterId)
+                    continue;
+                int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, {masterId, slaveId}, true);
+                group->addCellPosition(cellPosition);
+            }
 
             // Removing the constraint from the model.
             toBeRemoved.push_back(constraint);
@@ -1965,11 +1975,11 @@ void Model::finish() {
         emulateLocalDisplacementConstraint();
     }
 
-//    for (const auto& constraint : constraints.filter(Constraint::Type::RIGID)) {
-//        shared_ptr<RigidConstraint> rigid = dynamic_pointer_cast<RigidConstraint>(
-//                constraint);
-//        rigid->emulateWithMPCs();
-//    }
+    //for (const auto& constraint : constraints.filter(Constraint::Type::RIGID)) {
+    //    shared_ptr<RigidConstraint> rigid = dynamic_pointer_cast<RigidConstraint>(
+    //            constraint);
+    //    rigid->emulateWithMPCs();
+    //}
 
     if (this->configuration.displayMasterSlaveConstraint) {
         generateBeamsToDisplayMasterSlaveConstraint();
