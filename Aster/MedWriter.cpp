@@ -185,7 +185,7 @@ void MedWriter::writeMED(const Model& model, const string& medFileName) {
 	const med_int meshdim = 3;
 	const char axisname[3 * MED_SNAME_SIZE + 1] = "x               y               z               ";
 	const char unitname[3 * MED_SNAME_SIZE + 1] = "m               m               m               ";
-	const med_int nnodes = model.mesh.countNodes();
+	const med_int nnodes = static_cast<med_int>(model.mesh.countNodes());
 	if (model.configuration.logLevel >= LogLevel::DEBUG) {
 		med_int v[3];
 		MEDlibraryNumVersion(&v[0], &v[1], &v[2]);
@@ -306,7 +306,7 @@ void MedWriter::writeMED(const Model& model, const string& medFileName) {
 
 	vector<shared_ptr<NodeGroup>> nodeGroups = model.mesh.getNodeGroups();
     // To avoid useless cast to type ‘int’ in some installations
-	if (nodeGroups.size() > 0) {
+	if (not nodeGroups.empty()) {
 		NodeGroup2Families ng2fam(nnodes, nodeGroups);
 		//WARN: if writing to file is delayed to MEDfileClose may be necessary
 		//to move the allocation outside the if
@@ -319,7 +319,7 @@ void MedWriter::writeMED(const Model& model, const string& medFileName) {
 		}
 	}
 	vector<shared_ptr<CellGroup>> cellGroups = model.mesh.getCellGroups();
-	if (cellGroups.size() > 0) {
+	if (not cellGroups.empty()) {
 		unordered_map<CellType::Code, int, EnumClassHash> cellCountByType;
 		for (const auto& typeAndCodePair : CellType::typeByCode) {
 			int cellNum = model.mesh.countCells(*typeAndCodePair.second);

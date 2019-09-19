@@ -590,7 +590,7 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
 
         const ConfigurationParameters configuration = readCommandLineParameters(vm);
         logLevel = configuration.logLevel;
-        if (configuration.resultFile.string().size() >= 1) {
+        if (not configuration.resultFile.empty()) {
             if (!fs::exists(configuration.resultFile)) {
                 cerr << "Test file specified " << configuration.resultFile << " can't be found. " << endl;
                 return ExitCode::NO_INPUT_FILE;

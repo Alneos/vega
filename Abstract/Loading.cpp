@@ -564,7 +564,7 @@ bool CellLoading::appliedToGeometry() {
 
 void CellLoading::createSkin() {
     const auto& faceIds = this->getApplicationFaceNodeIds();
-    if (faceIds.size() >= 1) {
+    if (not faceIds.empty()) {
         const int cellPosition = model.mesh.generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
 
         // LD : try to solve https://github.com/Alneos/vega/issues/25 but it should be done only for loadings that can be grouped together (i.e. same pressure values, same directions etc)

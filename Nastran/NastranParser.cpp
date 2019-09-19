@@ -618,7 +618,7 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
     NastranAnalysis analysis_type = str_entry->second;
 
     shared_ptr<Analysis> previous = nullptr;
-    if (model.analyses.size() >= 1) {
+    if (not model.analyses.empty()) {
         previous = model.analyses.last();
     }
 
@@ -748,7 +748,7 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
         string key = contextPair.first;
         int id = 0;
         string value = boost::algorithm::trim_copy(contextPair.second);
-        if (value.size() >= 1 and value.find_first_not_of("0123456789") == std::string::npos) {
+        if (not value.empty() and value.find_first_not_of("0123456789") == std::string::npos) {
             id = stoi(value); // Avoid exception catch to simplify debugging
         }
         vector<string> options;
@@ -2812,12 +2812,7 @@ void NastranParser::parseRBE2(NastranTokenizer& tok, Model& model) {
     int cm = tok.nextInt();
     const DOFS& dofs = DOFS::nastranCodeToDOFS(cm);
     shared_ptr<MasterSlaveConstraint> constraint = nullptr;
-    if (dofs != DOFS::ALL_DOFS) {
-        handleParsingWarning("QuasiRigid constraint not supported.",tok, model);
-        constraint = make_shared<QuasiRigidConstraint>(model, dofs, masterId, original_id);
-    } else {
-        constraint = make_shared<RigidConstraint>(model, masterId, original_id);
-    }
+    constraint = make_shared<QuasiRigidConstraint>(model, dofs, masterId, original_id);
 
     while (tok.isNextInt()) {
         constraint->addSlave(tok.nextInt());

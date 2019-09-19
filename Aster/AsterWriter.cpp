@@ -226,7 +226,7 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 
 			const auto& displacementOutputs = asterModel.model.objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT);
 			out << "RETB" << analysis->getId();
-			if (displacementOutputs.size() >= 1) {
+			if (not displacementOutputs.empty()) {
                 out << "=POST_RELEVE_T(ACTION=(" << endl;
                 for (auto output : displacementOutputs) {
                     shared_ptr<const NodalDisplacementOutput> displacementOutput = dynamic_pointer_cast<const NodalDisplacementOutput>(output);
@@ -282,7 +282,7 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
             for (const auto& elementSet : asterModel.model.elementSets) {
                 if (not elementSet->isBeam()) continue;
                 auto beam = dynamic_pointer_cast<Beam>(elementSet);
-                if (beam->recoveryPoints.size() >= 1) {
+                if (not beam->recoveryPoints.empty()) {
                     hasRecoveryPoints = true;
                     break;
                 }
@@ -362,7 +362,7 @@ void AsterWriter::writeAnalyses(const AsterModel& asterModel, ostream& out) {
 					<< endl;
 			out << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
 			out << "           MODELE=MODMECA," << endl;
-            if (asterModel.model.materials.size() >= 1) {
+            if (not asterModel.model.materials.empty()) {
                 out << "           CHAM_MATER=CHMAT," << endl;
             }
             out << "           CARA_ELEM=CAEL," << endl;
@@ -746,7 +746,7 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
         composite->markAsWritten();
     }
 
-    if (asterModel.model.materials.size() >= 1) {
+    if (not asterModel.model.materials.empty()) {
         out << "CHMAT=AFFE_MATERIAU(MAILLAGE=" << mail_name << "," << endl;
         out << "                    AFFE=(" << endl;
         for (const auto& material : asterModel.model.materials) {
@@ -773,7 +773,7 @@ void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
 
 void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) {
 	calc_sigm = false;
-	if (asterModel.model.elementSets.size() > 0) {
+	if (not asterModel.model.elementSets.empty()) {
 		out << "CAEL=AFFE_CARA_ELEM(MODELE=MODMECA," << endl;
 
 		const auto& discrets_0d = asterModel.model.elementSets.filter(
@@ -921,7 +921,7 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
         const auto& barres = asterModel.model.getTrusses();
 		out << "                    # writing " << poutres.size() << " poutres" << endl;
 		out << "                    # writing " << barres.size() << " barres" << endl;
-		if (poutres.size() > 0 or (asterModel.model.needsLargeDisplacements() and barres.size() > 0)) {
+		if (not poutres.empty() or (asterModel.model.needsLargeDisplacements() and not barres.empty())) {
 			out << "                    POUTRE=(" << endl;
 			for (const auto& poutre : poutres) {
 				writeAffeCaraElemPoutre(asterModel, *poutre, out);
@@ -934,7 +934,7 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 			out << "                            )," << endl;
 		}
 
-		if (barres.size() > 0 and not asterModel.model.needsLargeDisplacements()) {
+		if (not barres.empty() and not asterModel.model.needsLargeDisplacements()) {
 			out << "                    BARRE=(" << endl;
 			for (const auto& barre : barres) {
 				writeAffeCaraElemPoutre(asterModel, *barre, out);
@@ -944,7 +944,7 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 		const auto& shells = asterModel.model.elementSets.filter(ElementSet::Type::SHELL);
 		const auto& composites = asterModel.model.elementSets.filter(ElementSet::Type::COMPOSITE);
 		out << "                    # writing " << shells.size()+composites.size() << " shells (ou composites)" << endl;
-		if (shells.size() + composites.size() > 0) {
+		if (not (shells.empty() and composites.empty())) {
 			calc_sigm = true;
 			out << "                    COQUE=(" << endl;
 			for (const auto& elementSet : shells) {
@@ -989,7 +989,7 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 				ElementSet::Type::SKIN);
 		out << "                    # writing " << solids.size() << " solids" << endl;
 		out << "                    # writing " << skins.size() << " skins" << endl;
-		if (solids.size() > 0) {
+		if (not solids.empty()) {
 			out << "                    MASSIF=(" << endl;
 			for (const auto& elementSet : solids) {
                 const auto& solid = dynamic_pointer_cast<Continuum>(elementSet);
@@ -1116,7 +1116,7 @@ void AsterWriter::writeAffeCaraElemPoutre(const AsterModel& asterModel, Beam& be
 void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) {
 	for (const auto& it : asterModel.model.constraintSets) {
 		ConstraintSet& constraintSet = *it;
-		if (constraintSet.getConstraints().size() == 0) {
+		if (constraintSet.getConstraints().empty()) {
 			//GC fix for http://hotline.alneos.fr/redmine/issues/801.
 			//What is the meaning of an empty constraintset?
 			//maybe it should be fixed elsewhere
@@ -1207,7 +1207,7 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
 void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 	for (const auto& it : asterModel.model.constraintSets) {
 		ConstraintSet& constraintSet = *it;
-		if (constraintSet.getConstraints().size() == 0) {
+		if (constraintSet.getConstraints().empty()) {
 			// LD filter empty constraintSet
 			continue;
 		}
@@ -1250,12 +1250,12 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
             out << "# ConstraintSet original id:" << constraintSet.getOriginalId() << endl;
 		}
 		out << asterName << "=DEFI_CONTACT(MODELE=MODMECA," << endl;
-		if (gaps.size() >= 1) {
+		if (not gaps.empty()) {
             out << "                   FORMULATION='LIAISON_UNIL'," << endl;
-		} else if (slides.size() >= 1) {
+		} else if (not slides.empty()) {
 		    out << "                   FORMULATION='CONTINUE'," << endl;
 		    out << "                   FROTTEMENT='COULOMB'," << endl;
-		} else if (surfaces.size() >= 1) {
+		} else if (not surfaces.empty()) {
 		    out << "                   FORMULATION='CONTINUE'," << endl;
 		}
 		out << "                   ZONE=(" << endl;
@@ -1370,7 +1370,7 @@ void AsterWriter::writeSPC(const AsterModel& asterModel, const ConstraintSet& cs
 		ostream&out) {
     UNUSEDV(asterModel);
 	const auto& spcs = cset.getConstraintsByType(Constraint::Type::SPC);
-	if (spcs.size() > 0) {
+	if (not spcs.empty()) {
 		out << "                   DDL_IMPO=(" << endl;
 		for (const auto& constraint : spcs) {
 			const auto& spc = dynamic_pointer_cast<SinglePointConstraint>(constraint);
@@ -1411,7 +1411,7 @@ void AsterWriter::writeSPCD(const AsterModel& asterModel, const LoadSet& lset,
 		ostream&out) {
     UNUSEDV(asterModel);
 	const auto& spcds = lset.getLoadingsByType(Loading::Type::IMPOSED_DISPLACEMENT);
-	if (spcds.size() > 0) {
+	if (not spcds.empty()) {
 		out << "                   DDL_IMPO=(" << endl;
 		for (const auto& loading : spcds) {
 			const auto& spcd = dynamic_pointer_cast<ImposedDisplacement>(loading);
@@ -1446,8 +1446,6 @@ void AsterWriter::writeLIAISON_SOLIDE(const AsterModel& asterModel, const Constr
 	const auto& rigidConstraints = cset.getConstraintsByType(Constraint::Type::RIGID);
 	const auto& quasiRigidConstraints = cset.getConstraintsByType(Constraint::Type::QUASI_RIGID);
 	vector<shared_ptr<Constraint>> constraints;
-	//constraints.reserve(rigidConstraints.size() + quasiRigidConstraints.size());
-	//constraints.assign(rigidConstraints.begin(), rigidConstraints.end());
 	for (const auto& rigidConstraint : rigidConstraints) {
         constraints.push_back(rigidConstraint);
 	}
@@ -1456,9 +1454,8 @@ void AsterWriter::writeLIAISON_SOLIDE(const AsterModel& asterModel, const Constr
 			constraints.push_back(quasiRigidConstraint);
 		}
 	}
-	bool needLiaisonSolide = constraints.size() > 0;
 
-	if (needLiaisonSolide) {
+	if (not constraints.empty()) {
 		out << "                   LIAISON_SOLIDE=(" << endl;
 		for (const auto& constraintPtr : constraints) {
 			out << "                                   _F(NOEUD=(";
@@ -1480,7 +1477,7 @@ void AsterWriter::writeLIAISON_MAIL(const AsterModel& asterModel, const Constrai
 	const auto& slideSurfaces = cset.getConstraintsByType(
 			Constraint::Type::SURFACE_SLIDE_CONTACT);
 
-	if (slideSurfaces.size() >= 1) {
+	if (not slideSurfaces.empty()) {
 		out << "                   LIAISON_MAIL=(" << endl;
         for (const auto& constraint : slideSurfaces) {
 		    const auto& surface = dynamic_pointer_cast<SurfaceSlide>(constraint);
@@ -1502,7 +1499,7 @@ void AsterWriter::writeRBE3(const AsterModel& asterModel, const ConstraintSet& c
 		ostream& out) {
     UNUSEDV(asterModel);
 	const auto& constraints = cset.getConstraintsByType(Constraint::Type::RBE3);
-	if (constraints.size() > 0) {
+	if (not constraints.empty()) {
 		out << "                   LIAISON_RBE3=(" << endl;
 		for (const auto& constraint : constraints) {
 			const auto& rbe3 = dynamic_pointer_cast<RBE3>(constraint);
@@ -1584,7 +1581,7 @@ void AsterWriter::writeLMPC(const AsterModel& asterModel, const ConstraintSet& c
 		ostream& out) {
     UNUSEDV(asterModel);
 	const auto& lmpcs = cset.getConstraintsByType(Constraint::Type::LMPC);
-	if (lmpcs.size() > 0) {
+	if (not lmpcs.empty()) {
 		out << "                   LIAISON_DDL=(" << endl;
 		for (const auto& constraint : lmpcs) {
 			const auto& lmpc = dynamic_pointer_cast<LinearMultiplePointConstraint>(constraint);
@@ -1634,7 +1631,7 @@ void AsterWriter::writeLMPC(const AsterModel& asterModel, const ConstraintSet& c
 
 void AsterWriter::writeGravity(const LoadSet& loadSet, ostream& out) {
 	const auto& gravities = loadSet.getLoadingsByType(Loading::Type::GRAVITY);
-	if (gravities.size() > 0) {
+	if (not gravities.empty()) {
 		out << "                      PESANTEUR=(" << endl;
 		for (const auto& loading : gravities) {
 			const auto& gravity = dynamic_pointer_cast<Gravity>(loading);
@@ -1651,7 +1648,7 @@ void AsterWriter::writeGravity(const LoadSet& loadSet, ostream& out) {
 
 void AsterWriter::writeRotation(const LoadSet& loadSet, ostream& out) {
 	const auto& rotations = loadSet.getLoadingsByType(Loading::Type::ROTATION);
-	if (rotations.size() > 0) {
+	if (not rotations.empty()) {
 		out << "                      ROTATION=(" << endl;
 		for (const auto& loading : rotations) {
 			const auto& rotation = dynamic_pointer_cast<Rotation>(loading);
@@ -1673,7 +1670,7 @@ void AsterWriter::writeRotation(const LoadSet& loadSet, ostream& out) {
 void AsterWriter::writeNodalForce(const AsterModel& asterModel, const LoadSet& loadSet, ostream& out) {
   UNUSEDV(asterModel);
 	const auto& nodalForces = loadSet.getLoadingsByType(Loading::Type::NODAL_FORCE);
-	if (nodalForces.size() > 0) {
+	if (not nodalForces.empty()) {
         map<int, pair<VectorialValue, VectorialValue>> forceAndMomentByPosition;
 		for (const auto& loading : nodalForces) {
 			const auto& nodal_force = dynamic_pointer_cast<NodalForce>(loading);
@@ -1719,7 +1716,7 @@ void AsterWriter::writeNodalForce(const AsterModel& asterModel, const LoadSet& l
 void AsterWriter::writePression(const LoadSet& loadSet, ostream& out) {
 	const auto& loading = loadSet.getLoadingsByType(
 			Loading::Type::NORMAL_PRESSION_FACE);
-	if (loading.size() > 0) {
+	if (not loading.empty()) {
 		out << "           PRES_REP=(" << endl;
 		for (const auto& pressionFace : loading) {
 			const auto& normalPressionFace = dynamic_pointer_cast<
@@ -1736,7 +1733,7 @@ void AsterWriter::writePression(const LoadSet& loadSet, ostream& out) {
 void AsterWriter::writeForceCoque(const LoadSet& loadSet, ostream&out) {
     return; // TODO : change type of loading in parser to something specific for shell elements
 	const auto& pressionFaces = loadSet.getLoadingsByType(Loading::Type::NORMAL_PRESSION_FACE);
-	if (pressionFaces.size() > 0) {
+	if (not pressionFaces.empty()) {
 		out << "           FORCE_COQUE=(" << endl;
 		for (const auto& pressionFace : pressionFaces) {
 			const auto& normalPressionFace = dynamic_pointer_cast<
@@ -1763,7 +1760,7 @@ void AsterWriter::writeForceLine(const LoadSet& loadset, ostream& out) {
 			forcesOnPoutres.push_back(forceLine);
 		}
 	}
-	if (forcesOnPoutres.size() >= 1) {
+	if (not forcesOnPoutres.empty()) {
 		out << "           FORCE_POUTRE=(" << endl;
 		for (const auto& forceLine : forcesOnPoutres) {
             out << "                   _F(";
@@ -1797,7 +1794,7 @@ void AsterWriter::writeForceLine(const LoadSet& loadset, ostream& out) {
 		out << "            )," << endl;
 	}
 
-	if (forcesOnGeometry.size() >= 1) {
+	if (not forcesOnGeometry.empty()) {
         handleWritingWarning("# warn! force_arete not implemented");
 
 	}
@@ -1805,7 +1802,7 @@ void AsterWriter::writeForceLine(const LoadSet& loadset, ostream& out) {
 }
 void AsterWriter::writeForceSurface(const LoadSet& loadSet, ostream&out) {
 	const auto& forceSurfaces = loadSet.getLoadingsByType(Loading::Type::FORCE_SURFACE);
-	if (forceSurfaces.size() > 0) {
+	if (not forceSurfaces.empty()) {
 		out << "           FORCE_FACE=(" << endl;
 		for (const auto& loading : forceSurfaces) {
 			const auto& forceSurface = dynamic_pointer_cast<ForceSurface>(loading);
@@ -1922,7 +1919,7 @@ void AsterWriter::writeAssemblage(const AsterModel& asterModel, Analysis& analys
     bool hasDynamicExcit = asterModel.model.loadSets.contains(LoadSet::Type::DLOAD);
     bool isBuckling = analysis.type == Analysis::Type::LINEAR_BUCKLING;
     out << "ASSEMBLAGE(MODELE=MODMECA," << endl;
-    if (asterModel.model.materials.size() >= 1) {
+    if (not asterModel.model.materials.empty()) {
         out << "           CHAM_MATER=CHMAT," << endl;
     }
     out << "           CARA_ELEM=CAEL," << endl;
@@ -2123,7 +2120,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		LinearMecaStat& linearMecaStat = dynamic_cast<LinearMecaStat&>(analysis);
 
 		out << "RESU" << linearMecaStat.getId() << "=MECA_STATIQUE(MODELE=MODMECA," << endl;
-		if (asterModel.model.materials.size() >= 1) {
+		if (not asterModel.model.materials.empty()) {
             out << "                    CHAM_MATER=CHMAT," << endl;
 		}
 		out << "                    CARA_ELEM=CAEL," << endl;
@@ -2133,7 +2130,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		}
 		for (const auto& constraintSet : linearMecaStat.getConstraintSets()) {
 			//GC: dirty fix for #801, a deeper analysis must be done
-			if (constraintSet->getConstraints().size() > 0) {
+			if (not constraintSet->empty()) {
                 cout << "constraintSet:" << *constraintSet << " AsterName: " << asternameByConstraintSet[constraintSet] << "Size:" << constraintSet->size() << endl;
 				out << "                           _F(CHARGE=" << asternameByConstraintSet[constraintSet] << "),"
 						<< endl;
@@ -2168,7 +2165,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 					<< stepRange.start << ",1.0," << stepRange.end << ",0.0,));" << endl;
 		}
 		out << "RESU" << nonLinAnalysis.getId() << "=STAT_NON_LINE(MODELE=MODMECA," << endl;
-		if (asterModel.model.materials.size() >= 1) {
+		if (not asterModel.model.materials.empty()) {
             out << "                    CHAM_MATER=CHMAT," << endl;
 		}
 		out << "                    CARA_ELEM=CAEL," << endl;
@@ -2188,14 +2185,14 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 				continue;
 			}
 			//GC: dirty fix for #801, a deeper analysis must be done
-			if (constraintSet->getConstraints().size() >= 1) {
+			if (not constraintSet->getConstraints().empty()) {
 				out << "                           _F(CHARGE=" << asternameByConstraintSet[constraintSet] << "),"
 						 << "# Original id:" << constraintSet->getOriginalId() << endl;
 			}
 		}
 		out << "                           )," << endl;
 		for (const auto& constraintSet : asterModel.model.constraintSets) {
-			if (constraintSet->getConstraints().size() == 0) {
+			if (constraintSet->empty()) {
 				// LD filter empty constraintSet
 				continue;
 			}

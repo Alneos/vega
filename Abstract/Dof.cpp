@@ -109,19 +109,19 @@ DOFS::DOFS(bool dx, bool dy, bool dz, bool rx, bool ry, bool rz) :
 		dofsCode(combineCodes(dx, dy, dz, rx, ry, rz)) {
 }
 
-bool DOFS::containsAll(DOFS dofs) const {
+bool DOFS::containsAll(const DOFS& dofs) const {
 	return (dofs.dofsCode | dofsCode) == dofsCode;
 }
 
-bool DOFS::containsAnyOf(DOFS dofs) const {
+bool DOFS::containsAnyOf(const DOFS& dofs) const {
 	return (dofsCode & dofs.dofsCode) != 0;
 }
 
-bool DOFS::contains(DOF dof) const {
+bool DOFS::contains(const DOF& dof) const {
 	return (dofsCode & static_cast<char>(dof.code)) != 0;
 }
 
-DOFS DOFS::intersection(DOFS dofs) const {
+DOFS DOFS::intersection(const DOFS& dofs) const {
 	return DOFS(static_cast<char>(dofsCode & dofs.dofsCode));
 }
 
@@ -167,12 +167,12 @@ int DOFS::size() const {
 }
 
 int DOFS::nastranCode() const {
-	string dofs = "";
+	string dofsString = "";
 	for (DOF dof : *this) {
 		int dofCode = DOF_BY_NASTRANCODE.right.find(dof.code)->second;
-		dofs += to_string(dofCode);
+		dofsString += to_string(dofCode);
 	}
-	return dofs.size() >= 1 ? boost::lexical_cast<int>(dofs) : 0;
+	return dofsString.empty() ? 0: boost::lexical_cast<int>(dofsString);
 }
 
 // Should be in NastranTokenizer, imho

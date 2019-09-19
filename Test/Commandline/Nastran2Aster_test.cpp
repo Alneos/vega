@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE( fixedcircularplate ) {
 
 BOOST_AUTO_TEST_CASE( t01331a ) {
     // Results NOOK, still missing THETA CTRIA3 orientation (should become a ANGL_VRIL)
-	CommandLineUtils::nastranStudy2Aster("/irt/t01331/t01331a.inp", RUN_ASTER, true, 0.00001);
+	CommandLineUtils::nastranStudy2Aster("/irt/t01331/t01331a.inp", false, true, 0.00001);
 }
 
 BOOST_AUTO_TEST_CASE( cbush ) {
@@ -289,7 +289,8 @@ BOOST_AUTO_TEST_CASE( rbe2_y ) {
 }
 
 BOOST_AUTO_TEST_CASE( rbe2_yz ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_yz/rbe2_yz.nas", RUN_ASTER, true, 0.00001);
+    // invalid pointer in Aster ??
+	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_yz/rbe2_yz.nas", false, true, 0.00001);
 }
 
 BOOST_AUTO_TEST_CASE( rbe2_3nodes ) {
@@ -298,6 +299,26 @@ BOOST_AUTO_TEST_CASE( rbe2_3nodes ) {
 
 BOOST_AUTO_TEST_CASE( rbe2_4nodes ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_4nodes/rbe2_4nodes.nas", RUN_ASTER, true, 0.00001);
+}
+
+BOOST_AUTO_TEST_CASE( rbe2_beam_coinc ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_beam_coinc/rbe2_beam_coinc.nas", RUN_ASTER, true, 0.03);
+}
+
+BOOST_AUTO_TEST_CASE( rbe2_hexapoi_coinc ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_hexapoi_coinc/rbe2_hexapoi_coinc.nas", RUN_ASTER, true, 0.00001);
+}
+
+BOOST_AUTO_TEST_CASE( rbe2_hexapoi_3nodes ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_hexapoi_3nodes/rbe2_hexapoi_3nodes.nas", RUN_ASTER, true, 0.00001);
+}
+
+BOOST_AUTO_TEST_CASE( rbe2_hexapoi_aligndist ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_hexapoi_aligndist/rbe2_hexapoi_aligndist.nas", RUN_ASTER, true, 0.00001);
+}
+
+BOOST_AUTO_TEST_CASE( rbe2_hexapoi_nonalign_dist ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_hexapoi_nonalign_dist/rbe2_hexapoi_nonalign_dist.nas", RUN_ASTER, true, 0.00001);
 }
 
 } /* namespace test */

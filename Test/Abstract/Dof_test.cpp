@@ -29,6 +29,9 @@ BOOST_AUTO_TEST_CASE( test_dofS ) {
 }
 
 BOOST_AUTO_TEST_CASE( test_DOFS ) {
+    BOOST_CHECK(DOFS().empty());
+    BOOST_CHECK(not DOFS(DOF::DX).empty());
+
 	//DX
 	DOFS dofs(true, false, true);
 

@@ -88,10 +88,10 @@ public:
 	DOFS(bool dx = false, bool dy = false, bool dz = false, bool rx = false, bool ry = false,
 			bool rz = false);
 
-	bool containsAll(DOFS dofs) const;
-	bool containsAnyOf(DOFS dofs) const;
-	bool contains(DOF dofs) const;
-	DOFS intersection(DOFS) const;
+	bool containsAll(const DOFS&) const;
+	bool containsAnyOf(const DOFS&) const;
+	bool contains(const DOF&) const;
+	DOFS intersection(const DOFS&) const;
 	VectorialValue getTranslations();
 	VectorialValue getRotations();
 
@@ -103,6 +103,9 @@ public:
 	DOFS& operator+=(const DOF& other );
 	DOFS& operator=(const DOF& dof);
 	int size() const;
+	bool empty() const {
+        return dofsCode == 0;
+	}
 	int nastranCode() const;
 
 	class iterator;

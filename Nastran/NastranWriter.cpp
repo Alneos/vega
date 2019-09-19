@@ -799,50 +799,44 @@ string NastranWriter::writeModel(Model& model,
 	out << "TIME  10000" << endl;
 	out << "CEND" << endl;
     const auto& displacementOutputs = model.objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT);
-    if (displacementOutputs.size() >= 1) {
-        for (const auto& objective : displacementOutputs) {
-            const auto& displacementOutput = dynamic_pointer_cast<const NodalDisplacementOutput>(objective);
-            out << "  SET " << objective->bestId() << " = ";
-            bool firstNode = true;
-            int nodeCount = 1;
-            for (int nodeId : displacementOutput->getNodeIdsIncludingGroups()) {
-                if (not firstNode)
-                    out << ",";
-                else {
-                    firstNode = false;
-                }
-                if (nodeCount % 8 == 0)
-                    out << endl; // To avoid long lines
-                out << nodeId;
-                nodeCount++;
+    for (const auto& objective : displacementOutputs) {
+        const auto& displacementOutput = dynamic_pointer_cast<const NodalDisplacementOutput>(objective);
+        out << "  SET " << objective->bestId() << " = ";
+        bool firstNode = true;
+        int nodeCount = 1;
+        for (int nodeId : displacementOutput->getNodeIdsIncludingGroups()) {
+            if (not firstNode)
+                out << ",";
+            else {
+                firstNode = false;
             }
-            out << endl;
-            //out << "  DISP = " << objective->bestId() << endl;
+            if (nodeCount % 8 == 0)
+                out << endl; // To avoid long lines
+            out << nodeId;
+            nodeCount++;
         }
-    }// else {
-    //    out << "  DISP = ALL" << endl;
-    //}
+        out << endl;
+        //out << "  DISP = " << objective->bestId() << endl;
+    }
     const auto& vonMisesOutputs = model.objectives.filter(Objective::Type::VONMISES_STRESS_OUTPUT);
-    if (vonMisesOutputs.size() >= 1) {
-        for (const auto& objective : vonMisesOutputs) {
-            const auto& displacementOutput = dynamic_pointer_cast<const VonMisesStressOutput>(objective);
-            out << "  SET " << objective->bestId() << " = ";
-            bool firstNode = true;
-            int nodeCount = 1;
-            for (int nodeId : displacementOutput->getCellIdsIncludingGroups()) {
-                if (not firstNode)
-                    out << ",";
-                else {
-                    firstNode = false;
-                }
-                if (nodeCount % 8 == 0)
-                    out << endl; // To avoid long lines
-                out << nodeId;
-                nodeCount++;
+    for (const auto& objective : vonMisesOutputs) {
+        const auto& displacementOutput = dynamic_pointer_cast<const VonMisesStressOutput>(objective);
+        out << "  SET " << objective->bestId() << " = ";
+        bool firstNode = true;
+        int nodeCount = 1;
+        for (int nodeId : displacementOutput->getCellIdsIncludingGroups()) {
+            if (not firstNode)
+                out << ",";
+            else {
+                firstNode = false;
             }
-            out << endl;
-            out << "  STRESS(VONMISES) = " << objective->bestId() << endl;
+            if (nodeCount % 8 == 0)
+                out << endl; // To avoid long lines
+            out << nodeId;
+            nodeCount++;
         }
+        out << endl;
+        out << "  STRESS(VONMISES) = " << objective->bestId() << endl;
     }
 	for (const auto& analysis : model.analyses) {
 		out << "SUBCASE " << analysis->bestId() << endl;

@@ -292,20 +292,19 @@ bool Analysis::validate() const {
 
 void Analysis::removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition,  const DOFS dofsToRemove) {
     const DOFS& remainingDofs = spc.getDOFSForNode(nodePosition) - dofsToRemove;
-    const int nodeId = model.mesh.findNodeId(nodePosition);
     set<shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> affectedConstraintSets =
             model.getConstraintSetsByConstraint(
                     spc);
-    if (remainingDofs.size() != 0) {
+    if (not remainingDofs.empty()) {
         const auto& remainingSpc = make_shared<SinglePointConstraint>(this->model);
-        remainingSpc->addNodeId(nodeId);
+        remainingSpc->addNodePosition(nodePosition);
         for (const DOF& remainingDof : remainingDofs) {
             remainingSpc->setDOF(remainingDof, spc.getDoubleForDOF(remainingDof));
         }
         model.add(remainingSpc);
         if (model.configuration.logLevel >= LogLevel::TRACE) {
             cout << "Created spc : " << *remainingSpc << " for node id : "
-                    << nodeId
+                    << model.mesh.findNodeId(nodePosition)
                     << " to handle dofs : " << remainingDofs << endl;
         }
         for (const auto& constraintSet : affectedConstraintSets) {
@@ -316,7 +315,7 @@ void Analysis::removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition,  
         const auto& otherAnalysesCS = make_shared<ConstraintSet>(model, ConstraintSet::Type::SPC);
         model.add(otherAnalysesCS);
         const auto& otherAnalysesSpc = make_shared<SinglePointConstraint>(this->model);
-        otherAnalysesSpc->addNodeId(nodeId);
+        otherAnalysesSpc->addNodePosition(nodePosition);
         for (DOF removedDof : dofsToRemove) {
             otherAnalysesSpc->setDOF(removedDof, spc.getDoubleForDOF(removedDof));
         }
@@ -324,7 +323,7 @@ void Analysis::removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition,  
         model.addConstraintIntoConstraintSet(*otherAnalysesSpc, *otherAnalysesCS);
         if (this->model.configuration.logLevel >= LogLevel::TRACE) {
             cout << "Created spc : " << *otherAnalysesSpc << " for node id : "
-                    << nodeId
+                    << model.mesh.findNodeId(nodePosition)
                     << " to handle dofs : " << dofsToRemove << endl;
         }
         for (const auto& otherAnalysis : this->model.analyses) {

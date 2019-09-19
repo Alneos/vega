@@ -88,7 +88,7 @@ public:
 	void add(const Reference<ConstraintSet>&); // LD Hack : see parseSPCADD
 	const std::set<std::shared_ptr<Constraint>, ptrLess<Constraint>> getConstraints() const;
 	const std::set<std::shared_ptr<Constraint>, ptrLess<Constraint>> getConstraintsByType(Constraint::Type) const;
-	int size() const;
+	size_t size() const;
 	inline bool empty() const {return size() == 0;};
 	std::shared_ptr<ConstraintSet> clone() const;
 	bool hasFunctions() const;
@@ -126,7 +126,6 @@ public:
 	virtual int getMaster() const;
 	virtual bool hasMaster() const;
 	virtual std::set<int> getSlaves() const final;
-	const DOFS getDOFSForNode(int nodePosition) const override;
 	const DOFS getDOFS() const;
 	void removeNodePosition(int nodePosition) override;
 };
@@ -136,11 +135,14 @@ public:
  * where they must be limited to rigid movements for some dofs
  */
 class QuasiRigidConstraint: public MasterSlaveConstraint {
-
+private:
+    DOFS calcMasterDOFS() const;
 public:
 	QuasiRigidConstraint(Model& model, const DOFS& dofs, int masterId = UNAVAILABLE_MASTER,
 			int original_id = NO_ORIGINAL_ID, const std::set<int>& slaveIds = std::set<int>());
 	bool isCompletelyRigid() const;
+	const DOFS getDOFSForNode(int nodePosition) const override;
+	void emulateWithMPCs();
 };
 
 class RigidConstraint: public MasterSlaveConstraint {
@@ -148,7 +150,7 @@ class RigidConstraint: public MasterSlaveConstraint {
 public:
 	RigidConstraint(Model& model, int masterId = UNAVAILABLE_MASTER, int original_id =
 			NO_ORIGINAL_ID, const std::set<int>& slaveIds = std::set<int>());
-	void emulateWithMPCs();
+    const DOFS getDOFSForNode(int nodePosition) const override;
 };
 
 class RBE3 final: public MasterSlaveConstraint {

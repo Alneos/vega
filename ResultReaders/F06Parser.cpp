@@ -423,7 +423,7 @@ bool F06Parser::readLine(istream &istream, string& line) {
 	while (getline(istream, line)) {
 		lineNumber += 1;
 		if (!line.empty()) {
-			if (trim_copy(line).size() > 0) {
+			if (not trim_copy(line).empty()) {
 				lineAvailable = true;
 				break;
 			}

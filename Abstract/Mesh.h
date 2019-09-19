@@ -213,7 +213,7 @@ public:
 	        const int cdPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
 	        const int nodePartId = 0);
     const std::string getName() const;
-	int countNodes() const;
+	size_t countNodes() const;
 	void allowDOFS(const int nodePosition, const DOFS& allowed);
 	/**
 	 * Find a node from its Vega position.

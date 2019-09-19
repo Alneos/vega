@@ -204,7 +204,7 @@ void NastranTokenizer::executiveControlSection() {
 void NastranTokenizer::bulkSection() {
 	this->currentSection = SectionType::SECTION_BULK;
 //if not first line, read again the current line
-	if (currentLineVector.size() != 0) {
+	if (not currentLineVector.empty()) {
 		currentLineVector.clear();
 		//enough in 99% of lines
 		currentLineVector.reserve(64);

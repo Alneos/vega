@@ -26,7 +26,7 @@ const map<Material::Type, string> Material::stringByType = {
 
 ostream &operator<<(ostream &out, const Material& material) {
 	out << to_str(material);
-	if (material.nature_by_type.size() > 0) {
+	if (not material.nature_by_type.empty()) {
 		cout << " with:";
 		for (const auto& nature : material.nature_by_type) {
 		    out<< " "<< *nature.second;
@@ -40,8 +40,8 @@ Material::Material(Model& model, int original_id) :
 }
 
 bool Material::validate() const {
-	bool validMaterial = nature_by_type.size() > 0;
-	if (!validMaterial) {
+	bool validMaterial = not nature_by_type.empty();
+	if (not validMaterial) {
 		cerr << *this << " has no nature assigned.";
 	}
 	return validMaterial;

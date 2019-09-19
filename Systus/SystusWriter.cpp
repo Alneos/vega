@@ -2220,7 +2220,7 @@ void SystusWriter::writeInformations(const SystusModel &systusModel, int idSubca
     // Nonetheless, it's cleaner this way.
     int lcode[40]={0};
     lcode[0] = static_cast<int>(localLoadingListName.size()); // KPPR: Number of loads
-    lcode[1] = systusModel.model.mesh.countNodes();     // NMAX: Number of nodes
+    lcode[1] = static_cast<int>(systusModel.model.mesh.countNodes());     // NMAX: Number of nodes
     lcode[3] = systusModel.model.mesh.countCells();     // MMAXI: Number of elements
     lcode[5] = 0;                                         // JMAT: Number of material couples, will be computed in "nbmaterials" in the writeMaterials method
     lcode[6] = static_cast<int>(lists.size());            // JREP: Number of lists
@@ -2923,10 +2923,10 @@ void SystusWriter::writeVectors(ostream& out) {
 
 void SystusWriter::writeMasses(const SystusModel &systusModel, ostream& out) {
     // TODO : attention, la doc parle de dynamique. Prise en compte dans le poids en statique ???
-    vector<shared_ptr<ElementSet>> masses = systusModel.model.elementSets.filter(
+    const auto& masses = systusModel.model.elementSets.filter(
             ElementSet::Type::NODAL_MASS);
     out << "BEGIN_MASSES " << masses.size() << endl;
-    if (masses.size() > 0) {
+    if (not masses.empty()) {
         for (const auto& mass : masses) {
             if (not mass->effective()) {
                 continue;
@@ -3298,7 +3298,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             out << endl;
 
             // Harmonic part
-            const int nbNodes = systusModel.model.mesh.countNodes();
+            const int nbNodes = static_cast<int>(systusModel.model.mesh.countNodes());
             const int nbElements = systusModel.model.mesh.countCells();
             out << "# MODAL DYNAMIC ANALYSIS"<<endl;
             out << "DYNAMIC" << endl;

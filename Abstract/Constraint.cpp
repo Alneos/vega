@@ -95,8 +95,8 @@ const set<shared_ptr<Constraint>, ptrLess<Constraint> > ConstraintSet::getConstr
     return result;
 }
 
-int ConstraintSet::size() const {
-    return static_cast<int>(getConstraints().size());
+size_t ConstraintSet::size() const {
+    return getConstraints().size();
 }
 
 const string ConstraintSet::name = "ConstraintSet";
@@ -140,7 +140,7 @@ set<int> NodeConstraint::nodePositions() const {
 }
 
 bool NodeConstraint::ineffective() const {
-    return empty();
+    return NodeContainer::empty();
 }
 
 const int MasterSlaveConstraint::UNAVAILABLE_MASTER = INT_MIN;
@@ -176,16 +176,6 @@ void MasterSlaveConstraint::addSlave(int slaveId) {
     addNodeId(slaveId);
 }
 
-const DOFS MasterSlaveConstraint::getDOFSForNode(int nodePosition) const {
-    const auto& nodes = nodePositions();
-    if (nodes.find(nodePosition) != nodes.end()) {
-        return this->dofs;
-    } else {
-        return DOFS::NO_DOFS;
-    }
-
-}
-
 void MasterSlaveConstraint::removeNodePosition(int nodePosition) {
     UNUSEDV(nodePosition);
     throw logic_error("removeNodePosition for MasterSlaveConstraint not implemented");
@@ -210,6 +200,9 @@ QuasiRigidConstraint::QuasiRigidConstraint(Model& model, const DOFS& dofs, int m
 bool QuasiRigidConstraint::isCompletelyRigid() const {
     if (this->dofs == DOFS::ALL_DOFS)
         return true;
+    DOFS masterDOFS = calcMasterDOFS();
+    if (this->dofs < masterDOFS)
+        return false;
     for (int nodePosition : nodePositions()) {
         const Node& node = model.mesh.findNode(nodePosition);
         if (node.dofs != this->dofs)
@@ -218,47 +211,71 @@ bool QuasiRigidConstraint::isCompletelyRigid() const {
     return true;
 }
 
-RigidConstraint::RigidConstraint(Model& model, int masterId, int constraintGroup,
-        const set<int>& slaveIds) :
-        MasterSlaveConstraint(model, Constraint::Type::RIGID, DOFS::ALL_DOFS, masterId, constraintGroup, slaveIds) {
-}
-
-void RigidConstraint::emulateWithMPCs() {
+void QuasiRigidConstraint::emulateWithMPCs() {
     if (not hasMaster())
         throw logic_error("Emulation without master not (yet) implemented");
     const Node& master = model.mesh.findNode(getMaster());
     set<shared_ptr<LinearMultiplePointConstraint>, ptrLess<Constraint>> lmpcs;
-    int slaveIndex = 0;
-    const auto& slavePositions = getSlaves();
-    for (int slavePosition : slavePositions) {
+    for (int slavePosition : getSlaves()) {
 
         const Node& slave = model.mesh.findNode(slavePosition);
+
         VectorialValue distMaster{master.x - slave.x, master.y - slave.y, master.z - slave.z};
-        shared_ptr<LinearMultiplePointConstraint> lmpc =
-                make_shared<LinearMultiplePointConstraint>(model, 0.0);
-        lmpc->addParticipation(master.id, distMaster.x(), distMaster.y(), distMaster.z());
-        lmpc->addParticipation(slave.id, -distMaster.x(), -distMaster.y(), -distMaster.z());
-        lmpcs.insert(lmpc);
-        int previousSlaveIndex = 0;
-        int relCount = 1;
-        for (int previousSlavePosition : slavePositions) {
-            if (previousSlavePosition == slavePosition)
-                continue;
-            const Node& previousSlave = model.mesh.findNode(previousSlavePosition);
-            VectorialValue distPreviousSlave{previousSlave.x - slave.x, previousSlave.y - slave.y, previousSlave.z - slave.z};
-            if (is_zero(distMaster.dot(distPreviousSlave)))
-                continue; // avoiding colinearity
+
+        // First relation: DX(M) - DX(A) - Z*DRY(A) + Y*DRZ(A) =0
+        if (dofs.contains(DOF::DX)) {
+            shared_ptr<LinearMultiplePointConstraint> lmpc1 =
+                    make_shared<LinearMultiplePointConstraint>(model, 0.0);
+            lmpc1->addParticipation(master.id, -1.0, 0.0, 0.0, 0.0, distMaster.z(), -distMaster.y());
+            lmpc1->addParticipation(slave.id, 1.0);
+            lmpcs.insert(lmpc1);
+        }
+
+        // Second relation: DY(M) - DY(A) + Z*DRX(A) - X*DRZ(A) =0
+        if (dofs.contains(DOF::DY)) {
             shared_ptr<LinearMultiplePointConstraint> lmpc2 =
                     make_shared<LinearMultiplePointConstraint>(model, 0.0);
-            lmpc2->addParticipation(previousSlave.id, distPreviousSlave.x(), distPreviousSlave.y(), distPreviousSlave.z());
-            lmpc2->addParticipation(slave.id, -distPreviousSlave.x(), -distPreviousSlave.y(), -distPreviousSlave.z());
+            lmpc2->addParticipation(master.id, 0.0, -1.0, 0.0, -distMaster.z(), 0.0, distMaster.x());
+            lmpc2->addParticipation(slave.id, 0.0, 1.0);
             lmpcs.insert(lmpc2);
-            previousSlaveIndex++;
-            relCount++;
-            if (relCount == 3)
-                break;
         }
-        slaveIndex++;
+
+        // Third relation: DZ(M) - DZ(A) - Y*DRX(A) + X*DRY(A) =0
+        if (dofs.contains(DOF::DZ)) {
+            shared_ptr<LinearMultiplePointConstraint> lmpc3 =
+                    make_shared<LinearMultiplePointConstraint>(model, 0.0);
+            lmpc3->addParticipation(master.id, 0.0, 0.0, -1.0, distMaster.y(), -distMaster.x());
+            lmpc3->addParticipation(slave.id, 0.0, 0.0, 1.0);
+            lmpcs.insert(lmpc3);
+        }
+
+        // Fourth relation: DRX(M) - DRX(A)  = 0
+        if (dofs.contains(DOF::RX) and slave.dofs.contains(DOF::RX)) {
+            shared_ptr<LinearMultiplePointConstraint> lmpc4 =
+                    make_shared<LinearMultiplePointConstraint>(model, 0.0);
+            lmpc4->addParticipation(master.id, 0.0, 0.0, 0.0, 1.0);
+            lmpc4->addParticipation(slave.id, 0.0, 0.0, 0.0, -1.0);
+            lmpcs.insert(lmpc4);
+        }
+
+        // Fifth relation: DRY(M) - DRY(A)  = 0
+        if (dofs.contains(DOF::RY) and slave.dofs.contains(DOF::RY)) {
+            shared_ptr<LinearMultiplePointConstraint> lmpc5 =
+                    make_shared<LinearMultiplePointConstraint>(model, 0.0);
+            lmpc5->addParticipation(master.id, 0.0, 0.0, 0.0, 0.0, 1.0);
+            lmpc5->addParticipation(slave.id, 0.0, 0.0, 0.0, 0.0, -1.0);
+            lmpcs.insert(lmpc5);
+        }
+
+        // Sixth relation: DRZ(M) - DRZ(A)  = 0
+        if (dofs.contains(DOF::RZ) and slave.dofs.contains(DOF::RZ)) {
+            shared_ptr<LinearMultiplePointConstraint> lmpc6 =
+                    make_shared<LinearMultiplePointConstraint>(model, 0.0);
+            lmpc6->addParticipation(master.id, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+            lmpc6->addParticipation(slave.id, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0);
+            lmpcs.insert(lmpc6);
+        }
+
     }
     const auto& constraintSets = model.getConstraintSetsByConstraint(this->getReference());
     for (const auto& lmpc : lmpcs) {
@@ -276,6 +293,55 @@ void RigidConstraint::emulateWithMPCs() {
         model.remove(this->getReference(),
                 constraintSet->getReference());
         this->markAsWritten();
+    }
+}
+
+DOFS QuasiRigidConstraint::calcMasterDOFS() const {
+    const Node& master = model.mesh.findNode(getMaster());
+    if (master.dofs == DOFS::ALL_DOFS)
+        return DOFS::ALL_DOFS; // Master already has rotations
+    DOFS masterUsableDOFS{master.dofs};
+    masterUsableDOFS += DOFS::TRANSLATIONS;
+    for (int slavePosition : getSlaves()) {
+        const Node& slave = model.mesh.findNode(slavePosition);
+        VectorialValue distMaster{master.x - slave.x, master.y - slave.y, master.z - slave.z};
+        if (not is_zero(distMaster.x()))
+            masterUsableDOFS += DOF::RY + DOF::RZ;
+        if (not is_zero(distMaster.y()))
+            masterUsableDOFS += DOF::RX + DOF::RZ;
+        if (not is_zero(distMaster.z()))
+            masterUsableDOFS += DOF::RX + DOF::RY;
+        if (masterUsableDOFS == DOFS::ALL_DOFS)
+            return DOFS::ALL_DOFS; // Slave(s) not aligned on all axes
+    }
+    return masterUsableDOFS; // Slaves aligned on some axes
+}
+
+const DOFS QuasiRigidConstraint::getDOFSForNode(int nodePosition) const {
+    if (nodePosition == masterPosition) {
+        return calcMasterDOFS(); // Slaves aligned on some axes
+    }
+
+    const auto& nodes = nodePositions();
+    if (nodes.find(nodePosition) != nodes.end()) {
+        //const Node& node = model.mesh.findNode(nodePosition);
+        return this->dofs;
+    } else {
+        return DOFS::NO_DOFS;
+    }
+}
+
+RigidConstraint::RigidConstraint(Model& model, int masterId, int constraintGroup,
+        const set<int>& slaveIds) :
+        MasterSlaveConstraint(model, Constraint::Type::RIGID, DOFS::ALL_DOFS, masterId, constraintGroup, slaveIds) {
+}
+
+const DOFS RigidConstraint::getDOFSForNode(int nodePosition) const {
+    const auto& nodes = nodePositions();
+    if (nodes.find(nodePosition) != nodes.end()) {
+        return model.mesh.findNode(nodePosition).dofs;
+    } else {
+        return DOFS::NO_DOFS;
     }
 }
 
@@ -308,7 +374,7 @@ double RBE3::getCoefForNode(int nodePosition) const {
 
 const DOFS RBE3::getDOFSForNode(int nodePosition) const {
     DOFS result = DOFS::ALL_DOFS;
-    if (nodePosition == masterPosition){
+    if (nodePosition == masterPosition) {
         result = dofs;
     }
     else {
@@ -377,7 +443,7 @@ bool SinglePointConstraint::hasReferences() const {
 }
 
 bool SinglePointConstraint::ineffective() const {
-    return nodePositions().size() == 0;
+    return NodeContainer::empty();
 }
 
 double SinglePointConstraint::getDoubleForDOF(const DOF& dof) const {
@@ -505,7 +571,7 @@ void LinearMultiplePointConstraint::removeNodePosition(int nodePosition) {
 }
 
 bool LinearMultiplePointConstraint::ineffective() const  {
-    return dofCoefsByNodePosition.size() == 0;
+    return dofCoefsByNodePosition.empty();
 }
 
 DOFCoefs LinearMultiplePointConstraint::getDoFCoefsForNode(
@@ -578,7 +644,7 @@ void GapTwoNodes::removeNodePosition(int nodePosition) {
 }
 
 bool GapTwoNodes::ineffective() const {
-    return directionNodePositionByconstrainedNodePosition.size() == 0;
+    return directionNodePositionByconstrainedNodePosition.empty();
 }
 
 const DOFS GapTwoNodes::getDOFSForNode(int nodePosition) const {
@@ -634,7 +700,7 @@ void GapNodeDirection::removeNodePosition(int nodePosition) {
 }
 
 bool GapNodeDirection::ineffective() const {
-    return directionBynodePosition.size() == 0;
+    return directionBynodePosition.empty();
 }
 
 const DOFS GapNodeDirection::getDOFSForNode(int nodePosition) const {
@@ -701,7 +767,7 @@ void SlideContact::removeNodePosition(int nodePosition) {
 bool SlideContact::ineffective() const {
     const auto& masterLine = dynamic_pointer_cast<BoundaryNodeLine>(model.find(master));
     const auto& slaveLine = dynamic_pointer_cast<BoundaryNodeLine>(model.find(slave));
-    return masterLine->nodeids.size() == 0 or slaveLine->nodeids.size() == 0;
+    return masterLine->nodeids.empty() or slaveLine->nodeids.empty();
 }
 
 const DOFS SlideContact::getDOFSForNode(int nodePosition) const {
@@ -740,7 +806,7 @@ void SurfaceContact::removeNodePosition(int nodePosition) {
 bool SurfaceContact::ineffective() const {
     const auto& masterSurface = dynamic_pointer_cast<BoundaryNodeSurface>(model.find(master));
     const auto& slaveSurface = dynamic_pointer_cast<BoundaryNodeSurface>(model.find(slave));
-    return masterSurface->nodeids.size() == 0 or slaveSurface->nodeids.size() == 0;
+    return masterSurface->nodeids.empty() or slaveSurface->nodeids.empty();
 }
 
 const DOFS SurfaceContact::getDOFSForNode(int nodePosition) const {
@@ -897,7 +963,7 @@ bool SurfaceSlide::ineffective() const {
     if (slaveBoundary == nullptr) {
         throw logic_error("Cannot find slave body boundary (or unexpected type)");
     }
-    return masterBoundary->faceInfos.size() == 0 or slaveBoundary->faceInfos.size() == 0;
+    return masterBoundary->faceInfos.empty() or slaveBoundary->faceInfos.empty();
 }
 
 const DOFS SurfaceSlide::getDOFSForNode(int nodePosition) const {
@@ -926,7 +992,7 @@ void SurfaceSlide::makeCellsFromSurfaceSlide() {
     for (const auto& faceInfo : masterSurface->faceInfos) {
         const Cell& masterCell = model.mesh.findCell(model.mesh.findCellPosition(faceInfo.cellId));
         const vector<int>& faceIds = masterCell.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
-        if (faceIds.size() > 0) {
+        if (not faceIds.empty()) {
             node_polygon masterFace;
             for (const int faceId : faceIds) {
                 int nodePosition = model.mesh.findNodePosition(faceId);

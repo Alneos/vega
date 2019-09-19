@@ -224,7 +224,7 @@ private:
         std::shared_ptr<T> first() const {return *begin();};
         std::shared_ptr<T> last() const {return by_id.rbegin()->second;};
         size_t size() const {return by_id.size();}
-        bool empty() const {return by_id.size() == 0;}
+        bool empty() const {return by_id.empty();}
         void add(std::shared_ptr<T> T_ptr);
         void erase(const Reference<T> ref);
         std::shared_ptr<T> find(const Reference<T>&) const;

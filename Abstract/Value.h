@@ -134,7 +134,7 @@ public:
         return alist2;
     }
     bool empty() const override {
-        return alist.size() == 0;
+        return alist.empty();
     }
     void scale(double factor) override {
         std::transform(alist.begin(), alist.end(), alist.begin(), [factor](T d) -> T { return static_cast<T>(d * factor); });
@@ -166,7 +166,7 @@ public:
         return aset;
     }
     bool empty() const override {
-        return aset.size() == 0;
+        return aset.empty();
     }
     void scale(double factor) override {
         std::transform(aset.begin(), aset.end(), std::inserter(aset, aset.begin()), [factor](T d) -> T { return static_cast<T>(d * factor); });

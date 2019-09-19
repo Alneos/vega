@@ -593,7 +593,7 @@ void Model::generateDiscrets() {
         }
 
         DOFS addedDOFS;
-        if (missingDOFS.size() != 0) {
+        if (not missingDOFS.empty()) {
             if (missingDOFS.containsAnyOf(DOFS::ROTATIONS)) {
                 //extra dofs added by the DISCRET. They need to be blocked.
                 addedDOFS = DOFS::ALL_DOFS - node.dofs - missingDOFS;
@@ -653,7 +653,7 @@ void Model::generateDiscrets() {
                         add(spcSet);
                     }
                     const auto& spc = make_shared<SinglePointConstraint>(*this, extraDOFS);
-                    spc->addNodeId(node.id);
+                    spc->addNodePosition(node.position);
                     add(spc);
                     addConstraintIntoConstraintSet(*spc, *spcSet);
                     analysis->add(*spcSet);
@@ -761,7 +761,7 @@ void Model::emulateLocalDisplacementConstraint() {
         shared_ptr<SinglePointConstraint> spc = dynamic_pointer_cast<SinglePointConstraint>(
                 constraint);
         spc->emulateLocalDisplacementConstraint();
-        if (spc->nodePositions().size() == 0) {
+        if (spc->empty()) {
             this->remove(spc->getReference());
         }
         spc->markAsWritten();
@@ -869,7 +869,7 @@ void Model::generateBeamsToDisplayMasterSlaveConstraint() {
 
 void Model::generateMaterialAssignments() {
     if (configuration.partitionModel) {
-        if (this->material_assignment_by_material_id.size() > 0) {
+        if (not this->material_assignment_by_material_id.empty()) {
             cerr << "generateMaterialAssignments with PartitionModel is not "
                     << " yet implemented. " << endl
                     << "This method should partition the elementSets"
@@ -915,7 +915,7 @@ void Model::removeIneffectives() {
     // remove empty loadSets from the model
     vector<Reference<LoadSet>> loadSetSetsToRemove;
     for (const auto& loadSet : this->loadSets) {
-        if (loadSet->size() == 0) {
+        if (loadSet->empty()) {
             loadSetSetsToRemove.push_back(loadSet->getReference());
         }
     }
@@ -1022,10 +1022,10 @@ void Model::removeAssertionsMissingDOFS()
         for(const auto& assertion : analysis->getAssertions()) {
             for(int nodePosition: assertion->nodePositions()) {
                 const DOFS& assertionDOFS = assertion->getDOFSForNode(nodePosition);
-                if (assertionDOFS.size() >= 1) {
+                if (not assertionDOFS.empty()) {
                     const Node& node = mesh.findNode(nodePosition);
                     const DOFS& availableDOFS = node.dofs + analysis->findBoundaryDOFS(nodePosition);
-                    if (!availableDOFS.containsAll(assertionDOFS)) {
+                    if (not availableDOFS.containsAll(assertionDOFS)) {
                         objectivesToRemove.push_back(assertion);
                     }
                 }
@@ -1042,7 +1042,7 @@ void Model::removeAssertionsMissingDOFS()
 
 void Model::addDefaultAnalysis()
 {
-    if (this->analyses.size() == 0 && (loadings.size() > 0 || constraints.size() > 0)) {
+    if (this->analyses.empty() and (loadings.empty() or constraints.empty())) {
         //add an automatic linear analysis
         const auto& analysis = make_shared<LinearMecaStat>(*this, "", 1);
         add(analysis);
@@ -1090,7 +1090,7 @@ void Model::replaceDirectMatrices()
         }
         for (const auto& pair : matrix->nodePairs()) {
             if (pair.first == pair.second) {
-                if (matrix->findInPairs(pair.first).size() != 0) {
+                if (not matrix->findInPairs(pair.first).empty()) {
                     continue; // will be handled by a segment cell with another node
                 }
                 // single node
@@ -1232,7 +1232,6 @@ void Model::replaceDirectMatrices()
     }
     for (const auto& kv : addedDofsByNode) {
         int nodePosition = kv.first;
-        const int nodeId = this->mesh.findNodeId(nodePosition);
         const DOFS& added = kv.second;
         DOFS required;
         auto it = requiredDofsByNode.find(nodePosition);
@@ -1265,11 +1264,11 @@ void Model::replaceDirectMatrices()
         const DOFS& extra = added - owned - required;
         if (extra != DOFS::NO_DOFS) {
             const auto& spc = make_shared<SinglePointConstraint>(*this, extra);
-            spc->addNodeId(nodeId);
+            spc->addNodePosition(nodePosition);
             add(spc);
             addConstraintIntoConstraintSet(*spc, *commonConstraintSet);
             if (configuration.logLevel >= LogLevel::TRACE) {
-                cout << "Adding virtual spc on node id: " << nodeId << "for " << extra
+                cout << "Adding virtual spc on node id: " << this->mesh.findNodeId(nodePosition) << "for " << extra
                         << endl;
             }
         }
@@ -1309,7 +1308,7 @@ void Model::removeRedundantSpcs() {
         unordered_map<pair<int, DOF>, double, boost::hash<pair<int, int> > > spcvalueByNodeAndDof;
         for (const auto& constraintSet : analysis->getConstraintSets()) {
             const auto& spcs = constraintSet->getConstraintsByType(Constraint::Type::SPC);
-            if (spcs.size() == 0) {
+            if (spcs.empty()) {
                 continue;
             }
             for (const auto& constraint : spcs) {
@@ -1336,7 +1335,7 @@ void Model::removeRedundantSpcs() {
                             dofsToRemove = dofsToRemove + dof;
                         }
                     }
-                    if (dofsToRemove.size() >= 1) {
+                    if (not dofsToRemove.empty()) {
                         analysis->removeSPCNodeDofs(*spc, nodePosition, dofsToRemove);
                         if (configuration.logLevel >= LogLevel::TRACE) {
                             cout << "Removed redundant dofs : " << dofsToRemove << " from node id : " << this->mesh.findNodeId(nodePosition)
@@ -1354,7 +1353,7 @@ void Model::removeConstrainedImposed() {
         unordered_map<int, DOFS> imposedDofsByNodeId;
         for (const auto& loadSet : analysis->getLoadSets()) {
             const auto& loads = loadSet->getLoadingsByType(Loading::Type::IMPOSED_DISPLACEMENT);
-            if (loads.size() == 0) {
+            if (loads.empty()) {
                 continue;
             }
             for (const auto& load : loads) {
@@ -1367,7 +1366,7 @@ void Model::removeConstrainedImposed() {
         }
         for (const auto& constraintSet : analysis->getConstraintSets()) {
             const auto& spcs = constraintSet->getConstraintsByType(Constraint::Type::SPC);
-            if (spcs.size() == 0) {
+            if (spcs.empty()) {
                 continue;
             }
             for (const auto& constraint : spcs) {
@@ -1377,7 +1376,7 @@ void Model::removeConstrainedImposed() {
                     DOFS imposedDofs = imposedDofsByNodeId[nodePosition];
                     DOFS blockedDofs = spc->getDOFSForNode(nodePosition);
                     DOFS dofsToRemove = imposedDofs.intersection(blockedDofs);
-                    if (dofsToRemove.size() >= 1) {
+                    if (not dofsToRemove.empty()) {
                         analysis->removeSPCNodeDofs(*spc, nodePosition, dofsToRemove);
                         if (configuration.logLevel >= LogLevel::TRACE) {
                             cout << "Removed imposed dofs : " << dofsToRemove << " from node id : " << this->mesh.findNodeId(nodePosition)
@@ -1670,7 +1669,7 @@ void Model::makeCellsFromRBE(){
             shared_ptr<QuasiRigidConstraint> rbar = dynamic_pointer_cast<QuasiRigidConstraint>(constraint);
 
             if (!(rbar->isCompletelyRigid())){
-                cerr << "QUASI_RIGID constraint not available yet. Constraint "+to_string(constraint->bestId())+ " translated as rigid constraint."<<endl;
+                cerr << "QUASI_RIGID constraint not implemented yet for RBARs. Constraint "+to_string(constraint->bestId())+ " translated as rigid constraint."<<endl;
             }
             //if (rbar->getSlaves().size()!=2){
             //   throw logic_error("QUASI_RIGID constraint must have exactly two slaves.");
@@ -1947,7 +1946,7 @@ void Model::finish() {
         }
     }
 
-    if (this->configuration.autoDetectAnalysis and analyses.size() == 0) {
+    if (this->configuration.autoDetectAnalysis and analyses.empty()) {
         addAutoAnalysis();
     }
 
@@ -1975,11 +1974,12 @@ void Model::finish() {
         emulateLocalDisplacementConstraint();
     }
 
-    //for (const auto& constraint : constraints.filter(Constraint::Type::RIGID)) {
-    //    shared_ptr<RigidConstraint> rigid = dynamic_pointer_cast<RigidConstraint>(
-    //            constraint);
-    //    rigid->emulateWithMPCs();
-    //}
+    for (const auto& constraint : constraints.filter(Constraint::Type::QUASI_RIGID)) {
+        auto rigid = static_pointer_cast<QuasiRigidConstraint>(constraint);
+        if (rigid->isCompletelyRigid())
+            continue;
+        rigid->emulateWithMPCs();
+    }
 
     if (this->configuration.displayMasterSlaveConstraint) {
         generateBeamsToDisplayMasterSlaveConstraint();
@@ -2135,6 +2135,9 @@ bool Model::checkWritten() const {
         for (const auto& constraintSet : analysis->getConstraintSets()) {
             validCos = validCos and constraintSet ->isWritten();
             for (const auto& constraint : constraintSet->getConstraints()) {
+                if (configuration.logLevel >= LogLevel::DEBUG and not constraint->isWritten()) {
+                    cerr << "Constraint:" << *constraint << " has not been written";
+                }
                 validCon = validCon and constraint->isWritten();
             }
         }

@@ -457,26 +457,23 @@ BOOST_AUTO_TEST_CASE( reference_str ) {
 	std::ostringstream oss;
     oss << rauto1;
     std::string refstr = oss.str();
-    BOOST_CHECK(refstr.size() >= 1);
+    BOOST_CHECK(not refstr.empty());
     std::string refstr2 = to_str(rauto1);
-    BOOST_CHECK(refstr2.size() >= 1);
+    BOOST_CHECK(not refstr2.empty());
     BOOST_CHECK_EQUAL(refstr, refstr2);
     Reference<NamedValue> rauto2(Value::Type::LIST, 1);
-    BOOST_CHECK(to_str(rauto2).size() >= 1);
+    BOOST_CHECK(not to_str(rauto2).empty());
     Reference<Target> rtarget(Target::Type::CONTACT_BODY, 1);
     std::ostringstream oss2;
     oss2 << rtarget;
     std::string refstr3 = oss2.str();
-    BOOST_CHECK(refstr3.size() >= 1);
+    BOOST_CHECK(not refstr3.empty());
     std::string refstr4 = to_str(rtarget);
-    BOOST_CHECK(refstr4.size() >= 1);
+    BOOST_CHECK(not refstr4.empty());
     BOOST_CHECK_EQUAL(refstr3, refstr4);
 }
 
 BOOST_AUTO_TEST_CASE(test_ineffective_assertions_removed) {
-	// Two NodalDisplacementAssertion are added to a model->
-	// The first one is on a node DX but the node don't have that degree of freedom. It must be
-	// removed by the finish.
 	unique_ptr<Model> model = createModelWith1HEXA8();
 	const auto& analysis = make_shared<LinearMecaStat>(*model);
 	const auto& nda = make_shared<NodalDisplacementAssertion>(*model, 0.0001, 50, DOF::DZ, 1., 1);
@@ -528,7 +525,11 @@ BOOST_AUTO_TEST_CASE(test_spc_dof_remove) {
 	unique_ptr<Model> model = createModelWith1HEXA8();
 	const auto& analysis1 = make_shared<LinearMecaStat>(*model);
 	const auto& spc = make_shared<SinglePointConstraint>(*model, DOFS::ALL_DOFS, 0.0);
+    BOOST_CHECK(spc->empty());
+    BOOST_CHECK(spc->ineffective());
 	spc->addNodeId(50);
+    BOOST_CHECK(not spc->empty());
+    BOOST_CHECK(not spc->ineffective());
 	model->add(spc);
 	model->addConstraintIntoConstraintSet(spc->getReference(), model->commonConstraintSet->getReference());
 	model->add(analysis1);
@@ -596,6 +597,8 @@ BOOST_AUTO_TEST_CASE( test_indentifiable_sort )
     // https://github.com/Alneos/vega/issues/15
     Model model{"cs test model", "10.3", SolverName::NASTRAN};
     const auto& spc2 = make_shared<SinglePointConstraint>(model, 2);
+    BOOST_CHECK(spc2->empty());
+    BOOST_CHECK(spc2->ineffective());
     const auto& spc1 = make_shared<SinglePointConstraint>(model, 1);
     BOOST_CHECK(*spc1 < *spc2);
     BOOST_CHECK(spc1->getReference() < spc2->getReference());
@@ -625,5 +628,6 @@ BOOST_AUTO_TEST_CASE( test_indentifiable_sort )
     BOOST_CHECK_EQUAL(*(*(cset.begin())), *spc1);
     BOOST_CHECK_EQUAL(*(*(cset.rbegin())), *spc4);
 }
+
 //____________________________________________________________________________//
 

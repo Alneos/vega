@@ -956,11 +956,11 @@ void NodeContainer::add(const NodeGroup& nodeGroup) {
 
 void NodeContainer::add(const NodeContainer& nodeContainer) {
     const auto& otherNodePositions = nodeContainer.getNodePositionsExcludingGroups();
-	if (otherNodePositions.size() > 0) {
+	if (not otherNodePositions.empty()) {
 		nodePositions.insert(otherNodePositions.begin(), otherNodePositions.end());
 	}
 
-	if (nodeContainer.nodeGroupNames.size() > 0) {
+	if (not nodeContainer.nodeGroupNames.empty()) {
 		nodeGroupNames.insert(nodeContainer.nodeGroupNames.begin(), nodeContainer.nodeGroupNames.end());
 	}
 }
@@ -1017,7 +1017,7 @@ bool NodeContainer::containsNodePositionExcludingGroups(int nodePosition) const 
 }
 
 bool NodeContainer::empty() const {
-	return nodeGroupNames.empty() and nodePositions.empty() and not hasNodesIncludingGroups() and CellContainer::empty();
+	return nodeGroupNames.empty() and nodePositions.empty()  and CellContainer::empty() and (not hasNodesIncludingGroups());
 }
 
 void NodeContainer::clear() {
@@ -1033,12 +1033,13 @@ bool NodeContainer::hasNodesExcludingGroups() const {
 bool NodeContainer::hasNodesIncludingGroups() const {
 	if (not nodePositions.empty())
         return true;
+	if (not CellContainer::empty())
+        return true;
 	for (string groupName : nodeGroupNames) {
-		shared_ptr<NodeGroup> group = dynamic_pointer_cast<NodeGroup>(mesh.findGroup(groupName));
-        if (not group->empty())
+        if (not mesh.findGroup(groupName)->empty())
             return true;
     }
-    return CellContainer::empty();
+    return false;
 }
 
 bool NodeContainer::hasNodeGroups() const {

@@ -208,8 +208,8 @@ int Mesh::addNode(int id, double x, double y, double z, int cpPos, int cdPos, in
 	return nodePosition;
 }
 
-int Mesh::countNodes() const {
-	return static_cast<int>(nodes.nodeDatas.size());
+size_t Mesh::countNodes() const {
+	return nodes.nodeDatas.size();
 }
 
 const Node Mesh::findNode(const int nodePosition) const {

@@ -94,7 +94,7 @@ public:
 	void add(const Reference<ObjectiveSet>&);
 	const std::set<std::shared_ptr<Objective>, ptrLess<Objective>> getObjectives() const;
 	const std::set<std::shared_ptr<Objective>, ptrLess<Objective>> getObjectivesByType(Objective::Type) const;
-	int size() const;
+	size_t size() const;
 	inline bool empty() const {return size() == 0;};
 	std::shared_ptr<ObjectiveSet> clone() const;
 };

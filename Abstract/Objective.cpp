@@ -77,7 +77,7 @@ const set<shared_ptr<Objective>, ptrLess<Objective> > ObjectiveSet::getObjective
     return result;
 }
 
-int ObjectiveSet::size() const {
+size_t ObjectiveSet::size() const {
     return static_cast<int>(getObjectives().size());
 }
 
