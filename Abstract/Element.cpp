@@ -951,8 +951,8 @@ double ISectionBeam::getShearAreaFactorZ() const {
     return this->getAreaCrossSection() / web_area;
 }
 
-MatrixElement::MatrixElement(Model& model, Type type, MatrixType matrixType, int original_id) :
-		CellElementSet(model, type, modelType, original_id), matrixType(matrixType) {
+MatrixElement::MatrixElement(Model& model, Type elementType, MatrixType matrixType, int original_id) :
+		CellElementSet(model, elementType, model.modelType, original_id), matrixType{matrixType} {
 }
 
 void MatrixElement::addComponent(const int nodeid1, const DOF dof1, const int nodeid2, const DOF dof2, const double value) {

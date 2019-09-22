@@ -3046,7 +3046,7 @@ void NastranParser::parseRLOAD2(NastranTokenizer& tok, Model& model) {
     Reference<LoadSet> loadSetReference(LoadSet::Type::DLOAD, loadset_id);
     auto loadSet = model.find(loadSetReference);
     if (loadSet == nullptr) {
-        const auto& loadSet = make_shared<LoadSet>(model, LoadSet::Type::DLOAD, loadset_id);
+        loadSet = make_shared<LoadSet>(model, LoadSet::Type::DLOAD, loadset_id);
         model.add(loadSet);
         original_id = loadset_id;
     } else {

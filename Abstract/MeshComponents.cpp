@@ -748,13 +748,6 @@ void CellContainer::add(const Cell& cell) {
 	cellPositions.insert(cell.position);
 }
 
-void CellContainer::add(const Group& group) {
-    if (group.type != Group::Type::CELLGROUP) {
-        throw invalid_argument("Invalid Group type");
-    }
-    this->cellGroupNames.insert(group.getName());
-}
-
 void CellContainer::add(const CellGroup& cellGroup) {
 	this->cellGroupNames.insert(cellGroup.getName());
 }
@@ -919,28 +912,13 @@ void NodeContainer::addNodePosition(int nodePosition) {
 	nodePositions.insert(nodePosition);
 }
 
-void NodeContainer::add(const Group& group) {
-    switch(group.type) {
-    case Group::Type::CELLGROUP: {
-        CellContainer::add(group);
-        break;
-    }
-    case Group::Type::NODEGROUP: {
-        this->nodeGroupNames.insert(group.getName());
-        break;
-    }
-    default:
-        throw invalid_argument("Invalid Group type");
-    }
+void NodeContainer::addNodeGroup(const string& groupName) {
+	shared_ptr<Group> group = mesh.findGroup(groupName);
+	if (group == nullptr) {
+		throw logic_error("Group name: [" + groupName + "] not found.");
+	}
+	nodeGroupNames.insert(groupName);
 }
-
-//void NodeContainer::addNodeGroup(const string& groupName) {
-//	shared_ptr<Group> group = mesh.findGroup(groupName);
-//	if (group == nullptr) {
-//		throw logic_error("Group name: [" + groupName + "] not found.");
-//	}
-//	nodeGroupNames.insert(groupName);
-//}
 
 void NodeContainer::removeNodePositionExcludingGroups(int nodePosition) {
 	nodePositions.erase(nodePositions.find(nodePosition));

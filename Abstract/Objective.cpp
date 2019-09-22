@@ -78,7 +78,7 @@ const set<shared_ptr<Objective>, ptrLess<Objective> > ObjectiveSet::getObjective
 }
 
 size_t ObjectiveSet::size() const {
-    return static_cast<int>(getObjectives().size());
+    return getObjectives().size();
 }
 
 const string ObjectiveSet::name = "ObjectiveSet";
@@ -106,9 +106,7 @@ const DOFS NodalAssertion::getDOFSForNode(const int nodePosition) const {
     return dof;
 }
 set<int> NodalAssertion::nodePositions() const {
-    set<int> result;
-    result.insert(nodePosition);
-    return result;
+    return {nodePosition};
 }
 
 NodalDisplacementAssertion::NodalDisplacementAssertion(Model& model, double tolerance,
@@ -146,7 +144,32 @@ const DOFS FrequencyAssertion::getDOFSForNode(const int nodePosition) const {
     return DOFS::NO_DOFS;
 }
 set<int> FrequencyAssertion::nodePositions() const {
-    return set<int>();
+    return {};
+}
+
+ostream &operator<<(ostream &out, const FrequencyAssertion& objective) {
+    out << to_str(objective) << "Cycles " << objective.cycles;
+    return out;
+}
+
+NodalCellVonMisesAssertion::NodalCellVonMisesAssertion(Model& model,
+        double tolerance, int cellId, int nodeId, double value, int original_id) :
+        Assertion(model, Objective::Type::NODAL_CELL_VONMISES_ASSERTION, tolerance, original_id),
+        nodePosition(model.mesh.findOrReserveNode(nodeId)), nodeId(nodeId), cellPosition(model.mesh.findCellPosition(cellId)), cellId(cellId), value(value) {
+}
+
+const DOFS NodalCellVonMisesAssertion::getDOFSForNode(const int nodePosition) const {
+    UNUSEDV(nodePosition);
+    return DOFS::NO_DOFS;
+}
+set<int> NodalCellVonMisesAssertion::nodePositions() const {
+    return {nodePosition};
+}
+
+ostream &operator<<(ostream &out, const NodalCellVonMisesAssertion& objective) {
+    out << to_str(objective) << "Cell Pos " << objective.cellPosition << "Node Pos " << objective.nodePosition << " Value "
+            << objective.value;
+    return out;
 }
 
 AnalysisParameter::AnalysisParameter(Model& model, Type type, int original_id) :
@@ -158,7 +181,7 @@ FrequencySearch::FrequencySearch(Model& model, const FrequencyType frequencyType
 }
 
 const shared_ptr<NamedValue> FrequencySearch::getValue() const {
-    return dynamic_pointer_cast<NamedValue>(model.find(namedValue));
+    return model.find(namedValue);
 }
 
 const FunctionPlaceHolder FrequencySearch::getValueRangePlaceHolder() const {
@@ -170,7 +193,7 @@ FrequencyExcit::FrequencyExcit(Model& model, const FrequencyType frequencyType, 
 }
 
 const shared_ptr<NamedValue> FrequencyExcit::getValue() const {
-    return dynamic_pointer_cast<NamedValue>(model.find(namedValue));
+    return model.find(namedValue);
 }
 
 const FunctionPlaceHolder FrequencyExcit::getValueRangePlaceHolder() const {
@@ -213,7 +236,7 @@ NodalDisplacementOutput::NodalDisplacementOutput(Model& model, shared_ptr<Refere
 }
 
 vector<shared_ptr<NodeGroup>> NodalDisplacementOutput::getNodeGroups() const {
-    vector<shared_ptr<NodeGroup>>&& nodeGroups = NodeContainer::getNodeGroups();
+    auto nodeGroups = NodeContainer::getNodeGroups();
     if (collection != nullptr) {
         const auto& setValue = dynamic_pointer_cast<SetValue<int>>(model.find(*collection));
         if (setValue == nullptr)
@@ -231,6 +254,18 @@ vector<shared_ptr<NodeGroup>> NodalDisplacementOutput::getNodeGroups() const {
         }
         nodeGroups.push_back(nodeGroup);
     }
+    // TODO LD Hack for NastranWriter, need to rethink all this, should be totally transparent (and NOT lazy)
+    const auto& cellGroups = NodeContainer::getCellGroups();
+    if (not cellGroups.empty()) {
+        const string& groupName = "DISP_" + to_string(this->getId());
+        auto nodeGroup = model.mesh.findOrCreateNodeGroup(groupName, NodeGroup::NO_ORIGINAL_ID, "DISP");
+        for (const auto& cellGroup : cellGroups) {
+            for (const int nodePosition : cellGroup->nodePositions()) {
+                nodeGroup->addNodeByPosition(nodePosition);
+            }
+        }
+        nodeGroups.push_back(nodeGroup);
+    }
     return nodeGroups;
 }
 
@@ -243,7 +278,7 @@ VonMisesStressOutput::VonMisesStressOutput(Model& model, shared_ptr<Reference<Na
 }
 
 vector<shared_ptr<CellGroup>> VonMisesStressOutput::getCellGroups() const {
-    vector<shared_ptr<CellGroup>>&& cellGroups = CellContainer::getCellGroups();
+    auto cellGroups = CellContainer::getCellGroups();
     if (collection != nullptr) {
         const auto& setValue = dynamic_pointer_cast<SetValue<int>>(model.find(*collection));
         if (setValue == nullptr)

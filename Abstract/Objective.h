@@ -45,6 +45,7 @@ public:
     enum class Type {
         NODAL_DISPLACEMENT_ASSERTION,
         NODAL_COMPLEX_DISPLACEMENT_ASSERTION,
+        NODAL_CELL_VONMISES_ASSERTION,
         FREQUENCY_ASSERTION,
         FREQUENCY_SEARCH,
         FREQUENCY_EXCIT,
@@ -153,6 +154,22 @@ public:
             NO_ORIGINAL_ID);
     const DOFS getDOFSForNode(const int nodePosition) const override final;
     std::set<int> nodePositions() const override final;
+    friend std::ostream& operator<<(std::ostream&, const FrequencyAssertion&);
+};
+
+class NodalCellVonMisesAssertion: public Assertion {
+
+public:
+    const int nodePosition;
+    const int nodeId;
+    const int cellPosition;
+    const int cellId;
+    const double value;
+    NodalCellVonMisesAssertion(Model&, double tolerance, int cellId, int nodeId, double value, int original_id =
+            NO_ORIGINAL_ID);
+    const DOFS getDOFSForNode(const int nodePosition) const override final;
+    std::set<int> nodePositions() const override final;
+    friend std::ostream& operator<<(std::ostream&, const NodalCellVonMisesAssertion&);
 };
 
 class AnalysisParameter: public Objective {

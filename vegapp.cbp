@@ -2428,6 +2428,9 @@
 		<Unit filename="testdata/unitTest/optistructparser/pbushrigid.nas" />
 		<Unit filename="testdata/unitTest/optistructparser/pload4.nas" />
 		<Unit filename="testdata/unitTest/optistructparser/rbe2.nas" />
+		<Unit filename="testdata/unitTest/resultReaders/modal_disp.f06" />
+		<Unit filename="testdata/unitTest/resultReaders/stresses_hexa.f06" />
+		<Unit filename="testdata/unitTest/resultReaders/stresses_tetra.f06" />
 		<Unit filename="testdata/unitTest/resultReaders/tut01.csv" />
 		<Extensions>
 			<envvars />

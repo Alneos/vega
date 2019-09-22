@@ -114,12 +114,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                 throw logic_error("No cell group has been found in mesh, maybe BEGIN_BULK is missing?");
             }
             const int constraintGroupId = 6;
-            shared_ptr<Group> x0group = nullptr;
-            if (cellType.dimension == SpaceDimension::DIMENSION_1D) {
-                x0group = dynamic_pointer_cast<NodeGroup>(model->mesh.findGroup(constraintGroupId));
-            } else {
-                x0group = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(constraintGroupId));
-            }
+            const auto& x0group = model->mesh.findGroup(constraintGroupId);
             if (x0group == nullptr) {
                 throw logic_error("missing constraint group in mesh");
             }
@@ -131,12 +126,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
             }
 
             const int loadGroupId = 8;
-            shared_ptr<Group> x300group = nullptr;
-            if (cellType.dimension == SpaceDimension::DIMENSION_1D) {
-                x300group = dynamic_pointer_cast<NodeGroup>(model->mesh.findGroup(loadGroupId));
-            } else {
-                x300group = dynamic_pointer_cast<CellGroup>(model->mesh.findGroup(loadGroupId));
-            }
+            const auto& x300group = model->mesh.findGroup(loadGroupId);
             if (x300group == nullptr) {
                 throw logic_error("missing loading group in mesh");
             }
@@ -148,12 +138,16 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
 
             // Add output
             const auto& nodalOutput = make_shared<NodalDisplacementOutput>(*model);
-            nodalOutput->add(*x300group);
+            if (x300group->type == Group::Type::NODEGROUP) {
+                nodalOutput->addNodeGroup(x300group->getName());
+            } else {
+                nodalOutput->addCellGroup(x300group->getName());
+            }
             model->add(nodalOutput);
 
             if (cellType.dimension > SpaceDimension::DIMENSION_1D) {
                 const auto& vmisOutput = make_shared<VonMisesStressOutput>(*model);
-                vmisOutput->add(*x0group);
+                vmisOutput->addCellGroup(x0group->getName());
                 model->add(vmisOutput);
             }
 
@@ -190,7 +184,11 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
 
             // Add constraint
             const auto& spc = make_shared<SinglePointConstraint>(*model, DOFS::ALL_DOFS, 0.0);
-            spc->add(*x0group);
+            if (x0group->type == Group::Type::NODEGROUP) {
+                spc->addNodeGroup(x0group->getName());
+            } else {
+                spc->addCellGroup(x0group->getName());
+            }
             model->add(spc);
             model->addConstraintIntoConstraintSet(*spc, *constraintSet);
 
@@ -231,7 +229,11 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                             analysis->add(*nodalOutput);
                             model->add(analysis);
                             const auto& forceLoading = make_shared<NodalForce>(*model, loadSet, force);
-                            forceLoading->add(*x300group);
+                            if (x300group->type == Group::Type::NODEGROUP) {
+                                forceLoading->addNodeGroup(x300group->getName());
+                            } else {
+                                forceLoading->addCellGroup(x300group->getName());
+                            }
                             model->add(forceLoading);
                             loadSetId++;
                             analysisId++;

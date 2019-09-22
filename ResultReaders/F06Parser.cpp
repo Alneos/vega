@@ -245,6 +245,101 @@ int F06Parser::readComplexDisplacementSection(Model& model,
 	return subcase_id /* It could have consumed the next subcase id so we give it back for the next section parsing */;
 }
 
+int F06Parser::readStressesForSolidsSection(int currentSubCase, Model& model,
+		const ConfigurationParameters& configuration, ifstream& istream,
+		vector<shared_ptr<Assertion>>& assertions) {
+	string currentLine;
+	int subcase_id = NO_SUBCASE;
+	try {
+
+        bool foundHeader = false;
+		while (this->readLine(istream, currentLine) and currentLine[0] != '1') {
+			size_t orderPosition =
+					currentLine.find(
+							"ELEMENT-ID    GRID-ID        NORMAL              SHEAR             PRINCIPAL       -A-  -B-  -C-     PRESSURE       VON MISES");
+			if (orderPosition != string::npos) {
+                foundHeader = true;
+				break;
+			}
+		}
+		while (foundHeader and this->readLine(istream, currentLine)) {
+			size_t subCasePosition = currentLine.find("SUBCASE");
+			if (subCasePosition != string::npos) {
+                subcase_id = parseSubcase(subcase_id, currentLine);
+                if (subcase_id == currentSubCase) {
+                    continue;
+                } else {
+                    break;
+                }
+			}
+
+			if (currentLine[0] == '0' and currentLine.find("0GRID") == string::npos) {
+                throw exception();
+			}
+
+			istringstream istringLine(currentLine);
+			vector<string> tokens;
+
+			// Element header
+			copy(istream_iterator<string>(istringLine), istream_iterator<string>(),
+					back_inserter(tokens));
+			if (tokens.size() != 6)
+				break;
+            int cellId = stoi(tokens[1]);
+            int nodeNum = stoi(tokens[4]);
+
+            for (int nodePos = 1; nodePos <= nodeNum + 1 /* for CENTER stress */; nodePos++) {
+                for (int dir = 1; dir <= 3; dir++) {
+                    // PAGE should only happen between nodes
+                    this->readLine(istream, currentLine);
+                    if (currentLine[0] == '1' and currentLine.find("PAGE") != string::npos) {
+                        for (int i = 1; i < 5; i++) {  // skip page header
+                            this->readLine(istream, currentLine);
+                        }
+                        nodePos--;
+                        break;
+                    }
+                    if (currentLine[0] != '0' or currentLine.find("CENTER") != string::npos) {
+                        continue; // only first line of this node has node id (and von mises)
+                    }
+                    istringLine.clear();
+                    tokens.clear();
+                    istringLine.str(currentLine);
+                    copy(istream_iterator<string>(istringLine), istream_iterator<string>(),
+                            back_inserter(tokens));
+                    int nodeId = stoi(tokens[1]);
+                    double vonMises = stod(tokens[tokens.size() - 1] /* sometimes smaller values have (or not) spaces between them, should cut using columns */);
+                    assertions.push_back(
+                            make_shared<NodalCellVonMisesAssertion>(model, configuration.testTolerance, cellId,
+                                    nodeId, vonMises));
+                    if (configuration.outputSolver.getSolverName() == SolverName::CODE_ASTER) {
+                        // Workaround to avoid MAILLE in COMM file
+                        int cellPosition = model.mesh.findCellPosition(cellId);
+                        const string& groupName = Cell::MedName(cellPosition);
+                        if (not model.mesh.hasGroup(groupName)) {
+                            shared_ptr<CellGroup> cellGrp = model.mesh.createCellGroup(groupName, Group::NO_ORIGINAL_ID, "Single cell group over vmis elno assertion");
+                            cellGrp->addCellPosition(cellPosition);
+                        }
+                    }
+                }
+            }
+		}
+	} catch (const exception &e) {
+		string message("Error ");
+		message += string(e.what()) + " parsing:";
+		message += configuration.resultFile.string();
+		message += " Line number " + to_string(lineNumber);
+		message += " Line: " + currentLine;
+		cerr << message << endl;
+		if (ConfigurationParameters::TranslationMode::MODE_STRICT == configuration.translationMode) {
+			throw e;
+		} else {
+			//cerr << "Conditions not added, parsing next section" << endl;
+		}
+	}
+	return subcase_id /* It could have consumed the next subcase id so we give it back for the next section parsing */;
+}
+
 int F06Parser::addAssertionsToModel(int currentSubcase, double loadStep, Model &model,
 		const ConfigurationParameters& configuration, ifstream& istream) {
 
@@ -344,6 +439,38 @@ int F06Parser::addComplexAssertionsToModel(int currentSubCase, double frequency,
 	return nextSubcase;
 }
 
+int F06Parser::addVonMisesAssertionsToModel(int currentSubcase, Model &model,
+		const ConfigurationParameters& configuration, ifstream& istream) {
+
+	vector<shared_ptr<Assertion>> assertions;
+	int nextSubcase = readStressesForSolidsSection(currentSubcase, model, configuration, istream, assertions);
+	shared_ptr<Analysis> analysis;
+	if (currentSubcase != NO_SUBCASE) {
+		analysis = model.analyses.find(currentSubcase);
+		if (analysis == nullptr and model.configuration.logLevel >= LogLevel::INFO) {
+			cout << "Could not find subcase : " << currentSubcase << " in model." << endl;
+		}
+	} else if (not model.analyses.empty()) {
+		// LD If no subcase indicated, the first one is used if exists.
+		analysis = model.analyses.first();
+	}
+	for (const auto& assertion : assertions) {
+		if (analysis != nullptr) {
+			model.add(assertion);
+			analysis->add(assertion->getReference());
+			if (model.configuration.logLevel >= LogLevel::TRACE) {
+				cout << "Adding VonMisesAssertion : " << *assertion << " to subcase: "
+						<< currentSubcase << endl;
+			}
+		} else if (model.configuration.logLevel >= LogLevel::DEBUG) {
+			cout << "Discarding VonMisesAssertion : " << *assertion
+					<< " because subcase id: " << currentSubcase << " was not found." << endl;
+		}
+	}
+	return nextSubcase;
+}
+
+
 int F06Parser::parseSubcase(int currentSubCase, const string& currentLine) {
 	size_t subCasePosition = currentLine.find("SUBCASE");
 	string subcaseN = trim_copy(currentLine.substr(subCasePosition + 7));
@@ -407,6 +534,12 @@ void F06Parser::add_assertions(const ConfigurationParameters& configuration,
 				currentSubCase = addFrequencyAssertionsToModel(currentSubCase, model, configuration, istream);
 			} else if (currentLine == "C O M P L E X   D I S P L A C E M E N T   V E C T O R") {
 				currentSubCase = addComplexAssertionsToModel(currentSubCase, frequency, model,
+						configuration, istream);
+			}
+			size_t stressesPos = currentLine.find("S T R E S S E S");
+			size_t solidElementsPos = currentLine.find("S O L I D   E L E M E N T S");
+			if (stressesPos != string::npos and solidElementsPos != string::npos) {
+				currentSubCase = addVonMisesAssertionsToModel(currentSubCase, model,
 						configuration, istream);
 			}
 		}

@@ -171,11 +171,11 @@ void FunctionTable::scale(double factor) {
     }
 }
 
-ConstantValue::ConstantValue(const Model&, Type type, double value, int original_id) :
+ConstantValue::ConstantValue(const Model& model, Type type, double value, int original_id) :
         NamedValue(model, type, original_id), value(value) {
 }
 
-DynaPhase::DynaPhase(const Model&, double value, int original_id) :
+DynaPhase::DynaPhase(const Model& model, double value, int original_id) :
         ConstantValue(model, Value::Type::DYNA_PHASE, value, original_id) {
 }
 

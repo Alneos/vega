@@ -63,9 +63,10 @@ class AsterWriter final : public Writer {
 	double writeAnalysis(const AsterModel&, Analysis& analysis, std::ostream&, double debut);
 	void writeAssemblage(const AsterModel&, Analysis& analysis, std::ostream&);
 	void writeCalcFreq(const AsterModel&, LinearModal& analysis, std::ostream&);
-	void writeNodalDisplacementAssertion(const AsterModel&, const Assertion&, std::ostream&) const;
-	void writeNodalComplexDisplacementAssertion(const AsterModel&, const Assertion&, std::ostream&) const;
-	void writeFrequencyAssertion(const Analysis&, const Assertion&, std::ostream&) const;
+	void writeNodalDisplacementAssertion(const AsterModel&, const NodalDisplacementAssertion&, std::ostream&) const;
+	void writeNodalComplexDisplacementAssertion(const AsterModel&, const NodalComplexDisplacementAssertion&, std::ostream&) const;
+	void writeNodalCellVonMisesAssertion(const AsterModel&, const NodalCellVonMisesAssertion&, std::ostream&) const;
+	void writeFrequencyAssertion(const Analysis&, const FrequencyAssertion&, std::ostream&) const;
 	void writeLoadset(LoadSet& loadSet, std::ostream& out);
 	std::string writeValue(NamedValue& value, std::ostream& out);
 	void writeImprResultats(const AsterModel& asterModel, std::ostream& out);

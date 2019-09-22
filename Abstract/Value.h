@@ -113,7 +113,7 @@ protected:
 
 class ListValueBase: public NamedValue {
 public:
-    ListValueBase(const Model&, int original_id = NO_ORIGINAL_ID):
+    ListValueBase(const Model& model, int original_id = NO_ORIGINAL_ID):
         NamedValue(model, Value::Type::LIST, original_id) {
     }
     virtual bool isintegral() const = 0;
@@ -123,7 +123,7 @@ public:
 template<class T> class ListValue: public ListValueBase {
     std::list<T> alist;
 public:
-    ListValue(const Model&, std::list<T> values, int original_id = NO_ORIGINAL_ID):
+    ListValue(const Model& model, std::list<T> values, int original_id = NO_ORIGINAL_ID):
         ListValueBase(model, original_id), alist(values) {
     }
     std::list<T> getList() const {
@@ -149,7 +149,7 @@ public:
 
 class SetValueBase: public NamedValue {
 public:
-    SetValueBase(const Model&, int original_id = NO_ORIGINAL_ID):
+    SetValueBase(const Model& model, int original_id = NO_ORIGINAL_ID):
         NamedValue(model, Value::Type::SET, original_id) {
     }
     virtual bool isintegral() const = 0;
@@ -159,7 +159,7 @@ public:
 template<class T> class SetValue: public SetValueBase {
     std::set<T> aset;
 public:
-    SetValue(const Model&, std::set<T> values, int original_id = NO_ORIGINAL_ID):
+    SetValue(const Model& model, std::set<T> values, int original_id = NO_ORIGINAL_ID):
         SetValueBase(model, original_id), aset(values) {
     }
     std::set<T> getSet() const  {
@@ -181,7 +181,7 @@ public:
 
 template<class T> class ScalarValue: public NamedValue {
 public:
-    ScalarValue(const Model&, T number, int original_id = NO_ORIGINAL_ID) :
+    ScalarValue(const Model& model, T number, int original_id = NO_ORIGINAL_ID) :
         NamedValue(model, Value::Type::SCALAR, original_id), number(number) {
     }
     T number;
@@ -372,6 +372,8 @@ public:
     VectorialValue();
     VectorialValue(double x, double y, double z);
     VectorialValue(std::initializer_list<double> c);
+    VectorialValue(const vega::VectorialValue&) = default;
+    VectorialValue(vega::VectorialValue&&) = default;
     inline double x() const {
         return value[0];
     }
@@ -403,6 +405,7 @@ public:
     friend const VectorialValue operator*(const double&, const VectorialValue&);
     friend const VectorialValue operator/(const VectorialValue&, const double&);
     VectorialValue& operator=(const VectorialValue&);
+    VectorialValue& operator=(VectorialValue&&) = default;
     friend bool operator==(const VectorialValue&, const VectorialValue&);
     friend bool operator!=(const VectorialValue&, const VectorialValue&);
 

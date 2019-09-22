@@ -151,12 +151,12 @@ BOOST_AUTO_TEST_CASE(test_4a) {
 	BOOST_ASSERT(linearMecaStat1!=nullptr);
 	//before finish() in the model are present all the assertion found in the f06 file
 	vector<shared_ptr<Assertion>> all_assertions = linearMecaStat1->getAssertions();
-	BOOST_CHECK_EQUAL(all_assertions.size(), static_cast<size_t>(54));
+	BOOST_CHECK_EQUAL(all_assertions.size(), static_cast<size_t>(62));
 
 	model->finish();
 	//assertion deleted because nodes are not in elements
 	vector<shared_ptr<Assertion>> assertions = linearMecaStat1->getAssertions();
-	BOOST_CHECK_EQUAL(assertions.size(), static_cast<size_t>(30));
+	BOOST_CHECK_EQUAL(assertions.size(), static_cast<size_t>(38));
 
 }
 
@@ -213,19 +213,131 @@ BOOST_AUTO_TEST_CASE(test_modal_disp) {
 			model->find(Reference<Analysis>(Analysis::Type::LINEAR_MODAL, 1)));
 	BOOST_ASSERT(linearModal1!=nullptr);
 	vector<shared_ptr<Assertion>> all_assertions1 = linearModal1->getAssertions();
-	BOOST_CHECK_EQUAL(all_assertions1.size(), static_cast<size_t>(10));
+	BOOST_CHECK_EQUAL(all_assertions1.size(), 10);
 
 	shared_ptr<LinearMecaStat> linearStatic2 = dynamic_pointer_cast<LinearMecaStat>(
 			model->find(Reference<Analysis>(Analysis::Type::LINEAR_MECA_STAT, 2)));
 	BOOST_ASSERT(linearStatic2!=nullptr);
 	vector<shared_ptr<Assertion>> all_assertions2 = linearStatic2->getAssertions();
-	BOOST_CHECK_EQUAL(all_assertions2.size(), static_cast<size_t>(42));
+	BOOST_CHECK_EQUAL(all_assertions2.size(), 42);
 	//before finish() in the model are present all the assertion found in the f06 file
 
 
 	model->finish();
 	vector<shared_ptr<Assertion>> assertions = linearModal1->getAssertions();
-	BOOST_CHECK_EQUAL(assertions.size(), static_cast<size_t>(10));
+	BOOST_CHECK_EQUAL(assertions.size(), 10);
 
+}
+
+BOOST_AUTO_TEST_CASE(nastran_f06_vonmises_hexa) {
+
+	string testLocation(
+	PROJECT_BASE_DIR "/testdata/unitTest/resultReaders/stresses_hexa.f06");
+	ConfigurationParameters confParams("inputFile", SolverName::CODE_ASTER, "..", "vega", ".",
+			LogLevel::DEBUG, ConfigurationParameters::TranslationMode::MODE_STRICT, testLocation, 0.0003);
+	F06Parser f06parser;
+
+	unique_ptr<Model> model = make_unique<Model>("mname", "unknown", SolverName::NASTRAN);
+	for (const auto& nodeId : {1, 2, 5, 6, 9, 10, 40, 69, 70, 100, 129, 130, 162, 133, 191, 220, 249, 251}) {
+        model->mesh.addNode(nodeId, 42, 42, 42);
+	}
+
+	model->mesh.addCell(385, CellType::HEXA8, {1, 9, 133, 10, 130, 220, 251, 249});
+	model->mesh.addCell(386, CellType::HEXA8, {130, 220, 251, 249, 5, 69, 162, 70});
+	model->mesh.addCell(445, CellType::HEXA8, {9, 2, 40, 133, 220, 129, 191, 251});
+	model->mesh.addCell(446, CellType::HEXA8, {220, 129, 191, 251, 69, 6, 100, 162});
+	shared_ptr<CellGroup> cn1 = model->mesh.createCellGroup("GM1");
+	cn1->addCellId(385);
+	cn1->addCellId(386);
+	cn1->addCellId(445);
+	const auto& shell = make_shared<Shell>(*model, 1.1);
+	shell->add(*cn1);
+	shell->addCellId(446);
+	model->add(shell);
+	model->add(make_shared<LinearMecaStat>(*model, "", 1));
+	model->add(make_shared<LinearMecaStat>(*model, "", 2));
+
+	BOOST_TEST_CHECKPOINT("Before Parse");
+	f06parser.add_assertions(confParams, *model);
+	shared_ptr<LinearMecaStat> linearMecaStat1 = dynamic_pointer_cast<LinearMecaStat>(
+			model->find(Reference<Analysis>(Analysis::Type::LINEAR_MECA_STAT, 1)));
+	BOOST_ASSERT(linearMecaStat1!=nullptr);
+	vector<shared_ptr<Assertion>> assertions = linearMecaStat1->getAssertions();
+	BOOST_CHECK_EQUAL(assertions.size(), 32);
+
+	model->finish();
+	//ineffective assertions are removed by model->finish()
+	vector<shared_ptr<Assertion>> assertions2 = linearMecaStat1->getAssertions();
+	BOOST_CHECK_EQUAL(assertions2.size(), 32);
+	bool found = false;
+	for (const auto& assertion : assertions) {
+
+		BOOST_CHECK(assertion->type == Objective::Type::NODAL_CELL_VONMISES_ASSERTION);
+		const auto& nodalVmisAssertion =
+				dynamic_pointer_cast<NodalCellVonMisesAssertion>(assertion);
+		int nodeId = nodalVmisAssertion->nodeId;
+		int cellId = nodalVmisAssertion->cellId;
+		if (nodeId == 1 and cellId == 385) {
+			found = true;
+			BOOST_CHECK_CLOSE(nodalVmisAssertion->value, 3.870387E-01, 0.00001);
+		}
+	}
+	BOOST_CHECK_EQUAL(found, true);
+}
+
+BOOST_AUTO_TEST_CASE(nastran_f06_vonmises_tetra) {
+
+	string testLocation(
+	PROJECT_BASE_DIR "/testdata/unitTest/resultReaders/stresses_tetra.f06");
+	ConfigurationParameters confParams("inputFile", SolverName::CODE_ASTER, "..", "vega", ".",
+			LogLevel::DEBUG, ConfigurationParameters::TranslationMode::MODE_STRICT, testLocation, 0.0003);
+	F06Parser f06parser;
+
+	unique_ptr<Model> model = make_unique<Model>("mname", "unknown", SolverName::NASTRAN);
+	for (const auto& nodeId : {1, 3, 5, 6, 42, 71, 134, 135, 136, 168, 199}) {
+        model->mesh.addNode(nodeId, 42, 42, 42);
+	}
+
+	model->mesh.addCell(551, CellType::TETRA4, {6, 136, 168, 134});
+	model->mesh.addCell(573, CellType::TETRA4, {3, 1, 135, 71});
+	model->mesh.addCell(578, CellType::TETRA4, {42, 5, 6, 134});
+	model->mesh.addCell(580, CellType::TETRA4, {168, 136, 199, 134});
+	shared_ptr<CellGroup> cn1 = model->mesh.createCellGroup("GM1");
+	cn1->addCellId(551);
+	cn1->addCellId(573);
+	cn1->addCellId(578);
+	cn1->addCellId(580);
+	const auto& shell = make_shared<Shell>(*model, 1.1);
+	shell->add(*cn1);
+	model->add(shell);
+	model->add(make_shared<LinearMecaStat>(*model, "", 1));
+	model->add(make_shared<LinearMecaStat>(*model, "", 2));
+
+	BOOST_TEST_CHECKPOINT("Before Parse");
+	f06parser.add_assertions(confParams, *model);
+	shared_ptr<LinearMecaStat> linearMecaStat1 = dynamic_pointer_cast<LinearMecaStat>(
+			model->find(Reference<Analysis>(Analysis::Type::LINEAR_MECA_STAT, 1)));
+	BOOST_ASSERT(linearMecaStat1!=nullptr);
+	vector<shared_ptr<Assertion>> assertions = linearMecaStat1->getAssertions();
+	BOOST_CHECK_EQUAL(assertions.size(), 16);
+
+	model->finish();
+	//ineffective assertions are removed by model->finish()
+	vector<shared_ptr<Assertion>> assertions2 = linearMecaStat1->getAssertions();
+	BOOST_CHECK_EQUAL(assertions2.size(), 16);
+	bool found = false;
+	for (const auto& assertion : assertions) {
+
+		BOOST_CHECK(assertion->type == Objective::Type::NODAL_CELL_VONMISES_ASSERTION);
+		const auto& nodalVmisAssertion =
+				dynamic_pointer_cast<NodalCellVonMisesAssertion>(assertion);
+		int nodeId = nodalVmisAssertion->nodeId;
+		int cellId = nodalVmisAssertion->cellId;
+		if (nodeId == 6 and cellId == 551) {
+			found = true;
+			BOOST_CHECK_CLOSE(nodalVmisAssertion->value, 3.038723E-01, 0.00001);
+		}
+	}
+	BOOST_CHECK_EQUAL(found, true);
 }
 

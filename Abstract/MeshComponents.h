@@ -423,7 +423,7 @@ public:
     void addCellPositions(const std::set<int>& otherPositions);
     void addCellGroup(const std::string& groupName);
     void add(const Cell& cell);
-    virtual void add(const Group& group);
+    //virtual void add(const Group& group);
     virtual void add(const CellGroup& cellGroup);
     void add(const CellContainer& cellContainer);
     bool containsCellPosition(int cellPosition) const;
@@ -497,7 +497,7 @@ public:
     void addNodePosition(int nodePosition);
     //void addNodeGroup(const std::string& groupName);
     void add(const Node& node);
-    virtual void add(const Group& group) override final;
+    void addNodeGroup(const std::string& groupName);
     virtual void add(const NodeGroup& nodeGroup) final;
     void add(const NodeContainer& nodeContainer);
     bool containsNodePositionExcludingGroups(int nodePosition) const;

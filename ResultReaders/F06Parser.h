@@ -27,12 +27,16 @@ private:
 			std::ifstream&);
 	int addComplexAssertionsToModel(int currentSubCase, double frequency, Model&,
 			const ConfigurationParameters&, std::ifstream&);
+    int addVonMisesAssertionsToModel(int currentSubCase, Model&,
+			const ConfigurationParameters&, std::ifstream&);
 	int readDisplacementSection(Model& model, const ConfigurationParameters&,
 			std::ifstream& istream, std::vector<std::shared_ptr<Assertion>>& assertions, double loadStep);
 	int readEigenvalueSection(Model&, const ConfigurationParameters&, std::ifstream&,
 			std::vector<std::shared_ptr<Assertion>>&);
 	int readComplexDisplacementSection(Model&, const ConfigurationParameters&, std::ifstream&,
 			std::vector<std::shared_ptr<Assertion>>&, double frequency);
+    int readStressesForSolidsSection(int currentSubCase, Model& model, const ConfigurationParameters&,
+			std::ifstream& istream, std::vector<std::shared_ptr<Assertion>>& assertions);
 
 	int parseSubcase(int currentSubCase, const std::string& currentLine);
 	static const int NO_SUBCASE = -1;

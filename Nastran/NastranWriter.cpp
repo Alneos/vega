@@ -798,45 +798,62 @@ string NastranWriter::writeModel(Model& model,
 	out << "APP   DISP" << endl;
 	out << "TIME  10000" << endl;
 	out << "CEND" << endl;
-    const auto& displacementOutputs = model.objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT);
-    for (const auto& objective : displacementOutputs) {
-        const auto& displacementOutput = dynamic_pointer_cast<const NodalDisplacementOutput>(objective);
-        out << "  SET " << objective->bestId() << " = ";
+	for (const auto& analysis : model.analyses) {
+        for (const auto& objective : analysis->getObjectives()) {
+            if (objective->type != Objective::Type::NODAL_DISPLACEMENT_OUTPUT)
+                continue;
+            const auto& displacementOutput = dynamic_pointer_cast<const NodalDisplacementOutput>(objective);
+            displacementOutput->getNodeGroups(); // TODO LD Hack to lazy create the group :..(
+        }
+	}
+    for (const auto& nodeGroup : model.mesh.getNodeGroups()) {
+        out << "SET " << nodeGroup->getId() << " = ";
         bool firstNode = true;
         int nodeCount = 1;
-        for (int nodeId : displacementOutput->getNodeIdsIncludingGroups()) {
-            if (not firstNode)
-                out << ",";
-            else {
+        for(int nodeId : nodeGroup->getNodeIds()) {
+            if (firstNode) {
                 firstNode = false;
+            } else {
+                out << ",";
             }
             if (nodeCount % 8 == 0)
                 out << endl; // To avoid long lines
             out << nodeId;
             nodeCount++;
         }
-        out << endl;
-        //out << "  DISP = " << objective->bestId() << endl;
+        out << " $ " << nodeGroup->getComment() << endl;
+    }
+    for (const auto& cellGroup : model.mesh.getCellGroups()) {
+        bool firstCell = true;
+        int cellCount = 1;
+        out << "SET " << cellGroup->getId() << " = ";
+        for(int cellId : cellGroup->cellIds()) {
+            if (firstCell) {
+                firstCell = false;
+            } else {
+                out << ",";
+            }
+            if (cellCount % 8 == 0)
+                out << endl; // To avoid long lines
+            out << cellId;
+            cellCount++;
+        }
+        out << " $ " << cellGroup->getComment() << endl;
     }
     const auto& vonMisesOutputs = model.objectives.filter(Objective::Type::VONMISES_STRESS_OUTPUT);
     for (const auto& objective : vonMisesOutputs) {
-        const auto& displacementOutput = dynamic_pointer_cast<const VonMisesStressOutput>(objective);
-        out << "  SET " << objective->bestId() << " = ";
-        bool firstNode = true;
-        int nodeCount = 1;
-        for (int nodeId : displacementOutput->getCellIdsIncludingGroups()) {
-            if (not firstNode)
+        const auto& vonMisesOutput = dynamic_pointer_cast<const VonMisesStressOutput>(objective);
+        out << "  STRESS(VONMISES) = ";
+        bool firstGroup = true;
+        for (const auto& cellGroup : vonMisesOutput->getCellGroups()) {
+            if (firstGroup) {
+                firstGroup = false;
+            } else {
                 out << ",";
-            else {
-                firstNode = false;
             }
-            if (nodeCount % 8 == 0)
-                out << endl; // To avoid long lines
-            out << nodeId;
-            nodeCount++;
+            out << cellGroup->getId();
         }
         out << endl;
-        out << "  STRESS(VONMISES) = " << objective->bestId() << endl;
     }
 	for (const auto& analysis : model.analyses) {
 		out << "SUBCASE " << analysis->bestId() << endl;
@@ -851,7 +868,18 @@ string NastranWriter::writeModel(Model& model,
 		for (const auto& objective : analysis->getObjectives()) {
             switch (objective->type) {
             case Objective::Type::NODAL_DISPLACEMENT_OUTPUT: {
-                out << "  DISP = " << objective->bestId() << endl;
+                out << "  DISP = ";
+                const auto& displacementOutput = dynamic_pointer_cast<const NodalDisplacementOutput>(objective);
+                bool firstGroup = true;
+                for (const auto& nodeGroup : displacementOutput->getNodeGroups()) {
+                    if (firstGroup) {
+                        firstGroup = false;
+                    } else {
+                        out << ",";
+                    }
+                    out << nodeGroup->getId();
+                }
+                out << endl;
                 break;
             }
             default:

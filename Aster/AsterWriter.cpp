@@ -134,7 +134,7 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
                         << endl;
                 out << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
                 out << "           MODELE=MODMECA," << endl;
-                out << "           CONTRAINTE =('SIEQ_NOEU')," << endl;
+                out << "           CONTRAINTE =('SIEQ_ELNO','SIEQ_NOEU')," << endl;
                 writeCellContainer(*vonMisesOutput, out);
                 out << ")" << endl;
 			}
@@ -370,6 +370,18 @@ void AsterWriter::writeAnalyses(const AsterModel& asterModel, ostream& out) {
 			out << "           FORCE = 'REAC_NODA'," << endl;
 			out << ")" << endl;
 		}
+
+        bool calc_vmis = asterModel.model.objectives.contains(Objective::Type::NODAL_CELL_VONMISES_ASSERTION);
+        if (calc_vmis) {
+            out << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
+                    << endl;
+            out << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
+            out << "           MODELE=MODMECA," << endl;
+            out << "           CRITERES =('SIEQ_ELNO','SIEQ_NOEU')," << endl;
+            out << "           TOUT='OUI'," << endl;
+            out << ")" << endl;
+        }
+
 		const auto& assertions = analysis->getAssertions();
 		if (not assertions.empty()) {
 			out << "TEST_RESU(RESU = (" << endl;
@@ -378,19 +390,24 @@ void AsterWriter::writeAnalyses(const AsterModel& asterModel, ostream& out) {
 				switch (assertion->type) {
 				case Objective::Type::NODAL_DISPLACEMENT_ASSERTION:
 					out << "                  _F(RESULTAT=RESU" << analysis->getId() << "," << endl;
-					writeNodalDisplacementAssertion(asterModel, *assertion, out);
+					writeNodalDisplacementAssertion(asterModel, dynamic_cast<const NodalDisplacementAssertion&>(*assertion), out);
                     out << "                     )," << endl;
 					break;
 				case Objective::Type::FREQUENCY_ASSERTION:
-					writeFrequencyAssertion(*analysis, *assertion, out);
+					writeFrequencyAssertion(*analysis, dynamic_cast<const FrequencyAssertion&>(*assertion), out);
 					break;
 				case Objective::Type::NODAL_COMPLEX_DISPLACEMENT_ASSERTION:
 					out << "                  _F(RESULTAT=RESU" << analysis->getId() << "," << endl;
-					writeNodalComplexDisplacementAssertion(asterModel, *assertion, out);
+					writeNodalComplexDisplacementAssertion(asterModel, dynamic_cast<const NodalComplexDisplacementAssertion&>(*assertion), out);
+                    out << "                     )," << endl;
+					break;
+                case Objective::Type::NODAL_CELL_VONMISES_ASSERTION:
+					out << "                  _F(RESULTAT=RESU" << analysis->getId() << "," << endl;
+					writeNodalCellVonMisesAssertion(asterModel, dynamic_cast<const NodalCellVonMisesAssertion&>(*assertion), out);
                     out << "                     )," << endl;
 					break;
 				default:
-					handleWritingError(string("Not implemented"));
+					handleWritingError(string("Assertion type not (yet) implemented"));
 				}
 			}
 			out << "                  )" << endl;
@@ -2588,9 +2605,8 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 }
 
 void AsterWriter::writeNodalDisplacementAssertion(const AsterModel& asterModel,
-		const Assertion& assertion, ostream& out) const {
+		const NodalDisplacementAssertion& nda, ostream& out) const {
   UNUSEDV(asterModel);
-	const NodalDisplacementAssertion& nda = dynamic_cast<const NodalDisplacementAssertion&>(assertion);
 	bool relativeComparison = abs(nda.value) >= SMALLEST_RELATIVE_COMPARISON;
 	out << "                     CRITERE = "
 			<< (relativeComparison ? "'RELATIF'," : "'ABSOLU',") << endl;
@@ -2611,26 +2627,36 @@ void AsterWriter::writeNodalDisplacementAssertion(const AsterModel& asterModel,
 }
 
 void AsterWriter::writeNodalComplexDisplacementAssertion(const AsterModel& asterModel,
-		const Assertion& assertion, ostream& out) const {
-  UNUSEDV(asterModel);
-	const NodalComplexDisplacementAssertion& nda =
-			dynamic_cast<const NodalComplexDisplacementAssertion&>(assertion);
-	bool relativeComparison = abs(nda.value) >= SMALLEST_RELATIVE_COMPARISON;
-	out << "                     CRITERE = "
-			<< (relativeComparison ? "'RELATIF'," : "'ABSOLU',") << endl;
-	out << "                     NOEUD='" << Node::MedName(nda.nodePosition) << "'," << endl;
-	out << "                     NOM_CMP = '" << AsterModel::DofByPosition.at(nda.dof.position)
-			<< "'," << endl;
-	out << "                     NOM_CHAM = 'DEPL'," << endl;
-	out << "                     FREQ = " << nda.frequency << "," << endl;
-	out << "                     VALE_CALC_C = " << nda.value.real() << "+" << nda.value.imag()
-			<< "j,";
-	out << endl;
-	out << "                     TOLE_MACHINE = (" << (relativeComparison ? nda.tolerance : 1e-5) << "," << 1e-5 << ")," << endl;
+		const NodalComplexDisplacementAssertion& nda, ostream& out) const {
+    UNUSEDV(asterModel);
+    bool relativeComparison = abs(nda.value) >= SMALLEST_RELATIVE_COMPARISON;
+    out << "                     CRITERE = "
+            << (relativeComparison ? "'RELATIF'," : "'ABSOLU',") << endl;
+    out << "                     NOEUD='" << Node::MedName(nda.nodePosition) << "'," << endl;
+    out << "                     NOM_CMP = '" << AsterModel::DofByPosition.at(nda.dof.position)
+            << "'," << endl;
+    out << "                     NOM_CHAM = 'DEPL'," << endl;
+    out << "                     FREQ = " << nda.frequency << "," << endl;
+    out << "                     VALE_CALC_C = " << nda.value.real() << "+" << nda.value.imag()
+            << "j," << endl;
+    out << "                     TOLE_MACHINE = (" << (relativeComparison ? nda.tolerance : 1e-5) << "," << 1e-5 << ")," << endl;
 }
 
-void AsterWriter::writeFrequencyAssertion(const Analysis& analysis, const Assertion& assertion, ostream& out) const {
-	const FrequencyAssertion& frequencyAssertion = dynamic_cast<const FrequencyAssertion&>(assertion);
+void AsterWriter::writeNodalCellVonMisesAssertion(const AsterModel& asterModel, const NodalCellVonMisesAssertion& ncvmisa, std::ostream& out) const {
+    UNUSEDV(asterModel);
+    bool relativeComparison = abs(ncvmisa.value) >= SMALLEST_RELATIVE_COMPARISON;
+    out << "                     CRITERE = "
+            << (relativeComparison ? "'RELATIF'," : "'ABSOLU',") << endl;
+    out << "                     NOEUD='" << Node::MedName(ncvmisa.nodePosition) << "'," << endl;
+    out << "                     GROUP_MA='" << Cell::MedName(ncvmisa.cellPosition) << "'," << endl;
+    out << "                     NOM_CMP = 'VMIS'," << endl;
+	out << "                     NUME_ORDRE = 1," << endl;
+    out << "                     NOM_CHAM = 'SIEQ_ELNO'," << endl;
+    out << "                     VALE_CALC = " << ncvmisa.value << "," << endl;
+    out << "                     TOLE_MACHINE = (" << (relativeComparison ? ncvmisa.tolerance : 1e-5) << "," << 1e-5 << ")," << endl;
+}
+
+void AsterWriter::writeFrequencyAssertion(const Analysis& analysis, const FrequencyAssertion& frequencyAssertion, ostream& out) const {
     bool isBuckling = analysis.type == Analysis::Type::LINEAR_BUCKLING;
 
     double lowFreq = 0;

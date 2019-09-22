@@ -219,7 +219,7 @@ shared_ptr<FunctionTable> NonLinearElasticNature::getStressStrainFunction() cons
 	return dynamic_pointer_cast<FunctionTable>(model.find(stress_strain_function_ref));
 }
 
-RigidNature::RigidNature(const Model&, const double rigidity, const double lagrangian) :
+RigidNature::RigidNature(const Model& model, const double rigidity, const double lagrangian) :
         Nature(model, Nature::NatureType::NATURE_RIGID), rigidity(rigidity), lagrangian(lagrangian) {
     if (is_equal(rigidity, Globals::UNAVAILABLE_DOUBLE) && is_equal(lagrangian, Globals::UNAVAILABLE_DOUBLE))
         throw invalid_argument("Rigidity and Lagrangian may not both be blank.");
