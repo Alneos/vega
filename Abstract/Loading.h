@@ -57,7 +57,7 @@ public:
 	static const std::map<Type, std::string> stringByType;
 	const std::shared_ptr<LoadSet> loadset;
 	const Reference<CoordinateSystem> csref;
-	inline bool hasCoordinateSystem() const {
+	inline bool hasCoordinateSystem() const noexcept {
 		return csref
 				!= CoordinateSystem::GLOBAL_COORDINATE_SYSTEM;
 	}
@@ -97,7 +97,7 @@ public:
 	static const std::string name;
 	static const std::map<Type, std::string> stringByType;
 	std::size_t size() const;
-	inline bool empty() const { return size() == 0;};
+	inline bool empty() const noexcept { return size() == 0;};
 	const std::set<std::shared_ptr<Loading>, ptrLess<Loading> > getLoadings() const;
 	const std::set<std::shared_ptr<Loading>, ptrLess<Loading> > getLoadingsByType(Loading::Type) const;
 	std::string getGroupName(Loading::Type);
@@ -313,7 +313,7 @@ public:
 	std::set<int> nodePositions() const override final;
 	virtual SpaceDimension getLoadingDimension() const = 0;
     virtual std::vector<int> getApplicationFaceNodeIds() const = 0;
-	bool isCellLoading() const override final {
+	bool isCellLoading() const noexcept override final {
 		return true;
 	}
 	/** implements a function that tell if this force is applied to a
@@ -379,10 +379,10 @@ public:
 	const DOFS getDOFSForNode(const int nodePosition) const override;
 	void scale(const double factor) override;
 	bool ineffective() const override;
-	SpaceDimension getLoadingDimension() const override {
+	SpaceDimension getLoadingDimension() const noexcept override {
 		return SpaceDimension::DIMENSION_1D;
 	}
-	bool hasFunctions() const override {
+	bool hasFunctions() const noexcept override {
 	    return force->isfunction();
 	}
 	bool validate() const override;
@@ -399,7 +399,7 @@ public:
 	NormalPressionFace(Model&, const std::shared_ptr<LoadSet> loadset, double intensity, const int original_id = NO_ORIGINAL_ID);
 	const DOFS getDOFSForNode(const int nodePosition) const override;
 	bool validate() const override;
-	SpaceDimension getLoadingDimension() const override {
+	SpaceDimension getLoadingDimension() const noexcept override {
 		return SpaceDimension::DIMENSION_2D;
 	}
 	std::shared_ptr<Loading> clone() const override;

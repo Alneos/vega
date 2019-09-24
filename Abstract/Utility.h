@@ -60,11 +60,11 @@ enum class MatrixType {
  */
 
 
-inline bool is_zero(double x, double tolerance = Globals::DOUBLE_COMPARE_TOLERANCE) {
+inline bool is_zero(double x, double tolerance = Globals::DOUBLE_COMPARE_TOLERANCE) noexcept {
 	return std::abs(x) <= tolerance;
 }
 
-inline bool is_equal(double x, double y, double tolerance = Globals::DOUBLE_COMPARE_TOLERANCE) {
+inline bool is_equal(double x, double y, double tolerance = Globals::DOUBLE_COMPARE_TOLERANCE) noexcept {
 	return std::abs(x - y) <= tolerance * std::max(1.0, std::max(std::abs(x), std::abs(y)));
 }
 
@@ -85,7 +85,7 @@ void handler(int sig);
 struct EnumClassHash
 {
     template <typename T>
-    std::size_t operator()(const T t) const
+    std::size_t operator()(const T t) const noexcept
     {
         return static_cast<std::size_t>(t); // you don't need to provide a specialization of std::hash, the template argument deduction does the job
     }

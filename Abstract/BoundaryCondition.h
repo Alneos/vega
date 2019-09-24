@@ -26,7 +26,7 @@ public:
 	virtual bool ineffective() const {
 		throw std::logic_error("boundary condition ineffective() used but not implemented");
 	}
-    virtual bool hasFunctions() const {
+    virtual bool hasFunctions() const noexcept {
 	    return false;
 	}
 	virtual const DOFS getDOFSForNode(const int nodePosition) const = 0;

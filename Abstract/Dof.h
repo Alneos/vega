@@ -21,7 +21,7 @@ namespace vega {
 
 class DOF {
 private:
-	friend std::ostream &operator<<(std::ostream &out, const DOF& node);
+	friend std::ostream &operator<<(std::ostream &out, const DOF& node) noexcept;
 public:
 	enum class Code {
 		DX_CODE = 1,
@@ -53,22 +53,22 @@ public:
 	int position;
 
 	static DOF findByPosition(int position);
-	bool operator<(const DOF& other) const;
-	bool operator==(const DOF& other) const;
-	char operator|(const DOF& other) const;
-	operator char() const;
+	bool operator<(const DOF& other) const noexcept;
+	bool operator==(const DOF& other) const noexcept;
+	char operator|(const DOF& other) const noexcept;
+	operator char() const noexcept;
 };
 
 class DOFS {
 private:
 	static const boost::bimap<int, DOF::Code> DOF_BY_NASTRANCODE;
 
-	friend DOFS operator+(const DOFS lhs, const DOFS& rhs);
-	friend DOFS operator-(const DOFS lhs, const DOFS& rhs);
-	friend DOFS operator+(const DOFS lhs, const DOF& rhs);
-	friend DOFS operator-(const DOFS lhs, const DOF& rhs);
-	friend DOFS operator&(const DOFS lhs, const DOFS& rhs);
-	friend std::ostream &operator<<(std::ostream &out, const DOFS& node);
+	friend DOFS operator+(const DOFS lhs, const DOFS& rhs) noexcept;
+	friend DOFS operator-(const DOFS lhs, const DOFS& rhs) noexcept;
+	friend DOFS operator+(const DOFS lhs, const DOF& rhs) noexcept;
+	friend DOFS operator-(const DOFS lhs, const DOF& rhs) noexcept;
+	friend DOFS operator&(const DOFS lhs, const DOFS& rhs) noexcept;
+	friend std::ostream &operator<<(std::ostream &out, const DOFS& node) noexcept;
 
 	char dofsCode;
 
@@ -81,32 +81,32 @@ public:
 	static const DOFS ALL_DOFS;
 
 	static DOFS nastranCodeToDOFS(int nastranCode);
-	static DOFS combineCodes(bool dx, bool dy, bool dz, bool rx, bool ry, bool rz);
+	static DOFS combineCodes(bool dx, bool dy, bool dz, bool rx, bool ry, bool rz) noexcept;
 
 	DOFS(char dofsCode);
 	DOFS(const DOF dof);
 	DOFS(bool dx = false, bool dy = false, bool dz = false, bool rx = false, bool ry = false,
 			bool rz = false);
 
-	bool containsAll(const DOFS&) const;
-	bool containsAnyOf(const DOFS&) const;
-	bool contains(const DOF&) const;
-	DOFS intersection(const DOFS&) const;
-	VectorialValue getTranslations();
-	VectorialValue getRotations();
+	bool containsAll(const DOFS&) const noexcept;
+	bool containsAnyOf(const DOFS&) const noexcept;
+	bool contains(const DOF&) const noexcept;
+	DOFS intersection(const DOFS&) const noexcept;
+	VectorialValue getTranslations() noexcept;
+	VectorialValue getRotations() noexcept;
 
-	operator char() const;
-	bool operator==(const DOFS& other) const;
-	bool operator==(const DOF& other) const;
-	bool operator==(const char other) const;
-	DOFS& operator+=(const DOFS& other );
-	DOFS& operator+=(const DOF& other );
-	DOFS& operator=(const DOF& dof);
-	int size() const;
-	bool empty() const {
+	operator char() const noexcept;
+	bool operator==(const DOFS& other) const noexcept;
+	bool operator==(const DOF& other) const noexcept;
+	bool operator==(const char other) const noexcept;
+	DOFS& operator+=(const DOFS& other ) noexcept;
+	DOFS& operator+=(const DOF& other ) noexcept;
+	DOFS& operator=(const DOF& dof) noexcept;
+	int size() const noexcept;
+	bool empty() const noexcept {
         return dofsCode == 0;
 	}
-	int nastranCode() const;
+	int nastranCode() const noexcept;
 
 	class iterator;
 	friend class iterator;
@@ -114,47 +114,47 @@ public:
 	private:
 		int dofPosition;
 		const DOFS *outer_dofs;
-		void next_available_dof();
+		void next_available_dof() noexcept;
 	public:
- 		friend std::ostream &operator<<(std::ostream &out, const DOFS::iterator& dofs_iter);
+ 		friend std::ostream &operator<<(std::ostream &out, const DOFS::iterator& dofs_iter) noexcept;
 		iterator(int dofPosition, const DOFS *outer_dofs);
 
-		bool operator==(const iterator& x) const {
+		bool operator==(const iterator& x) const noexcept {
 			return dofPosition == x.dofPosition;
 		}
 
-		bool operator!=(const iterator& x) const {
+		bool operator!=(const iterator& x) const noexcept {
 			return !(*this == x);
 		}
 
-		const DOF operator*() const {
+		const DOF operator*() const noexcept {
 			return DOF::findByPosition(dofPosition);
 		}
 
-		iterator& operator++() {
+		iterator& operator++() noexcept {
 			dofPosition++;
 			next_available_dof();
 			return *this;
 		}
 
-		iterator operator++(int) {
+		iterator operator++(int) noexcept {
 			iterator tmp = *this;
 			++*this;
 			return tmp;
 		}
 	};
-	iterator begin() const;
-	const iterator end() const;
+	iterator begin() const noexcept;
+	const iterator end() const noexcept;
 };
 
-DOFS operator+(const DOFS lhs, const DOFS& rhs);
-DOFS operator-(const DOFS lhs, const DOFS& rhs);
-DOFS operator+(const DOFS lhs, const DOF& rhs);
-DOFS operator-(const DOFS lhs, const DOF& rhs);
-DOFS operator&(const DOFS lhs, const DOF& rhs);
+DOFS operator+(const DOFS lhs, const DOFS& rhs) noexcept;
+DOFS operator-(const DOFS lhs, const DOFS& rhs) noexcept;
+DOFS operator+(const DOFS lhs, const DOF& rhs) noexcept;
+DOFS operator-(const DOFS lhs, const DOF& rhs) noexcept;
+DOFS operator&(const DOFS lhs, const DOF& rhs) noexcept;
 
-std::ostream &operator<<(std::ostream &out, const DOFS& dofs);
-std::ostream &operator<<(std::ostream &out, const DOFS::iterator& dofs_iter);
+std::ostream &operator<<(std::ostream &out, const DOFS& dofs) noexcept;
+std::ostream &operator<<(std::ostream &out, const DOFS::iterator& dofs_iter) noexcept;
 
 /**
  * Sparse matrix between two dofs (of the same node), or the same dof with itself.
@@ -167,20 +167,20 @@ public:
 		DOFMatrix(MatrixType matrixType = MatrixType::FULL);
 		void addComponent(const DOF dof1, const DOF dof2, const double value);
 		double findComponent(const DOF dof1, const DOF dof2) const;
-		bool hasTranslations() const;
-		bool hasRotations() const;
-		bool isDiagonal() const;
-		bool isSymmetric() const;
+		bool hasTranslations() const noexcept;
+		bool hasRotations() const noexcept;
+		bool isDiagonal() const noexcept;
+		bool isSymmetric() const noexcept;
 		/**
 		 * Checks if diagonal is filled with DBL_MAX values
 		 * useful (for now) to understand if an element is totally rigid
 		 **/
-		bool isMaxDiagonal() const;
-		bool isEmpty() const;
-		bool isZero() const;
-		void setAllZero();
-		DOFMatrix transposed() const;
-		bool isEqual(const DOFMatrix& other) const;
+		bool isMaxDiagonal() const noexcept;
+		bool isEmpty() const noexcept;
+		bool isZero() const noexcept;
+		void setAllZero() noexcept;
+		DOFMatrix transposed() const noexcept;
+		bool isEqual(const DOFMatrix& other) const noexcept;
 		std::vector<double> diagonal(bool addRotationsIfNotPresent) const;
 		std::vector<double> asUpperTriangularColumnsVector(bool addRotationsIfNotPresent) const;
 		std::vector<double> asColumnsVector(bool addRotationsIfNotPresent) const;
@@ -220,14 +220,14 @@ namespace std {
 
 template<>
 struct hash<vega::DOF> {
-	size_t operator()(const vega::DOF& dof) const {
+	size_t operator()(const vega::DOF& dof) const noexcept {
 		return hash<int>()(dof.position);
 	}
 };
 
 template<>
 struct hash<vega::DOFS> {
-	size_t operator()(const vega::DOFS& dofs) const {
+	size_t operator()(const vega::DOFS& dofs) const noexcept {
 		return hash<char>()(static_cast<char>(dofs));
 	}
 };

@@ -208,7 +208,7 @@ int Mesh::addNode(int id, double x, double y, double z, int cpPos, int cdPos, in
 	return nodePosition;
 }
 
-size_t Mesh::countNodes() const {
+size_t Mesh::countNodes() const noexcept {
 	return nodes.nodeDatas.size();
 }
 
@@ -241,7 +241,7 @@ const Node Mesh::findNode(const int nodePosition) const {
 	}
 }
 
-int Mesh::findOrReserveNode(int nodeId, int cellPartId) {
+int Mesh::findOrReserveNode(int nodeId, int cellPartId) noexcept {
 
     int mainNodePart = 0;
     if (cellPartId != Globals::UNAVAILABLE_INT) {
@@ -300,7 +300,7 @@ int Mesh::findOrReserveNode(int nodeId, int cellPartId) {
 
 }
 
-set<int> Mesh::findOrReserveNodes(const set<int>& nodeIds) {
+set<int> Mesh::findOrReserveNodes(const set<int>& nodeIds) noexcept {
 	set<int> nodePositions;
 
 	for (int nodeId : nodeIds) {
@@ -309,23 +309,15 @@ set<int> Mesh::findOrReserveNodes(const set<int>& nodeIds) {
 	return nodePositions;
 }
 
-int Mesh::findNodeId(const int nodePosition) const {
-	if (nodePosition == Node::UNAVAILABLE_NODE) {
-		throw invalid_argument(
-				"Node position " + to_string(nodePosition) + " not found.");
-	}
-	return nodes.nodeDatas[nodePosition].id;
+int Mesh::findNodeId(const int nodePosition) const noexcept {
+	return nodePosition == Node::UNAVAILABLE_NODE ? Node::UNAVAILABLE_NODE : nodes.nodeDatas[nodePosition].id;
 }
 
-int Mesh::findNodePartId(const int nodePosition) const {
-	if (nodePosition == Node::UNAVAILABLE_NODE) {
-		throw invalid_argument(
-				"Node position " + to_string(nodePosition) + " not found.");
-	}
-	return nodes.nodeDatas[nodePosition].nodePart;
+int Mesh::findNodePartId(const int nodePosition) const noexcept {
+	return nodePosition == Node::UNAVAILABLE_NODE ? Node::UNAVAILABLE_NODE : nodes.nodeDatas[nodePosition].nodePart;
 }
 
-int Mesh::findNodePosition(const int nodeId) const {
+int Mesh::findNodePosition(const int nodeId) const noexcept {
 	auto positionIterator = this->nodes.nodepositionById.find(nodeId);
 	if (positionIterator == this->nodes.nodepositionById.end()) {
 		return Node::UNAVAILABLE_NODE;
@@ -333,7 +325,7 @@ int Mesh::findNodePosition(const int nodeId) const {
 	return positionIterator->second;
 }
 
-void Mesh::allowDOFS(int nodePosition, const DOFS& allowed) {
+void Mesh::allowDOFS(int nodePosition, const DOFS& allowed) noexcept {
 	nodes.nodeDatas[nodePosition].dofs = static_cast<char>(nodes.nodeDatas[nodePosition].dofs
 			| allowed);
 }
@@ -600,15 +592,15 @@ std::shared_ptr<vega::CoordinateSystem> Mesh::getCoordinateSystemByPosition(cons
 	return coordinateSystemStorage.findByPosition(pos);
 }
 
-const string Mesh::getName() const {
+const string Mesh::getName() const noexcept {
     return name;
 }
 
-int Mesh::countCells() const {
+int Mesh::countCells() const noexcept {
 	return static_cast<int>(cells.cellpositionById.size());
 }
 
-void Mesh::finish() {
+void Mesh::finish() noexcept {
 	finished = true;
 
 }
@@ -658,11 +650,11 @@ shared_ptr<NodeGroup> Mesh::findOrCreateNodeGroup(const string& name, int group_
 	}
 }
 
-bool Mesh::hasGroup(const int groupId) const {
+bool Mesh::hasGroup(const int groupId) const noexcept {
     return groupById.find(groupId) != groupById.end();
 }
 
-bool Mesh::hasGroup(const string& name) const {
+bool Mesh::hasGroup(const string& name) const noexcept {
     return groupByName.find(name) != groupByName.end();
 }
 
@@ -720,7 +712,7 @@ void Mesh::renameGroup(const string& oldname, const string& newname, const strin
     }
 }
 
-void Mesh::removeGroup(const string& name) {
+void Mesh::removeGroup(const string& name) noexcept {
 
     auto it = this->groupByName.find(name);
     if (it != this->groupByName.end()) {
@@ -736,7 +728,7 @@ void Mesh::removeGroup(const string& name) {
     }
 }
 
-vector<shared_ptr<NodeGroup>> Mesh::getNodeGroups() const {
+vector<shared_ptr<NodeGroup>> Mesh::getNodeGroups() const noexcept {
 	vector<shared_ptr<NodeGroup>> groups;
 	for (const auto& it : groupByName) {
 		shared_ptr<Group> group = it.second;
@@ -748,7 +740,7 @@ vector<shared_ptr<NodeGroup>> Mesh::getNodeGroups() const {
 	return groups;
 }
 
-vector<shared_ptr<CellGroup>> Mesh::getCellGroups() const {
+vector<shared_ptr<CellGroup>> Mesh::getCellGroups() const noexcept {
 	vector<shared_ptr<CellGroup>> groups;
 	for (const auto& it : groupByName) {
 		shared_ptr<Group> group = it.second;
@@ -760,7 +752,7 @@ vector<shared_ptr<CellGroup>> Mesh::getCellGroups() const {
 	return groups;
 }
 
-shared_ptr<Group> Mesh::findGroup(string groupName) const {
+shared_ptr<Group> Mesh::findGroup(string groupName) const noexcept {
 	auto groupIterator = groupByName.find(groupName);
 	if (groupIterator == groupByName.end())
 		return nullptr;

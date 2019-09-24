@@ -3395,8 +3395,11 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
                 writeNodalComplexDisplacementAssertion(*assertion, out);
                 assertion->markAsWritten();
                 break;
+            case Objective::Type::NODAL_CELL_VONMISES_ASSERTION:
+                handleWritingWarning("Von Mises assertion check not yet implemented, ignoring");
+                break;
             default:
-                handleWritingError(string("Not implemented"));
+                handleWritingError("Not implemented");
             }
             out << endl;
         }

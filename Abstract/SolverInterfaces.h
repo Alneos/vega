@@ -60,12 +60,12 @@ protected:
 
 public:
 	virtual ~Tokenizer() = default;
-	inline vega::LogLevel getLogLevel()const {return logLevel;};
-	inline std::string getFileName() const {return fileName;};
+	inline vega::LogLevel getLogLevel()const noexcept {return logLevel;};
+	inline std::string getFileName() const noexcept {return fileName;};
 	//inline vega::ConfigurationParameters::TranslationMode getTranslationMode() const {return translationMode;};
-	inline int getLineNumber() const {return lineNumber;};
-	inline std::string getCurrentKeyword() const {return currentKeyword;};
-	void setCurrentKeyword(std::string cK) {currentKeyword=cK;};
+	inline int getLineNumber() const noexcept {return lineNumber;};
+	inline std::string getCurrentKeyword() const noexcept {return currentKeyword;};
+	void setCurrentKeyword(std::string cK) noexcept {currentKeyword=cK;};
 
     /**
      * Generic handler for parsing exceptions.

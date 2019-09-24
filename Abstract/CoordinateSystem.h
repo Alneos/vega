@@ -71,10 +71,10 @@ public:
     static const std::string name;
     static const std::map<Type, std::string> stringByType;
     static const std::map<CoordinateType, std::string> stringByCoordinateSystemType;
-    inline const VectorialValue getOrigin() const {return origin;};
-    inline const VectorialValue getEx() const {return ex;};
-    inline const VectorialValue getEy() const {return ey;};
-    inline const VectorialValue getEz() const {return ez;};
+    inline const VectorialValue getOrigin() const noexcept {return origin;};
+    inline const VectorialValue getEx() const noexcept {return ex;};
+    inline const VectorialValue getEy() const noexcept {return ey;};
+    inline const VectorialValue getEz() const noexcept {return ez;};
 
     protected:
     CoordinateSystem(const Mesh&, Type, CoordinateType, const VectorialValue origin, const VectorialValue ex,
@@ -152,11 +152,11 @@ public:
     const VectorialValue getEx() const;
     const VectorialValue getEy() const;
     const VectorialValue getEz() const;
-    inline const VectorialValue getV() const {return v;};
-    inline int getNodeO() const {return nodesId[0];}; /**< Return node Id of O (Origin point) */
-    inline int getNodeX() const {return nodesId[1];}; /**< Return node Id of X (X axis is built with ex=OX) */
-    inline int getNodeV() const {return nodesId[2];}; /**< Return node Id of V point (alternate method to supply v: v= OV) */
-    bool operator==(const OrientationCoordinateSystem&) const;  /**< Equal operator */
+    inline const VectorialValue getV() const noexcept {return v;};
+    inline int getNodeO() const noexcept {return nodesId[0];}; /**< Return node Id of O (Origin point) */
+    inline int getNodeX() const noexcept {return nodesId[1];}; /**< Return node Id of X (X axis is built with ex=OX) */
+    inline int getNodeV() const noexcept {return nodesId[2];}; /**< Return node Id of V point (alternate method to supply v: v= OV) */
+    bool operator==(const OrientationCoordinateSystem&) const noexcept;  /**< Equal operator */
 
     const VectorialValue positionToGlobal(const VectorialValue&) const override;
     const VectorialValue vectorToGlobal(const VectorialValue&) const override;

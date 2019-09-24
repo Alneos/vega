@@ -1603,8 +1603,8 @@ void AsterWriter::writeLMPC(const AsterModel& asterModel, const ConstraintSet& c
 		for (const auto& constraint : lmpcs) {
 			const auto& lmpc = dynamic_pointer_cast<LinearMultiplePointConstraint>(constraint);
 			out << "                                _F(NOEUD=(";
-			set<int> nodes = lmpc->nodePositions();
-			for (int nodePosition : nodes) {
+			const auto& nodePositions = lmpc->nodePositions();
+			for (int nodePosition : nodePositions) {
 				string nodeName = Node::MedName(nodePosition);
 				DOFS dofs = lmpc->getDOFSForNode(nodePosition);
 				for (int i = 0; i < dofs.size(); i++) {
@@ -1613,7 +1613,7 @@ void AsterWriter::writeLMPC(const AsterModel& asterModel, const ConstraintSet& c
 			}
 			out << ")," << endl;
 			out << "                                   DDL=(";
-			for (int nodePosition : nodes) {
+			for (int nodePosition : nodePositions) {
 				DOFS dofs = lmpc->getDOFSForNode(nodePosition);
 				if (dofs.contains(DOF::DX))
 					out << "'DX', ";
@@ -1630,7 +1630,7 @@ void AsterWriter::writeLMPC(const AsterModel& asterModel, const ConstraintSet& c
 			}
 			out << ")," << endl;
 			out << "                                   COEF_MULT=(";
-			for (int nodePosition : nodes) {
+			for (int nodePosition : nodePositions) {
 			    DOFCoefs dofcoef = lmpc->getDoFCoefsForNode(nodePosition);
 				for (int i = 0; i < 6; i++) {
 					if (!is_zero(dofcoef[i]))

@@ -55,14 +55,14 @@ public:
 	const Type type;
 	static const std::string name;
 	static const std::map<Type, std::string> stringByType;
-	const std::string to_str() const;
-	virtual bool isContact() const {
+	const std::string to_str() const noexcept;
+	virtual bool isContact() const noexcept {
 	    return false;
 	}
-	virtual bool isNodeLoading() const {
+	virtual bool isNodeLoading() const noexcept {
 		return false;
 	}
-	virtual bool isCellLoading() const {
+	virtual bool isCellLoading() const noexcept {
 		return false;
 	}
 	virtual void removeNodePosition(int nodePosition) = 0;
@@ -74,7 +74,7 @@ public:
 class ConstraintSet final: public Identifiable<ConstraintSet> {
 	Model& model;
 	std::vector<Reference<ConstraintSet>> constraintSetReferences;
-	friend std::ostream &operator<<(std::ostream&, const ConstraintSet&);
+	friend std::ostream &operator<<(std::ostream&, const ConstraintSet&) noexcept;
 public:
 	enum class Type {
 		SPC, MPC, ALL, CONTACT
@@ -86,13 +86,13 @@ public:
 	static const std::string name;
 	static const std::map<Type, std::string> stringByType;
 	void add(const Reference<ConstraintSet>&); // LD Hack : see parseSPCADD
-	const std::set<std::shared_ptr<Constraint>, ptrLess<Constraint>> getConstraints() const;
-	const std::set<std::shared_ptr<Constraint>, ptrLess<Constraint>> getConstraintsByType(Constraint::Type) const;
-	size_t size() const;
-	inline bool empty() const {return size() == 0;};
+	const std::set<std::shared_ptr<Constraint>, ptrLess<Constraint>> getConstraints() const noexcept;
+	const std::set<std::shared_ptr<Constraint>, ptrLess<Constraint>> getConstraintsByType(Constraint::Type) const noexcept;
+	size_t size() const noexcept;
+	inline bool empty() const noexcept {return size() == 0;};
 	std::shared_ptr<ConstraintSet> clone() const;
-	bool hasFunctions() const;
-	bool hasContacts() const;
+	bool hasFunctions() const noexcept;
+	bool hasContacts() const noexcept;
 };
 
 /**
@@ -103,7 +103,7 @@ protected:
 	NodeConstraint(Model&, Constraint::Type, const int original_id = NO_ORIGINAL_ID);
 public:
 	std::set<int> nodePositions() const override final;
-	bool isNodeLoading() const override final {
+	bool isNodeLoading() const noexcept override final {
 		return true;
 	}
 	bool ineffective() const override;
@@ -124,7 +124,7 @@ public:
 	static const int UNAVAILABLE_MASTER;
 	virtual void addSlave(int slaveId);
 	virtual int getMaster() const;
-	virtual bool hasMaster() const;
+	virtual bool hasMaster() const noexcept;
 	virtual std::set<int> getSlaves() const final;
 	const DOFS getDOFS() const;
 	void removeNodePosition(int nodePosition) override;
@@ -188,12 +188,12 @@ public:
 	std::shared_ptr<Value> getReferenceForDOF(const DOF& dof) const;
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	void emulateLocalDisplacementConstraint();
-	bool hasReferences() const;
-	bool ineffective() const override;
+	bool hasReferences() const noexcept;
+	bool ineffective() const noexcept override;
 };
 
 
-class LinearMultiplePointConstraint: public     Constraint {
+class LinearMultiplePointConstraint: public Constraint {
 private:
     std::map<int, DOFCoefs> dofCoefsByNodePosition;
 public:
@@ -217,7 +217,7 @@ class Contact: public Constraint {
 protected:
     Contact(Model&, Type, int original_id = NO_ORIGINAL_ID);
 public:
-    bool isContact() const override final {
+    bool isContact() const noexcept override final {
 	    return true;
 	};
 };

@@ -126,7 +126,6 @@ BOOST_AUTO_TEST_CASE( nas101prob3 ) {
 }
 
 BOOST_AUTO_TEST_CASE( nas101prob4 ) {
-    // RBAR with "123" DOFs, test with LIAISON_MAIL ?
 	CommandLineUtils::nastranStudy2Aster("/irt/nas101prob4/nas101prob4.nas", RUN_ASTER, true, 0.005);
 }
 

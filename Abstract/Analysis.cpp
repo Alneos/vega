@@ -234,10 +234,9 @@ const vector<shared_ptr<Objective>> Analysis::getObjectives() const {
     return objectives;
 }
 
-bool Analysis::hasSPC() const{
+bool Analysis::hasSPC() const noexcept {
 
-    vector<std::shared_ptr<ConstraintSet>> allcs = this->getConstraintSets();
-    for (const auto& cs : allcs){
+    for (const auto& cs : this->getConstraintSets()){
 
         switch(cs->type){
 

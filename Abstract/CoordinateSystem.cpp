@@ -356,7 +356,7 @@ const VectorialValue OrientationCoordinateSystem::getEz() const {
     return ez;
 }
 
-bool OrientationCoordinateSystem::operator ==(const OrientationCoordinateSystem& ocs) const {
+bool OrientationCoordinateSystem::operator ==(const OrientationCoordinateSystem& ocs) const noexcept {
     if ((this->getNodeO() != ocs.getNodeO()) || (this->getNodeX() != ocs.getNodeX())){
         return false;
     }

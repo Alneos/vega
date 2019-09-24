@@ -42,6 +42,6 @@ $MAT1
 MAT1           1 210000.             0.3  7.85-9                        +01FE706
 +01FE706
 $PSOLID
-PSOLID        34       1
+PSOLID        34       1       0   THREE    GRID    FULL   SMECH
 
 ENDDATA

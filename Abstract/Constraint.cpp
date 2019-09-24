@@ -57,7 +57,7 @@ ostream &operator<<(ostream &out, const Constraint& constraint) {
     return out;
 }
 
-const string Constraint::to_str() const{
+const string Constraint::to_str() const noexcept {
     const auto& typePair = stringByType.find(type);
     if (typePair == stringByType.end())
         return "Unknown constraint";
@@ -74,7 +74,7 @@ void ConstraintSet::add(const Reference<ConstraintSet>& constraintSetReference) 
     constraintSetReferences.push_back(constraintSetReference);
 }
 
-const set<shared_ptr<Constraint>, ptrLess<Constraint> > ConstraintSet::getConstraints() const {
+const set<shared_ptr<Constraint>, ptrLess<Constraint> > ConstraintSet::getConstraints() const noexcept {
     auto result = model.getConstraintsByConstraintSet(this->getReference());
     for (const auto& constraintSetReference : constraintSetReferences) {
         const auto& setToInsert = model.getConstraintsByConstraintSet(
@@ -85,7 +85,7 @@ const set<shared_ptr<Constraint>, ptrLess<Constraint> > ConstraintSet::getConstr
 }
 
 const set<shared_ptr<Constraint>, ptrLess<Constraint> > ConstraintSet::getConstraintsByType(
-        Constraint::Type type) const {
+        Constraint::Type type) const noexcept {
     set<shared_ptr<Constraint>, ptrLess<Constraint> > result;
     for (const auto& constraint : getConstraints()) {
         if (constraint->type == type) {
@@ -95,7 +95,7 @@ const set<shared_ptr<Constraint>, ptrLess<Constraint> > ConstraintSet::getConstr
     return result;
 }
 
-size_t ConstraintSet::size() const {
+size_t ConstraintSet::size() const noexcept {
     return getConstraints().size();
 }
 
@@ -108,7 +108,7 @@ const map<ConstraintSet::Type, string> ConstraintSet::stringByType = {
     { ConstraintSet::Type::ALL, "ALL" }
     };
 
-bool ConstraintSet::hasFunctions() const {
+bool ConstraintSet::hasFunctions() const noexcept {
     for (const auto& constraint : getConstraints()) {
 		if (constraint->hasFunctions()) {
 			return true;
@@ -117,7 +117,7 @@ bool ConstraintSet::hasFunctions() const {
 	return false;
 }
 
-bool ConstraintSet::hasContacts() const {
+bool ConstraintSet::hasContacts() const noexcept {
     for (const auto& constraint : getConstraints()) {
 		if (constraint->isContact()) {
 			return true;
@@ -126,7 +126,7 @@ bool ConstraintSet::hasContacts() const {
 	return false;
 }
 
-ostream &operator<<(ostream &out, const ConstraintSet& constraintSet) {
+ostream &operator<<(ostream &out, const ConstraintSet& constraintSet) noexcept {
     out << to_str(constraintSet);
     return out;
 }
@@ -163,7 +163,7 @@ int MasterSlaveConstraint::getMaster() const {
     }
 }
 
-bool MasterSlaveConstraint::hasMaster() const {
+bool MasterSlaveConstraint::hasMaster() const noexcept {
     return this->masterPosition != MasterSlaveConstraint::UNAVAILABLE_MASTER;
 }
 
@@ -434,7 +434,7 @@ const DOFS SinglePointConstraint::getDOFSForNode(int nodePosition) const {
     return requiredDofs;
 }
 
-bool SinglePointConstraint::hasReferences() const {
+bool SinglePointConstraint::hasReferences() const noexcept {
     bool hasReferences = false;
     for (ValueOrReference value : spcs) {
         hasReferences |= (value.isReference() && value != NO_SPC);
@@ -442,7 +442,7 @@ bool SinglePointConstraint::hasReferences() const {
     return hasReferences;
 }
 
-bool SinglePointConstraint::ineffective() const {
+bool SinglePointConstraint::ineffective() const noexcept {
     return NodeContainer::empty();
 }
 

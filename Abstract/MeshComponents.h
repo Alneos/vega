@@ -82,7 +82,7 @@ public:
     Code code;
     int relativeMeshDimension;
     bool operator<(const SpaceDimension &other) const;
-    inline bool operator>(const SpaceDimension &other) const {
+    inline bool operator>(const SpaceDimension &other) const noexcept {
         return this->code > other.code;
     }
     bool operator==(const SpaceDimension &other) const;
@@ -273,22 +273,22 @@ public:
     double z; /**< Z coordinate of the Node in the Global Coordinate System **/
     const int positionCS;     /**< Vega Position of the CS used to compute the position of node. **/
     const int displacementCS; /**< Vega Position of the CS used to compute displacement, loadings, etc. **/
-    inline static std::string MedName(const int nodePosition) {
-        if (nodePosition == Node::UNAVAILABLE_NODE) {
-          throw std::logic_error("Node position " + std::to_string(nodePosition) + " not found.");
-        }
-        return "N" + std::to_string(nodePosition + 1);
+    inline static std::string MedName(const int nodePosition) noexcept {
+//        if (nodePosition == Node::UNAVAILABLE_NODE) {
+//          throw std::logic_error("Node position " + std::to_string(nodePosition) + " not found.");
+//        }
+        return nodePosition == Node::UNAVAILABLE_NODE ? "UNAVAIL" : "N" + std::to_string(nodePosition + 1);
     }
     double square_distance(const Node& other) const;
     double distance(const Node& other) const;
 
-    inline bool operator<(const Node& other) const {
+    inline bool operator<(const Node& other) const noexcept {
         return this->position < other.position;
     }
-    inline bool operator>(const Node& other) const {
+    inline bool operator>(const Node& other) const noexcept {
         return this->position > other.position;
     }
-    inline bool operator==(const Node& other) const {
+    inline bool operator==(const Node& other) const noexcept {
         return this->position == other.position;
     }
 };
@@ -356,17 +356,17 @@ public:
     /**
      * Returns the name used in med file for this cell
      */
-    inline static const std::string MedName(const int position) {
+    inline static const std::string MedName(const int position) noexcept {
         return "M" + std::to_string(position + 1);
     }
 
-    inline bool operator<(const Cell& other) const {
+    inline bool operator<(const Cell& other) const noexcept {
         return this->position < other.position;
     }
-    inline bool operator>(const Cell& other) const {
+    inline bool operator>(const Cell& other) const noexcept {
         return this->position > other.position;
     }
-    inline bool operator==(const Cell& other) const {
+    inline bool operator==(const Cell& other) const noexcept {
         return this->position == other.position;
     }
 };
@@ -414,8 +414,8 @@ public:
     /**
      * Adds a cellId to the current set
      */
-    void addCellPosition(int cellPosition);
-    void addCellId(int cellId);
+    void addCellPosition(int cellPosition) noexcept;
+    void addCellId(int cellId) noexcept;
     // These methods should be templated but this class is based on incomplete types (Mesh) so cannot move the function implementation inside header :..(
     void addCellIds(const std::vector<int>& otherIds);
     void addCellPositions(const std::vector<int>& otherPositions);
@@ -542,21 +542,21 @@ namespace std {
 
 template<>
 struct hash<vega::SpaceDimension> {
-    size_t operator()(const vega::SpaceDimension& spaceDimension) const {
+    size_t operator()(const vega::SpaceDimension& spaceDimension) const noexcept {
         return hash<std::size_t>()(static_cast<std::size_t>(spaceDimension.code));
     }
 };
 
 template<>
 struct hash<vega::CellType> {
-    size_t operator()(const vega::CellType& cellType) const {
+    size_t operator()(const vega::CellType& cellType) const noexcept {
         return hash<std::size_t>()(static_cast<std::size_t>(cellType.code));
     }
 };
 
 template<>
 struct hash<vega::Node> {
-    size_t operator()(const vega::Node& node) const {
+    size_t operator()(const vega::Node& node) const noexcept {
         return hash<std::size_t>()(static_cast<std::size_t>(node.position));
     }
 };

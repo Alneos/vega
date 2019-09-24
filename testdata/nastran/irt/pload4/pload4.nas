@@ -4,6 +4,10 @@ TIME   5
 CEND
 SPC = 1
 TITLE = PLOAD4 Example 2
+DISPLACEMENT=ALL
+FORCE=ALL
+SPCFORCE=ALL
+STRESS=ALL
 SUBCASE 1
   LOAD = 1
 BEGIN BULK
@@ -24,7 +28,7 @@ SPC     1       3       13      0.0
 SPC     1       4       3       0.0
 $  1   ><  2   ><  3   ><  4   ><  5   ><  6   ><  7   ><  8   ><  9   >
 PLOAD4  1       100     26.4                            5       8
-PSOLID  1       1       0               GRID            SMECH
+PSOLID         1       1       0   THREE    GRID    FULL   SMECH
 $
 MAT1    1       3.+7            .3
 ENDDATA

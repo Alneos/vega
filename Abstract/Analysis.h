@@ -114,7 +114,7 @@ public:
      * Return true if the analysis has at least one SPC (or equivalent SPCD, MPCD, etc)
      * ConstraintSet or Constraint. Check both common and specific ConstraintSet.
      */
-    bool hasSPC() const;
+    bool hasSPC() const noexcept;
 
     void removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition, const DOFS dofs);
     void addBoundaryDOFS(int nodePosition, const DOFS dofs);

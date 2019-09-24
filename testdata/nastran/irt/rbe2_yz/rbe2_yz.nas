@@ -34,5 +34,5 @@ RBE2    10000000       3     123       6
 FORCE          1       7        .1234567     -1.     -2.     -3.
 MAT1           1 210000.             0.3  7.85-9                        +01FE706
 +01FE706
-PSOLID        34       1
+PSOLID        34       1       0   THREE    GRID    FULL   SMECH
 ENDDATA

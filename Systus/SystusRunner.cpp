@@ -24,6 +24,7 @@
 #include "SystusRunner.h"
 #include "../Abstract/ConfigurationParameters.h"
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <iostream>
 #include <fstream>
 
@@ -46,6 +47,7 @@ Runner::ExitCode SystusRunner::execSolver(const ConfigurationParameters &configu
         return Runner::ExitCode::SOLVER_NOT_FOUND;
     if (configuration.outputPath != ".")
         command = "cd " + configuration.outputPath + " && " + command;
+    string fnamePrefix = fname.substr(0, fname.find("_ALL"));
 
     // delete previous results
     for (fs::directory_iterator it(outputFsPath); it != fs::directory_iterator(); it++) {
@@ -53,7 +55,8 @@ Runner::ExitCode SystusRunner::execSolver(const ConfigurationParameters &configu
             string filename = it->path().filename().string();
             if (filename.find(fname) == 0) {
                 if (filename.rfind(".TIT") + 4 == filename.size()
-                        || filename.rfind(".fdb") + 4 == filename.size()) {
+                        or filename.rfind(".fdb") + 4 == filename.size()
+                        or filename.rfind(".RESU") + 5 == filename.size()) {
                     remove(*it);
                 }
             }
@@ -87,38 +90,56 @@ Runner::ExitCode SystusRunner::execSolver(const ConfigurationParameters &configu
 
     // test if result files exist
     if (exitCode == Runner::ExitCode::OK) {
-        for (fs::directory_iterator it(outputFsPath); it != fs::directory_iterator(); it++) {
-            if (fs::is_regular_file(it->status())) {
-                string filename = it->path().filename().string();
-                if (filename.find(fname + "_") == 0 && filename.rfind(".DAT") + 4 == filename.size()) {
-                    string titFilename = fname + "_DATA" +
-                            filename.substr(fname.size() + 1, filename.size() - (fname.size() + 1) - 4) + ".TIT";
-                    string fdbFilename = fname + "_POST" +
-                            filename.substr(fname.size() + 1, filename.size() - (fname.size() + 1) - 4) + ".fdb";
-                    string resuFilename = fname + "_" +
-                            filename.substr(fname.size() + 1, filename.size() - (fname.size() + 1) - 4) + ".RESU";
-                    if (!(fs::exists(outputFsPath / fs::path(titFilename)) &&
-                            fs::exists(outputFsPath / fs::path(fdbFilename)) ))
-                        return Runner::ExitCode::SOLVER_RESULT_NOT_FOUND;
-                    if (fs::exists(outputFsPath / fs::path(resuFilename))){
-                        //check if it contains nook
-                        string resuFileStr = (outputFsPath / fs::path(resuFilename)).string();
-                        string line2;
-                        int lineNumber2 = 0;
-                        ifstream resuFile(resuFileStr);
-                        while (getline(resuFile, line2)) {
-                            lineNumber2 += 1;
-                            if (line2.find("NOOK") != string::npos) {
-                                cerr << "Test fail: line " << lineNumber2 << " file: " << resuFilename << endl;
-                                exitCode = Runner::ExitCode::TEST_FAIL;
-                            }
-                        }
-
-                    }
+        bool foundTIT = false;
+        for (fs::directory_iterator it2( outputFsPath ); it2 != fs::directory_iterator(); it2++ ) {
+            if (not fs::is_regular_file( it2->status() ) )
+                continue;
+            string filename2 = it2->path().filename().string();
+            if (not boost::algorithm::ends_with(filename2, ".TIT"))
+                continue;
+            if (not boost::algorithm::starts_with(filename2, fnamePrefix))
+                continue;
+            foundTIT = true;
+            break;
+        }
+        bool foundFDB = false;
+        for (fs::directory_iterator it2( outputFsPath ); it2 != fs::directory_iterator(); it2++ ) {
+            if (not fs::is_regular_file( it2->status() ) )
+                continue;
+            string filename2 = it2->path().filename().string();
+            if (not boost::algorithm::ends_with(filename2, ".fdb"))
+                continue;
+            if (not boost::algorithm::starts_with(filename2, fnamePrefix))
+                continue;
+            foundFDB = true;
+            break;
+        }
+        if (not foundTIT and not foundFDB)
+            return Runner::ExitCode::SOLVER_RESULT_NOT_FOUND;
+        for (fs::directory_iterator it2( outputFsPath ); it2 != fs::directory_iterator(); it2++ ) {
+            if( !fs::is_regular_file( it2->status() ) )
+                continue;
+            string resuFilename = it2->path().filename().string();
+            if (not boost::algorithm::ends_with(resuFilename, ".RESU"))
+                continue;
+            if (not boost::algorithm::starts_with(resuFilename, fnamePrefix))
+                continue;
+            cout << "Found RESU file:" << resuFilename << endl;
+            //check if it contains nook
+            string resuFileStr = (outputFsPath / fs::path(resuFilename)).string();
+            string line2;
+            int lineNumber2 = 0;
+            ifstream resuFile(resuFileStr);
+            while (getline(resuFile, line2)) {
+                lineNumber2 += 1;
+                if (line2.find("NOOK") != string::npos) {
+                    cerr << "Test fail: line " << lineNumber2 << " file: " << resuFilename << endl;
+                    cerr << line2 << endl;
+                    exitCode = Runner::ExitCode::TEST_FAIL;
                 }
             }
-
         }
+
     }
     return exitCode;
 }

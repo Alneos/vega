@@ -67,13 +67,13 @@ public:
     static const std::map<Type, std::string> stringByType;
     const Value::Type type;
     //virtual const std::string str() const = 0;
-    virtual bool isPlaceHolder() const {
+    virtual bool isPlaceHolder() const noexcept {
         return false;
     }
 
     virtual void scale(double factor) = 0;
     virtual bool iszero() const = 0;
-    virtual bool isfunction() const {
+    virtual bool isfunction() const noexcept {
         return false;
     }
 };
@@ -294,7 +294,7 @@ public:
     ParaName getParaY() const {
         return paraY;
     }
-    bool isfunction() const override {
+    bool isfunction() const noexcept override {
         return true;
     }
 };
@@ -306,7 +306,7 @@ class FunctionPlaceHolder: public Function {
 public:
     FunctionPlaceHolder(const Model&, Type, int original_id, ParaName paraX, ParaName paraY =
             ParaName::NO_PARA_NAME);
-    bool isPlaceHolder() const override {
+    bool isPlaceHolder() const noexcept override {
         return true;
     };
     bool iszero() const override {
@@ -374,15 +374,15 @@ public:
     VectorialValue(std::initializer_list<double> c);
     VectorialValue(const vega::VectorialValue&) = default;
     VectorialValue(vega::VectorialValue&&) = default;
-    inline double x() const {
+    inline double x() const noexcept {
         return value[0];
     }
 
-    inline double y() const {
+    inline double y() const noexcept {
         return value[1];
     }
 
-    inline double z() const {
+    inline double z() const noexcept {
         return value[2];
     }
 
@@ -449,9 +449,9 @@ private:
     Function& _fz;
 public:
     VectorialFunction(const Model&, Function& fx, Function& fy, Function& fz, int original_id = NO_ORIGINAL_ID);
-    inline Function& x() const { return _fx;};
-    inline Function& y() const { return _fy;};
-    inline Function& z() const { return _fz;};
+    inline Function& x() const noexcept { return _fx;};
+    inline Function& y() const noexcept { return _fy;};
+    inline Function& z() const noexcept { return _fz;};
     void scale(double factor) override;
     bool iszero() const override;
 };

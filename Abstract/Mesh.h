@@ -170,17 +170,17 @@ public:
 	 * If it does not exists, create and return a NodeGroup with specified name, groupId and comment.
 	 **/
 	std::shared_ptr<NodeGroup> findOrCreateNodeGroup(const std::string& name, const int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
-	bool hasGroup(const int groupId) const;
-	bool hasGroup(const std::string& name) const;
-	std::vector<std::shared_ptr<NodeGroup>> getNodeGroups() const;
+	bool hasGroup(const int groupId) const noexcept;
+	bool hasGroup(const std::string& name) const noexcept;
+	std::vector<std::shared_ptr<NodeGroup>> getNodeGroups() const noexcept;
 	std::shared_ptr<CellGroup> createCellGroup(const std::string& name, int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
 	void renameGroup(const std::string& oldname, const std::string& newname, const std::string& comment);
     /**
      * Remove the Group named "name". Do nothing if the group does not exist.
      */
-    void removeGroup(const std::string& name);
-	std::vector<std::shared_ptr<CellGroup>> getCellGroups() const;
-	std::shared_ptr<Group> findGroup(std::string) const;
+    void removeGroup(const std::string& name) noexcept;
+	std::vector<std::shared_ptr<CellGroup>> getCellGroups() const noexcept;
+	std::shared_ptr<Group> findGroup(std::string) const noexcept;
 	/**
 	 * Find a group by its "original" id: the id provided by the input solver. If not found
 	 * returns nullptr
@@ -211,10 +211,10 @@ public:
 	int addNode(const int id, const double x, const double y, const double z = 0,
 	        const int cpPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
 	        const int cdPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
-	        const int nodePartId = 0);
-    const std::string getName() const;
-	size_t countNodes() const;
-	void allowDOFS(const int nodePosition, const DOFS& allowed);
+	        const int nodePartId = 0) noexcept;
+    const std::string getName() const noexcept;
+	size_t countNodes() const noexcept;
+	void allowDOFS(const int nodePosition, const DOFS& allowed) noexcept;
 	/**
 	 * Find a node from its Vega position.
 	 * throws invalid_argument if node not found
@@ -225,26 +225,26 @@ public:
 	 * given an internal node position returns the Id from the model
 	 * @return Node::UNAVAILABLE_NODE if not found
 	 */
-	int findNodeId(const int nodePosition) const;
+	int findNodeId(const int nodePosition) const noexcept;
 
 	/**
 	 * given an Id from the model returns an internal node position
 	 * use together with findNode.
 	 * @return Node::UNAVAILABLE_NODE if not found
 	 */
-	int findNodePosition(const int nodeId) const;
+	int findNodePosition(const int nodeId) const noexcept;
 
     /**
 	 * given an internal node position returns the nodepartId
 	 * @return Node::UNAVAILABLE_NODE if not found
 	 */
-	int findNodePartId(const int nodePosition) const;
-	int findOrReserveNode(const int nodeId, const int cellPartId = Globals::UNAVAILABLE_INT);
+	int findNodePartId(const int nodePosition) const noexcept;
+	int findOrReserveNode(const int nodeId, const int cellPartId = Globals::UNAVAILABLE_INT) noexcept;
 	//returns a set of nodePositions
-	std::set<int> findOrReserveNodes(const std::set<int>& nodeIds);
+	std::set<int> findOrReserveNodes(const std::set<int>& nodeIds) noexcept;
 
-	int countCells() const;
-	int countCells(const CellType &type) const;
+	int countCells() const noexcept;
+	int countCells(const CellType &type) const noexcept;
 	/** Add a cell to the mesh.
 	 *  The vector nodesIds regroups the nodes use to build the cell. Nodes Ids are expressed as "input node number"
 	 *  and will be added to the model if not already defined.
@@ -261,7 +261,7 @@ public:
     int updateCell(int id, const CellType &type, const std::vector<int> &nodesIds,
             bool virtualCell = false, const int cpos=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int elementId = Cell::UNAVAILABLE_CELL);
     int findCellPosition(int cellId) const;
-    inline int findCellId(int cellPosition) const {
+    inline int findCellId(int cellPosition) const noexcept {
         return cells.cellDatas[cellPosition].id;
     };
 	const Cell findCell(int cellPosition) const;
@@ -273,13 +273,13 @@ public:
 	 * Assign an elementId (an integer) to a group of cells.
 	 * Cells must have been previously defined.
 	 */
-	inline void assignElementId(int cellPosition, int elementId) {
+	inline void assignElementId(int cellPosition, int elementId) noexcept {
 	    cells.cellDatas[cellPosition].elementId = elementId;
     }
 
 	const MeshStatistics calcStats();
 
-	void finish();
+	void finish() noexcept;
 	bool validate() const;
 	Mesh(const Mesh& that) = delete;
 };

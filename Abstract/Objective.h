@@ -96,7 +96,7 @@ public:
 	const std::set<std::shared_ptr<Objective>, ptrLess<Objective>> getObjectives() const;
 	const std::set<std::shared_ptr<Objective>, ptrLess<Objective>> getObjectivesByType(Objective::Type) const;
 	size_t size() const;
-	inline bool empty() const {return size() == 0;};
+	inline bool empty() const noexcept {return size() == 0;};
 	std::shared_ptr<ObjectiveSet> clone() const;
 };
 
@@ -107,7 +107,7 @@ public:
     const double tolerance;
     virtual const DOFS getDOFSForNode(const int nodePosition) const = 0;
     virtual std::set<int> nodePositions() const = 0;
-    bool isAssertion() const override {
+    bool isAssertion() const noexcept override {
         return true;
     }
 };

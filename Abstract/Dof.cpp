@@ -28,15 +28,15 @@ DOF::DOF(Code _code, bool _isTranslation, bool _isRotation, const string _label,
 	dofByPosition[position] = this;
 }
 
-bool DOF::operator<(const DOF& other) const {
+bool DOF::operator<(const DOF& other) const noexcept {
 	return this->code < other.code;
 }
 
-bool DOF::operator==(const DOF& other) const {
+bool DOF::operator==(const DOF& other) const noexcept {
 	return this->code == other.code;
 }
 
-char DOF::operator|(const DOF& other) const {
+char DOF::operator|(const DOF& other) const noexcept {
 	return static_cast<char>(this->code) | static_cast<char>(other.code);
 }
 
@@ -58,11 +58,11 @@ DOF DOF::findByPosition(int position) {
 	return *(dofIter->second);
 }
 
-DOF::operator char() const {
+DOF::operator char() const noexcept {
 	return static_cast<char>(code);
 }
 
-ostream &operator<<(ostream &out, const DOF& dof) {
+ostream &operator<<(ostream &out, const DOF& dof) noexcept {
 	out << dof.label;
 	return out;
 }
@@ -91,14 +91,14 @@ DOFS::DOFS(const DOF dof) :
 		dofsCode(static_cast<char>(dof.code)) {
 }
 
-VectorialValue DOFS::getTranslations() {
+VectorialValue DOFS::getTranslations() noexcept {
 	double dx = contains(DOF::DX) ? FREE_DOF : 0.0;
 	double dy = contains(DOF::DY) ? FREE_DOF : 0.0;
 	double dz = contains(DOF::DZ) ? FREE_DOF : 0.0;
 	return VectorialValue(dx, dy, dz);
 }
 
-VectorialValue DOFS::getRotations() {
+VectorialValue DOFS::getRotations() noexcept {
 	double rx = contains(DOF::RX) ? FREE_DOF : 0.0;
 	double ry = contains(DOF::RY) ? FREE_DOF : 0.0;
 	double rz = contains(DOF::RZ) ? FREE_DOF : 0.0;
@@ -109,54 +109,54 @@ DOFS::DOFS(bool dx, bool dy, bool dz, bool rx, bool ry, bool rz) :
 		dofsCode(combineCodes(dx, dy, dz, rx, ry, rz)) {
 }
 
-bool DOFS::containsAll(const DOFS& dofs) const {
+bool DOFS::containsAll(const DOFS& dofs) const noexcept {
 	return (dofs.dofsCode | dofsCode) == dofsCode;
 }
 
-bool DOFS::containsAnyOf(const DOFS& dofs) const {
+bool DOFS::containsAnyOf(const DOFS& dofs) const noexcept {
 	return (dofsCode & dofs.dofsCode) != 0;
 }
 
-bool DOFS::contains(const DOF& dof) const {
+bool DOFS::contains(const DOF& dof) const noexcept {
 	return (dofsCode & static_cast<char>(dof.code)) != 0;
 }
 
-DOFS DOFS::intersection(const DOFS& dofs) const {
+DOFS DOFS::intersection(const DOFS& dofs) const noexcept {
 	return DOFS(static_cast<char>(dofsCode & dofs.dofsCode));
 }
 
-DOFS::operator char() const {
+DOFS::operator char() const noexcept {
 	return this->dofsCode;
 }
 
-bool DOFS::operator ==(const DOFS& other) const {
+bool DOFS::operator ==(const DOFS& other) const noexcept {
 	return this->dofsCode == other.dofsCode;
 }
 
-bool DOFS::operator ==(const DOF& other) const {
+bool DOFS::operator ==(const DOF& other) const noexcept {
 	return this->dofsCode == static_cast<char>(other.code);
 }
 
-bool DOFS::operator ==(const char other) const {
+bool DOFS::operator ==(const char other) const noexcept {
 	return this->dofsCode == other;
 }
 
-DOFS& DOFS::operator+=(const DOF& dof) {
+DOFS& DOFS::operator+=(const DOF& dof) noexcept {
 	this->dofsCode |= static_cast<char>(dof.code);
 	return *this;
 }
 
-DOFS& DOFS::operator=(const DOF& dof) {
+DOFS& DOFS::operator=(const DOF& dof) noexcept {
 	this->dofsCode = static_cast<char>(dof.code);
 	return *this;
 }
 
-DOFS& DOFS::operator+=(const DOFS& other) {
+DOFS& DOFS::operator+=(const DOFS& other) noexcept {
 	this->dofsCode |= other.dofsCode;
 	return *this;
 }
 
-int DOFS::size() const {
+int DOFS::size() const noexcept {
 	int result = contains(DOF::DX) ? 1 : 0;
 	result += contains(DOF::DY) ? 1 : 0;
 	result += contains(DOF::DZ) ? 1 : 0;
@@ -166,7 +166,7 @@ int DOFS::size() const {
 	return result;
 }
 
-int DOFS::nastranCode() const {
+int DOFS::nastranCode() const noexcept {
 	string dofsString = "";
 	for (DOF dof : *this) {
 		int dofCode = DOF_BY_NASTRANCODE.right.find(dof.code)->second;
@@ -198,26 +198,26 @@ DOFS DOFS::nastranCodeToDOFS(int nastranCode) {
 	return dofs;
 }
 
-DOFS operator +(const DOFS lhs, const DOF& rhs) {
+DOFS operator +(const DOFS lhs, const DOF& rhs) noexcept {
 	return DOFS(static_cast<char>(lhs.dofsCode | static_cast<char>(rhs.code)));
 }
 
-DOFS operator -(const DOFS lhs, const DOF& rhs) {
+DOFS operator -(const DOFS lhs, const DOF& rhs) noexcept {
 	return DOFS(static_cast<char>(lhs.dofsCode & ~static_cast<char>(rhs.code)));
 }
 
-DOFS operator+(const DOFS lhs, const DOFS& rhs) {
+DOFS operator+(const DOFS lhs, const DOFS& rhs) noexcept {
 	return DOFS(static_cast<char>(lhs.dofsCode | static_cast<char>(rhs.dofsCode)));
 }
-DOFS operator-(const DOFS lhs, const DOFS& rhs) {
+DOFS operator-(const DOFS lhs, const DOFS& rhs) noexcept {
 	return DOFS(static_cast<char>(lhs.dofsCode & (~rhs.dofsCode)));
 }
 
-DOFS operator&(const DOFS lhs, const DOFS& rhs) {
+DOFS operator&(const DOFS lhs, const DOFS& rhs) noexcept {
 	return DOFS(static_cast<char>(lhs.dofsCode & rhs.dofsCode));
 }
 
-DOFS DOFS::combineCodes(bool dx, bool dy, bool dz, bool rx, bool ry, bool rz) {
+DOFS DOFS::combineCodes(bool dx, bool dy, bool dz, bool rx, bool ry, bool rz) noexcept {
 	DOFS codes = DOFS::NO_DOFS;
 	if (dx) {
 		codes += DOF::DX;
@@ -240,7 +240,7 @@ DOFS DOFS::combineCodes(bool dx, bool dy, bool dz, bool rx, bool ry, bool rz) {
 	return codes;
 }
 
-ostream &operator<<(ostream &out, const DOFS::iterator& dofs_iter) {
+ostream &operator<<(ostream &out, const DOFS::iterator& dofs_iter) noexcept {
 	out << "DOFS_iterator pos: " << dofs_iter.dofPosition;
 	return out;
 }
@@ -250,7 +250,7 @@ DOFS::iterator::iterator(int _dofPosition, const DOFS *dofs) :
 	next_available_dof();
 }
 
-void DOFS::iterator::next_available_dof() {
+void DOFS::iterator::next_available_dof() noexcept {
 	for (; dofPosition < 6; dofPosition++) {
 		if (outer_dofs->contains(DOF::findByPosition(dofPosition))) {
 			break;
@@ -258,15 +258,15 @@ void DOFS::iterator::next_available_dof() {
 	}
 }
 
-DOFS::iterator DOFS::begin() const {
+DOFS::iterator DOFS::begin() const noexcept {
 	return DOFS::iterator(0, this);
 }
 
-const DOFS::iterator DOFS::end() const {
+const DOFS::iterator DOFS::end() const noexcept {
 	return DOFS::iterator(6, this);
 }
 
-ostream &operator<<(ostream &out, const DOFS& dofs) {
+ostream &operator<<(ostream &out, const DOFS& dofs) noexcept {
 	bool first = true;
 	out << "[";
 	for (int i = 0; i < 6; i++) {
@@ -348,7 +348,7 @@ vector<double> DOFMatrix::diagonal(bool addRotationsIfNotPresent) const {
 	return result;
 }
 
-bool DOFMatrix::hasRotations() const {
+bool DOFMatrix::hasRotations() const noexcept {
 	bool hasRotations = false;
 	for (const auto& kv : componentByDofs) {
 		DOF dof1 = kv.first.first;
@@ -361,7 +361,7 @@ bool DOFMatrix::hasRotations() const {
 	return hasRotations;
 }
 
-bool DOFMatrix::hasTranslations() const {
+bool DOFMatrix::hasTranslations() const noexcept {
 	bool hasTranslations = false;
 	for (const auto& kv : componentByDofs) {
 		DOF dof1 = kv.first.first;
@@ -374,7 +374,7 @@ bool DOFMatrix::hasTranslations() const {
 	return hasTranslations;
 }
 
-bool DOFMatrix::isDiagonal() const {
+bool DOFMatrix::isDiagonal() const noexcept {
 	if (matrixType == MatrixType::DIAGONAL) {
         return true;
     }
@@ -387,7 +387,7 @@ bool DOFMatrix::isDiagonal() const {
 	return true;
 }
 
-bool DOFMatrix::isSymmetric() const {
+bool DOFMatrix::isSymmetric() const noexcept {
 	if (matrixType == MatrixType::SYMMETRIC) {
         return true;
     }
@@ -409,7 +409,7 @@ bool DOFMatrix::isSymmetric() const {
 	return true;
 }
 
-bool DOFMatrix::isMaxDiagonal() const {
+bool DOFMatrix::isMaxDiagonal() const noexcept {
 	bool isMaxDiagonal = true;
 	for (const auto& kv : componentByDofs) {
 		if ((kv.first.first != kv.first.second and !is_zero(kv.second)) or !is_equal(kv.second, DBL_MAX)) {
@@ -420,11 +420,11 @@ bool DOFMatrix::isMaxDiagonal() const {
 	return isMaxDiagonal;
 }
 
-bool DOFMatrix::isEmpty() const {
+bool DOFMatrix::isEmpty() const noexcept {
 	return componentByDofs.empty();
 }
 
-bool DOFMatrix::isZero() const {
+bool DOFMatrix::isZero() const noexcept {
     bool isZero = true;
 	for (const auto& kv : componentByDofs) {
 		if (not is_zero(kv.second)) {
@@ -435,13 +435,13 @@ bool DOFMatrix::isZero() const {
 	return isZero;
 }
 
-void DOFMatrix::setAllZero() {
+void DOFMatrix::setAllZero() noexcept {
     for (auto& entry : componentByDofs) {
         entry.second = 0.0;
     }
 }
 
-DOFMatrix DOFMatrix::transposed() const {
+DOFMatrix DOFMatrix::transposed() const noexcept {
     DOFMatrix transposed(matrixType);
     for (auto& entry : componentByDofs) {
         transposed.addComponent(entry.first.second, entry.first.first, entry.second);
@@ -449,7 +449,7 @@ DOFMatrix DOFMatrix::transposed() const {
     return transposed;
 }
 
-bool DOFMatrix::isEqual(const DOFMatrix& other) const {
+bool DOFMatrix::isEqual(const DOFMatrix& other) const noexcept {
     if (componentByDofs.size() != other.componentByDofs.size())
         return false; // This should be relaxed: maybe other matrix has some zero values explicitely
     for (auto& entry : componentByDofs) {

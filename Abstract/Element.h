@@ -27,7 +27,7 @@ private:
 	SpaceDimension dimension;
 	ModelType(std::string name, const SpaceDimension dimension);
 	public:
-	inline bool operator==(const ModelType& rhs) const {
+	inline bool operator==(const ModelType& rhs) const noexcept {
 		return this->name == rhs.name and dimension == rhs.dimension;
 	}
 
@@ -317,13 +317,13 @@ class CompositeLayer {
     double _orientation;
 	CompositeLayer(int materialId, double thickness, double orientation = 0);
 public:
-	inline int getMaterialId() const {
+	inline int getMaterialId() const noexcept {
 	    return _materialId;
 	}
-	inline double getThickness() const {
+	inline double getThickness() const noexcept {
 	    return _thickness;
 	}
-    inline double getOrientation() const {
+    inline double getOrientation() const noexcept {
 	    return _orientation;
 	}
 };

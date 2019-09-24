@@ -448,6 +448,27 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
             out << rbe3;
             rbe3Constraint->markAsWritten();
         }
+
+		const auto& mpcConstraints = constraintSet->getConstraintsByType(
+				Constraint::Type::LMPC);
+        for (const auto& constraint : mpcConstraints) {
+            const auto& lmpc =
+                    dynamic_pointer_cast<LinearMultiplePointConstraint>(constraint);
+            Line mpc("MPC");
+            mpc.add(constraintSet->bestId());
+			for (int nodePosition : lmpc->nodePositions()) {
+			    DOFCoefs dofcoef = lmpc->getDoFCoefsForNode(nodePosition);
+				for (int i = 0; i < 6; i++) {
+					if (!is_zero(dofcoef[i])) {
+                        mpc.add(model.mesh.findNodeId(nodePosition));
+                        mpc.add(i+1);
+                        mpc.add(dofcoef[i]);
+					}
+				}
+			}
+            out << mpc;
+            lmpc->markAsWritten();
+        }
 		constraintSet->markAsWritten();
 	}
 }
