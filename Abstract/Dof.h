@@ -44,7 +44,7 @@ public:
 	static const DOF RZ;
 
 private:
-	DOF(Code code, bool isTranslation, bool isRotation, const std::string label, int position);
+	DOF(Code code, bool isTranslation, bool isRotation, const std::string label, int position) noexcept;
 public:
 	Code code;
 	bool isTranslation;
@@ -83,10 +83,10 @@ public:
 	static DOFS nastranCodeToDOFS(int nastranCode);
 	static DOFS combineCodes(bool dx, bool dy, bool dz, bool rx, bool ry, bool rz) noexcept;
 
-	DOFS(char dofsCode);
-	DOFS(const DOF dof);
+	DOFS(char dofsCode) noexcept;
+	DOFS(const DOF dof) noexcept;
 	DOFS(bool dx = false, bool dy = false, bool dz = false, bool rx = false, bool ry = false,
-			bool rz = false);
+			bool rz = false) noexcept;
 
 	bool containsAll(const DOFS&) const noexcept;
 	bool containsAnyOf(const DOFS&) const noexcept;
@@ -117,7 +117,7 @@ public:
 		void next_available_dof() noexcept;
 	public:
  		friend std::ostream &operator<<(std::ostream &out, const DOFS::iterator& dofs_iter) noexcept;
-		iterator(int dofPosition, const DOFS *outer_dofs);
+		iterator(int dofPosition, const DOFS *outer_dofs) noexcept;
 
 		bool operator==(const iterator& x) const noexcept {
 			return dofPosition == x.dofPosition;
@@ -164,9 +164,9 @@ public:
 		std::unordered_map<std::pair<DOF, DOF>, double,
 				boost::hash<std::pair<int, int>>>componentByDofs;
 		const MatrixType matrixType;
-		DOFMatrix(MatrixType matrixType = MatrixType::FULL);
+		DOFMatrix(MatrixType matrixType = MatrixType::FULL) noexcept;
 		void addComponent(const DOF dof1, const DOF dof2, const double value);
-		double findComponent(const DOF dof1, const DOF dof2) const;
+		double findComponent(const DOF dof1, const DOF dof2) const noexcept;
 		bool hasTranslations() const noexcept;
 		bool hasRotations() const noexcept;
 		bool isDiagonal() const noexcept;
@@ -181,9 +181,9 @@ public:
 		void setAllZero() noexcept;
 		DOFMatrix transposed() const noexcept;
 		bool isEqual(const DOFMatrix& other) const noexcept;
-		std::vector<double> diagonal(bool addRotationsIfNotPresent) const;
-		std::vector<double> asUpperTriangularColumnsVector(bool addRotationsIfNotPresent) const;
-		std::vector<double> asColumnsVector(bool addRotationsIfNotPresent) const;
+		std::vector<double> diagonal(bool addRotationsIfNotPresent) const noexcept;
+		std::vector<double> asUpperTriangularColumnsVector(bool addRotationsIfNotPresent) const noexcept;
+		std::vector<double> asColumnsVector(bool addRotationsIfNotPresent) const noexcept;
 };
 
 
@@ -196,19 +196,19 @@ private:
     double coefs[6];
 public:
     DOFCoefs(double dx = 0, double dy = 0, double dz = 0, double rx = 0, double ry = 0,
-            double rz = 0);
+            double rz = 0) noexcept;
 
-    DOFCoefs(DOFS dofs, double val = 0);
-    DOFCoefs(DOF dof, double val = 0);
-    DOFS getDOFS() const;
-    bool isEmpty() const;
-    double getValue(const DOF dof) const;
-    void setValue(const DOF dof, double val);
-    DOFCoefs& operator+=(const DOFCoefs&);
-    DOFCoefs& operator*=(const double factor);
-    double operator[](const int);
-    bool operator<(const DOFCoefs& other) const;
-    bool operator==(const DOFCoefs& other) const;
+    DOFCoefs(DOFS dofs, double val = 0) noexcept;
+    DOFCoefs(DOF dof, double val = 0) noexcept;
+    DOFS getDOFS() const noexcept;
+    bool isEmpty() const noexcept;
+    double getValue(const DOF dof) const noexcept;
+    void setValue(const DOF dof, double val) noexcept;
+    DOFCoefs& operator+=(const DOFCoefs&) noexcept;
+    DOFCoefs& operator*=(const double factor) noexcept;
+    double operator[](const int) noexcept;
+    bool operator<(const DOFCoefs& other) const noexcept;
+    bool operator==(const DOFCoefs& other) const noexcept;
 };
 
 

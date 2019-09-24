@@ -269,7 +269,7 @@ vector<shared_ptr<NodeGroup>> NodalDisplacementOutput::getNodeGroups() const {
     return nodeGroups;
 }
 
-bool NodalDisplacementOutput::hasNodeGroups() const {
+bool NodalDisplacementOutput::hasNodeGroups() const noexcept {
     return collection != nullptr or NodeContainer::hasNodeGroups();
 }
 
@@ -299,7 +299,7 @@ vector<shared_ptr<CellGroup>> VonMisesStressOutput::getCellGroups() const {
     return cellGroups;
 }
 
-bool VonMisesStressOutput::hasCellGroups() const {
+bool VonMisesStressOutput::hasCellGroups() const noexcept {
     return collection != nullptr or CellContainer::hasCellGroups();
 }
 

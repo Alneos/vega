@@ -31,7 +31,7 @@ namespace nastran {
 
 int Line::newlineCounter = 0;
 
-ostream &operator<<(ostream &out, const Line& line) {
+ostream &operator<<(ostream &out, const Line& line) noexcept {
 	out << left << setw(8);
 	out << line.keyword;
 	int fieldCount = 0;
@@ -49,7 +49,7 @@ ostream &operator<<(ostream &out, const Line& line) {
 	return out;
 }
 
-Line::Line(string _keyword) : keyword(_keyword) {
+Line::Line(string _keyword) noexcept : keyword(_keyword) {
 	if (boost::algorithm::ends_with(keyword, "*")) {
 		fieldLength = 16;
 		fieldNum = 5;
@@ -59,12 +59,12 @@ Line::Line(string _keyword) : keyword(_keyword) {
 	}
 }
 
-Line& Line::add() {
+Line& Line::add() noexcept {
 	this->add(string());
 	return *this;
 }
 
-Line& Line::add(double value) {
+Line& Line::add(double value) noexcept {
 	std::ostringstream strs;
 	if (is_zero(value)) {
         strs << "0.";
@@ -97,47 +97,47 @@ Line& Line::add(double value) {
 	return *this;
 }
 
-Line& Line::add(string value) {
+Line& Line::add(string value) noexcept {
 	std::ostringstream strs;
 	strs << internal << setw(this->fieldLength) << value;
 	this->fields.push_back(strs.str());
 	return *this;
 }
 
-Line& Line::add(const char* value) {
+Line& Line::add(const char* value) noexcept {
 	std::ostringstream strs;
 	strs << internal << setw(this->fieldLength) << value;
 	this->fields.push_back(strs.str());
 	return *this;
 }
 
-Line& Line::add(int value) {
+Line& Line::add(int value) noexcept {
 	std::ostringstream strs;
 	strs << internal << setw(this->fieldLength) << value;
 	this->fields.push_back(strs.str());
 	return *this;
 }
 
-Line& Line::add(const vector<double> values) {
+Line& Line::add(const vector<double> values) noexcept {
 	for(double value : values) {
 		this->add(value);
 	}
 	return *this;
 }
 
-Line& Line::add(const vector<int> values) {
+Line& Line::add(const vector<int> values) noexcept {
 	for(int value : values) {
 		this->add(value);
 	}
 	return *this;
 }
 
-Line& Line::add(const DOFS dofs) {
+Line& Line::add(const DOFS dofs) noexcept {
 	this->add(dofs.nastranCode());
 	return *this;
 }
 
-Line& Line::add(const VectorialValue vector) {
+Line& Line::add(const VectorialValue vector) noexcept {
 	this->add(vector.x());
 	this->add(vector.y());
 	this->add(vector.z());
@@ -163,7 +163,7 @@ const unordered_map<CellType::Code, vector<int>, EnumClassHash> NastranWriter::m
         };
 
 const string NastranWriter::toString() const {
-	return string("NastranWriter");
+	return "NastranWriter";
 }
 
 string NastranWriter::getNasFilename(const Model& model,
@@ -455,14 +455,21 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
             const auto& lmpc =
                     dynamic_pointer_cast<LinearMultiplePointConstraint>(constraint);
             Line mpc("MPC");
-            mpc.add(constraintSet->bestId());
+            mpc.add(constraintSet->getId());
+            int fieldNum = 2;
 			for (int nodePosition : lmpc->nodePositions()) {
 			    DOFCoefs dofcoef = lmpc->getDoFCoefsForNode(nodePosition);
 				for (int i = 0; i < 6; i++) {
 					if (!is_zero(dofcoef[i])) {
+                        if (fieldNum % 8 == 0) {
+                            mpc.add();
+                            mpc.add();
+                        }
+
                         mpc.add(model.mesh.findNodeId(nodePosition));
                         mpc.add(i+1);
                         mpc.add(dofcoef[i]);
+                        fieldNum += 3;
 					}
 				}
 			}
@@ -721,7 +728,7 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 		Line psolid(keyword);
 		psolid.add(continuum->bestId());
 		psolid.add(continuum->material->bestId());
-		if (continuum->modelType == ModelType::TRIDIMENSIONAL) {
+		if (continuum->modelType == ModelType::TRIDIMENSIONAL and not isCosmic()) {
             psolid.add(0);
             psolid.add("THREE");
             psolid.add("GRID");

@@ -124,7 +124,7 @@ public:
     virtual std::set<int> cellPositions() const override {
         return getCellPositionsIncludingGroups();
     }
-    virtual void add(const CellGroup& cellGroup) override final {
+    virtual void add(const CellGroup& cellGroup) noexcept override final {
         CellContainer::add(cellGroup);
     };
     virtual bool effective() const override {
@@ -523,7 +523,7 @@ public:
 	/**
 	 * Clear all nodes and submatrices of the Matrix.
 	 */
-	void clear() override final;
+	void clear() noexcept override final;
 	const std::shared_ptr<const DOFMatrix> findSubmatrix(const int nodePosition1, const int nodePosition2) const;
 	std::set<int> nodePositions() const override final;
 	const std::set<std::pair<int, int>> nodePairs() const;

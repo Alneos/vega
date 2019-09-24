@@ -21,7 +21,7 @@ using namespace std;
 unordered_map<DOF::Code, DOF*, EnumClassHash> DOF::dofByCode;
 unordered_map<int, DOF*> DOF::dofByPosition;
 
-DOF::DOF(Code _code, bool _isTranslation, bool _isRotation, const string _label, int _position) :
+DOF::DOF(Code _code, bool _isTranslation, bool _isRotation, const string _label, int _position) noexcept :
 		code(_code), isTranslation(_isTranslation), isRotation(_isRotation), label(_label), position(
 				_position) {
 	dofByCode[code] = this;
@@ -83,11 +83,11 @@ const DOFS DOFS::TRANSLATIONS(static_cast<char>(static_cast<char>(DOF::Code::DX_
 const DOFS DOFS::ROTATIONS(static_cast<char>(static_cast<char>(DOF::Code::RX_CODE) | static_cast<char>(DOF::Code::RY_CODE) | static_cast<char>(DOF::Code::RZ_CODE)));
 const DOFS DOFS::ALL_DOFS = TRANSLATIONS + ROTATIONS;
 
-DOFS::DOFS(char _dofsCode) :
+DOFS::DOFS(char _dofsCode) noexcept :
 		dofsCode(_dofsCode) {
 }
 
-DOFS::DOFS(const DOF dof) :
+DOFS::DOFS(const DOF dof) noexcept :
 		dofsCode(static_cast<char>(dof.code)) {
 }
 
@@ -105,7 +105,7 @@ VectorialValue DOFS::getRotations() noexcept {
 	return VectorialValue(rx, ry, rz);
 }
 
-DOFS::DOFS(bool dx, bool dy, bool dz, bool rx, bool ry, bool rz) :
+DOFS::DOFS(bool dx, bool dy, bool dz, bool rx, bool ry, bool rz) noexcept :
 		dofsCode(combineCodes(dx, dy, dz, rx, ry, rz)) {
 }
 
@@ -245,7 +245,7 @@ ostream &operator<<(ostream &out, const DOFS::iterator& dofs_iter) noexcept {
 	return out;
 }
 
-DOFS::iterator::iterator(int _dofPosition, const DOFS *dofs) :
+DOFS::iterator::iterator(int _dofPosition, const DOFS *dofs) noexcept :
 		dofPosition(_dofPosition), outer_dofs(dofs) {
 	next_available_dof();
 }
@@ -283,7 +283,7 @@ ostream &operator<<(ostream &out, const DOFS& dofs) noexcept {
 	return out;
 }
 
-DOFMatrix::DOFMatrix(MatrixType matrixType) : matrixType(matrixType) {
+DOFMatrix::DOFMatrix(MatrixType matrixType) noexcept : matrixType(matrixType) {
 
 }
 
@@ -298,7 +298,7 @@ void DOFMatrix::addComponent(const DOF dof1, const DOF dof2, const double value)
 	}
 }
 
-double DOFMatrix::findComponent(const DOF dof1, const DOF dof2) const {
+double DOFMatrix::findComponent(const DOF dof1, const DOF dof2) const noexcept {
     if (matrixType == MatrixType::DIAGONAL and dof1 != dof2) {
         return 0.0;
 	} else if (matrixType == MatrixType::SYMMETRIC and dof1 > dof2) {
@@ -315,7 +315,7 @@ double DOFMatrix::findComponent(const DOF dof1, const DOF dof2) const {
 	return 0.0;
 }
 
-vector<double> DOFMatrix::asColumnsVector(bool addRotationsIfNotPresent) const {
+vector<double> DOFMatrix::asColumnsVector(bool addRotationsIfNotPresent) const noexcept {
 	vector<double> result;
 	DOFS dofs = (addRotationsIfNotPresent || hasRotations()) ? DOFS::ALL_DOFS : DOFS::TRANSLATIONS;
     for (const DOF coldof : dofs) {
@@ -326,7 +326,7 @@ vector<double> DOFMatrix::asColumnsVector(bool addRotationsIfNotPresent) const {
 	return result;
 }
 
-vector<double> DOFMatrix::asUpperTriangularColumnsVector(bool addRotationsIfNotPresent) const {
+vector<double> DOFMatrix::asUpperTriangularColumnsVector(bool addRotationsIfNotPresent) const noexcept {
 	vector<double> result;
 	DOFS dofs = (addRotationsIfNotPresent || hasRotations()) ? DOFS::ALL_DOFS : DOFS::TRANSLATIONS;
     for (int coldof = 0; coldof < dofs.size(); coldof++) {
@@ -339,7 +339,7 @@ vector<double> DOFMatrix::asUpperTriangularColumnsVector(bool addRotationsIfNotP
 	return result;
 }
 
-vector<double> DOFMatrix::diagonal(bool addRotationsIfNotPresent) const {
+vector<double> DOFMatrix::diagonal(bool addRotationsIfNotPresent) const noexcept {
 	vector<double> result;
 	DOFS dofs = (addRotationsIfNotPresent || hasRotations()) ? DOFS::ALL_DOFS : DOFS::TRANSLATIONS;
 	for (const DOF& dof: dofs) {
@@ -464,7 +464,7 @@ bool DOFMatrix::isEqual(const DOFMatrix& other) const noexcept {
     return true;
 }
 
-DOFCoefs::DOFCoefs(double dx, double dy, double dz, double rx, double ry, double rz) {
+DOFCoefs::DOFCoefs(double dx, double dy, double dz, double rx, double ry, double rz) noexcept {
     coefs[0] = dx;
     coefs[1] = dy;
     coefs[2] = dz;
@@ -473,7 +473,7 @@ DOFCoefs::DOFCoefs(double dx, double dy, double dz, double rx, double ry, double
     coefs[5] = rz;
 }
 
-DOFCoefs::DOFCoefs(DOFS dofs, double val) {
+DOFCoefs::DOFCoefs(DOFS dofs, double val) noexcept {
     for(const DOF dof : DOFS::ALL_DOFS) {
         if (dofs.contains(dof))
             coefs[dof.position] = val;
@@ -482,7 +482,7 @@ DOFCoefs::DOFCoefs(DOFS dofs, double val) {
     }
 }
 
-DOFCoefs::DOFCoefs(DOF dof, double val) {
+DOFCoefs::DOFCoefs(DOF dof, double val) noexcept {
     for(const DOF dof2 : DOFS::ALL_DOFS) {
         if (dof2 == dof)
             coefs[dof2.position] = val;
@@ -491,7 +491,7 @@ DOFCoefs::DOFCoefs(DOF dof, double val) {
     }
 }
 
-DOFS DOFCoefs::getDOFS() const {
+DOFS DOFCoefs::getDOFS() const noexcept {
     DOFS dofs;
     for(const DOF dof : DOFS::ALL_DOFS) {
         if (not is_equal(coefs[dof.position], Globals::UNAVAILABLE_DOUBLE))
@@ -500,7 +500,7 @@ DOFS DOFCoefs::getDOFS() const {
     return dofs;
 }
 
-bool DOFCoefs::isEmpty() const {
+bool DOFCoefs::isEmpty() const noexcept {
     for(const DOF dof : DOFS::ALL_DOFS) {
         if (not is_equal(coefs[dof.position], Globals::UNAVAILABLE_DOUBLE))
             return false;
@@ -508,15 +508,15 @@ bool DOFCoefs::isEmpty() const {
     return true;
 }
 
-double DOFCoefs::getValue(const DOF dof) const {
+double DOFCoefs::getValue(const DOF dof) const noexcept {
     return coefs[dof.position];
 }
 
-void DOFCoefs::setValue(const DOF dof, double val) {
+void DOFCoefs::setValue(const DOF dof, double val) noexcept {
     coefs[dof.position] = val;
 }
 
-DOFCoefs& DOFCoefs::operator+=(const DOFCoefs& rv) {
+DOFCoefs& DOFCoefs::operator+=(const DOFCoefs& rv) noexcept {
     for (int i = 0; i < 6; i++) {
         if (not is_equal(coefs[i], Globals::UNAVAILABLE_DOUBLE)) {
             coefs[i] += rv.coefs[i];
@@ -527,7 +527,7 @@ DOFCoefs& DOFCoefs::operator+=(const DOFCoefs& rv) {
     return *this;
 }
 
-DOFCoefs& DOFCoefs::operator*=(const double factor) {
+DOFCoefs& DOFCoefs::operator*=(const double factor) noexcept {
     for (int i = 0; i < 6; i++) {
         if (not is_equal(coefs[i], Globals::UNAVAILABLE_DOUBLE)) {
             coefs[i] *= factor;
@@ -536,13 +536,13 @@ DOFCoefs& DOFCoefs::operator*=(const double factor) {
     return *this;
 }
 
-double DOFCoefs::operator[](const int i) {
+double DOFCoefs::operator[](const int i) noexcept {
     if (i < 0 || i > 6)
         return 0; // TODO LD: why this case ???
     return coefs[i];
 }
 
-bool DOFCoefs::operator< (const DOFCoefs& other) const{
+bool DOFCoefs::operator< (const DOFCoefs& other) const noexcept {
     for (int i=0; i<6; i++){
         if (is_equal(this->coefs[i],other.coefs[i])) continue;
         if (this->coefs[i]<other.coefs[i]) return true;
@@ -551,7 +551,7 @@ bool DOFCoefs::operator< (const DOFCoefs& other) const{
     return false;
 }
 
-bool DOFCoefs::operator== (const DOFCoefs & other) const{
+bool DOFCoefs::operator== (const DOFCoefs & other) const noexcept {
     for (int i=0; i<6; i++){
         if (is_equal(this->coefs[i],other.coefs[i])) continue;
         return false;

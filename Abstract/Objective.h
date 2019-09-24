@@ -268,7 +268,7 @@ public:
     NodalDisplacementOutput(Model& model, std::shared_ptr<Reference<NamedValue>> collection = nullptr, int original_id = NO_ORIGINAL_ID);
     ComplexOutputType complexOutput;
     virtual std::vector<std::shared_ptr<NodeGroup>> getNodeGroups() const override final;
-    virtual bool hasNodeGroups() const override final;
+    virtual bool hasNodeGroups() const noexcept override final;
 };
 
 class VonMisesStressOutput: public Output, public CellContainer {
@@ -277,7 +277,7 @@ private:
 public:
     VonMisesStressOutput(Model& model, std::shared_ptr<Reference<NamedValue>> collection = nullptr, int original_id = NO_ORIGINAL_ID);
     virtual std::vector<std::shared_ptr<CellGroup>> getCellGroups() const override final;
-    virtual bool hasCellGroups() const override final;
+    virtual bool hasCellGroups() const noexcept override final;
 };
 
 

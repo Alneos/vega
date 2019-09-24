@@ -283,6 +283,10 @@ BOOST_AUTO_TEST_CASE( rbe2_z ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_z/rbe2_z.nas", RUN_ASTER, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( rbe2_z_mpc ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_z_mpc/rbe2_z_mpc.nas", RUN_ASTER, true, 0.00001);
+}
+
 BOOST_AUTO_TEST_CASE( rbe2_y ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_y/rbe2_y.nas", RUN_ASTER, true, 0.00001);
 }

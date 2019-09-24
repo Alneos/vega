@@ -759,14 +759,14 @@ shared_ptr<Group> Mesh::findGroup(string groupName) const noexcept {
 	return groupIterator->second;
 }
 
-shared_ptr<Group> Mesh::findGroup(int originalId) const {
+shared_ptr<Group> Mesh::findGroup(int originalId) const noexcept {
 	auto groupIterator = groupById.find(originalId);
 	if (groupIterator == groupById.end())
 		return nullptr;
 	return groupIterator->second;
 }
 
-int Mesh::countCells(const CellType& type) const {
+int Mesh::countCells(const CellType& type) const noexcept {
 
 	//if (type.code == CellType::POLYL.code) {
 	//	//FIXME polylines not handled
@@ -776,13 +776,13 @@ int Mesh::countCells(const CellType& type) const {
 	return static_cast<int>(positions.size());
 }
 
-bool Mesh::hasCell(int cellId) const {
+bool Mesh::hasCell(int cellId) const noexcept {
 	auto positionIterator =
 			cells.cellpositionById.find(cellId);
 	return positionIterator != cells.cellpositionById.end();
 }
 
-int Mesh::findCellPosition(int cellId) const {
+int Mesh::findCellPosition(int cellId) const noexcept {
 	auto it = this->cells.cellpositionById.find(cellId);
 	if (it == this->cells.cellpositionById.end()) {
 		return Cell::UNAVAILABLE_CELL;

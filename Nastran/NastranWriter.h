@@ -26,25 +26,25 @@ namespace nastran {
 
 class Line {
     static int newlineCounter;
-	friend std::ostream &operator<<(std::ostream &out, const Line& line);
+	friend std::ostream &operator<<(std::ostream &out, const Line& line) noexcept;
 	unsigned int fieldLength = 0;
 	unsigned int fieldNum = 0;
 	const std::string keyword = "";
 	std::vector<std::string> fields;
 public:
-	Line(std::string);
-	Line& add();
-	Line& add(double);
-	Line& add(std::string);
-	Line& add(const char*);
-	Line& add(int);
-	Line& add(const std::vector<int>);
-	Line& add(const std::vector<double>);
-	Line& add(const DOFS);
-	Line& add(const VectorialValue);
+	Line(std::string) noexcept;
+	Line& add() noexcept;
+	Line& add(double) noexcept;
+	Line& add(std::string) noexcept;
+	Line& add(const char*) noexcept;
+	Line& add(int) noexcept;
+	Line& add(const std::vector<int>) noexcept;
+	Line& add(const std::vector<double>) noexcept;
+	Line& add(const DOFS) noexcept;
+	Line& add(const VectorialValue) noexcept;
 };
 
-std::ostream &operator<<(std::ostream &out, const Line& line);
+std::ostream &operator<<(std::ostream &out, const Line& line) noexcept;
 
 class NastranWriter final : public Writer {
     enum class Dialect {

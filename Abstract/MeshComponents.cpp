@@ -25,7 +25,7 @@ using namespace std;
 unordered_map<SpaceDimension::Code, SpaceDimension*, EnumClassHash> SpaceDimension::dimensionByCode =
 		init_map();
 
-SpaceDimension::SpaceDimension(Code code, int medcouplingRelativeMeshDimension) :
+SpaceDimension::SpaceDimension(Code code, int medcouplingRelativeMeshDimension) noexcept :
 		code(code), relativeMeshDimension(medcouplingRelativeMeshDimension) {
 #if defined VDEBUG && defined __GNUC__  && !defined(_WIN32)
 	VALGRIND_CHECK_VALUE_IS_DEFINED(code);
@@ -40,31 +40,31 @@ const SpaceDimension SpaceDimension::DIMENSION_1D = SpaceDimension(SpaceDimensio
 const SpaceDimension SpaceDimension::DIMENSION_2D = SpaceDimension(SpaceDimension::Code::DIMENSION2D_CODE, -1);
 const SpaceDimension SpaceDimension::DIMENSION_3D = SpaceDimension(SpaceDimension::Code::DIMENSION3D_CODE, 0);
 
-bool SpaceDimension::operator<(const SpaceDimension &other) const {
+bool SpaceDimension::operator<(const SpaceDimension &other) const noexcept {
 	return this->code < other.code;
 }
 
-bool SpaceDimension::operator==(const SpaceDimension &other) const {
+bool SpaceDimension::operator==(const SpaceDimension &other) const noexcept {
 	return this->code == other.code;
 }
 
-bool SpaceDimension::operator!=(const SpaceDimension &other) const {
+bool SpaceDimension::operator!=(const SpaceDimension &other) const noexcept {
 	return this->code != other.code;
 }
 
 unordered_map<CellType::Code, CellType*, EnumClassHash> CellType::typeByCode;
 
 CellType::CellType(CellType::Code code, int numNodes, SpaceDimension dimension,
-		const string& description) :
+		const string& description) noexcept :
 		code(code), numNodes(numNodes), dimension(dimension), description(description), specificSize{numNodes>0} {
 	typeByCode.insert({code, this});
 }
 
-bool CellType::operator==(const CellType &other) const {
+bool CellType::operator==(const CellType &other) const noexcept {
 	return this->code == other.code;
 }
 
-bool CellType::operator<(const CellType& other) const {
+bool CellType::operator<(const CellType& other) const noexcept {
 	return this->code < other.code;
 }
 /*
@@ -75,12 +75,12 @@ bool CellType::operator<(const CellType& other) const {
  return *this;
  }
  */
-ostream &operator<<(ostream &out, const CellType& cellType) {
+ostream &operator<<(ostream &out, const CellType& cellType) noexcept {
 	out << "CellType[" << cellType.description << "]";
 	return out;
 }
 
-string CellType::to_str() const{
+string CellType::to_str() const noexcept {
 	return "CellType[" +this->description + "]";
 }
 
@@ -138,7 +138,7 @@ const CellType CellType::POLY19 = CellType(CellType::Code::POLY19_CODE, 19, Spac
 const CellType CellType::POLY20 = CellType(CellType::Code::POLY20_CODE, 20, SpaceDimension::DIMENSION_3D, "POLY20");
 
 
-const CellType* CellType::findByCode(CellType::Code code) {
+const CellType* CellType::findByCode(CellType::Code code) noexcept {
 	return CellType::typeByCode[code];
 }
 
@@ -234,54 +234,46 @@ const CellType CellType::polyType(unsigned int nbNodes) {
     return CellType::POLY20;
 }
 
-Group::Group(Mesh& mesh, const string& name, Type type, int _id, const string& comment) :
+Group::Group(Mesh& mesh, const string& name, Type type, int _id, const string& comment) noexcept :
                 Identifiable(_id), mesh(mesh), name(name), type(type), comment(comment), isUseful(false) {
-}
-
-string Group::getName() const {
-	return this->name;
-}
-
-string Group::getComment() const {
-	return this->comment;
 }
 
 /*******************
  * NodeGroup
  */
-NodeGroup::NodeGroup(Mesh& mesh, const string& name, int groupId, const string& comment) :
+NodeGroup::NodeGroup(Mesh& mesh, const string& name, int groupId, const string& comment) noexcept :
 		Group(mesh, name, Group::Type::NODEGROUP, groupId, comment), NodeContainer(mesh) {
 }
 
-void NodeGroup::addNodeId(int nodeId) {
+void NodeGroup::addNodeId(int nodeId) noexcept {
 	NodeContainer::addNodeId(nodeId);
 }
 
-void NodeGroup::addNode(const Node& node) {
+void NodeGroup::addNode(const Node& node) noexcept {
 	NodeContainer::add(node);
 }
 
-void NodeGroup::addNodeByPosition(int nodePosition) {
+void NodeGroup::addNodeByPosition(int nodePosition) noexcept {
 	NodeContainer::addNodePosition(nodePosition);
 }
 
-void NodeGroup::removeNodeByPosition(int nodePosition) {
+void NodeGroup::removeNodeByPosition(int nodePosition) noexcept {
 	NodeContainer::removeNodePositionExcludingGroups(nodePosition);
 }
 
-bool NodeGroup::containsNodePosition(int nodePosition) const {
+bool NodeGroup::containsNodePosition(int nodePosition) const noexcept {
     return NodeContainer::containsNodePositionExcludingGroups(nodePosition);
 }
 
-std::set<int> NodeGroup::nodePositions() const {
+std::set<int> NodeGroup::nodePositions() const noexcept {
 	return NodeContainer::getNodePositionsExcludingGroups();
 }
 
-bool NodeGroup::empty() const {
+bool NodeGroup::empty() const noexcept {
 	return NodeContainer::empty();
 }
 
-set<int> NodeGroup::getNodeIds() const {
+set<int> NodeGroup::getNodeIds() const noexcept {
 	return NodeContainer::getNodeIdsExcludingGroups();
 }
 
@@ -289,23 +281,23 @@ set<Node> NodeGroup::getNodes() const {
 	return NodeContainer::getNodesExcludingGroups();
 }
 
-CellGroup::CellGroup(Mesh& mesh, const string& name, int groupId, const string& comment ) :
+CellGroup::CellGroup(Mesh& mesh, const string& name, int groupId, const string& comment ) noexcept :
 		Group(mesh, name, Group::Type::CELLGROUP, groupId, comment), CellContainer(mesh) {
 }
 
-void CellGroup::addCellId(int cellId) {
+void CellGroup::addCellId(int cellId) noexcept {
 	CellContainer::addCellId(cellId);
 }
 
-void CellGroup::addCellPosition(int cellPosition) {
+void CellGroup::addCellPosition(int cellPosition) noexcept {
 	CellContainer::addCellPosition(cellPosition);
 }
 
-bool CellGroup::containsCellPosition(int cellPosition) const {
+bool CellGroup::containsCellPosition(int cellPosition) const noexcept {
 	return CellContainer::containsCellPosition(cellPosition);
 }
 
-void CellGroup::removeCellPosition(int cellPosition) {
+void CellGroup::removeCellPosition(int cellPosition) noexcept {
     CellContainer::removeCellPositionExcludingGroups(cellPosition);
 }
 
@@ -313,19 +305,19 @@ set<Cell> CellGroup::getCells() {
 	return CellContainer::getCellsIncludingGroups();
 }
 
-set<int> CellGroup::cellPositions() {
+set<int> CellGroup::cellPositions() noexcept {
 	return CellContainer::getCellPositionsIncludingGroups();
 }
 
-set<int> CellGroup::cellIds() {
+set<int> CellGroup::cellIds() noexcept {
 	return CellContainer::getCellIdsIncludingGroups();
 }
 
-set<int> CellGroup::nodePositions() const {
+set<int> CellGroup::nodePositions() const noexcept {
 	return CellContainer::getNodePositionsIncludingGroups();
 }
 
-bool CellGroup::empty() const {
+bool CellGroup::empty() const noexcept {
 	return CellContainer::empty();
 }
 
@@ -334,22 +326,22 @@ bool CellGroup::empty() const {
 ///////////////////////////////////////////////////////////////////////////////
 int Node::auto_node_id = 9999999;
 
-Node::Node(int id, double lx, double ly, double lz, int position1, DOFS inElement1, double gx, double gy, double gz, int _positionCS, int _displacementCS, int _nodepartId) :
+Node::Node(int id, double lx, double ly, double lz, int position1, DOFS inElement1, double gx, double gy, double gz, int _positionCS, int _displacementCS, int _nodepartId) noexcept :
 		id(id), nodepartId(_nodepartId), position(position1), lx(lx), ly(ly), lz(lz), dofs(inElement1), x(gx), y(gy), z(gz),
 		positionCS(_positionCS), displacementCS(_displacementCS) {
 }
 
-double Node::distance(const Node& other) const {
+double Node::distance(const Node& other) const noexcept {
     return boost::geometry::distance(*this, other);
     //return sqrt(pow(x - other.x, 2) + pow(y - other.y, 2) + pow(z - other.z, 2));
 }
 
-double Node::square_distance(const Node& other) const {
+double Node::square_distance(const Node& other) const noexcept {
     return boost::geometry::comparable_distance(*this, other);
     //return pow(x - other.x, 2) + pow(y - other.y, 2) + pow(z - other.z, 2);
 }
 
-ostream &operator<<(ostream &out, const Node& node) {
+ostream &operator<<(ostream &out, const Node& node) noexcept {
 	out << "Node[id:" << node.id << ",x:" << node.x << ",y:" << node.y << ",z:" << node.z << " pos:"
 			<< node.position << "]";
 	return out;
@@ -365,7 +357,7 @@ const unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::F
 
 // http://www.code-aster.org/outils/med/html/connectivites.html
 // https://hammi.extra.cea.fr/static/MED/web_med/logiciels/medV2.1.4_doc_html/html/modele_de_donnees.html
-unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::init_faceByCelltype() {
+unordered_map<CellType::Code, vector<vector<int>>, EnumClassHash > Cell::init_faceByCelltype() noexcept {
 	vector<vector<int> > hexa8list = { //
         {1,2,3,4}, //
         {5,8,7,6}, //
@@ -460,7 +452,7 @@ const unordered_map<CellType::Code, vector<int>, EnumClassHash > Cell::CORNERNOD
 Cell::Cell(int id, const CellType &type, const std::vector<int> &nodeIds, int position,
 		const std::vector<int> &nodePositions, bool isvirtual,
 		int cspos, int element_id, int cellTypePosition,
-		std::shared_ptr<OrientationCoordinateSystem> orientation) :
+		std::shared_ptr<OrientationCoordinateSystem> orientation) noexcept :
 		id(id), position(position), hasOrientation(cspos!=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID), type(type),
 				nodeIds(nodeIds), nodePositions(nodePositions), isvirtual(isvirtual), elementId(
 						element_id), cellTypePosition(cellTypePosition), cspos(cspos), orientation(orientation) {
@@ -600,8 +592,8 @@ pair<int, int> Cell::two_nodeids_from_facenum(int faceNum) const {
     case CellType::Code::TETRA4_CODE:
     case CellType::Code::TETRA10_CODE: {
         //node2 is on the opposite face
-        set<int> cellOrderedNodeIds{nodeIds.begin(), nodeIds.end()};
-        const set<int> faceOrderedNodeIds(faceNodeIds.begin(), faceNodeIds.end());
+        const set<int>& cellOrderedNodeIds{nodeIds.begin(), nodeIds.end()};
+        const set<int>& faceOrderedNodeIds{faceNodeIds.begin(), faceNodeIds.end()};
         vector<int> v_difference;
 
         set_difference(cellOrderedNodeIds.begin(), cellOrderedNodeIds.end(),
@@ -630,7 +622,7 @@ pair<int, int> Cell::two_nodeids_from_facenum(int faceNum) const {
 	}
 }
 
-ostream &operator<<(ostream &out, const Cell& cell) {
+ostream &operator<<(ostream &out, const Cell& cell) noexcept {
 	out << "Cell[id:" << cell.id;
 	out << ",type:" << static_cast<int>(cell.type.code);
 	out << ",nodeIds:[";
@@ -641,12 +633,12 @@ ostream &operator<<(ostream &out, const Cell& cell) {
 	return out;
 }
 
-CellIterator::CellIterator(const CellStorage* cellStorage, const CellType &cellType, bool begin) :
+CellIterator::CellIterator(const CellStorage* cellStorage, const CellType &cellType, bool begin) noexcept :
 		cellStorage(cellStorage), endPosition(cellStorage->mesh.countCells(cellType)), cellType(cellType), position(
 				begin ? 0 : endPosition) {
 }
 
-const Cell CellIterator::next() {
+Cell CellIterator::next() {
 	Cell result = dereference();
 	increment(1);
 	return result;
@@ -672,29 +664,29 @@ CellIterator CellIterator::operator ++(int) {
 	return *this;
 }
 
-bool CellIterator::operator ==(const CellIterator& other) const {
+bool CellIterator::operator ==(const CellIterator& other) const noexcept {
 	//cout << "this p " << this->position << "other p:" << other.position << endl;
 	return (this->position == other.position) && (cellType.code == other.cellType.code)
 			&& (this->endPosition == other.endPosition);
 }
 
-bool CellIterator::operator !=(const CellIterator& rhs) const {
+bool CellIterator::operator !=(const CellIterator& rhs) const noexcept {
 	return !(*this == rhs);
 }
 
-const Cell CellIterator::dereference() const {
+Cell CellIterator::dereference() const {
 	return cellStorage->mesh.findCell(cellStorage->mesh.cellPositionsByType.find(cellType)->second[position]);
 }
 
-const Cell CellIterator::operator *() const {
+Cell CellIterator::operator *() const noexcept {
 	return dereference();
 }
 
-bool CellIterator::hasNext() const {
+bool CellIterator::hasNext() const noexcept {
 	return (position < endPosition);
 }
 
-bool CellIterator::equal(CellIterator const &other) const {
+bool CellIterator::equal(CellIterator const &other) const noexcept {
 	//too slow! (this->cellIds->isEqual(*other.cellIds)
 	return (this->position == other.position) && (cellType.code == other.cellType.code)
 			&& (this->endPosition == other.endPosition);
@@ -704,35 +696,35 @@ bool CellIterator::equal(CellIterator const &other) const {
  * Cell container;
  */
 
-CellContainer::CellContainer(const Mesh& mesh) :
+CellContainer::CellContainer(const Mesh& mesh) noexcept :
 		mesh(mesh) {
 }
 
-void CellContainer::addCellPosition(int cellPosition) {
+void CellContainer::addCellPosition(int cellPosition) noexcept {
 	cellPositions.insert(cellPosition);
 }
 
-void CellContainer::addCellId(int cellId) {
+void CellContainer::addCellId(int cellId) noexcept {
 	cellPositions.insert(mesh.findCellPosition(cellId));
 }
 
-void CellContainer::addCellIds(const vector<int>& otherIds) {
+void CellContainer::addCellIds(const vector<int>& otherIds) noexcept {
     for(const int cellId : otherIds) {
         cellPositions.insert(mesh.findCellPosition(cellId));
     }
 }
 
-void CellContainer::addCellIds(const set<int>& otherIds) {
+void CellContainer::addCellIds(const set<int>& otherIds) noexcept {
     for(const int cellId : otherIds) {
         cellPositions.insert(mesh.findCellPosition(cellId));
     }
 }
 
-void CellContainer::addCellPositions(const vector<int>& otherPositions) {
+void CellContainer::addCellPositions(const vector<int>& otherPositions) noexcept {
     cellPositions.insert(otherPositions.begin(), otherPositions.end());
 }
 
-void CellContainer::addCellPositions(const set<int>& otherPositions) {
+void CellContainer::addCellPositions(const set<int>& otherPositions) noexcept {
     cellPositions.insert(otherPositions.begin(), otherPositions.end());
 }
 
@@ -744,15 +736,15 @@ void CellContainer::addCellGroup(const string& groupName) {
 	this->cellGroupNames.insert(groupName);
 }
 
-void CellContainer::add(const Cell& cell) {
+void CellContainer::add(const Cell& cell) noexcept {
 	cellPositions.insert(cell.position);
 }
 
-void CellContainer::add(const CellGroup& cellGroup) {
+void CellContainer::add(const CellGroup& cellGroup) noexcept {
 	this->cellGroupNames.insert(cellGroup.getName());
 }
 
-void CellContainer::add(const CellContainer& cellContainer) {
+void CellContainer::add(const CellContainer& cellContainer) noexcept {
     set<int> otherCellPositions = cellContainer.getCellPositionsExcludingGroups();
 	if (not otherCellPositions.empty()) {
 		cellPositions.insert(otherCellPositions.begin(), otherCellPositions.end());
@@ -763,16 +755,16 @@ void CellContainer::add(const CellContainer& cellContainer) {
 	}
 }
 
-bool CellContainer::containsCellPosition(int cellPosition) const {
+bool CellContainer::containsCellPosition(int cellPosition) const noexcept {
 	return cellPositions.find(cellPosition) != cellPositions.end();
 }
 
-void CellContainer::removeCellPositionExcludingGroups(int cellPosition) {
+void CellContainer::removeCellPositionExcludingGroups(int cellPosition) noexcept {
 	cellPositions.erase(cellPosition);
 }
 
 
-set<Cell> CellContainer::getCellsExcludingGroups() const {
+set<Cell> CellContainer::getCellsExcludingGroups() const noexcept {
 	set<Cell> cells;
 	for (int cellPosition : cellPositions) {
 		cells.insert(mesh.findCell(cellPosition));
@@ -780,10 +772,10 @@ set<Cell> CellContainer::getCellsExcludingGroups() const {
 	return cells;
 }
 
-set<Cell> CellContainer::getCellsIncludingGroups() const {
+set<Cell> CellContainer::getCellsIncludingGroups() const noexcept {
 	set<Cell>&& cells = getCellsExcludingGroups();
     for (string groupName : cellGroupNames) {
-        shared_ptr<CellGroup> group = dynamic_pointer_cast<CellGroup>(mesh.findGroup(groupName));
+        const auto& group = dynamic_pointer_cast<CellGroup>(mesh.findGroup(groupName));
         if (group != nullptr) {
             const auto& cellsInGroup = group->getCells();
             cells.insert(cellsInGroup.begin(), cellsInGroup.end());
@@ -792,11 +784,11 @@ set<Cell> CellContainer::getCellsIncludingGroups() const {
 	return cells;
 }
 
-void CellContainer::removeAllCellsExcludingGroups() {
+void CellContainer::removeAllCellsExcludingGroups() noexcept {
     cellPositions.clear();
 }
 
-set<int> CellContainer::getCellIdsIncludingGroups() const {
+set<int> CellContainer::getCellIdsIncludingGroups() const noexcept {
 	set<int> result;
 	for (const int cellPosition : cellPositions) {
 	    result.insert(mesh.findCellId(cellPosition));
@@ -811,7 +803,7 @@ set<int> CellContainer::getCellIdsIncludingGroups() const {
 	return result;
 }
 
-set<int> CellContainer::getCellPositionsIncludingGroups() const {
+set<int> CellContainer::getCellPositionsIncludingGroups() const noexcept {
 	set<int> result(cellPositions.begin(), cellPositions.end());
     for (string groupName : cellGroupNames) {
         shared_ptr<CellGroup> group = dynamic_pointer_cast<CellGroup>(mesh.findGroup(groupName));
@@ -823,11 +815,11 @@ set<int> CellContainer::getCellPositionsIncludingGroups() const {
 	return result;
 }
 
-set<int> CellContainer::getCellPositionsExcludingGroups() const {
+set<int> CellContainer::getCellPositionsExcludingGroups() const noexcept {
 	return cellPositions;
 }
 
-set<int> CellContainer::getNodePositionsIncludingGroups() const {
+set<int> CellContainer::getNodePositionsIncludingGroups() const noexcept {
 	set<int> result;
 	for (Cell cell : getCellsIncludingGroups()) {
 		result.insert(cell.nodePositions.begin(), cell.nodePositions.end());
@@ -835,7 +827,7 @@ set<int> CellContainer::getNodePositionsIncludingGroups() const {
 	return result;
 }
 
-set<int> CellContainer::getNodePositionsExcludingGroups() const {
+set<int> CellContainer::getNodePositionsExcludingGroups() const noexcept {
 	set<int> result;
 	for (Cell cell : getCellsExcludingGroups()) {
 		result.insert(cell.nodePositions.begin(), cell.nodePositions.end());
@@ -843,20 +835,20 @@ set<int> CellContainer::getNodePositionsExcludingGroups() const {
 	return result;
 }
 
-bool CellContainer::empty() const {
+bool CellContainer::empty() const noexcept {
 	return not hasCellsIncludingGroups();
 }
 
-void CellContainer::clear() {
+void CellContainer::clear() noexcept {
 	cellGroupNames.clear();
 	cellPositions.clear();
 }
 
-bool CellContainer::hasCellsExcludingGroups() const {
+bool CellContainer::hasCellsExcludingGroups() const noexcept {
 	return not cellPositions.empty();
 }
 
-bool CellContainer::hasCellsIncludingGroups() const {
+bool CellContainer::hasCellsIncludingGroups() const noexcept {
 	if (not cellPositions.empty())
         return true;
     for (string groupName : cellGroupNames) {
@@ -880,7 +872,7 @@ vector<shared_ptr<CellGroup>> CellContainer::getCellGroups() const {
 	return cellGroups;
 }
 
-bool CellContainer::hasCellGroups() const {
+bool CellContainer::hasCellGroups() const noexcept {
 	return not cellGroupNames.empty();
 }
 
@@ -888,27 +880,27 @@ bool CellContainer::hasCellGroups() const {
  * Node container;
  */
 
-NodeContainer::NodeContainer(Mesh& mesh) :
+NodeContainer::NodeContainer(Mesh& mesh) noexcept :
 		CellContainer(mesh), mesh(mesh) {
 }
 
-void NodeContainer::addNodeId(int nodeId) {
+void NodeContainer::addNodeId(int nodeId) noexcept {
 	nodePositions.insert(mesh.findOrReserveNode(nodeId));
 }
 
-void NodeContainer::addNodeIds(const set<int>& range) {
+void NodeContainer::addNodeIds(const set<int>& range) noexcept {
     for(const int nodePosition : range) {
         nodePositions.insert(mesh.findOrReserveNode(nodePosition));
     }
 }
 
-void NodeContainer::addNodeIds(const vector<int>& range) {
+void NodeContainer::addNodeIds(const vector<int>& range) noexcept {
     for(const int nodePosition : range) {
         nodePositions.insert(mesh.findOrReserveNode(nodePosition));
     }
 }
 
-void NodeContainer::addNodePosition(int nodePosition) {
+void NodeContainer::addNodePosition(int nodePosition) noexcept {
 	nodePositions.insert(nodePosition);
 }
 
@@ -920,19 +912,19 @@ void NodeContainer::addNodeGroup(const string& groupName) {
 	nodeGroupNames.insert(groupName);
 }
 
-void NodeContainer::removeNodePositionExcludingGroups(int nodePosition) {
+void NodeContainer::removeNodePositionExcludingGroups(int nodePosition) noexcept {
 	nodePositions.erase(nodePositions.find(nodePosition));
 }
 
-void NodeContainer::add(const Node& node) {
+void NodeContainer::add(const Node& node) noexcept {
 	nodePositions.insert(node.position);
 }
 
-void NodeContainer::add(const NodeGroup& nodeGroup) {
+void NodeContainer::add(const NodeGroup& nodeGroup) noexcept {
 	nodeGroupNames.insert(nodeGroup.getName());
 }
 
-void NodeContainer::add(const NodeContainer& nodeContainer) {
+void NodeContainer::add(const NodeContainer& nodeContainer) noexcept {
     const auto& otherNodePositions = nodeContainer.getNodePositionsExcludingGroups();
 	if (not otherNodePositions.empty()) {
 		nodePositions.insert(otherNodePositions.begin(), otherNodePositions.end());
@@ -943,7 +935,7 @@ void NodeContainer::add(const NodeContainer& nodeContainer) {
 	}
 }
 
-set<int> NodeContainer::getNodePositionsExcludingGroups() const {
+set<int> NodeContainer::getNodePositionsExcludingGroups() const noexcept {
     if (CellContainer::empty()) {
         return nodePositions;
     } else {
@@ -954,7 +946,7 @@ set<int> NodeContainer::getNodePositionsExcludingGroups() const {
     }
 }
 
-set<int> NodeContainer::getNodePositionsIncludingGroups() const {
+set<int> NodeContainer::getNodePositionsIncludingGroups() const noexcept {
     set<int> result(nodePositions);
 	for (string groupName : nodeGroupNames) {
 		shared_ptr<NodeGroup> group = dynamic_pointer_cast<NodeGroup>(mesh.findGroup(groupName));
@@ -966,7 +958,7 @@ set<int> NodeContainer::getNodePositionsIncludingGroups() const {
 	return result;
 }
 
-set<int> NodeContainer::getNodeIdsIncludingGroups() const {
+set<int> NodeContainer::getNodeIdsIncludingGroups() const noexcept {
     set<int> result;
 	for (const int nodePosition : getNodePositionsIncludingGroups()) {
 	    result.insert(mesh.findNodeId(nodePosition));
@@ -974,7 +966,7 @@ set<int> NodeContainer::getNodeIdsIncludingGroups() const {
 	return result;
 }
 
-set<int> NodeContainer::getNodeIdsExcludingGroups() const {
+set<int> NodeContainer::getNodeIdsExcludingGroups() const noexcept {
     set<int> result;
 	for (const int nodePosition : getNodePositionsExcludingGroups()) {
 	    result.insert(mesh.findNodeId(nodePosition));
@@ -994,21 +986,21 @@ bool NodeContainer::containsNodePositionExcludingGroups(int nodePosition) const 
 	return nodePositions.find(nodePosition) != nodePositions.end();
 }
 
-bool NodeContainer::empty() const {
+bool NodeContainer::empty() const noexcept {
 	return nodeGroupNames.empty() and nodePositions.empty()  and CellContainer::empty() and (not hasNodesIncludingGroups());
 }
 
-void NodeContainer::clear() {
+void NodeContainer::clear() noexcept {
 	nodeGroupNames.clear();
 	nodePositions.clear();
 	CellContainer::clear();
 }
 
-bool NodeContainer::hasNodesExcludingGroups() const {
+bool NodeContainer::hasNodesExcludingGroups() const noexcept {
 	return not nodePositions.empty();
 }
 
-bool NodeContainer::hasNodesIncludingGroups() const {
+bool NodeContainer::hasNodesIncludingGroups() const noexcept {
 	if (not nodePositions.empty())
         return true;
 	if (not CellContainer::empty())
@@ -1020,7 +1012,7 @@ bool NodeContainer::hasNodesIncludingGroups() const {
     return false;
 }
 
-bool NodeContainer::hasNodeGroups() const {
+bool NodeContainer::hasNodeGroups() const noexcept {
 	return not nodeGroupNames.empty();
 }
 
