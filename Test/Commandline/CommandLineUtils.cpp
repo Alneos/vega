@@ -132,6 +132,10 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
         argv1.push_back("--nastran.OutputDialect=modern");
     }
 
+    if (outputSolver == SolverName::SYSTUS) {
+        argv1.push_back("--systus.RBE2TranslationMode=lagrangian");
+    }
+
     string quotedSource = "\"" + sourceFname.make_preferred().string() + "\"";
     argv1.push_back(quotedSource.c_str());
     argv1.push_back(inputSolverString.c_str());

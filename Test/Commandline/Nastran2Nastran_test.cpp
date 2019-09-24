@@ -51,27 +51,27 @@ BOOST_AUTO_TEST_CASE( gpstress ) {
 }
 
 BOOST_AUTO_TEST_CASE( test4a_rbe2 ) {
-	CommandLineUtils::nastranStudy2Nastran("/irt/test4a_rbe2/test4a_rbe2.nas", RUN_NASTRAN, true, 0.05);
+	CommandLineUtils::nastranStudy2Nastran("/irt/test4a_rbe2/test4a_rbe2.nas", false, true, 0.05);
 }
 
 BOOST_AUTO_TEST_CASE( rbe2_z ) {
-	CommandLineUtils::nastranStudy2Nastran("/irt/rbe2_z/rbe2_z.nas", RUN_NASTRAN, true, 1.5);
+	CommandLineUtils::nastranStudy2Nastran("/irt/rbe2_z/rbe2_z.nas", false, true, 1.5);
 }
 
 BOOST_AUTO_TEST_CASE( rbe2_y ) {
-	CommandLineUtils::nastranStudy2Nastran("/irt/rbe2_y/rbe2_y.nas", RUN_NASTRAN, true, 1.5);
+	CommandLineUtils::nastranStudy2Nastran("/irt/rbe2_y/rbe2_y.nas", false, true, 1.5);
 }
 
 BOOST_AUTO_TEST_CASE( rbe2_yz ) {
-	CommandLineUtils::nastranStudy2Nastran("/irt/rbe2_yz/rbe2_yz.nas", RUN_NASTRAN, true, 1.5);
+	CommandLineUtils::nastranStudy2Nastran("/irt/rbe2_yz/rbe2_yz.nas", false, true, 1.5);
 }
 
 BOOST_AUTO_TEST_CASE( rbe2_3nodes ) {
-	CommandLineUtils::nastranStudy2Nastran("/irt/rbe2_3nodes/rbe2_3nodes.nas", RUN_NASTRAN, true, 1.5);
+	CommandLineUtils::nastranStudy2Nastran("/irt/rbe2_3nodes/rbe2_3nodes.nas", false, true, 1.5);
 }
 
 BOOST_AUTO_TEST_CASE( rbe2_4nodes ) {
-	CommandLineUtils::nastranStudy2Nastran("/irt/rbe2_4nodes/rbe2_4nodes.nas", RUN_NASTRAN, true, 1.5);
+	CommandLineUtils::nastranStudy2Nastran("/irt/rbe2_4nodes/rbe2_4nodes.nas", false, true, 1.5);
 }
 
 } /* namespace test */
