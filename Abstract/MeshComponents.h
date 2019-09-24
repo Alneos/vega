@@ -302,9 +302,9 @@ public:
  */
 class Cell final {
 private:
-    friend std::ostream &operator<<(std::ostream &out, const Cell & cell);    //output
+    friend std::ostream &operator<<(std::ostream &out, const Cell & cell) noexcept;    //output
     friend Mesh;
-    int findNodeIdPosition(int node_id2) const noexcept;
+    int findNodeIdPosition(int node_id2) const;
     /**
      * Every face is identified by the nodes that belongs to that face
      */
@@ -381,7 +381,7 @@ class CellIterator final: public std::iterator<std::input_iterator_tag, const Ce
     unsigned int endPosition;
     CellType cellType;
     unsigned int position;
-    bool equal(CellIterator const& other) const;
+    bool equal(CellIterator const& other) const noexcept;
     void increment(int i);
     Cell dereference() const;
     friend Mesh;
@@ -502,10 +502,10 @@ public:
     //void addNodeGroup(const std::string& groupName);
     void add(const Node&) noexcept;
     void addNodeGroup(const std::string& groupName);
-    virtual void add(const NodeGroup& nodeGroup) final;
-    void add(const NodeContainer& nodeContainer);
+    virtual void add(const NodeGroup& nodeGroup) noexcept final;
+    void add(const NodeContainer& nodeContainer) noexcept;
     bool containsNodePositionExcludingGroups(int nodePosition) const;
-    void removeNodePositionExcludingGroups(int nodePosition);
+    void removeNodePositionExcludingGroups(int nodePosition) noexcept;
     virtual std::set<int> getNodePositionsExcludingGroups() const noexcept override final;
     virtual std::set<int> getNodePositionsIncludingGroups() const noexcept override final;
     virtual std::set<int> getNodeIdsIncludingGroups() const noexcept final;
@@ -536,7 +536,7 @@ public:
     std::set<int> nodePositions() const noexcept override;
     bool empty() const noexcept override;
     std::set<int> getNodeIds() const noexcept;
-    std::set<Node> getNodes() const noexcept;
+    std::set<Node> getNodes() const;
     NodeGroup(const NodeGroup& that) = delete;
 };
 

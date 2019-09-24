@@ -185,7 +185,7 @@ public:
 	 * Find a group by its "original" id: the id provided by the input solver. If not found
 	 * returns nullptr
 	 */
-	std::shared_ptr<Group> findGroup(const int originalId) const;
+	std::shared_ptr<Group> findGroup(const int originalId) const noexcept;
     /**
      * Find or Reserve a Coordinate System in the model by Input Id.
      * Return the VEGA Id (position) of the Coordinate System.
@@ -260,14 +260,14 @@ public:
 	 **/
     int updateCell(int id, const CellType &type, const std::vector<int> &nodesIds,
             bool virtualCell = false, const int cpos=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int elementId = Cell::UNAVAILABLE_CELL);
-    int findCellPosition(int cellId) const;
+    int findCellPosition(int cellId) const noexcept;
     inline int findCellId(int cellPosition) const noexcept {
         return cells.cellDatas[cellPosition].id;
     };
 	const Cell findCell(int cellPosition) const;
 	int generateSkinCell(const std::vector<int>& faceIds, const SpaceDimension& dimension);
     std::pair<Cell, int> volcellAndFaceNum_from_skincell(const Cell& skinCell) const;
-	bool hasCell(int cellId) const;
+	bool hasCell(int cellId) const noexcept;
 
 	/**
 	 * Assign an elementId (an integer) to a group of cells.

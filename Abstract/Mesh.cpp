@@ -179,7 +179,7 @@ Mesh::Mesh(LogLevel logLevel, const string& modelName) :
 	}
 }
 
-int Mesh::addNode(int id, double x, double y, double z, int cpPos, int cdPos, int nodePart) {
+int Mesh::addNode(int id, double x, double y, double z, int cpPos, int cdPos, int nodePart) noexcept {
 	int nodePosition;
 
 	// In auto mode, we assign the first free node, starting from the biggest possible number
