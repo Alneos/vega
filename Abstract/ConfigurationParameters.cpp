@@ -58,6 +58,7 @@ const ModelConfiguration ConfigurationParameters::getModelConfiguration() const 
         configuration.removeConstrainedImposed = true;
         configuration.replaceRigidSegments = true;
         configuration.changeParametricForceLineToAbsolute = true;
+        configuration.alwaysUseGroupsForCells = true;
     } else if (this->outputSolver.getSolverName() == SolverName::SYSTUS) {
         configuration.createSkin = true;
         configuration.emulateAdditionalMass = true;

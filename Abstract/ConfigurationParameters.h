@@ -69,9 +69,6 @@ public:
  */
 class ModelConfiguration {
 public:
-    ModelConfiguration() = default;
-    virtual ~ModelConfiguration() = default;
-
     bool virtualDiscrets = false;
     LogLevel logLevel = LogLevel::INFO;
     bool createSkin = false;
@@ -169,6 +166,12 @@ public:
      * with absolute (X,Y,Z coordinates)
      */
     bool changeParametricForceLineToAbsolute = false;
+
+    /**
+     * Workaround for Aster problem : MODELISA6_96
+     * les 1 mailles imprimées ci-dessus n'appartiennent pas au modèle et pourtant elles ont été affectées dans le mot-clé facteur : !
+     */
+    bool alwaysUseGroupsForCells = false;
 
 };
 // TODO: THe Configuration Parameters should be much more generalized. With this,

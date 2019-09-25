@@ -580,18 +580,23 @@ void CellLoading::createSkin() {
             // LD Workaround for problem "cannot write cell names"
             cellGrp = model.mesh.createCellGroup(Cell::MedName(cellPosition), Group::NO_ORIGINAL_ID, "Single cell group over skin element");
         }*/
-        shared_ptr<CellGroup> cellGrp = model.mesh.createCellGroup(Cell::MedName(cellPosition), Group::NO_ORIGINAL_ID, "Single cell group over skin element");
 
         this->clear(); //< To remove the volumic cell and then add the skin at its place
-        this->add(*cellGrp);
-
-        cellGrp->addCellPosition(cellPosition);
-
-        // LD : Workaround for Aster problem : MODELISA6_96
-        //  les 1 mailles imprimées ci-dessus n'appartiennent pas au modèle et pourtant elles ont été affectées dans le mot-clé facteur : !
-        //   ! FORCE_FACE
         const auto& skin = make_shared<Skin>(model, model.modelType);
-        skin->add(*cellGrp);
+        if (model.configuration.alwaysUseGroupsForCells) {
+            shared_ptr<CellGroup> cellGrp = model.mesh.createCellGroup(Cell::MedName(cellPosition), Group::NO_ORIGINAL_ID, "Single cell group over skin element");
+            this->add(*cellGrp);
+            cellGrp->addCellPosition(cellPosition);
+
+            // LD : Workaround for Aster problem : MODELISA6_96
+            //  les 1 mailles imprimées ci-dessus n'appartiennent pas au modèle et pourtant elles ont été affectées dans le mot-clé facteur : !
+            //   ! FORCE_FACE
+
+            skin->add(*cellGrp);
+        } else {
+            skin->addCellPosition(cellPosition);
+            this->addCellPosition(cellPosition);
+        }
         model.add(skin);
     }
 }
