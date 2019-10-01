@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE( rbe3 ) {
 //}
 
 //BOOST_AUTO_TEST_CASE( sdld27a ) {
-// Missing DISCRET_0D translation
+//// Missing DISCRET_0D translation for damping (even after translation to segments, since there seems to be no AX in materials)
 //	CommandLineUtils::nastranStudy2Systus("/irt/sdld27a/sdld27a.bdf", RUN_SYSTUS, true, 0.00001);
 //}
 
@@ -168,14 +168,6 @@ BOOST_AUTO_TEST_CASE( pload4_chexa_multi ) {
 BOOST_AUTO_TEST_CASE( gpstress ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/gpstress/gpstress.nas", RUN_SYSTUS, true, 0.00001);
 }
-
-//BOOST_AUTO_TEST_CASE( hexa1 ) {
-//	CommandLineUtils::nastranStudy2Systus("/irt/hexa1/hexa1.nas", RUN_SYSTUS, true, 0.00001);
-//}
-
-//BOOST_AUTO_TEST_CASE( q4sdcon ) {
-//	CommandLineUtils::nastranStudy2Systus("/irt/q4sdcon/q4sdcon.nas", RUN_SYSTUS, true, 0.00001);
-//}
 
 BOOST_AUTO_TEST_CASE( test4a_rbe2 ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/test4a_rbe2/test4a_rbe2.nas", RUN_SYSTUS, true, 0.05);

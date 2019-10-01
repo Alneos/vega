@@ -598,12 +598,17 @@ public:
  * A Lmpc elemenset regroup various cells subject to the same LMPC rigid constraints
  **/
 class Lmpc: public RigidSet {
+    unsigned char dofcount = 0;
 public:
     Lmpc(Model&, int analysisId, int original_id = NO_ORIGINAL_ID);
     const int analysisId;
-    std::vector<DOFCoefs> dofCoefs;
+    static constexpr unsigned char LMPCCELL_DOFNUM = 1;
+    std::vector<std::vector<DOFCoefs>> dofCoefsByDof;
     std::shared_ptr<ElementSet> clone() const override;
-    void assignDofCoefs(const std::vector<DOFCoefs>);
+    void appendDofCoefs(const std::vector<DOFCoefs>);
+    unsigned char getDofCount() const noexcept {
+        return dofcount;
+    }
 };
 
 /**

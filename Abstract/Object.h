@@ -46,29 +46,29 @@ public:
     /**
      * Were the Object in the original study ?
      */
-    bool isOriginal() const {
+    bool isOriginal() const noexcept {
         return original_id != NO_ORIGINAL_ID;
     }
 
-    int getId() const {
+    int getId() const noexcept {
         return id;
     }
 
     /**
      * Has this object been treated by the writer ?
      */
-    bool isWritten() const {
+    bool isWritten() const noexcept {
         return written;
     }
 
     /**
      * Tell this object that it has been written into output
      */
-    void markAsWritten() {
+    void markAsWritten() noexcept {
         written = true;
     }
 
-    int bestId() const {
+    int bestId() const noexcept {
         if (original_id != NO_ORIGINAL_ID) {
             return original_id;
         } else {
@@ -76,20 +76,20 @@ public:
         }
     }
 
-    int getOriginalId() const {
+    int getOriginalId() const noexcept {
         return original_id;
     }
 
-    static int lastAutoId() {
+    static int lastAutoId() noexcept {
         return auto_id;
     }
 
-    void resetId() {
+    void resetId() noexcept {
         id = ++auto_id;
         original_id = NO_ORIGINAL_ID;
     }
 
-    Identifiable(int original_id = NO_ORIGINAL_ID) :
+    Identifiable(int original_id = NO_ORIGINAL_ID) noexcept :
             original_id(original_id), id(++auto_id) {
     }
 
@@ -97,13 +97,13 @@ public:
         return true;
     }
 
-    Reference<T> getReference() const {
+    Reference<T> getReference() const noexcept {
         int no_id = Reference<T>::NO_ID;
         return Reference<T>(static_cast<const T * const >(this)->type,
                 (isOriginal() ? original_id : no_id), id);
     }
 
-    virtual std::map<std::string, std::string> to_map() const {
+    virtual std::map<std::string, std::string> to_map() const noexcept {
         // default, to be overriden to add details in to_str by subclasses
         std::map<std::string, std::string> infos;
 
@@ -115,6 +115,10 @@ public:
         return infos;
     }
 
+//    virtual bool canGroup() const noexcept {
+//        return false;
+//    }
+
     virtual ~Identifiable() = default;
 
 };
@@ -123,12 +127,12 @@ template<class T> int Identifiable<T>::auto_id = 0;
 
 
 template<class T>
-std::string to_str(const std::shared_ptr<T>& ptr) {
+std::string to_str(const std::shared_ptr<T>& ptr) noexcept {
     return to_str(*ptr);
 }
 
 template<class T>
-std::string to_str(const T& t) {
+std::string to_str(const T& t) noexcept {
     std::ostringstream oss;
     std::string type;
 
@@ -153,28 +157,33 @@ std::string to_str(const T& t) {
 }
 
 template<class T>
-int operator==(const Identifiable<T>& left, const Identifiable<T>& right) {
+int operator==(const Identifiable<T>& left, const Identifiable<T>& right) noexcept {
     return left.getReference() == right.getReference();
 }
 
 template<class T>
-int operator!=(const Identifiable<T>& left, const Identifiable<T>& right) {
+int operator!=(const Identifiable<T>& left, const Identifiable<T>& right) noexcept {
     return left.getReference() != right.getReference();
 }
 
 template<class T>
-int operator <(const Identifiable<T>& left, const Identifiable<T>& right) {
+int operator <(const Identifiable<T>& left, const Identifiable<T>& right) noexcept {
     return left.getReference() < right.getReference();
 }
 
 template<class T>
 struct ptrLess {
     bool operator()(const std::shared_ptr<T>& lhs,
-                    const std::shared_ptr<T>& rhs) const
-    {
+                    const std::shared_ptr<T>& rhs) const noexcept {
         return lhs->getReference() < rhs->getReference();
     }
 };
+
+//template<class T>
+//struct ptrGroup {
+//    bool operator()(const std::shared_ptr<T>& lhs,
+//                    const std::shared_ptr<T>& rhs) const noexcept;
+//};
 
 } /* namespace vega */
 
@@ -182,7 +191,7 @@ namespace std {
 
 template<class T>
 struct hash<vega::Identifiable<T>> {
-    size_t operator()(const vega::Identifiable<T>& identifiable) const {
+    size_t operator()(const vega::Identifiable<T>& identifiable) const noexcept {
         return hash<vega::Reference<T>>()(identifiable.getReference());
     }
 };

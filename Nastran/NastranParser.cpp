@@ -1047,9 +1047,9 @@ void NastranParser::parseCONM1(NastranTokenizer& tok, Model& model) {
 
     const auto& nodalMassMatrix = make_shared<DiscretePoint>(model, MatrixType::SYMMETRIC, eid);
 
-    for (int row = 0; row < 5; row++) {
+    for (unsigned char row = 0; row < 5; row++) {
         const DOF rowdof = DOF::findByPosition(row);
-        for (int col = 0; col <= row; col++) {
+        for (unsigned char col = 0; col <= row; col++) {
             const DOF coldof = DOF::findByPosition(col);
             if (!tok.isNextDouble()) {
                 break;
@@ -3412,8 +3412,7 @@ void NastranParser::parseTEMP(NastranTokenizer& tok, Model& model) {
     }
 }
 
-
-int NastranParser::parseDOF(NastranTokenizer& tok, Model& model, bool returnDefaultIfNotFoundOrBlank, int defaultValue){
+unsigned char NastranParser::parseDOF(NastranTokenizer& tok, Model& model, bool returnDefaultIfNotFoundOrBlank, unsigned char defaultValue){
 
     int dofread = tok.nextInt(returnDefaultIfNotFoundOrBlank, defaultValue);
 
@@ -3427,7 +3426,7 @@ int NastranParser::parseDOF(NastranTokenizer& tok, Model& model, bool returnDefa
         return 0;
     }
     // Nastran dofs goes from 1 to 6, VEGA from 0 to 5.
-    return dofread-1;
+    return static_cast<unsigned char>(dofread-1);
 
 }
 

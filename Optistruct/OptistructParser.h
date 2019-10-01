@@ -35,7 +35,7 @@ namespace optistruct {
 
 class OptistructParser final: public nastran::NastranParser {
 private:
-    typedef void (OptistructParser::*parseOptistructElementFPtr)(nastran::NastranTokenizer& tok, Model& model);
+    using parseOptistructElementFPtr = void (OptistructParser::*)(nastran::NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the CONTACT keyword

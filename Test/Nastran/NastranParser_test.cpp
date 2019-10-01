@@ -232,4 +232,30 @@ BOOST_AUTO_TEST_CASE(nastran_set_THRU) {
 	}
 }
 
+//BOOST_AUTO_TEST_CASE(nastran_rbar_massif) {
+//	string testLocation = fs::path(
+//		PROJECT_BASE_DIR "/testdata/unitTest/nastranparser/rbar_massif.nas").make_preferred().string();
+//	nastran::NastranParser parser;
+//	try {
+//		const unique_ptr<Model> model = parser.parse(
+//			ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
+//        model->finish();
+//        BOOST_CHECK_EQUAL(model->analyses.size(), 1);
+//        const auto& analysis = model->analyses.first();
+//        BOOST_CHECK_EQUAL(analysis->getConstraintSets().size(), 2);
+//        const auto& constraint = model->find(Reference<Constraint>(Constraint::Type::QUASI_RIGID, 500));
+//        BOOST_CHECK(constraint != nullptr);
+//        const auto& qrc = dynamic_pointer_cast<QuasiRigidConstraint>(constraint);
+//        BOOST_CHECK(qrc->isCompletelyRigid());
+//        BOOST_CHECK(not qrc->hasMaster());
+//        BOOST_CHECK_EQUAL(qrc->getDOFSForNode(model->mesh.findNodePosition(337)), DOFS::TRANSLATIONS);
+//	}
+//	catch (exception& e) {
+//		cerr << e.what() << endl;
+//		BOOST_TEST_MESSAGE(string("Application exception") + e.what());
+//
+//		BOOST_FAIL(string("Parse threw exception ") + e.what());
+//	}
+//}
+
 //____________________________________________________________________________//

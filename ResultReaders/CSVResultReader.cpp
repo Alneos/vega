@@ -48,7 +48,7 @@ namespace phx = boost::phoenix;
 
 using namespace vega;
 
-typedef spirit::line_pos_iterator<spirit::istream_iterator> stream_iterator_type;
+using stream_iterator_type = spirit::line_pos_iterator<spirit::istream_iterator>;
 
 namespace vega {
 namespace result {
@@ -149,7 +149,7 @@ struct CsvGrammar: qi::grammar<stream_iterator_type, void(), qi::locals<vector<L
 	Model& model;
 	const ConfigurationParameters configuration;
 	//visual studio 2013 refuses to compile initializer list
-	unordered_map<LineItems, int, std::hash<int>> dofPosition_by_lineItemEnum = {
+	unordered_map<LineItems, unsigned char, std::hash<unsigned char>> dofPosition_by_lineItemEnum = {
         {LineItems::DX, 0}, //
         {LineItems::DY, 1}, //
         {LineItems::DZ, 2}, //

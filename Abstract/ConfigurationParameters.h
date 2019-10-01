@@ -173,6 +173,11 @@ public:
      */
     bool alwaysUseGroupsForCells = false;
 
+    /**
+     * Create 1D discrets in the place of 0Ds
+     */
+    bool convert0DDiscretsInto1D = false;
+
 };
 // TODO: THe Configuration Parameters should be much more generalized. With this,
 // it's a pain in the keyboard to add options!!

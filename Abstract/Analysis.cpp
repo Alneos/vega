@@ -53,7 +53,7 @@ const map<Analysis::Type, string> Analysis::stringByType = {
         { Analysis::Type::UNKNOWN, "UNKNOWN" }
 };
 
-map<string,string> Analysis::to_map() const {
+map<string,string> Analysis::to_map() const noexcept {
     map<string, string> infos = Identifiable<Analysis>::to_map();
     if (!label.empty())
         infos["label"] = label;
@@ -377,9 +377,9 @@ void Analysis::copyInto(Analysis& other) const {
 void Analysis::createGraph(ostream& dot_ofs) {
     struct VertexProps { int id; string name; };
     struct EdgeProps   { string name; };
-    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, VertexProps, EdgeProps> Graph;
-    typedef boost::graph_traits<Graph>::vertex_descriptor vertex_descriptor;
-    //typedef boost::graph_traits<Graph>::edge_descriptor edge_descriptor;
+    using Graph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, VertexProps, EdgeProps>;
+    using vertex_descriptor = boost::graph_traits<Graph>::vertex_descriptor;
+    //using  edge_descriptor = boost::graph_traits<Graph>::edge_descriptor;
 
     Graph g;
     map<int,vertex_descriptor> vertexPosByElementId;

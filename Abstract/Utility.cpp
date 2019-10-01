@@ -27,7 +27,7 @@ using namespace std;
 
 bool InvertMatrix(const ublas::matrix<double>& input, ublas::matrix<double>& inverse)
 {
-   typedef ublas::permutation_matrix<std::size_t> pmatrix;
+   using pmatrix = ublas::permutation_matrix<std::size_t>;
 
    // create a working copy of the input
    ublas::matrix<double> A(input);

@@ -86,7 +86,7 @@ int F06Parser::readDisplacementSection(Model& model,
 						translation.x(), translation.y(), translation.z(),
 						rotation.x(), rotation.y(), rotation.z(),
 				};
-				for (int i = 0; i < 6; i++) {
+				for (unsigned char i = 0; i < 6; i++) {
 					double value = values[i];
 					if (abs(value) < 1e-12)
 						value = 0.;
@@ -215,7 +215,7 @@ int F06Parser::readComplexDisplacementSection(Model& model,
 
 			int nodeId = stoi(tokens[1]);
 
-			for (int i = 0; i < 6; i++) {
+			for (unsigned char i = 0; i < 6; i++) {
 				double real = stod(tokens[3 + i]);
 				if (abs(real) < 1e-12)
 					real = 0;

@@ -1813,16 +1813,18 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
     for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::LMPC)) {
         // If the LMPC is not relevant to the current subcase, we skip it
         shared_ptr<Lmpc> lmpc = dynamic_pointer_cast<Lmpc>(elementSet);
-        vector<int> analysisOfSubcase =  systusSubcases[idSubcase];
+        const auto& analysisOfSubcase =  systusSubcases[idSubcase];
         if (std::find(analysisOfSubcase.begin(), analysisOfSubcase.end(), lmpc->analysisId) == analysisOfSubcase.end()){
             continue;
         }
         // The Table for Lmpc is simply the list of coef by dof by nodes
         systus_ascid_t tId= tables.size()+1;
         SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
-        for (DOFCoefs dofCoefs : lmpc->dofCoefs){
-            for (int i =0; i< nbDOFS; i++){
-                aTable.add(dofCoefs[i]);
+        for (unsigned char dofnum = 0; dofnum < lmpc->getDofCount(); dofnum++){
+            for (DOFCoefs dofCoefs : lmpc->dofCoefsByDof[dofnum]){
+                for (unsigned char i =0; i< nbDOFS; i++){
+                    aTable.add(dofCoefs[i]);
+                }
             }
         }
         tables.push_back(aTable);
@@ -1832,7 +1834,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
 
     // Build tables for frequency-dependent amplitude on Modal Dynamic Analysis
     if (systusModel.configuration.systusDynamicMethod=="modal") {
-        const vector<int> analysisId = systusSubcases[idSubcase];
+        const auto& analysisId = systusSubcases[idSubcase];
 
         for (unsigned i = 0 ; i < analysisId.size(); i++) {
             const shared_ptr<Analysis> analysis = systusModel.model.getAnalysis(analysisId[i]);
@@ -2701,10 +2703,10 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                     case (ElementSet::Type::RBAR):{
                         writeMaterialField(SMF::LEVEL, 1, nbElementsMaterial, omat);
                         writeMaterialField(SMF::TYPE, 9, nbElementsMaterial, omat);
-                        if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
+                        if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0) {
                             writeMaterialField(SMF::SHAPE, 19, nbElementsMaterial, omat);
                             writeMaterialField(SMF::E, rigidNature.getLagrangian(), nbElementsMaterial, omat);
-                        }else{
+                        } else {
                             writeMaterialField(SMF::SHAPE, 9, nbElementsMaterial, omat);
                             writeMaterialField(SMF::E, rigidNature.getRigidity(), nbElementsMaterial, omat);
                         }
@@ -2782,7 +2784,12 @@ void SystusWriter::writeMaterials(const SystusModel& systusModel,
                     handleWritingWarning("Mass in "+to_str(*elementSet)+" is not supported and will be dismissed.", "Material");
                 }
                 if (sS->hasDamping()){
-                    handleWritingWarning("Damping in "+to_str(*elementSet)+" is not supported and will be dismissed.", "Material");
+                    // A Matrix
+                    // LD : SMF::AX does not exists ?
+                    //writeMaterialField(SMF::AX, sS->findDamping(DOF::DX, DOF::DX), nbElementsMaterial, omat);
+                    //writeMaterialField(SMF::AY, sS->findDamping(DOF::DY, DOF::DY), nbElementsMaterial, omat);
+                    //writeMaterialField(SMF::AZ, sS->findDamping(DOF::DZ, DOF::DZ), nbElementsMaterial, omat);
+                    //handleWritingWarning("Damping in "+to_str(*elementSet)+" is not supported and will be dismissed.", "Material");
                 }
                 sS->markAsWritten();
                 break;

@@ -121,9 +121,6 @@ ostream& operator<<(ostream& os, const SystusMatrix & sm)
 
 // Start of SystusMatrices
 
-SystusMatrices::~SystusMatrices(){
-}
-
 void SystusMatrices::add(SystusMatrix sm){
     this->matrices.push_back(sm);
 }

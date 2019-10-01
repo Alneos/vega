@@ -568,19 +568,6 @@ void CellLoading::createSkin() {
         const int cellPosition = model.mesh.generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
 
         // LD : try to solve https://github.com/Alneos/vega/issues/25 but it should be done only for loadings that can be grouped together (i.e. same pressure values, same directions etc)
-        /*shared_ptr<CellGroup> cellGrp;
-        if (loadset != nullptr) {
-            string groupName = loadset->getGroupName(this->type);
-            if (not model.mesh.hasGroup(groupName)) {
-                cellGrp = model.mesh.createCellGroup(groupName, Group::NO_ORIGINAL_ID, "LoadSet cell group over skin element");
-            } else {
-                cellGrp = dynamic_pointer_cast<CellGroup>(model.mesh.findGroup(groupName));
-            }
-        } else {
-            // LD Workaround for problem "cannot write cell names"
-            cellGrp = model.mesh.createCellGroup(Cell::MedName(cellPosition), Group::NO_ORIGINAL_ID, "Single cell group over skin element");
-        }*/
-
         this->clear(); //< To remove the volumic cell and then add the skin at its place
         const auto& skin = make_shared<Skin>(model, model.modelType);
         if (model.configuration.alwaysUseGroupsForCells) {

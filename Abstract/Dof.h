@@ -23,7 +23,7 @@ class DOF {
 private:
 	friend std::ostream &operator<<(std::ostream &out, const DOF& node) noexcept;
 public:
-	enum class Code {
+	enum class Code : unsigned char {
 		DX_CODE = 1,
 		DY_CODE = 2,
 		DZ_CODE = 4,
@@ -34,7 +34,7 @@ public:
 
 	// enum class value DECLARATIONS - they are defined later
 	static std::unordered_map<DOF::Code, DOF*, EnumClassHash> dofByCode;
-	static std::unordered_map<int, DOF*> dofByPosition;
+	static std::unordered_map<unsigned char, DOF*> dofByPosition;
 
 	static const DOF DX;
 	static const DOF DY;
@@ -44,19 +44,19 @@ public:
 	static const DOF RZ;
 
 private:
-	DOF(Code code, bool isTranslation, bool isRotation, const std::string label, int position) noexcept;
+	DOF(Code code, bool isTranslation, bool isRotation, const std::string label, unsigned char position) noexcept;
 public:
 	Code code;
 	bool isTranslation;
 	bool isRotation;
 	std::string label;
-	int position;
+	unsigned char position;
 
-	static DOF findByPosition(int position);
+	static DOF findByPosition(unsigned char position);
 	bool operator<(const DOF& other) const noexcept;
 	bool operator==(const DOF& other) const noexcept;
-	char operator|(const DOF& other) const noexcept;
-	operator char() const noexcept;
+	unsigned char operator|(const DOF& other) const noexcept;
+	operator unsigned char() const noexcept;
 };
 
 class DOFS {
@@ -112,12 +112,12 @@ public:
 	friend class iterator;
 	class iterator: public std::iterator<std::input_iterator_tag, DOF, ptrdiff_t> {
 	private:
-		int dofPosition;
+		char dofPosition;
 		const DOFS *outer_dofs;
 		void next_available_dof() noexcept;
 	public:
  		friend std::ostream &operator<<(std::ostream &out, const DOFS::iterator& dofs_iter) noexcept;
-		iterator(int dofPosition, const DOFS *outer_dofs) noexcept;
+		iterator(char dofPosition, const DOFS *outer_dofs) noexcept;
 
 		bool operator==(const iterator& x) const noexcept {
 			return dofPosition == x.dofPosition;
@@ -193,7 +193,7 @@ public:
  */
 class DOFCoefs {
 private:
-    double coefs[6];
+    std::array<double, 6> coefs;
 public:
     DOFCoefs(double dx = 0, double dy = 0, double dz = 0, double rx = 0, double ry = 0,
             double rz = 0) noexcept;
@@ -206,7 +206,7 @@ public:
     void setValue(const DOF dof, double val) noexcept;
     DOFCoefs& operator+=(const DOFCoefs&) noexcept;
     DOFCoefs& operator*=(const double factor) noexcept;
-    double operator[](const int) noexcept;
+    double operator[](const unsigned char) noexcept;
     bool operator<(const DOFCoefs& other) const noexcept;
     bool operator==(const DOFCoefs& other) const noexcept;
 };

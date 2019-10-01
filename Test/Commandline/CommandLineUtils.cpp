@@ -134,6 +134,7 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
 
     if (outputSolver == SolverName::SYSTUS) {
         argv1.push_back("--systus.RBE2TranslationMode=lagrangian");
+        //argv1.push_back("--systus.OutputProduct=topaze");
     }
 
     string quotedSource = "\"" + sourceFname.make_preferred().string() + "\"";

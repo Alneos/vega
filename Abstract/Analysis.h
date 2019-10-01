@@ -130,7 +130,7 @@ public:
     }
     bool validate() const override;
 
-    std::map<std::string, std::string> to_map() const override;
+    std::map<std::string, std::string> to_map() const noexcept override;
     /**
      * Create a connection graph to find and block free mechanisms
      * See https://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/19950020950.pdf

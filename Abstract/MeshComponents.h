@@ -41,14 +41,14 @@
 
 // Add specific elements not already defined by MED
 // EVERY NUMBER MUST BE UNIQUE !
-typedef enum {MED_POINT1=1, //
+using vega_med_geometrie_element = enum {MED_POINT1=1, //
               MED_SEG2 = 102, MED_SEG3 = 103, MED_SEG4 = 104, MED_SEG5=105, //
               MED_TRIA3 = 203, MED_QUAD4 = 204, MED_TRIA6 = 206, MED_TRIA7 = 207, MED_QUAD8 = 208, MED_QUAD9 = 209, //
               MED_TETRA4 = 304, MED_PYRA5 = 305, MED_PENTA6 = 306, MED_HEXA8 = 308, MED_TETRA10 = 310, MED_OCTA12 = 312, MED_PYRA13 = 313, MED_PENTA15 = 315, MED_HEXA20 = 320, MED_HEXA27 = 327, //
               MED_POLYGON = 400, MED_POLYGON2 = 420, MED_POLYHEDRON = 500,//
               MED_POLY3=1303, MED_POLY4=1304, MED_POLY5=1305, MED_POLY6=1306, MED_POLY7=1307, MED_POLY8=1308, MED_POLY9=1309,
               MED_POLY10=1310, MED_POLY11=1311, MED_POLY12=1312, MED_POLY13=1313, MED_POLY14=1314, MED_POLY15=1315, MED_POLY16=1316,
-              MED_POLY17=1317, MED_POLY18=1318, MED_POLY19=1319, MED_POLY20=1320} vega_med_geometrie_element;
+              MED_POLY17=1317, MED_POLY18=1318, MED_POLY19=1319, MED_POLY20=1320};
 
 namespace vega {
 
@@ -573,16 +573,16 @@ namespace boost {
             // Adapt Node to Boost.Geometry
 
             template<> struct tag<vega::Node> {
-                typedef point_tag type;
+                using type = point_tag;
             };
 
             template<> struct coordinate_type<vega::Node> {
-                typedef double type;
+                using type = double;
             };
 
             template<> struct coordinate_system<vega::Node> {
                 // using global coordinates
-                typedef cs::cartesian type;
+                using type = cs::cartesian;
             };
 
             template<> struct dimension<vega::Node> : boost::mpl::int_<3> {

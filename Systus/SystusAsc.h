@@ -36,7 +36,7 @@
 namespace vega {
 namespace systus {
 
-typedef std::vector<int>::size_type systus_ascid_t;
+using systus_ascid_t = std::vector<int>::size_type;
 
 enum class SystusTableLabel{
     TL_STANDARD, TL_DIRECT, TL_FILE, TL_FORTRAN, TL_PLASTICITY, TL_PROGRAM, TL_TABLE
@@ -108,7 +108,7 @@ public:
 
     SystusMatrices() = default;
     SystusMatrices(const SystusMatrices& that) = delete;
-    virtual ~SystusMatrices();
+    virtual ~SystusMatrices() = default;
 
     void add(SystusMatrix sm);
     void clear();

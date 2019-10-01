@@ -1632,7 +1632,7 @@ void AsterWriter::writeLMPC(const AsterModel& asterModel, const ConstraintSet& c
 			out << "                                   COEF_MULT=(";
 			for (int nodePosition : nodePositions) {
 			    DOFCoefs dofcoef = lmpc->getDoFCoefsForNode(nodePosition);
-				for (int i = 0; i < 6; i++) {
+				for (unsigned char i = 0; i < 6; i++) {
 					if (!is_zero(dofcoef[i]))
 						out << dofcoef[i] << ", ";
 				}

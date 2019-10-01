@@ -325,6 +325,7 @@ const DOFS QuasiRigidConstraint::getDOFSForNode(int nodePosition) const {
     const auto& nodes = nodePositions();
     if (nodes.find(nodePosition) != nodes.end()) {
         //const Node& node = model.mesh.findNode(nodePosition);
+        //return node.dofs.intersection(this->dofs);
         return this->dofs;
     } else {
         return DOFS::NO_DOFS;
@@ -425,10 +426,10 @@ void SinglePointConstraint::setDOFS(const DOFS& dofs, const ValueOrReference& va
 const DOFS SinglePointConstraint::getDOFSForNode(int nodePosition) const {
     UNUSEDV(nodePosition);
     DOFS requiredDofs;
-    for (int i = 0; i < 6; i++) {
+    for (char i = 0; i < 6; i++) {
         const ValueOrReference& valOrRef = spcs[i];
         if (valOrRef != NO_SPC) {
-            requiredDofs = requiredDofs + DOF::findByPosition(i);
+            requiredDofs += DOF::findByPosition(i);
         }
     }
     return requiredDofs;
@@ -487,7 +488,7 @@ void SinglePointConstraint::emulateLocalDisplacementConstraint() {
             const DOFS& dofs = this->getDOFSForNode(nodePosition);
             if (model.configuration.logLevel >= LogLevel::TRACE)
                 cout << "Replacing local spc " << *this << " for: " << node << ",dofs " << this->getDOFSForNode(nodePosition) << endl;
-            for (int i = 0; i < 6; i++) {
+            for (char i = 0; i < 6; i++) {
                 const DOF& currentDOF = *DOF::dofByPosition[i];
                 if (dofs.contains(currentDOF)) {
                     const VectorialValue& participation = coordSystem->vectorToGlobal(

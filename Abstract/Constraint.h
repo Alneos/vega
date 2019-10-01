@@ -177,21 +177,34 @@ public:
 
 	SinglePointConstraint(Model& model, int original_id = NO_ORIGINAL_ID);
 	/**
-	 * Constructor for backward compatibility.
 	 * The value is assigned to all the dof present in DOFS.
 	 */
 	SinglePointConstraint(Model& model, DOFS dofs, double value = 0, int original_id = NO_ORIGINAL_ID);
 
 	void setDOF(const DOF& dof, const ValueOrReference& value);
 	void setDOFS(const DOFS& dofs, const ValueOrReference& value);
+	std::array<ValueOrReference, 6> getDOFS() const noexcept {
+        return spcs;
+	}
 	double getDoubleForDOF(const DOF& dof) const;
 	std::shared_ptr<Value> getReferenceForDOF(const DOF& dof) const;
 	const DOFS getDOFSForNode(int nodePosition) const override;
 	void emulateLocalDisplacementConstraint();
 	bool hasReferences() const noexcept;
 	bool ineffective() const noexcept override;
+//    bool canGroup() const noexcept override final {
+//        return true;
+//    }
+
 };
 
+//template<>
+//struct ptrGroup<SinglePointConstraint> {
+//    bool operator()(const std::shared_ptr<SinglePointConstraint>& lhs,
+//                    const std::shared_ptr<SinglePointConstraint>& rhs) const noexcept {
+//        return lhs->getDOFS() < rhs->getDOFS();
+//    }
+//};
 
 class LinearMultiplePointConstraint: public Constraint {
 private:

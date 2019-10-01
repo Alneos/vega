@@ -46,34 +46,34 @@ public:
     typename T::Type type;
     int original_id;
     int id;
-    Reference(const typename T::Type type, const int original_id = NO_ID, const int id = NO_ID);
-    Reference(const T&);
-    Reference(const std::shared_ptr<T>&);
-    bool has_original_id() const {
+    Reference(const typename T::Type type, const int original_id = NO_ID, const int id = NO_ID) noexcept;
+    Reference(const T&) noexcept;
+    Reference(const std::shared_ptr<T>&) noexcept;
+    bool has_original_id() const noexcept {
         return original_id != NO_ID;
     }
-    bool has_id() const {
+    bool has_id() const noexcept {
         return id != NO_ID;
     }
 };
 
 template<class T>
-Reference<T>::Reference(const typename T::Type type, const int original_id, const int id) :
+Reference<T>::Reference(const typename T::Type type, const int original_id, const int id) noexcept :
         type(type), original_id(original_id), id(id) {
 }
 
 template<class T>
-Reference<T>::Reference(const T& t) :
+Reference<T>::Reference(const T& t) noexcept :
         type(t.type), original_id(t.getOriginalId()), id(t.getId()) {
 }
 
 template<class T>
-Reference<T>::Reference(const std::shared_ptr<T>& ptr) :
+Reference<T>::Reference(const std::shared_ptr<T>& ptr) noexcept :
         type(ptr->type), original_id(ptr->getOriginalId()), id(ptr->getId()) {
 }
 
 template<class T>
-bool operator==(const Reference<T>& left, const Reference<T>& right) {
+bool operator==(const Reference<T>& left, const Reference<T>& right) noexcept {
     if (left.type != right.type) {
         return false;
     }
@@ -84,12 +84,12 @@ bool operator==(const Reference<T>& left, const Reference<T>& right) {
 }
 
 template<class T>
-bool operator!=(const Reference<T>& left, const Reference<T>& right) {
+bool operator!=(const Reference<T>& left, const Reference<T>& right) noexcept {
     return not (left == right);
 }
 
 template<class T>
-bool operator <(const Reference<T>& left, const Reference<T>& right) {
+bool operator <(const Reference<T>& left, const Reference<T>& right) noexcept {
     if (left.type != right.type) {
         return left.type < right.type; // first ordering : type
     } else if (left.original_id != T::NO_ORIGINAL_ID && right.original_id != T::NO_ORIGINAL_ID) {
@@ -134,7 +134,7 @@ namespace std {
 
 template<class T>
 struct hash<vega::Reference<T>> {
-    size_t operator()(const vega::Reference<T>& reference) const {
+    size_t operator()(const vega::Reference<T>& reference) const noexcept {
         size_t seed = 0;
         // LD : hash should be different between, for example, Reference<LoadSet> and Reference<ConstraintSet>
         // but LoadSet::Type and ConstraintSet::Type enums both begin with 0 value, so I use the string value instead.

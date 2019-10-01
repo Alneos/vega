@@ -616,15 +616,15 @@ void DiscreteSegment::addDamping(int rowindex, int colindex, DOF rowdof, DOF col
 
 vector<double> DiscreteSegment::asStiffnessVector(bool addRotationsIfNotPresent) const {
 	vector<double> result;
-	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
+	char ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
 	int max_row_element_index = 0;
 	for (int colindex = 0; colindex < 2; ++colindex) {
-		for (int coldof = 0; coldof < ncomp; coldof++) {
+		for (char coldof = 0; coldof < ncomp; coldof++) {
 			const DOF colcode = DOF::findByPosition(coldof);
 			max_row_element_index++;
 			int row_element_index = 0;
 			for (int rowindex = 0; rowindex < 2; ++rowindex) {
-				for (int rowdof = 0; rowdof < ncomp; rowdof++) {
+				for (char rowdof = 0; rowdof < ncomp; rowdof++) {
 					row_element_index++;
 					if (row_element_index > max_row_element_index) {
 						break;
@@ -640,15 +640,15 @@ vector<double> DiscreteSegment::asStiffnessVector(bool addRotationsIfNotPresent)
 
 vector<double> DiscreteSegment::asMassVector(bool addRotationsIfNotPresent) const {
 	vector<double> result;
-	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
+	char ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
 	int max_row_element_index = 0;
 	for (int colindex = 0; colindex < 2; ++colindex) {
-		for (int coldof = 0; coldof < ncomp; coldof++) {
+		for (char coldof = 0; coldof < ncomp; coldof++) {
 			const DOF colcode = DOF::findByPosition(coldof);
 			max_row_element_index++;
 			int row_element_index = 0;
 			for (int rowindex = 0; rowindex < 2; ++rowindex) {
-				for (int rowdof = 0; rowdof < ncomp; rowdof++) {
+				for (char rowdof = 0; rowdof < ncomp; rowdof++) {
 					row_element_index++;
 					if (row_element_index > max_row_element_index) {
 						break;
@@ -664,15 +664,15 @@ vector<double> DiscreteSegment::asMassVector(bool addRotationsIfNotPresent) cons
 
 vector<double> DiscreteSegment::asDampingVector(bool addRotationsIfNotPresent) const {
 	vector<double> result;
-	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
+	char ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
 	int max_row_element_index = 0;
 	for (int colindex = 0; colindex < 2; ++colindex) {
-		for (int coldof = 0; coldof < ncomp; coldof++) {
+		for (char coldof = 0; coldof < ncomp; coldof++) {
 			const DOF colcode = DOF::findByPosition(coldof);
 			max_row_element_index++;
 			int row_element_index = 0;
 			for (int rowindex = 0; rowindex < 2; ++rowindex) {
-				for (int rowdof = 0; rowdof < ncomp; rowdof++) {
+				for (char rowdof = 0; rowdof < ncomp; rowdof++) {
 					row_element_index++;
 					if (row_element_index > max_row_element_index) {
 						break;
@@ -761,19 +761,19 @@ double StructuralSegment::findDamping(DOF rowdof, DOF coldof) const{
 vector<double> StructuralSegment::asStiffnessVector(bool addRotationsIfNotPresent) const {
     vector<double> result;
     bool addRotations = (addRotationsIfNotPresent || hasRotations());
-    int ncomp = addRotations ? 6 : 3;
+    char ncomp = addRotations ? 6 : 3;
 
     if (isDiagonal()) {
         result = stiffness.diagonal(addRotations);
     } else if (isSymmetric()) {
         int max_row_element_index = 0;
         for (int colindex = 0; colindex < 2; ++colindex) {
-            for (int coldof = 0; coldof < ncomp; coldof++) {
+            for (char coldof = 0; coldof < ncomp; coldof++) {
                 DOF colcode = DOF::findByPosition(coldof);
                 max_row_element_index++;
                 int row_element_index = 0;
                 for (int rowindex = 0; rowindex < 2; ++rowindex) {
-                    for (int rowdof = 0; rowdof < ncomp; rowdof++) {
+                    for (char rowdof = 0; rowdof < ncomp; rowdof++) {
                         row_element_index++;
                         if (row_element_index > max_row_element_index) {
                                break;
@@ -794,18 +794,18 @@ vector<double> StructuralSegment::asStiffnessVector(bool addRotationsIfNotPresen
 vector<double> StructuralSegment::asDampingVector(bool addRotationsIfNotPresent) const {
     vector<double> result;
     bool addRotations = (addRotationsIfNotPresent || hasRotations());
-    int ncomp = addRotations ? 6 : 3;
+    char ncomp = addRotations ? 6 : 3;
     if (isDiagonal()) {
         result = damping.diagonal(addRotations);
     } else if (isSymmetric()) {
         int max_row_element_index = 0;
         for (int colindex = 0; colindex < 2; ++colindex) {
-            for (int coldof = 0; coldof < ncomp; coldof++) {
+            for (char coldof = 0; coldof < ncomp; coldof++) {
                 DOF colcode = DOF::findByPosition(coldof);
                 max_row_element_index++;
                 int row_element_index = 0;
                 for (int rowindex = 0; rowindex < 2; ++rowindex) {
-                    for (int rowdof = 0; rowdof < ncomp; rowdof++) {
+                    for (char rowdof = 0; rowdof < ncomp; rowdof++) {
                         row_element_index++;
                         if (row_element_index > max_row_element_index) {
                                break;
@@ -1104,15 +1104,18 @@ shared_ptr<ElementSet> Rbe3::clone() const {
 
 Lmpc::Lmpc(Model& model, int analysisId, int original_id) :
                 RigidSet(model, ElementSet::Type::LMPC, Globals::UNAVAILABLE_INT, original_id),
-analysisId(analysisId){
+analysisId(analysisId) {
 }
 
 shared_ptr<ElementSet> Lmpc::clone() const {
     return make_shared<Lmpc>(*this);
 }
 
-void Lmpc::assignDofCoefs(std::vector<DOFCoefs> dofCoefs) {
-    this->dofCoefs= dofCoefs;
+void Lmpc::appendDofCoefs(vector<DOFCoefs> dofCoefs) {
+    if (dofcount >= Lmpc::LMPCCELL_DOFNUM)
+        throw logic_error("Cannot add another lmpc in the elementset");
+    dofcount++;
+    this->dofCoefsByDof.push_back(dofCoefs);
 }
 
 SurfaceSlideSet::SurfaceSlideSet(Model& model, int original_id) :
@@ -1201,15 +1204,15 @@ bool ScalarSpring::hasRotations() const {
 
 vector<double> ScalarSpring::asStiffnessVector(bool addRotationsIfNotPresent) const {
 	vector<double> result;
-	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
+	char ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
 	int max_row_element_index = 0;
 	for (int colindex = 0; colindex < 2; ++colindex) {
-		for (int coldof = 0; coldof < ncomp; coldof++) {
+		for (char coldof = 0; coldof < ncomp; coldof++) {
 			DOF colcode = DOF::findByPosition(coldof);
 			max_row_element_index++;
 			int row_element_index = 0;
 			for (int rowindex = 0; rowindex < 2; ++rowindex) {
-				for (int rowdof = 0; rowdof < ncomp; rowdof++) {
+				for (char rowdof = 0; rowdof < ncomp; rowdof++) {
 					row_element_index++;
 					if (row_element_index > max_row_element_index) {
 						break;
@@ -1230,15 +1233,15 @@ vector<double> ScalarSpring::asStiffnessVector(bool addRotationsIfNotPresent) co
 
 vector<double> ScalarSpring::asDampingVector(bool addRotationsIfNotPresent) const {
 	vector<double> result;
-	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
+	char ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
 	int max_row_element_index = 0;
 	for (int colindex = 0; colindex < 2; ++colindex) {
-		for (int coldof = 0; coldof < ncomp; coldof++) {
+		for (char coldof = 0; coldof < ncomp; coldof++) {
 			DOF colcode = DOF::findByPosition(coldof);
 			max_row_element_index++;
 			int row_element_index = 0;
 			for (int rowindex = 0; rowindex < 2; ++rowindex) {
-				for (int rowdof = 0; rowdof < ncomp; rowdof++) {
+				for (char rowdof = 0; rowdof < ncomp; rowdof++) {
 					row_element_index++;
 					if (row_element_index > max_row_element_index) {
 						break;
@@ -1259,14 +1262,14 @@ vector<double> ScalarSpring::asDampingVector(bool addRotationsIfNotPresent) cons
 
 vector<double> ScalarSpring::asMassVector(bool addRotationsIfNotPresent) const {
 	vector<double> result;
-	int ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
+	char ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
 	int max_row_element_index = 0;
 	for (int colindex = 0; colindex < 2; ++colindex) {
-		for (int coldof = 0; coldof < ncomp; coldof++) {
+		for (char coldof = 0; coldof < ncomp; coldof++) {
 			max_row_element_index++;
 			int row_element_index = 0;
 			for (int rowindex = 0; rowindex < 2; ++rowindex) {
-				for (int rowdof = 0; rowdof < ncomp; rowdof++) {
+				for (char rowdof = 0; rowdof < ncomp; rowdof++) {
 					row_element_index++;
 					if (row_element_index > max_row_element_index) {
 						break;

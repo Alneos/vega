@@ -28,6 +28,7 @@
 #include "../Abstract/Model.h"
 #include "../Abstract/SolverInterfaces.h"
 #include "NastranTokenizer.h"
+#include <type_traits>
 
 namespace vega {
 
@@ -47,7 +48,7 @@ protected:
         MFREQ = 111,
         DESOPT = 200
     };
-    typedef void (NastranParser::*parseElementFPtr)(NastranTokenizer& tok, Model& model);
+    using parseElementFPtr = void (NastranParser::*)(NastranTokenizer& tok, Model& model);
     virtual parseElementFPtr findCmdParser(const std::string) const;
     virtual parseElementFPtr findParamParser(const std::string) const;
     virtual std::string defaultAnalysis() const;
@@ -833,7 +834,7 @@ private:
      *   - Scalar point have a "0" Nastran DOF, translated as a "0" (DX) Vega DOF
      *   - Classic Nastran dofs go from 1 to 6, VEGA from 0 to 5.
      */
-    int parseDOF(NastranTokenizer& tok, Model& model, bool returnDefaultIfNotFoundOrBlank = false, int defaultValue = Globals::UNAVAILABLE_INT);
+    unsigned char parseDOF(NastranTokenizer& tok, Model& model, bool returnDefaultIfNotFoundOrBlank = false, unsigned char defaultValue = Globals::UNAVAILABLE_UCHAR);
 
     LogLevel logLevel = LogLevel::INFO;
     protected:

@@ -133,6 +133,11 @@ private:
     void changeParametricForceLineToAbsolute();
 
     /**
+     * Converts 0D Discrets into 1Ds
+     */
+    void convert0DDiscretsInto1D();
+
+    /**
      * Get a non rigid material (virtual)
      */
     std::shared_ptr<Material> getVirtualMaterial();

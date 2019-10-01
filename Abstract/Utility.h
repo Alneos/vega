@@ -45,6 +45,7 @@ namespace vega {
 class Globals {
 public:
 	static constexpr int UNAVAILABLE_INT = INT_MIN;
+	static constexpr unsigned char UNAVAILABLE_UCHAR = UCHAR_MAX;
 	static constexpr double UNAVAILABLE_DOUBLE = -DBL_MAX;
 	static constexpr double DOUBLE_COMPARE_TOLERANCE = std::numeric_limits<double>::epsilon() * 5;
 };
@@ -101,15 +102,15 @@ struct EnumClassHash
 
 namespace std {
     template<class T> struct _Unique_if {
-        typedef unique_ptr<T> _Single_object;
+        using _Single_object = unique_ptr<T>;
     };
 
     template<class T> struct _Unique_if<T[]> {
-        typedef unique_ptr<T[]> _Unknown_bound;
+        using _Unknown_bound = unique_ptr<T[]>;
     };
 
     template<class T, size_t N> struct _Unique_if<T[N]> {
-        typedef void _Known_bound;
+        using _Known_bound = void;
     };
 
     template<class T, class... Args>
@@ -121,7 +122,7 @@ namespace std {
     template<class T>
         typename _Unique_if<T>::_Unknown_bound
         make_unique(size_t n) {
-            typedef typename remove_extent<T>::type U;
+            using U = typename remove_extent<T>::type;
             return unique_ptr<T>(new U[n]());
         }
 

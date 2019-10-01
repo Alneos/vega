@@ -46,7 +46,7 @@ private:
 	friend NodeGroup;
 	const LogLevel logLevel;
 	std::vector<NodeData> nodeDatas;
-	typedef std::map<int, int>::const_iterator mapid_iterator;
+	using mapid_iterator = std::map<int, int>::const_iterator;
 	std::map<int, int> nodepositionById;
 	static const double RESERVED_POSITION;
 	static int lastNodePart;

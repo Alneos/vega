@@ -74,6 +74,7 @@ const ModelConfiguration ConfigurationParameters::getModelConfiguration() const 
         configuration.splitElementsByDOFS = true;
         configuration.autoDetectAnalysis = true;
         configuration.replaceRigidSegments = true;
+        configuration.convert0DDiscretsInto1D = true;
     } else if (this->outputSolver.getSolverName() == SolverName::NASTRAN) {
         // default should be always false
         configuration.autoDetectAnalysis = true;
