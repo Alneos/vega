@@ -602,7 +602,7 @@ class Lmpc: public RigidSet {
 public:
     Lmpc(Model&, int analysisId, int original_id = NO_ORIGINAL_ID);
     const int analysisId;
-    static constexpr unsigned char LMPCCELL_DOFNUM = 1;
+    static constexpr unsigned char LMPCCELL_DOFNUM = 6;
     std::vector<std::vector<DOFCoefs>> dofCoefsByDof;
     std::shared_ptr<ElementSet> clone() const override;
     void appendDofCoefs(const std::vector<DOFCoefs>);

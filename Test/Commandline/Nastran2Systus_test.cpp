@@ -23,7 +23,7 @@ namespace tests {
 
 using namespace std;
 
-/*BOOST_AUTO_TEST_CASE( test4a ) {
+BOOST_AUTO_TEST_CASE( test4a ) {
 	CommandLineUtils::nastranStudy2Systus("/alneos/test4a/test4a.dat", RUN_SYSTUS, true, 0.00001);
 }
 
@@ -151,13 +151,13 @@ BOOST_AUTO_TEST_CASE( cantibeam ) {
 
 BOOST_AUTO_TEST_CASE( n4w101 ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/n4w101/n4w101.nas", RUN_SYSTUS, true, 0.02);
-}*/
+}
 
 BOOST_AUTO_TEST_CASE( nas103prob5b ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/nas103prob5b/nas103prob5b.nas", RUN_SYSTUS, true, 0.005);
 }
 
-/*BOOST_AUTO_TEST_CASE( pload4_ctetra_multi ) {
+BOOST_AUTO_TEST_CASE( pload4_ctetra_multi ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/pload4-ctetra-multi/pload4-ctetra-multi.nas", RUN_SYSTUS, true, 0.00001);
 }
 
@@ -215,7 +215,7 @@ BOOST_AUTO_TEST_CASE( rbe2_hexapoi_aligndist ) {
 
 BOOST_AUTO_TEST_CASE( rbe2_hexapoi_nonalign_dist ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/rbe2_hexapoi_nonalign_dist/rbe2_hexapoi_nonalign_dist.nas", RUN_SYSTUS, true, 0.00001);
-}*/
+}
 
 } /* namespace test */
 } /* namespace vega */
