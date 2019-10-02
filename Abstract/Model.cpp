@@ -1603,7 +1603,7 @@ void Model::makeCellsFromLMPC(){
                     const auto it = groupBySetOfCoefs.find(sortedCoefs);
                     if(it != groupBySetOfCoefs.end()) {
                         group = it->second;
-                    } else { //if (lmpcPos % Lmpc::LMPCCELL_DOFNUM == 0) {
+                    } else if (lmpcPos % Lmpc::LMPCCELL_DOFNUM == 0) {
                         // If not found, creating an ElementSet, a CellGroup and a (single) dummy rigid material
                         if (materialLMPC == nullptr){
                             materialLMPC = make_shared<Material>(*this);
@@ -1625,9 +1625,9 @@ void Model::makeCellsFromLMPC(){
                         }
                         lmpcPos++;
 
-//                    } else {
-//                        elementsetLMPC->appendDofCoefs(sortedCoefs);
-//                        lmpcPos++;
+                    } else {
+                        elementsetLMPC->appendDofCoefs(sortedCoefs);
+                        lmpcPos++;
                     }
                     group->addCellPosition(cellPosition);
                     if (configuration.logLevel >= LogLevel::DEBUG){
