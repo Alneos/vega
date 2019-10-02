@@ -1567,21 +1567,16 @@ void Model::makeCellsFromLMPC(){
         for (const auto& constraintSet : analysis->getConstraintSets()) {
 
             // Group lmpcs by nodePositions
-            map<vector<int>, vector<shared_ptr<LinearMultiplePointConstraint>>> lmpcsByNodepositions;
+            multimap<vector<int>, shared_ptr<LinearMultiplePointConstraint>> lmpcsByNodepositions;
             for (const auto& constraint : constraintSet->getConstraintsByType(Constraint::Type::LMPC)) {
                 const auto& lmpc = dynamic_pointer_cast<LinearMultiplePointConstraint>(constraint);
                 const auto& sortedNodePositions = lmpc->sortNodePositionByCoefs();
-                const auto& it = lmpcsByNodepositions.find(sortedNodePositions);
-                if (it == lmpcsByNodepositions.end()) {
-                    lmpcsByNodepositions[sortedNodePositions] = {lmpc};
-                } else {
-                    lmpcsByNodepositions[sortedNodePositions].push_back(lmpc);
-                }
+                lmpcsByNodepositions.insert({sortedNodePositions, lmpc});
             }
 
-            for (const auto& entry : lmpcsByNodepositions) {
-                const auto& sortedNodePositions = entry.first;
-                const auto& lmpcs = entry.second;
+            for (const auto& multientry : lmpcsByNodepositions) {
+                const auto& sortedNodePositions = multientry.first;
+                const auto& lmpcs_range = lmpcsByNodepositions.equal_range(sortedNodePositions);
                 // Creating a cell and adding it to the CellGroup
                 vector<int> sortedNodeIds;
                 for (int nodePosition : sortedNodePositions ){
@@ -1591,7 +1586,8 @@ void Model::makeCellsFromLMPC(){
                 int lmpcPos = 0;
                 shared_ptr<Lmpc> elementsetLMPC = nullptr;
                 shared_ptr<CellGroup> group = nullptr;
-                for (const auto& lmpc : lmpcs) {
+                for (auto itr = lmpcs_range.first; itr != lmpcs_range.second; ++itr) {
+                    const auto& lmpc = itr->second;
                     // We sort the Coeffs in order to fuse various LMPC into the same ElementSet/CellGroup
                     vector<DOFCoefs> sortedCoefs;
                     for (int nodePosition : sortedNodePositions){
