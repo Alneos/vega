@@ -1563,7 +1563,6 @@ void Model::makeCellsFromLMPC(){
     shared_ptr<Material> materialLMPC= nullptr;
 
     for (const auto& analysis : this->analyses) {
-        map< vector<DOFCoefs>, shared_ptr<CellGroup>> groupBySetOfCoefs;
         for (const auto& constraintSet : analysis->getConstraintSets()) {
 
             // Group lmpcs by nodePositions
@@ -1589,21 +1588,24 @@ void Model::makeCellsFromLMPC(){
                     sortedNodeIds.push_back(mesh.findNodeId(nodePosition));
                 }
 
+//                map< vector<DOFCoefs>, shared_ptr<CellGroup>> groupBySetOfCoefs;
                 int lmpcPos = 0;
                 shared_ptr<Lmpc> elementsetLMPC = nullptr;
-                shared_ptr<CellGroup> group = nullptr;
                 for (const auto& lmpc : lmpcs) {
                     // We sort the Coeffs in order to fuse various LMPC into the same ElementSet/CellGroup
                     vector<DOFCoefs> sortedCoefs;
                     for (int nodePosition : sortedNodePositions){
                         sortedCoefs.push_back(lmpc->getDoFCoefsForNode(nodePosition));
                     }
-                    int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::polyType(static_cast<unsigned int>(sortedNodeIds.size())), sortedNodeIds, true);
+
                     // Looking for the CellGroup corresponding to the current DOFCoefs.
-                    const auto it = groupBySetOfCoefs.find(sortedCoefs);
-                    if(it != groupBySetOfCoefs.end()) {
-                        group = it->second;
-                    } else if (lmpcPos % Lmpc::LMPCCELL_DOFNUM == 0) {
+//                    const auto it = groupBySetOfCoefs.find(sortedCoefs);
+
+                    shared_ptr<CellGroup> group = nullptr;
+//                    if(it != groupBySetOfCoefs.end()) {
+//                        group = it->second;
+//                    } else
+                    if (lmpcPos % Lmpc::LMPCCELL_DOFNUM == 0) {
                         // If not found, creating an ElementSet, a CellGroup and a (single) dummy rigid material
                         if (materialLMPC == nullptr){
                             materialLMPC = make_shared<Material>(*this);
@@ -1611,8 +1613,14 @@ void Model::makeCellsFromLMPC(){
                             this->add(materialLMPC);
                         }
 
+                        int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::polyType(static_cast<unsigned int>(sortedNodeIds.size())), sortedNodeIds, true);
                         group = mesh.createCellGroup("MPC_"+to_string(analysis->bestId())+"_"+to_string(lmpc->bestId()), CellGroup::NO_ORIGINAL_ID, "MPC");
-                        groupBySetOfCoefs[sortedCoefs]= group;
+                         group->addCellPosition(cellPosition);
+                        if (configuration.logLevel >= LogLevel::DEBUG){
+                            cout << "Added cell id " << mesh.findCellId(cellPosition) << " in group " << group->getName() << " from " << *lmpc << "." << endl;
+                        }
+
+//                        groupBySetOfCoefs[sortedCoefs]= group;
 
                         elementsetLMPC = make_shared<Lmpc>(*this, analysis->getId());
                         elementsetLMPC->add(*group);
@@ -1627,12 +1635,12 @@ void Model::makeCellsFromLMPC(){
 
                     } else {
                         elementsetLMPC->appendDofCoefs(sortedCoefs);
+                        if (configuration.logLevel >= LogLevel::DEBUG){
+                            cout << "Adding another equation to elementSet " << *elementsetLMPC << " from " << *lmpc<<"." << endl;
+                        }
                         lmpcPos++;
                     }
-                    group->addCellPosition(cellPosition);
-                    if (configuration.logLevel >= LogLevel::DEBUG){
-                        cout << "Added cell id " << mesh.findCellId(cellPosition) << " in group " << group->getName() << " from " << *lmpc << "." << endl;
-                    }
+
                 }
             }
         }
