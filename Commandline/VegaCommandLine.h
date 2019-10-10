@@ -76,7 +76,7 @@ public:
     VegaCommandLine();
     VegaCommandLine(const VegaCommandLine& that) = delete;
     ExitCode process(int ac, const char* av[]);
-    static const std::string exitCodeToString(ExitCode);
+    static std::string exitCodeToString(ExitCode);
 };
 
 } /* namespace vega */

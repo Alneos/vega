@@ -322,7 +322,7 @@ BOOST_AUTO_TEST_CASE(test_Analysis) {
 	BOOST_CHECK(not analysis->validate());
 	BOOST_CHECK(not model.validate());
 
-	auto& loadings = model.getLoadingsByLoadSet(loadSet1);
+	const auto& loadings = model.getLoadingsByLoadSet(loadSet1);
 	BOOST_CHECK_EQUAL(2, loadings.size());
 	for (const auto& loading : loadings) {
 		BOOST_CHECK(loading->getId() == force1->getId() or loading->getId() == force2->getId());

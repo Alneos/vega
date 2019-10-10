@@ -135,8 +135,8 @@ public:
      * @return
      */
     int nextInt(bool returnDefaultIfNotFoundOrBlank = false, int defaultValue = Globals::UNAVAILABLE_INT);
-    const std::list<int> nextInts();
-    const std::list<double> nextDoubles();
+    std::list<int> nextInts();
+    std::list<double> nextDoubles();
     bool isNextInt();
     bool isNextTHRU();
     bool isNextBY();
@@ -186,7 +186,7 @@ public:
      */
     std::vector<std::string> currentDataLine() const;
 
-    const std::string currentRawDataLine() const;
+    std::string currentRawDataLine() const;
     /**
      * Advances to next data line, discarding the current content.
      */

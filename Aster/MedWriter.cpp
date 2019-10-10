@@ -83,11 +83,11 @@ NodeGroup2Families::NodeGroup2Families(int nnodes, const vector<shared_ptr<NodeG
 	}
 }
 
-const vector<Family>& NodeGroup2Families::getFamilies() const {
+vector<Family> NodeGroup2Families::getFamilies() const {
 	return this->families;
 }
 
-const vector<int>& NodeGroup2Families::getFamilyOnNodes() const {
+vector<int> NodeGroup2Families::getFamilyOnNodes() const {
 	return this->nodes;
 }
 
@@ -151,11 +151,11 @@ CellGroup2Families::CellGroup2Families(
 	}
 }
 
-const vector<Family>& CellGroup2Families::getFamilies() const {
+vector<Family> CellGroup2Families::getFamilies() const {
 	return this->families;
 }
 
-const unordered_map<CellType::Code, shared_ptr<vector<int>>, EnumClassHash>& CellGroup2Families::getFamilyOnCells() const {
+unordered_map<CellType::Code, shared_ptr<vector<int>>, EnumClassHash> CellGroup2Families::getFamilyOnCells() const {
 	return this->cellFamiliesByType;
 }
 
@@ -310,7 +310,7 @@ void MedWriter::writeMED(const Model& model, const string& medFileName) {
 		NodeGroup2Families ng2fam(nnodes, nodeGroups);
 		//WARN: if writing to file is delayed to MEDfileClose may be necessary
 		//to move the allocation outside the if
-		auto& families = ng2fam.getFamilies();
+		const auto& families = ng2fam.getFamilies();
 		createFamilies(fid, meshname, families);
 		//write family number for nodes
 		if (MEDmeshEntityFamilyNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_NODE, MED_NONE,

@@ -56,7 +56,7 @@ void ObjectiveSet::add(const Reference<ObjectiveSet>& objectiveSetReference) {
     objectiveSetReferences.push_back(objectiveSetReference);
 }
 
-const set<shared_ptr<Objective>, ptrLess<Objective> > ObjectiveSet::getObjectives() const {
+set<shared_ptr<Objective>, ptrLess<Objective> > ObjectiveSet::getObjectives() const {
     auto result = model.getObjectivesByObjectiveSet(this->getReference());
     for (const auto& objectiveSetReference : objectiveSetReferences) {
         const auto& setToInsert = model.getObjectivesByObjectiveSet(
@@ -66,7 +66,7 @@ const set<shared_ptr<Objective>, ptrLess<Objective> > ObjectiveSet::getObjective
     return result;
 }
 
-const set<shared_ptr<Objective>, ptrLess<Objective> > ObjectiveSet::getObjectivesByType(
+set<shared_ptr<Objective>, ptrLess<Objective> > ObjectiveSet::getObjectivesByType(
         Objective::Type type) const {
     set<shared_ptr<Objective>, ptrLess<Objective> > result;
     for (const auto& objective : getObjectives()) {
@@ -101,7 +101,7 @@ NodalAssertion::NodalAssertion(Model& model, Type type, double tolerance, int no
         Assertion(model, type, tolerance, original_id), nodePosition(model.mesh.findOrReserveNode(nodeId)), nodeId(nodeId), dof(dof) {
 }
 
-const DOFS NodalAssertion::getDOFSForNode(const int nodePosition) const {
+DOFS NodalAssertion::getDOFSForNode(const int nodePosition) const {
     UNUSEDV(nodePosition);
     return dof;
 }
@@ -139,7 +139,7 @@ FrequencyAssertion::FrequencyAssertion(Model& model, int number, double cycles, 
         Assertion(model, Objective::Type::FREQUENCY_ASSERTION, tolerance, original_id), number(number), cycles(cycles), eigenValue(eigenValue), generalizedMass(generalizedMass), generalizedStiffness(generalizedStiffness) {
 }
 
-const DOFS FrequencyAssertion::getDOFSForNode(const int nodePosition) const {
+DOFS FrequencyAssertion::getDOFSForNode(const int nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::NO_DOFS;
 }
@@ -158,7 +158,7 @@ NodalCellVonMisesAssertion::NodalCellVonMisesAssertion(Model& model,
         nodePosition(model.mesh.findOrReserveNode(nodeId)), nodeId(nodeId), cellPosition(model.mesh.findCellPosition(cellId)), cellId(cellId), value(value) {
 }
 
-const DOFS NodalCellVonMisesAssertion::getDOFSForNode(const int nodePosition) const {
+DOFS NodalCellVonMisesAssertion::getDOFSForNode(const int nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::NO_DOFS;
 }
@@ -180,11 +180,11 @@ FrequencySearch::FrequencySearch(Model& model, const FrequencyType frequencyType
         AnalysisParameter(model, Objective::Type::FREQUENCY_SEARCH, original_id), namedValue(namedValue), frequencyType(frequencyType), norm(norm) {
 }
 
-const shared_ptr<NamedValue> FrequencySearch::getValue() const {
+shared_ptr<NamedValue> FrequencySearch::getValue() const {
     return model.find(namedValue);
 }
 
-const FunctionPlaceHolder FrequencySearch::getValueRangePlaceHolder() const {
+FunctionPlaceHolder FrequencySearch::getValueRangePlaceHolder() const {
     return FunctionPlaceHolder(model, namedValue.type, namedValue.original_id, Function::ParaName::FREQ);
 }
 
@@ -192,11 +192,11 @@ FrequencyExcit::FrequencyExcit(Model& model, const FrequencyType frequencyType, 
         AnalysisParameter(model, Objective::Type::FREQUENCY_EXCIT, original_id), namedValue(namedValue), frequencyType(frequencyType), norm(norm) {
 }
 
-const shared_ptr<NamedValue> FrequencyExcit::getValue() const {
+shared_ptr<NamedValue> FrequencyExcit::getValue() const {
     return model.find(namedValue);
 }
 
-const FunctionPlaceHolder FrequencyExcit::getValueRangePlaceHolder() const {
+FunctionPlaceHolder FrequencyExcit::getValueRangePlaceHolder() const {
     return FunctionPlaceHolder(model, namedValue.type, namedValue.original_id, Function::ParaName::FREQ);
 }
 
@@ -210,11 +210,11 @@ ModalDamping::ModalDamping(Model& model, int function_table_original_id, int ori
                 function_table_original_id) {
 }
 
-const shared_ptr<FunctionTable> ModalDamping::getFunctionTable() const {
+shared_ptr<FunctionTable> ModalDamping::getFunctionTable() const {
     return dynamic_pointer_cast<FunctionTable>(model.find(function_table));
 }
 
-const FunctionPlaceHolder ModalDamping::getFunctionTablePlaceHolder() const {
+FunctionPlaceHolder ModalDamping::getFunctionTablePlaceHolder() const {
     return FunctionPlaceHolder(model, function_table.type, function_table.original_id, Function::ParaName::FREQ);
 }
 

@@ -262,7 +262,7 @@ DOFS::iterator DOFS::begin() const noexcept {
 	return DOFS::iterator(0, this);
 }
 
-const DOFS::iterator DOFS::end() const noexcept {
+DOFS::iterator DOFS::end() const noexcept {
 	return DOFS::iterator(6, this);
 }
 

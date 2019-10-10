@@ -55,7 +55,7 @@ public:
     NastranWriter() = default;
 	NastranWriter(const NastranWriter& that) = delete;
 	std::string writeModel(Model&, const ConfigurationParameters&) override;
-    const std::string toString() const override;
+    std::string toString() const override;
 private:
     static const std::unordered_map<CellType::Code, std::vector<int>, EnumClassHash> med2nastranNodeConnectByCellType; /**< see NastranParser.h */
     Dialect dialect;

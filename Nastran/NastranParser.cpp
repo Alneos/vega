@@ -443,7 +443,8 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                     context[keyword] = "";
                 } else {
                     vector<string> parts;
-                    split(parts, tok.currentRawDataLine(), boost::is_any_of("="), boost::algorithm::token_compress_on);
+                    const auto& currentRawDataLine = tok.currentRawDataLine();
+                    split(parts, currentRawDataLine, boost::is_any_of("="), boost::algorithm::token_compress_on);
                     if (parts.size() == 1) {
                         vector<string> parvalparts;
                         split(parvalparts, parts[0], boost::is_any_of(" "), boost::algorithm::token_compress_on);
@@ -2758,19 +2759,18 @@ void NastranParser::parseRBAR(NastranTokenizer& tok, Model& model) {
     int cma = tok.nextInt(true, 0);
     int cmb = tok.nextInt(true, 0);
     if (cna != 0 && cnb != 0) {
+        // LD note: in this (rare) case both nodes are (partially) master and slave at the same time (depending on dofs)
         handleParsingError("cna & cnb both specified.", tok, model);
     } else if (cna == 0 && cnb == 0) {
         cna = 123456;
     }
     if (cna != 0) {
-        const auto& qrc = make_shared<QuasiRigidConstraint>(model, DOFS::nastranCodeToDOFS(cna), MasterSlaveConstraint::UNAVAILABLE_MASTER, original_id);
-        qrc->addSlave(ga);
+        const auto& qrc = make_shared<QuasiRigidConstraint>(model, DOFS::nastranCodeToDOFS(cna), ga, original_id);
         qrc->addSlave(gb);
         model.add(qrc);
         model.addConstraintIntoConstraintSet(*qrc, *model.commonConstraintSet);
     } else if (cnb != 0) {
-        const auto& qrc = make_shared<QuasiRigidConstraint>(model, DOFS::nastranCodeToDOFS(cnb), MasterSlaveConstraint::UNAVAILABLE_MASTER, original_id);
-        qrc->addSlave(ga);
+        const auto& qrc = make_shared<QuasiRigidConstraint>(model, DOFS::nastranCodeToDOFS(cnb), ga, original_id);
         qrc->addSlave(gb);
         model.add(qrc);
         model.addConstraintIntoConstraintSet(*qrc, *model.commonConstraintSet);
@@ -2811,8 +2811,8 @@ void NastranParser::parseRBE2(NastranTokenizer& tok, Model& model) {
     int masterId = tok.nextInt();
     int cm = tok.nextInt();
     const DOFS& dofs = DOFS::nastranCodeToDOFS(cm);
-    shared_ptr<MasterSlaveConstraint> constraint = nullptr;
-    constraint = make_shared<QuasiRigidConstraint>(model, dofs, masterId, original_id);
+    auto constraint = make_shared<QuasiRigidConstraint>(model, dofs, masterId, original_id);
+    constraint->addRotations = true;
 
     while (tok.isNextInt()) {
         constraint->addSlave(tok.nextInt());

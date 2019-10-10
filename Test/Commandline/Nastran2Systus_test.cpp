@@ -206,7 +206,8 @@ BOOST_AUTO_TEST_CASE( rbe2_hexapoi_coinc ) {
 }
 
 BOOST_AUTO_TEST_CASE( rbe2_hexapoi_3nodes ) {
-	CommandLineUtils::nastranStudy2Systus("/irt/rbe2_hexapoi_3nodes/rbe2_hexapoi_3nodes.nas", RUN_SYSTUS, true, 0.02);
+    // incompatible algorithm see rbar_z
+	CommandLineUtils::nastranStudy2Systus("/irt/rbe2_hexapoi_3nodes/rbe2_hexapoi_3nodes.nas", false, true, 0.02);
 }
 
 BOOST_AUTO_TEST_CASE( rbe2_hexapoi_aligndist ) {

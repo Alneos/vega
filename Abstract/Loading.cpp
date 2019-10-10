@@ -89,11 +89,11 @@ size_t LoadSet::size() const {
 	return getLoadings().size();
 }
 
-const set<shared_ptr<Loading>, ptrLess<Loading> > LoadSet::getLoadings() const {
+set<shared_ptr<Loading>, ptrLess<Loading> > LoadSet::getLoadings() const {
 	return model.getLoadingsByLoadSet(this->getReference());
 }
 
-const set<shared_ptr<Loading>, ptrLess<Loading> > LoadSet::getLoadingsByType(Loading::Type loadingType) const {
+set<shared_ptr<Loading>, ptrLess<Loading> > LoadSet::getLoadingsByType(Loading::Type loadingType) const {
 	set<shared_ptr<Loading>, ptrLess<Loading> > result;
 	for (const auto& loading : getLoadings()) {
 		if (loading->type == loadingType) {
@@ -145,7 +145,7 @@ Gravity::Gravity(Model& model, const std::shared_ptr<LoadSet> loadset, double sc
 				scalingFactor), gravityVector(gravityVector) {
 }
 
-const DOFS Gravity::getDOFSForNode(const int nodePosition) const {
+DOFS Gravity::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
 	return DOFS::NO_DOFS;
 }
@@ -153,11 +153,11 @@ set<int> Gravity::nodePositions() const {
 	return set<int>();
 }
 
-const VectorialValue Gravity::getGravityVector() const {
+VectorialValue Gravity::getGravityVector() const {
 	return gravityVector;
 }
 
-const VectorialValue Gravity::getAccelerationVector() const {
+VectorialValue Gravity::getAccelerationVector() const {
 	return gravityVector.scaled(scalingFactor);
 }
 
@@ -182,7 +182,7 @@ Rotation::Rotation(Model& model, const std::shared_ptr<LoadSet> loadset, const i
 		VolumicLoading(model, loadset, Loading::Type::ROTATION, original_id) {
 }
 
-const DOFS Rotation::getDOFSForNode(const int nodePosition) const {
+DOFS Rotation::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
 	return DOFS::NO_DOFS;
 }
@@ -205,11 +205,11 @@ double RotationCenter::getSpeed() const {
 	return speed;
 }
 
-const VectorialValue RotationCenter::getAxis() const {
+VectorialValue RotationCenter::getAxis() const {
 	return axis;
 }
 
-const VectorialValue RotationCenter::getCenter() const {
+VectorialValue RotationCenter::getCenter() const {
 	return center;
 }
 
@@ -231,11 +231,11 @@ double RotationNode::getSpeed() const {
 	return speed;
 }
 
-const VectorialValue RotationNode::getAxis() const {
+VectorialValue RotationNode::getAxis() const {
 	return axis;
 }
 
-const VectorialValue RotationNode::getCenter() const {
+VectorialValue RotationNode::getCenter() const {
 	const Node& node = model.mesh.findNode(node_position);
 	return VectorialValue(node.x, node.y, node.z);
 }
@@ -252,7 +252,7 @@ ImposedDisplacement::ImposedDisplacement(Model& model, const std::shared_ptr<Loa
     NodeLoading(model, loadset, Loading::Type::IMPOSED_DISPLACEMENT, original_id, csref), displacements(dofs, value) {
 }
 
-const DOFS ImposedDisplacement::getDOFSForNode(int nodePosition) const {
+DOFS ImposedDisplacement::getDOFSForNode(int nodePosition) const {
     UNUSEDV(nodePosition);
     return displacements.getDOFS();
 }
@@ -286,7 +286,7 @@ NodalForce::NodalForce(Model& model, const std::shared_ptr<LoadSet> loadset, dou
 		NodeLoading(model, loadset, Loading::Type::NODAL_FORCE, original_id, csref), force(fx, fy, fz), moment(mx, my, mz) {
 }
 
-const VectorialValue NodalForce::localToGlobal(int nodePosition, const VectorialValue& vectorialValue) const {
+VectorialValue NodalForce::localToGlobal(int nodePosition, const VectorialValue& vectorialValue) const {
 	if (!hasCoordinateSystem())
 		return vectorialValue;
 	shared_ptr<CoordinateSystem> coordSystem = model.mesh.findCoordinateSystem(csref);
@@ -301,21 +301,21 @@ const VectorialValue NodalForce::localToGlobal(int nodePosition, const Vectorial
 	return coordSystem->vectorToGlobal(vectorialValue);
 }
 
-const VectorialValue NodalForce::getForceInGlobalCS(int nodePosition) const {
+VectorialValue NodalForce::getForceInGlobalCS(int nodePosition) const {
     set<int> posSet = nodePositions();
 	if (posSet.find(nodePosition) == posSet.end())
         throw logic_error("Requested node has not been assigned to this loading");
 	return localToGlobal(nodePosition, force);
 }
 
-const VectorialValue NodalForce::getMomentInGlobalCS(int nodePosition) const {
+VectorialValue NodalForce::getMomentInGlobalCS(int nodePosition) const {
     set<int> posSet = nodePositions();
 	if (posSet.find(nodePosition) == posSet.end())
         throw logic_error("Requested node has not been assigned to this loading");
 	return localToGlobal(nodePosition, moment);
 }
 
-const DOFS NodalForce::getDOFSForNode(const int nodePosition) const {
+DOFS NodalForce::getDOFSForNode(const int nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
 	set<int> posSet = nodePositions();
 	if (posSet.find(nodePosition) != posSet.end()) {
@@ -357,7 +357,7 @@ NodalForceTwoNodes::NodalForceTwoNodes(Model& model, const std::shared_ptr<LoadS
 				model.mesh.findOrReserveNode(node2_id)), magnitude(magnitude) {
 }
 
-const VectorialValue NodalForceTwoNodes::getForceInGlobalCS(int nodePosition) const {
+VectorialValue NodalForceTwoNodes::getForceInGlobalCS(int nodePosition) const {
 	const Node& node1 = model.mesh.findNode(node_position1);
 	const Node& node2 = model.mesh.findNode(node_position2);
 	VectorialValue direction = (VectorialValue(node2.x, node2.y, node2.z)
@@ -386,7 +386,7 @@ NodalForceFourNodes::NodalForceFourNodes(Model& model, const std::shared_ptr<Loa
                 node_position4(model.mesh.findOrReserveNode(node4_id)), magnitude(magnitude) {
 }
 
-const VectorialValue NodalForceFourNodes::getForceInGlobalCS(int nodePosition) const {
+VectorialValue NodalForceFourNodes::getForceInGlobalCS(int nodePosition) const {
     const Node& node1 = model.mesh.findNode(node_position1);
     const Node& node2 = model.mesh.findNode(node_position2);
     const Node& node3 = model.mesh.findNode(node_position3);
@@ -425,7 +425,7 @@ StaticPressure::StaticPressure(Model& model, const std::shared_ptr<LoadSet> load
     }
 }
 
-const VectorialValue StaticPressure::getForceInGlobalCS(int nodePosition) const {
+VectorialValue StaticPressure::getForceInGlobalCS(int nodePosition) const {
     set<int> posSet = nodePositions();
 	if (posSet.find(nodePosition) == posSet.end()) {
 	    return VectorialValue();
@@ -594,15 +594,15 @@ ForceSurface::ForceSurface(Model& model, const std::shared_ptr<LoadSet> loadset,
 				CoordinateSystem::GLOBAL_COORDINATE_SYSTEM), force(force), moment(moment) {
 }
 
-const VectorialValue ForceSurface::getForce() const {
+VectorialValue ForceSurface::getForce() const {
 	return force;
 }
 
-const VectorialValue ForceSurface::getMoment() const {
+VectorialValue ForceSurface::getMoment() const {
 	return moment;
 }
 
-const DOFS ForceSurface::getDOFSForNode(const int nodePosition) const {
+DOFS ForceSurface::getDOFSForNode(const int nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
 	set<int> nodes = nodePositions();
 	if (nodes.find(nodePosition) != nodes.end()) {
@@ -678,7 +678,7 @@ ForceLine::ForceLine(Model& model, const std::shared_ptr<LoadSet> loadset, const
 
 }
 
-const DOFS ForceLine::getDOFSForNode(const int nodePosition) const {
+DOFS ForceLine::getDOFSForNode(const int nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
 	set<int> nodes = nodePositions();
 	if (nodes.find(nodePosition) != nodes.end()) {
@@ -709,7 +709,7 @@ NormalPressionFace::NormalPressionFace(Model& model, const std::shared_ptr<LoadS
 				CoordinateSystem::GLOBAL_COORDINATE_SYSTEM), intensity(intensity) {
 }
 
-const DOFS NormalPressionFace::getDOFSForNode(const int nodePosition) const {
+DOFS NormalPressionFace::getDOFSForNode(const int nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
 	set<int> nodes = nodePositions();
 	if (nodes.find(nodePosition) != nodes.end()) {
@@ -796,11 +796,11 @@ shared_ptr<LoadSet> DynamicExcitation::getLoadSet() const {
     return model.find(loadSet);
 }
 
-const shared_ptr<FunctionPlaceHolder> DynamicExcitation::getFunctionTableBPlaceHolder() const {
+shared_ptr<FunctionPlaceHolder> DynamicExcitation::getFunctionTableBPlaceHolder() const {
     return make_shared<FunctionPlaceHolder>(model, functionTableB.type, functionTableB.original_id, Function::ParaName::FREQ);
 }
 
-const shared_ptr<FunctionPlaceHolder> DynamicExcitation::getFunctionTablePPlaceHolder() const {
+shared_ptr<FunctionPlaceHolder> DynamicExcitation::getFunctionTablePPlaceHolder() const {
     return make_shared<FunctionPlaceHolder>(model, functionTableP.type, functionTableP.original_id, Function::ParaName::FREQ);
 }
 
@@ -808,7 +808,7 @@ set<int> DynamicExcitation::nodePositions() const {
     return set<int>();
 }
 
-const DOFS DynamicExcitation::getDOFSForNode(const int nodePosition) const {
+DOFS DynamicExcitation::getDOFSForNode(const int nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::NO_DOFS;
 }
@@ -838,7 +838,7 @@ shared_ptr<Loading> InitialTemperature::clone() const {
 	return make_shared<InitialTemperature>(*this);
 }
 
-const DOFS InitialTemperature::getDOFSForNode(const int nodePosition) const {
+DOFS InitialTemperature::getDOFSForNode(const int nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::NO_DOFS;
 }

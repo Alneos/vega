@@ -236,7 +236,7 @@ private:
         std::shared_ptr<T> find(int) const; /**< Find an object by its Original Id **/
         std::shared_ptr<T> get(int) const; /**< Return an object by its Vega Id **/
         bool contains(const typename T::Type type) const; /**< Ask if objects of a given type exist inside */
-        const std::vector<std::shared_ptr<T>> filter(const typename T::Type type) const; /**< Choose objects based on their type */
+        std::vector<std::shared_ptr<T>> filter(const typename T::Type type) const; /**< Choose objects based on their type */
         //const std::vector<std::shared_ptr<T>> filter(const std::unordered_set<const typename T::Type> types) const; /**< Choose objects based on their types */
         bool validate(); /**< Says if model parts are coherent (no unresolved references, etc.) AND SOMETIMES IT TRIES TO FIX THEM :( */
         bool checkWritten() const; /**< Says if all container objects have been written in output (or not) */
@@ -296,8 +296,8 @@ public:
 
     /* Get the Id of all elements belonging to set */
     //TODO: make a template, general function?
-    const std::vector<int> getMaterialsId() const;
-    const std::vector<int> getElementSetsId() const;
+    std::vector<int> getMaterialsId() const;
+    std::vector<int> getElementSetsId() const;
     /**
      * Remove any kind of object from the model, by giving a reference.
      * Very time consuming when the list is big : restrict use to the minimum
@@ -314,7 +314,7 @@ public:
      * Return nullptr if the object is not found in the model.
      */
     template<typename T>
-    const std::shared_ptr<T> find(const Reference<T>) const;
+    std::shared_ptr<T> find(const Reference<T>) const;
 
     /**
      * Add a Loading reference into a LoadSet reference.
@@ -325,7 +325,7 @@ public:
     /**
      * Retrieve all the Loadings corresponding to a given LoadSet.
      */
-    const std::set<std::shared_ptr<Loading>, ptrLess<Loading>> getLoadingsByLoadSet(const Reference<LoadSet>&) const;
+    std::set<std::shared_ptr<Loading>, ptrLess<Loading>> getLoadingsByLoadSet(const Reference<LoadSet>&) const;
 
     /**
      * Create a material
@@ -340,7 +340,7 @@ public:
      *
      * If no assigment is found it returns an empty cell container.
      */
-    const CellContainer getMaterialAssignment(int materialId) const;
+    CellContainer getMaterialAssignment(int materialId) const;
     /**
      * Assign a material to a group of cells. There are two ways of assigning
      * a material: either trough this method or with an ElementSet.
@@ -356,55 +356,55 @@ public:
     /**
      * Retrieve all the Constraints corresponding to a given ConstraintSet.
      */
-    const std::set<std::shared_ptr<Constraint>, ptrLess<Constraint>> getConstraintsByConstraintSet(const Reference<ConstraintSet>&) const;
+    std::set<std::shared_ptr<Constraint>, ptrLess<Constraint>> getConstraintsByConstraintSet(const Reference<ConstraintSet>&) const;
 
     /**
      * Retrieve all the ConstraintSet containing a corresponding Constraint.
      */
-    const std::set<std::shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> getConstraintSetsByConstraint(const Reference<Constraint>& constraintReference) const;
+    std::set<std::shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> getConstraintSetsByConstraint(const Reference<Constraint>& constraintReference) const;
 
     /**
      * Retrieve all the ConstraintSet of the model that are at least referenced by one analysis
      */
-    const std::vector<std::shared_ptr<ConstraintSet>> getActiveConstraintSets() const;
+    std::vector<std::shared_ptr<ConstraintSet>> getActiveConstraintSets() const;
 
     /**
      * Retrieve all the LoadSet of the model that are at least referenced by one analysis
      */
-    const std::vector<std::shared_ptr<LoadSet>> getActiveLoadSets() const;
+    std::vector<std::shared_ptr<LoadSet>> getActiveLoadSets() const;
 
     /**
      * Retrieve all the Objectives corresponding to a given ObjectiveSet.
      */
-    const std::set<std::shared_ptr<Objective>, ptrLess<Objective>> getObjectivesByObjectiveSet(const Reference<ObjectiveSet>&) const;
+    std::set<std::shared_ptr<Objective>, ptrLess<Objective>> getObjectivesByObjectiveSet(const Reference<ObjectiveSet>&) const;
 
     /**
      * Retrieve all the ConstraintSet of the model that are common to all analysis
      */
-    const std::vector<std::shared_ptr<ConstraintSet>> getCommonConstraintSets() const;
+    std::vector<std::shared_ptr<ConstraintSet>> getCommonConstraintSets() const;
 
     /**
      * Retrieve all the LoadSet of the model that are are common to all analysis
      */
-    const std::vector<std::shared_ptr<LoadSet>> getCommonLoadSets() const;
+    std::vector<std::shared_ptr<LoadSet>> getCommonLoadSets() const;
     /**
      * Retrieve all the ConstraintSet of the model that are active but not common to all analysis
      */
-    const std::set<std::shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> getUncommonConstraintSets() const;
+    std::set<std::shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> getUncommonConstraintSets() const;
     /**
      * Retrieve all the ConstraintSet of the model that are active but not common to all analysis
      */
-    const std::set<std::shared_ptr<LoadSet>, ptrLess<LoadSet>> getUncommonLoadSets() const;
+    std::set<std::shared_ptr<LoadSet>, ptrLess<LoadSet>> getUncommonLoadSets() const;
 
     /**
 	 * Retrieves only 1D elements having rotational stiffness in linear static analysis, false for Truss elements (also see getTrusses() method )
 	 */
-    const std::vector<std::shared_ptr<Beam>> getBeams() const;
+    std::vector<std::shared_ptr<Beam>> getBeams() const;
 
     /**
 	 * Retrieves only 1D elements having no rotational stiffness in linear static analysis (also see getBeams() method )
 	 */
-    const std::vector<std::shared_ptr<Beam>> getTrusses() const;
+    std::vector<std::shared_ptr<Beam>> getTrusses() const;
     bool needsLargeDisplacements() const;
 
     /**
@@ -432,7 +432,7 @@ void Model::Container<T>::erase(const Reference<T> ref) {
 }
 
 template<class T>
-const std::vector<std::shared_ptr<T>> Model::Container<T>::filter(const typename T::Type type) const {
+std::vector<std::shared_ptr<T>> Model::Container<T>::filter(const typename T::Type type) const {
     std::vector<std::shared_ptr<T>> result;
     for (const auto& id_obj_pair: by_id) {
         if (id_obj_pair.second->type == type) {
@@ -443,7 +443,7 @@ const std::vector<std::shared_ptr<T>> Model::Container<T>::filter(const typename
 }
 
 /*template<class T>
-const std::vector<std::shared_ptr<T>> Model::Container<T>::filter(const std::unordered_set<const typename T::Type> types) const {
+std::vector<std::shared_ptr<T>> Model::Container<T>::filter(const std::unordered_set<const typename T::Type> types) const {
     std::vector<std::shared_ptr<T>> result;
     for (const auto& id_obj_pair: by_id) {
         if (types.find(id_obj_pair.second->type) != types.end()) {

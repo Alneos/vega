@@ -63,7 +63,7 @@ ostream &operator<<(ostream &out, const KeywordValue& value) {
     return out;
 }
 
-const std::string KeywordValue::str() const {
+std::string KeywordValue::str() const {
     auto entry = stringByType.find(keyword);
     if (entry != KeywordValue::stringByType.end())
         return entry->second;
@@ -153,11 +153,11 @@ void FunctionTable::setXY(const double X, const double Y) {
     valuesXY.push_back({X, Y});
 }
 
-const vector<pair<double, double>>::const_iterator FunctionTable::getBeginValuesXY() const {
+vector<pair<double, double>>::const_iterator FunctionTable::getBeginValuesXY() const {
     return valuesXY.begin();
 }
 
-const vector<pair<double, double>>::const_iterator FunctionTable::getEndValuesXY() const {
+vector<pair<double, double>>::const_iterator FunctionTable::getEndValuesXY() const {
     return valuesXY.end();
 }
 
@@ -249,17 +249,19 @@ VectorialValue& VectorialValue::operator=(const VectorialValue& vv) {
     value=vv.value;
 	return *this;
 }
-const VectorialValue operator+(const VectorialValue& left, const VectorialValue& right) {
+VectorialValue operator+(const VectorialValue& left, const VectorialValue& right) {
 	return VectorialValue(left.x() + right.x(), left.y() + right.y(), left.z() + right.z());
 }
-const VectorialValue operator-(const VectorialValue& left, const VectorialValue& right) {
+
+VectorialValue operator-(const VectorialValue& left, const VectorialValue& right) {
 	return VectorialValue(left.x() - right.x(), left.y() - right.y(), left.z() - right.z());
 }
-const VectorialValue operator*(const double& left, const VectorialValue& right) {
+
+VectorialValue operator*(const double& left, const VectorialValue& right) {
 	return VectorialValue(left * right.x(), left * right.y(), left * right.z());
 }
 
-const VectorialValue operator/(const VectorialValue& left, const double& right) {
+VectorialValue operator/(const VectorialValue& left, const double& right) {
 	return VectorialValue(left.x() / right, left.y() / right, left.z() / right);
 }
 

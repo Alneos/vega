@@ -67,18 +67,18 @@ public:
     public:
         //java style iteration
         bool hasNext() const;
-        const Node next();
+        Node next();
         NodeIterator& operator++();
         NodeIterator operator++(int);
         bool operator==(const NodeIterator& rhs) const;
         bool operator!=(const NodeIterator& rhs) const;
-        const Node operator*();
+        Node operator*();
     };
 
 	NodeStorage(Mesh& mesh, LogLevel logLevel);
 	NodeIterator begin() const;
 	NodeIterator end() const;
-	const std::vector<NodeData>& getNodeDatas() const {
+	std::vector<NodeData> getNodeDatas() const {
 	    return nodeDatas;
 	}
 	int getMinNodeId() const {
@@ -120,7 +120,7 @@ public:
 	CellStorage(Mesh& mesh, LogLevel logLevel);
 	CellIterator cells_begin(const CellType &type) const;
 	CellIterator cells_end(const CellType &type) const;
-	const std::vector<CellType> cellTypes() const;
+	std::vector<CellType> cellTypes() const;
 
 	bool validate() const;
 };
@@ -212,14 +212,14 @@ public:
 	        const int cpPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
 	        const int cdPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
 	        const int nodePartId = 0) noexcept;
-    const std::string getName() const noexcept;
+    std::string getName() const noexcept;
 	size_t countNodes() const noexcept;
 	void allowDOFS(const int nodePosition, const DOFS& allowed) noexcept;
 	/**
 	 * Find a node from its Vega position.
 	 * throws invalid_argument if node not found
 	 */
-	const Node findNode(const int nodePosition) const;
+	Node findNode(const int nodePosition) const;
 
   /**
 	 * given an internal node position returns the Id from the model
@@ -264,7 +264,7 @@ public:
     inline int findCellId(int cellPosition) const noexcept {
         return cells.cellDatas[cellPosition].id;
     };
-	const Cell findCell(int cellPosition) const;
+	Cell findCell(int cellPosition) const;
 	int generateSkinCell(const std::vector<int>& faceIds, const SpaceDimension& dimension);
     std::pair<Cell, int> volcellAndFaceNum_from_skincell(const Cell& skinCell) const;
 	bool hasCell(int cellId) const noexcept;
@@ -277,7 +277,7 @@ public:
 	    cells.cellDatas[cellPosition].elementId = elementId;
     }
 
-	const MeshStatistics calcStats();
+	MeshStatistics calcStats();
 
 	void finish() noexcept;
 	bool validate() const;

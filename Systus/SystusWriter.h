@@ -418,7 +418,7 @@ private:
     void writeFrequencyAssertion(Assertion& assertion, std::ostream& out);
     void writeNodalForceVector(const SystusModel& systusModel, std::shared_ptr<NodalForce> nodalForce, const int idLoadCase, systus_ascid_t& vectorId);
 
-    const std::string toString() const override {
+    std::string toString() const override {
         return std::string("SystusWriter");
     }
     void writeMasses(const SystusModel&, std::ostream& out); /** Write Nodal Masses on outstream. **/

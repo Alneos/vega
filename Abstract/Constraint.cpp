@@ -57,7 +57,7 @@ ostream &operator<<(ostream &out, const Constraint& constraint) {
     return out;
 }
 
-const string Constraint::to_str() const noexcept {
+string Constraint::to_str() const noexcept {
     const auto& typePair = stringByType.find(type);
     if (typePair == stringByType.end())
         return "Unknown constraint";
@@ -74,7 +74,7 @@ void ConstraintSet::add(const Reference<ConstraintSet>& constraintSetReference) 
     constraintSetReferences.push_back(constraintSetReference);
 }
 
-const set<shared_ptr<Constraint>, ptrLess<Constraint> > ConstraintSet::getConstraints() const noexcept {
+set<shared_ptr<Constraint>, ptrLess<Constraint> > ConstraintSet::getConstraints() const noexcept {
     auto result = model.getConstraintsByConstraintSet(this->getReference());
     for (const auto& constraintSetReference : constraintSetReferences) {
         const auto& setToInsert = model.getConstraintsByConstraintSet(
@@ -84,7 +84,7 @@ const set<shared_ptr<Constraint>, ptrLess<Constraint> > ConstraintSet::getConstr
     return result;
 }
 
-const set<shared_ptr<Constraint>, ptrLess<Constraint> > ConstraintSet::getConstraintsByType(
+set<shared_ptr<Constraint>, ptrLess<Constraint> > ConstraintSet::getConstraintsByType(
         Constraint::Type type) const noexcept {
     set<shared_ptr<Constraint>, ptrLess<Constraint> > result;
     for (const auto& constraint : getConstraints()) {
@@ -168,7 +168,7 @@ bool MasterSlaveConstraint::hasMaster() const noexcept {
 }
 
 /** Getter for dofs data. **/
-const DOFS MasterSlaveConstraint::getDOFS() const {
+DOFS MasterSlaveConstraint::getDOFS() const {
     return this->dofs;
 }
 
@@ -198,23 +198,15 @@ QuasiRigidConstraint::QuasiRigidConstraint(Model& model, const DOFS& dofs, int m
 }
 
 bool QuasiRigidConstraint::isCompletelyRigid() const {
-    if (this->dofs == DOFS::ALL_DOFS)
-        return true;
-    DOFS masterDOFS = calcMasterDOFS();
-    if (this->dofs < masterDOFS)
-        return false;
-    for (int nodePosition : nodePositions()) {
-        const Node& node = model.mesh.findNode(nodePosition);
-        if (node.dofs != this->dofs)
-            return false;
-    }
-    return true;
+    return this->dofs == DOFS::ALL_DOFS;
 }
 
 void QuasiRigidConstraint::emulateWithMPCs() {
-    if (not hasMaster())
+    if (not hasMaster()) {
         throw logic_error("Emulation without master not (yet) implemented");
+    }
     const Node& master = model.mesh.findNode(getMaster());
+    const DOFS& masterCalcDofs = calcMasterDOFS();
     set<shared_ptr<LinearMultiplePointConstraint>, ptrLess<Constraint>> lmpcs;
     for (int slavePosition : getSlaves()) {
 
@@ -224,53 +216,59 @@ void QuasiRigidConstraint::emulateWithMPCs() {
 
         // First relation: DX(M) - DX(A) - Z*DRY(A) + Y*DRZ(A) =0
         if (dofs.contains(DOF::DX)) {
-            shared_ptr<LinearMultiplePointConstraint> lmpc1 =
-                    make_shared<LinearMultiplePointConstraint>(model, 0.0);
-            lmpc1->addParticipation(master.id, -1.0, 0.0, 0.0, 0.0, distMaster.z(), -distMaster.y());
+            auto lmpc1 = make_shared<LinearMultiplePointConstraint>(model, 0.0);
+            if (masterCalcDofs.containsAnyOf(DOF::RY + DOF::RZ)) {
+                lmpc1->addParticipation(master.id, -1.0, 0.0, 0.0, 0.0, distMaster.z(), -distMaster.y());
+            } else {
+                lmpc1->addParticipation(master.id, -1.0);
+            }
             lmpc1->addParticipation(slave.id, 1.0);
             lmpcs.insert(lmpc1);
         }
 
         // Second relation: DY(M) - DY(A) + Z*DRX(A) - X*DRZ(A) =0
         if (dofs.contains(DOF::DY)) {
-            shared_ptr<LinearMultiplePointConstraint> lmpc2 =
-                    make_shared<LinearMultiplePointConstraint>(model, 0.0);
-            lmpc2->addParticipation(master.id, 0.0, -1.0, 0.0, -distMaster.z(), 0.0, distMaster.x());
+            auto lmpc2 = make_shared<LinearMultiplePointConstraint>(model, 0.0);
+            if (masterCalcDofs.contains(DOF::RX) or masterCalcDofs.contains(DOF::RZ)) {
+                lmpc2->addParticipation(master.id, 0.0, -1.0, 0.0, -distMaster.z(), 0.0, distMaster.x());
+            } else {
+                lmpc2->addParticipation(master.id, 0.0, -1.0);
+            }
             lmpc2->addParticipation(slave.id, 0.0, 1.0);
             lmpcs.insert(lmpc2);
         }
 
         // Third relation: DZ(M) - DZ(A) - Y*DRX(A) + X*DRY(A) =0
         if (dofs.contains(DOF::DZ)) {
-            shared_ptr<LinearMultiplePointConstraint> lmpc3 =
-                    make_shared<LinearMultiplePointConstraint>(model, 0.0);
-            lmpc3->addParticipation(master.id, 0.0, 0.0, -1.0, distMaster.y(), -distMaster.x());
+            auto lmpc3 = make_shared<LinearMultiplePointConstraint>(model, 0.0);
+            if (masterCalcDofs.containsAnyOf(DOF::RX + DOF::RY)) {
+                lmpc3->addParticipation(master.id, 0.0, 0.0, -1.0, distMaster.y(), -distMaster.x());
+            } else {
+                lmpc3->addParticipation(master.id, 0.0, 0.0, -1.0);
+            }
             lmpc3->addParticipation(slave.id, 0.0, 0.0, 1.0);
             lmpcs.insert(lmpc3);
         }
 
         // Fourth relation: DRX(M) - DRX(A)  = 0
-        if (dofs.contains(DOF::RX) and slave.dofs.contains(DOF::RX)) {
-            shared_ptr<LinearMultiplePointConstraint> lmpc4 =
-                    make_shared<LinearMultiplePointConstraint>(model, 0.0);
+        if (dofs.contains(DOF::RX) and masterCalcDofs.contains(DOF::RX)) {
+            auto lmpc4 = make_shared<LinearMultiplePointConstraint>(model, 0.0);
             lmpc4->addParticipation(master.id, 0.0, 0.0, 0.0, 1.0);
             lmpc4->addParticipation(slave.id, 0.0, 0.0, 0.0, -1.0);
             lmpcs.insert(lmpc4);
         }
 
         // Fifth relation: DRY(M) - DRY(A)  = 0
-        if (dofs.contains(DOF::RY) and slave.dofs.contains(DOF::RY)) {
-            shared_ptr<LinearMultiplePointConstraint> lmpc5 =
-                    make_shared<LinearMultiplePointConstraint>(model, 0.0);
+        if (dofs.contains(DOF::RY) and masterCalcDofs.contains(DOF::RX)) {
+            auto lmpc5 = make_shared<LinearMultiplePointConstraint>(model, 0.0);
             lmpc5->addParticipation(master.id, 0.0, 0.0, 0.0, 0.0, 1.0);
             lmpc5->addParticipation(slave.id, 0.0, 0.0, 0.0, 0.0, -1.0);
             lmpcs.insert(lmpc5);
         }
 
         // Sixth relation: DRZ(M) - DRZ(A)  = 0
-        if (dofs.contains(DOF::RZ) and slave.dofs.contains(DOF::RZ)) {
-            shared_ptr<LinearMultiplePointConstraint> lmpc6 =
-                    make_shared<LinearMultiplePointConstraint>(model, 0.0);
+        if (dofs.contains(DOF::RZ) and masterCalcDofs.contains(DOF::RX)) {
+            auto lmpc6 = make_shared<LinearMultiplePointConstraint>(model, 0.0);
             lmpc6->addParticipation(master.id, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
             lmpc6->addParticipation(slave.id, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0);
             lmpcs.insert(lmpc6);
@@ -297,35 +295,37 @@ void QuasiRigidConstraint::emulateWithMPCs() {
 }
 
 DOFS QuasiRigidConstraint::calcMasterDOFS() const {
-    const Node& master = model.mesh.findNode(getMaster());
+    const Node& master = model.mesh.findNode(masterPosition);
+    if (this->dofs == DOFS::ALL_DOFS)
+        return DOFS::ALL_DOFS;
     if (master.dofs == DOFS::ALL_DOFS)
         return DOFS::ALL_DOFS; // Master already has rotations
     DOFS masterUsableDOFS{master.dofs};
-    masterUsableDOFS += DOFS::TRANSLATIONS;
-    for (int slavePosition : getSlaves()) {
-        const Node& slave = model.mesh.findNode(slavePosition);
-        VectorialValue distMaster{master.x - slave.x, master.y - slave.y, master.z - slave.z};
-        if (not is_zero(distMaster.x()))
-            masterUsableDOFS += DOF::RY + DOF::RZ;
-        if (not is_zero(distMaster.y()))
-            masterUsableDOFS += DOF::RX + DOF::RZ;
-        if (not is_zero(distMaster.z()))
-            masterUsableDOFS += DOF::RX + DOF::RY;
-        if (masterUsableDOFS == DOFS::ALL_DOFS)
-            return DOFS::ALL_DOFS; // Slave(s) not aligned on all axes
+    if (this->addRotations or this->dofs == DOFS::ALL_DOFS /* LD simple check to filter out some RBARs, should probably also check if they are all aligned? */) {
+        masterUsableDOFS += DOFS::TRANSLATIONS;
+        for (int slavePosition : getSlaves()) {
+            const Node& slave = model.mesh.findNode(slavePosition);
+            VectorialValue distMaster{master.x - slave.x, master.y - slave.y, master.z - slave.z};
+            if (not is_zero(distMaster.x()))
+                masterUsableDOFS += DOF::RY + DOF::RZ;
+            if (not is_zero(distMaster.y()))
+                masterUsableDOFS += DOF::RX + DOF::RZ;
+            if (not is_zero(distMaster.z()))
+                masterUsableDOFS += DOF::RX + DOF::RY;
+            if (masterUsableDOFS == DOFS::ALL_DOFS)
+                return DOFS::ALL_DOFS; // Slave(s) not aligned on any axes
+        }
     }
     return masterUsableDOFS; // Slaves aligned on some axes
 }
 
-const DOFS QuasiRigidConstraint::getDOFSForNode(int nodePosition) const {
+DOFS QuasiRigidConstraint::getDOFSForNode(int nodePosition) const {
     if (nodePosition == masterPosition) {
         return calcMasterDOFS(); // Slaves aligned on some axes
     }
 
     const auto& nodes = nodePositions();
     if (nodes.find(nodePosition) != nodes.end()) {
-        //const Node& node = model.mesh.findNode(nodePosition);
-        //return node.dofs.intersection(this->dofs);
         return this->dofs;
     } else {
         return DOFS::NO_DOFS;
@@ -337,7 +337,7 @@ RigidConstraint::RigidConstraint(Model& model, int masterId, int constraintGroup
         MasterSlaveConstraint(model, Constraint::Type::RIGID, DOFS::ALL_DOFS, masterId, constraintGroup, slaveIds) {
 }
 
-const DOFS RigidConstraint::getDOFSForNode(int nodePosition) const {
+DOFS RigidConstraint::getDOFSForNode(int nodePosition) const {
     const auto& nodes = nodePositions();
     if (nodes.find(nodePosition) != nodes.end()) {
         return model.mesh.findNode(nodePosition).dofs;
@@ -373,7 +373,7 @@ double RBE3::getCoefForNode(int nodePosition) const {
     return result;
 }
 
-const DOFS RBE3::getDOFSForNode(int nodePosition) const {
+DOFS RBE3::getDOFSForNode(int nodePosition) const {
     DOFS result = DOFS::ALL_DOFS;
     if (nodePosition == masterPosition) {
         result = dofs;
@@ -423,7 +423,7 @@ void SinglePointConstraint::setDOFS(const DOFS& dofs, const ValueOrReference& va
     }
 }
 
-const DOFS SinglePointConstraint::getDOFSForNode(int nodePosition) const {
+DOFS SinglePointConstraint::getDOFSForNode(int nodePosition) const {
     UNUSEDV(nodePosition);
     DOFS requiredDofs;
     for (char i = 0; i < 6; i++) {
@@ -546,7 +546,7 @@ set<int> LinearMultiplePointConstraint::nodePositions() const {
     return result;
 }
 
-const DOFS LinearMultiplePointConstraint::getDOFSForNode(int nodePosition) const {
+DOFS LinearMultiplePointConstraint::getDOFSForNode(int nodePosition) const {
     DOFS dofs(DOFS::NO_DOFS);
     auto it = dofCoefsByNodePosition.find(nodePosition);
     if (it != dofCoefsByNodePosition.end()) {
@@ -648,7 +648,7 @@ bool GapTwoNodes::ineffective() const {
     return directionNodePositionByconstrainedNodePosition.empty();
 }
 
-const DOFS GapTwoNodes::getDOFSForNode(int nodePosition) const {
+DOFS GapTwoNodes::getDOFSForNode(int nodePosition) const {
     const auto& it = directionNodePositionByconstrainedNodePosition.find(nodePosition);
     DOFS dofs(DOFS::NO_DOFS);
     if (it != directionNodePositionByconstrainedNodePosition.end()) {
@@ -704,7 +704,7 @@ bool GapNodeDirection::ineffective() const {
     return directionBynodePosition.empty();
 }
 
-const DOFS GapNodeDirection::getDOFSForNode(int nodePosition) const {
+DOFS GapNodeDirection::getDOFSForNode(int nodePosition) const {
     auto it = directionBynodePosition.find(nodePosition);
     DOFS dofs(DOFS::NO_DOFS);
     if (it != directionBynodePosition.end()) {
@@ -771,7 +771,7 @@ bool SlideContact::ineffective() const {
     return masterLine->nodeids.empty() or slaveLine->nodeids.empty();
 }
 
-const DOFS SlideContact::getDOFSForNode(int nodePosition) const {
+DOFS SlideContact::getDOFSForNode(int nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::TRANSLATIONS;
 }
@@ -810,7 +810,7 @@ bool SurfaceContact::ineffective() const {
     return masterSurface->nodeids.empty() or slaveSurface->nodeids.empty();
 }
 
-const DOFS SurfaceContact::getDOFSForNode(int nodePosition) const {
+DOFS SurfaceContact::getDOFSForNode(int nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::TRANSLATIONS;
 }
@@ -917,7 +917,7 @@ bool ZoneContact::ineffective() const {
     return masterBoundary->empty() or slaveBoundary->empty();
 }
 
-const DOFS ZoneContact::getDOFSForNode(int nodePosition) const {
+DOFS ZoneContact::getDOFSForNode(int nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::TRANSLATIONS;
 }
@@ -967,7 +967,7 @@ bool SurfaceSlide::ineffective() const {
     return masterBoundary->faceInfos.empty() or slaveBoundary->faceInfos.empty();
 }
 
-const DOFS SurfaceSlide::getDOFSForNode(int nodePosition) const {
+DOFS SurfaceSlide::getDOFSForNode(int nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::TRANSLATIONS;
 }

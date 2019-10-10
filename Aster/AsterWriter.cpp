@@ -28,7 +28,7 @@ using namespace std;
 namespace vega {
 namespace aster {
 
-const string AsterWriter::toString() const {
+string AsterWriter::toString() const {
 	return "AsterWriter";
 }
 

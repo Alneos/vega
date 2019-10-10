@@ -138,11 +138,11 @@ const CellType CellType::POLY19 = CellType(CellType::Code::POLY19_CODE, 19, Spac
 const CellType CellType::POLY20 = CellType(CellType::Code::POLY20_CODE, 20, SpaceDimension::DIMENSION_3D, "POLY20");
 
 
-const CellType* CellType::findByCode(CellType::Code code) noexcept {
+CellType* CellType::findByCode(CellType::Code code) noexcept {
 	return CellType::typeByCode[code];
 }
 
-const CellType CellType::polyType(unsigned int nbNodes) {
+CellType CellType::polyType(unsigned int nbNodes) {
     //TODO: Add a version with "variable sized" cells.
     switch (nbNodes){
     case 1:{

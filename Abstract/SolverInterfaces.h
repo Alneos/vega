@@ -134,7 +134,7 @@ private:
 	/**
 	 * returns a std::string representation of the Writer useful for debugging
 	 */
-	virtual const std::string toString() const = 0;
+	virtual std::string toString() const = 0;
 public:
     virtual ~Writer() = default;
 	ConfigurationParameters::TranslationMode translationMode = ConfigurationParameters::TranslationMode::BEST_EFFORT;

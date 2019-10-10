@@ -74,7 +74,7 @@ void ElementSet::assignMaterial(int materialId) {
 	this->material = this->model.getOrCreateMaterial(materialId);
 }
 
-const ModelType ElementSet::getModelType() const {
+ModelType ElementSet::getModelType() const {
 	return this->modelType;
 }
 
@@ -98,7 +98,7 @@ Continuum::Continuum(Model& model, const ModelType& modelType, int original_id) 
 
 }
 
-const DOFS Continuum::getDOFSForNode(const int nodePosition) const {
+DOFS Continuum::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
 	return DOFS::TRANSLATIONS;
 }
@@ -108,7 +108,7 @@ Skin::Skin(Model& model, const ModelType& modelType, int original_id) :
 
 }
 
-const DOFS Skin::getDOFSForNode(const int nodePosition) const {
+DOFS Skin::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
 	return DOFS::TRANSLATIONS;
 }
@@ -119,7 +119,7 @@ Beam::Beam(Model& model, Type type, const ModelType& modelType, BeamModel beamMo
 				additional_mass) {
 }
 
-const DOFS Beam::getDOFSForNode(const int nodePosition) const {
+DOFS Beam::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
 	if (this->isTruss()) {
 	    return DOFS::TRANSLATIONS;
@@ -132,11 +132,11 @@ RecoveryPoint::RecoveryPoint(const Model& model, const double lx, const double l
     model(model), localCoords(lx, ly, lz) {
 }
 
-const VectorialValue RecoveryPoint::getLocalCoords() const {
+VectorialValue RecoveryPoint::getLocalCoords() const {
     return localCoords;
 }
 
-const VectorialValue RecoveryPoint::getGlobalCoords(const int cellId) const {
+VectorialValue RecoveryPoint::getGlobalCoords(const int cellId) const {
     UNUSEDV(cellId);
     const Cell& cell = model.mesh.findCell(model.mesh.findCellPosition(cellId));
     if (cell.nodeIds.size() != 2) {
@@ -318,7 +318,7 @@ Shell::Shell(Model& model, double thickness, double additional_mass, int origina
 				additional_mass) {
 }
 
-const DOFS Shell::getDOFSForNode(const int nodePosition) const {
+DOFS Shell::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
 	return DOFS::ALL_DOFS;
 }
@@ -343,7 +343,7 @@ double Composite::getTotalThickness() {
     return total;
 }
 
-const DOFS Composite::getDOFSForNode(const int nodePosition) const {
+DOFS Composite::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
 	return DOFS::ALL_DOFS;
 }
@@ -354,7 +354,7 @@ Discrete::Discrete(Model& model, ElementSet::Type type, MatrixType matrixType, i
 
 const double Discrete::NOT_BOUNDED = -DBL_MAX;
 
-const DOFS Discrete::getDOFSForNode(const int nodePosition) const {
+DOFS Discrete::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
 	// LD : meaning here is that the node has a variable for the dof, not that it has stiffness
 	// over it
@@ -855,7 +855,7 @@ bool NodalMass::hasRotations() const {
 	return (not is_zero(ixx) or not is_zero(iyy) or not is_zero(izz) or not is_zero(ixy) or not is_zero(iyz) or not is_zero(ixz));
 }
 
-const DOFS NodalMass::getDOFSForNode(const int nodePosition) const {
+DOFS NodalMass::getDOFSForNode(const int nodePosition) const {
 	UNUSEDV(nodePosition);
 	DOFS dofs;
 	if (hasTranslations()) {
@@ -992,7 +992,7 @@ void MatrixElement::clear() noexcept {
 }
 
 
-const shared_ptr<const DOFMatrix> MatrixElement::findSubmatrix(const int nodePosition1, const int nodePosition2) const {
+shared_ptr<const DOFMatrix> MatrixElement::findSubmatrix(const int nodePosition1, const int nodePosition2) const {
 	shared_ptr<DOFMatrix> result = make_shared<DOFMatrix>(matrixType);
 	auto it = submatrixByNodes.find({nodePosition1, nodePosition2});
 	if (it != submatrixByNodes.end()) {
@@ -1011,7 +1011,7 @@ set<int> MatrixElement::nodePositions() const {
 	return result;
 }
 
-const DOFS MatrixElement::getDOFSForNode(const int nodePosition) const {
+DOFS MatrixElement::getDOFSForNode(const int nodePosition) const {
 	DOFS dofs;
 	for (const auto& kv : submatrixByNodes) {
 		if (kv.first.first == nodePosition or kv.first.second) {
@@ -1026,7 +1026,7 @@ const DOFS MatrixElement::getDOFSForNode(const int nodePosition) const {
 	return dofs;
 }
 
-const set<pair<int, int>> MatrixElement::nodePairs() const {
+set<pair<int, int>> MatrixElement::nodePairs() const {
 	set<pair<int, int>> result;
 	for (const auto& kv : submatrixByNodes) {
 		result.insert({kv.first.first, kv.first.second});
@@ -1034,7 +1034,7 @@ const set<pair<int, int>> MatrixElement::nodePairs() const {
 	return result;
 }
 
-const std::set<std::pair<int, int>> MatrixElement::findInPairs(int nodePosition) const {
+std::set<std::pair<int, int>> MatrixElement::findInPairs(int nodePosition) const {
 	set<pair<int, int>> result;
 	for (const auto& kv : submatrixByNodes) {
 		if (kv.first.first != nodePosition and kv.first.second != nodePosition) {
@@ -1080,7 +1080,7 @@ RigidSet::RigidSet(Model& model, Type type, int master_id, int original_id) :
 }
 
 
-const DOFS RigidSet::getDOFSForNode(const int nodePosition) const {
+DOFS RigidSet::getDOFSForNode(const int nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::ALL_DOFS;
 }
@@ -1135,25 +1135,31 @@ ScalarSpring::ScalarSpring(Model& model, int original_id, double stiffness, doub
 double ScalarSpring::getStiffness() const {
     return this->stiffness;
 }
+
 double ScalarSpring::getDamping() const {
     return this->damping;
 }
-const std::map<std::pair<DOF, DOF>, vector<int>> ScalarSpring::getCellPositionByDOFS() const{
+
+std::map<std::pair<DOF, DOF>, vector<int>> ScalarSpring::getCellPositionByDOFS() const{
     return this->cellpositionByDOFS;
 }
 
 void ScalarSpring::setStiffness(const double stiffness){
     this->stiffness=stiffness;
 }
+
 void ScalarSpring::setDamping (const double damping){
     this->damping=damping;
 }
+
 bool ScalarSpring::hasStiffness() const {
     return !(is_zero(this->stiffness) || is_equal(this->stiffness, Globals::UNAVAILABLE_DOUBLE));
 }
+
 bool ScalarSpring::hasDamping() const {
     return !(is_zero(this->damping) || is_equal(this->damping, Globals::UNAVAILABLE_DOUBLE));
 }
+
 bool ScalarSpring::hasMass() const {
     return false;
 }

@@ -81,11 +81,11 @@ public:
     void assignMaterial(std::shared_ptr<Material> material) {
         this->material = material;
     }
-    const ModelType getModelType() const;
+    ModelType getModelType() const;
     virtual void add(const CellGroup& cellGroup) = 0;
     virtual bool validate() const override;
     virtual std::shared_ptr<ElementSet> clone() const = 0;
-    virtual const DOFS getDOFSForNode(const int nodePosition) const = 0;
+    virtual DOFS getDOFSForNode(const int nodePosition) const = 0;
     virtual std::set<int> nodePositions() const = 0;
     virtual std::set<int> cellPositions() const = 0;
     virtual double getAdditionalRho() const {
@@ -138,8 +138,8 @@ private:
     const VectorialValue localCoords;
 public:
     RecoveryPoint(const Model& model, const double lx, const double ly, const double lz);
-    const VectorialValue getLocalCoords() const;
-    const VectorialValue getGlobalCoords(const int cellId) const;
+    VectorialValue getLocalCoords() const;
+    VectorialValue getGlobalCoords(const int cellId) const;
 };
 
 class Beam: public CellElementSet {
@@ -178,7 +178,7 @@ public:
 	virtual double getTorsionalConstant() const = 0;
 	virtual double getShearAreaFactorY() const = 0;
 	virtual double getShearAreaFactorZ() const = 0;
-	const DOFS getDOFSForNode(const int nodePosition) const override final;
+	DOFS getDOFSForNode(const int nodePosition) const override final;
 };
 
 class CircularSectionBeam: public Beam {
@@ -306,7 +306,7 @@ public:
 	bool isShell() const override final {
 		return true;
 	}
-	const DOFS getDOFSForNode(const int nodePosition) const override final;
+	DOFS getDOFSForNode(const int nodePosition) const override final;
 };
 
 class Composite;
@@ -343,7 +343,7 @@ class Composite: public CellElementSet {
 	bool isComposite() const override final {
 		return true;
 	}
-	const DOFS getDOFSForNode(const int nodePosition) const override final;
+	DOFS getDOFSForNode(const int nodePosition) const override final;
 };
 
 class Continuum: public CellElementSet {
@@ -353,7 +353,7 @@ public:
 	std::shared_ptr<ElementSet> clone() const override {
 		return std::make_shared<Continuum>(*this);
 	}
-	const DOFS getDOFSForNode(const int nodePosition) const override final;
+	DOFS getDOFSForNode(const int nodePosition) const override final;
 };
 
 class Skin: public CellElementSet {
@@ -363,7 +363,7 @@ public:
 	std::shared_ptr<ElementSet> clone() const override {
 		return std::make_shared<Skin>(*this);
 	}
-	const DOFS getDOFSForNode(const int nodePosition) const override final;
+	DOFS getDOFSForNode(const int nodePosition) const override final;
 };
 
 class Discrete: public CellElementSet {
@@ -381,7 +381,7 @@ public:
 	virtual bool hasDamping() const = 0;
 	virtual bool isDiagonal() const = 0;
 	virtual bool isSymmetric() const = 0;
-	const DOFS getDOFSForNode(const int nodePosition) const override final;
+	DOFS getDOFSForNode(const int nodePosition) const override final;
 	virtual std::vector<double> asStiffnessVector(bool addRotationsIfNotPresent = false) const = 0;
 	virtual std::vector<double> asMassVector(bool addRotationsIfNotPresent = false) const = 0;
 	virtual std::vector<double> asDampingVector(bool addRotationsIfNotPresent = false) const = 0;
@@ -503,7 +503,7 @@ class NodalMass: public CellElementSet {
 	 */
 	double getMassAsForce() const;
 
-	const DOFS getDOFSForNode(const int nodePosition) const override final;
+	DOFS getDOFSForNode(const int nodePosition) const override final;
 	bool hasTranslations() const;
 	bool hasRotations() const;
 
@@ -524,11 +524,11 @@ public:
 	 * Clear all nodes and submatrices of the Matrix.
 	 */
 	void clear() noexcept override final;
-	const std::shared_ptr<const DOFMatrix> findSubmatrix(const int nodePosition1, const int nodePosition2) const;
+	std::shared_ptr<const DOFMatrix> findSubmatrix(const int nodePosition1, const int nodePosition2) const;
 	std::set<int> nodePositions() const override final;
-	const std::set<std::pair<int, int>> nodePairs() const;
-	const std::set<std::pair<int, int>> findInPairs(int nodePosition) const;
-	const DOFS getDOFSForNode(const int nodePosition) const override final;
+	std::set<std::pair<int, int>> nodePairs() const;
+	std::set<std::pair<int, int>> findInPairs(int nodePosition) const;
+	DOFS getDOFSForNode(const int nodePosition) const override final;
 	bool isMatrixElement() const override final {
 		return true;
 	}
@@ -576,7 +576,7 @@ protected:
     RigidSet(Model&, Type type, int master_id, int original_id = NO_ORIGINAL_ID);
 public:
     virtual ~RigidSet() = default;
-    const DOFS getDOFSForNode(const int nodePosition) const override final;
+    DOFS getDOFSForNode(const int nodePosition) const override final;
     int masterId;
 };
 
@@ -634,7 +634,7 @@ public:
     ScalarSpring(Model&, int original_id = NO_ORIGINAL_ID, double stiffness = Globals::UNAVAILABLE_DOUBLE, double damping= Globals::UNAVAILABLE_DOUBLE);
     double getStiffness() const;
     double getDamping() const;
-    const std::map<std::pair<DOF, DOF>, std::vector<int>> getCellPositionByDOFS() const;
+    std::map<std::pair<DOF, DOF>, std::vector<int>> getCellPositionByDOFS() const;
     void setStiffness(const double stiffness);
     void setDamping (const double damping);
     bool hasStiffness() const override;

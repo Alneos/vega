@@ -39,7 +39,7 @@ ConfigurationParameters::ConfigurationParameters(string inputFile, Solver output
 
 }
 
-const ModelConfiguration ConfigurationParameters::getModelConfiguration() const {
+ModelConfiguration ConfigurationParameters::getModelConfiguration() const {
     ModelConfiguration configuration;
     configuration.logLevel = this->logLevel;
     if (this->outputSolver.getSolverName() == SolverName::CODE_ASTER) {

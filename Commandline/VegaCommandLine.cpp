@@ -654,7 +654,7 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
     return result;
 }
 
-const string VegaCommandLine::exitCodeToString(ExitCode exitCode)
+string VegaCommandLine::exitCodeToString(ExitCode exitCode)
  {
     auto it = failureReason_by_ExitCode.find(exitCode);
     if (it == failureReason_by_ExitCode.end()) {

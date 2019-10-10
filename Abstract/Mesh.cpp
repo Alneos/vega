@@ -99,11 +99,11 @@ bool NodeStorage::NodeIterator::operator !=(const NodeStorage::NodeIterator& rhs
 	return this->currentIdIterator != rhs.currentIdIterator;
 }
 
-const Node NodeStorage::NodeIterator::operator *() {
+Node NodeStorage::NodeIterator::operator *() {
 	return nodeStorage.mesh.findNode(this->currentIdIterator->second);
 }
 
-const Node NodeStorage::NodeIterator::next() {
+Node NodeStorage::NodeIterator::next() {
 	const Node& result(nodeStorage.mesh.findNode(this->currentIdIterator->second));
 	this->increment();
 	return result;
@@ -154,7 +154,7 @@ CellIterator CellStorage::cells_end(const CellType &type) const {
 	return CellIterator(this, type, CellIterator::POSITION_END);
 }
 
-const vector<CellType> CellStorage::cellTypes() const {
+vector<CellType> CellStorage::cellTypes() const {
     vector<CellType> keys;
     keys.reserve(nodepositionsByCelltype.size());
     for (const auto kv : nodepositionsByCelltype) {
@@ -212,7 +212,7 @@ size_t Mesh::countNodes() const noexcept {
 	return nodes.nodeDatas.size();
 }
 
-const Node Mesh::findNode(const int nodePosition) const {
+Node Mesh::findNode(const int nodePosition) const {
 	if (nodePosition == Node::UNAVAILABLE_NODE) {
 		throw invalid_argument(
 				"Node position " + to_string(nodePosition) + " not found.");
@@ -461,7 +461,7 @@ int Mesh::updateCell(int id, const CellType &cellType, const std::vector<int> &n
 }
 
 
-const Cell Mesh::findCell(int cellPosition) const {
+Cell Mesh::findCell(int cellPosition) const {
 	if (cellPosition == Cell::UNAVAILABLE_CELL) {
 		throw logic_error("Unavailable cell requested.");
 	}
@@ -592,7 +592,7 @@ std::shared_ptr<vega::CoordinateSystem> Mesh::getCoordinateSystemByPosition(cons
 	return coordinateSystemStorage.findByPosition(pos);
 }
 
-const string Mesh::getName() const noexcept {
+string Mesh::getName() const noexcept {
     return name;
 }
 
@@ -794,7 +794,7 @@ bool Mesh::validate() const {
 	return nodes.validate();
 }
 
-const MeshStatistics Mesh::calcStats() {
+MeshStatistics Mesh::calcStats() {
     if (stats != nullptr) {
         return *stats;
     }

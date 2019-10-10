@@ -205,8 +205,8 @@ public:
     bool operator==(const CellType& other) const noexcept;
     bool operator<(const CellType& other) const noexcept;
     //const CellType& operator=(const CellType& other);
-    static const CellType* findByCode(Code code) noexcept;
-    static const CellType polyType(unsigned int); /**< Return the POLY type corresponding to a cell of n nodes.*/
+    static CellType* findByCode(Code code) noexcept;
+    static CellType polyType(unsigned int); /**< Return the POLY type corresponding to a cell of n nodes.*/
     std::string to_str() const noexcept;
     bool specificSize; /**< True for all Type except the POLY ones, where the number of Nodes varies */
 };

@@ -200,7 +200,7 @@ public:
             std::vector< std::vector<int> > systusSubcases = {},
             std::string systusOutputMatrix="table", int systusSizeMatrix=9,
             std::string systusDynamicMethod="direct", std::string nastranOutputDialect="cosmic95");
-    const ModelConfiguration getModelConfiguration() const;
+    ModelConfiguration getModelConfiguration() const;
 
     const std::string inputFile;
     const Solver outputSolver;

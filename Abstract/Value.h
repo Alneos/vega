@@ -66,7 +66,7 @@ public:
     virtual ~Value() = default;
     static const std::map<Type, std::string> stringByType;
     const Value::Type type;
-    //virtual const std::string str() const = 0;
+    //virtual std::string str() const = 0;
     virtual bool isPlaceHolder() const noexcept {
         return false;
     }
@@ -97,7 +97,7 @@ protected:
     KeywordValue(const Model&, Keyword keyword);
 public:
     const Keyword keyword;
-    const std::string str() const;// override;
+    std::string str() const;// override;
 };
 
 class NamedValue: public Value, public Identifiable<NamedValue> {
@@ -332,8 +332,8 @@ public:
             Interpolation left = Interpolation::NONE, Interpolation right = Interpolation::NONE,
             int original_id = NO_ORIGINAL_ID);
     void setXY(const double X, const double Y);
-    const std::vector<std::pair<double, double> >::const_iterator getBeginValuesXY() const;
-    const std::vector<std::pair<double, double> >::const_iterator getEndValuesXY() const;
+    std::vector<std::pair<double, double> >::const_iterator getBeginValuesXY() const;
+    std::vector<std::pair<double, double> >::const_iterator getEndValuesXY() const;
     bool iszero() const override;
     void scale(double factor) override;
 };
@@ -400,10 +400,10 @@ public:
      *  Return a vector orthonormal to "other", computed from this->value
      **/
     VectorialValue orthonormalized(const VectorialValue& other) const;
-    friend const VectorialValue operator+(const VectorialValue&, const VectorialValue&);
-    friend const VectorialValue operator-(const VectorialValue&, const VectorialValue&);
-    friend const VectorialValue operator*(const double&, const VectorialValue&);
-    friend const VectorialValue operator/(const VectorialValue&, const double&);
+    friend VectorialValue operator+(const VectorialValue&, const VectorialValue&);
+    friend VectorialValue operator-(const VectorialValue&, const VectorialValue&);
+    friend VectorialValue operator*(const double&, const VectorialValue&);
+    friend VectorialValue operator/(const VectorialValue&, const double&);
     VectorialValue& operator=(const VectorialValue&);
     VectorialValue& operator=(VectorialValue&&) = default;
     friend bool operator==(const VectorialValue&, const VectorialValue&);

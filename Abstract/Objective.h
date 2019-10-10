@@ -93,8 +93,8 @@ public:
 	static const std::string name;
 	static const std::map<Type, std::string> stringByType;
 	void add(const Reference<ObjectiveSet>&);
-	const std::set<std::shared_ptr<Objective>, ptrLess<Objective>> getObjectives() const;
-	const std::set<std::shared_ptr<Objective>, ptrLess<Objective>> getObjectivesByType(Objective::Type) const;
+	std::set<std::shared_ptr<Objective>, ptrLess<Objective>> getObjectives() const;
+	std::set<std::shared_ptr<Objective>, ptrLess<Objective>> getObjectivesByType(Objective::Type) const;
 	size_t size() const;
 	inline bool empty() const noexcept {return size() == 0;};
 	std::shared_ptr<ObjectiveSet> clone() const;
@@ -105,7 +105,7 @@ protected:
     Assertion(Model&, Type, double tolerance, int original_id = NO_ORIGINAL_ID);
 public:
     const double tolerance;
-    virtual const DOFS getDOFSForNode(const int nodePosition) const = 0;
+    virtual DOFS getDOFSForNode(const int nodePosition) const = 0;
     virtual std::set<int> nodePositions() const = 0;
     bool isAssertion() const noexcept override {
         return true;
@@ -120,7 +120,7 @@ public:
     const int nodePosition;
     const int nodeId;
     const DOF dof;
-    const DOFS getDOFSForNode(const int nodePosition) const override final;
+    DOFS getDOFSForNode(const int nodePosition) const override final;
     std::set<int> nodePositions() const override final;
 };
 
@@ -152,7 +152,7 @@ public:
     const double generalizedStiffness;
     FrequencyAssertion(Model&, int number, double cycles, double eigenValue, double generalizedMass, double generalizedStiffness, double tolerance, int original_id =
             NO_ORIGINAL_ID);
-    const DOFS getDOFSForNode(const int nodePosition) const override final;
+    DOFS getDOFSForNode(const int nodePosition) const override final;
     std::set<int> nodePositions() const override final;
     friend std::ostream& operator<<(std::ostream&, const FrequencyAssertion&);
 };
@@ -167,7 +167,7 @@ public:
     const double value;
     NodalCellVonMisesAssertion(Model&, double tolerance, int cellId, int nodeId, double value, int original_id =
             NO_ORIGINAL_ID);
-    const DOFS getDOFSForNode(const int nodePosition) const override final;
+    DOFS getDOFSForNode(const int nodePosition) const override final;
     std::set<int> nodePositions() const override final;
     friend std::ostream& operator<<(std::ostream&, const NodalCellVonMisesAssertion&);
 };
@@ -196,8 +196,8 @@ public:
     FrequencySearch(Model&, const FrequencyType frequencyType, const NamedValue&, const NormType norm = NormType::MASS, int original_id = NO_ORIGINAL_ID);
     const FrequencyType frequencyType;
     const NormType norm;  /**< Method for normalizing eigenvectors: MASS or MAX **/
-    const std::shared_ptr<NamedValue> getValue() const;
-    const FunctionPlaceHolder getValueRangePlaceHolder() const;
+    std::shared_ptr<NamedValue> getValue() const;
+    FunctionPlaceHolder getValueRangePlaceHolder() const;
 };
 
 class FrequencyExcit: public AnalysisParameter {
@@ -219,8 +219,8 @@ public:
     FrequencyExcit(Model&, const FrequencyType frequencyType, const NamedValue&, const NormType norm = NormType::MASS, int original_id = NO_ORIGINAL_ID);
     const FrequencyType frequencyType;
     const NormType norm;  /**< Method for normalizing eigenvectors: MASS or MAX **/
-    const std::shared_ptr<NamedValue> getValue() const;
-    const FunctionPlaceHolder getValueRangePlaceHolder() const;
+    std::shared_ptr<NamedValue> getValue() const;
+    FunctionPlaceHolder getValueRangePlaceHolder() const;
 };
 
 class ModalDamping: public AnalysisParameter {
@@ -231,8 +231,8 @@ public:
     ModalDamping(Model& model, const FunctionTable& function_table, int original_id =
             NO_ORIGINAL_ID);
     ModalDamping(Model& model, int function_table_id, int original_id = NO_ORIGINAL_ID);
-    const std::shared_ptr<FunctionTable> getFunctionTable() const;
-    const FunctionPlaceHolder getFunctionTablePlaceHolder() const;
+    std::shared_ptr<FunctionTable> getFunctionTable() const;
+    FunctionPlaceHolder getFunctionTablePlaceHolder() const;
 };
 
 class NonLinearStrategy: public AnalysisParameter {

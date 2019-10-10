@@ -58,7 +58,7 @@ ostream &operator<<(ostream &out, const CoordinateSystem& coordinateSystem) {
     return out;
 }
 
-const VectorialValue CoordinateSystem::getEulerAnglesIntrinsicZYX(const CoordinateSystem *cs) const {
+VectorialValue CoordinateSystem::getEulerAnglesIntrinsicZYX(const CoordinateSystem *cs) const {
     double ax, ay, az = 0;
     VectorialValue EX, EY, EZ;
 
@@ -104,7 +104,7 @@ CartesianCoordinateSystem::CartesianCoordinateSystem(const Mesh& mesh,
     isVirtual=true;
 }
 
-const VectorialValue CartesianCoordinateSystem::positionToGlobal(const VectorialValue& local) const{
+VectorialValue CartesianCoordinateSystem::positionToGlobal(const VectorialValue& local) const{
     VectorialValue global = vectorToGlobal(local);
     if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM) {
         return this->getOrigin()+ global;
@@ -114,7 +114,7 @@ const VectorialValue CartesianCoordinateSystem::positionToGlobal(const Vectorial
     }
 }
 
-const VectorialValue CartesianCoordinateSystem::vectorToGlobal(const VectorialValue& local) const {
+VectorialValue CartesianCoordinateSystem::vectorToGlobal(const VectorialValue& local) const {
     double x = local.x() * ex.x() + local.y() * ey.x() + local.z() * ez.x();
     double y = local.x() * ex.y() + local.y() * ey.y() + local.z() * ez.y();
     double z = local.x() * ex.z() + local.y() * ey.z() + local.z() * ez.z();
@@ -129,7 +129,7 @@ const VectorialValue CartesianCoordinateSystem::vectorToGlobal(const VectorialVa
     }
 }
 
-const VectorialValue CartesianCoordinateSystem::vectorToLocal(const VectorialValue& global) const {
+VectorialValue CartesianCoordinateSystem::vectorToLocal(const VectorialValue& global) const {
 
     VectorialValue vect;
     if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM) {
@@ -195,7 +195,7 @@ void CylindricalCoordinateSystem::updateLocalBase(const VectorialValue& point) {
     }
 }
 
-const VectorialValue CylindricalCoordinateSystem::positionToGlobal(const VectorialValue& local) const{
+VectorialValue CylindricalCoordinateSystem::positionToGlobal(const VectorialValue& local) const{
     double rcosth = local.x()*cos(M_PI*local.y()/180.0);
     double rsinth = local.x()*sin(M_PI*local.y()/180.0);
     double x = rcosth*ex.x() + rsinth*ey.x() + local.z()*ez.x();
@@ -210,7 +210,7 @@ const VectorialValue CylindricalCoordinateSystem::positionToGlobal(const Vectori
     }
 }
 
-const VectorialValue CylindricalCoordinateSystem::vectorToGlobal(
+VectorialValue CylindricalCoordinateSystem::vectorToGlobal(
         const VectorialValue& local) const {
     double x = local.x() * ur.x() + local.y() * utheta.x() + local.z() * ez.x();
     double y = local.x() * ur.y() + local.y() * utheta.y() + local.z() * ez.y();
@@ -224,7 +224,7 @@ const VectorialValue CylindricalCoordinateSystem::vectorToGlobal(
     }
 }
 
-const VectorialValue CylindricalCoordinateSystem::vectorToLocal(const VectorialValue& global) const {
+VectorialValue CylindricalCoordinateSystem::vectorToLocal(const VectorialValue& global) const {
     UNUSEDV(global);
     throw logic_error("Global To Local vector conversion not done for Cylindrical Coordinate System");
 }
@@ -234,7 +234,7 @@ shared_ptr<CoordinateSystem> CylindricalCoordinateSystem::clone() const {
     return make_shared<CylindricalCoordinateSystem>(*this);
 }
 
-const VectorialValue CylindricalCoordinateSystem::getLocalEulerAnglesIntrinsicZYX(const CoordinateSystem *cs) const {
+VectorialValue CylindricalCoordinateSystem::getLocalEulerAnglesIntrinsicZYX(const CoordinateSystem *cs) const {
     CartesianCoordinateSystem localCS(this->mesh, VectorialValue(0,0,0), this->ur, this->utheta);
     return localCS.getEulerAnglesIntrinsicZYX(cs);
 }
@@ -251,7 +251,7 @@ void SphericalCoordinateSystem::updateLocalBase(const VectorialValue& point) {
     throw logic_error("updateLocalBase not done for Spherical Coordinate System");
 }
 
-const VectorialValue SphericalCoordinateSystem::positionToGlobal(const VectorialValue& local) const{
+VectorialValue SphericalCoordinateSystem::positionToGlobal(const VectorialValue& local) const{
     double r = local.x();
     double theta = local.y();
     double phi = local.z();
@@ -271,13 +271,13 @@ const VectorialValue SphericalCoordinateSystem::positionToGlobal(const Vectorial
     }
 }
 
-const VectorialValue SphericalCoordinateSystem::vectorToGlobal(
+VectorialValue SphericalCoordinateSystem::vectorToGlobal(
         const VectorialValue& local) const {
     UNUSEDV(local);
     throw logic_error("Vector To Global conversion not done for Spherical Coordinate System");
 }
 
-const VectorialValue SphericalCoordinateSystem::vectorToLocal(const VectorialValue& global) const {
+VectorialValue SphericalCoordinateSystem::vectorToLocal(const VectorialValue& global) const {
     UNUSEDV(global);
     throw logic_error("Global To Local vector conversion not done for Spherical Coordinate System");
 }
@@ -331,25 +331,25 @@ void OrientationCoordinateSystem::build(){
 
 }
 
-const VectorialValue OrientationCoordinateSystem::getOrigin() const{
+VectorialValue OrientationCoordinateSystem::getOrigin() const{
     if (isVirtual){
         throw logic_error("Coordinate System is still virtual.");
     }
     return origin;
 }
-const VectorialValue OrientationCoordinateSystem::getEx() const{
+VectorialValue OrientationCoordinateSystem::getEx() const{
     if (isVirtual){
         throw logic_error("Coordinate System is still virtual.");
     }
     return ex;
 }
-const VectorialValue OrientationCoordinateSystem::getEy() const{
+VectorialValue OrientationCoordinateSystem::getEy() const{
     if (isVirtual){
         throw logic_error("Coordinate System is still virtual.");
     }
     return ey;
 }
-const VectorialValue OrientationCoordinateSystem::getEz() const {
+VectorialValue OrientationCoordinateSystem::getEz() const {
     if (isVirtual){
         throw logic_error("Coordinate System is still virtual.");
     }
@@ -368,7 +368,7 @@ bool OrientationCoordinateSystem::operator ==(const OrientationCoordinateSystem&
     }
 }
 
-const VectorialValue OrientationCoordinateSystem::positionToGlobal(const VectorialValue& local) const{
+VectorialValue OrientationCoordinateSystem::positionToGlobal(const VectorialValue& local) const{
     if (isVirtual){
         throw logic_error("Coordinate System is still virtual.");
     }
@@ -381,7 +381,7 @@ const VectorialValue OrientationCoordinateSystem::positionToGlobal(const Vectori
     }
 }
 
-const VectorialValue OrientationCoordinateSystem::vectorToGlobal(const VectorialValue& local) const {
+VectorialValue OrientationCoordinateSystem::vectorToGlobal(const VectorialValue& local) const {
     if (isVirtual){
         throw logic_error("Coordinate System is still virtual.");
     }
@@ -397,7 +397,7 @@ const VectorialValue OrientationCoordinateSystem::vectorToGlobal(const Vectorial
     }
 }
 
-const VectorialValue OrientationCoordinateSystem::vectorToLocal(const VectorialValue& global) const {
+VectorialValue OrientationCoordinateSystem::vectorToLocal(const VectorialValue& global) const {
 
     VectorialValue vect;
     if (rcs == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM) {
@@ -415,10 +415,6 @@ const VectorialValue OrientationCoordinateSystem::vectorToLocal(const VectorialV
 shared_ptr<CoordinateSystem> OrientationCoordinateSystem::clone() const {
     return make_shared<OrientationCoordinateSystem>(*this);
 }
-
-
-
-
 
 /**
  * Coordinate System Container class
@@ -487,14 +483,6 @@ shared_ptr<CoordinateSystem> CoordinateSystemStorage::findByPosition(int cpos) c
     }
     return it->second;
 }
-
-/*shared_ptr<CoordinateSystem> CoordinateSystemStorage::findById(int cid) const {
-    auto it = coordinateSystemById.find(cid);
-    if (it == coordinateSystemById.end()) {
-        return nullptr;
-    }
-    return it->second;
-}*/
 
 shared_ptr<CoordinateSystem> CoordinateSystemStorage::find(Reference<CoordinateSystem> csref) const {
 

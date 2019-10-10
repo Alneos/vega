@@ -54,7 +54,7 @@ void Material::addNature(const shared_ptr<Nature>& nature) {
 	nature_by_type[nature->type] = nature;
 }
 
-const shared_ptr<Nature> Material::findNature(const Nature::NatureType natureType) const {
+shared_ptr<Nature> Material::findNature(const Nature::NatureType natureType) const {
 	shared_ptr<Nature> nature;
 	auto it = nature_by_type.find(natureType);
 	if (it != nature_by_type.end())
@@ -238,10 +238,10 @@ double RigidNature::getLagrangian() const {
 }
 
 void RigidNature::setLagrangian(double lagrangian) {
-    this->lagrangian= lagrangian;
+    this->lagrangian = lagrangian;
 }
 
-const CellContainer Material::getAssignment() const {
+CellContainer Material::getAssignment() const {
 	return this->model.getMaterialAssignment(this->getId());
 }
 

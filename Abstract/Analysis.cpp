@@ -69,7 +69,7 @@ void Analysis::add(const Reference<LoadSet>& loadSetReference) {
     this->loadSet_references.insert(loadSetReference);
 }
 
-const vector<shared_ptr<LoadSet>> Analysis::getLoadSets() const {
+vector<shared_ptr<LoadSet>> Analysis::getLoadSets() const {
     vector<shared_ptr<LoadSet>> result;
     shared_ptr<LoadSet> commonLoadSet = model.commonLoadSet;
     if (commonLoadSet != nullptr and not commonLoadSet->empty())
@@ -82,7 +82,7 @@ const vector<shared_ptr<LoadSet>> Analysis::getLoadSets() const {
     return result;
 }
 
-const vector<shared_ptr<BoundaryCondition>> Analysis::getBoundaryConditions() const {
+vector<shared_ptr<BoundaryCondition>> Analysis::getBoundaryConditions() const {
     vector<shared_ptr<BoundaryCondition>> result;
     for (const auto& constraintSet : getConstraintSets()) {
         if (constraintSet == nullptr) {
@@ -199,7 +199,7 @@ bool Analysis::contains(const Objective::Type type) const {
 }
 
 
-const vector<shared_ptr<ConstraintSet>> Analysis::getConstraintSets() const {
+vector<shared_ptr<ConstraintSet>> Analysis::getConstraintSets() const {
     vector<shared_ptr<ConstraintSet>> result;
     shared_ptr<ConstraintSet> commonConstraintSet = model.commonConstraintSet;
     if (commonConstraintSet != nullptr and not commonConstraintSet->empty())
@@ -215,7 +215,7 @@ void Analysis::add(const Reference<Objective>& assertionReference) {
     objectiveReferences.insert(assertionReference);
 }
 
-const vector<shared_ptr<Assertion>> Analysis::getAssertions() const {
+vector<shared_ptr<Assertion>> Analysis::getAssertions() const {
     vector<shared_ptr<Assertion>> assertions;
     for (const auto& assertion_reference : objectiveReferences) {
         shared_ptr<Objective> objective = model.find(assertion_reference);
@@ -225,7 +225,7 @@ const vector<shared_ptr<Assertion>> Analysis::getAssertions() const {
     return assertions;
 }
 
-const vector<shared_ptr<Objective>> Analysis::getObjectives() const {
+vector<shared_ptr<Objective>> Analysis::getObjectives() const {
     vector<shared_ptr<Objective>> objectives;
     for (const auto& objective_reference : objectiveReferences) {
         shared_ptr<Objective> objective = model.find(objective_reference);
@@ -345,7 +345,7 @@ void Analysis::addBoundaryDOFS(int nodePosition, const DOFS dofs) {
     boundaryDOFSByNodePosition[nodePosition] = DOFS(boundaryDOFSByNodePosition[nodePosition]) + dofs;
 }
 
-const DOFS Analysis::findBoundaryDOFS(int nodePosition) const {
+DOFS Analysis::findBoundaryDOFS(int nodePosition) const {
     const auto& entry = boundaryDOFSByNodePosition.find(nodePosition);
     if (entry == boundaryDOFSByNodePosition.end()) {
         return DOFS::NO_DOFS;
@@ -354,7 +354,7 @@ const DOFS Analysis::findBoundaryDOFS(int nodePosition) const {
     }
 }
 
-const set<int> Analysis::boundaryNodePositions() const {
+set<int> Analysis::boundaryNodePositions() const {
     set<int> result;
     for (const auto& entry : boundaryDOFSByNodePosition) {
         result.insert(entry.first);

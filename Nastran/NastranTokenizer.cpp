@@ -451,7 +451,7 @@ int NastranTokenizer::nextInt(bool returnDefaultIfNotFoundOrBlank, int defaultVa
 	return result;
 }
 
-const list<int> NastranTokenizer::nextInts() {
+list<int> NastranTokenizer::nextInts() {
 	list<int> result;
 	while(isNextInt() or isNextTHRU()) {
         if (isNextInt()) {
@@ -478,7 +478,7 @@ const list<int> NastranTokenizer::nextInts() {
 	return result;
 }
 
-const list<double> NastranTokenizer::nextDoubles() {
+list<double> NastranTokenizer::nextDoubles() {
 	list<double> result;
 	while(isNextDouble()) {
       result.push_back(nextDouble());
@@ -521,7 +521,7 @@ vector<string> NastranTokenizer::currentDataLine() const {
 	return currentLineVector;
 }
 
-const string NastranTokenizer::currentRawDataLine() const {
+string NastranTokenizer::currentRawDataLine() const {
 	return this->currentLine;
 }
 

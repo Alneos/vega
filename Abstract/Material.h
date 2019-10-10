@@ -183,14 +183,14 @@ public:
     static const std::map<Type, std::string> stringByType;
     Material(Model& model, int material_id = NO_ORIGINAL_ID);
     void addNature(const std::shared_ptr<Nature>& nature);
-    const std::shared_ptr<Nature> findNature(Nature::NatureType) const;
+    std::shared_ptr<Nature> findNature(Nature::NatureType) const;
     virtual bool validate() const override;
     /**
      * Get all the cells assigned to a specific material. This inspects
      * both the elementSets with a material assigned and the materials assigned
      * directly.
      */
-    const CellContainer getAssignment() const;
+    CellContainer getAssignment() const;
     /**
      * Assign a material to a group of cells. There are two ways of assigning
      * a material: either trough this method or with an ElementSet.

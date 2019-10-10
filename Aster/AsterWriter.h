@@ -78,7 +78,7 @@ public:
     AsterWriter() = default;
 	AsterWriter(const AsterWriter& that) = delete;
 	std::string writeModel(Model&, const ConfigurationParameters&) override;
-	const std::string toString() const override;
+	std::string toString() const override;
 };
 
 }

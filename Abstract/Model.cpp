@@ -146,7 +146,7 @@ shared_ptr<Target> Model::getTarget(int id) const {
     return targets.get(id);
 }
 
-const vector<int> Model::getMaterialsId() const{
+vector<int> Model::getMaterialsId() const{
 	vector<int> v;
 	for (const auto& material : materials){
 		v.push_back(material->getId());
@@ -154,7 +154,7 @@ const vector<int> Model::getMaterialsId() const{
 	return v;
 }
 
-const vector<int> Model::getElementSetsId() const{
+vector<int> Model::getElementSetsId() const{
 	vector<int> v;
 	for (const auto& elementSet : elementSets){
 		v.push_back(elementSet->getId());
@@ -276,37 +276,37 @@ void Model::remove(const Reference<Objective> objectiveReference) {
 }
 
 template<>
-const shared_ptr<Objective> Model::find(const Reference<Objective> reference) const {
+shared_ptr<Objective> Model::find(const Reference<Objective> reference) const {
     return objectives.find(reference);
 }
 
 template<>
-const shared_ptr<NamedValue> Model::find(const Reference<NamedValue> reference) const {
+shared_ptr<NamedValue> Model::find(const Reference<NamedValue> reference) const {
     return values.find(reference);
 }
 
 template<>
-const shared_ptr<Loading> Model::find(const Reference<Loading> reference) const {
+shared_ptr<Loading> Model::find(const Reference<Loading> reference) const {
     return loadings.find(reference);
 }
 
 template<>
-const shared_ptr<LoadSet> Model::find(const Reference<LoadSet> reference) const {
+shared_ptr<LoadSet> Model::find(const Reference<LoadSet> reference) const {
     return loadSets.find(reference);
 }
 
 template<>
-const shared_ptr<Constraint> Model::find(const Reference<Constraint> reference) const {
+shared_ptr<Constraint> Model::find(const Reference<Constraint> reference) const {
     return constraints.find(reference);
 }
 
 template<>
-const shared_ptr<ConstraintSet> Model::find(const Reference<ConstraintSet> reference) const {
+shared_ptr<ConstraintSet> Model::find(const Reference<ConstraintSet> reference) const {
     return constraintSets.find(reference);
 }
 
 template<>
-const shared_ptr<Analysis> Model::find(const Reference<Analysis> reference) const {
+shared_ptr<Analysis> Model::find(const Reference<Analysis> reference) const {
     shared_ptr<Analysis> analysis;
     if (reference.type == Analysis::Type::UNKNOWN and reference.id == Reference<Analysis>::NO_ID)
         // retrieve by original_id
@@ -317,7 +317,7 @@ const shared_ptr<Analysis> Model::find(const Reference<Analysis> reference) cons
 }
 
 template<>
-const shared_ptr<ElementSet> Model::find(const Reference<ElementSet> reference) const {
+shared_ptr<ElementSet> Model::find(const Reference<ElementSet> reference) const {
     shared_ptr<ElementSet> elementSet;
     if (reference.type == ElementSet::Type::UNKNOWN and reference.id == Reference<ElementSet>::NO_ID)
         // retrieve by original_id
@@ -328,7 +328,7 @@ const shared_ptr<ElementSet> Model::find(const Reference<ElementSet> reference) 
 }
 
 template<>
-const shared_ptr<Target> Model::find(const Reference<Target> reference) const {
+shared_ptr<Target> Model::find(const Reference<Target> reference) const {
     shared_ptr<Target> target;
     if (reference.id == Reference<Target>::NO_ID)
         // retrieve by original_id
@@ -367,7 +367,7 @@ shared_ptr<LoadSet> Model::getOrCreateLoadSet(int loadset_id, LoadSet::Type load
 }
 
 
-const set<shared_ptr<Loading>, ptrLess<Loading>> Model::getLoadingsByLoadSet(
+set<shared_ptr<Loading>, ptrLess<Loading>> Model::getLoadingsByLoadSet(
         const Reference<LoadSet>& loadSetReference) const {
     set<shared_ptr<Loading>, ptrLess<Loading>> result;
     auto itm = loadingReferences_by_loadSet_ids.find(loadSetReference.id);
@@ -410,7 +410,7 @@ void Model::addConstraintIntoConstraintSet(const Reference<Constraint>& constrai
         add(commonConstraintSet); // commonConstraintSet is added to the model if needed
 }
 
-const set<shared_ptr<Constraint>, ptrLess<Constraint>> Model::getConstraintsByConstraintSet(
+set<shared_ptr<Constraint>, ptrLess<Constraint>> Model::getConstraintsByConstraintSet(
         const Reference<ConstraintSet>& constraintSetReference) const {
     set<shared_ptr<Constraint>, ptrLess<Constraint>> result;
     auto itm = constraintReferences_by_constraintSet_ids.find(constraintSetReference.id);
@@ -432,7 +432,7 @@ const set<shared_ptr<Constraint>, ptrLess<Constraint>> Model::getConstraintsByCo
     return result;
 }
 
-const set<shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> Model::getConstraintSetsByConstraint(
+set<shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> Model::getConstraintSetsByConstraint(
         const Reference<Constraint>& constraintReference) const {
     set<shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> result;
     for (const auto& it : constraintSets) {
@@ -454,7 +454,7 @@ const set<shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> Model::getConstrain
     return result;
 }
 
-const set<shared_ptr<Objective>, ptrLess<Objective>> Model::getObjectivesByObjectiveSet(
+set<shared_ptr<Objective>, ptrLess<Objective>> Model::getObjectivesByObjectiveSet(
         const Reference<ObjectiveSet>& objectiveSetReference) const {
     set<shared_ptr<Objective>, ptrLess<Objective>> result;
     auto itm = objectiveReferences_by_objectiveSet_ids.find(objectiveSetReference.id);
@@ -476,7 +476,7 @@ const set<shared_ptr<Objective>, ptrLess<Objective>> Model::getObjectivesByObjec
     return result;
 }
 
-const vector<shared_ptr<ConstraintSet>> Model::getActiveConstraintSets() const {
+vector<shared_ptr<ConstraintSet>> Model::getActiveConstraintSets() const {
     vector<shared_ptr<ConstraintSet>> result;
     set<shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> cset;
     for (const auto& analyse : analyses) {
@@ -490,7 +490,7 @@ const vector<shared_ptr<ConstraintSet>> Model::getActiveConstraintSets() const {
     return result;
 }
 
-const vector<shared_ptr<LoadSet>> Model::getActiveLoadSets() const {
+vector<shared_ptr<LoadSet>> Model::getActiveLoadSets() const {
     vector<shared_ptr<LoadSet>> result;
     set<shared_ptr<LoadSet>, ptrLess<LoadSet>> lset;
     for (const auto& analyse : analyses) {
@@ -504,7 +504,7 @@ const vector<shared_ptr<LoadSet>> Model::getActiveLoadSets() const {
     return result;
 }
 
-const vector<shared_ptr<ConstraintSet>> Model::getCommonConstraintSets() const {
+vector<shared_ptr<ConstraintSet>> Model::getCommonConstraintSets() const {
     vector<shared_ptr<ConstraintSet>> result;
     map<shared_ptr<ConstraintSet>, size_t> map;
     for (const auto& analyse : analyses) {
@@ -520,7 +520,7 @@ const vector<shared_ptr<ConstraintSet>> Model::getCommonConstraintSets() const {
     return result;
 }
 
-const vector<shared_ptr<LoadSet>> Model::getCommonLoadSets() const {
+vector<shared_ptr<LoadSet>> Model::getCommonLoadSets() const {
     vector<shared_ptr<LoadSet>> result;
     map<shared_ptr<LoadSet>, size_t> map;
     for (const auto& analyse : analyses) {
@@ -541,7 +541,7 @@ const vector<shared_ptr<LoadSet>> Model::getCommonLoadSets() const {
     return result;
 }
 
-const set<shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> Model::getUncommonConstraintSets() const {
+set<shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> Model::getUncommonConstraintSets() const {
     set<shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> result;
     map<shared_ptr<ConstraintSet>, size_t, ptrLess<ConstraintSet>> amap;
     for (const auto& analyse : analyses) {
@@ -557,7 +557,7 @@ const set<shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> Model::getUncommonC
     return result;
 }
 
-const set<shared_ptr<LoadSet>, ptrLess<LoadSet>> Model::getUncommonLoadSets() const {
+set<shared_ptr<LoadSet>, ptrLess<LoadSet>> Model::getUncommonLoadSets() const {
     set<shared_ptr<LoadSet>, ptrLess<LoadSet>> result;
     map<shared_ptr<LoadSet>, size_t, ptrLess<LoadSet>> lmap;
     for (const auto& analyse : analyses) {
@@ -658,7 +658,7 @@ void Model::generateDiscrets() {
                     addConstraintIntoConstraintSet(*spc, *spcSet);
                     analysis->add(*spcSet);
                     if (configuration.logLevel >= LogLevel::DEBUG) {
-                        cout << "Adding virtual spc on node: id: " << node.id << "for " << extraDOFS
+                        cout << "Adding virtual spc on node: id: " << node.id << " for " << extraDOFS
                                 << endl;
                     }
                 }
@@ -676,7 +676,7 @@ shared_ptr<Material> Model::getOrCreateMaterial(int material_id, bool createIfNo
     return result;
 }
 
-const CellContainer Model::getMaterialAssignment(int materialId) const {
+CellContainer Model::getMaterialAssignment(int materialId) const {
     auto it = material_assignment_by_material_id.find(materialId);
     if (it != material_assignment_by_material_id.end()) {
         return it->second;
@@ -703,7 +703,7 @@ shared_ptr<Material> Model::getVirtualMaterial() {
     return virtualMaterial;
 }
 
-const vector<shared_ptr<Beam>> Model::getBeams() const {
+vector<shared_ptr<Beam>> Model::getBeams() const {
     vector<shared_ptr<Beam>> result;
     for (const auto& elementSet : elementSets) {
         if (elementSet->isBeam()) {
@@ -714,7 +714,7 @@ const vector<shared_ptr<Beam>> Model::getBeams() const {
     return result;
 }
 
-const vector<shared_ptr<Beam>> Model::getTrusses() const {
+vector<shared_ptr<Beam>> Model::getTrusses() const {
     vector<shared_ptr<Beam>> result;
     for (const auto& elementSet : elementSets) {
         if (elementSet->isTruss()) {
@@ -1268,7 +1268,7 @@ void Model::replaceDirectMatrices()
             add(spc);
             addConstraintIntoConstraintSet(*spc, *commonConstraintSet);
             if (configuration.logLevel >= LogLevel::TRACE) {
-                cout << "Adding virtual spc on node id: " << this->mesh.findNodeId(nodePosition) << "for " << extra
+                cout << "Adding virtual spc on node id: " << this->mesh.findNodeId(nodePosition) << " for " << extra
                         << endl;
             }
         }
@@ -2194,6 +2194,9 @@ bool Model::checkWritten() const {
         if (not analysis->isWritten()) {
             continue;
         }
+        if (configuration.logLevel >= LogLevel::DEBUG) {
+            cerr << "Checking if analysis:" << *analysis << " has been written" << endl;
+        }
         for (const auto& loadSet : analysis->getLoadSets()) {
             validLos = validLos and loadSet->isWritten();
             for (const auto& loading : loadSet->getLoadings()) {
@@ -2205,7 +2208,7 @@ bool Model::checkWritten() const {
             validCos = validCos and constraintSet ->isWritten();
             for (const auto& constraint : constraintSet->getConstraints()) {
                 if (configuration.logLevel >= LogLevel::DEBUG and not constraint->isWritten()) {
-                    cerr << "Constraint:" << *constraint << " has not been written";
+                    cerr << "Constraint:" << *constraint << " has not been written" << endl;
                 }
                 validCon = validCon and constraint->isWritten();
             }
@@ -2223,14 +2226,14 @@ bool Model::checkWritten() const {
     string sTar = ( (sizeTar > 1) ? "s have " : " has ");
 
     if (configuration.logLevel >= LogLevel::DEBUG) {
-        if (not validMat) cout << "The " << sizeMat << " material"     << sMat << "NOT been written." << endl;
-        if (not validEle) cout << "The " << sizeEle << " elementSet"   << sEle << "NOT been written." << endl;
-        if (not validLoa) cout << "The " << sizeLoa << " loading"      << sLoa << "NOT been written." << endl;
-        if (not validLos) cout << "The " << sizeLos << " loadSet"      << sLos << "NOT been written." << endl;
-        if (not validCon) cout << "The " << sizeCon << " constraint"   << sCon << "NOT been written." << endl;
-        if (not validCos) cout << "The " << sizeCos << " constraintSet"<< sCos << "NOT been written." << endl;
-        if (not validAna) cout << "The " << sizeAna << " analys"      << sAna << "NOT been written." << endl;
-        if (not validTar) cout << "The " << sizeTar << " target"      << sTar << "NOT been written." << endl;
+        if (not validMat) cout << "The " << sizeMat << " material"     << sMat << "NOT been all written." << endl;
+        if (not validEle) cout << "The " << sizeEle << " elementSet"   << sEle << "NOT been all written." << endl;
+        if (not validLoa) cout << "The " << sizeLoa << " loading"      << sLoa << "NOT been all written." << endl;
+        if (not validLos) cout << "The " << sizeLos << " loadSet"      << sLos << "NOT been all written." << endl;
+        if (not validCon) cout << "The " << sizeCon << " constraint"   << sCon << "NOT been all written." << endl;
+        if (not validCos) cout << "The " << sizeCos << " constraintSet"<< sCos << "NOT been all written." << endl;
+        if (not validAna) cout << "The " << sizeAna << " analys"      << sAna << "NOT been all written." << endl;
+        if (not validTar) cout << "The " << sizeTar << " target"      << sTar << "NOT been all written." << endl;
 
     }
 

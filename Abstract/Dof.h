@@ -144,7 +144,7 @@ public:
 		}
 	};
 	iterator begin() const noexcept;
-	const iterator end() const noexcept;
+	iterator end() const noexcept;
 };
 
 DOFS operator+(const DOFS lhs, const DOFS& rhs) noexcept;

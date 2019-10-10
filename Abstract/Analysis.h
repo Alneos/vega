@@ -93,22 +93,22 @@ public:
     void remove(const Reference<ConstraintSet>);
     void remove(const Reference<Objective>);
 
-    const std::string getLabel() const {return label;}  /**< Getter for the label variable **/
+    std::string getLabel() const {return label;}  /**< Getter for the label variable **/
 
     /**
      * retrieve the ConstraintSets specific to this analysis
      * plus eventually the common ConstraintSet of all analyzes of the model
      */
-    const std::vector<std::shared_ptr<ConstraintSet>> getConstraintSets() const;
+    std::vector<std::shared_ptr<ConstraintSet>> getConstraintSets() const;
 
     /**
      * retrieve the LoadSets specific to this analysis
      * plus eventually the common LoadSet of all analyzes of the model
      */
-    const std::vector<std::shared_ptr<LoadSet>> getLoadSets() const;
-    const std::vector<std::shared_ptr<BoundaryCondition>> getBoundaryConditions() const;
-    const std::vector<std::shared_ptr<Assertion>> getAssertions() const;
-    const std::vector<std::shared_ptr<Objective>> getObjectives() const;
+    std::vector<std::shared_ptr<LoadSet>> getLoadSets() const;
+    std::vector<std::shared_ptr<BoundaryCondition>> getBoundaryConditions() const;
+    std::vector<std::shared_ptr<Assertion>> getAssertions() const;
+    std::vector<std::shared_ptr<Objective>> getObjectives() const;
 
     /**
      * Return true if the analysis has at least one SPC (or equivalent SPCD, MPCD, etc)
@@ -118,8 +118,8 @@ public:
 
     void removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition, const DOFS dofs);
     void addBoundaryDOFS(int nodePosition, const DOFS dofs);
-    const DOFS findBoundaryDOFS(int nodePosition) const;
-    const std::set<int> boundaryNodePositions() const;
+    DOFS findBoundaryDOFS(int nodePosition) const;
+    std::set<int> boundaryNodePositions() const;
     void copyInto(Analysis& other) const;
 
     virtual bool isStatic() const {

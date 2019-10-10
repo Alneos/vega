@@ -55,12 +55,12 @@ BOOST_AUTO_TEST_CASE(nastran_f06_parsing) {
 			model->find(Reference<Analysis>(Analysis::Type::LINEAR_MECA_STAT, 1)));
 	BOOST_ASSERT(linearMecaStat1!=nullptr);
 	vector<shared_ptr<Assertion>> assertions = linearMecaStat1->getAssertions();
-	BOOST_CHECK_EQUAL(assertions.size(), 24);
+	BOOST_CHECK_EQUAL(assertions.size(), 30);
 
 	model->finish();
 	//ineffective assertions are removed by model->finish()
 	vector<shared_ptr<Assertion>> assertions2 = linearMecaStat1->getAssertions();
-	BOOST_CHECK_EQUAL(assertions2.size(), 24);
+	BOOST_CHECK_EQUAL(assertions2.size(), 30);
 	bool found = false;
 	for (const auto& assertion : assertions) {
 

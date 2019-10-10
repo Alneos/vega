@@ -71,10 +71,10 @@ public:
     static const std::string name;
     static const std::map<Type, std::string> stringByType;
     static const std::map<CoordinateType, std::string> stringByCoordinateSystemType;
-    inline const VectorialValue getOrigin() const noexcept {return origin;};
-    inline const VectorialValue getEx() const noexcept {return ex;};
-    inline const VectorialValue getEy() const noexcept {return ey;};
-    inline const VectorialValue getEz() const noexcept {return ez;};
+    inline VectorialValue getOrigin() const noexcept {return origin;};
+    inline VectorialValue getEx() const noexcept {return ex;};
+    inline VectorialValue getEy() const noexcept {return ey;};
+    inline VectorialValue getEz() const noexcept {return ez;};
 
     protected:
     CoordinateSystem(const Mesh&, Type, CoordinateType, const VectorialValue origin, const VectorialValue ex,
@@ -88,26 +88,26 @@ public:
      *  Translate a position (x,y,z) expressed in this local Coordinate system,
      *   to its global counterpart.
      */
-    virtual const VectorialValue positionToGlobal(const VectorialValue&) const = 0;
+    virtual VectorialValue positionToGlobal(const VectorialValue&) const = 0;
     /**
      *  Translate a vector, expressed in this local Coordinate system,
      *   to its global counterpart. Warning, it does not take the origin into
      *   account, so do NOT use this to convert coordinates.
      */
-    virtual const VectorialValue vectorToGlobal(const VectorialValue&) const = 0;
+    virtual VectorialValue vectorToGlobal(const VectorialValue&) const = 0;
     /**
      *  Translate a vector, expressed in the global Coordinate system,
      *   to its local counterpart. Warning, it does not take the origin into
      *   account, so do NOT use this to convert coordinates.
      */
-    virtual const VectorialValue vectorToLocal(const VectorialValue&) const = 0;
+    virtual VectorialValue vectorToLocal(const VectorialValue&) const = 0;
     /**
      *  Compute the Euler Angles (PSI,THETA,PHI) around the axes (OZ, OY, OX)
      *  of the reference coordinate system RCS. If no rcsPos is provided, the global
      *  coordinate system is used.
      * TODO LD use internal RCS ?
      */
-    virtual const VectorialValue getEulerAnglesIntrinsicZYX(const CoordinateSystem *cs = nullptr) const;
+    virtual VectorialValue getEulerAnglesIntrinsicZYX(const CoordinateSystem *cs = nullptr) const;
     virtual std::shared_ptr<CoordinateSystem> clone() const = 0;
 };
 
@@ -124,9 +124,9 @@ public:
      *    - nodesId[2] is in the x-z plane.
      */
     void build() override;
-    const VectorialValue positionToGlobal(const VectorialValue&) const override;
-    const VectorialValue vectorToGlobal(const VectorialValue&) const override;
-    const VectorialValue vectorToLocal(const VectorialValue&) const override;
+    VectorialValue positionToGlobal(const VectorialValue&) const override;
+    VectorialValue vectorToGlobal(const VectorialValue&) const override;
+    VectorialValue vectorToLocal(const VectorialValue&) const override;
     std::shared_ptr<CoordinateSystem> clone() const override;
 };
 
@@ -148,19 +148,19 @@ protected:
 
 public:
     void build() override; /**< Build (O,ex,ey,ez) from the node and v */
-    const VectorialValue getOrigin() const;
-    const VectorialValue getEx() const;
-    const VectorialValue getEy() const;
-    const VectorialValue getEz() const;
-    inline const VectorialValue getV() const noexcept {return v;};
+    VectorialValue getOrigin() const;
+    VectorialValue getEx() const;
+    VectorialValue getEy() const;
+    VectorialValue getEz() const;
+    inline VectorialValue getV() const noexcept {return v;};
     inline int getNodeO() const noexcept {return nodesId[0];}; /**< Return node Id of O (Origin point) */
     inline int getNodeX() const noexcept {return nodesId[1];}; /**< Return node Id of X (X axis is built with ex=OX) */
     inline int getNodeV() const noexcept {return nodesId[2];}; /**< Return node Id of V point (alternate method to supply v: v= OV) */
     bool operator==(const OrientationCoordinateSystem&) const noexcept;  /**< Equal operator */
 
-    const VectorialValue positionToGlobal(const VectorialValue&) const override;
-    const VectorialValue vectorToGlobal(const VectorialValue&) const override;
-    const VectorialValue vectorToLocal(const VectorialValue&) const override;
+    VectorialValue positionToGlobal(const VectorialValue&) const override;
+    VectorialValue vectorToGlobal(const VectorialValue&) const override;
+    VectorialValue vectorToLocal(const VectorialValue&) const override;
     std::shared_ptr<CoordinateSystem> clone() const override;
 };
 
@@ -181,21 +181,21 @@ public:
      *  Translate a position expressed in this coordinate system (r, theta, z),
      *   to its global counterpart (x,y,z). theta is expressed in degrees.
      */
-    const VectorialValue positionToGlobal(const VectorialValue&) const override;
+    VectorialValue positionToGlobal(const VectorialValue&) const override;
     /**
      *  Translate a vector, expressed in this coordinate system (ur, utheta, uz),
      *   to its global counterpart. Warning, it does not take the origin into
      *   account, so do NOT use this to convert coordinates.
      */
-    const VectorialValue vectorToGlobal(const VectorialValue&) const override;
-    const VectorialValue vectorToLocal(const VectorialValue&) const override;
+    VectorialValue vectorToGlobal(const VectorialValue&) const override;
+    VectorialValue vectorToLocal(const VectorialValue&) const override;
 
     /**
      *  Compute the Euler Angles (PSI,THETA,PHI) of the local base,
      *  around the axes (OZ, OY, OX) of the coordinate system RCS.
      *  If no rcsPos is provided, the global coordinate system is used.
      */
-    const VectorialValue getLocalEulerAnglesIntrinsicZYX(const CoordinateSystem *rcs = nullptr) const;
+    VectorialValue getLocalEulerAnglesIntrinsicZYX(const CoordinateSystem *rcs = nullptr) const;
 
 
     std::shared_ptr<CoordinateSystem> clone() const override;
@@ -213,14 +213,14 @@ class SphericalCoordinateSystem: public CoordinateSystem {
     /**
      *  Not done
      */
-    const VectorialValue positionToGlobal(const VectorialValue&) const override;
+    VectorialValue positionToGlobal(const VectorialValue&) const override;
     /**
      *  Translate a vector, expressed in this coordinate system (ur, utheta, uphi),
      *   to its global counterpart. Warning, it does not take the origin into
      *   account, so do NOT use this to convert coordinates.
      */
-    const VectorialValue vectorToGlobal(const VectorialValue&) const override;
-    const VectorialValue vectorToLocal(const VectorialValue&) const override;
+    VectorialValue vectorToGlobal(const VectorialValue&) const override;
+    VectorialValue vectorToLocal(const VectorialValue&) const override;
     std::shared_ptr<CoordinateSystem> clone() const override;
 };
 
@@ -264,7 +264,6 @@ public:
     int add(const CoordinateSystem& coordinateSystem);
     std::shared_ptr<CoordinateSystem> find(Reference<CoordinateSystem> csref) const;
     std::shared_ptr<CoordinateSystem> findByPosition(int cspos) const;
-    //std::shared_ptr<CoordinateSystem> findById(int csid) const;
 };
 
 

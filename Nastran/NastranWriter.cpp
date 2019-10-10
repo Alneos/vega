@@ -162,7 +162,7 @@ const unordered_map<CellType::Code, vector<int>, EnumClassHash> NastranWriter::m
                         15, 14, 13 } }
         };
 
-const string NastranWriter::toString() const {
+string NastranWriter::toString() const {
 	return "NastranWriter";
 }
 
