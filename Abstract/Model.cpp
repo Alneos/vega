@@ -2036,7 +2036,7 @@ void Model::finish() {
 
     for (const auto& constraint : constraints.filter(Constraint::Type::QUASI_RIGID)) {
         const auto& rigid = static_pointer_cast<QuasiRigidConstraint>(constraint);
-        if (rigid->isCompletelyRigid()) // or (not rigid->addRotations and this->configuration.convertCompletelyRigidsIntoMPCs))
+        if (rigid->isCompletelyRigid() and not this->configuration.convertCompletelyRigidsIntoMPCs)
             continue;
         rigid->emulateWithMPCs();
     }

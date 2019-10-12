@@ -134,6 +134,7 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
 
     if (outputSolver == SolverName::SYSTUS) {
         argv1.push_back("--systus.RBE2TranslationMode=lagrangian");
+        // cannot use RESU format when running tests with Topaze
         //argv1.push_back("--systus.OutputProduct=topaze");
     }
 

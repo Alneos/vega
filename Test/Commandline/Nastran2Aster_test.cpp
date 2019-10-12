@@ -313,18 +313,15 @@ BOOST_AUTO_TEST_CASE( rbe2_beam_coinc ) {
 }
 
 BOOST_AUTO_TEST_CASE( rbe2_hexapoi_coinc ) {
-    // incompatible algorithm see other case rbar_z
-	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_hexapoi_coinc/rbe2_hexapoi_coinc.nas", false, true, 0.00001);
+	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_hexapoi_coinc/rbe2_hexapoi_coinc.nas", RUN_ASTER, true, 0.00001);
 }
 
 BOOST_AUTO_TEST_CASE( rbe2_hexapoi_3nodes ) {
-    // incompatible algorithm see other case rbar_z
-	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_hexapoi_3nodes/rbe2_hexapoi_3nodes.nas", false, true, 0.00001);
+	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_hexapoi_3nodes/rbe2_hexapoi_3nodes.nas", RUN_ASTER, true, 0.00001);
 }
 
 BOOST_AUTO_TEST_CASE( rbe2_hexapoi_aligndist ) {
-    // incompatible algorithm see other case rbar_z
-	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_hexapoi_aligndist/rbe2_hexapoi_aligndist.nas", false, true, 0.00001);
+	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_hexapoi_aligndist/rbe2_hexapoi_aligndist.nas", RUN_ASTER, true, 0.00001);
 }
 
 BOOST_AUTO_TEST_CASE( rbe2_hexapoi_nonalign_dist ) {
