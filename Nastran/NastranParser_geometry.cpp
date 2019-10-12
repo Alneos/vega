@@ -293,9 +293,9 @@ void NastranParser::parseCDAMP1(NastranTokenizer& tok, Model& model) {
     int eid = tok.nextInt();
     int pid = tok.nextInt();
     int g1 = tok.nextInt();
-    unsigned char c1 = parseDOF(tok,model);
+    dof_int c1 = parseDOF(tok,model);
     int g2 = tok.nextInt();
-    unsigned char c2 = parseDOF(tok,model,true);
+    dof_int c2 = parseDOF(tok,model,true);
 
     // Creates cell
     // If G2 is undefined, it is considered a fictitious grounded point, and c2=c1
@@ -335,9 +335,9 @@ void NastranParser::parseCELAS1(NastranTokenizer& tok, Model& model) {
     int eid = tok.nextInt();
     int pid = tok.nextInt();
     int g1 = tok.nextInt();
-    unsigned char c1 = parseDOF(tok,model);
+    dof_int c1 = parseDOF(tok,model);
     int g2 = tok.nextInt(true);
-    unsigned char c2 = parseDOF(tok,model,true);
+    dof_int c2 = parseDOF(tok,model,true);
 
     // Creates cell
     // If G2 is undefined, it is considered a fictitious grounded point, and c2=c1
@@ -377,9 +377,9 @@ void NastranParser::parseCELAS2(NastranTokenizer& tok, Model& model) {
     int eid = tok.nextInt();
     double k = tok.nextDouble();
     int g1 = tok.nextInt();
-    unsigned char c1 = parseDOF(tok,model);
+    dof_int c1 = parseDOF(tok,model);
     int g2 = tok.nextInt();
-    unsigned char c2 = parseDOF(tok,model);
+    dof_int c2 = parseDOF(tok,model);
     double ge = tok.nextDouble(true, 0.0);
 
     // S is only used for post-treatment, and so discarded.
@@ -487,9 +487,9 @@ void NastranParser::parseCMASS2(NastranTokenizer& tok, Model& model) {
     int eid = tok.nextInt();
     double m = tok.nextDouble();
     int g1 = tok.nextInt();
-    unsigned char c1 = parseDOF(tok, model); // Nastran coordinate goes from 1 to 6, VEGA from 0 to 5.
+    dof_int c1 = parseDOF(tok, model); // Nastran coordinate goes from 1 to 6, VEGA from 0 to 5.
     int g2 = tok.nextInt();
-    unsigned char c2 = parseDOF(tok, model); // Nastran coordinate goes from 1 to 6, VEGA from 0 to 5.
+    dof_int c2 = parseDOF(tok, model); // Nastran coordinate goes from 1 to 6, VEGA from 0 to 5.
     const auto& matrix = make_shared<MassMatrix>(model, MatrixType::SYMMETRIC, eid);
     matrix->addComponent(g1, DOF::findByPosition(c1), g2, DOF::findByPosition(c2), m);
     model.add(matrix);

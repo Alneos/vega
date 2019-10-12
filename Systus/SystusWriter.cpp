@@ -1817,9 +1817,9 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
         // The Table for Lmpc is simply the list of coef by dof by nodes
         systus_ascid_t tId= tables.size()+1;
         SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
-        for (unsigned char dofnum = 0; dofnum < lmpc->getDofCount(); dofnum++){
+        for (dof_int dofnum = 0; dofnum < lmpc->getDofCount(); dofnum++){
             for (DOFCoefs dofCoefs : lmpc->dofCoefsByDof[dofnum]){
-                for (unsigned char i =0; i< nbDOFS; i++){
+                for (dof_int i =0; i< nbDOFS; i++){
                     aTable.add(dofCoefs[i]);
                 }
             }

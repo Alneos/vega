@@ -149,7 +149,7 @@ struct CsvGrammar: qi::grammar<stream_iterator_type, void(), qi::locals<vector<L
 	Model& model;
 	const ConfigurationParameters configuration;
 	//visual studio 2013 refuses to compile initializer list
-	unordered_map<LineItems, unsigned char, std::hash<unsigned char>> dofPosition_by_lineItemEnum = {
+	unordered_map<LineItems, dof_int, std::hash<dof_int>> dofPosition_by_lineItemEnum = {
         {LineItems::DX, 0}, //
         {LineItems::DY, 1}, //
         {LineItems::DZ, 2}, //

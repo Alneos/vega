@@ -19,9 +19,9 @@ namespace vega {
 using namespace std;
 
 unordered_map<DOF::Code, DOF*, EnumClassHash> DOF::dofByCode;
-unordered_map<unsigned char, DOF*> DOF::dofByPosition;
+unordered_map<dof_int, DOF*> DOF::dofByPosition;
 
-DOF::DOF(Code _code, bool _isTranslation, bool _isRotation, const string _label, unsigned char _position) noexcept :
+DOF::DOF(Code _code, bool _isTranslation, bool _isRotation, const string _label, dof_int _position) noexcept :
 		code(_code), isTranslation(_isTranslation), isRotation(_isRotation), label(_label), position(
 				_position) {
 	dofByCode[code] = this;
@@ -36,8 +36,8 @@ bool DOF::operator==(const DOF& other) const noexcept {
 	return this->code == other.code;
 }
 
-unsigned char DOF::operator|(const DOF& other) const noexcept {
-	return static_cast<unsigned char>(this->code) | static_cast<unsigned char>(other.code);
+dof_int DOF::operator|(const DOF& other) const noexcept {
+	return static_cast<dof_int>(this->code) | static_cast<dof_int>(other.code);
 }
 
 const DOF DOF::DX(DOF::Code::DX_CODE, true, false, "DX", 0);
@@ -47,7 +47,7 @@ const DOF DOF::RX(DOF::Code::RX_CODE, false, true, "RX", 3);
 const DOF DOF::RY(DOF::Code::RY_CODE, false, true, "RY", 4);
 const DOF DOF::RZ(DOF::Code::RZ_CODE, false, true, "RZ", 5);
 
-DOF DOF::findByPosition(unsigned char position) {
+DOF DOF::findByPosition(dof_int position) {
 	if (position > 5) {
         throw invalid_argument("DOF Position not allowed : "+std::to_string(position));
 	}
@@ -58,8 +58,8 @@ DOF DOF::findByPosition(unsigned char position) {
 	return *(dofIter->second);
 }
 
-DOF::operator unsigned char() const noexcept {
-	return static_cast<unsigned char>(code);
+DOF::operator dof_int() const noexcept {
+	return static_cast<dof_int>(code);
 }
 
 ostream &operator<<(ostream &out, const DOF& dof) noexcept {
@@ -517,7 +517,7 @@ void DOFCoefs::setValue(const DOF dof, double val) noexcept {
 }
 
 DOFCoefs& DOFCoefs::operator+=(const DOFCoefs& rv) noexcept {
-    for (unsigned char i = 0; i < 6; i++) {
+    for (dof_int i = 0; i < 6; i++) {
         if (not is_equal(coefs[i], Globals::UNAVAILABLE_DOUBLE)) {
             coefs[i] += rv.coefs[i];
         } else {
@@ -528,7 +528,7 @@ DOFCoefs& DOFCoefs::operator+=(const DOFCoefs& rv) noexcept {
 }
 
 DOFCoefs& DOFCoefs::operator*=(const double factor) noexcept {
-    for (unsigned char i = 0; i < 6; i++) {
+    for (dof_int i = 0; i < 6; i++) {
         if (not is_equal(coefs[i], Globals::UNAVAILABLE_DOUBLE)) {
             coefs[i] *= factor;
         }
@@ -536,14 +536,14 @@ DOFCoefs& DOFCoefs::operator*=(const double factor) noexcept {
     return *this;
 }
 
-double DOFCoefs::operator[](const unsigned char i) noexcept {
+double DOFCoefs::operator[](const dof_int i) noexcept {
     if (i > 6)
         return 0; // TODO LD: why this case ???
     return coefs[i];
 }
 
 bool DOFCoefs::operator< (const DOFCoefs& other) const noexcept {
-    for (unsigned char i=0; i<6; i++){
+    for (dof_int i=0; i<6; i++){
         if (is_equal(this->coefs[i],other.coefs[i])) continue;
         if (this->coefs[i]<other.coefs[i]) return true;
         return false;
@@ -552,7 +552,7 @@ bool DOFCoefs::operator< (const DOFCoefs& other) const noexcept {
 }
 
 bool DOFCoefs::operator== (const DOFCoefs & other) const noexcept {
-    for (unsigned char i=0; i<6; i++){
+    for (dof_int i=0; i<6; i++){
         if (is_equal(this->coefs[i],other.coefs[i])) continue;
         return false;
     }

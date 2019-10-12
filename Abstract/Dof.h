@@ -19,11 +19,13 @@
 
 namespace vega {
 
+using dof_int = unsigned char;
+
 class DOF {
 private:
 	friend std::ostream &operator<<(std::ostream &out, const DOF& node) noexcept;
 public:
-	enum class Code : unsigned char {
+	enum class Code : dof_int {
 		DX_CODE = 1,
 		DY_CODE = 2,
 		DZ_CODE = 4,
@@ -34,7 +36,7 @@ public:
 
 	// enum class value DECLARATIONS - they are defined later
 	static std::unordered_map<DOF::Code, DOF*, EnumClassHash> dofByCode;
-	static std::unordered_map<unsigned char, DOF*> dofByPosition;
+	static std::unordered_map<dof_int, DOF*> dofByPosition;
 
 	static const DOF DX;
 	static const DOF DY;
@@ -44,19 +46,19 @@ public:
 	static const DOF RZ;
 
 private:
-	DOF(Code code, bool isTranslation, bool isRotation, const std::string label, unsigned char position) noexcept;
+	DOF(Code code, bool isTranslation, bool isRotation, const std::string label, dof_int position) noexcept;
 public:
 	Code code;
 	bool isTranslation;
 	bool isRotation;
 	std::string label;
-	unsigned char position;
+	dof_int position;
 
-	static DOF findByPosition(unsigned char position);
+	static DOF findByPosition(dof_int position);
 	bool operator<(const DOF& other) const noexcept;
 	bool operator==(const DOF& other) const noexcept;
-	unsigned char operator|(const DOF& other) const noexcept;
-	operator unsigned char() const noexcept;
+	dof_int operator|(const DOF& other) const noexcept;
+	operator dof_int() const noexcept;
 };
 
 class DOFS {
@@ -206,7 +208,7 @@ public:
     void setValue(const DOF dof, double val) noexcept;
     DOFCoefs& operator+=(const DOFCoefs&) noexcept;
     DOFCoefs& operator*=(const double factor) noexcept;
-    double operator[](const unsigned char) noexcept;
+    double operator[](const dof_int) noexcept;
     bool operator<(const DOFCoefs& other) const noexcept;
     bool operator==(const DOFCoefs& other) const noexcept;
 };

@@ -834,7 +834,7 @@ private:
      *   - Scalar point have a "0" Nastran DOF, translated as a "0" (DX) Vega DOF
      *   - Classic Nastran dofs go from 1 to 6, VEGA from 0 to 5.
      */
-    unsigned char parseDOF(NastranTokenizer& tok, Model& model, bool returnDefaultIfNotFoundOrBlank = false, unsigned char defaultValue = Globals::UNAVAILABLE_UCHAR);
+    dof_int parseDOF(NastranTokenizer& tok, Model& model, bool returnDefaultIfNotFoundOrBlank = false, dof_int defaultValue = Globals::UNAVAILABLE_UCHAR);
 
     LogLevel logLevel = LogLevel::INFO;
     protected:

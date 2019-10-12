@@ -455,7 +455,7 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
             int fieldNum = 2;
 			for (int nodePosition : lmpc->nodePositions()) {
 			    DOFCoefs dofcoef = lmpc->getDoFCoefsForNode(nodePosition);
-				for (unsigned char i = 0; i < 6; i++) {
+				for (dof_int i = 0; i < 6; i++) {
 					if (!is_zero(dofcoef[i])) {
                         if (fieldNum % 8 == 0) {
                             mpc.add();
@@ -744,9 +744,9 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
             conm1.add(discretePoint->bestId());
             conm1.add(model.mesh.findNodeId(nodePosition));
             conm1.add(0); // CID
-            for (unsigned char row = 0; row < 5; row++) {
+            for (dof_int row = 0; row < 5; row++) {
                 const DOF rowdof = DOF::findByPosition(row);
-                for (unsigned char col = 0; col < row; col++) {
+                for (dof_int col = 0; col < row; col++) {
                     const DOF coldof = DOF::findByPosition(col);
                     conm1.add(discretePoint->findMass(rowdof, coldof));
                 }

@@ -1047,9 +1047,9 @@ void NastranParser::parseCONM1(NastranTokenizer& tok, Model& model) {
 
     const auto& nodalMassMatrix = make_shared<DiscretePoint>(model, MatrixType::SYMMETRIC, eid);
 
-    for (unsigned char row = 0; row < 5; row++) {
+    for (dof_int row = 0; row < 5; row++) {
         const DOF rowdof = DOF::findByPosition(row);
-        for (unsigned char col = 0; col <= row; col++) {
+        for (dof_int col = 0; col <= row; col++) {
             const DOF coldof = DOF::findByPosition(col);
             if (!tok.isNextDouble()) {
                 break;
@@ -3113,7 +3113,7 @@ void NastranParser::parseSLOAD(NastranTokenizer& tok, Model& model) {
 }
 void NastranParser::parseSPC(NastranTokenizer& tok, Model& model) {
     int spcSet_id = tok.nextInt();
-    string name = "SPC" + "_" + to_string(spcSet_id);
+    string name = "SPC_" + to_string(spcSet_id);
     shared_ptr<NodeGroup> spcNodeGroup = model.mesh.findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPC");
 
     while (tok.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_FIELD) {
@@ -3141,7 +3141,7 @@ void NastranParser::parseSPC1(NastranTokenizer& tok, Model& model) {
     const auto& spc = make_shared<SinglePointConstraint>(model, DOFS::nastranCodeToDOFS(dofInt), 0.0);
 
     // Nodes are added to the constraint Node Group
-    string name = "SPC1" + "_" + to_string(set_id);
+    string name = "SPC1_" + to_string(set_id);
     //shared_ptr<NodeGroup> spcNodeGroup = model.mesh.findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPC1");
 
     // Parsing Nodes
@@ -3407,7 +3407,7 @@ void NastranParser::parseTEMP(NastranTokenizer& tok, Model& model) {
     }
 }
 
-unsigned char NastranParser::parseDOF(NastranTokenizer& tok, Model& model, bool returnDefaultIfNotFoundOrBlank, unsigned char defaultValue){
+dof_int NastranParser::parseDOF(NastranTokenizer& tok, Model& model, bool returnDefaultIfNotFoundOrBlank, dof_int defaultValue){
 
     int dofread = tok.nextInt(returnDefaultIfNotFoundOrBlank, defaultValue);
 
@@ -3421,7 +3421,7 @@ unsigned char NastranParser::parseDOF(NastranTokenizer& tok, Model& model, bool 
         return 0;
     }
     // Nastran dofs goes from 1 to 6, VEGA from 0 to 5.
-    return static_cast<unsigned char>(dofread-1);
+    return static_cast<dof_int>(dofread-1);
 
 }
 
