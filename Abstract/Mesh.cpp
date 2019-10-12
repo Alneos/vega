@@ -442,7 +442,7 @@ int Mesh::updateCell(int id, const CellType &cellType, const std::vector<int> &n
 		nodePositionsPtr->push_back(findOrReserveNode(nodeId));
 	}
     if (cpos != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-        shared_ptr<CellGroup> coordinateSystemCellGroup = this->getOrCreateCellGroupForCS(cpos);
+        const auto& coordinateSystemCellGroup = this->getOrCreateCellGroupForCS(cpos);
         coordinateSystemCellGroup->addCellId(id);
         cellData.csPos = cpos;
     }
@@ -450,7 +450,7 @@ int Mesh::updateCell(int id, const CellType &cellType, const std::vector<int> &n
 
     // Update cell groups
     for (auto& kv : groupByName) {
-        shared_ptr<CellGroup> cellGroup = dynamic_pointer_cast<CellGroup>(kv.second);
+        const auto& cellGroup = dynamic_pointer_cast<CellGroup>(kv.second);
         if (cellGroup != nullptr and cellGroup->containsCellPosition(oldCellPosition)) {
             cellGroup->removeCellPosition(oldCellPosition);
             cellGroup->addCellPosition(cellPosition);
@@ -465,13 +465,13 @@ Cell Mesh::findCell(int cellPosition) const {
 	if (cellPosition == Cell::UNAVAILABLE_CELL) {
 		throw logic_error("Unavailable cell requested.");
 	}
-	const CellData& cellData = cells.cellDatas[cellPosition];
+	const auto& cellData = cells.cellDatas[cellPosition];
 	const CellType* type = CellType::findByCode(cellData.typeCode);
 	const unsigned int numNodes = type->numNodes;
 	vector<int> nodeIds;
 	nodeIds.resize(numNodes);
 	auto it = cells.nodepositionsByCelltype.find(*type);
-	deque<int>& globalNodePositions = *(it->second);
+	const auto& globalNodePositions = *(it->second);
 	const int start = cellData.cellTypePosition * numNodes;
 	vector<int> nodePositions(globalNodePositions.begin() + start,
 			globalNodePositions.begin() + start + numNodes);
@@ -481,7 +481,7 @@ Cell Mesh::findCell(int cellPosition) const {
 	}
 	shared_ptr<OrientationCoordinateSystem> ocs = nullptr;
 	if (cellData.csPos!=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID)
-        ocs = dynamic_pointer_cast<OrientationCoordinateSystem>(coordinateSystemStorage.findByPosition(cellData.csPos));
+        ocs = static_pointer_cast<OrientationCoordinateSystem>(coordinateSystemStorage.findByPosition(cellData.csPos));
 	// Should stay as a "return unnamed" so that compiler can avoid rvalue copy
 	return Cell(cellData.id, *type, nodeIds, cellPosition, nodePositions, false, cellData.csPos, cellData.elementId, cellData.cellTypePosition, ocs);
 }
@@ -527,11 +527,11 @@ shared_ptr<CellGroup> Mesh::getOrCreateCellGroupForCS(int cspos){
 	shared_ptr<CellGroup> result;
 	auto cellGroupNameIter = cellGroupNameByCspos.find(cspos);
 	if (cellGroupNameIter != cellGroupNameByCspos.end()) {
-		string cellGroupName = cellGroupNameIter->second;
-		result = dynamic_pointer_cast<CellGroup>(findGroup(cellGroupName));
+		const auto& cellGroupName = cellGroupNameIter->second;
+		result = static_pointer_cast<CellGroup>(findGroup(cellGroupName));
 	} else {
 		string gmaName;
-		string id = to_string(cellGroupNameByCspos.size() + 1);
+		const auto& id = to_string(cellGroupNameByCspos.size() + 1);
 		if (id.length() > 7) {
 			gmaName = "C" + id.substr(id.length() - 7, 7);
 		} else {
@@ -550,7 +550,7 @@ void Mesh::add(const CoordinateSystem& coordinateSystem) {
   coordinateSystemStorage.add(coordinateSystem);
 }
 
-std::shared_ptr<CoordinateSystem> Mesh::findCoordinateSystem(const Reference<CoordinateSystem> csref) const {
+shared_ptr<CoordinateSystem> Mesh::findCoordinateSystem(const Reference<CoordinateSystem> csref) const {
   return coordinateSystemStorage.find(csref);
 }
 
@@ -566,7 +566,7 @@ int Mesh::findOrReserveCoordinateSystem(const Reference<CoordinateSystem> csref)
 int Mesh::addOrFindOrientation(const OrientationCoordinateSystem & ocs){
 
 	int posOrientation = findOrientation(ocs);
-	if (posOrientation==0){
+	if (posOrientation == 0){
 		this->add(ocs);
 		posOrientation = coordinateSystemStorage.findPosition(ocs);
 	}
@@ -576,9 +576,9 @@ int Mesh::addOrFindOrientation(const OrientationCoordinateSystem & ocs){
 int Mesh::findOrientation(const OrientationCoordinateSystem & ocs) const{
 	int posOrientation=0;
 	for (const auto& coordinateSystemEntry : this->coordinateSystemStorage.coordinateSystemByRef) {
-        shared_ptr<CoordinateSystem> coordinateSystem = coordinateSystemEntry.second;
+        const auto& coordinateSystem = coordinateSystemEntry.second;
 		if (coordinateSystem->type==CoordinateSystem::Type::RELATIVE){
-			std::shared_ptr<OrientationCoordinateSystem> mocs = std::dynamic_pointer_cast<OrientationCoordinateSystem>(coordinateSystem);
+			const auto& mocs = static_pointer_cast<OrientationCoordinateSystem>(coordinateSystem);
 			if (ocs == *mocs){
 				posOrientation = coordinateSystemStorage.findPosition(mocs->getReference());
 				break;
@@ -588,7 +588,7 @@ int Mesh::findOrientation(const OrientationCoordinateSystem & ocs) const{
 	return posOrientation;
 }
 
-std::shared_ptr<vega::CoordinateSystem> Mesh::getCoordinateSystemByPosition(const int pos) const{
+shared_ptr<vega::CoordinateSystem> Mesh::getCoordinateSystemByPosition(const int pos) const{
 	return coordinateSystemStorage.findByPosition(pos);
 }
 
@@ -639,10 +639,10 @@ shared_ptr<NodeGroup> Mesh::findOrCreateNodeGroup(const string& name, int group_
 	if (name.empty()) {
 		throw invalid_argument("Can't find or create a nodeGroup with empty name ");
 	}
-	shared_ptr<NodeGroup> group = dynamic_pointer_cast<NodeGroup>(this->findGroup(name));
-	if (group==nullptr){
+	const auto& group = dynamic_pointer_cast<NodeGroup>(this->findGroup(name));
+	if (group == nullptr){
 		return this->createNodeGroup(name, group_id, comment);
-	}else{
+	} else {
 		if (group->type != Group::Type::NODEGROUP) {
 			throw invalid_argument("Group " + name + " is not a nodeGroup.");
 		}
@@ -731,7 +731,7 @@ void Mesh::removeGroup(const string& name) noexcept {
 vector<shared_ptr<NodeGroup>> Mesh::getNodeGroups() const noexcept {
 	vector<shared_ptr<NodeGroup>> groups;
 	for (const auto& it : groupByName) {
-		shared_ptr<Group> group = it.second;
+		const auto& group = it.second;
 		if (group->type != Group::Type::NODEGROUP) {
 			continue;
 		}
@@ -743,7 +743,7 @@ vector<shared_ptr<NodeGroup>> Mesh::getNodeGroups() const noexcept {
 vector<shared_ptr<CellGroup>> Mesh::getCellGroups() const noexcept {
 	vector<shared_ptr<CellGroup>> groups;
 	for (const auto& it : groupByName) {
-		shared_ptr<Group> group = it.second;
+		const auto& group = it.second;
 		if (group->type != Group::Type::CELLGROUP) {
 			continue;
 		}

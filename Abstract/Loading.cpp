@@ -122,8 +122,8 @@ bool LoadSet::hasFunctions() const {
 	return false;
 }
 
-shared_ptr<LoadSet> LoadSet::clone() const {
-	return make_shared<LoadSet>(*this);
+unique_ptr<LoadSet> LoadSet::clone() const {
+	return make_unique<LoadSet>(*this);
 }
 
 NodeLoading::NodeLoading(Model& model, const std::shared_ptr<LoadSet> loadset, Loading::Type type, int original_id,
@@ -166,8 +166,8 @@ double Gravity::getAccelerationScale() const {
 	return scalingFactor;
 }
 
-shared_ptr<Loading> Gravity::clone() const {
-	return make_shared<Gravity>(*this);
+unique_ptr<Loading> Gravity::clone() const {
+	return make_unique<Gravity>(*this);
 }
 
 void Gravity::scale(const double factor) {
@@ -213,8 +213,8 @@ VectorialValue RotationCenter::getCenter() const {
 	return center;
 }
 
-shared_ptr<Loading> RotationCenter::clone() const {
-	return make_shared<RotationCenter>(*this);
+unique_ptr<Loading> RotationCenter::clone() const {
+	return make_unique<RotationCenter>(*this);
 }
 
 void RotationCenter::scale(const double factor) {
@@ -240,8 +240,8 @@ VectorialValue RotationNode::getCenter() const {
 	return VectorialValue(node.x, node.y, node.z);
 }
 
-shared_ptr<Loading> RotationNode::clone() const {
-	return make_shared<RotationNode>(*this);
+unique_ptr<Loading> RotationNode::clone() const {
+	return make_unique<RotationNode>(*this);
 }
 
 void RotationNode::scale(const double factor) {
@@ -261,8 +261,8 @@ bool ImposedDisplacement::ineffective() const {
     return this->empty() or displacements.isEmpty();
 }
 
-shared_ptr<Loading> ImposedDisplacement::clone() const {
-    return make_shared<ImposedDisplacement>(*this);
+unique_ptr<Loading> ImposedDisplacement::clone() const {
+    return make_unique<ImposedDisplacement>(*this);
 }
 
 double ImposedDisplacement::getDoubleForDOF(const DOF& dof) const {
@@ -337,8 +337,8 @@ DOFS NodalForce::getDOFSForNode(const int nodePosition) const {
 	return dofs;
 }
 
-shared_ptr<Loading> NodalForce::clone() const {
-	return make_shared<NodalForce>(*this);
+unique_ptr<Loading> NodalForce::clone() const {
+	return make_unique<NodalForce>(*this);
 }
 
 void NodalForce::scale(const double factor) {
@@ -365,8 +365,8 @@ VectorialValue NodalForceTwoNodes::getForceInGlobalCS(int nodePosition) const {
 	return localToGlobal(nodePosition, magnitude * direction);
 }
 
-shared_ptr<Loading> NodalForceTwoNodes::clone() const {
-	return make_shared<NodalForceTwoNodes>(*this);
+unique_ptr<Loading> NodalForceTwoNodes::clone() const {
+	return make_unique<NodalForceTwoNodes>(*this);
 }
 
 void NodalForceTwoNodes::scale(const double factor) {
@@ -397,8 +397,8 @@ VectorialValue NodalForceFourNodes::getForceInGlobalCS(int nodePosition) const {
     return localToGlobal(nodePosition, magnitude * direction);
 }
 
-shared_ptr<Loading> NodalForceFourNodes::clone() const {
-    return make_shared<NodalForceFourNodes>(*this);
+unique_ptr<Loading> NodalForceFourNodes::clone() const {
+    return make_unique<NodalForceFourNodes>(*this);
 }
 
 void NodalForceFourNodes::scale(const double factor) {
@@ -495,8 +495,8 @@ VectorialValue StaticPressure::getForceInGlobalCS(int nodePosition) const {
     return localToGlobal(nodePosition, forceNode);
 }
 
-shared_ptr<Loading> StaticPressure::clone() const {
-    return make_shared<StaticPressure>(*this);
+unique_ptr<Loading> StaticPressure::clone() const {
+    return make_unique<StaticPressure>(*this);
 }
 
 void StaticPressure::scale(const double factor) {
@@ -622,8 +622,8 @@ DOFS ForceSurface::getDOFSForNode(const int nodePosition) const {
 	return dofs;
 }
 
-shared_ptr<Loading> ForceSurface::clone() const {
-	return make_shared<ForceSurface>(*this);
+unique_ptr<Loading> ForceSurface::clone() const {
+	return make_unique<ForceSurface>(*this);
 }
 
 void ForceSurface::scale(const double factor) {
@@ -668,8 +668,8 @@ vector<int> ForceSurfaceTwoNodes::getApplicationFaceNodeIds() const {
 	return cells.begin()->faceids_from_two_nodes(nodeId1, nodeId2);
 }
 
-shared_ptr<Loading> ForceSurfaceTwoNodes::clone() const {
-	return make_shared<ForceSurfaceTwoNodes>(*this);
+unique_ptr<Loading> ForceSurfaceTwoNodes::clone() const {
+	return make_unique<ForceSurfaceTwoNodes>(*this);
 }
 
 ForceLine::ForceLine(Model& model, const std::shared_ptr<LoadSet> loadset, const shared_ptr<NamedValue> force, DOF dof,
@@ -688,8 +688,8 @@ DOFS ForceLine::getDOFSForNode(const int nodePosition) const {
 	return dofs;
 }
 
-shared_ptr<Loading> ForceLine::clone() const {
-	return make_shared<ForceLine>(*this);
+unique_ptr<Loading> ForceLine::clone() const {
+	return make_unique<ForceLine>(*this);
 }
 
 void ForceLine::scale(const double factor) {
@@ -718,8 +718,8 @@ DOFS NormalPressionFace::getDOFSForNode(const int nodePosition) const {
 	return dofs;
 }
 
-shared_ptr<Loading> NormalPressionFace::clone() const {
-	return make_shared<NormalPressionFace>(*this);
+unique_ptr<Loading> NormalPressionFace::clone() const {
+	return make_unique<NormalPressionFace>(*this);
 }
 
 void NormalPressionFace::scale(const double factor) {
@@ -762,8 +762,8 @@ vector<int> NormalPressionFaceTwoNodes::getApplicationFaceNodeIds() const {
 	return faceIds;
 }
 
-shared_ptr<Loading> NormalPressionFaceTwoNodes::clone() const {
-	return make_shared<NormalPressionFaceTwoNodes>(*this);
+unique_ptr<Loading> NormalPressionFaceTwoNodes::clone() const {
+	return make_unique<NormalPressionFaceTwoNodes>(*this);
 }
 
 
@@ -797,11 +797,11 @@ shared_ptr<LoadSet> DynamicExcitation::getLoadSet() const {
 }
 
 shared_ptr<FunctionPlaceHolder> DynamicExcitation::getFunctionTableBPlaceHolder() const {
-    return make_shared<FunctionPlaceHolder>(model, functionTableB.type, functionTableB.original_id, Function::ParaName::FREQ);
+    return make_unique<FunctionPlaceHolder>(model, functionTableB.type, functionTableB.original_id, Function::ParaName::FREQ);
 }
 
 shared_ptr<FunctionPlaceHolder> DynamicExcitation::getFunctionTablePPlaceHolder() const {
-    return make_shared<FunctionPlaceHolder>(model, functionTableP.type, functionTableP.original_id, Function::ParaName::FREQ);
+    return make_unique<FunctionPlaceHolder>(model, functionTableP.type, functionTableP.original_id, Function::ParaName::FREQ);
 }
 
 set<int> DynamicExcitation::nodePositions() const {
@@ -817,8 +817,8 @@ void DynamicExcitation::scale(const double factor) {
 	model.find(functionTableB)->scale(factor);
 }
 
-shared_ptr<Loading> DynamicExcitation::clone() const {
-    return make_shared<DynamicExcitation>(*this);
+unique_ptr<Loading> DynamicExcitation::clone() const {
+    return make_unique<DynamicExcitation>(*this);
 }
 
 bool DynamicExcitation::validate() const {
@@ -834,8 +834,8 @@ InitialTemperature::InitialTemperature(Model& model, const std::shared_ptr<LoadS
                 NodeLoading(model, loadset, Loading::Type::INITIAL_TEMPERATURE, original_id), temperature(temperature) {
 }
 
-shared_ptr<Loading> InitialTemperature::clone() const {
-	return make_shared<InitialTemperature>(*this);
+unique_ptr<Loading> InitialTemperature::clone() const {
+	return make_unique<InitialTemperature>(*this);
 }
 
 DOFS InitialTemperature::getDOFSForNode(const int nodePosition) const {

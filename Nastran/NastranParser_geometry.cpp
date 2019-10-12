@@ -110,7 +110,7 @@ void NastranParser::parseGRID(NastranTokenizer& tok, Model& model) {
 }
 
 void NastranParser::addProperty(NastranTokenizer& tok, int property_id, int cell_id, Model& model) {
-    shared_ptr<CellGroup> cellGroup = dynamic_pointer_cast<CellGroup>(model.mesh.findGroup(property_id));
+    auto cellGroup = dynamic_pointer_cast<CellGroup>(model.mesh.findGroup(property_id));
     if (cellGroup == nullptr) {
         string cellGroupName = "PROP_" + to_string(property_id);
         string comment = cellGroupName;
@@ -123,7 +123,7 @@ void NastranParser::addProperty(NastranTokenizer& tok, int property_id, int cell
 }
 
 shared_ptr<CellGroup> NastranParser::getOrCreateCellGroup(int group_id, Model& model, string comment) {
-    shared_ptr<CellGroup> cellGroup = dynamic_pointer_cast<CellGroup>(model.mesh.findGroup(group_id));
+    auto cellGroup = dynamic_pointer_cast<CellGroup>(model.mesh.findGroup(group_id));
 
     if (cellGroup == nullptr) {
         cellGroup = model.mesh.createCellGroup("CGVEGA_"+to_string(group_id), group_id, comment);
@@ -134,7 +134,7 @@ shared_ptr<CellGroup> NastranParser::getOrCreateCellGroup(int group_id, Model& m
 int NastranParser::parseOrientation(int point1, int point2, NastranTokenizer& tok,
         Model& model) {
 
-    vector<string> line = tok.currentDataLine();
+    const auto& line = tok.currentDataLine();
     bool alternateFormat = line.size() < 8 || line[6].empty() || line[7].empty();
     shared_ptr<OrientationCoordinateSystem> ocs;
     if (alternateFormat) {
@@ -172,8 +172,7 @@ void NastranParser::parseCBAR(NastranTokenizer& tok, Model& model) {
     int pa = tok.nextInt(true);
     int pb = tok.nextInt(true);
     if ((pa != Globals::UNAVAILABLE_INT) || (pb != Globals::UNAVAILABLE_INT)) {
-        string message = "Pin flags (PA, PB) not supported and dismissed.";
-        handleParsingWarning(message, tok, model);
+        handleParsingWarning("Pin flags (PA, PB) not supported and dismissed.", tok, model);
     }
     // Offset vectors : not supported
     double w1a = tok.nextDouble(true, 0.0);
@@ -184,8 +183,7 @@ void NastranParser::parseCBAR(NastranTokenizer& tok, Model& model) {
     double w3b = tok.nextDouble(true, 0.0);
     if (! ( is_equal(w1a,0.0)&&is_equal(w2a,0.0)&&is_equal(w3a,0.0)
             &&is_equal(w1b,0.0)&&is_equal(w2b,0.0)&&is_equal(w3b,0.0))){
-        string message = string("Offset vectors (WA, WB) not supported and taken as null.");
-        handleParsingWarning(message, tok, model);
+        handleParsingWarning("Offset vectors (WA, WB) not supported and taken as null.", tok, model);
     }
     model.mesh.addCell(cell_id, CellType::SEG2, {point1, point2}, false, cpos, property_id);
     addProperty(tok, property_id, cell_id, model);
@@ -199,16 +197,14 @@ void NastranParser::parseCBEAM(NastranTokenizer& tok, Model& model) {
     int cpos = parseOrientation(point1, point2, tok, model);
     string offt = tok.nextString(true);
     if (!offt.empty() && offt != "GGG") {
-        string message = "OFFT " + offt + " not supported and taken as GGG.";
-        handleParsingWarning(message, tok, model);
+        handleParsingWarning("OFFT " + offt + " not supported and taken as GGG.", tok, model);
     }
 
     // Pin flags : not supported.
     int pa = tok.nextInt(true);
     int pb = tok.nextInt(true);
     if ((pa != Globals::UNAVAILABLE_INT) || (pb != Globals::UNAVAILABLE_INT)) {
-        string message = "Pin flags (PA, PB) not supported and dismissed.";
-        handleParsingWarning(message, tok, model);
+        handleParsingWarning("Pin flags (PA, PB) not supported and dismissed.", tok, model);
     }
 
     // Offset vectors : not supported
@@ -227,8 +223,7 @@ void NastranParser::parseCBEAM(NastranTokenizer& tok, Model& model) {
     int sa = tok.nextInt(true);
     int sb = tok.nextInt(true);
     if ((sa != Globals::UNAVAILABLE_INT) || (sb != Globals::UNAVAILABLE_INT)) {
-        string message = string("Grid point identification numbers (SA, SB) not supported and dismissed.");
-        handleParsingWarning(message, tok, model);
+        handleParsingWarning("Grid point identification numbers (SA, SB) not supported and dismissed.", tok, model);
     }
 
     model.mesh.addCell(cell_id, CellType::SEG2, {point1, point2}, false, cpos, property_id);
@@ -255,7 +250,7 @@ void NastranParser::parseCBUSH(NastranTokenizer& tok, Model& model) {
         }else{
             // Local definition of the element coordinate system
             if (forbidOrientation){
-                handleParsingWarning(string("Single node CBUSH can't support local orientation. Orientation dismissed."), tok, model);
+                handleParsingWarning("Single node CBUSH can't support local orientation. Orientation dismissed.", tok, model);
                 tok.skip(4);
                 cpos = 0;
             }else{
@@ -267,7 +262,7 @@ void NastranParser::parseCBUSH(NastranTokenizer& tok, Model& model) {
         // Spring damper location (S): not supported.
         double s=tok.nextDouble(true, 0.5);
         if (!is_equal(s,0.5)){
-            handleParsingWarning(string("S keyword not supported. Default (0.5) used."), tok, model);
+            handleParsingWarning("S keyword not supported. Default (0.5) used.", tok, model);
             s=0.5;
         }
 
@@ -315,11 +310,11 @@ void NastranParser::parseCDAMP1(NastranTokenizer& tok, Model& model) {
     }
 
     int cellPosition= model.mesh.addCell(eid, CellType::SEG2, {g1, g2}, false, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, pid);
-    shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model, "CDAMP1");
+    const auto& cellGroup = getOrCreateCellGroup(pid, model, "CDAMP1");
     cellGroup->addCellPosition(cellPosition);
 
     // Creates or update the ElementSet defined by the PELAS key.
-    shared_ptr<ElementSet> elementSet = model.elementSets.find(pid);
+    const auto& elementSet = model.elementSets.find(pid);
     if (elementSet == nullptr){
         const auto& scalarSpring = make_shared<ScalarSpring>(model, pid);
         scalarSpring->add(*cellGroup);
@@ -327,11 +322,10 @@ void NastranParser::parseCDAMP1(NastranTokenizer& tok, Model& model) {
         model.add(scalarSpring);
     } else {
         if (elementSet->type == ElementSet::Type::SCALAR_SPRING){
-            shared_ptr<ScalarSpring> springElementSet = dynamic_pointer_cast<ScalarSpring>(elementSet);
+            const auto& springElementSet = static_pointer_cast<ScalarSpring>(elementSet);
             springElementSet->addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
-        }else{
-            string message = "The part of PID "+to_string(pid)+" already exists with the wrong NATURE.";
-            handleParsingError(message, tok, model);
+        } else {
+            handleParsingError("The part of PID "+to_string(pid)+" already exists with the wrong NATURE.", tok, model);
         }
     }
 }
@@ -358,11 +352,11 @@ void NastranParser::parseCELAS1(NastranTokenizer& tok, Model& model) {
         model.add(spc);
     }
     int cellPosition= model.mesh.addCell(eid, cellType, {g1, g2}, false, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, pid);
-    shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model, "CELAS1");
+    const auto& cellGroup = getOrCreateCellGroup(pid, model, "CELAS1");
     cellGroup->addCellPosition(cellPosition);
 
     // Creates or update the ElementSet defined by the PELAS key.
-    shared_ptr<ElementSet> elementSet = model.elementSets.find(pid);
+    const auto& elementSet = model.elementSets.find(pid);
     if (elementSet == nullptr){
         const auto& scalarSpring = make_shared<ScalarSpring>(model, pid);
         scalarSpring->add(*cellGroup);
@@ -370,11 +364,10 @@ void NastranParser::parseCELAS1(NastranTokenizer& tok, Model& model) {
         model.add(scalarSpring);
     }else{
         if (elementSet->type == ElementSet::Type::SCALAR_SPRING){
-            shared_ptr<ScalarSpring> springElementSet = dynamic_pointer_cast<ScalarSpring>(elementSet);
+            const auto& springElementSet = dynamic_pointer_cast<ScalarSpring>(elementSet);
             springElementSet->addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
         }else{
-            string message = "The part of PID "+to_string(pid)+" already exists with the wrong NATURE.";
-            handleParsingError(message, tok, model);
+            handleParsingError("The part of PID "+to_string(pid)+" already exists with the wrong NATURE.", tok, model);
         }
     }
 }
@@ -398,7 +391,7 @@ void NastranParser::parseCELAS2(NastranTokenizer& tok, Model& model) {
     }
 
     // Create a Cell and a cellgroup
-    shared_ptr<CellGroup> springGroup = model.mesh.createCellGroup("CELAS2_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS2");
+    const auto& springGroup = model.mesh.createCellGroup("CELAS2_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS2");
     int cellPosition= model.mesh.addCell(eid, CellType::SEG2, {g1, g2});
     springGroup->addCellPosition(cellPosition);
 
@@ -418,7 +411,7 @@ void NastranParser::parseCELAS4(NastranTokenizer& tok, Model& model) {
     int s2 = tok.nextInt();
 
     // Create a Cell and a cellgroup
-    shared_ptr<CellGroup> springGroup = model.mesh.createCellGroup("CELAS4_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS4");
+    const auto& springGroup = model.mesh.createCellGroup("CELAS4_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS4");
     int cellPosition= model.mesh.addCell(eid, CellType::SEG2, {s1, s2});
     springGroup->addCellPosition(cellPosition);
 
@@ -450,7 +443,7 @@ void NastranParser::parseElem(NastranTokenizer& tok, Model& model,
     if (nastran2med_it == nastran2medNodeConnectByCellType.end()) {
         medConnect = nastranConnect;
     } else {
-        const vector<int>& nastran2medNodeConnect = nastran2med_it->second;
+        const auto& nastran2medNodeConnect = nastran2med_it->second;
         medConnect.resize(cellType.numNodes);
         for (unsigned int i2 = 0; i2 < cellType.numNodes; i2++) {
             //model.mesh.findOrReserveNode(nastranConnect[i2], property_id); // LD this is optional : preserving cell nodeid order for better output readeability
@@ -470,17 +463,17 @@ void NastranParser::parseCGAP(NastranTokenizer& tok, Model& model) {
     int cid = tok.nextInt(true,CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
 
     if (cid != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-        handleParsingWarning(string("CID not supported and dismissed."), tok, model);
+        handleParsingWarning("CID not supported and dismissed.", tok, model);
     }
 
-    shared_ptr<Constraint> gapPtr = model.find(Reference<Constraint>(Constraint::Type::GAP, pid));
-    if (!gapPtr) {
+    const auto& gapPtr = model.find(Reference<Constraint>(Constraint::Type::GAP, pid));
+    if (gapPtr == nullptr) {
         const auto& gapConstraint = make_shared<GapTwoNodes>(model, pid);
         gapConstraint->addGapNodes(ga, gb);
         model.add(gapConstraint);
         model.addConstraintIntoConstraintSet(*gapConstraint, *model.commonConstraintSet);
     } else {
-        shared_ptr<GapTwoNodes> gapConstraint = dynamic_pointer_cast<GapTwoNodes>(gapPtr);
+        const auto& gapConstraint = static_pointer_cast<GapTwoNodes>(gapPtr);
         gapConstraint->addGapNodes(ga, gb);
     }
 }
@@ -622,8 +615,7 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, Model& model,
         break;
 
     default:
-        const string msg = "Unrecognized shell element: "+to_string(static_cast<int>(code));
-        handleParsingError(msg, tok, model);
+        handleParsingError("Unrecognized shell element: "+to_string(static_cast<int>(code)), tok, model);
     }
 
     //double theta = 0.0;
@@ -635,16 +627,13 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, Model& model,
         //}
     }
     if (!is_zero(zoffs)){
-        const string msg = "non-null ZOFFS parameter ignored.";
-        handleParsingWarning(msg, tok, model);
+        handleParsingWarning("non-null ZOFFS parameter ignored.", tok, model);
     }
     if (tflag!=0){
-        const string msg = "non-null TFLAG ("+ to_string(tflag)+") parameter ignored.";
-        handleParsingWarning(msg, tok, model);
+        handleParsingWarning("non-null TFLAG ("+ to_string(tflag)+") parameter ignored.", tok, model);
     }
     if (isThereT){
-        const string msg = "membrane thickness is ignored.";
-        handleParsingWarning(msg, tok, model);
+        handleParsingWarning("membrane thickness is ignored.", tok, model);
     }
 
     model.mesh.addCell(cell_id, cellType, nodeIds, false, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, property_id);
@@ -667,8 +656,7 @@ void NastranParser::parseSPOINT(NastranTokenizer& tok, Model& model) {
 
     // Creating or finding the Node Group and Constraint
     const auto& spc = make_shared<SinglePointConstraint>(model, DOFS::ALL_DOFS-DOF::DX, 0.0);
-    string name = string("SPC_SPOINT");
-    shared_ptr<NodeGroup> spcNodeGroup = model.mesh.findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPOINT");
+    const auto& spcNodeGroup = model.mesh.findOrCreateNodeGroup("SPC_SPOINT",NodeGroup::NO_ORIGINAL_ID,"SPOINT");
 
     int nodePosition = model.mesh.addNode(id1, x1, x2, x3, cpos, cpos);
     model.mesh.allowDOFS(nodePosition, DOF::DX);

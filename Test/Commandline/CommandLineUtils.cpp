@@ -104,7 +104,7 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
     argv1.push_back("-o");
     argv1.push_back(outputPathEscaped.c_str());
     //G.C. debug output kills CDash server in large studies
-    if (string("ON") != TESTS_NIGHTLY_BUILD) {
+    if ("ON" != TESTS_NIGHTLY_BUILD) {
         argv1.push_back("-d");
     }
 
@@ -224,7 +224,8 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
             break;
         }
         case SolverName::SYSTUS:
-            BOOST_CHECK(fs::exists(outputPath / (stem.string() + "_ALL.DAT")));
+            // _ALL does not exist for topaze
+            //BOOST_CHECK(fs::exists(outputPath / (stem.string() + "_ALL.DAT")));
             BOOST_CHECK(fs::exists(outputPath / (stem.string() + "_SC1_DATA1.ASC")));
             if (hasTests) {
                 for (fs::directory_iterator it(outputPath); it != fs::directory_iterator(); it++) {

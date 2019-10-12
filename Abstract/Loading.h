@@ -67,7 +67,7 @@ public:
 	virtual bool isCellLoading() const {
 		return false;
 	}
-	virtual std::shared_ptr<Loading> clone() const = 0;
+	virtual std::unique_ptr<Loading> clone() const = 0;
 	virtual void scale(const double factor) {
 		std::cerr << "loading scale(" << factor << ") used but not implemented" << std::endl;
 		throw std::logic_error("loading scale() used but not implemented");
@@ -102,7 +102,7 @@ public:
 	std::set<std::shared_ptr<Loading>, ptrLess<Loading> > getLoadingsByType(Loading::Type) const;
 	std::string getGroupName(Loading::Type);
 	bool validate() const override;
-	std::shared_ptr<LoadSet> clone() const;
+	std::unique_ptr<LoadSet> clone() const;
 	bool hasFunctions() const;
 	//bool operator<(const LoadSet &rhs) const;
 };
@@ -153,7 +153,7 @@ public:
 			const int original_id = NO_ORIGINAL_ID);
 	DOFS getDOFSForNode(int nodePosition) const override;
 	std::set<int> nodePositions() const override;
-	std::shared_ptr<Loading> clone() const override;
+	std::unique_ptr<Loading> clone() const override;
 	void scale(const double factor) override;
 	bool ineffective() const override;
 };
@@ -191,7 +191,7 @@ public:
 	double getSpeed() const override;
 	VectorialValue getAxis() const override ;
 	VectorialValue getCenter() const override;
-	std::shared_ptr<Loading> clone() const override;
+	std::unique_ptr<Loading> clone() const override;
 	void scale(const double factor) override;
 };
 
@@ -205,7 +205,7 @@ public:
 	double getSpeed() const override;
 	VectorialValue getAxis() const override;
 	VectorialValue getCenter() const override;
-	std::shared_ptr<Loading> clone() const override;
+	std::unique_ptr<Loading> clone() const override;
 	void scale(const double factor) override;
 };
 
@@ -220,7 +220,7 @@ public:
 	double getDoubleForDOF(const DOF& dof) const;
 	DOFS getDOFSForNode(int nodePosition) const override;
 	bool ineffective() const override;
-	std::shared_ptr<Loading> clone() const override;
+	std::unique_ptr<Loading> clone() const override;
 	void scale(const double factor) override;
 };
 
@@ -243,7 +243,7 @@ public:
 	virtual VectorialValue getForceInGlobalCS(const int nodePosition) const;
 	virtual VectorialValue getMomentInGlobalCS(const int nodePosition) const;
 	DOFS getDOFSForNode(int nodePosition) const override;
-	std::shared_ptr<Loading> clone() const override;
+	std::unique_ptr<Loading> clone() const override;
 	void scale(const double factor) override;
 	bool ineffective() const override;
 };
@@ -256,7 +256,7 @@ public:
 	NodalForceTwoNodes(Model&, const std::shared_ptr<LoadSet> loadset, const int node1_id, const int node2_id,
 			double magnitude, const int original_id = NO_ORIGINAL_ID);
 	VectorialValue getForceInGlobalCS(const int) const override;
-	std::shared_ptr<Loading> clone() const override;
+	std::unique_ptr<Loading> clone() const override;
 	void scale(const double factor) override;
 	bool ineffective() const override;
 };
@@ -275,7 +275,7 @@ public:
     NodalForceFourNodes(Model&, const std::shared_ptr<LoadSet> loadset, const int node1_id, const int node2_id,
             const int node3_id, const int node4_id, double magnitude, const int original_id = NO_ORIGINAL_ID);
     VectorialValue getForceInGlobalCS(const int) const override;
-    std::shared_ptr<Loading> clone() const override;
+    std::unique_ptr<Loading> clone() const override;
     void scale(const double factor) override;
     bool ineffective() const override;
 };
@@ -293,7 +293,7 @@ public:
     StaticPressure(Model&, const std::shared_ptr<LoadSet> loadset, const int node1_id, const int node2_id,
             const int node3_id, const int node4_id, double magnitude, const int original_id = NO_ORIGINAL_ID);
     VectorialValue getForceInGlobalCS(const int) const override;
-    std::shared_ptr<Loading> clone() const override;
+    std::unique_ptr<Loading> clone() const override;
     void scale(const double factor) override;
     bool ineffective() const override;
 };
@@ -336,7 +336,7 @@ public:
 	VectorialValue getForce() const;
 	VectorialValue getMoment() const;
 	DOFS getDOFSForNode(int nodePosition) const override;
-	std::shared_ptr<Loading> clone() const override;
+	std::unique_ptr<Loading> clone() const override;
 	void scale(const double factor) override;
 	bool ineffective() const override;
 	SpaceDimension getLoadingDimension() const override {
@@ -361,7 +361,7 @@ public:
 	ForceSurfaceTwoNodes(Model&, const std::shared_ptr<LoadSet> loadset, int nodeId1, const VectorialValue& force,
 			const VectorialValue& moment = {}, const int original_id = NO_ORIGINAL_ID);
 	virtual std::vector<int> getApplicationFaceNodeIds() const override;
-	std::shared_ptr<Loading> clone() const override;
+	std::unique_ptr<Loading> clone() const override;
 };
 
 /**
@@ -375,7 +375,7 @@ public:
     ForceLine(Model&, const std::shared_ptr<LoadSet> loadset, const std::shared_ptr<NamedValue> force, DOF component,
 			const int original_id = NO_ORIGINAL_ID);
 
-	virtual std::shared_ptr<Loading> clone() const override;
+	std::unique_ptr<Loading> clone() const override;
 	DOFS getDOFSForNode(const int nodePosition) const override;
 	void scale(const double factor) override;
 	bool ineffective() const override;
@@ -402,7 +402,7 @@ public:
 	SpaceDimension getLoadingDimension() const noexcept override {
 		return SpaceDimension::DIMENSION_2D;
 	}
-	std::shared_ptr<Loading> clone() const override;
+	std::unique_ptr<Loading> clone() const override;
 	void scale(const double factor) override;
 	bool ineffective() const override;
 	virtual std::vector<int> getApplicationFaceNodeIds() const override {
@@ -420,8 +420,8 @@ public:
 	const int nodePosition2;
 	NormalPressionFaceTwoNodes(Model&, const std::shared_ptr<LoadSet> loadset, int nodeId1, int nodeId2, double intensity, const int original_id = NO_ORIGINAL_ID);
 	NormalPressionFaceTwoNodes(Model&, const std::shared_ptr<LoadSet> loadset, int nodeId1, double intensity, const int original_id = NO_ORIGINAL_ID);
-	virtual std::vector<int> getApplicationFaceNodeIds() const override;
-	std::shared_ptr<Loading> clone() const override;
+	std::vector<int> getApplicationFaceNodeIds() const override;
+	std::unique_ptr<Loading> clone() const override;
 };
 
 /**
@@ -456,7 +456,7 @@ public:
     std::set<int> nodePositions() const override;
     DOFS getDOFSForNode(const int nodePosition) const override;
     void scale(const double factor) override;
-    std::shared_ptr<Loading> clone() const override;
+    std::unique_ptr<Loading> clone() const override;
     bool validate() const override;
     bool ineffective() const override;
 };
@@ -467,7 +467,7 @@ protected:
 public:
     InitialTemperature(Model&, const std::shared_ptr<LoadSet> loadset, double temperature, const int original_id = NO_ORIGINAL_ID);
 	DOFS getDOFSForNode(const int nodePosition) const override;
-	std::shared_ptr<Loading> clone() const override;
+	std::unique_ptr<Loading> clone() const override;
 	void scale(const double factor) override;
 	bool ineffective() const override;
 };

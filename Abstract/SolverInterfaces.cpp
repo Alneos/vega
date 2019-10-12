@@ -229,7 +229,7 @@ void Runner::deletePreviousResultFiles(string currentModel, const vector<string>
         string fileToDelete = basePath + extension;
         if (fs::exists(fileToDelete)) {
             if (remove(fileToDelete.c_str()) != 0) {
-                string message = string("error removing result file ") + fileToDelete;
+                string message = "error removing result file " + fileToDelete;
                 perror(message.c_str());
             }
         }

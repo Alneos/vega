@@ -508,14 +508,13 @@ void NastranParser::parseBULKSection(NastranTokenizer &tok, Model& model) {
                 tok.skipToNextKeyword();
 
             } else if (!keyword.empty()) {
-                handleParsingError(string("Unknown keyword."), tok, model);
+                handleParsingError("Unknown keyword.", tok, model);
                 tok.skipToNextKeyword();
             }
 
             //Warning if there are unparsed fields. Skip the empty ones
             if (!tok.isEmptyUntilNextKeyword()) {
-                string message(string("Parsing of line not complete:[") + tok.remainingTextUntilNextKeyword()+"]");
-                handleParsingError(message, tok, model);
+                handleParsingError("Parsing of line not complete:[" + tok.remainingTextUntilNextKeyword()+"]", tok, model);
             }
 
         } catch (std::string&) {
@@ -913,7 +912,7 @@ void NastranParser::parseBSSEG(NastranTokenizer& tok, Model& model) {
 
 void NastranParser::parseBSURF(NastranTokenizer& tok, Model& model) {
     int id = tok.nextInt();
-    string gname = string("BSURF_") + to_string(id);
+    string gname = "BSURF_" + to_string(id);
     auto gsurf = model.mesh.createCellGroup(gname, CellGroup::NO_ORIGINAL_ID, "BSURF");
     const auto& cellIds = tok.nextInts();
     for (int cellId : cellIds) {
@@ -1307,8 +1306,7 @@ void NastranParser::parseDMIG(NastranTokenizer& tok, Model& model) {
         }
     }
 
-    shared_ptr<MatrixElement> matrix = dynamic_pointer_cast<MatrixElement>(
-                model.find(it->second));
+    const auto& matrix = static_pointer_cast<MatrixElement>(model.find(it->second));
 
     int gj = headerIndicator;
     int cj = tok.nextInt();
@@ -2330,20 +2328,19 @@ void NastranParser::parsePDAMP(NastranTokenizer& tok, Model& model) {
         const int pid = tok.nextInt();
         const double b = tok.nextDouble(true, 0.0);
 
-        shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model, "PDAMP");
-        shared_ptr<ElementSet> elementSet = model.elementSets.find(pid);
+        const auto& cellGroup = getOrCreateCellGroup(pid, model, "PDAMP");
+        const auto& elementSet = model.elementSets.find(pid);
         if (elementSet == nullptr){
             const auto& scalarSpring = make_shared<ScalarSpring>(model, pid, Globals::UNAVAILABLE_DOUBLE, b);
             scalarSpring->add(*cellGroup);
             model.add(scalarSpring);
         } else {
             if (elementSet->type == ElementSet::Type::SCALAR_SPRING){
-                shared_ptr<ScalarSpring> springElementSet = dynamic_pointer_cast<ScalarSpring>(elementSet);
+                const auto& springElementSet = static_pointer_cast<ScalarSpring>(elementSet);
                 springElementSet->setDamping(b);
                 springElementSet->add(*cellGroup);
-            }else{
-                string message = "The part of PID " + to_string(pid) + " already exists with the wrong NATURE.";
-                handleParsingError(message, tok, model);
+            } else {
+                handleParsingError("The part of PID " + to_string(pid) + " already exists with the wrong NATURE.", tok, model);
             }
         }
         nbProperties++;
@@ -2368,21 +2365,20 @@ void NastranParser::parsePELAS(NastranTokenizer& tok, Model& model) {
             }
         }
 
-        shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model, "PELAS");
-        shared_ptr<ElementSet> elementSet = model.elementSets.find(pid);
+        const auto& cellGroup = getOrCreateCellGroup(pid, model, "PELAS");
+        const auto& elementSet = model.elementSets.find(pid);
         if (elementSet == nullptr){
             const auto& scalarSpring = make_shared<ScalarSpring>(model, pid, k, ge);
             scalarSpring->add(*cellGroup);
             model.add(scalarSpring);
         } else {
             if (elementSet->type == ElementSet::Type::SCALAR_SPRING){
-                shared_ptr<ScalarSpring> springElementSet = dynamic_pointer_cast<ScalarSpring>(elementSet);
+                const auto& springElementSet = static_pointer_cast<ScalarSpring>(elementSet);
                 springElementSet->setStiffness(k);
                 springElementSet->setDamping(ge);
                 springElementSet->add(*cellGroup);
             } else {
-                string message = "The part of PID "+std::to_string(pid)+" already exists with the wrong NATURE.";
-                handleParsingError(message, tok, model);
+                handleParsingError("The part of PID "+std::to_string(pid)+" already exists with the wrong NATURE.", tok, model);
             }
         }
         nbProperties++;
@@ -2414,13 +2410,13 @@ void NastranParser::parsePGAP(NastranTokenizer& tok, Model& model) {
     }
 
     shared_ptr<Constraint> gapPtr = model.find(Reference<Constraint>(Constraint::Type::GAP, pid));
-    if (!gapPtr) {
+    if (gapPtr == nullptr) {
         const auto& gapConstraint = make_shared<GapTwoNodes>(model, pid);
         gapConstraint->initial_gap_opening = u0;
         model.add(gapConstraint);
         model.addConstraintIntoConstraintSet(*gapConstraint, *model.commonConstraintSet);
     } else {
-        shared_ptr<GapTwoNodes> gap = dynamic_pointer_cast<GapTwoNodes>(gapPtr);
+        const auto& gap = static_pointer_cast<GapTwoNodes>(gapPtr);
         gap->initial_gap_opening = u0;
     }
 }
@@ -2557,13 +2553,12 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, Model& model) {
             eid2 = tok.nextInt();
         } else {
             //format not recognized
-            handleParsingError(string("Format not recognized."), tok, model);
+            handleParsingError("Format not recognized.", tok, model);
         }
     }
     int cid = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     if (cid != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-        string message = "CoordinateSystem not supported.";
-        handleParsingWarning(message, tok, model);
+        handleParsingWarning("CoordinateSystem not supported.", tok, model);
     }
     double n1 = tok.nextDouble(true, 0.0);
     double n2 = tok.nextDouble(true, 0.0);
@@ -3118,7 +3113,7 @@ void NastranParser::parseSLOAD(NastranTokenizer& tok, Model& model) {
 }
 void NastranParser::parseSPC(NastranTokenizer& tok, Model& model) {
     int spcSet_id = tok.nextInt();
-    string name = string("SPC") + "_" + to_string(spcSet_id);
+    string name = "SPC" + "_" + to_string(spcSet_id);
     shared_ptr<NodeGroup> spcNodeGroup = model.mesh.findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPC");
 
     while (tok.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_FIELD) {
@@ -3146,7 +3141,7 @@ void NastranParser::parseSPC1(NastranTokenizer& tok, Model& model) {
     const auto& spc = make_shared<SinglePointConstraint>(model, DOFS::nastranCodeToDOFS(dofInt), 0.0);
 
     // Nodes are added to the constraint Node Group
-    string name = string("SPC1") + "_" + to_string(set_id);
+    string name = "SPC1" + "_" + to_string(set_id);
     //shared_ptr<NodeGroup> spcNodeGroup = model.mesh.findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPC1");
 
     // Parsing Nodes

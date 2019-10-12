@@ -88,24 +88,24 @@ BOOST_AUTO_TEST_CASE( test_NodeGroup )
     {
         mesh.addNode(nodeIds[i / 3], coords[i], coords[i + 1], coords[i + 2]);
     }
-    shared_ptr<NodeGroup> nodes = mesh.findOrCreateNodeGroup("test", 5);
+    const auto& nodes = mesh.findOrCreateNodeGroup("test", 5);
     std::for_each(nodeIds.begin(), nodeIds.end(), [&nodes](int &nodeId)
     {
         nodes->addNodeId(nodeId);
     });
     mesh.finish();
     //find the group by name
-    shared_ptr<NodeGroup> testGroup = dynamic_pointer_cast<NodeGroup>(mesh.findGroup("test"));
+    const auto& testGroup = dynamic_pointer_cast<NodeGroup>(mesh.findGroup("test"));
     BOOST_ASSERT_MSG(testGroup != nullptr, "Group found by name");
     BOOST_CHECK_EQUAL(testGroup->nodePositions().size(), static_cast<size_t>(4));
-    const set<int> nodeIds1 = testGroup->getNodeIds();
+    const auto& nodeIds1 = testGroup->getNodeIds();
     for (int originalId : nodeIds)
     {
-        string message = string("Node id ") + to_string(originalId) + " not found";
+        string message = "Node id " + to_string(originalId) + " not found";
         BOOST_CHECK_MESSAGE(nodeIds1.find(originalId) != nodeIds1.end(), message.c_str());
     }
     //find the group by id
-    shared_ptr<NodeGroup> groupById = dynamic_pointer_cast<NodeGroup>(mesh.findGroup(5));
+    const auto& groupById = dynamic_pointer_cast<NodeGroup>(mesh.findGroup(5));
     BOOST_ASSERT_MSG(groupById != nullptr, "Group found by id");
 }
 

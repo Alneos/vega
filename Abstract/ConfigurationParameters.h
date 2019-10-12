@@ -178,6 +178,11 @@ public:
      */
     bool convert0DDiscretsInto1D = false;
 
+    /**
+     * Use MPCs instead of completely rigid constraints
+     */
+    bool convertCompletelyRigidsIntoMPCs = false;
+
 };
 // TODO: THe Configuration Parameters should be much more generalized. With this,
 // it's a pain in the keyboard to add options!!

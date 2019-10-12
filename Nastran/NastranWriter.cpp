@@ -372,8 +372,7 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
 	for (const auto& constraintSet : model.constraintSets) {
 		const auto& spcs = constraintSet->getConstraintsByType(Constraint::Type::SPC);
         for (const auto& constraint : spcs) {
-            const auto& spc = dynamic_pointer_cast<
-                    SinglePointConstraint>(constraint);
+            const auto& spc = static_pointer_cast<SinglePointConstraint>(constraint);
             for (int nodePosition : spc->nodePositions()) {
                 const int nodeId = model.mesh.findNodeId(nodePosition);
                 out
@@ -384,8 +383,7 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
         }
 		const auto& rigidConstraints = constraintSet->getConstraintsByType(Constraint::Type::RIGID);
         for (const auto& constraint : rigidConstraints) {
-            const auto& rigid =
-                    dynamic_pointer_cast<RigidConstraint>(constraint);
+            const auto& rigid = static_pointer_cast<RigidConstraint>(constraint);
             Line rbe2("RBE2");
             rbe2.add(constraintSet->bestId());
             const int masterId = model.mesh.findNodeId(rigid->getMaster());
@@ -402,8 +400,7 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
 		const auto& quasiRigidConstraints = constraintSet->getConstraintsByType(
 				Constraint::Type::QUASI_RIGID);
         for (const auto& constraint : quasiRigidConstraints) {
-            const auto& quasiRigid =
-                    dynamic_pointer_cast<QuasiRigidConstraint>(constraint);
+            const auto& quasiRigid = static_pointer_cast<QuasiRigidConstraint>(constraint);
             if (not quasiRigid->hasMaster() and quasiRigid->getSlaves().size() == 2) {
                 Line rbar("RBAR");
                 rbar.add(constraintSet->bestId());
@@ -432,8 +429,7 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
 		const auto& rbe3Constraints = constraintSet->getConstraintsByType(
 				Constraint::Type::RBE3);
         for (const auto& constraint : rbe3Constraints) {
-            const auto& rbe3Constraint =
-                    dynamic_pointer_cast<RBE3>(constraint);
+            const auto& rbe3Constraint = static_pointer_cast<RBE3>(constraint);
             Line rbe3("RBE3");
             rbe3.add(constraintSet->bestId());
             rbe3.add();
@@ -453,7 +449,7 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
 				Constraint::Type::LMPC);
         for (const auto& constraint : mpcConstraints) {
             const auto& lmpc =
-                    dynamic_pointer_cast<LinearMultiplePointConstraint>(constraint);
+                    static_pointer_cast<LinearMultiplePointConstraint>(constraint);
             Line mpc("MPC");
             mpc.add(constraintSet->getId());
             int fieldNum = 2;
@@ -485,7 +481,7 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
 	for (const auto& loadingSet : model.loadSets) {
 		const auto& gravities = loadingSet->getLoadingsByType(Loading::Type::GRAVITY);
         for (const auto& loading : gravities) {
-            const auto& gravity = dynamic_pointer_cast<Gravity>(loading);
+            const auto& gravity = static_pointer_cast<Gravity>(loading);
             Line grav("GRAV");
             grav.add(loadingSet->bestId());
             if (gravity->hasCoordinateSystem()) {
@@ -816,8 +812,7 @@ string NastranWriter::writeModel(Model& model,
 	out.precision(DBL_DIG);
 	out.open(nasPath.c_str(), ios::out | ios::trunc);
 	if (!out.is_open()) {
-		string message = string("Can't open file ") + nasPath + " for writing.";
-		throw ios::failure(message);
+		throw ios::failure("Can't open file " + nasPath + " for writing.");
 	}
 
 	out << "$ " << model.name << endl;

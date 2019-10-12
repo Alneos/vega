@@ -165,8 +165,8 @@ CircularSectionBeam::CircularSectionBeam(Model& model, double _radius, BeamModel
 				_radius) {
 }
 
-shared_ptr<ElementSet> CircularSectionBeam::clone() const {
-	return make_shared<CircularSectionBeam>(*this);
+unique_ptr<ElementSet> CircularSectionBeam::clone() const {
+	return make_unique<CircularSectionBeam>(*this);
 }
 
 double CircularSectionBeam::getAreaCrossSection() const {
@@ -200,8 +200,8 @@ TubeSectionBeam::TubeSectionBeam(Model& model, double _radius, double _thickness
 				_radius), thickness(_thickness) {
 }
 
-shared_ptr<ElementSet> TubeSectionBeam::clone() const {
-	return make_shared<TubeSectionBeam>(*this);
+unique_ptr<ElementSet> TubeSectionBeam::clone() const {
+	return make_unique<TubeSectionBeam>(*this);
 }
 
 double TubeSectionBeam::getAreaCrossSection() const {
@@ -267,8 +267,8 @@ double RectangularSectionBeam::getShearAreaFactorZ() const {
 	return 6.0/5.0;
 }
 
-shared_ptr<ElementSet> RectangularSectionBeam::clone() const {
-	return make_shared<RectangularSectionBeam>(*this);
+unique_ptr<ElementSet> RectangularSectionBeam::clone() const {
+	return make_unique<RectangularSectionBeam>(*this);
 }
 
 GenericSectionBeam::GenericSectionBeam(Model& model, double area_cross_section,
@@ -282,8 +282,8 @@ GenericSectionBeam::GenericSectionBeam(Model& model, double area_cross_section,
 
 }
 
-shared_ptr<ElementSet> GenericSectionBeam::clone() const {
-	return make_shared<GenericSectionBeam>(*this);
+unique_ptr<ElementSet> GenericSectionBeam::clone() const {
+	return make_unique<GenericSectionBeam>(*this);
 }
 double GenericSectionBeam::getAreaCrossSection() const {
 	return area_cross_section;
@@ -367,8 +367,8 @@ DiscretePoint::DiscretePoint(Model& model, MatrixType matrixType,
 				matrixType), mass(matrixType), damping(matrixType) {
 }
 
-shared_ptr<ElementSet> DiscretePoint::clone() const {
-	return make_shared<DiscretePoint>(*this);
+unique_ptr<ElementSet> DiscretePoint::clone() const {
+	return make_unique<DiscretePoint>(*this);
 }
 
 vector<double> DiscretePoint::asStiffnessVector(bool addRotationsIfNotPresent) const {
@@ -475,8 +475,8 @@ DiscreteSegment::DiscreteSegment(Model& model, MatrixType matrixType, int origin
 		damping{{DOFMatrix(matrixType),DOFMatrix(MatrixType::FULL)},{DOFMatrix(matrixType),DOFMatrix(matrixType)}} {
 }
 
-shared_ptr<ElementSet> DiscreteSegment::clone() const {
-	return make_shared<DiscreteSegment>(*this);
+unique_ptr<ElementSet> DiscreteSegment::clone() const {
+	return make_unique<DiscreteSegment>(*this);
 }
 
 bool DiscreteSegment::hasTranslations() const {
@@ -827,8 +827,8 @@ vector<double> StructuralSegment::asMassVector(bool addRotationsIfNotPresent) co
 }
 
 
-std::shared_ptr<ElementSet> StructuralSegment::clone() const{
-	return make_shared<StructuralSegment>(*this);
+std::unique_ptr<ElementSet> StructuralSegment::clone() const{
+	return make_unique<StructuralSegment>(*this);
 }
 
 NodalMass::NodalMass(Model& model, double m, double ixx, double iyy, double izz, double ixy,
@@ -1089,8 +1089,8 @@ Rbar::Rbar(Model& model, int master_id, int original_id) :
                 RigidSet(model, ElementSet::Type::RBAR, master_id, original_id){
 }
 
-shared_ptr<ElementSet> Rbar::clone() const {
-    return make_shared<Rbar>(*this);
+unique_ptr<ElementSet> Rbar::clone() const {
+    return make_unique<Rbar>(*this);
 }
 
 Rbe3::Rbe3(Model& model, int master_id, DOFS mdofs, DOFS sdofs, int original_id) :
@@ -1098,8 +1098,8 @@ Rbe3::Rbe3(Model& model, int master_id, DOFS mdofs, DOFS sdofs, int original_id)
                 mdofs(mdofs), sdofs(sdofs){
 }
 
-shared_ptr<ElementSet> Rbe3::clone() const {
-    return make_shared<Rbe3>(*this);
+unique_ptr<ElementSet> Rbe3::clone() const {
+    return make_unique<Rbe3>(*this);
 }
 
 Lmpc::Lmpc(Model& model, int analysisId, int original_id) :
@@ -1107,8 +1107,8 @@ Lmpc::Lmpc(Model& model, int analysisId, int original_id) :
 analysisId(analysisId) {
 }
 
-shared_ptr<ElementSet> Lmpc::clone() const {
-    return make_shared<Lmpc>(*this);
+unique_ptr<ElementSet> Lmpc::clone() const {
+    return make_unique<Lmpc>(*this);
 }
 
 void Lmpc::appendDofCoefs(vector<DOFCoefs> dofCoefs) {
@@ -1122,8 +1122,8 @@ SurfaceSlideSet::SurfaceSlideSet(Model& model, int original_id) :
                 RigidSet(model, ElementSet::Type::SURFACE_SLIDE_CONTACT, Globals::UNAVAILABLE_INT, original_id) {
 }
 
-shared_ptr<ElementSet> SurfaceSlideSet::clone() const {
-    return make_shared<SurfaceSlideSet>(*this);
+unique_ptr<ElementSet> SurfaceSlideSet::clone() const {
+    return make_unique<SurfaceSlideSet>(*this);
 }
 
 // ScalarSpring Methods
@@ -1164,8 +1164,8 @@ bool ScalarSpring::hasMass() const {
     return false;
 }
 
-shared_ptr<ElementSet> ScalarSpring::clone() const {
-    return make_shared<ScalarSpring>(*this);
+unique_ptr<ElementSet> ScalarSpring::clone() const {
+    return make_unique<ScalarSpring>(*this);
 }
 
 void ScalarSpring::addSpring(int cellPosition, DOF dofNodeA, DOF dofNodeB){

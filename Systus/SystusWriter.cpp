@@ -382,8 +382,7 @@ string SystusWriter::writeModel(Model& model,
     if (configuration.systusOutputProduct=="systus"){
         dat_file_ofs.open(dat_path.c_str(), ios::trunc);
         if (!dat_file_ofs.is_open()) {
-            string message = string("Can't open file ") + dat_path + " for writing.";
-            throw ios::failure(message);
+            throw ios::failure("Can't open file " + dat_path + " for writing.");
         }
     }
 
@@ -403,8 +402,7 @@ string SystusWriter::writeModel(Model& model,
         asc_file_ofs.precision(DBL_DIG);
         asc_file_ofs.open(asc_path.c_str(), ios::trunc | ios::out);
         if (!asc_file_ofs.is_open()) {
-            string message = string("Can't open file ") + asc_path + " for writing.";
-            throw ios::failure(message);
+            throw ios::failure("Can't open file " + asc_path + " for writing.");
         }
         this->writeAsc(systusModel, configuration, idSubcase, asc_file_ofs);
         asc_file_ofs.close();
@@ -419,8 +417,7 @@ string SystusWriter::writeModel(Model& model,
         analyse_file_ofs.open(analyse_path.c_str(), ios::trunc);
 
         if (!analyse_file_ofs.is_open()) {
-            string message = string("Can't open file ") + analyse_path + " for writing.";
-            throw ios::failure(message);
+            throw ios::failure("Can't open file " + analyse_path + " for writing.");
         }
         this->writeDat(systusModel, configuration, idSubcase, analyse_file_ofs);
         analyse_file_ofs.close();
@@ -2938,14 +2935,13 @@ void SystusWriter::writeMasses(const SystusModel &systusModel, ostream& out) {
             if (not mass->effective()) {
                 continue;
             }
-            shared_ptr<NodalMass> nodalMass = dynamic_pointer_cast<NodalMass>(mass);
+            const auto& nodalMass = static_pointer_cast<NodalMass>(mass);
             //  VALUES NBR VAL(NBR) NODEi
             //  NBR:            Number of values [INTEGER]
             //  VAL(NBR):   Masses values [DOUBLE[NBR]]
             //  NODEi:      List of NODES index [INTEGER[*]]
             if (!is_zero(nodalMass->ixy) || !is_zero(nodalMass->iyz) || !is_zero(nodalMass->ixz)){
-                handleWritingError(
-                        string("Asymetric masses are not (yet) implemented."));
+                handleWritingError("Asymetric masses are not (yet) implemented.");
             }
             if (!is_zero(nodalMass->ex) || !is_zero(nodalMass->ey) || !is_zero(nodalMass->ez)){
                 handleWritingWarning("Offset not implemented and dismissed.");
@@ -3513,8 +3509,7 @@ void SystusWriter::writeMatrixFiles(const SystusModel& systusModel, const int id
         ofsMatrixFile.open(matrixFile.c_str(), ios::trunc);
 
         if (!ofsMatrixFile.is_open()) {
-            string message = string("Can't open file ") + matrixFile + " for writing.";
-            throw ios::failure(message);
+            throw ios::failure("Can't open file " + matrixFile + " for writing.");
         }
         ofsMatrixFile << dampingMatrices<<endl;
         ofsMatrixFile.close();
@@ -3529,8 +3524,7 @@ void SystusWriter::writeMatrixFiles(const SystusModel& systusModel, const int id
         ofsMatrixFile.open(matrixFile.c_str(), ios::trunc);
 
         if (!ofsMatrixFile.is_open()) {
-            string message = string("Can't open file ") + matrixFile + " for writing.";
-            throw ios::failure(message);
+            throw ios::failure("Can't open file " + matrixFile + " for writing.");
         }
         ofsMatrixFile << massMatrices << endl;
         ofsMatrixFile.close();
@@ -3545,8 +3539,7 @@ void SystusWriter::writeMatrixFiles(const SystusModel& systusModel, const int id
         ofsMatrixFile.open(matrixFile.c_str(), ios::trunc);
 
         if (!ofsMatrixFile.is_open()) {
-            string message = string("Can't open file ") + matrixFile + " for writing.";
-            throw ios::failure(message);
+            throw ios::failure("Can't open file " + matrixFile + " for writing.");
         }
         ofsMatrixFile << stiffnessMatrices <<endl;
         ofsMatrixFile.close();

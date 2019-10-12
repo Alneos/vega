@@ -59,6 +59,7 @@ ModelConfiguration ConfigurationParameters::getModelConfiguration() const {
         configuration.replaceRigidSegments = true;
         configuration.changeParametricForceLineToAbsolute = true;
         configuration.alwaysUseGroupsForCells = true;
+        configuration.convertCompletelyRigidsIntoMPCs = true;
     } else if (this->outputSolver.getSolverName() == SolverName::SYSTUS) {
         configuration.createSkin = true;
         configuration.emulateAdditionalMass = true;

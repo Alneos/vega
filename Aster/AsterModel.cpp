@@ -147,9 +147,9 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
     case ElementSet::Type::RECTANGULAR_SECTION_BEAM:
     case ElementSet::Type::I_SECTION_BEAM:
     case ElementSet::Type::GENERIC_SECTION_BEAM: {
-        Beam::BeamModel beamModel = (dynamic_pointer_cast<Beam>(elementSet))->beamModel;
+        const auto& beam = static_pointer_cast<Beam>(elementSet);
         if (not model.needsLargeDisplacements()) {
-            switch (beamModel) {
+            switch (beam->beamModel) {
             case Beam::BeamModel::EULER: {
                 result = "('POU_D_E',)";
                 break;
@@ -174,7 +174,7 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
     case ElementSet::Type::SCALAR_SPRING:
     case ElementSet::Type::DISCRETE_0D:
     case ElementSet::Type::DISCRETE_1D: {
-        shared_ptr<Discrete> discret = (dynamic_pointer_cast<Discrete>(elementSet));
+        const auto& discret = static_pointer_cast<Discrete>(elementSet);
         if (discret->hasRotations()) {
             result = "('DIS_TR',)";
         } else {
@@ -183,7 +183,7 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
         break;
     }
     case ElementSet::Type::NODAL_MASS: {
-        shared_ptr<NodalMass> mass = (dynamic_pointer_cast<NodalMass>(elementSet));
+        const auto& mass = static_pointer_cast<NodalMass>(elementSet);
         if (mass->hasRotations()) {
             result = "('DIS_TR',)";
         } else {

@@ -523,7 +523,7 @@ vector<int> Cell::faceids_from_two_nodes(int nodeId1, int nodeId2) const {
         if (node2connectivityPos == Globals::UNAVAILABLE_INT) {
             throw logic_error("Need two nodes to find a face on " + type.to_str() + " element type");
         }
-		for (vector<int> faceid : faceids) {
+		for (const auto& faceid : faceids) {
 			//0 based
 			if (find(faceid.begin(), faceid.end(), node2connectivityPos + 1) != faceid.end()
 					&& find(faceid.begin(), faceid.end(), node1connectivityPos + 1)
@@ -576,7 +576,7 @@ vector<int> Cell::cornerNodeIds() const {
     const auto& it = CORNERNODEIDS_BY_CELLTYPE.find(type.code);
     if (it == CORNERNODEIDS_BY_CELLTYPE.end())
         throw logic_error("Missing CORNERNODEIDS_BY_CELLTYPE configuration for cell type :" + type.description);
-    const vector<int>& nodeConnectivityPositions = it->second;
+    const auto& nodeConnectivityPositions = it->second;
     vector<int> result;
     result.reserve(nodeConnectivityPositions.size());
     for (int nodenum : nodeConnectivityPositions) {
@@ -587,7 +587,7 @@ vector<int> Cell::cornerNodeIds() const {
 
 pair<int, int> Cell::two_nodeids_from_facenum(int faceNum) const {
     auto nodeIds_By_FaceNum = nodeIdsByFaceNum();
-    const vector<int>& faceNodeIds = nodeIds_By_FaceNum[faceNum];
+    const auto& faceNodeIds = nodeIds_By_FaceNum[faceNum];
 	switch(type.code) {
     case CellType::Code::TETRA4_CODE:
     case CellType::Code::TETRA10_CODE: {
@@ -729,7 +729,7 @@ void CellContainer::addCellPositions(const set<int>& otherPositions) noexcept {
 }
 
 void CellContainer::addCellGroup(const string& groupName) {
-	shared_ptr<Group> group = mesh.findGroup(groupName);
+	const auto& group = mesh.findGroup(groupName);
 	if (group == nullptr) {
 		throw logic_error("Group name: " + groupName + "not found.");
 	}
@@ -745,7 +745,7 @@ void CellContainer::add(const CellGroup& cellGroup) noexcept {
 }
 
 void CellContainer::add(const CellContainer& cellContainer) noexcept {
-    set<int> otherCellPositions = cellContainer.getCellPositionsExcludingGroups();
+    const auto& otherCellPositions = cellContainer.getCellPositionsExcludingGroups();
 	if (not otherCellPositions.empty()) {
 		cellPositions.insert(otherCellPositions.begin(), otherCellPositions.end());
 	}
@@ -774,7 +774,7 @@ set<Cell> CellContainer::getCellsExcludingGroups() const noexcept {
 
 set<Cell> CellContainer::getCellsIncludingGroups() const noexcept {
 	set<Cell>&& cells = getCellsExcludingGroups();
-    for (string groupName : cellGroupNames) {
+    for (const auto& groupName : cellGroupNames) {
         const auto& group = dynamic_pointer_cast<CellGroup>(mesh.findGroup(groupName));
         if (group != nullptr) {
             const auto& cellsInGroup = group->getCells();
@@ -793,8 +793,8 @@ set<int> CellContainer::getCellIdsIncludingGroups() const noexcept {
 	for (const int cellPosition : cellPositions) {
 	    result.insert(mesh.findCellId(cellPosition));
 	}
-    for (string groupName : cellGroupNames) {
-        shared_ptr<CellGroup> group = dynamic_pointer_cast<CellGroup>(mesh.findGroup(groupName));
+    for (const auto& groupName : cellGroupNames) {
+        const auto& group = dynamic_pointer_cast<CellGroup>(mesh.findGroup(groupName));
         if (group != nullptr) {
             const auto& groupCellIds = group->cellIds();
             result.insert(groupCellIds.begin(), groupCellIds.end());
@@ -805,8 +805,8 @@ set<int> CellContainer::getCellIdsIncludingGroups() const noexcept {
 
 set<int> CellContainer::getCellPositionsIncludingGroups() const noexcept {
 	set<int> result(cellPositions.begin(), cellPositions.end());
-    for (string groupName : cellGroupNames) {
-        shared_ptr<CellGroup> group = dynamic_pointer_cast<CellGroup>(mesh.findGroup(groupName));
+    for (const auto& groupName : cellGroupNames) {
+        const auto& group = dynamic_pointer_cast<CellGroup>(mesh.findGroup(groupName));
         if (group != nullptr) {
             const auto& groupCellPositions = group->cellPositions();
             result.insert(groupCellPositions.begin(), groupCellPositions.end());
@@ -821,7 +821,7 @@ set<int> CellContainer::getCellPositionsExcludingGroups() const noexcept {
 
 set<int> CellContainer::getNodePositionsIncludingGroups() const noexcept {
 	set<int> result;
-	for (Cell cell : getCellsIncludingGroups()) {
+	for (const auto& cell : getCellsIncludingGroups()) {
 		result.insert(cell.nodePositions.begin(), cell.nodePositions.end());
 	}
 	return result;
@@ -829,7 +829,7 @@ set<int> CellContainer::getNodePositionsIncludingGroups() const noexcept {
 
 set<int> CellContainer::getNodePositionsExcludingGroups() const noexcept {
 	set<int> result;
-	for (Cell cell : getCellsExcludingGroups()) {
+	for (const auto& cell : getCellsExcludingGroups()) {
 		result.insert(cell.nodePositions.begin(), cell.nodePositions.end());
 	}
 	return result;
@@ -851,8 +851,8 @@ bool CellContainer::hasCellsExcludingGroups() const noexcept {
 bool CellContainer::hasCellsIncludingGroups() const noexcept {
 	if (not cellPositions.empty())
         return true;
-    for (string groupName : cellGroupNames) {
-        shared_ptr<CellGroup> group = dynamic_pointer_cast<CellGroup>(mesh.findGroup(groupName));
+    for (const auto& groupName : cellGroupNames) {
+        const auto& group = static_pointer_cast<CellGroup>(mesh.findGroup(groupName));
         if (not group->empty())
             return true;
     }
@@ -862,8 +862,8 @@ bool CellContainer::hasCellsIncludingGroups() const noexcept {
 vector<shared_ptr<CellGroup>> CellContainer::getCellGroups() const {
 	vector<shared_ptr<CellGroup>> cellGroups;
 	cellGroups.reserve(cellGroupNames.size());
-	for (string groupName : cellGroupNames) {
-		shared_ptr<CellGroup> group = dynamic_pointer_cast<CellGroup>(mesh.findGroup(groupName));
+	for (const auto& groupName : cellGroupNames) {
+		const auto& group = dynamic_pointer_cast<CellGroup>(mesh.findGroup(groupName));
 		if (group == nullptr) {
 			throw invalid_argument("Cannot find group with name:" + groupName);
 		}
@@ -905,7 +905,7 @@ void NodeContainer::addNodePosition(int nodePosition) noexcept {
 }
 
 void NodeContainer::addNodeGroup(const string& groupName) {
-	shared_ptr<Group> group = mesh.findGroup(groupName);
+	const auto& group = mesh.findGroup(groupName);
 	if (group == nullptr) {
 		throw logic_error("Group name: [" + groupName + "] not found.");
 	}
@@ -940,7 +940,7 @@ set<int> NodeContainer::getNodePositionsExcludingGroups() const noexcept {
         return nodePositions;
     } else {
         set<int> result(nodePositions);
-        const set<int>& cellNodePositions = CellContainer::getNodePositionsExcludingGroups();
+        const auto& cellNodePositions = CellContainer::getNodePositionsExcludingGroups();
         result.insert(cellNodePositions.begin(), cellNodePositions.end());
         return result;
     }
@@ -948,12 +948,12 @@ set<int> NodeContainer::getNodePositionsExcludingGroups() const noexcept {
 
 set<int> NodeContainer::getNodePositionsIncludingGroups() const noexcept {
     set<int> result(nodePositions);
-	for (string groupName : nodeGroupNames) {
-		shared_ptr<NodeGroup> group = dynamic_pointer_cast<NodeGroup>(mesh.findGroup(groupName));
-		set<int> groupNodePositions =  group->nodePositions();
+	for (const auto& groupName : nodeGroupNames) {
+		const auto& group = static_pointer_cast<NodeGroup>(mesh.findGroup(groupName));
+		const auto& groupNodePositions = group->nodePositions();
 		result.insert(groupNodePositions.begin(), groupNodePositions.end());
 	}
-    const set<int>& cellNodePositions = CellContainer::getNodePositionsIncludingGroups();
+    const auto& cellNodePositions = CellContainer::getNodePositionsIncludingGroups();
     result.insert(cellNodePositions.begin(), cellNodePositions.end());
 	return result;
 }
@@ -1018,8 +1018,8 @@ bool NodeContainer::hasNodeGroups() const noexcept {
 
 vector<shared_ptr<NodeGroup>> NodeContainer::getNodeGroups() const {
 	vector<shared_ptr<NodeGroup>> nodeGroups;
-	for (string groupName : nodeGroupNames) {
-		shared_ptr<NodeGroup> group = dynamic_pointer_cast<NodeGroup>(mesh.findGroup(groupName));
+	for (const auto& groupName : nodeGroupNames) {
+		const auto& group = dynamic_pointer_cast<NodeGroup>(mesh.findGroup(groupName));
 		if (group == nullptr) {
 			throw invalid_argument("Cannot find group with name:" + groupName);
 		}

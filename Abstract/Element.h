@@ -84,7 +84,7 @@ public:
     ModelType getModelType() const;
     virtual void add(const CellGroup& cellGroup) = 0;
     virtual bool validate() const override;
-    virtual std::shared_ptr<ElementSet> clone() const = 0;
+    virtual std::unique_ptr<ElementSet> clone() const = 0;
     virtual DOFS getDOFSForNode(const int nodePosition) const = 0;
     virtual std::set<int> nodePositions() const = 0;
     virtual std::set<int> cellPositions() const = 0;
@@ -187,7 +187,7 @@ public:
 	const double radius;
 	CircularSectionBeam(Model&, double _radius, BeamModel beamModel = BeamModel::EULER,
 			double additional_mass = 0, int original_id = NO_ORIGINAL_ID);
-	std::shared_ptr<ElementSet> clone() const override;
+	std::unique_ptr<ElementSet> clone() const override;
 	double getAreaCrossSection() const override;
 	double getMomentOfInertiaY() const override;
 	double getMomentOfInertiaZ() const override;
@@ -203,7 +203,7 @@ public:
 	const double thickness;
 	TubeSectionBeam(Model&, double _radius, double _thickness, BeamModel beamModel = BeamModel::EULER,
 			double additional_mass = 0, int original_id = NO_ORIGINAL_ID);
-	std::shared_ptr<ElementSet> clone() const override;
+	std::unique_ptr<ElementSet> clone() const override;
 	double getAreaCrossSection() const override;
 	double getMomentOfInertiaY() const override;
 	double getMomentOfInertiaZ() const override;
@@ -237,7 +237,7 @@ public:
 	double getShearAreaFactorZ() const override;
 	double getInvShearAreaFactorY() const;
 	double getInvShearAreaFactorZ() const;
-	std::shared_ptr<ElementSet> clone() const override;
+	std::unique_ptr<ElementSet> clone() const override;
 };
 
 class RectangularSectionBeam: public Beam {
@@ -247,7 +247,7 @@ public:
 	const double height;
 	RectangularSectionBeam(Model&, double width, double height, BeamModel beamModel = BeamModel::EULER,
 			double additional_mass = 0, int original_id = NO_ORIGINAL_ID);
-	std::shared_ptr<ElementSet> clone() const override;
+	std::unique_ptr<ElementSet> clone() const override;
 	double getAreaCrossSection() const override;
 	double getMomentOfInertiaY() const override;
 	double getMomentOfInertiaZ() const override;
@@ -277,8 +277,8 @@ public:
 			double web_thickness, BeamModel beamModel = BeamModel::EULER, double additional_mass = 0,
 			int original_id = NO_ORIGINAL_ID);
 
-	std::shared_ptr<ElementSet> clone() const override {
-		return std::make_shared<ISectionBeam>(*this);
+	std::unique_ptr<ElementSet> clone() const override {
+		return std::make_unique<ISectionBeam>(*this);
 	}
 
 	double getAreaCrossSection() const override;
@@ -297,8 +297,8 @@ public:
 	double additional_mass;
 	public:
 	Shell(Model&, double thickness, double additional_mass = 0, int original_id = NO_ORIGINAL_ID);
-	std::shared_ptr<ElementSet> clone() const override {
-		return std::make_shared<Shell>(*this);
+	std::unique_ptr<ElementSet> clone() const override {
+		return std::make_unique<Shell>(*this);
 	}
 	double getAdditionalRho() const override {
 		return additional_mass / std::max(thickness, DBL_MIN);
@@ -332,8 +332,8 @@ class Composite: public CellElementSet {
     std::vector<CompositeLayer> layers;
 	public:
 	Composite(Model&, int original_id = NO_ORIGINAL_ID);
-	std::shared_ptr<ElementSet> clone() const override {
-		return std::make_shared<Composite>(*this);
+	std::unique_ptr<ElementSet> clone() const override {
+		return std::make_unique<Composite>(*this);
 	}
 	void addLayer(int materialId, double thickness, double orientation = 0);
 	double getTotalThickness();
@@ -350,8 +350,8 @@ class Continuum: public CellElementSet {
 
 public:
 	Continuum(Model&, const ModelType& modelType, int original_id = NO_ORIGINAL_ID);
-	std::shared_ptr<ElementSet> clone() const override {
-		return std::make_shared<Continuum>(*this);
+	std::unique_ptr<ElementSet> clone() const override {
+		return std::make_unique<Continuum>(*this);
 	}
 	DOFS getDOFSForNode(const int nodePosition) const override final;
 };
@@ -360,8 +360,8 @@ class Skin: public CellElementSet {
 
 public:
 	Skin(Model&, const ModelType& modelType, int original_id = NO_ORIGINAL_ID);
-	std::shared_ptr<ElementSet> clone() const override {
-		return std::make_shared<Skin>(*this);
+	std::unique_ptr<ElementSet> clone() const override {
+		return std::make_unique<Skin>(*this);
 	}
 	DOFS getDOFSForNode(const int nodePosition) const override final;
 };
@@ -410,7 +410,7 @@ public:
 	std::vector<double> asStiffnessVector(bool addRotationsIfNotPresent = false) const override final;
 	std::vector<double> asMassVector(bool addRotationsIfNotPresent = false) const override final;
 	std::vector<double> asDampingVector(bool addRotationsIfNotPresent = false) const override final;
-	std::shared_ptr<ElementSet> clone() const override;
+	std::unique_ptr<ElementSet> clone() const override;
 };
 
 class DiscreteSegment final : public Discrete {
@@ -440,7 +440,7 @@ public:
 	std::vector<double> asStiffnessVector(bool addRotationsIfNotPresent = false) const override final;
 	std::vector<double> asMassVector(bool addRotationsIfNotPresent = false) const override final;
 	std::vector<double> asDampingVector(bool addRotationsIfNotPresent = false) const override final;
-	std::shared_ptr<ElementSet> clone() const override;
+	std::unique_ptr<ElementSet> clone() const override;
 };
 
 
@@ -473,7 +473,7 @@ public:
 	std::vector<double> asStiffnessVector(bool addRotationsIfNotPresent = false) const override final;
 	std::vector<double> asMassVector(bool addRotationsIfNotPresent = false) const override final;
 	std::vector<double> asDampingVector(bool addRotationsIfNotPresent = false) const override final;
-	std::shared_ptr<ElementSet> clone() const override;
+	std::unique_ptr<ElementSet> clone() const override;
 };
 
 
@@ -507,8 +507,8 @@ class NodalMass: public CellElementSet {
 	bool hasTranslations() const;
 	bool hasRotations() const;
 
-	inline std::shared_ptr<ElementSet> clone() const override {
-		return std::make_shared<NodalMass>(*this);
+	inline std::unique_ptr<ElementSet> clone() const override {
+		return std::make_unique<NodalMass>(*this);
 	}
 };
 
@@ -544,16 +544,16 @@ class StiffnessMatrix : public MatrixElement {
 public:
 	StiffnessMatrix(Model&, MatrixType matrixType, int original_id = NO_ORIGINAL_ID);
 	void addStiffness(const int nodeid1, const DOF dof1, const int nodeid2, const DOF dof2, const double stiffness);
-	std::shared_ptr<ElementSet> clone() const override {
-		return std::make_shared<StiffnessMatrix>(*this);
+	std::unique_ptr<ElementSet> clone() const override {
+		return std::make_unique<StiffnessMatrix>(*this);
 	}
 };
 
 class MassMatrix : public MatrixElement {
 public:
 	MassMatrix(Model&, MatrixType matrixType, int original_id = NO_ORIGINAL_ID);
-	std::shared_ptr<ElementSet> clone() const override {
-		return std::make_shared<MassMatrix>(*this);
+	std::unique_ptr<ElementSet> clone() const override {
+		return std::make_unique<MassMatrix>(*this);
 	}
 };
 
@@ -561,8 +561,8 @@ class DampingMatrix : public MatrixElement {
 public:
 	DampingMatrix(Model&, MatrixType matrixType, int original_id = NO_ORIGINAL_ID);
 	void addDamping(const int nodeid1, const DOF dof1, const int nodeid2, const DOF dof2, const double damping);
-	std::shared_ptr<ElementSet> clone() const override {
-		return std::make_shared<DampingMatrix>(*this);
+	std::unique_ptr<ElementSet> clone() const override {
+		return std::make_unique<DampingMatrix>(*this);
 	}
 };
 
@@ -583,7 +583,7 @@ public:
 class Rbar: public RigidSet {
 public:
     Rbar(Model&, int master_id, int original_id = NO_ORIGINAL_ID);
-    std::shared_ptr<ElementSet> clone() const override;
+    std::unique_ptr<ElementSet> clone() const override;
 };
 
 class Rbe3: public RigidSet {
@@ -591,7 +591,7 @@ public:
     Rbe3(Model&, int master_id, DOFS mdofs, DOFS sdofs, int original_id = NO_ORIGINAL_ID);
     const DOFS mdofs;
     const DOFS sdofs;
-    std::shared_ptr<ElementSet> clone() const override;
+    std::unique_ptr<ElementSet> clone() const override;
 };
 
 /**
@@ -604,7 +604,7 @@ public:
     const int analysisId;
     static constexpr unsigned char LMPCCELL_DOFNUM = 6;
     std::vector<std::vector<DOFCoefs>> dofCoefsByDof;
-    std::shared_ptr<ElementSet> clone() const override;
+    std::unique_ptr<ElementSet> clone() const override;
     void appendDofCoefs(const std::vector<DOFCoefs>);
     unsigned char getDofCount() const noexcept {
         return dofcount;
@@ -617,7 +617,7 @@ public:
 class SurfaceSlideSet: public RigidSet {
 public:
     SurfaceSlideSet(Model&, int original_id = NO_ORIGINAL_ID);
-    std::shared_ptr<ElementSet> clone() const override;
+    std::unique_ptr<ElementSet> clone() const override;
 };
 
 /**
@@ -662,7 +662,7 @@ public:
     bool validate() const override {
         return true;
     }
-    std::shared_ptr<ElementSet> clone() const override;
+    std::unique_ptr<ElementSet> clone() const override;
 };
 
 } /* namespace vega */

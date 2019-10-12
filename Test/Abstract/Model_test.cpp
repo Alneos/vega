@@ -46,12 +46,12 @@ BOOST_AUTO_TEST_CASE( test_model_spc ) {
 	model.mesh.addCell(29, CellType::SEG2, {2, 3});
 	model.mesh.addCell(30, CellType::SEG2, {3, 4});
 	model.mesh.addCell(31, CellType::POINT1, {1});
-	shared_ptr<vega::NodeGroup> gn1 = model.mesh.findOrCreateNodeGroup("GN1");
+	const auto& gn1 = model.mesh.findOrCreateNodeGroup("GN1");
 	gn1->addNodeId(0);
 	gn1->addNodeId(6);
-	shared_ptr<vega::CellGroup> gm1 = model.mesh.createCellGroup("GM1");
+	const auto& gm1 = model.mesh.createCellGroup("GM1");
 	gm1->addCellId(31);
-	shared_ptr<vega::CellGroup> gm2 = model.mesh.createCellGroup("GM2");
+	const auto& gm2 = model.mesh.createCellGroup("GM2");
 	gm2->addCellId(28);
 	gm2->addCellId(30);
 	const auto& spc1 = make_shared<SinglePointConstraint>(model,array<ValueOrReference, 3>{{ 0, 0, 0 }});
@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE( test_model_spc ) {
 	model.add(spc1);
 	model.finish();
 
-	shared_ptr<SinglePointConstraint> spc1_ptr = dynamic_pointer_cast<SinglePointConstraint>(
+	const auto& spc1_ptr = dynamic_pointer_cast<SinglePointConstraint>(
 			model.find(spc1->getReference()));
 	BOOST_CHECK(spc1_ptr);
 	DOFS spc_dofs = spc1_ptr->getDOFSForNode(0);

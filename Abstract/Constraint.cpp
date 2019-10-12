@@ -216,8 +216,8 @@ void QuasiRigidConstraint::emulateWithMPCs() {
 
         // First relation: DX(M) - DX(A) - Z*DRY(A) + Y*DRZ(A) =0
         if (dofs.contains(DOF::DX)) {
-            auto lmpc1 = make_shared<LinearMultiplePointConstraint>(model, 0.0);
-            if (masterCalcDofs.containsAnyOf(DOF::RY + DOF::RZ)) {
+            const auto& lmpc1 = make_shared<LinearMultiplePointConstraint>(model, 0.0);
+            if (masterCalcDofs.contains(DOF::RY) or masterCalcDofs.contains(DOF::RZ)) {
                 lmpc1->addParticipation(master.id, -1.0, 0.0, 0.0, 0.0, distMaster.z(), -distMaster.y());
             } else {
                 lmpc1->addParticipation(master.id, -1.0);
@@ -228,7 +228,7 @@ void QuasiRigidConstraint::emulateWithMPCs() {
 
         // Second relation: DY(M) - DY(A) + Z*DRX(A) - X*DRZ(A) =0
         if (dofs.contains(DOF::DY)) {
-            auto lmpc2 = make_shared<LinearMultiplePointConstraint>(model, 0.0);
+            const auto& lmpc2 = make_shared<LinearMultiplePointConstraint>(model, 0.0);
             if (masterCalcDofs.contains(DOF::RX) or masterCalcDofs.contains(DOF::RZ)) {
                 lmpc2->addParticipation(master.id, 0.0, -1.0, 0.0, -distMaster.z(), 0.0, distMaster.x());
             } else {
@@ -240,8 +240,8 @@ void QuasiRigidConstraint::emulateWithMPCs() {
 
         // Third relation: DZ(M) - DZ(A) - Y*DRX(A) + X*DRY(A) =0
         if (dofs.contains(DOF::DZ)) {
-            auto lmpc3 = make_shared<LinearMultiplePointConstraint>(model, 0.0);
-            if (masterCalcDofs.containsAnyOf(DOF::RX + DOF::RY)) {
+            const auto& lmpc3 = make_shared<LinearMultiplePointConstraint>(model, 0.0);
+            if (masterCalcDofs.contains(DOF::RX) or masterCalcDofs.contains(DOF::RY)) {
                 lmpc3->addParticipation(master.id, 0.0, 0.0, -1.0, distMaster.y(), -distMaster.x());
             } else {
                 lmpc3->addParticipation(master.id, 0.0, 0.0, -1.0);
@@ -252,7 +252,7 @@ void QuasiRigidConstraint::emulateWithMPCs() {
 
         // Fourth relation: DRX(M) - DRX(A)  = 0
         if (dofs.contains(DOF::RX) and masterCalcDofs.contains(DOF::RX)) {
-            auto lmpc4 = make_shared<LinearMultiplePointConstraint>(model, 0.0);
+            const auto& lmpc4 = make_shared<LinearMultiplePointConstraint>(model, 0.0);
             lmpc4->addParticipation(master.id, 0.0, 0.0, 0.0, 1.0);
             lmpc4->addParticipation(slave.id, 0.0, 0.0, 0.0, -1.0);
             lmpcs.insert(lmpc4);
@@ -260,7 +260,7 @@ void QuasiRigidConstraint::emulateWithMPCs() {
 
         // Fifth relation: DRY(M) - DRY(A)  = 0
         if (dofs.contains(DOF::RY) and masterCalcDofs.contains(DOF::RX)) {
-            auto lmpc5 = make_shared<LinearMultiplePointConstraint>(model, 0.0);
+            const auto& lmpc5 = make_shared<LinearMultiplePointConstraint>(model, 0.0);
             lmpc5->addParticipation(master.id, 0.0, 0.0, 0.0, 0.0, 1.0);
             lmpc5->addParticipation(slave.id, 0.0, 0.0, 0.0, 0.0, -1.0);
             lmpcs.insert(lmpc5);
@@ -268,7 +268,7 @@ void QuasiRigidConstraint::emulateWithMPCs() {
 
         // Sixth relation: DRZ(M) - DRZ(A)  = 0
         if (dofs.contains(DOF::RZ) and masterCalcDofs.contains(DOF::RX)) {
-            auto lmpc6 = make_shared<LinearMultiplePointConstraint>(model, 0.0);
+            const auto& lmpc6 = make_shared<LinearMultiplePointConstraint>(model, 0.0);
             lmpc6->addParticipation(master.id, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
             lmpc6->addParticipation(slave.id, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0);
             lmpcs.insert(lmpc6);
@@ -482,7 +482,7 @@ void SinglePointConstraint::emulateLocalDisplacementConstraint() {
     for (int nodePosition : this->nodePositions()) {
         const Node& node = model.mesh.findNode(nodePosition);
         if (node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-            shared_ptr<CoordinateSystem> coordSystem = model.mesh.getCoordinateSystemByPosition(node.displacementCS);
+            const auto& coordSystem = model.mesh.getCoordinateSystemByPosition(node.displacementCS);
             // TODO LD: this should be done differently: is used to compute different nodes but every this it changes the coordinate system instance!
             coordSystem->updateLocalBase(VectorialValue(node.x, node.y, node.z));
             const DOFS& dofs = this->getDOFSForNode(nodePosition);
@@ -626,7 +626,7 @@ vector<shared_ptr<Gap::GapParticipation>> GapTwoNodes::getGaps() const {
         const Node& directionNode = model.mesh.findNode(it.second);
         VectorialValue direction(directionNode.x - constrainedNode.x,
                 directionNode.y - constrainedNode.y, directionNode.z - constrainedNode.z);
-        shared_ptr<GapParticipation> gp = make_shared<GapParticipation>(constrainedNode.position, direction.normalized());
+        const auto& gp = make_shared<GapParticipation>(constrainedNode.position, direction.normalized());
         result.push_back(gp);
     }
     return result;
@@ -682,7 +682,7 @@ vector<shared_ptr<Gap::GapParticipation>> GapNodeDirection::getGaps() const {
     result.reserve(directionBynodePosition.size());
     for (const auto& it : directionBynodePosition) {
         const int constrainedNodePosition = it.first;
-        shared_ptr<GapParticipation> gp = make_shared<GapParticipation>(constrainedNodePosition, it.second.normalized());
+        const auto& gp = make_shared<GapParticipation>(constrainedNodePosition, it.second.normalized());
         result.push_back(gp);
     }
     return result;
@@ -730,7 +730,7 @@ SlideContact::SlideContact(Model& model, Reference<NamedValue> friction, Referen
 double SlideContact::getFriction() const {
     if (friction != ValueOrReference::EMPTY_VALUE) {
         if (friction.isReference()) {
-            const auto val = dynamic_pointer_cast<const ScalarValue<double>>(model.find(friction.getReference()));
+            const auto& val = static_pointer_cast<const ScalarValue<double>>(model.find(friction.getReference()));
             return val->number;
 
         } else {
@@ -744,14 +744,14 @@ double SlideContact::getFriction() const {
 set<int> SlideContact::nodePositions() const {
     set<int> result;
     const auto& masterLine = dynamic_pointer_cast<BoundaryNodeLine>(model.find(master));
-    if (masterLine== nullptr) {
+    if (masterLine == nullptr) {
         throw logic_error("Cannot find master node list");
     }
     for (int nodeId : masterLine->nodeids) {
         result.insert(model.mesh.findNodePosition(nodeId));
     }
     const auto& slaveLine = dynamic_pointer_cast<BoundaryNodeLine>(model.find(slave));
-    if (slaveLine== nullptr) {
+    if (slaveLine == nullptr) {
         throw logic_error("Cannot find slave node list");
     }
     for (int nodeId : slaveLine->nodeids) {
@@ -805,8 +805,8 @@ void SurfaceContact::removeNodePosition(int nodePosition) {
 }
 
 bool SurfaceContact::ineffective() const {
-    const auto& masterSurface = dynamic_pointer_cast<BoundaryNodeSurface>(model.find(master));
-    const auto& slaveSurface = dynamic_pointer_cast<BoundaryNodeSurface>(model.find(slave));
+    const auto& masterSurface = static_pointer_cast<BoundaryNodeSurface>(model.find(master));
+    const auto& slaveSurface = static_pointer_cast<BoundaryNodeSurface>(model.find(slave));
     return masterSurface->nodeids.empty() or slaveSurface->nodeids.empty();
 }
 
@@ -816,13 +816,13 @@ DOFS SurfaceContact::getDOFSForNode(int nodePosition) const {
 }
 
 void SurfaceContact::makeBoundarySurfaces() {
-    shared_ptr<CellGroup> masterCellGroup = model.mesh.createCellGroup("SURFCONT_M_"+to_string(this->bestId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySurfaces() for the master in a SURFACE_CONTACT");
-    shared_ptr<CellGroup> slaveCellGroup = model.mesh.createCellGroup("SURFCONT_S_"+to_string(this->bestId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySurfaces() for the master in a SURFACE_CONTACT");
-    shared_ptr<BoundaryNodeSurface> slaveNodeSurface = dynamic_pointer_cast<BoundaryNodeSurface>(model.find(this->slave));
+    const auto& masterCellGroup = model.mesh.createCellGroup("SURFCONT_M_"+to_string(this->bestId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySurfaces() for the master in a SURFACE_CONTACT");
+    const auto& slaveCellGroup = model.mesh.createCellGroup("SURFCONT_S_"+to_string(this->bestId()), Group::NO_ORIGINAL_ID, "created by makeBoundarySurfaces() for the master in a SURFACE_CONTACT");
+    const auto& slaveNodeSurface = dynamic_pointer_cast<BoundaryNodeSurface>(model.find(this->slave));
     if (slaveNodeSurface == nullptr) {
         throw logic_error("Cannot find master node list");
     }
-    const list<int>& slaveNodeIds = slaveNodeSurface->nodeids;
+    const auto& slaveNodeIds = slaveNodeSurface->nodeids;
     auto it2 = slaveNodeIds.begin();
     for(unsigned int i = 0; i < slaveNodeIds.size();i+=4) {
         int nodeId1 = *(it2++);
@@ -839,11 +839,11 @@ void SurfaceContact::makeBoundarySurfaces() {
         slaveCellGroup->addCellPosition(cellPosition);
     }
     this->slaveCellGroup = slaveCellGroup;
-    shared_ptr<BoundaryNodeSurface> masterNodeSurface = dynamic_pointer_cast<BoundaryNodeSurface>(model.find(this->master));
+    const auto& masterNodeSurface = dynamic_pointer_cast<BoundaryNodeSurface>(model.find(this->master));
     if (masterNodeSurface == nullptr) {
         throw logic_error("Cannot find master node list");
     }
-    const list<int>& masterNodeIds = masterNodeSurface->nodeids;
+    const auto& masterNodeIds = masterNodeSurface->nodeids;
     auto it = masterNodeIds.begin();
     for(unsigned int i = 0; i < masterNodeIds.size();i+=4) {
         int nodeId1 = *(it++);
@@ -980,13 +980,13 @@ void SurfaceSlide::makeCellsFromSurfaceSlide() {
     using node_box = bg::model::box<node_point>;
     using value = pair<node_box, size_t>;
 
-    shared_ptr<CellGroup> group = model.mesh.createCellGroup("SURF_"+to_string(this->bestId()), CellGroup::NO_ORIGINAL_ID, "SURF");
+    const auto& group = model.mesh.createCellGroup("SURF_"+to_string(this->bestId()), CellGroup::NO_ORIGINAL_ID, "SURF");
     const auto& elementsetSlide = make_shared<SurfaceSlideSet>(model);
     elementsetSlide->add(*group);
     model.add(elementsetSlide);
     this->markAsWritten();
 
-    shared_ptr<BoundaryElementFace> masterSurface = dynamic_pointer_cast<BoundaryElementFace>(model.find(this->master));
+    const auto& masterSurface = static_pointer_cast<BoundaryElementFace>(model.find(this->master));
     vector<node_polygon> masterFaces;
     vector<vector<int>> masterFaceNodeIds;
     bgi::rtree< value, bgi::rstar<16> > rtree;
@@ -1010,10 +1010,10 @@ void SurfaceSlide::makeCellsFromSurfaceSlide() {
         }
     }
     masterSurface->markAsWritten();
-    shared_ptr<BoundaryElementFace> slaveSurface = dynamic_pointer_cast<BoundaryElementFace>(model.find(this->slave));
+    const auto& slaveSurface = static_pointer_cast<BoundaryElementFace>(model.find(this->slave));
     for (const auto& faceInfo : slaveSurface->faceInfos) {
         const Cell& slaveCell = model.mesh.findCell(model.mesh.findCellPosition(faceInfo.cellId));
-        const vector<int>& faceIds = slaveCell.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
+        const auto& faceIds = slaveCell.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
         for (const int faceId : faceIds) {
             int nodePosition = model.mesh.findNodePosition(faceId);
             const Node& node = model.mesh.findNode(nodePosition);

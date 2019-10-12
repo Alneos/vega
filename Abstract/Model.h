@@ -511,19 +511,19 @@ bool Model::Container<T>::checkWritten() const {
  */
 template<>
 inline void Model::Container<NamedValue>::add(std::shared_ptr<NamedValue> ptr) {
-    std::shared_ptr<NamedValue> ptr_old = find(ptr->getReference());
+    const auto& ptr_old = this->find(ptr->getReference());
     if (ptr_old != nullptr) {
         if (ptr->isPlaceHolder()) { // TODO : make a merge function for placeHolder
-            std::shared_ptr<Function> funPtr = std::dynamic_pointer_cast<Function>(ptr);
-            std::shared_ptr<Function> funptr_old = std::dynamic_pointer_cast<Function>(ptr_old);
+            const auto& funPtr = std::static_pointer_cast<Function>(ptr);
+            const auto& funptr_old = std::static_pointer_cast<Function>(ptr_old);
             if (funPtr->hasParaX())
                 funptr_old->setParaX(funPtr->getParaX());
             if (funPtr->hasParaY())
                 funptr_old->setParaY(funPtr->getParaY());
             ptr = ptr_old;
         } else if (ptr_old->isPlaceHolder()) {
-            std::shared_ptr<Function> funPtr = std::dynamic_pointer_cast<Function>(ptr);
-            std::shared_ptr<Function> funptr_old = std::dynamic_pointer_cast<Function>(ptr_old);
+            const auto& funPtr = std::static_pointer_cast<Function>(ptr);
+            const auto& funptr_old = std::static_pointer_cast<Function>(ptr_old);
             if (funptr_old->hasParaX())
                 funPtr->setParaX(funptr_old->getParaX());
             if (funptr_old->hasParaY())

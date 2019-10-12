@@ -145,8 +145,8 @@ VectorialValue CartesianCoordinateSystem::vectorToLocal(const VectorialValue& gl
     return VectorialValue(x, y, z);
 }
 
-shared_ptr<CoordinateSystem> CartesianCoordinateSystem::clone() const {
-    return make_shared<CartesianCoordinateSystem>(*this);
+unique_ptr<CoordinateSystem> CartesianCoordinateSystem::clone() const {
+    return make_unique<CartesianCoordinateSystem>(*this);
 }
 
 void CartesianCoordinateSystem::build(){
@@ -230,8 +230,8 @@ VectorialValue CylindricalCoordinateSystem::vectorToLocal(const VectorialValue& 
 }
 
 
-shared_ptr<CoordinateSystem> CylindricalCoordinateSystem::clone() const {
-    return make_shared<CylindricalCoordinateSystem>(*this);
+unique_ptr<CoordinateSystem> CylindricalCoordinateSystem::clone() const {
+    return make_unique<CylindricalCoordinateSystem>(*this);
 }
 
 VectorialValue CylindricalCoordinateSystem::getLocalEulerAnglesIntrinsicZYX(const CoordinateSystem *cs) const {
@@ -282,8 +282,8 @@ VectorialValue SphericalCoordinateSystem::vectorToLocal(const VectorialValue& gl
     throw logic_error("Global To Local vector conversion not done for Spherical Coordinate System");
 }
 
-shared_ptr<CoordinateSystem> SphericalCoordinateSystem::clone() const {
-    return make_shared<SphericalCoordinateSystem>(*this);
+unique_ptr<CoordinateSystem> SphericalCoordinateSystem::clone() const {
+    return make_unique<SphericalCoordinateSystem>(*this);
 }
 
 OrientationCoordinateSystem::OrientationCoordinateSystem(const Mesh& mesh, const int nO, const int nX,
@@ -412,8 +412,8 @@ VectorialValue OrientationCoordinateSystem::vectorToLocal(const VectorialValue& 
     return VectorialValue(x, y, z);
 }
 
-shared_ptr<CoordinateSystem> OrientationCoordinateSystem::clone() const {
-    return make_shared<OrientationCoordinateSystem>(*this);
+unique_ptr<CoordinateSystem> OrientationCoordinateSystem::clone() const {
+    return make_unique<OrientationCoordinateSystem>(*this);
 }
 
 /**

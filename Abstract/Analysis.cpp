@@ -218,9 +218,9 @@ void Analysis::add(const Reference<Objective>& assertionReference) {
 vector<shared_ptr<Assertion>> Analysis::getAssertions() const {
     vector<shared_ptr<Assertion>> assertions;
     for (const auto& assertion_reference : objectiveReferences) {
-        shared_ptr<Objective> objective = model.find(assertion_reference);
+        const auto& objective = model.find(assertion_reference);
         if (not objective->isAssertion()) continue;
-        assertions.push_back(dynamic_pointer_cast<Assertion>(objective));
+        assertions.push_back(static_pointer_cast<Assertion>(objective));
     }
     return assertions;
 }
@@ -228,7 +228,7 @@ vector<shared_ptr<Assertion>> Analysis::getAssertions() const {
 vector<shared_ptr<Objective>> Analysis::getObjectives() const {
     vector<shared_ptr<Objective>> objectives;
     for (const auto& objective_reference : objectiveReferences) {
-        shared_ptr<Objective> objective = model.find(objective_reference);
+        const auto& objective = model.find(objective_reference);
         objectives.push_back(objective);
     }
     return objectives;
@@ -484,7 +484,7 @@ LinearModal::LinearModal(Model& model, const int frequency_band_original_id,
 }
 
 shared_ptr<FrequencySearch> LinearModal::getFrequencySearch() const {
-    return dynamic_pointer_cast<FrequencySearch>(model.find(frequencySearchRef));
+    return static_pointer_cast<FrequencySearch>(model.find(frequencySearchRef));
 }
 
 bool LinearModal::validate() const {
@@ -513,11 +513,11 @@ LinearDynaModalFreq::LinearDynaModalFreq(Model& model, const int frequency_band_
 }
 
 shared_ptr<ModalDamping> LinearDynaModalFreq::getModalDamping() const {
-    return dynamic_pointer_cast<ModalDamping>(model.find(modal_damping_reference));
+    return static_pointer_cast<ModalDamping>(model.find(modal_damping_reference));
 }
 
 shared_ptr<FrequencyExcit> LinearDynaModalFreq::getExcitationFrequencies() const {
-    return dynamic_pointer_cast<FrequencyExcit>(model.find(frequencyExcitationRef));
+    return static_pointer_cast<FrequencyExcit>(model.find(frequencyExcitationRef));
 }
 
 bool LinearDynaModalFreq::validate() const {
@@ -540,7 +540,7 @@ LinearDynaDirectFreq::LinearDynaDirectFreq(Model& model,
 }
 
 shared_ptr<FrequencyExcit> LinearDynaDirectFreq::getExcitationFrequencies() const {
-    return dynamic_pointer_cast<FrequencyExcit>(model.find(frequencyExcitationRef));
+    return static_pointer_cast<FrequencyExcit>(model.find(frequencyExcitationRef));
 }
 
 bool LinearDynaDirectFreq::validate() const {

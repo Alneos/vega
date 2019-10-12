@@ -237,7 +237,7 @@ BOOST_AUTO_TEST_CASE(nastran_f06_vonmises_hexa) {
 			LogLevel::DEBUG, ConfigurationParameters::TranslationMode::MODE_STRICT, testLocation, 0.0003);
 	F06Parser f06parser;
 
-	unique_ptr<Model> model = make_unique<Model>("mname", "unknown", SolverName::NASTRAN);
+	const auto& model = make_unique<Model>("mname", "unknown", SolverName::NASTRAN);
 	for (const auto& nodeId : {1, 2, 5, 6, 9, 10, 40, 69, 70, 100, 129, 130, 162, 133, 191, 220, 249, 251}) {
         model->mesh.addNode(nodeId, 42, 42, 42);
 	}
@@ -246,7 +246,7 @@ BOOST_AUTO_TEST_CASE(nastran_f06_vonmises_hexa) {
 	model->mesh.addCell(386, CellType::HEXA8, {130, 220, 251, 249, 5, 69, 162, 70});
 	model->mesh.addCell(445, CellType::HEXA8, {9, 2, 40, 133, 220, 129, 191, 251});
 	model->mesh.addCell(446, CellType::HEXA8, {220, 129, 191, 251, 69, 6, 100, 162});
-	shared_ptr<CellGroup> cn1 = model->mesh.createCellGroup("GM1");
+	const auto& cn1 = model->mesh.createCellGroup("GM1");
 	cn1->addCellId(385);
 	cn1->addCellId(386);
 	cn1->addCellId(445);
@@ -259,15 +259,15 @@ BOOST_AUTO_TEST_CASE(nastran_f06_vonmises_hexa) {
 
 	BOOST_TEST_CHECKPOINT("Before Parse");
 	f06parser.add_assertions(confParams, *model);
-	shared_ptr<LinearMecaStat> linearMecaStat1 = dynamic_pointer_cast<LinearMecaStat>(
+	const auto& linearMecaStat1 = dynamic_pointer_cast<LinearMecaStat>(
 			model->find(Reference<Analysis>(Analysis::Type::LINEAR_MECA_STAT, 1)));
 	BOOST_ASSERT(linearMecaStat1!=nullptr);
-	vector<shared_ptr<Assertion>> assertions = linearMecaStat1->getAssertions();
+	const auto& assertions = linearMecaStat1->getAssertions();
 	BOOST_CHECK_EQUAL(assertions.size(), 32);
 
 	model->finish();
 	//ineffective assertions are removed by model->finish()
-	vector<shared_ptr<Assertion>> assertions2 = linearMecaStat1->getAssertions();
+	const auto& assertions2 = linearMecaStat1->getAssertions();
 	BOOST_CHECK_EQUAL(assertions2.size(), 32);
 	bool found = false;
 	for (const auto& assertion : assertions) {
@@ -293,7 +293,7 @@ BOOST_AUTO_TEST_CASE(nastran_f06_vonmises_tetra) {
 			LogLevel::DEBUG, ConfigurationParameters::TranslationMode::MODE_STRICT, testLocation, 0.0003);
 	F06Parser f06parser;
 
-	unique_ptr<Model> model = make_unique<Model>("mname", "unknown", SolverName::NASTRAN);
+	const auto& model = make_unique<Model>("mname", "unknown", SolverName::NASTRAN);
 	for (const auto& nodeId : {1, 3, 5, 6, 42, 71, 134, 135, 136, 168, 199}) {
         model->mesh.addNode(nodeId, 42, 42, 42);
 	}
@@ -302,7 +302,7 @@ BOOST_AUTO_TEST_CASE(nastran_f06_vonmises_tetra) {
 	model->mesh.addCell(573, CellType::TETRA4, {3, 1, 135, 71});
 	model->mesh.addCell(578, CellType::TETRA4, {42, 5, 6, 134});
 	model->mesh.addCell(580, CellType::TETRA4, {168, 136, 199, 134});
-	shared_ptr<CellGroup> cn1 = model->mesh.createCellGroup("GM1");
+	const auto& cn1 = model->mesh.createCellGroup("GM1");
 	cn1->addCellId(551);
 	cn1->addCellId(573);
 	cn1->addCellId(578);
@@ -315,15 +315,15 @@ BOOST_AUTO_TEST_CASE(nastran_f06_vonmises_tetra) {
 
 	BOOST_TEST_CHECKPOINT("Before Parse");
 	f06parser.add_assertions(confParams, *model);
-	shared_ptr<LinearMecaStat> linearMecaStat1 = dynamic_pointer_cast<LinearMecaStat>(
+	const auto& linearMecaStat1 = dynamic_pointer_cast<LinearMecaStat>(
 			model->find(Reference<Analysis>(Analysis::Type::LINEAR_MECA_STAT, 1)));
 	BOOST_ASSERT(linearMecaStat1!=nullptr);
-	vector<shared_ptr<Assertion>> assertions = linearMecaStat1->getAssertions();
+	const auto& assertions = linearMecaStat1->getAssertions();
 	BOOST_CHECK_EQUAL(assertions.size(), 16);
 
 	model->finish();
 	//ineffective assertions are removed by model->finish()
-	vector<shared_ptr<Assertion>> assertions2 = linearMecaStat1->getAssertions();
+	const auto& assertions2 = linearMecaStat1->getAssertions();
 	BOOST_CHECK_EQUAL(assertions2.size(), 16);
 	bool found = false;
 	for (const auto& assertion : assertions) {

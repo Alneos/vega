@@ -108,7 +108,7 @@ public:
      * TODO LD use internal RCS ?
      */
     virtual VectorialValue getEulerAnglesIntrinsicZYX(const CoordinateSystem *cs = nullptr) const;
-    virtual std::shared_ptr<CoordinateSystem> clone() const = 0;
+    virtual std::unique_ptr<CoordinateSystem> clone() const = 0;
 };
 
 class CartesianCoordinateSystem: public CoordinateSystem {
@@ -127,7 +127,7 @@ public:
     VectorialValue positionToGlobal(const VectorialValue&) const override;
     VectorialValue vectorToGlobal(const VectorialValue&) const override;
     VectorialValue vectorToLocal(const VectorialValue&) const override;
-    std::shared_ptr<CoordinateSystem> clone() const override;
+    std::unique_ptr<CoordinateSystem> clone() const override;
 };
 
 /**
@@ -161,7 +161,7 @@ public:
     VectorialValue positionToGlobal(const VectorialValue&) const override;
     VectorialValue vectorToGlobal(const VectorialValue&) const override;
     VectorialValue vectorToLocal(const VectorialValue&) const override;
-    std::shared_ptr<CoordinateSystem> clone() const override;
+    std::unique_ptr<CoordinateSystem> clone() const override;
 };
 
 
@@ -198,7 +198,7 @@ public:
     VectorialValue getLocalEulerAnglesIntrinsicZYX(const CoordinateSystem *rcs = nullptr) const;
 
 
-    std::shared_ptr<CoordinateSystem> clone() const override;
+    std::unique_ptr<CoordinateSystem> clone() const override;
 };
 
 class SphericalCoordinateSystem: public CoordinateSystem {
@@ -221,7 +221,7 @@ class SphericalCoordinateSystem: public CoordinateSystem {
      */
     VectorialValue vectorToGlobal(const VectorialValue&) const override;
     VectorialValue vectorToLocal(const VectorialValue&) const override;
-    std::shared_ptr<CoordinateSystem> clone() const override;
+    std::unique_ptr<CoordinateSystem> clone() const override;
 };
 
 

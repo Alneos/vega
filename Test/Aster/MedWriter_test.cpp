@@ -37,21 +37,20 @@ BOOST_AUTO_TEST_CASE( test_medwriter_spc ) {
 	model.mesh.addCell(29, CellType::SEG2, {2, 3});
 	model.mesh.addCell(30, CellType::SEG2, {3, 4});
 	model.mesh.addCell(31, CellType::POINT1, {1});
-	shared_ptr<vega::NodeGroup> gn1 = model.mesh.findOrCreateNodeGroup("GN1");
+	const auto& gn1 = model.mesh.findOrCreateNodeGroup("GN1");
 	gn1->addNodeId(0);
 	gn1->addNodeId(6);
-	shared_ptr<vega::CellGroup> gm1 = model.mesh.createCellGroup("GM1");
+	const auto& gm1 = model.mesh.createCellGroup("GM1");
 	gm1->addCellId(31);
-	shared_ptr<vega::CellGroup> gm2 = model.mesh.createCellGroup("GM2");
+	const auto& gm2 = model.mesh.createCellGroup("GM2");
 	gm2->addCellId(28);
 	gm2->addCellId(30);
-	const auto spc1 = make_shared<SinglePointConstraint>(model,array<ValueOrReference, 3>{{ 0, 0, 0 }});
+	const auto& spc1 = make_shared<SinglePointConstraint>(model,array<ValueOrReference, 3>{{ 0, 0, 0 }});
 	spc1->add(*gn1);
 	model.add(spc1);
 	model.finish();
 
-	shared_ptr<SinglePointConstraint> spc1_ptr = dynamic_pointer_cast<SinglePointConstraint>(
-			model.find(spc1->getReference()));
+	const auto& spc1_ptr = dynamic_pointer_cast<SinglePointConstraint>(model.find(spc1->getReference()));
 	BOOST_CHECK(spc1_ptr);
 	DOFS spc_dofs = spc1_ptr->getDOFSForNode(0);
 	BOOST_CHECK(spc1_ptr->hasReferences() == false);
@@ -69,7 +68,7 @@ BOOST_AUTO_TEST_CASE( nastran_med_write ) {
 	string outFile = fs::path(PROJECT_BINARY_DIR "/bin/test1.med").make_preferred().string();
 	nastran::NastranParser parser;
     try {
-        const unique_ptr<Model> model = parser.parse(
+        const auto& model = parser.parse(
                 ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "1"});
         MedWriter medWriter;
         medWriter.writeMED(*model, outFile.c_str());
@@ -85,20 +84,20 @@ BOOST_AUTO_TEST_CASE( test_NodeGroup2Families )
 {
     Mesh mesh(LogLevel::INFO, "test");
     vector<shared_ptr<NodeGroup>> nodeGroups;
-    shared_ptr<NodeGroup> gn1 = mesh.findOrCreateNodeGroup("GN1");
+    const auto& gn1 = mesh.findOrCreateNodeGroup("GN1");
     gn1->addNodeByPosition(0);
     gn1->addNodeByPosition(3);
     gn1->addNodeByPosition(4);
     nodeGroups.push_back(gn1);
-    shared_ptr<NodeGroup> gn2 = mesh.findOrCreateNodeGroup("GN2");
+    const auto& gn2 = mesh.findOrCreateNodeGroup("GN2");
     gn2->addNodeByPosition(0);
     gn2->addNodeByPosition(1);
     nodeGroups.push_back(gn2);
     NodeGroup2Families ng(5, nodeGroups);
     int expected[] = { 2, 3, 0, 1, 1, 0 };
-    vector<int> result = ng.getFamilyOnNodes();
+    const auto& result = ng.getFamilyOnNodes();
     BOOST_CHECK_EQUAL_COLLECTIONS(result.begin(), result.end(), expected, expected + 5);
-    vector<Family> families = ng.getFamilies();
+    const auto& families = ng.getFamilies();
     BOOST_CHECK_EQUAL(static_cast<size_t>(3), families.size());
     bool famGN1_GN2_found = false;
     for (Family fam : families)
@@ -112,7 +111,7 @@ BOOST_AUTO_TEST_CASE( test_CellGroup2Families )
 {
     Mesh mesh(LogLevel::INFO, "test");
     vector<shared_ptr<CellGroup>> cellGroups;
-    shared_ptr<CellGroup> gn1 = mesh.createCellGroup("GMA1");
+    const auto& gn1 = mesh.createCellGroup("GMA1");
     mesh.addCell(1, CellType::TRI3, {1,2,3});
     mesh.addCell(2, CellType::SEG2, {1,3});
     mesh.addCell(3, CellType::TRI3, {3,4,5});
@@ -120,7 +119,7 @@ BOOST_AUTO_TEST_CASE( test_CellGroup2Families )
     gn1->addCellId(2);
     gn1->addCellId(3);
     cellGroups.push_back(gn1);
-    shared_ptr<CellGroup> gn2 = mesh.createCellGroup("GMA2");
+    const auto& gn2 = mesh.createCellGroup("GMA2");
     gn2->addCellId(1);
     cellGroups.push_back(gn2);
     unordered_map<CellType::Code, int, EnumClassHash> cellCountByType;
@@ -139,7 +138,7 @@ BOOST_AUTO_TEST_CASE( test_CellGroup2Families )
     BOOST_CHECK_EQUAL_COLLECTIONS(seg2->begin(), seg2->end(), expectedSeg2,
                                   expectedSeg2 + 3);
 
-    vector<Family> families = cg2fam.getFamilies();
+    const auto& families = cg2fam.getFamilies();
     BOOST_CHECK_EQUAL(2, families.size());
     bool famGMA1_GMA2_found = false;
     for (Family fam : families)
