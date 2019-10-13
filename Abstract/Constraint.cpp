@@ -296,8 +296,8 @@ void QuasiRigidConstraint::emulateWithMPCs() {
 
 DOFS QuasiRigidConstraint::calcMasterDOFS() const {
     const Node& master = model.mesh.findNode(masterPosition);
-    if (this->dofs == DOFS::ALL_DOFS)
-        return DOFS::ALL_DOFS;
+//    if (this->dofs == DOFS::ALL_DOFS)
+//        return DOFS::ALL_DOFS;
     if (master.dofs == DOFS::ALL_DOFS)
         return DOFS::ALL_DOFS; // Master already has rotations
     DOFS masterUsableDOFS{master.dofs};
@@ -305,6 +305,7 @@ DOFS QuasiRigidConstraint::calcMasterDOFS() const {
         masterUsableDOFS += DOFS::TRANSLATIONS;
         for (int slavePosition : getSlaves()) {
             const Node& slave = model.mesh.findNode(slavePosition);
+            masterUsableDOFS += slave.dofs;
             VectorialValue distMaster{master.x - slave.x, master.y - slave.y, master.z - slave.z};
             if (not is_zero(distMaster.x()))
                 masterUsableDOFS += DOF::RY + DOF::RZ;
