@@ -301,7 +301,7 @@ DOFS QuasiRigidConstraint::calcMasterDOFS() const {
     if (master.dofs == DOFS::ALL_DOFS)
         return DOFS::ALL_DOFS; // Master already has rotations
     DOFS masterUsableDOFS{master.dofs};
-    if (this->addRotations or this->dofs == DOFS::ALL_DOFS /* LD simple check to filter out some RBARs, should probably also check if they are all aligned? */) {
+    if (this->addRotations) {
         masterUsableDOFS += DOFS::TRANSLATIONS;
         for (int slavePosition : getSlaves()) {
             const Node& slave = model.mesh.findNode(slavePosition);
