@@ -194,7 +194,6 @@ BOOST_AUTO_TEST_CASE(nastran_set_in_subcase) {
 			ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
         model->finish();
         BOOST_CHECK_EQUAL(model->analyses.size(), 1);
-        const auto& analysis = model->analyses.first();
         const auto& setValue100 = static_pointer_cast<SetValue<int>> (model->find(Reference<NamedValue>{Value::Type::SET, 100}));
         BOOST_CHECK(setValue100 != nullptr);
         BOOST_CHECK_EQUAL(setValue100->getSet().size(), 2);
@@ -219,7 +218,6 @@ BOOST_AUTO_TEST_CASE(nastran_set_THRU) {
 			ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
         model->finish();
         BOOST_CHECK_EQUAL(model->analyses.size(), 1);
-        const auto& analysis = model->analyses.first();
         const auto& setValue = static_pointer_cast<SetValue<int>> (model->find(Reference<NamedValue>{Value::Type::SET, 3}));
         BOOST_CHECK(setValue != nullptr);
         BOOST_CHECK_EQUAL(setValue->getSet().size(), 3);
