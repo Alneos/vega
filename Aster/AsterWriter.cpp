@@ -1961,16 +1961,16 @@ void AsterWriter::writeAssemblage(const AsterModel& asterModel, Analysis& analys
         for (const auto& loadSet : analysis.getLoadSets()) {
             for (const auto& loading : loadSet->getLoadings()) {
                 if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
-                    auto& dynamicExcitation =
-                            static_cast<DynamicExcitation&>(*loading);
+                    const auto& dynamicExcitation =
+                            static_pointer_cast<DynamicExcitation>(loading);
                     out << "                      _F(OPTION='CHAR_MECA', VECTEUR=CO('FX"
-                            << analysis.getId() << "_" << dynamicExcitation.getId() << "')," << endl;
+                            << analysis.getId() << "_" << dynamicExcitation->getId() << "')," << endl;
                     out << "                        CHARGE=(" << endl;
                     out << "                                CHMEC"
-                            << dynamicExcitation.getLoadSet()->getId() << "," << endl;
+                            << dynamicExcitation->getLoadSet()->getId() << "," << endl;
                     out << "                                )," << endl;
                     out << "                      )," << endl;
-                    dynamicExcitation.markAsWritten();
+                    dynamicExcitation->markAsWritten();
                     loadSet->markAsWritten();
                 }
             }
@@ -2297,18 +2297,18 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		for (const auto& loadSet : linearDirect.getLoadSets()) {
 			for (const auto& loading : loadSet->getLoadings()) {
 				if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
-					DynamicExcitation& dynamicExcitation =
-							dynamic_cast<DynamicExcitation&>(*loading);
+					const auto& dynamicExcitation =
+                            static_pointer_cast<DynamicExcitation>(loading);
 					out << "                                 _F(" << endl;
                     out << "                                    VECT_ASSE=FX"
                             << linearDirect.getId() << "_"
-                            << dynamicExcitation.getId() << "," << endl;
+                            << dynamicExcitation->getId() << "," << endl;
 					out << "                                    FONC_MULT = FCT" << setfill('0')
-							<< setw(5) << dynamicExcitation.getFunctionTableB()->getId() << ","
+							<< setw(5) << dynamicExcitation->getFunctionTableB()->getId() << ","
 							<< endl;
 					out << "                                    PHAS_DEG = "
-							<< dynamicExcitation.getDynaPhase()->get() << ",)," << endl;
-                    dynamicExcitation.markAsWritten();
+							<< dynamicExcitation->getDynaPhase()->get() << ",)," << endl;
+                    dynamicExcitation->markAsWritten();
                     loadSet->markAsWritten();
 				}
 			}
@@ -2379,17 +2379,17 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 			for (const auto& loadSet : linearDynaModalFreq.getLoadSets()) {
 				for (const auto& loading : loadSet->getLoadings()) {
 					if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
-						DynamicExcitation& dynamicExcitation =
-								dynamic_cast<DynamicExcitation&>(*loading);
+                        const auto& dynamicExcitation =
+                            static_pointer_cast<DynamicExcitation>(loading);
 						const auto& nodalForces =
-								dynamicExcitation.getLoadSet()->getLoadingsByType(
+								dynamicExcitation->getLoadSet()->getLoadingsByType(
 										Loading::Type::NODAL_FORCE);
 						for (const auto& loading2 : nodalForces) {
 							const auto& nodal_force = dynamic_pointer_cast<NodalForce>(
 									loading2);
                             for(const int nodePosition : nodal_force->nodePositions()) {
-                                VectorialValue force = nodal_force->getForceInGlobalCS(nodePosition);
-                                VectorialValue moment = nodal_force->getMomentInGlobalCS(nodePosition);
+                                const auto& force = nodal_force->getForceInGlobalCS(nodePosition);
+                                const auto& moment = nodal_force->getMomentInGlobalCS(nodePosition);
                                 out << "                                    _F(NOEUD='"
                                         << Node::MedName(nodePosition) << "'," << endl;
                                 out << "                                      AVEC_CMP=(";
@@ -2407,7 +2407,7 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
                                     out << "'DRZ',";
                                 out << "))," << endl;
                             }
-                            dynamicExcitation.markAsWritten();
+                            dynamicExcitation->markAsWritten();
                             loadSet->markAsWritten();
 						}
 					}

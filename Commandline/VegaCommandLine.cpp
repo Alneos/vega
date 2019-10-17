@@ -303,13 +303,13 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
         }
     }
 
-    string systusDynamicMethod="direct";
+    string systusDynamicMethod="auto";
     if (vm.count("systus.DynamicMethod")){
         systusDynamicMethod = vm["systus.DynamicMethod"].as<string>();
-        set<string> availableTranlation { "direct", "modal" };
+        set<string> availableTranlation { "direct", "modal", "auto" };
         set<string>::iterator it = availableTranlation.find(systusDynamicMethod);
         if (it == availableTranlation.end()) {
-            throw invalid_argument("Systus dynamic method must be either direct (default) or modal");
+            throw invalid_argument("Systus dynamic method must be either auto (default), direct or modal");
         }
     }
 
@@ -497,8 +497,8 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
         // TODO: Some of these options are not so specific: rename and move them.
         po::options_description systusOptions("Systus specific options");
         systusOptions.add_options() //
-        ("systus.DynamicMethod",po::value<string>()->default_value("direct"),
-                 "Dynamic method for harmonic analysis: direct (default) or modal.") //
+        ("systus.DynamicMethod",po::value<string>()->default_value("auto"),
+                 "Dynamic method for harmonic analysis: 'auto' (default), 'direct' or 'modal'.") //
         ("systus.RBE2TranslationMode",po::value<string>()->default_value("penalty"),
                 "Translation mode of RBE2 from Nastran To Systus: lagrangian or penalty.") //
         ("systus.RBE2Rigidity", po::value<double>(),

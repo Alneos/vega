@@ -198,7 +198,7 @@ QuasiRigidConstraint::QuasiRigidConstraint(Model& model, const DOFS& dofs, int m
 }
 
 bool QuasiRigidConstraint::isCompletelyRigid() const {
-    return this->dofs == DOFS::ALL_DOFS;
+    return this->dofs == DOFS::ALL_DOFS and this->addRotations;
 }
 
 void QuasiRigidConstraint::emulateWithMPCs() {
@@ -259,7 +259,7 @@ void QuasiRigidConstraint::emulateWithMPCs() {
         }
 
         // Fifth relation: DRY(M) - DRY(A)  = 0
-        if (dofs.contains(DOF::RY) and masterCalcDofs.contains(DOF::RX)) {
+        if (dofs.contains(DOF::RY) and masterCalcDofs.contains(DOF::RY)) {
             const auto& lmpc5 = make_shared<LinearMultiplePointConstraint>(model, 0.0);
             lmpc5->addParticipation(master.id, 0.0, 0.0, 0.0, 0.0, 1.0);
             lmpc5->addParticipation(slave.id, 0.0, 0.0, 0.0, 0.0, -1.0);
@@ -267,7 +267,7 @@ void QuasiRigidConstraint::emulateWithMPCs() {
         }
 
         // Sixth relation: DRZ(M) - DRZ(A)  = 0
-        if (dofs.contains(DOF::RZ) and masterCalcDofs.contains(DOF::RX)) {
+        if (dofs.contains(DOF::RZ) and masterCalcDofs.contains(DOF::RZ)) {
             const auto& lmpc6 = make_shared<LinearMultiplePointConstraint>(model, 0.0);
             lmpc6->addParticipation(master.id, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
             lmpc6->addParticipation(slave.id, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0);
@@ -327,7 +327,9 @@ DOFS QuasiRigidConstraint::getDOFSForNode(int nodePosition) const {
 
     const auto& nodes = nodePositions();
     if (nodes.find(nodePosition) != nodes.end()) {
-        return this->dofs;
+        return this->dofs.intersection(calcMasterDOFS());
+        //const Node& slave = model.mesh.findNode(nodePosition);
+        //return slave.dofs;
     } else {
         return DOFS::NO_DOFS;
     }

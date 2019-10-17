@@ -3187,7 +3187,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         }
 
         if (systusModel.configuration.systusDynamicMethod=="direct"){
-
+            handleWritingWarning("Requested direct solver, but the original study is modal.", "Analysis file");
             out << "# COMPUTING MASS MATRIX" << endl;
             out << "# AS THE COMMAND DYNAMIC COMPUTE THEM, IT SHOULD BE USELESS." << endl;
             out << "# BUT THERE SEEM TO BE BUGS ON THE COMMAND, SO WE USE EXPLICITLY THE COMMAND" << endl;
@@ -3201,7 +3201,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
             out << "FREQUENCY "<< oFrequency.str() <<endl;
             out << "RETURN"<<endl;
 
-        } else if (systusModel.configuration.systusDynamicMethod=="modal") {
+        } else if (systusModel.configuration.systusDynamicMethod=="auto" or systusModel.configuration.systusDynamicMethod=="modal") {
             // See SYSTUS Reference Manual 11.4 "Dynamic Response - Modal method"
 
             // First, we need to do a static analysis
