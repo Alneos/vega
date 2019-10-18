@@ -36,8 +36,8 @@ namespace vega {
 
 using namespace std;
 
-Analysis::Analysis(Model& model, const Type Type, const string original_label, int original_id) :
-        Identifiable(original_id), label(original_label), model(model), type(Type) {
+Analysis::Analysis(Model& model, const Type type, const string original_label, int original_id) :
+        Identifiable(original_id), label(original_label), model(model), type(type) {
 }
 
 const string Analysis::name = "Analysis";
@@ -507,7 +507,8 @@ LinearDynaModalFreq::LinearDynaModalFreq(Model& model, const int frequency_band_
         const int modal_damping_original_id, const int frequency_value_original_id,
         const bool residual_vector, const string original_label, const int original_id) :
         LinearModal(model, frequency_band_original_id, original_label, original_id,
-                Analysis::Type::LINEAR_DYNA_MODAL_FREQ), modal_damping_reference(Objective::Type::MODAL_DAMPING,
+                Analysis::Type::LINEAR_DYNA_MODAL_FREQ),
+                modal_damping_reference(Objective::Type::MODAL_DAMPING,
                 modal_damping_original_id), frequencyExcitationRef(Objective::Type::FREQUENCY_EXCIT,
                 frequency_value_original_id), residual_vector(residual_vector) {
 }

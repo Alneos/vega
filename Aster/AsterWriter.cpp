@@ -38,7 +38,7 @@ string AsterWriter::writeModel(Model& model,
         handleWritingError("Translation required for a different solver : " + configuration.outputSolver.to_str() + ", so cannot write it.");
     }
 	asterModel = make_unique<AsterModel>(model, configuration);
-//string currentOutFile = asterModel.getOutputFileName();
+//string currentOutFile = asterModel->getOutputFileName();
 
 	string path = asterModel->configuration.outputPath;
 	if (!fs::exists(path)) {
@@ -73,17 +73,15 @@ string AsterWriter::writeModel(Model& model,
 	string med_path = asterModel->getOutputFileName(".med");
 	string comm_path = asterModel->getOutputFileName(".comm");
 
-	ofstream comm_file_ofs;
 	//comm_file_ofs.setf(ios::scientific);
  	comm_file_ofs.precision(DBL_DIG);
 
-	ofstream exp_file_ofs;
 	exp_file_ofs.open(exp_path.c_str(), ios::trunc | ios::out);
 	if (!exp_file_ofs.is_open()) {
 		string message = "Can't open file " + exp_path + " for writing.";
 		throw ios::failure(message);
 	}
-	this->writeExport(*asterModel, exp_file_ofs);
+	this->writeExport();
 	exp_file_ofs.close();
 
 	comm_file_ofs.open(comm_path.c_str(), ios::out | ios::trunc);
@@ -92,7 +90,7 @@ string AsterWriter::writeModel(Model& model,
 		string message = "Can't open file " + comm_path + " for writing.";
 		throw ios::failure(message);
 	}
-	this->writeComm(*asterModel, comm_file_ofs);
+	this->writeComm();
 	comm_file_ofs.close();
 
 	MedWriter medWriter;
@@ -100,69 +98,69 @@ string AsterWriter::writeModel(Model& model,
 	return exp_path;
 }
 
-void AsterWriter::writeExport(AsterModel &model, ostream& out) {
-	out << "P actions make_etude" << endl;
-	out << "P mem_aster 100.0" << endl;
-	out << "P mode interactif" << endl;
-	if (model.model.analyses.empty()) {
-		out << "P copy_result_alarm no" << endl;
+void AsterWriter::writeExport() {
+	exp_file_ofs << "P actions make_etude" << endl;
+	exp_file_ofs << "P mem_aster 100.0" << endl;
+	exp_file_ofs << "P mode interactif" << endl;
+	if (asterModel->model.analyses.empty()) {
+		exp_file_ofs << "P copy_result_alarm no" << endl;
 	}
-	out << "P nomjob " << model.model.name << endl;
-	out << "P origine Vega++ " << VEGA_VERSION_MAJOR << "." << VEGA_VERSION_MINOR << endl;
-	out << "P version " << model.getAsterVersion() << endl;
-	out << "A memjeveux " << model.getMemjeveux() << endl;
-	out << "A tpmax " << model.getTpmax() << endl;
-	out << "F comm " << model.getOutputFileName(".comm", false) << " D 1" << endl;
-	out << "F mail " << model.getOutputFileName(".med", false) << " D 20" << endl;
-	out << "F mess " << model.getOutputFileName(".mess", false) << " R 6" << endl;
-	out << "F resu " << model.getOutputFileName(".resu", false) << " R 8" << endl;
-	out << "F rmed " << model.getOutputFileName(".rmed", false) << " R 80" << endl;
-	out << "R repe " << model.getOutputFileName("_repe_out", false) << " R 0" << endl;
+	exp_file_ofs << "P nomjob " << asterModel->model.name << endl;
+	exp_file_ofs << "P origine Vega++ " << VEGA_VERSION_MAJOR << "." << VEGA_VERSION_MINOR << endl;
+	exp_file_ofs << "P version " << asterModel->getAsterVersion() << endl;
+	exp_file_ofs << "A memjeveux " << asterModel->getMemjeveux() << endl;
+	exp_file_ofs << "A tpmax " << asterModel->getTpmax() << endl;
+	exp_file_ofs << "F comm " << asterModel->getOutputFileName(".comm", false) << " D 1" << endl;
+	exp_file_ofs << "F mail " << asterModel->getOutputFileName(".med", false) << " D 20" << endl;
+	exp_file_ofs << "F mess " << asterModel->getOutputFileName(".mess", false) << " R 6" << endl;
+	exp_file_ofs << "F resu " << asterModel->getOutputFileName(".resu", false) << " R 8" << endl;
+	exp_file_ofs << "F rmed " << asterModel->getOutputFileName(".rmed", false) << " R 80" << endl;
+	exp_file_ofs << "R repe " << asterModel->getOutputFileName("_repe_out", false) << " R 0" << endl;
 
 }
 
-void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out) {
-	if (not asterModel.model.analyses.empty()) {
+void AsterWriter::writeImprResultats() {
+	if (not asterModel->model.analyses.empty()) {
 
-		for (const auto& analysis : asterModel.model.analyses) {
+		for (const auto& analysis : asterModel->model.analyses) {
 
-			const auto& vonMisesOutputs = asterModel.model.objectives.filter(Objective::Type::VONMISES_STRESS_OUTPUT);
+			const auto& vonMisesOutputs = asterModel->model.objectives.filter(Objective::Type::VONMISES_STRESS_OUTPUT);
 
 			for (const auto& output : vonMisesOutputs) {
                 const auto& vonMisesOutput = static_pointer_cast<VonMisesStressOutput>(output);
-                out << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
+                comm_file_ofs << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
                         << endl;
-                out << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
-                out << "           MODELE=MODMECA," << endl;
-                out << "           CONTRAINTE =('SIEQ_ELNO','SIEQ_NOEU')," << endl;
-                writeCellContainer(*vonMisesOutput, out);
-                out << ")" << endl;
+                comm_file_ofs << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
+                comm_file_ofs << "           MODELE=MODMECA," << endl;
+                comm_file_ofs << "           CONTRAINTE =('SIEQ_ELNO','SIEQ_NOEU')," << endl;
+                writeCellContainer(*vonMisesOutput);
+                comm_file_ofs << ")" << endl;
 			}
 		}
 
-		out << "IMPR_RESU(FORMAT='RESULTAT'," << endl;
-		out << "          RESU=(" << endl;
-		for (const auto& analysis : asterModel.model.analyses) {
+		comm_file_ofs << "IMPR_RESU(FORMAT='RESULTAT'," << endl;
+		comm_file_ofs << "          RESU=(" << endl;
+		for (const auto& analysis : asterModel->model.analyses) {
 			switch (analysis->type) {
             case (Analysis::Type::COMBINATION):
 			case (Analysis::Type::LINEAR_MECA_STAT): {
-				out << "                _F(RESULTAT=RESU" << analysis->getId()
+				comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
 						<< ", NOM_CHAM='DEPL'," << " VALE_MAX='OUI'," << " VALE_MIN='OUI',),"
 						<< endl;
 				break;
 			}
 			case (Analysis::Type::LINEAR_MODAL): {
-				//out << "                _F(RESULTAT=RESU" << analysis->getId()
+				//comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
 				//		<< ", TOUT_PARA='OUI', TOUT_CHAM='NON')," << endl;
 				break;
 			}
             case (Analysis::Type::LINEAR_BUCKLING): {
-				out << "                _F(RESULTAT=RESU" << analysis->getId()
+				comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
 						<< ", NOM_PARA='CHAR_CRIT', TOUT_CHAM='NON')," << endl;
 				break;
 			}
 			case (Analysis::Type::LINEAR_DYNA_DIRECT_FREQ): {
-				out << "                _F(RESULTAT=RESU" << analysis->getId()
+				comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
 						<< ", NOM_PARA='FREQ', TOUT_CHAM='NON')," << endl;
 				break;
 			}
@@ -170,81 +168,81 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
 				break;
 			}
 			case (Analysis::Type::NONLINEAR_MECA_STAT): {
-				out << "                _F(RESULTAT=RESU" << analysis->getId()
+				comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
 						<< ", NOM_CHAM='DEPL'," << " VALE_MAX='OUI'," << " VALE_MIN='OUI',),"
 						<< endl;
 				break;
 			}
 			default:
-				out << "# WARN analysis " << *analysis << " not supported. Skipping." << endl;
+				comm_file_ofs << "# WARN analysis " << *analysis << " not supported. Skipping." << endl;
 			}
 		}
-		out << "                )," << endl;
-		out << "          );" << endl << endl;
+		comm_file_ofs << "                )," << endl;
+		comm_file_ofs << "          );" << endl << endl;
 
-		out << "IMPR_RESU(FORMAT='MED',UNITE=80," << endl;
-		out << "          RESU=(" << endl;
-		for (const auto& analysis : asterModel.model.analyses) {
+		comm_file_ofs << "IMPR_RESU(FORMAT='MED',UNITE=80," << endl;
+		comm_file_ofs << "          RESU=(" << endl;
+		for (const auto& analysis : asterModel->model.analyses) {
 			switch (analysis->type) {
             case (Analysis::Type::COMBINATION):
 			case (Analysis::Type::LINEAR_MECA_STAT): {
-				out << "                _F(RESULTAT=RESU" << analysis->getId()
+				comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
 						<< ", NOM_CHAM=('DEPL'";
 				if (calc_sigm) {
-					out << ",'" << sigm_noeu << "'";
+					comm_file_ofs << ",'" << sigm_noeu << "'";
 				}
-				out << ",),)," << endl;
+				comm_file_ofs << ",),)," << endl;
 				break;
 			}
 			case (Analysis::Type::NONLINEAR_MECA_STAT):
 			case (Analysis::Type::LINEAR_BUCKLING):
 			case (Analysis::Type::LINEAR_MODAL): {
-				out << "                _F(RESULTAT=RESU" << analysis->getId()
+				comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
 						<< ", NOM_CHAM = 'DEPL',)," << endl;
 				break;
 			}
 			case (Analysis::Type::LINEAR_DYNA_DIRECT_FREQ): {
-				out << "                _F(RESULTAT=RESU" << analysis->getId()
+				comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
 						<< ", PARTIE='REEL')," << endl;
 				break;
 			}
 			case (Analysis::Type::LINEAR_DYNA_MODAL_FREQ): {
-				out << "                _F(RESULTAT=MODES" << analysis->getId()
+				comm_file_ofs << "                _F(RESULTAT=MODES" << analysis->getId()
 						<< ", NOM_CHAM = 'DEPL',)," << endl;
-				out << "                _F(RESULTAT=RESU" << analysis->getId()
+				comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
 						<< ", PARTIE='REEL')," << endl;
 				break;
 			}
 			default:
-				out << "# WARN analysis " << *analysis << " not supported. Skipping." << endl;
+				comm_file_ofs << "# WARN analysis " << *analysis << " not supported. Skipping." << endl;
 			}
 		}
-		out << "                )," << endl;
-		out << "          );" << endl << endl;
+		comm_file_ofs << "                )," << endl;
+		comm_file_ofs << "          );" << endl << endl;
 
-		for (const auto& analysis : asterModel.model.analyses) {
+		for (const auto& analysis : asterModel->model.analyses) {
 
-			const auto& displacementOutputs = asterModel.model.objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT);
-			out << "RETB" << analysis->getId();
+			const auto& displacementOutputs = asterModel->model.objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT);
+			comm_file_ofs << "RETB" << analysis->getId();
 			if (not displacementOutputs.empty()) {
-                out << "=POST_RELEVE_T(ACTION=(" << endl;
+                comm_file_ofs << "=POST_RELEVE_T(ACTION=(" << endl;
                 for (auto output : displacementOutputs) {
                     const auto& displacementOutput = static_pointer_cast<const NodalDisplacementOutput>(output);
-                    out << "                _F(INTITULE='DISP" << output->bestId() << "',OPERATION='EXTRACTION',RESULTAT=RESU" << analysis->getId() << ",";
-                    writeNodeContainer(*displacementOutput, out);
-                    out << "NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
+                    comm_file_ofs << "                _F(INTITULE='DISP" << output->bestId() << "',OPERATION='EXTRACTION',RESULTAT=RESU" << analysis->getId() << ",";
+                    writeNodeContainer(*displacementOutput);
+                    comm_file_ofs << "NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
                 }
-                out << "),)" << endl << endl;
+                comm_file_ofs << "),)" << endl << endl;
 			} else {
 
-                out << "=CREA_TABLE(RESU=(" << endl;
+                comm_file_ofs << "=CREA_TABLE(RESU=(" << endl;
                 switch (analysis->type) {
                 case (Analysis::Type::COMBINATION):
                 case (Analysis::Type::LINEAR_MODAL):
                 case (Analysis::Type::LINEAR_BUCKLING):
                 case (Analysis::Type::NONLINEAR_MECA_STAT):
                 case (Analysis::Type::LINEAR_MECA_STAT): {
-                    out << "                _F(RESULTAT=RESU" << analysis->getId()
+                    comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
                             << ",TOUT='OUI',NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
                     break;
                 }
@@ -252,34 +250,34 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
                     break;
                 }
                 case (Analysis::Type::LINEAR_DYNA_MODAL_FREQ): {
-                    out << "                _F(RESULTAT=MODES" << analysis->getId()
+                    comm_file_ofs << "                _F(RESULTAT=MODES" << analysis->getId()
                             << ",TOUT='OUI',NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
                     break;
                 }
                 default:
-                    out << "# WARN analysis " << *analysis << " not supported. Skipping." << endl;
+                    comm_file_ofs << "# WARN analysis " << *analysis << " not supported. Skipping." << endl;
                 }
-			out << "),)" << endl << endl;
+			comm_file_ofs << "),)" << endl << endl;
 			}
 
-			out << "unite=DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
-			out << "             FICHIER='REPE_OUT/tbresu_" << analysis->getId() << ".csv')" << endl
+			comm_file_ofs << "unite=DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
+			comm_file_ofs << "             FICHIER='REPE_OUT/tbresu_" << analysis->getId() << ".csv')" << endl
 					<< endl;
 
-			out << "IMPR_TABLE(TABLE=RETB" << analysis->getId() << "," << endl;
-			out << "           FORMAT='TABLEAU'," << endl;
-			out << "           UNITE=unite," << endl;
-			out << "           SEPARATEUR=' ,'," << endl;
-			out << "           TITRE='RESULTS',)" << endl << endl;
+			comm_file_ofs << "IMPR_TABLE(TABLE=RETB" << analysis->getId() << "," << endl;
+			comm_file_ofs << "           FORMAT='TABLEAU'," << endl;
+			comm_file_ofs << "           UNITE=unite," << endl;
+			comm_file_ofs << "           SEPARATEUR=' ,'," << endl;
+			comm_file_ofs << "           TITRE='RESULTS',)" << endl << endl;
 
-			out << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
-			out << "             UNITE=unite,)" << endl << endl;
-			out << "DETRUIRE(CONCEPT=(_F(NOM=unite),))" << endl << endl;
+			comm_file_ofs << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
+			comm_file_ofs << "             UNITE=unite,)" << endl << endl;
+			comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=unite),))" << endl << endl;
 		}
 
-		for (const auto& analysis : asterModel.model.analyses) {
+		for (const auto& analysis : asterModel->model.analyses) {
 		    bool hasRecoveryPoints = false;
-            for (const auto& elementSet : asterModel.model.elementSets) {
+            for (const auto& elementSet : asterModel->model.elementSets) {
                 if (not elementSet->isBeam()) continue;
                 const auto& beam = static_pointer_cast<Beam>(elementSet);
                 if (not beam->recoveryPoints.empty()) {
@@ -289,177 +287,177 @@ void AsterWriter::writeImprResultats(const AsterModel& asterModel, ostream& out)
             }
             if (not hasRecoveryPoints) continue;
 
-            for (const auto& elementSet : asterModel.model.elementSets) {
+            for (const auto& elementSet : asterModel->model.elementSets) {
                 if (not elementSet->isBeam()) continue; // to avoid CALCUL_37 Le TYPE_ELEMENT MECA_BARRE  ne sait pas encore calculer l'option:  SIPO_ELNO.
-                out << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
+                comm_file_ofs << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
                         << endl;
-                out << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
-                out << "           MODELE=MODMECA," << endl;
-                out << "           CONTRAINTE =('SIPO_NOEU')," << endl;
+                comm_file_ofs << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
+                comm_file_ofs << "           MODELE=MODMECA," << endl;
+                comm_file_ofs << "           CONTRAINTE =('SIPO_NOEU')," << endl;
                 const auto& cellElementSet = dynamic_pointer_cast<CellElementSet>(elementSet);
                 if (cellElementSet == nullptr) {
                     handleWritingError("ElementSet which is not a CellContainer should be written using cellPositions, to be implemented here");
                 }
-                writeCellContainer(*cellElementSet, out);
-                out << ")" << endl;
+                writeCellContainer(*cellElementSet);
+                comm_file_ofs << ")" << endl;
             }
 
-            out << "RCTB" << analysis->getId() << "=MACR_LIGN_COUPE(" << endl;
-            out << "            RESULTAT=RESU" << analysis->getId() << "," << endl;
-            out << "            NOM_CHAM='SIPO_NOEU'," << endl;
-            out << "            MODELE=MODMECA," << endl;
-            out << "            LIGN_COUPE=(" << endl;
-            for (const auto& elementSet : asterModel.model.elementSets) {
+            comm_file_ofs << "RCTB" << analysis->getId() << "=MACR_LIGN_COUPE(" << endl;
+            comm_file_ofs << "            RESULTAT=RESU" << analysis->getId() << "," << endl;
+            comm_file_ofs << "            NOM_CHAM='SIPO_NOEU'," << endl;
+            comm_file_ofs << "            MODELE=MODMECA," << endl;
+            comm_file_ofs << "            LIGN_COUPE=(" << endl;
+            for (const auto& elementSet : asterModel->model.elementSets) {
                 if (not elementSet->isBeam()) continue;
                 const auto& beam = static_pointer_cast<Beam>(elementSet);
                 for (const auto& recoveryPoint : beam->recoveryPoints) {
                     const VectorialValue& localCoords = recoveryPoint.getLocalCoords();
                     for (const Cell& cell : beam->getCellsIncludingGroups()) {
-                        const Node& node1 = asterModel.model.mesh.findNode(cell.nodePositions[0]);
+                        const Node& node1 = asterModel->model.mesh.findNode(cell.nodePositions[0]);
                         const VectorialValue& globalCoords = recoveryPoint.getGlobalCoords(cell.id);
-                        out << "                    _F(" << endl;
-                        out << "                        INTITULE='Cell " << cell.id << " stress recovery at (local):" << localCoords << ", global:" << globalCoords << "'," << endl;
-                        out << "                        NOM_CMP=('SN','SMFY','SMFZ','SVY','SVZ','SMT')," << endl;
-                        out << "                        TYPE='SEGMENT'," << endl;
-                        out << "                        DISTANCE_MAX=" << abs(max(localCoords.y(), localCoords.z()))*2 << "," << endl;
-                        out << "                        NB_POINTS=2," << endl;
-                        out << "                        COOR_ORIG=(" << globalCoords.x() << "," << globalCoords.y() << "," << globalCoords.z() << ")," << endl;
+                        comm_file_ofs << "                    _F(" << endl;
+                        comm_file_ofs << "                        INTITULE='Cell " << cell.id << " stress recovery at (local):" << localCoords << ", global:" << globalCoords << "'," << endl;
+                        comm_file_ofs << "                        NOM_CMP=('SN','SMFY','SMFZ','SVY','SVZ','SMT')," << endl;
+                        comm_file_ofs << "                        TYPE='SEGMENT'," << endl;
+                        comm_file_ofs << "                        DISTANCE_MAX=" << abs(max(localCoords.y(), localCoords.z()))*2 << "," << endl;
+                        comm_file_ofs << "                        NB_POINTS=2," << endl;
+                        comm_file_ofs << "                        COOR_ORIG=(" << globalCoords.x() << "," << globalCoords.y() << "," << globalCoords.z() << ")," << endl;
                         // TODO LD find a better solution here
-                        out << "                        COOR_EXTR=(" << node1.x << "," << node1.y << "," << node1.z << ")," << endl;
-                        out << "                    )," << endl;
+                        comm_file_ofs << "                        COOR_EXTR=(" << node1.x << "," << node1.y << "," << node1.z << ")," << endl;
+                        comm_file_ofs << "                    )," << endl;
                     }
                 }
             }
-            out << "                    )" << endl;
-			out << "            )" << endl;
+            comm_file_ofs << "                    )" << endl;
+			comm_file_ofs << "            )" << endl;
 
 			int unit = 10 + analysis->getId();
-            out << "DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
-			out << "             UNITE=" << unit << "," << endl;
-			out << "             FICHIER='REPE_OUT/tbrecup_" << analysis->getId() << ".csv')" << endl << endl;
+            comm_file_ofs << "DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
+			comm_file_ofs << "             UNITE=" << unit << "," << endl;
+			comm_file_ofs << "             FICHIER='REPE_OUT/tbrecup_" << analysis->getId() << ".csv')" << endl << endl;
 
-            out << "IMPR_TABLE(TABLE=RCTB" << analysis->getId() << "," << endl;
-			out << "           FORMAT='TABLEAU'," << endl;
-			out << "           UNITE=" << unit << "," << endl;
-			out << "           SEPARATEUR=' ,'," << endl;
-			out << "           TITRE='RESULTS',)" << endl << endl;
+            comm_file_ofs << "IMPR_TABLE(TABLE=RCTB" << analysis->getId() << "," << endl;
+			comm_file_ofs << "           FORMAT='TABLEAU'," << endl;
+			comm_file_ofs << "           UNITE=" << unit << "," << endl;
+			comm_file_ofs << "           SEPARATEUR=' ,'," << endl;
+			comm_file_ofs << "           TITRE='RESULTS',)" << endl << endl;
 
-            out << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
-			out << "             UNITE=" << unit << ")" << endl << endl;
+            comm_file_ofs << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
+			comm_file_ofs << "             UNITE=" << unit << ")" << endl << endl;
 		}
 
 
 	}
 }
 
-void AsterWriter::writeAnalyses(const AsterModel& asterModel, ostream& out) {
+void AsterWriter::writeAnalyses() {
 	double debut = 0;
-	for (const auto& analysis : asterModel.model.analyses) {
-		debut = writeAnalysis(asterModel, *analysis, out, debut);
+	for (const auto& analysis : asterModel->model.analyses) {
+		debut = writeAnalysis(*analysis, debut);
 
 		if (calc_sigm) {
-			out << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
+			comm_file_ofs << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
 					<< endl;
-			out << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
-			out << "           MODELE=MODMECA," << endl;
-            if (not asterModel.model.materials.empty()) {
-                out << "           CHAM_MATER=CHMAT," << endl;
+			comm_file_ofs << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
+			comm_file_ofs << "           MODELE=MODMECA," << endl;
+            if (not asterModel->model.materials.empty()) {
+                comm_file_ofs << "           CHAM_MATER=CHMAT," << endl;
             }
-            out << "           CARA_ELEM=CAEL," << endl;
-			out << "           CONTRAINTE =('SIGM_ELNO')," << endl;
-			out << "           FORCE = 'REAC_NODA'," << endl;
-			out << ")" << endl;
+            comm_file_ofs << "           CARA_ELEM=CAEL," << endl;
+			comm_file_ofs << "           CONTRAINTE =('SIGM_ELNO')," << endl;
+			comm_file_ofs << "           FORCE = 'REAC_NODA'," << endl;
+			comm_file_ofs << ")" << endl;
 		}
 
-        bool calc_vmis = asterModel.model.objectives.contains(Objective::Type::NODAL_CELL_VONMISES_ASSERTION);
+        bool calc_vmis = asterModel->model.objectives.contains(Objective::Type::NODAL_CELL_VONMISES_ASSERTION);
         if (calc_vmis) {
-            out << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
+            comm_file_ofs << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
                     << endl;
-            out << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
-            out << "           MODELE=MODMECA," << endl;
-            out << "           CRITERES =('SIEQ_ELNO','SIEQ_NOEU')," << endl;
-            out << "           TOUT='OUI'," << endl;
-            out << ")" << endl;
+            comm_file_ofs << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
+            comm_file_ofs << "           MODELE=MODMECA," << endl;
+            comm_file_ofs << "           CRITERES =('SIEQ_ELNO','SIEQ_NOEU')," << endl;
+            comm_file_ofs << "           TOUT='OUI'," << endl;
+            comm_file_ofs << ")" << endl;
         }
 
 		const auto& assertions = analysis->getAssertions();
 		if (not assertions.empty()) {
-			out << "TEST_RESU(RESU = (" << endl;
+			comm_file_ofs << "TEST_RESU(RESU = (" << endl;
 
 			for (const auto& assertion : assertions) {
 				switch (assertion->type) {
 				case Objective::Type::NODAL_DISPLACEMENT_ASSERTION:
-					out << "                  _F(RESULTAT=RESU" << analysis->getId() << "," << endl;
-					writeNodalDisplacementAssertion(asterModel, dynamic_cast<const NodalDisplacementAssertion&>(*assertion), out);
-                    out << "                     )," << endl;
+					comm_file_ofs << "                  _F(RESULTAT=RESU" << analysis->getId() << "," << endl;
+					writeNodalDisplacementAssertion( dynamic_cast<const NodalDisplacementAssertion&>(*assertion));
+                    comm_file_ofs << "                     )," << endl;
 					break;
 				case Objective::Type::FREQUENCY_ASSERTION:
-					writeFrequencyAssertion(*analysis, dynamic_cast<const FrequencyAssertion&>(*assertion), out);
+					writeFrequencyAssertion(*analysis, dynamic_cast<const FrequencyAssertion&>(*assertion));
 					break;
 				case Objective::Type::NODAL_COMPLEX_DISPLACEMENT_ASSERTION:
-					out << "                  _F(RESULTAT=RESU" << analysis->getId() << "," << endl;
-					writeNodalComplexDisplacementAssertion(asterModel, dynamic_cast<const NodalComplexDisplacementAssertion&>(*assertion), out);
-                    out << "                     )," << endl;
+					comm_file_ofs << "                  _F(RESULTAT=RESU" << analysis->getId() << "," << endl;
+					writeNodalComplexDisplacementAssertion( dynamic_cast<const NodalComplexDisplacementAssertion&>(*assertion));
+                    comm_file_ofs << "                     )," << endl;
 					break;
                 case Objective::Type::NODAL_CELL_VONMISES_ASSERTION:
-					out << "                  _F(RESULTAT=RESU" << analysis->getId() << "," << endl;
-					writeNodalCellVonMisesAssertion(asterModel, dynamic_cast<const NodalCellVonMisesAssertion&>(*assertion), out);
-                    out << "                     )," << endl;
+					comm_file_ofs << "                  _F(RESULTAT=RESU" << analysis->getId() << "," << endl;
+					writeNodalCellVonMisesAssertion( dynamic_cast<const NodalCellVonMisesAssertion&>(*assertion));
+                    comm_file_ofs << "                     )," << endl;
 					break;
 				default:
 					handleWritingError("Assertion type not (yet) implemented");
 				}
 			}
-			out << "                  )" << endl;
-			out << "          );" << endl << endl;
+			comm_file_ofs << "                  )" << endl;
+			comm_file_ofs << "          );" << endl << endl;
 		}
 	}
 }
 
-void AsterWriter::writeComm(const AsterModel& asterModel, ostream& out) {
-	string asterVersion(asterModel.getAsterVersion());
-	out << "#Vega++ version " << VEGA_VERSION_MAJOR << "." << VEGA_VERSION_MINOR << endl;
-	out << "#Aster version " << asterModel.getAsterVersion() << endl;
-	out << "DEBUT(PAR_LOT='NON', IGNORE_ALARM=('SUPERVIS_1'))" << endl;
+void AsterWriter::writeComm() {
+	string asterVersion(asterModel->getAsterVersion());
+	comm_file_ofs << "#Vega++ version " << VEGA_VERSION_MAJOR << "." << VEGA_VERSION_MINOR << endl;
+	comm_file_ofs << "#Aster version " << asterModel->getAsterVersion() << endl;
+	comm_file_ofs << "DEBUT(PAR_LOT='NON', IGNORE_ALARM=('SUPERVIS_1'))" << endl;
 
 	mail_name = "MAIL";
 	sigm_noeu = "SIGM_NOEU";
 	sigm_elno = "SIGM_ELNO";
 	sief_elga = "SIEF_ELGA";
 
-	writeLireMaillage(asterModel, out);
+	writeLireMaillage();
 
-	writeAffeModele(asterModel, out);
+	writeAffeModele();
 
-	for (const auto& value : asterModel.model.values) {
-		writeValue(*value, out);
+	for (const auto& value : asterModel->model.values) {
+		writeValue(*value);
 	}
 
-	writeMaterials(asterModel, out);
+	writeMaterials();
 
-	writeAffeCaraElem(asterModel, out);
+	writeAffeCaraElem();
 
-	writeAffeCharMeca(asterModel, out);
+	writeAffeCharMeca();
 
-	writeDefiContact(asterModel, out);
+	writeDefiContact();
 
-	writeAnalyses(asterModel, out);
+	writeAnalyses();
 
-	writeImprResultats(asterModel, out);
+	writeImprResultats();
 
-	out << "FIN()" << endl;
+	comm_file_ofs << "FIN()" << endl;
 }
 
-void AsterWriter::writeLireMaillage(const AsterModel& asterModel, ostream& out) {
-	out << mail_name << "=LIRE_MAILLAGE(FORMAT='MED',";
-	if (asterModel.configuration.logLevel >= LogLevel::DEBUG and asterModel.model.mesh.countNodes() < 100) {
-		out << "INFO_MED=2,VERI_MAIL=_F(VERIF='OUI',),INFO=2";
+void AsterWriter::writeLireMaillage() {
+	comm_file_ofs << mail_name << "=LIRE_MAILLAGE(FORMAT='MED',";
+	if (asterModel->configuration.logLevel >= LogLevel::DEBUG and asterModel->model.mesh.countNodes() < 100) {
+		comm_file_ofs << "INFO_MED=2,VERI_MAIL=_F(VERIF='OUI',),INFO=2";
 	} else {
-		out << "VERI_MAIL=_F(VERIF='NON',),";
+		comm_file_ofs << "VERI_MAIL=_F(VERIF='NON',),";
 	}
-	out << ");" << endl << endl;
+	comm_file_ofs << ");" << endl << endl;
 
-    for (const auto& constraintSet : asterModel.model.constraintSets) {
+    for (const auto& constraintSet : asterModel->model.constraintSets) {
 		if (not constraintSet->hasContacts()) {
 			continue;
 		}
@@ -467,84 +465,84 @@ void AsterWriter::writeLireMaillage(const AsterModel& asterModel, ostream& out) 
         if (zones.empty()) {
             continue;
         }
-        out << mail_name << "=MODI_MAILLAGE(reuse="<< mail_name << ",";
-        out << "MAILLAGE=" << mail_name << "," << endl;
+        comm_file_ofs << mail_name << "=MODI_MAILLAGE(reuse="<< mail_name << ",";
+        comm_file_ofs << "MAILLAGE=" << mail_name << "," << endl;
         // TODO LD should find a better solution
         int firstNodePosition = *((*zones.begin())->nodePositions().begin());
-        if (asterModel.model.mesh.findNode(firstNodePosition).dofs == DOFS::ALL_DOFS) {
-            out << "         ORIE_PEAU_2D=(" << endl;
+        if (asterModel->model.mesh.findNode(firstNodePosition).dofs == DOFS::ALL_DOFS) {
+            comm_file_ofs << "         ORIE_PEAU_2D=(" << endl;
         } else {
-            out << "         ORIE_PEAU_3D=(" << endl;
+            comm_file_ofs << "         ORIE_PEAU_3D=(" << endl;
         }
 		for (const auto& constraint : zones) {
 		    const auto& zone = static_pointer_cast<const ZoneContact>(constraint);
-		    const auto& master = static_pointer_cast<const ContactBody>(asterModel.model.find(zone->master));
-		    const auto& masterSurface = static_pointer_cast<const BoundarySurface>(asterModel.model.find(master->boundary));
-		    const auto& slave = static_pointer_cast<const ContactBody>(asterModel.model.find(zone->slave));
-		    const auto& slaveSurface = static_pointer_cast<const BoundarySurface>(asterModel.model.find(slave->boundary));
-            out << "                             _F(";
-            writeCellContainer(*masterSurface, out);
-            out << ")," << endl;
-            out << "                             _F(";
-            writeCellContainer(*slaveSurface, out);
-            out << ")," << endl;
+		    const auto& master = static_pointer_cast<const ContactBody>(asterModel->model.find(zone->master));
+		    const auto& masterSurface = static_pointer_cast<const BoundarySurface>(asterModel->model.find(master->boundary));
+		    const auto& slave = static_pointer_cast<const ContactBody>(asterModel->model.find(zone->slave));
+		    const auto& slaveSurface = static_pointer_cast<const BoundarySurface>(asterModel->model.find(slave->boundary));
+            comm_file_ofs << "                             _F(";
+            writeCellContainer(*masterSurface);
+            comm_file_ofs << ")," << endl;
+            comm_file_ofs << "                             _F(";
+            writeCellContainer(*slaveSurface);
+            comm_file_ofs << ")," << endl;
 
 		}
-		out << "                             )," << endl;
-		out << "                   )" << endl << endl;
+		comm_file_ofs << "                             )," << endl;
+		comm_file_ofs << "                   )" << endl << endl;
 	}
 
-	for (const auto& constraintSet : asterModel.model.constraintSets) {
+	for (const auto& constraintSet : asterModel->model.constraintSets) {
         const auto& surfaces = constraintSet->getConstraintsByType(
 				Constraint::Type::SURFACE_SLIDE_CONTACT);
         if (surfaces.empty()) {
             continue;
         }
-        out << mail_name << "=MODI_MAILLAGE(reuse="<< mail_name << ",";
-        out << "MAILLAGE=" << mail_name << "," << endl;
-        out << "         ORIE_PEAU_3D=(" << endl;
+        comm_file_ofs << mail_name << "=MODI_MAILLAGE(reuse="<< mail_name << ",";
+        comm_file_ofs << "MAILLAGE=" << mail_name << "," << endl;
+        comm_file_ofs << "         ORIE_PEAU_3D=(" << endl;
 		for (const auto& constraint : surfaces) {
 		    const auto& surface = static_pointer_cast<const SurfaceSlide>(constraint);
-		    const auto& masterSurface = static_pointer_cast<const BoundaryElementFace>(asterModel.model.find(surface->master));
-		    const auto& slaveSurface = static_pointer_cast<const BoundaryElementFace>(asterModel.model.find(surface->slave));
-            out << "                             _F(";
-            out << "GROUP_MA=('"
+		    const auto& masterSurface = static_pointer_cast<const BoundaryElementFace>(asterModel->model.find(surface->master));
+		    const auto& slaveSurface = static_pointer_cast<const BoundaryElementFace>(asterModel->model.find(surface->slave));
+            comm_file_ofs << "                             _F(";
+            comm_file_ofs << "GROUP_MA=('"
                     << masterSurface->surfaceCellGroup->getName() << "', '"
                     << slaveSurface->surfaceCellGroup->getName()
                     << "'),";
-            out << ")," << endl;
+            comm_file_ofs << ")," << endl;
 		}
-		out << "                             )," << endl;
-		out << "                   )" << endl << endl;
+		comm_file_ofs << "                             )," << endl;
+		comm_file_ofs << "                   )" << endl << endl;
 	}
 }
 
-void AsterWriter::writeAffeModele(const AsterModel& asterModel, ostream& out) {
-	out << "MODMECA=AFFE_MODELE(MAILLAGE=" << mail_name << "," << endl;
-	out << "                    AFFE=(" << endl;
-	for (const auto& elementSet : asterModel.model.elementSets) {
+void AsterWriter::writeAffeModele() {
+	comm_file_ofs << "MODMECA=AFFE_MODELE(MAILLAGE=" << mail_name << "," << endl;
+	comm_file_ofs << "                    AFFE=(" << endl;
+	for (const auto& elementSet : asterModel->model.elementSets) {
 		if (elementSet->effective()) {
-			out << "                          _F(";
+			comm_file_ofs << "                          _F(";
             const auto& cellElementSet = dynamic_pointer_cast<CellElementSet>(elementSet);
             if (cellElementSet == nullptr) {
                 handleWritingError("ElementSet which is not a CellContainer should be written using cellPositions, to be implemented here");
             }
-            writeCellContainer(*cellElementSet, out);
-			out << endl;
-			out << "                             PHENOMENE='" << asterModel.phenomene << "',"
+            writeCellContainer(*cellElementSet);
+			comm_file_ofs << endl;
+			comm_file_ofs << "                             PHENOMENE='" << asterModel->phenomene << "',"
 					<< endl;
 
-			out << "                             MODELISATION="
-					<< asterModel.getModelisations(elementSet) << ")," << endl;
+			comm_file_ofs << "                             MODELISATION="
+					<< asterModel->getModelisations(elementSet) << ")," << endl;
 		} else {
-			out << "#Skipping element El" << *elementSet << " because no assignment" << endl;
+			comm_file_ofs << "#Skipping element El" << *elementSet << " because no assignment" << endl;
 		}
 	}
-	out << "                          )," << endl;
-	out << "                    );" << endl << endl;
+	comm_file_ofs << "                          )," << endl;
+	comm_file_ofs << "                    );" << endl << endl;
 }
 
-string AsterWriter::writeValue(NamedValue& value, ostream& out) {
+string AsterWriter::writeValue(NamedValue& value) {
 	string concept_name;
 
 	switch (value.type) {
@@ -554,21 +552,21 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
             ostringstream list_concept_ss;
             list_concept_ss << "LST" << setfill('0') << setw(5) << listValue.getId();
             concept_name = list_concept_ss.str();
-            out << concept_name << "=DEFI_LIST_REEL(" << endl;
-            out << "                        VALE = (";
+            comm_file_ofs << concept_name << "=DEFI_LIST_REEL(" << endl;
+            comm_file_ofs << "                        VALE = (";
             if (listValue.isintegral()) {
                 const auto& listIntValue = static_cast<ListValue<int>&>(value);
                 for (const int val : listIntValue.getList()) {
-                    out << val << ",";
+                    comm_file_ofs << val << ",";
                 }
             } else {
                 const auto& listDblValue = static_cast<ListValue<double>&>(value);
                 for (const double val : listDblValue.getList()) {
-                    out << val << ",";
+                    comm_file_ofs << val << ",";
                 }
             }
-            out << ")," << endl;
-            out << "                        );" << endl << endl;
+            comm_file_ofs << ")," << endl;
+            comm_file_ofs << "                        );" << endl << endl;
         }
         listValue.markAsWritten();
         break;
@@ -581,18 +579,18 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
             ostringstream list_concept_ss;
             list_concept_ss << "LST" << setfill('0') << setw(5) << setValue.getId();
             concept_name = list_concept_ss.str();
-            out << concept_name << "=DEFI_LIST_REEL(" << endl;
-            out << "                        VALE = (";
+            comm_file_ofs << concept_name << "=DEFI_LIST_REEL(" << endl;
+            comm_file_ofs << "                        VALE = (";
             if (setValue.isintegral()) {
                 const auto& setIntValue = static_cast<SetValue<int>&>(value);
                 for (const int val : setIntValue.getSet()) {
-                    out << val << ",";
+                    comm_file_ofs << val << ",";
                 }
             } else {
                 handleWritingError("non-integral set not yet implemented");
             }
-            out << ")," << endl;
-            out << "                        );" << endl << endl;
+            comm_file_ofs << ")," << endl;
+            comm_file_ofs << "                        );" << endl << endl;
         }
         setValue.markAsWritten();
         break;
@@ -604,14 +602,14 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
             list_concept_ss << "LST" << setfill('0') << setw(5) << stepRange.getId();
             concept_name = list_concept_ss.str();
             if (not is_equal(stepRange.end, Globals::UNAVAILABLE_DOUBLE)) {
-                out << concept_name << "=DEFI_LIST_REEL(" << endl;
-                out << "                        DEBUT = " << stepRange.start << "," << endl;
-                out << "                        INTERVALLE = _F(JUSQU_A = " << stepRange.end << "," << endl;
-                out << "                                        NOMBRE = " << stepRange.count << endl;
-                out << "                                        )," << endl;
-                out << "                        );" << endl << endl;
+                comm_file_ofs << concept_name << "=DEFI_LIST_REEL(" << endl;
+                comm_file_ofs << "                        DEBUT = " << stepRange.start << "," << endl;
+                comm_file_ofs << "                        INTERVALLE = _F(JUSQU_A = " << stepRange.end << "," << endl;
+                comm_file_ofs << "                                        NOMBRE = " << stepRange.count << endl;
+                comm_file_ofs << "                                        )," << endl;
+                comm_file_ofs << "                        );" << endl << endl;
             } else {
-                out << "# Ignoring " << concept_name << " because: no end value" << endl;
+                comm_file_ofs << "# Ignoring " << concept_name << " because: no end value" << endl;
             }
 		}
 		stepRange.markAsWritten();
@@ -623,16 +621,16 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
             ostringstream list_concept_ss;
             list_concept_ss << "LST" << setfill('0') << setw(5) << spreadRange.getId();
             concept_name = list_concept_ss.str();
-            out << concept_name << "=DEFI_LIST_FREQ(" << endl;
-            out << "                        DEBUT = " << spreadRange.start << "," << endl;
-            out << "                        INTERVALLE = _F(JUSQU_A = " << spreadRange.end << "," << endl;
-            out << "                                        NOMBRE = " << spreadRange.count << endl;
-            out << "                                        )," << endl;
-            out << "                        RAFFINEMENT = _F(LIST_RAFFINE = XXXX" << "," << endl;
-            out << "                                        CRITERE = 'RELATIF'," << endl;
-            out << "                                        DISPERSION = " << spreadRange.spread << endl;
-            out << "                                        )," << endl;
-            out << "                        );" << endl << endl;
+            comm_file_ofs << concept_name << "=DEFI_LIST_FREQ(" << endl;
+            comm_file_ofs << "                        DEBUT = " << spreadRange.start << "," << endl;
+            comm_file_ofs << "                        INTERVALLE = _F(JUSQU_A = " << spreadRange.end << "," << endl;
+            comm_file_ofs << "                                        NOMBRE = " << spreadRange.count << endl;
+            comm_file_ofs << "                                        )," << endl;
+            comm_file_ofs << "                        RAFFINEMENT = _F(LIST_RAFFINE = XXXX" << "," << endl;
+            comm_file_ofs << "                                        CRITERE = 'RELATIF'," << endl;
+            comm_file_ofs << "                                        DISPERSION = " << spreadRange.spread << endl;
+            comm_file_ofs << "                                        )," << endl;
+            comm_file_ofs << "                        );" << endl << endl;
         }
         spreadRange.markAsWritten();
         break;
@@ -642,38 +640,38 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
 		ostringstream concept_ss;
 		concept_ss << "FCT" << setfill('0') << setw(5) << functionTable.getId();
 		concept_name = concept_ss.str();
-		out << concept_name << "=DEFI_FONCTION(" << endl;
+		comm_file_ofs << concept_name << "=DEFI_FONCTION(" << endl;
 		if (functionTable.hasParaX())
-			out << "                       NOM_PARA='"
+			comm_file_ofs << "                       NOM_PARA='"
 					<< AsterModel::NomParaByParaName.find(functionTable.getParaX())->second << "',"
 					<< endl;
 
 		if (functionTable.hasParaY())
-			out << "                       NOM_RESU='"
+			comm_file_ofs << "                       NOM_RESU='"
 					<< AsterModel::NomParaByParaName.find(functionTable.getParaY())->second << "',"
 					<< endl;
 
-		out << "                       VALE = (" << endl;
+		comm_file_ofs << "                       VALE = (" << endl;
 		for (auto it = functionTable.getBeginValuesXY();
 				it != functionTable.getEndValuesXY(); it++)
-			out << "                               " << it->first << ", " << it->second << ","
+			comm_file_ofs << "                               " << it->first << ", " << it->second << ","
 					<< endl;
-		out << "                               )," << endl;
-		out << "                       INTERPOL = ('"
+		comm_file_ofs << "                               )," << endl;
+		comm_file_ofs << "                       INTERPOL = ('"
 				<< AsterModel::InterpolationByInterpolation.find(functionTable.parameter)->second
 				<< "','" << AsterModel::InterpolationByInterpolation.find(functionTable.value)->second
 				<< "')," << endl;
-		out << "                       PROL_GAUCHE='"
+		comm_file_ofs << "                       PROL_GAUCHE='"
 				<< AsterModel::ProlongementByInterpolation.find(functionTable.left)->second << "',"
 				<< endl;
-		out << "                       PROL_DROITE='"
+		comm_file_ofs << "                       PROL_DROITE='"
 				<< AsterModel::ProlongementByInterpolation.find(functionTable.right)->second << "',"
 				<< endl;
-		out << "                       );";
+		comm_file_ofs << "                       );";
 		if (functionTable.isOriginal()) {
-			out << "# Original id:" << functionTable.getOriginalId();
+			comm_file_ofs << "# Original id:" << functionTable.getOriginalId();
 		}
-		out << endl << endl;
+		comm_file_ofs << endl << endl;
 		functionTable.markAsWritten();
 		break;
 	}
@@ -690,122 +688,122 @@ string AsterWriter::writeValue(NamedValue& value, ostream& out) {
 	return concept_name;
 }
 
-void AsterWriter::writeMaterials(const AsterModel& asterModel, ostream& out) {
+void AsterWriter::writeMaterials() {
 
-	for (auto& material : asterModel.model.materials) {
+	for (auto& material : asterModel->model.materials) {
 		if (material->isOriginal()) {
-			out << "# Material original id " << material->getOriginalId() << endl;
+			comm_file_ofs << "# Material original id " << material->getOriginalId() << endl;
 		}
-		out << "M" << material->getId() << "=DEFI_MATERIAU(" << endl;
+		comm_file_ofs << "M" << material->getId() << "=DEFI_MATERIAU(" << endl;
 		const auto& enature = material->findNature(Nature::NatureType::NATURE_ELASTIC);
 		if (enature) {
 			const auto& elasticNature = static_pointer_cast<const ElasticNature>(enature);
-			out << "                 ELAS=_F(" << endl;
-			out << "                         E=" << elasticNature->getE() << "," << endl;
-			out << "                         NU=" << elasticNature->getNu() << "," << endl;
-			out << "                         RHO=" << elasticNature->getRho() << "," << endl;
+			comm_file_ofs << "                 ELAS=_F(" << endl;
+			comm_file_ofs << "                         E=" << elasticNature->getE() << "," << endl;
+			comm_file_ofs << "                         NU=" << elasticNature->getNu() << "," << endl;
+			comm_file_ofs << "                         RHO=" << elasticNature->getRho() << "," << endl;
 			if (not is_equal(elasticNature->getGE(), Globals::UNAVAILABLE_DOUBLE)) {
-                out << "                         AMOR_HYST=" << elasticNature->getGE() << "," << endl;
+                comm_file_ofs << "                         AMOR_HYST=" << elasticNature->getGE() << "," << endl;
 			}
-			out << "                         )," << endl;
+			comm_file_ofs << "                         )," << endl;
 		}
 		const auto& hynature = material->findNature(Nature::NatureType::NATURE_HYPERELASTIC);
 		if (hynature) {
 			const auto& hyperElasticNature = static_pointer_cast<const HyperElasticNature>(hynature);
-			out << "                 ELAS_HYPER=_F(" << endl;
-			out << "                         C10=" << hyperElasticNature->c10 << "," << endl;
-			out << "                         C01=" << hyperElasticNature->c01 << "," << endl;
-			out << "                         C20=" << hyperElasticNature->c20 << "," << endl;
-			out << "                         RHO=" << hyperElasticNature->rho << "," << endl;
-			out << "                         K=" << hyperElasticNature->k << "," << endl;
-			out << "                         )," << endl;
+			comm_file_ofs << "                 ELAS_HYPER=_F(" << endl;
+			comm_file_ofs << "                         C10=" << hyperElasticNature->c10 << "," << endl;
+			comm_file_ofs << "                         C01=" << hyperElasticNature->c01 << "," << endl;
+			comm_file_ofs << "                         C20=" << hyperElasticNature->c20 << "," << endl;
+			comm_file_ofs << "                         RHO=" << hyperElasticNature->rho << "," << endl;
+			comm_file_ofs << "                         K=" << hyperElasticNature->k << "," << endl;
+			comm_file_ofs << "                         )," << endl;
 		}
 		const auto& onature = material->findNature(Nature::NatureType::NATURE_ORTHOTROPIC);
 		if (onature) {
 			const auto& orthoNature = static_pointer_cast<const OrthotropicNature>(onature);
-			out << "                 ELAS_ORTH=_F(" << endl;
-			out << "                         E_L=" << orthoNature->getE_longitudinal() << "," << endl;
-            out << "                         E_T=" << orthoNature->getE_transverse() << "," << endl;
-            out << "                         G_LT=" << orthoNature->getG_longitudinal_transverse() << "," << endl;
+			comm_file_ofs << "                 ELAS_ORTH=_F(" << endl;
+			comm_file_ofs << "                         E_L=" << orthoNature->getE_longitudinal() << "," << endl;
+            comm_file_ofs << "                         E_T=" << orthoNature->getE_transverse() << "," << endl;
+            comm_file_ofs << "                         G_LT=" << orthoNature->getG_longitudinal_transverse() << "," << endl;
             if (!is_equal(orthoNature->getG_transverse_normal(),Globals::UNAVAILABLE_DOUBLE)){
-                out << "                         G_TN=" << orthoNature->getG_transverse_normal() << "," << endl;
+                comm_file_ofs << "                         G_TN=" << orthoNature->getG_transverse_normal() << "," << endl;
             }
             if (!is_equal(orthoNature->getG_longitudinal_normal(),Globals::UNAVAILABLE_DOUBLE)){
-                out << "                         G_LN=" << orthoNature->getG_longitudinal_normal() << "," << endl;
+                comm_file_ofs << "                         G_LN=" << orthoNature->getG_longitudinal_normal() << "," << endl;
             }
-			out << "                         NU_LT=" << orthoNature->getNu_longitudinal_transverse() << "," << endl;
-			out << "                         )," << endl;
+			comm_file_ofs << "                         NU_LT=" << orthoNature->getNu_longitudinal_transverse() << "," << endl;
+			comm_file_ofs << "                         )," << endl;
 		}
 		const auto& binature = material->findNature(Nature::NatureType::NATURE_BILINEAR_ELASTIC);
 		if (binature) {
 			const auto& bilinearNature = static_pointer_cast<const BilinearElasticNature>(binature);
-			out << "                 ECRO_LINE=_F(" << endl;
-			out << "                         D_SIGM_EPSI=" << bilinearNature->secondary_slope << ","
+			comm_file_ofs << "                 ECRO_LINE=_F(" << endl;
+			comm_file_ofs << "                         D_SIGM_EPSI=" << bilinearNature->secondary_slope << ","
 					<< endl;
-			out << "                         SY=" << bilinearNature->elastic_limit << "," << endl;
-			out << "                         )," << endl;
+			comm_file_ofs << "                         SY=" << bilinearNature->elastic_limit << "," << endl;
+			comm_file_ofs << "                         )," << endl;
 		}
-		out << "                 );" << endl << endl;
+		comm_file_ofs << "                 );" << endl << endl;
 		material->markAsWritten();
 	}
 
-	const auto& composites = asterModel.model.elementSets.filter(ElementSet::Type::COMPOSITE);
-    out << "# writing " << composites.size() << " composites" << endl;
+	const auto& composites = asterModel->model.elementSets.filter(ElementSet::Type::COMPOSITE);
+    comm_file_ofs << "# writing " << composites.size() << " composites" << endl;
     for (const auto& c : composites) {
         const auto& composite = static_pointer_cast<Composite>(c);
-        out << "MC" << composite->getId() << "=DEFI_COMPOSITE(" << endl;
-        out << "                 COUCHE=(" << endl;
+        comm_file_ofs << "MC" << composite->getId() << "=DEFI_COMPOSITE(" << endl;
+        comm_file_ofs << "                 COUCHE=(" << endl;
         for (const auto& layer : composite->getLayers()) {
-            out << "                     _F(EPAIS=" << layer.getThickness() << ",  MATER=M" << layer.getMaterialId() << ", ORIENTATION=" << layer.getOrientation() << ")," << endl;
+            comm_file_ofs << "                     _F(EPAIS=" << layer.getThickness() << ",  MATER=M" << layer.getMaterialId() << ", ORIENTATION=" << layer.getOrientation() << ")," << endl;
         }
-        out << "                         )," << endl;
-        out << "                 );" << endl << endl;
+        comm_file_ofs << "                         )," << endl;
+        comm_file_ofs << "                 );" << endl << endl;
         composite->markAsWritten();
     }
 
-    if (not asterModel.model.materials.empty()) {
-        out << "CHMAT=AFFE_MATERIAU(MAILLAGE=" << mail_name << "," << endl;
-        out << "                    AFFE=(" << endl;
-        for (const auto& material : asterModel.model.materials) {
+    if (not asterModel->model.materials.empty()) {
+        comm_file_ofs << "CHMAT=AFFE_MATERIAU(MAILLAGE=" << mail_name << "," << endl;
+        comm_file_ofs << "                    AFFE=(" << endl;
+        for (const auto& material : asterModel->model.materials) {
             const auto& cells = material->getAssignment();
             if (not cells.empty()) {
-                out << "                          _F(MATER=M" << material->getId() << ",";
-                writeCellContainer(cells, out);
-                out << ")," << endl;
+                comm_file_ofs << "                          _F(MATER=M" << material->getId() << ",";
+                writeCellContainer(cells);
+                comm_file_ofs << ")," << endl;
             } else {
-                out << "# WARN Skipping material id " << material->getId() << " because no assignment"
+                comm_file_ofs << "# WARN Skipping material id " << material->getId() << " because no assignment"
                     << endl;
             }
         }
         for (const auto& c : composites) {
             const auto& composite = static_pointer_cast<Composite>(c);
-            out << "                          _F(MATER=MC" << composite ->getId() << ",";
-            writeCellContainer(*composite, out);
-            out << ")," << endl;
+            comm_file_ofs << "                          _F(MATER=MC" << composite ->getId() << ",";
+            writeCellContainer(*composite);
+            comm_file_ofs << ")," << endl;
         }
-        out << "                          )," << endl;
-        out << "                    );" << endl << endl;
+        comm_file_ofs << "                          )," << endl;
+        comm_file_ofs << "                    );" << endl << endl;
     }
 }
 
-void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) {
+void AsterWriter::writeAffeCaraElem() {
 	calc_sigm = false;
-	if (not asterModel.model.elementSets.empty()) {
-		out << "CAEL=AFFE_CARA_ELEM(MODELE=MODMECA," << endl;
+	if (not asterModel->model.elementSets.empty()) {
+		comm_file_ofs << "CAEL=AFFE_CARA_ELEM(MODELE=MODMECA," << endl;
 
-		const auto& discrets_0d = asterModel.model.elementSets.filter(
+		const auto& discrets_0d = asterModel->model.elementSets.filter(
 				ElementSet::Type::DISCRETE_0D);
-		auto discrets_1d = asterModel.model.elementSets.filter(ElementSet::Type::DISCRETE_1D);
-        const auto& scalar_springs = asterModel.model.elementSets.filter(ElementSet::Type::SCALAR_SPRING);
-        const auto& structural_segments = asterModel.model.elementSets.filter(ElementSet::Type::STRUCTURAL_SEGMENT);
+		auto discrets_1d = asterModel->model.elementSets.filter(ElementSet::Type::DISCRETE_1D);
+        const auto& scalar_springs = asterModel->model.elementSets.filter(ElementSet::Type::SCALAR_SPRING);
+        const auto& structural_segments = asterModel->model.elementSets.filter(ElementSet::Type::STRUCTURAL_SEGMENT);
         discrets_1d.insert(discrets_1d.end(), scalar_springs.begin(), scalar_springs.end());
         discrets_1d.insert(discrets_1d.end(), structural_segments.begin(), structural_segments.end());
-		const auto& nodal_masses = asterModel.model.elementSets.filter(
+		const auto& nodal_masses = asterModel->model.elementSets.filter(
 				ElementSet::Type::NODAL_MASS);
         auto numDiscrets = discrets_0d.size() + nodal_masses.size() + discrets_1d.size();
-		out << "                    # writing " << numDiscrets << " discrets" << endl;
+		comm_file_ofs << "                    # writing " << numDiscrets << " discrets" << endl;
 		if (numDiscrets > 0) {
-			out << "                    DISCRET=(" << endl;
+			comm_file_ofs << "                    DISCRET=(" << endl;
 			for (const auto& discret : discrets_0d) {
 				if (discret->effective()) {
                     const auto& discret_0d = static_pointer_cast<DiscretePoint>(discret);
@@ -822,36 +820,36 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
                     if (not discret_0d->isSymmetric()) {
                         syme = "SYME='NON',";
                     }
-                    out << "                             _F(";
-                    writeCellContainer(*discret_0d, out);
-                    out << endl;
-                    out << "                                " << syme << "CARA='K_T" << rotationMarker << "_" << diagonalMarker << "N', VALE=(";
+                    comm_file_ofs << "                             _F(";
+                    writeCellContainer(*discret_0d);
+                    comm_file_ofs << endl;
+                    comm_file_ofs << "                                " << syme << "CARA='K_T" << rotationMarker << "_" << diagonalMarker << "N', VALE=(";
                     for (double rigi : discret_0d->asStiffnessVector())
-                        out << rigi << ",";
-                    out << "),)," << endl;
+                        comm_file_ofs << rigi << ",";
+                    comm_file_ofs << "),)," << endl;
 
 					if (discret_0d->hasDamping()) {
-                        out << "                             _F(";
-                        writeCellContainer(*discret_0d, out);
-                        out << endl;
-                        out << "                                " << syme << "CARA='A_T" << rotationMarker << "_" << diagonalMarker << "N', VALE=(";
+                        comm_file_ofs << "                             _F(";
+                        writeCellContainer(*discret_0d);
+                        comm_file_ofs << endl;
+                        comm_file_ofs << "                                " << syme << "CARA='A_T" << rotationMarker << "_" << diagonalMarker << "N', VALE=(";
                         for (double amor : discret_0d->asDampingVector())
-                            out << amor << ",";
-                        out << "),)," << endl;
+                            comm_file_ofs << amor << ",";
+                        comm_file_ofs << "),)," << endl;
 					}
 
 					if (discret_0d->hasMass()) {
-                        out << "                             _F(";
-                        writeCellContainer(*discret_0d, out);
-                        out << endl;
-                        out << "                                " << syme << "CARA='M_T" << rotationMarker << "_" << diagonalMarker << "N', VALE=(";
+                        comm_file_ofs << "                             _F(";
+                        writeCellContainer(*discret_0d);
+                        comm_file_ofs << endl;
+                        comm_file_ofs << "                                " << syme << "CARA='M_T" << rotationMarker << "_" << diagonalMarker << "N', VALE=(";
                         for (double mass : discret_0d->asMassVector())
-                            out << mass << ",";
-                        out << "),)," << endl;
+                            comm_file_ofs << mass << ",";
+                        comm_file_ofs << "),)," << endl;
 					}
 
 				} else {
-					out
+					comm_file_ofs
 							<< "                             # WARN Finite Element : DISCRETE_0D ignored because its GROUP_MA is empty."
 							<< endl;
 				}
@@ -872,37 +870,37 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
                     if (not discret_1d->isSymmetric()) {
                         syme = "SYME='NON',";
                     }
-                    out << "                             _F(";
-                    writeCellContainer(*discret_1d, out);
-                    out << endl;
-                    out << "                                " << syme << "CARA='K_T" << rotationMarker << "_" << diagonalMarker << "L', VALE=(";
+                    comm_file_ofs << "                             _F(";
+                    writeCellContainer(*discret_1d);
+                    comm_file_ofs << endl;
+                    comm_file_ofs << "                                " << syme << "CARA='K_T" << rotationMarker << "_" << diagonalMarker << "L', VALE=(";
                     for (double rigi : discret_1d->asStiffnessVector())
-                        out << rigi << ",";
-                    out << "),)," << endl;
+                        comm_file_ofs << rigi << ",";
+                    comm_file_ofs << "),)," << endl;
 
                     if (discret_1d->hasDamping()) {
-                        out << "                             _F(";
-                        writeCellContainer(*discret_1d, out);
-                        out << endl;
-                        out << "                                " << syme << "CARA='A_T" << rotationMarker << "_" << diagonalMarker << "L', VALE=(";
+                        comm_file_ofs << "                             _F(";
+                        writeCellContainer(*discret_1d);
+                        comm_file_ofs << endl;
+                        comm_file_ofs << "                                " << syme << "CARA='A_T" << rotationMarker << "_" << diagonalMarker << "L', VALE=(";
                         for (double amor : discret_1d->asDampingVector())
-                            out << amor << ",";
-                        out << "),)," << endl;
+                            comm_file_ofs << amor << ",";
+                        comm_file_ofs << "),)," << endl;
                     }
 
                     if (discret_1d->hasMass()) {
-                        out << "                             _F(";
-                        writeCellContainer(*discret_1d, out);
-                        out << endl;
-                        out << "                                " << syme << "CARA='M_T" << rotationMarker << "_" << diagonalMarker << "L', VALE=(";
+                        comm_file_ofs << "                             _F(";
+                        writeCellContainer(*discret_1d);
+                        comm_file_ofs << endl;
+                        comm_file_ofs << "                                " << syme << "CARA='M_T" << rotationMarker << "_" << diagonalMarker << "L', VALE=(";
 
                         for (double mass : discret_1d->asMassVector())
-                            out << mass << ",";
-                        out << "),)," << endl;
+                            comm_file_ofs << mass << ",";
+                        comm_file_ofs << "),)," << endl;
                     }
 
 				} else {
-					out
+					comm_file_ofs
 							<< "                             # WARN Finite Element : DISCRETE_1D ignored because its GROUP_MA is empty."
 							<< endl;
 				}
@@ -911,70 +909,70 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 			for (const auto& discret : nodal_masses) {
 				if (discret->effective()) {
                     const auto& nodalMass = static_pointer_cast<NodalMass>(discret);
-					out << "                             _F(";
-					writeCellContainer(*nodalMass, out);
-					out << endl;
+					comm_file_ofs << "                             _F(";
+					writeCellContainer(*nodalMass);
+					comm_file_ofs << endl;
 					if (nodalMass->hasRotations()) {
-                        out << "                                CARA='M_TR_D_N',VALE=("
+                        comm_file_ofs << "                                CARA='M_TR_D_N',VALE=("
                                 << nodalMass->getMass() << "," << nodalMass->ixx << ","
                                 << nodalMass->iyy << "," << nodalMass->izz << "," << nodalMass->ixy
                                 << "," << nodalMass->iyz << "," << nodalMass->ixz << ","
                                 << nodalMass->ex << "," << nodalMass->ey << "," << nodalMass->ez
                                 << "),)," << endl;
 					} else {
-                        out << "                                CARA='M_T_D_N',VALE=("
+                        comm_file_ofs << "                                CARA='M_T_D_N',VALE=("
 							<< nodalMass->getMass()	<< "),)," << endl;
 					}
 				} else {
-					out
+					comm_file_ofs
 							<< "                             # WARN Finite Element : NODAL_MASS ignored because its GROUP_MA is empty."
 							<< endl;
 				}
 				discret->markAsWritten();
 			}
-			out << "                             )," << endl;
+			comm_file_ofs << "                             )," << endl;
 		}
-		const auto& poutres = asterModel.model.getBeams();
-        const auto& barres = asterModel.model.getTrusses();
-		out << "                    # writing " << poutres.size() << " poutres" << endl;
-		out << "                    # writing " << barres.size() << " barres" << endl;
-		if (not poutres.empty() or (asterModel.model.needsLargeDisplacements() and not barres.empty())) {
-			out << "                    POUTRE=(" << endl;
+		const auto& poutres = asterModel->model.getBeams();
+        const auto& barres = asterModel->model.getTrusses();
+		comm_file_ofs << "                    # writing " << poutres.size() << " poutres" << endl;
+		comm_file_ofs << "                    # writing " << barres.size() << " barres" << endl;
+		if (not poutres.empty() or (asterModel->model.needsLargeDisplacements() and not barres.empty())) {
+			comm_file_ofs << "                    POUTRE=(" << endl;
 			for (const auto& poutre : poutres) {
-				writeAffeCaraElemPoutre(asterModel, *poutre, out);
+				writeAffeCaraElemPoutre( *poutre);
 			}
-			if (asterModel.model.needsLargeDisplacements()) {
+			if (asterModel->model.needsLargeDisplacements()) {
                 for (const auto& barre : barres) {
-                    writeAffeCaraElemPoutre(asterModel, *barre, out);
+                    writeAffeCaraElemPoutre( *barre);
                 }
 			}
-			out << "                            )," << endl;
+			comm_file_ofs << "                            )," << endl;
 		}
 
-		if (not barres.empty() and not asterModel.model.needsLargeDisplacements()) {
-			out << "                    BARRE=(" << endl;
+		if (not barres.empty() and not asterModel->model.needsLargeDisplacements()) {
+			comm_file_ofs << "                    BARRE=(" << endl;
 			for (const auto& barre : barres) {
-				writeAffeCaraElemPoutre(asterModel, *barre, out);
+				writeAffeCaraElemPoutre( *barre);
 			}
-			out << "                            )," << endl;
+			comm_file_ofs << "                            )," << endl;
 		}
-		const auto& shells = asterModel.model.elementSets.filter(ElementSet::Type::SHELL);
-		const auto& composites = asterModel.model.elementSets.filter(ElementSet::Type::COMPOSITE);
-		out << "                    # writing " << shells.size()+composites.size() << " shells (ou composites)" << endl;
+		const auto& shells = asterModel->model.elementSets.filter(ElementSet::Type::SHELL);
+		const auto& composites = asterModel->model.elementSets.filter(ElementSet::Type::COMPOSITE);
+		comm_file_ofs << "                    # writing " << shells.size()+composites.size() << " shells (ou composites)" << endl;
 		if (not (shells.empty() and composites.empty())) {
 			calc_sigm = true;
-			out << "                    COQUE=(" << endl;
+			comm_file_ofs << "                    COQUE=(" << endl;
 			for (const auto& elementSet : shells) {
                 const auto& shell = static_pointer_cast<Shell>(elementSet);
 				if (shell->effective()) {
-					out << "                           _F(";
-					writeCellContainer(*shell, out);
-					out << endl;
-					out << "                              EPAIS="
+					comm_file_ofs << "                           _F(";
+					writeCellContainer(*shell);
+					comm_file_ofs << endl;
+					comm_file_ofs << "                              EPAIS="
 							<< shell->thickness << "," << endl;
-					out << "                              VECTEUR=(0.9,0.1,0.2))," << endl;
+					comm_file_ofs << "                              VECTEUR=(0.9,0.1,0.2))," << endl;
 				} else {
-					out
+					comm_file_ofs
 							<< "                           # WARN Finite Element : COQUE ignored because its GROUP_MA is empty."
 							<< endl;
 				}
@@ -983,40 +981,40 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 			for (const auto& c : composites) {
                 const auto& composite = static_pointer_cast<Composite>(c);
 				if (!composite->empty()) {
-					out << "                           _F(";
-					writeCellContainer(*composite, out);
-					out << endl;
-					out << "                              EPAIS="
+					comm_file_ofs << "                           _F(";
+					writeCellContainer(*composite);
+					comm_file_ofs << endl;
+					comm_file_ofs << "                              EPAIS="
 							<< composite->getTotalThickness() << "," << endl;
-					out << "                              COQUE_NCOU="
+					comm_file_ofs << "                              COQUE_NCOU="
 							<< composite->getLayers().size() << "," << endl;
-					out << "                              VECTEUR=(1.0,0.0,0.0))," << endl;
+					comm_file_ofs << "                              VECTEUR=(1.0,0.0,0.0))," << endl;
 				} else {
-					out
+					comm_file_ofs
 							<< "                           # WARN Finite Element : COMPOSITE ignored because its GROUP_MA is empty."
 							<< endl;
 				}
 				composite->markAsWritten();
 			}
-			out << "                           )," << endl;
+			comm_file_ofs << "                           )," << endl;
 		}
-		const auto& solids = asterModel.model.elementSets.filter(
+		const auto& solids = asterModel->model.elementSets.filter(
 				ElementSet::Type::CONTINUUM);
-        const auto& skins = asterModel.model.elementSets.filter(
+        const auto& skins = asterModel->model.elementSets.filter(
 				ElementSet::Type::SKIN);
-		out << "                    # writing " << solids.size() << " solids" << endl;
-		out << "                    # writing " << skins.size() << " skins" << endl;
+		comm_file_ofs << "                    # writing " << solids.size() << " solids" << endl;
+		comm_file_ofs << "                    # writing " << skins.size() << " skins" << endl;
 		if (not solids.empty()) {
-			out << "                    MASSIF=(" << endl;
+			comm_file_ofs << "                    MASSIF=(" << endl;
 			for (const auto& elementSet : solids) {
                 const auto& solid = static_pointer_cast<Continuum>(elementSet);
 				if (solid->effective()) {
-					out << "                           _F(";
-					writeCellContainer(*solid, out);
-					out << endl;
-					out << "                               ANGL_REP=(0.,0.,0.,),)," << endl;
+					comm_file_ofs << "                           _F(";
+					writeCellContainer(*solid);
+					comm_file_ofs << endl;
+					comm_file_ofs << "                               ANGL_REP=(0.,0.,0.,),)," << endl;
 				} else {
-					out << "# WARN Finite Element : MASSIF ignored because its GROUP_MA is empty."
+					comm_file_ofs << "# WARN Finite Element : MASSIF ignored because its GROUP_MA is empty."
 							<< endl;
 				}
 				solid->markAsWritten();
@@ -1024,114 +1022,114 @@ void AsterWriter::writeAffeCaraElem(const AsterModel& asterModel, ostream& out) 
 			for (const auto& elementSet : skins) {
 			    const auto& skin = static_pointer_cast<Skin>(elementSet);
 				if (!skin->empty()) {
-					out << "                           _F(";
-					writeCellContainer(*skin, out);
-					out << endl;
-					out << "                               ANGL_REP=(0.,0.,0.,),)," << endl;
+					comm_file_ofs << "                           _F(";
+					writeCellContainer(*skin);
+					comm_file_ofs << endl;
+					comm_file_ofs << "                               ANGL_REP=(0.,0.,0.,),)," << endl;
 				} else {
-					out << "# WARN Finite Element : MASSIF (skin) ignored because its GROUP_MA is empty."
+					comm_file_ofs << "# WARN Finite Element : MASSIF (skin) ignored because its GROUP_MA is empty."
 							<< endl;
 				}
 				skin->markAsWritten();
 			}
-			out << "                            )," << endl;
+			comm_file_ofs << "                            )," << endl;
 		}
 	}
 
 	//orientations
 	bool orientationsPrinted = false;
-	for (const auto& it : asterModel.model.mesh.cellGroupNameByCspos){
-        if (asterModel.model.elementSets.filter(ElementSet::Type::CONTINUUM).size() == asterModel.model.elementSets.size()) {
+	for (const auto& it : asterModel->model.mesh.cellGroupNameByCspos){
+        if (asterModel->model.elementSets.filter(ElementSet::Type::CONTINUUM).size() == asterModel->model.elementSets.size()) {
             // LD workaround for case no beams, discrete, shells, composites... only solids in model, but segments in geometry
             // TODO : probably this loop should be applyed to elementSets and not over groups!!
             continue;
         }
-        const auto& cs= asterModel.model.mesh.getCoordinateSystemByPosition(it.first);
+        const auto& cs= asterModel->model.mesh.getCoordinateSystemByPosition(it.first);
 		if (cs->type!=CoordinateSystem::Type::RELATIVE){
 		   //handleWritingError("Coordinate System of Group "+ it.second+" is not an ORIENTATION.");
 		   continue;
 		}
 		if (!orientationsPrinted) {
-			out << "                    ORIENTATION=(" << endl;
+			comm_file_ofs << "                    ORIENTATION=(" << endl;
 			orientationsPrinted = true;
 		}
 		const auto& ocs = static_pointer_cast<OrientationCoordinateSystem>(cs);
 
-		out << "                                 _F(CARA ='VECT_Y',VALE=(";
-		out << ocs->getV().x() << "," << ocs->getV().y() << "," << ocs->getV().z() << ")";
-		out<<",GROUP_MA='"<< it.second << "')," << endl;
+		comm_file_ofs << "                                 _F(CARA ='VECT_Y',VALE=(";
+		comm_file_ofs << ocs->getV().x() << "," << ocs->getV().y() << "," << ocs->getV().z() << ")";
+		comm_file_ofs << ",GROUP_MA='"<< it.second << "')," << endl;
 	}
 	if (orientationsPrinted) {
-		out << "                                 )," << endl;
+		comm_file_ofs << "                                 )," << endl;
 	}
-	out << "                    );" << endl << endl;
+	comm_file_ofs << "                    );" << endl << endl;
 }
-void AsterWriter::writeAffeCaraElemPoutre(const AsterModel& asterModel, Beam& beam, ostream& out) {
-	out << "                            _F(";
-	writeCellContainer(beam, out);
-	out << endl;
+void AsterWriter::writeAffeCaraElemPoutre( Beam& beam) {
+	comm_file_ofs << "                            _F(";
+	writeCellContainer(beam);
+	comm_file_ofs << endl;
 	switch (beam.type) {
 	case ElementSet::Type::RECTANGULAR_SECTION_BEAM: {
 		auto& rectBeam =
 				static_cast<RectangularSectionBeam&>(beam);
-		out << "                               VARI_SECT='CONSTANT'," << endl;
-		out << "                               SECTION='RECTANGLE'," << endl;
-		out << "                               CARA=('HY','HZ',)," << endl;
-		out << "                               VALE=(" << rectBeam.height << "," << rectBeam.width
+		comm_file_ofs << "                               VARI_SECT='CONSTANT'," << endl;
+		comm_file_ofs << "                               SECTION='RECTANGLE'," << endl;
+		comm_file_ofs << "                               CARA=('HY','HZ',)," << endl;
+		comm_file_ofs << "                               VALE=(" << rectBeam.height << "," << rectBeam.width
 				<< ")," << endl;
         rectBeam.markAsWritten();
 		break;
 	}
 	case ElementSet::Type::CIRCULAR_SECTION_BEAM: {
 		auto& circBeam = static_cast<CircularSectionBeam&>(beam);
-		out << "                               SECTION='CERCLE'," << endl;
-		out << "                               CARA=('R',)," << endl;
-		out << "                               VALE=(" << circBeam.radius << ")," << endl;
+		comm_file_ofs << "                               SECTION='CERCLE'," << endl;
+		comm_file_ofs << "                               CARA=('R',)," << endl;
+		comm_file_ofs << "                               VALE=(" << circBeam.radius << ")," << endl;
 		circBeam.markAsWritten();
 		break;
 	}
 	case ElementSet::Type::TUBE_SECTION_BEAM: {
         auto& tubeBeam = static_cast<TubeSectionBeam&>(beam);
-		out << "                               SECTION='CERCLE'," << endl;
-		out << "                               CARA=('R','EP')," << endl;
-		out << "                               VALE=(" << tubeBeam.radius << ","<< tubeBeam.thickness << ")," << endl;
+		comm_file_ofs << "                               SECTION='CERCLE'," << endl;
+		comm_file_ofs << "                               CARA=('R','EP')," << endl;
+		comm_file_ofs << "                               VALE=(" << tubeBeam.radius << ","<< tubeBeam.thickness << ")," << endl;
 		tubeBeam.markAsWritten();
 		break;
 	}
 	default:
-		out << "                               SECTION='GENERALE'," << endl;
-		if (not beam.isTruss() or asterModel.model.needsLargeDisplacements()) {
-		    out << "                               CARA=('A','IY','IZ','JX','AY','AZ',)," << endl;
+		comm_file_ofs << "                               SECTION='GENERALE'," << endl;
+		if (not beam.isTruss() or asterModel->model.needsLargeDisplacements()) {
+		    comm_file_ofs << "                               CARA=('A','IY','IZ','JX','AY','AZ',)," << endl;
 		} else {
-		    out << "                               CARA=('A',)," << endl;
+		    comm_file_ofs << "                               CARA=('A',)," << endl;
 		}
 
-		out << "                               VALE=(";
-        if (not beam.isTruss() or asterModel.model.needsLargeDisplacements()) {
-            out << max(std::numeric_limits<double>::epsilon(), beam.getAreaCrossSection()) << ","
+		comm_file_ofs << "                               VALE=(";
+        if (not beam.isTruss() or asterModel->model.needsLargeDisplacements()) {
+            comm_file_ofs << max(std::numeric_limits<double>::epsilon(), beam.getAreaCrossSection()) << ","
 				<< max(std::numeric_limits<double>::epsilon(), beam.getMomentOfInertiaY()) << "," << max(std::numeric_limits<double>::epsilon(), beam.getMomentOfInertiaZ())
 				<< "," << max(std::numeric_limits<double>::epsilon(), beam.getTorsionalConstant()) << ",";
             if (! is_zero(beam.getShearAreaFactorY()))
-                out << beam.getShearAreaFactorY();
+                comm_file_ofs << beam.getShearAreaFactorY();
             else
-                out << 0.0;
-            out << ",";
+                comm_file_ofs << 0.0;
+            comm_file_ofs << ",";
             if (! is_zero(beam.getShearAreaFactorZ()))
-                out << beam.getShearAreaFactorZ();
+                comm_file_ofs << beam.getShearAreaFactorZ();
             else
-                out << 0.0;
+                comm_file_ofs << 0.0;
 		} else {
-            out << max(std::numeric_limits<double>::epsilon(), beam.getAreaCrossSection()) << ",";
+            comm_file_ofs << max(std::numeric_limits<double>::epsilon(), beam.getAreaCrossSection()) << ",";
 		}
 
-		out << ")," << endl;
+		comm_file_ofs << ")," << endl;
 		beam.markAsWritten();
 	}
-	out << "                               )," << endl;
+	comm_file_ofs << "                               )," << endl;
 }
 
-void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) {
-	for (const auto& it : asterModel.model.constraintSets) {
+void AsterWriter::writeAffeCharMeca() {
+	for (const auto& it : asterModel->model.constraintSets) {
 		ConstraintSet& constraintSet = *it;
 		if (constraintSet.getConstraints().empty()) {
 			//GC fix for http://hotline.alneos.fr/redmine/issues/801.
@@ -1151,32 +1149,32 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
 			continue;
 		}
 		if (constraintSet.isOriginal()) {
-			out << "# ConstraintSet : " << constraintSet << endl;
+			comm_file_ofs << "# ConstraintSet : " << constraintSet << endl;
 		}
 		for(bool withFunctions : {false, true} ) {
             string asterName;
             if (withFunctions and constraintSet.hasFunctions()) {
                 asterName = "BLF" + to_string(constraintSet.getId());
-                out << asterName << "=AFFE_CHAR_MECA_F(MODELE=MODMECA," << endl;
+                comm_file_ofs << asterName << "=AFFE_CHAR_MECA_F(MODELE=MODMECA," << endl;
             } else if (not withFunctions and not constraintSet.hasFunctions()) {
                 asterName = "BL" + to_string(constraintSet.getId());
-                out << asterName << "=AFFE_CHAR_MECA(MODELE=MODMECA," << endl;
+                comm_file_ofs << asterName << "=AFFE_CHAR_MECA(MODELE=MODMECA," << endl;
             } else {
                 continue;
             }
             asternameByConstraintSet[constraintSet] = asterName;
 
-            writeSPC(asterModel, constraintSet, out);
-            writeLIAISON_SOLIDE(asterModel, constraintSet, out);
-            writeLIAISON_MAIL(asterModel, constraintSet, out);
-            writeRBE3(asterModel, constraintSet, out);
-            writeLMPC(asterModel, constraintSet, out);
-            out << "                   );" << endl << endl;
+            writeSPC( constraintSet);
+            writeLIAISON_SOLIDE( constraintSet);
+            writeLIAISON_MAIL( constraintSet);
+            writeRBE3( constraintSet);
+            writeLMPC( constraintSet);
+            comm_file_ofs << "                   );" << endl << endl;
 		}
 		constraintSet.markAsWritten();
 	}
 
-	for (const auto& it : asterModel.model.loadSets) {
+	for (const auto& it : asterModel->model.loadSets) {
 		LoadSet& loadSet = *it;
 		if (loadSet.type == LoadSet::Type::DLOAD) {
 			continue;
@@ -1187,42 +1185,42 @@ void AsterWriter::writeAffeCharMeca(const AsterModel& asterModel, ostream& out) 
 		}
 		if (loadSet.getLoadings().size()
 				== loadSet.getLoadingsByType(Loading::Type::INITIAL_TEMPERATURE).size()) {
-			out << "# Ignoring INITIAL_TEMPERATURES!!!!!!" << endl;
+			comm_file_ofs << "# Ignoring INITIAL_TEMPERATURES!!!!!!" << endl;
 			cout << "!!!!!!Ignoring INITIAL_TEMPERATURES!!!!!!" << endl;
 			continue;
 		}
 		if (loadSet.isOriginal()) {
-			out << "# LoadSet " << loadSet << endl;
+			comm_file_ofs << "# LoadSet " << loadSet << endl;
 		}
 		for(bool withFunctions : {false, true} ) {
             string asterName;
 		    if (withFunctions and loadSet.hasFunctions()) {
                 asterName = "CHMEF" + to_string(loadSet.getId());
-                out << asterName << "=AFFE_CHAR_MECA_F(MODELE=MODMECA," << endl;
+                comm_file_ofs << asterName << "=AFFE_CHAR_MECA_F(MODELE=MODMECA," << endl;
 		    } else if (not withFunctions and not loadSet.hasFunctions()) {
 		        asterName = "CHMEC" + to_string(loadSet.getId());
-                out << asterName << "=AFFE_CHAR_MECA(MODELE=MODMECA," << endl;
+                comm_file_ofs << asterName << "=AFFE_CHAR_MECA(MODELE=MODMECA," << endl;
             } else {
                 continue;
             }
-            out << "                 VERI_NORM='NON'," << endl; // Workaround for PREPOST4_97 see test pload4-ctetra-multi
+            comm_file_ofs << "                 VERI_NORM='NON'," << endl; // Workaround for PREPOST4_97 see test pload4-ctetra-multi
             asternameByLoadSet[loadSet] = asterName;
-            writeSPCD(asterModel, loadSet, out);
-            writePression(loadSet, out);
-            writeForceCoque(loadSet, out);
-            writeNodalForce(asterModel, loadSet, out);
-            writeForceSurface(loadSet, out);
-            writeForceLine(loadSet, out);
-            writeGravity(loadSet, out);
-            writeRotation(loadSet, out);
-            out << "                      );" << endl << endl;
+            writeSPCD( loadSet);
+            writePression(loadSet);
+            writeForceCoque(loadSet);
+            writeNodalForce( loadSet);
+            writeForceSurface(loadSet);
+            writeForceLine(loadSet);
+            writeGravity(loadSet);
+            writeRotation(loadSet);
+            comm_file_ofs << "                      );" << endl << endl;
 		}
 		loadSet.markAsWritten();
 	}
 }
 
-void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
-	for (const auto& it : asterModel.model.constraintSets) {
+void AsterWriter::writeDefiContact() {
+	for (const auto& it : asterModel->model.constraintSets) {
 		ConstraintSet& constraintSet = *it;
 		if (constraintSet.getConstraints().empty()) {
 			// LD filter empty constraintSet
@@ -1242,20 +1240,20 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 			int gapCount = 0;
 			for (const auto& gapParticipation : gap->getGaps()) {
 				gapCount++;
-				out << "C" << constraintSet.getId() << "I" << to_string(gapCount)
+				comm_file_ofs << "C" << constraintSet.getId() << "I" << to_string(gapCount)
 						<< "=DEFI_CONSTANTE(VALE=" << gap->initial_gap_opening << ")" << endl;
 				if (!is_zero(gapParticipation->direction.x())) {
-					out << "C" << constraintSet.getId() << "MX" << to_string(gapCount)
+					comm_file_ofs << "C" << constraintSet.getId() << "MX" << to_string(gapCount)
 							<< "=DEFI_CONSTANTE(VALE=" << gapParticipation->direction.x() << ")"
 							<< endl;
 				}
 				if (!is_zero(gapParticipation->direction.y())) {
-					out << "C" << constraintSet.getId() << "MY" << to_string(gapCount)
+					comm_file_ofs << "C" << constraintSet.getId() << "MY" << to_string(gapCount)
 							<< "=DEFI_CONSTANTE(VALE=" << gapParticipation->direction.y() << ")"
 							<< endl;
 				}
 				if (!is_zero(gapParticipation->direction.y())) {
-					out << "C" << constraintSet.getId() << "MZ" << to_string(gapCount)
+					comm_file_ofs << "C" << constraintSet.getId() << "MZ" << to_string(gapCount)
 							<< "=DEFI_CONSTANTE(VALE=" << gapParticipation->direction.z() << ")"
 							<< endl;
 				}
@@ -1264,201 +1262,198 @@ void AsterWriter::writeDefiContact(const AsterModel& asterModel, ostream& out) {
 		const auto& asterName = "CN" + to_string(constraintSet.getId());
 		asternameByConstraintSet[constraintSet] = asterName;
 		if (constraintSet.isOriginal()) {
-            out << "# ConstraintSet original id:" << constraintSet.getOriginalId() << endl;
+            comm_file_ofs << "# ConstraintSet original id:" << constraintSet.getOriginalId() << endl;
 		}
-		out << asterName << "=DEFI_CONTACT(MODELE=MODMECA," << endl;
+		comm_file_ofs << asterName << "=DEFI_CONTACT(MODELE=MODMECA," << endl;
 		if (not gaps.empty()) {
-            out << "                   FORMULATION='LIAISON_UNIL'," << endl;
+            comm_file_ofs << "                   FORMULATION='LIAISON_UNIL'," << endl;
 		} else if (not slides.empty()) {
-		    out << "                   FORMULATION='CONTINUE'," << endl;
-		    out << "                   FROTTEMENT='COULOMB'," << endl;
+		    comm_file_ofs << "                   FORMULATION='CONTINUE'," << endl;
+		    comm_file_ofs << "                   FROTTEMENT='COULOMB'," << endl;
 		} else if (not surfaces.empty()) {
-		    out << "                   FORMULATION='CONTINUE'," << endl;
+		    comm_file_ofs << "                   FORMULATION='CONTINUE'," << endl;
 		}
-		out << "                   ZONE=(" << endl;
+		comm_file_ofs << "                   ZONE=(" << endl;
 		for (const auto& constraint : gaps) {
 			const auto& gap = static_pointer_cast<Gap>(constraint);
 			int gapCount = 0;
 			for (const auto& gapParticipation : gap->getGaps()) {
 				gapCount++;
-				out << "                             _F(";
-				out << "NOEUD='"
+				comm_file_ofs << "                             _F(";
+				comm_file_ofs << "NOEUD='"
 						<< Node::MedName(gapParticipation->nodePosition)
 						<< "',";
-				out << "COEF_IMPO=" << "C" << constraintSet.getId() << "I" << to_string(gapCount)
+				comm_file_ofs << "COEF_IMPO=" << "C" << constraintSet.getId() << "I" << to_string(gapCount)
 						<< ",";
-				out << "COEF_MULT=(";
+				comm_file_ofs << "COEF_MULT=(";
 				if (!is_zero(gapParticipation->direction.x() )) {
-					out << "C" << constraintSet.getId() << "MX" << to_string(gapCount) << ",";
+					comm_file_ofs << "C" << constraintSet.getId() << "MX" << to_string(gapCount) << ",";
 				}
 				if (!is_zero(gapParticipation->direction.y() )) {
-					out << "C" << constraintSet.getId() << "MY" << to_string(gapCount) << ",";
+					comm_file_ofs << "C" << constraintSet.getId() << "MY" << to_string(gapCount) << ",";
 				}
 				if (!is_zero(gapParticipation->direction.z())) {
-					out << "C" << constraintSet.getId() << "MZ" << to_string(gapCount);
+					comm_file_ofs << "C" << constraintSet.getId() << "MZ" << to_string(gapCount);
 				}
-				out << "),";
-				out << "NOM_CMP=(";
+				comm_file_ofs << "),";
+				comm_file_ofs << "NOM_CMP=(";
 				if (!is_zero(gapParticipation->direction.x())) {
-					out << "'DX',";
+					comm_file_ofs << "'DX',";
 				}
 				if (!is_zero(gapParticipation->direction.y() )) {
-					out << "'DY',";
+					comm_file_ofs << "'DY',";
 				}
 				if (!is_zero(gapParticipation->direction.z() )) {
-					out << " 'DZ'";
+					comm_file_ofs << " 'DZ'";
 				}
-				out << "),";
-				out << ")," << endl;
+				comm_file_ofs << "),";
+				comm_file_ofs << ")," << endl;
 			}
 			gap->markAsWritten();
 		}
 		for (const auto& constraint : slides) {
 		    const auto& slide = static_pointer_cast<SlideContact>(constraint);
-            out << "                             _F(";
-            out << "GROUP_MA_MAIT='"
+            comm_file_ofs << "                             _F(";
+            comm_file_ofs << "GROUP_MA_MAIT='"
                     << slide->masterCellGroup->getName()
                     << "',";
-            out << "GROUP_MA_ESCL='"
+            comm_file_ofs << "GROUP_MA_ESCL='"
                     << slide->slaveCellGroup->getName()
                     << "',";
-            out << "COULOMB=" << slide->getFriction() << ",";
-            out << ")," << endl;
+            comm_file_ofs << "COULOMB=" << slide->getFriction() << ",";
+            comm_file_ofs << ")," << endl;
             slide->markAsWritten();
 		}
 //		for (const auto& constraint : surfaceSlides) {
 //		    const auto& surfaceSlide = dynamic_pointer_cast<const SurfaceSlide>(constraint);
-//		    const auto& surfaceSlideMaster = dynamic_pointer_cast<const BoundaryElementFace>(asterModel.model.find(surfaceSlide->master));
-//		    const auto& surfaceSlideSlave = dynamic_pointer_cast<const BoundaryElementFace>(asterModel.model.find(surfaceSlide->slave));
-//                out << "                             _F(";
-//				out << "GROUP_MA_MAIT='"
+//		    const auto& surfaceSlideMaster = dynamic_pointer_cast<const BoundaryElementFace>(asterModel->model.find(surfaceSlide->master));
+//		    const auto& surfaceSlideSlave = dynamic_pointer_cast<const BoundaryElementFace>(asterModel->model.find(surfaceSlide->slave));
+//                comm_file_ofs << "                             _F(";
+//				comm_file_ofs << "GROUP_MA_MAIT='"
 //						<< surfaceSlideMaster->cellGroup->getName()
 //						<< "',";
-//				out << "GROUP_MA_ESCL='"
+//				comm_file_ofs << "GROUP_MA_ESCL='"
 //						<< surfaceSlideSlave->cellGroup->getName()
 //						<< "',";
-//                out << "GLISSIERE='OUI',";
-//				out << ")," << endl;
+//                comm_file_ofs << "GLISSIERE='OUI',";
+//				comm_file_ofs << ")," << endl;
 //		}
 		for (const auto& constraint : surfaces) {
 		    const auto& surface = static_pointer_cast<SurfaceContact>(constraint);
-            out << "                             _F(";
-            out << "GROUP_MA_MAIT='"
+            comm_file_ofs << "                             _F(";
+            comm_file_ofs << "GROUP_MA_MAIT='"
                     << surface->masterCellGroup->getName()
                     << "',";
-            out << "GROUP_MA_ESCL='"
+            comm_file_ofs << "GROUP_MA_ESCL='"
                     << surface->slaveCellGroup->getName()
                     << "',";
-            out << ")," << endl;
+            comm_file_ofs << ")," << endl;
             surface->markAsWritten();
 		}
 		for (const auto& constraint : zones) {
 		    const auto& zone = static_pointer_cast<ZoneContact>(constraint);
-		    const auto& master = static_pointer_cast<ContactBody>(asterModel.model.find(zone->master));
-		    const auto& masterSurface = static_pointer_cast<BoundarySurface>(asterModel.model.find(master->boundary));
-		    const auto& slave = static_pointer_cast<ContactBody>(asterModel.model.find(zone->slave));
-		    const auto& slaveSurface = static_pointer_cast<BoundarySurface>(asterModel.model.find(slave->boundary));
-            out << "                             _F(";
+		    const auto& master = static_pointer_cast<ContactBody>(asterModel->model.find(zone->master));
+		    const auto& masterSurface = static_pointer_cast<BoundarySurface>(asterModel->model.find(master->boundary));
+		    const auto& slave = static_pointer_cast<ContactBody>(asterModel->model.find(zone->slave));
+		    const auto& slaveSurface = static_pointer_cast<BoundarySurface>(asterModel->model.find(slave->boundary));
+            comm_file_ofs << "                             _F(";
 
-            out << "GROUP_MA_MAIT=(";
+            comm_file_ofs << "GROUP_MA_MAIT=(";
                 for(const auto& cellGroup : masterSurface->getCellGroups()) {
-                    out << "'" << cellGroup->getName() << "',";
+                    comm_file_ofs << "'" << cellGroup->getName() << "',";
                 }
-                out << "),";
-            out << "GROUP_MA_ESCL=(";
+                comm_file_ofs << "),";
+            comm_file_ofs << "GROUP_MA_ESCL=(";
                 for(const auto& cellGroup : slaveSurface->getCellGroups()) {
-                    out << "'" << cellGroup->getName() << "',";
+                    comm_file_ofs << "'" << cellGroup->getName() << "',";
                 }
-                out << "),";
-            out << ")," << endl;
+                comm_file_ofs << "),";
+            comm_file_ofs << ")," << endl;
             zone->markAsWritten();
             master->markAsWritten();
             masterSurface->markAsWritten();
             slave->markAsWritten();
             slaveSurface->markAsWritten();
 		}
-		out << "                             )," << endl;
-		out << "                   );" << endl << endl;
+		comm_file_ofs << "                             )," << endl;
+		comm_file_ofs << "                   );" << endl << endl;
 		constraintSet.markAsWritten();
 	}
 }
 
-void AsterWriter::writeSPC(const AsterModel& asterModel, const ConstraintSet& cset,
-		ostream&out) {
-    UNUSEDV(asterModel);
+void AsterWriter::writeSPC( const ConstraintSet& cset) {
+
 	const auto& spcs = cset.getConstraintsByType(Constraint::Type::SPC);
 	if (not spcs.empty()) {
-		out << "                   DDL_IMPO=(" << endl;
+		comm_file_ofs << "                   DDL_IMPO=(" << endl;
 		for (const auto& constraint : spcs) {
 			const auto& spc = dynamic_pointer_cast<SinglePointConstraint>(constraint);
 			//FIXME: filter spcs with type function.
 			if (spc->hasReferences()) {
 				cerr << "SPC references not supported " << *spc << endl;
-				out << " ************************" << endl << "SPC references not supported "
+				comm_file_ofs << " ************************" << endl << "SPC references not supported "
 						<< *spc
 						<< endl;
 			} else {
-				out << "                             _F(";
-				writeNodeContainer(*spc, out);
+				comm_file_ofs << "                             _F(";
+				writeNodeContainer(*spc);
 				//parameter 0 ignored
 				for (const DOF dof : spc->getDOFSForNode(0)) {
 					if (dof == DOF::DX)
-						out << "DX";
+						comm_file_ofs << "DX";
 					if (dof == DOF::DY)
-						out << "DY";
+						comm_file_ofs << "DY";
 					if (dof == DOF::DZ)
-						out << "DZ";
+						comm_file_ofs << "DZ";
 					if (dof == DOF::RX)
-						out << "DRX";
+						comm_file_ofs << "DRX";
 					if (dof == DOF::RY)
-						out << "DRY";
+						comm_file_ofs << "DRY";
 					if (dof == DOF::RZ)
-						out << "DRZ";
-					out << "=" << spc->getDoubleForDOF(dof) << ", ";
+						comm_file_ofs << "DRZ";
+					comm_file_ofs << "=" << spc->getDoubleForDOF(dof) << ", ";
 				}
-				out << ")," << endl;
+				comm_file_ofs << ")," << endl;
 			}
 			spc->markAsWritten();
 		}
-		out << "                             )," << endl;
+		comm_file_ofs << "                             )," << endl;
 	}
 }
 
-void AsterWriter::writeSPCD(const AsterModel& asterModel, const LoadSet& lset,
-		ostream&out) {
-    UNUSEDV(asterModel);
+void AsterWriter::writeSPCD( const LoadSet& lset) {
+
 	const auto& spcds = lset.getLoadingsByType(Loading::Type::IMPOSED_DISPLACEMENT);
 	if (not spcds.empty()) {
-		out << "                   DDL_IMPO=(" << endl;
+		comm_file_ofs << "                   DDL_IMPO=(" << endl;
 		for (const auto& loading : spcds) {
 			const auto& spcd = static_pointer_cast<ImposedDisplacement>(loading);
-            out << "                             _F(";
-            writeNodeContainer(*spcd, out);
+            comm_file_ofs << "                             _F(";
+            writeNodeContainer(*spcd);
             for (const DOF dof : spcd->getDOFSForNode(0)) { // parameter 0 ignored
                 if (dof == DOF::DX)
-                    out << "DX";
+                    comm_file_ofs << "DX";
                 if (dof == DOF::DY)
-                    out << "DY";
+                    comm_file_ofs << "DY";
                 if (dof == DOF::DZ)
-                    out << "DZ";
+                    comm_file_ofs << "DZ";
                 if (dof == DOF::RX)
-                    out << "DRX";
+                    comm_file_ofs << "DRX";
                 if (dof == DOF::RY)
-                    out << "DRY";
+                    comm_file_ofs << "DRY";
                 if (dof == DOF::RZ)
-                    out << "DRZ";
-                out << "=" << spcd->getDoubleForDOF(dof) << ", ";
+                    comm_file_ofs << "DRZ";
+                comm_file_ofs << "=" << spcd->getDoubleForDOF(dof) << ", ";
             }
-            out << ")," << endl;
+            comm_file_ofs << ")," << endl;
             spcd->markAsWritten();
 		}
-		out << "                             )," << endl;
+		comm_file_ofs << "                             )," << endl;
 	}
 }
 
-void AsterWriter::writeLIAISON_SOLIDE(const AsterModel& asterModel, const ConstraintSet& cset,
-		ostream& out) {
-  UNUSEDV(asterModel);
+void AsterWriter::writeLIAISON_SOLIDE( const ConstraintSet& cset) {
+
 
 	const auto& rigidConstraints = cset.getConstraintsByType(Constraint::Type::RIGID);
 	const auto& quasiRigidConstraints = cset.getConstraintsByType(Constraint::Type::QUASI_RIGID);
@@ -1473,219 +1468,216 @@ void AsterWriter::writeLIAISON_SOLIDE(const AsterModel& asterModel, const Constr
 	}
 
 	if (not constraints.empty()) {
-		out << "                   LIAISON_SOLIDE=(" << endl;
+		comm_file_ofs << "                   LIAISON_SOLIDE=(" << endl;
 		for (const auto& constraintPtr : constraints) {
-			out << "                                   _F(NOEUD=(";
+			comm_file_ofs << "                                   _F(NOEUD=(";
 			for (int node : constraintPtr->nodePositions()) {
-				out << "'" << Node::MedName(node) << "',";
+				comm_file_ofs << "'" << Node::MedName(node) << "',";
 			}
-			out << ")," << endl;
-			out << "                                      )," << endl;
+			comm_file_ofs << ")," << endl;
+			comm_file_ofs << "                                      )," << endl;
 			constraintPtr->markAsWritten();
 
 		}
-		out << "                                   )," << endl;
+		comm_file_ofs << "                                   )," << endl;
 	}
 }
 
-void AsterWriter::writeLIAISON_MAIL(const AsterModel& asterModel, const ConstraintSet& cset,
-		ostream& out) {
+void AsterWriter::writeLIAISON_MAIL( const ConstraintSet& cset) {
 
 	const auto& slideSurfaces = cset.getConstraintsByType(
 			Constraint::Type::SURFACE_SLIDE_CONTACT);
 
 	if (not slideSurfaces.empty()) {
-		out << "                   LIAISON_MAIL=(" << endl;
+		comm_file_ofs << "                   LIAISON_MAIL=(" << endl;
         for (const auto& constraint : slideSurfaces) {
 		    const auto& surface = static_pointer_cast<SurfaceSlide>(constraint);
-		    const auto& masterSurface = static_pointer_cast<BoundaryElementFace>(asterModel.model.find(surface->master));
-		    const auto& slaveSurface = static_pointer_cast<BoundaryElementFace>(asterModel.model.find(surface->slave));
-			out << "                                   _F(TYPE_RACCORD='MASSIF', DDL_MAIT='DNOR', DDL_ESCL='DNOR',";
-			out << "GROUP_MA_MAIT='" << masterSurface->elementCellGroup->getName() << "',";
-			out << "GROUP_MA_ESCL='" << slaveSurface->surfaceCellGroup->getName() << "',";
-            out << ")," << endl;
+		    const auto& masterSurface = static_pointer_cast<BoundaryElementFace>(asterModel->model.find(surface->master));
+		    const auto& slaveSurface = static_pointer_cast<BoundaryElementFace>(asterModel->model.find(surface->slave));
+			comm_file_ofs << "                                   _F(TYPE_RACCORD='MASSIF', DDL_MAIT='DNOR', DDL_ESCL='DNOR',";
+			comm_file_ofs << "GROUP_MA_MAIT='" << masterSurface->elementCellGroup->getName() << "',";
+			comm_file_ofs << "GROUP_MA_ESCL='" << slaveSurface->surfaceCellGroup->getName() << "',";
+            comm_file_ofs << ")," << endl;
             surface->markAsWritten();
             masterSurface->markAsWritten();
             slaveSurface->markAsWritten();
 		}
-		out << "                                   )," << endl;
+		comm_file_ofs << "                                   )," << endl;
 	}
 }
 
-void AsterWriter::writeRBE3(const AsterModel& asterModel, const ConstraintSet& cset,
-		ostream& out) {
-    UNUSEDV(asterModel);
+void AsterWriter::writeRBE3( const ConstraintSet& cset) {
+
 	const auto& constraints = cset.getConstraintsByType(Constraint::Type::RBE3);
 	if (not constraints.empty()) {
-		out << "                   LIAISON_RBE3=(" << endl;
+		comm_file_ofs << "                   LIAISON_RBE3=(" << endl;
 		for (const auto& constraint : constraints) {
 			const auto& rbe3 = static_pointer_cast<RBE3>(constraint);
 			int masterNode = rbe3->getMaster();
-			out << "                                 _F(NOEUD_MAIT='"
+			comm_file_ofs << "                                 _F(NOEUD_MAIT='"
 					<< Node::MedName(masterNode) << "',"
 					<< endl;
-			out << "                                    DDL_MAIT=(";
+			comm_file_ofs << "                                    DDL_MAIT=(";
 			DOFS dofs = rbe3->getDOFSForNode(masterNode);
 			if (dofs.contains(DOF::DX))
-				out << "'DX',";
+				comm_file_ofs << "'DX',";
 			if (dofs.contains(DOF::DY))
-				out << "'DY',";
+				comm_file_ofs << "'DY',";
 			if (dofs.contains(DOF::DZ))
-				out << "'DZ',";
+				comm_file_ofs << "'DZ',";
 			if (dofs.contains(DOF::RX))
-				out << "'DRX',";
+				comm_file_ofs << "'DRX',";
 			if (dofs.contains(DOF::RY))
-				out << "'DRY',";
+				comm_file_ofs << "'DRY',";
 			if (dofs.contains(DOF::RZ))
-				out << "'DRZ',";
-			out << ")," << endl;
+				comm_file_ofs << "'DRZ',";
+			comm_file_ofs << ")," << endl;
 			set<int> slaveNodes = rbe3->getSlaves();
 
-			out << "                                    NOEUD_ESCL=(";
+			comm_file_ofs << "                                    NOEUD_ESCL=(";
 			for (int slaveNode : slaveNodes) {
-				out << "'" << Node::MedName(slaveNode) << "',";
+				comm_file_ofs << "'" << Node::MedName(slaveNode) << "',";
 			}
-			out << ")," << endl;
-			out << "                                    DDL_ESCL=(";
+			comm_file_ofs << ")," << endl;
+			comm_file_ofs << "                                    DDL_ESCL=(";
 			for (int slaveNode : slaveNodes) {
 				DOFS slaveDofs = rbe3->getDOFSForNode(slaveNode);
 				int size = 0;
-				out << "'";
+				comm_file_ofs << "'";
 				if (slaveDofs.contains(DOF::DX)) {
-					out << "DX";
+					comm_file_ofs << "DX";
 					if (++size < slaveDofs.size())
-						out << "-";
+						comm_file_ofs << "-";
 				}
 				if (slaveDofs.contains(DOF::DY)) {
-					out << "DY";
+					comm_file_ofs << "DY";
 					if (++size < slaveDofs.size())
-						out << "-";
+						comm_file_ofs << "-";
 				}
 				if (slaveDofs.contains(DOF::DZ)) {
-					out << "DZ";
+					comm_file_ofs << "DZ";
 					if (++size < slaveDofs.size())
-						out << "-";
+						comm_file_ofs << "-";
 				}
 				if (slaveDofs.contains(DOF::RX)) {
-					out << "DRX";
+					comm_file_ofs << "DRX";
 					if (++size < slaveDofs.size())
-						out << "-";
+						comm_file_ofs << "-";
 				}
 				if (slaveDofs.contains(DOF::RY)) {
-					out << "DRY";
+					comm_file_ofs << "DRY";
 					if (++size < slaveDofs.size())
-						out << "-";
+						comm_file_ofs << "-";
 				}
 				if (slaveDofs.contains(DOF::RZ)) {
-					out << "DRZ";
+					comm_file_ofs << "DRZ";
 				}
-				out << "',";
+				comm_file_ofs << "',";
 			}
-			out << ")," << endl;
-			out << "                                    COEF_ESCL=(";
+			comm_file_ofs << ")," << endl;
+			comm_file_ofs << "                                    COEF_ESCL=(";
 			for (int slaveNode : slaveNodes) {
-				out << rbe3->getCoefForNode(slaveNode) << ",";
+				comm_file_ofs << rbe3->getCoefForNode(slaveNode) << ",";
 			}
-			out << ")," << endl;
-			out << "                                    )," << endl;
+			comm_file_ofs << ")," << endl;
+			comm_file_ofs << "                                    )," << endl;
 			rbe3->markAsWritten();
 		}
-		out << "                                 )," << endl;
+		comm_file_ofs << "                                 )," << endl;
 	}
 }
 
-void AsterWriter::writeLMPC(const AsterModel& asterModel, const ConstraintSet& cset,
-		ostream& out) {
-    UNUSEDV(asterModel);
+void AsterWriter::writeLMPC( const ConstraintSet& cset) {
+
 	const auto& lmpcs = cset.getConstraintsByType(Constraint::Type::LMPC);
 	if (not lmpcs.empty()) {
-		out << "                   LIAISON_DDL=(" << endl;
+		comm_file_ofs << "                   LIAISON_DDL=(" << endl;
 		for (const auto& constraint : lmpcs) {
 			const auto& lmpc = static_pointer_cast<LinearMultiplePointConstraint>(constraint);
-			out << "                                _F(NOEUD=(";
+			comm_file_ofs << "                                _F(NOEUD=(";
 			const auto& nodePositions = lmpc->nodePositions();
 			for (int nodePosition : nodePositions) {
 				string nodeName = Node::MedName(nodePosition);
 				DOFS dofs = lmpc->getDOFSForNode(nodePosition);
 				for (int i = 0; i < dofs.size(); i++) {
-					out << "'" << nodeName << "', ";
+					comm_file_ofs << "'" << nodeName << "', ";
 				}
 			}
-			out << ")," << endl;
-			out << "                                   DDL=(";
+			comm_file_ofs << ")," << endl;
+			comm_file_ofs << "                                   DDL=(";
 			for (int nodePosition : nodePositions) {
 				DOFS dofs = lmpc->getDOFSForNode(nodePosition);
 				if (dofs.contains(DOF::DX))
-					out << "'DX', ";
+					comm_file_ofs << "'DX', ";
 				if (dofs.contains(DOF::DY))
-					out << "'DY', ";
+					comm_file_ofs << "'DY', ";
 				if (dofs.contains(DOF::DZ))
-					out << "'DZ', ";
+					comm_file_ofs << "'DZ', ";
 				if (dofs.contains(DOF::RX))
-					out << "'DRX', ";
+					comm_file_ofs << "'DRX', ";
 				if (dofs.contains(DOF::RY))
-					out << "'DRY', ";
+					comm_file_ofs << "'DRY', ";
 				if (dofs.contains(DOF::RZ))
-					out << "'DRZ', ";
+					comm_file_ofs << "'DRZ', ";
 			}
-			out << ")," << endl;
-			out << "                                   COEF_MULT=(";
+			comm_file_ofs << ")," << endl;
+			comm_file_ofs << "                                   COEF_MULT=(";
 			for (int nodePosition : nodePositions) {
 			    DOFCoefs dofcoef = lmpc->getDoFCoefsForNode(nodePosition);
 				for (dof_int i = 0; i < 6; i++) {
 					if (!is_zero(dofcoef[i]))
-						out << dofcoef[i] << ", ";
+						comm_file_ofs << dofcoef[i] << ", ";
 				}
 			}
-			out << ")," << endl;
-			out << "                                   COEF_IMPO=" << lmpc->coef_impo << "),"
+			comm_file_ofs << ")," << endl;
+			comm_file_ofs << "                                   COEF_IMPO=" << lmpc->coef_impo << "),"
 					<< endl;
             lmpc->markAsWritten();
 		}
-		out << "                               )," << endl;
+		comm_file_ofs << "                               )," << endl;
 	}
 }
 
-void AsterWriter::writeGravity(const LoadSet& loadSet, ostream& out) {
+void AsterWriter::writeGravity(const LoadSet& loadSet) {
 	const auto& gravities = loadSet.getLoadingsByType(Loading::Type::GRAVITY);
 	if (not gravities.empty()) {
-		out << "                      PESANTEUR=(" << endl;
+		comm_file_ofs << "                      PESANTEUR=(" << endl;
 		for (const auto& loading : gravities) {
 			const auto& gravity = static_pointer_cast<Gravity>(loading);
-			out << "                                 _F(GRAVITE=" << gravity->getAccelerationVector().norm()
+			comm_file_ofs << "                                 _F(GRAVITE=" << gravity->getAccelerationVector().norm()
 					<< "," << endl;
 			VectorialValue direction = gravity->getAccelerationVector().normalized();
-			out << "                                    DIRECTION=(" << direction.x() << ","
+			comm_file_ofs << "                                    DIRECTION=(" << direction.x() << ","
 					<< direction.y() << "," << direction.z() << "),)," << endl;
             gravity->markAsWritten();
 		}
-		out << "                                 )," << endl;
+		comm_file_ofs << "                                 )," << endl;
 	}
 }
 
-void AsterWriter::writeRotation(const LoadSet& loadSet, ostream& out) {
+void AsterWriter::writeRotation(const LoadSet& loadSet) {
 	const auto& rotations = loadSet.getLoadingsByType(Loading::Type::ROTATION);
 	if (not rotations.empty()) {
-		out << "                      ROTATION=(" << endl;
+		comm_file_ofs << "                      ROTATION=(" << endl;
 		for (const auto& loading : rotations) {
 			const auto& rotation = static_pointer_cast<Rotation>(loading);
-			out << "                                 _F(VITESSE=" << rotation->getSpeed() << ","
+			comm_file_ofs << "                                 _F(VITESSE=" << rotation->getSpeed() << ","
 					<< endl;
 			VectorialValue axis = rotation->getAxis();
-			out << "                                    AXE=(" << axis.x() << "," << axis.y() << ","
+			comm_file_ofs << "                                    AXE=(" << axis.x() << "," << axis.y() << ","
 					<< axis.z() << ")," << endl;
 			VectorialValue center = rotation->getCenter();
-			out << "                                    CENTRE=(" << center.x() << "," << center.y()
+			comm_file_ofs << "                                    CENTRE=(" << center.x() << "," << center.y()
 					<< "," << center.z() << ")";
-			out << ",)," << endl;
+			comm_file_ofs << ",)," << endl;
 			rotation->markAsWritten();
 		}
-		out << "                                 )," << endl;
+		comm_file_ofs << "                                 )," << endl;
 	}
 }
 
-void AsterWriter::writeNodalForce(const AsterModel& asterModel, const LoadSet& loadSet, ostream& out) {
-  UNUSEDV(asterModel);
+void AsterWriter::writeNodalForce( const LoadSet& loadSet) {
+
 	const auto& nodalForces = loadSet.getLoadingsByType(Loading::Type::NODAL_FORCE);
 	if (not nodalForces.empty()) {
         map<int, pair<VectorialValue, VectorialValue>> forceAndMomentByPosition;
@@ -1705,64 +1697,64 @@ void AsterWriter::writeNodalForce(const AsterModel& asterModel, const LoadSet& l
 			nodal_force->markAsWritten();
 		}
 
-		out << "                      FORCE_NODALE=(" << endl;
+		comm_file_ofs << "                      FORCE_NODALE=(" << endl;
 		for (const auto& forceAndMomentEntry : forceAndMomentByPosition) {
             int nodePosition = forceAndMomentEntry.first;
             VectorialValue force = forceAndMomentEntry.second.first;
             VectorialValue moment = forceAndMomentEntry.second.second;
-            out << "                                    _F(NOEUD='"
+            comm_file_ofs << "                                    _F(NOEUD='"
                     << Node::MedName(nodePosition) << "',";
             if (!is_zero(force.x()))
-                out << "FX=" << force.x() << ",";
+                comm_file_ofs << "FX=" << force.x() << ",";
             if (!is_zero(force.y()))
-                out << "FY=" << force.y() << ",";
+                comm_file_ofs << "FY=" << force.y() << ",";
             if (!is_zero(force.z()))
-                out << "FZ=" << force.z() << ",";
+                comm_file_ofs << "FZ=" << force.z() << ",";
             if (!is_zero(moment.x()))
-                out << "MX=" << moment.x() << ",";
+                comm_file_ofs << "MX=" << moment.x() << ",";
             if (!is_zero(moment.y()))
-                out << "MY=" << moment.y() << ",";
+                comm_file_ofs << "MY=" << moment.y() << ",";
             if (!is_zero(moment.z()))
-                out << "MZ=" << moment.z() << ",";
-            out << ")," << endl;
+                comm_file_ofs << "MZ=" << moment.z() << ",";
+            comm_file_ofs << ")," << endl;
 		}
-		out << "                                    )," << endl;
+		comm_file_ofs << "                                    )," << endl;
 	}
 }
 
-void AsterWriter::writePression(const LoadSet& loadSet, ostream& out) {
+void AsterWriter::writePression(const LoadSet& loadSet) {
 	const auto& loading = loadSet.getLoadingsByType(
 			Loading::Type::NORMAL_PRESSION_FACE);
 	if (not loading.empty()) {
-		out << "           PRES_REP=(" << endl;
+		comm_file_ofs << "           PRES_REP=(" << endl;
 		for (const auto& pressionFace : loading) {
 			const auto& normalPressionFace = static_pointer_cast<NormalPressionFace>(pressionFace);
-			out << "                         _F(PRES= " << normalPressionFace->intensity << ",";
-			writeCellContainer(*normalPressionFace, out);
-			out << "                         )," << endl;
+			comm_file_ofs << "                         _F(PRES= " << normalPressionFace->intensity << ",";
+			writeCellContainer(*normalPressionFace);
+			comm_file_ofs << "                         )," << endl;
 			pressionFace->markAsWritten();
 		}
-		out << "                      )," << endl;
+		comm_file_ofs << "                      )," << endl;
 	}
 }
 
-void AsterWriter::writeForceCoque(const LoadSet& loadSet, ostream&out) {
+void AsterWriter::writeForceCoque(const LoadSet& loadSet) {
     return; // TODO : change type of loading in parser to something specific for shell elements
 	const auto& pressionFaces = loadSet.getLoadingsByType(Loading::Type::NORMAL_PRESSION_FACE);
 	if (not pressionFaces.empty()) {
-		out << "           FORCE_COQUE=(" << endl;
+		comm_file_ofs << "           FORCE_COQUE=(" << endl;
 		for (const auto& pressionFace : pressionFaces) {
 			const auto& normalPressionFace = static_pointer_cast<NormalPressionFace>(pressionFace);
-			out << "                        _F(PRES=" << normalPressionFace->intensity << ",";
-			writeCellContainer(*normalPressionFace, out);
-			out << "                         )," << endl;
+			comm_file_ofs << "                        _F(PRES=" << normalPressionFace->intensity << ",";
+			writeCellContainer(*normalPressionFace);
+			comm_file_ofs << "                         )," << endl;
 			normalPressionFace->markAsWritten();
 		}
-		out << "            )," << endl;
+		comm_file_ofs << "            )," << endl;
 	}
 }
 
-void AsterWriter::writeForceLine(const LoadSet& loadset, ostream& out) {
+void AsterWriter::writeForceLine(const LoadSet& loadset) {
 	const auto& forcesLine = loadset.getLoadingsByType(Loading::Type::FORCE_LINE);
 	vector<shared_ptr<ForceLine>> forcesOnPoutres;
 	vector<shared_ptr<ForceLine>> forcesOnGeometry;
@@ -1776,37 +1768,37 @@ void AsterWriter::writeForceLine(const LoadSet& loadset, ostream& out) {
 		}
 	}
 	if (not forcesOnPoutres.empty()) {
-		out << "           FORCE_POUTRE=(" << endl;
+		comm_file_ofs << "           FORCE_POUTRE=(" << endl;
 		for (const auto& forceLine : forcesOnPoutres) {
-            out << "                   _F(";
+            comm_file_ofs << "                   _F(";
             switch(forceLine->dof.code) {
             case DOF::Code::DX_CODE:
-                out << "FX";
+                comm_file_ofs << "FX";
                 break;
             case DOF::Code::DY_CODE:
-                out << "FY";
+                comm_file_ofs << "FY";
                 break;
             case DOF::Code::DZ_CODE:
-                out << "FZ";
+                comm_file_ofs << "FZ";
                 break;
             case DOF::Code::RX_CODE:
-                out << "MX";
+                comm_file_ofs << "MX";
                 break;
             case DOF::Code::RY_CODE:
-                out << "MY";
+                comm_file_ofs << "MY";
                 break;
             case DOF::Code::RZ_CODE:
-                out << "MZ";
+                comm_file_ofs << "MZ";
                 break;
             default:
                 handleWritingError("DOF not yet handled");
             }
-            out << "=" << asternameByValue[forceLine->force] << ",";
-            writeCellContainer(*forceLine, out);
-            out << "          )," << endl;
+            comm_file_ofs << "=" << asternameByValue[forceLine->force] << ",";
+            writeCellContainer(*forceLine);
+            comm_file_ofs << "          )," << endl;
             forceLine->markAsWritten();
 		}
-		out << "            )," << endl;
+		comm_file_ofs << "            )," << endl;
 	}
 
 	if (not forcesOnGeometry.empty()) {
@@ -1815,83 +1807,83 @@ void AsterWriter::writeForceLine(const LoadSet& loadset, ostream& out) {
 	}
 
 }
-void AsterWriter::writeForceSurface(const LoadSet& loadSet, ostream&out) {
+void AsterWriter::writeForceSurface(const LoadSet& loadSet) {
 	const auto& forceSurfaces = loadSet.getLoadingsByType(Loading::Type::FORCE_SURFACE);
 	if (not forceSurfaces.empty()) {
-		out << "           FORCE_FACE=(" << endl;
+		comm_file_ofs << "           FORCE_FACE=(" << endl;
 		for (const auto& loading : forceSurfaces) {
 			const auto& forceSurface = static_pointer_cast<ForceSurface>(loading);
 			VectorialValue force = forceSurface->getForce();
 			VectorialValue moment = forceSurface->getMoment();
-			out << "                       _F(";
-			writeCellContainer(*forceSurface, out);
+			comm_file_ofs << "                       _F(";
+			writeCellContainer(*forceSurface);
 			if (!is_equal(force.x(), 0))
-				out << "FX=" << force.x() << ",";
+				comm_file_ofs << "FX=" << force.x() << ",";
 			if (!is_equal(force.y(),0))
-				out << "FY=" << force.y() << ",";
+				comm_file_ofs << "FY=" << force.y() << ",";
 			if (!is_equal(force.z(),0))
-				out << "FZ=" << force.z() << ",";
+				comm_file_ofs << "FZ=" << force.z() << ",";
 			if (!is_equal(moment.x(), 0))
-				out << "MX=" << moment.x() << ",";
+				comm_file_ofs << "MX=" << moment.x() << ",";
 			if (!is_equal(moment.y(), 0))
-				out << "MY=" << moment.y() << ",";
+				comm_file_ofs << "MY=" << moment.y() << ",";
 			if (!is_equal(moment.z(), 0))
-				out << "MZ=" << moment.z() << ",";
-			out << ")," << endl;
+				comm_file_ofs << "MZ=" << moment.z() << ",";
+			comm_file_ofs << ")," << endl;
 			forceSurface->markAsWritten();
 		}
-		out << "            )," << endl;
+		comm_file_ofs << "            )," << endl;
 	}
 }
 
-void AsterWriter::writeNodeContainer(const NodeContainer& nodeContainer, ostream& out) {
+void AsterWriter::writeNodeContainer(const NodeContainer& nodeContainer) {
     int cnode = 0;
     if (nodeContainer.hasNodeGroups()) {
-      out << "GROUP_NO=(";
+      comm_file_ofs << "GROUP_NO=(";
       for (const auto& nodeGroup : nodeContainer.getNodeGroups()) {
         if (nodeGroup->empty())
             continue;
         cnode++;
-        out << "'" << nodeGroup->getName() << "',";
+        comm_file_ofs << "'" << nodeGroup->getName() << "',";
         if (cnode % 6 == 0) {
-          out << endl << "                             ";
+          comm_file_ofs << endl << "                             ";
         }
       }
-      out << "),";
+      comm_file_ofs << "),";
     }
     if (nodeContainer.hasNodesExcludingGroups()) {
-      out << "NOEUD=(";
+      comm_file_ofs << "NOEUD=(";
       for (int nodePosition : nodeContainer.getNodePositionsExcludingGroups()) {
         cnode++;
-        out << "'" << Node::MedName(nodePosition) << "',";
+        comm_file_ofs << "'" << Node::MedName(nodePosition) << "',";
         if (cnode % 6 == 0) {
-          out << endl << "                             ";
+          comm_file_ofs << endl << "                             ";
         }
       }
-      out << "),";
+      comm_file_ofs << "),";
     }
-    writeCellContainer(nodeContainer, out);
+    writeCellContainer(nodeContainer);
 }
 
-void AsterWriter::writeCellContainer(const CellContainer& cellContainer, ostream& out) {
+void AsterWriter::writeCellContainer(const CellContainer& cellContainer) {
     int celem = 0;
     if (cellContainer.hasCellGroups()) {
-      out << "GROUP_MA=(";
+      comm_file_ofs << "GROUP_MA=(";
       for (const auto& cellGroup : cellContainer.getCellGroups()) {
         if (cellGroup->empty())
             continue; // empty cell groups are useless and will probably never be created in mesh, causing errors.
         celem++;
-        out << "'" << cellGroup->getName() << "',";
+        comm_file_ofs << "'" << cellGroup->getName() << "',";
         if (celem % 6 == 0) {
-          out << endl << "                             ";
+          comm_file_ofs << endl << "                             ";
         }
       }
-      out << "),";
+      comm_file_ofs << "),";
     }
     if (cellContainer.hasCellsExcludingGroups()) {
         // Creating single cell groups to avoid using MAILLE
-      out << "MAILLE=(";
-      //out << "GROUP_MA=(";
+      comm_file_ofs << "MAILLE=(";
+      //comm_file_ofs << "GROUP_MA=(";
       for (int cellPosition : cellContainer.getCellPositionsExcludingGroups()) {
         celem++;
 //        const string& groupName = Cell::MedName(cellPosition);
@@ -1901,12 +1893,12 @@ void AsterWriter::writeCellContainer(const CellContainer& cellContainer, ostream
 //            singleCellGroup->addCellPosition(cellPosition);
 //            singleGroupCellPositions.insert(cellPosition);
 //        }
-        out << "'" << Cell::MedName(cellPosition) << "',";
+        comm_file_ofs << "'" << Cell::MedName(cellPosition) << "',";
         if (celem % 6 == 0) {
-          out << endl << "                             ";
+          comm_file_ofs << endl << "                             ";
         }
       }
-      out << "),";
+      comm_file_ofs << "),";
     }
 }
 
@@ -1929,58 +1921,57 @@ shared_ptr<NonLinearStrategy> AsterWriter::getNonLinearStrategy(
 	return nonLinearStrategy;
 }
 
-void AsterWriter::writeAssemblage(const AsterModel& asterModel, Analysis& analysis,
-		ostream& out) {
-    bool hasDynamicExcit = asterModel.model.loadSets.contains(LoadSet::Type::DLOAD);
+void AsterWriter::writeAssemblage( Analysis& analysis) {
+    bool hasDynamicExcit = asterModel->model.loadSets.contains(LoadSet::Type::DLOAD);
     bool isBuckling = analysis.type == Analysis::Type::LINEAR_BUCKLING;
-    out << "ASSEMBLAGE(MODELE=MODMECA," << endl;
-    if (not asterModel.model.materials.empty()) {
-        out << "           CHAM_MATER=CHMAT," << endl;
+    comm_file_ofs << "ASSEMBLAGE(MODELE=MODMECA," << endl;
+    if (not asterModel->model.materials.empty()) {
+        comm_file_ofs << "           CHAM_MATER=CHMAT," << endl;
     }
-    out << "           CARA_ELEM=CAEL," << endl;
-    out << "           CHARGE=(" << endl;
+    comm_file_ofs << "           CARA_ELEM=CAEL," << endl;
+    comm_file_ofs << "           CHARGE=(" << endl;
     for (const auto& constraintSet : analysis.getConstraintSets()) {
-        out << "                   BL" << constraintSet->getId() << "," << endl;
+        comm_file_ofs << "                   BL" << constraintSet->getId() << "," << endl;
     }
-    out << "                   )," << endl;
-    out << "           NUME_DDL=CO('NUMDDL" << analysis.getId() << "')," << endl;
-    out << "           MATR_ASSE=(_F(OPTION='RIGI_MECA', MATRICE=CO('RIGI"
+    comm_file_ofs << "                   )," << endl;
+    comm_file_ofs << "           NUME_DDL=CO('NUMDDL" << analysis.getId() << "')," << endl;
+    comm_file_ofs << "           MATR_ASSE=(_F(OPTION='RIGI_MECA', MATRICE=CO('RIGI"
             << analysis.getId() << "'),)," << endl;
     if (isBuckling) {
-        out << "                      _F(OPTION='RIGI_GEOM', MATRICE=CO('RIGE"
+        comm_file_ofs << "                      _F(OPTION='RIGI_GEOM', MATRICE=CO('RIGE"
                 << analysis.getId() << "'),SIEF_ELGA=FSIG" << analysis.getId() << ",)," << endl;
     } else {
-        out << "                      _F(OPTION='MASS_MECA', MATRICE=CO('MASS"
+        comm_file_ofs << "                      _F(OPTION='MASS_MECA', MATRICE=CO('MASS"
                 << analysis.getId() << "'),)," << endl;
-        out << "                      _F(OPTION='AMOR_MECA', MATRICE=CO('AMOR"
+        comm_file_ofs << "                      _F(OPTION='AMOR_MECA', MATRICE=CO('AMOR"
                 << analysis.getId() << "'),)," << endl;
     }
-    out << "                      )," << endl;
+    comm_file_ofs << "                      )," << endl;
     if (hasDynamicExcit) {
-        out << "           VECT_ASSE=(" << endl;
+        comm_file_ofs << "           VECT_ASSE=(" << endl;
         for (const auto& loadSet : analysis.getLoadSets()) {
             for (const auto& loading : loadSet->getLoadings()) {
                 if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
                     const auto& dynamicExcitation =
                             static_pointer_cast<DynamicExcitation>(loading);
-                    out << "                      _F(OPTION='CHAR_MECA', VECTEUR=CO('FX"
+                    comm_file_ofs << "                      _F(OPTION='CHAR_MECA', VECTEUR=CO('FX"
                             << analysis.getId() << "_" << dynamicExcitation->getId() << "')," << endl;
-                    out << "                        CHARGE=(" << endl;
-                    out << "                                CHMEC"
+                    comm_file_ofs << "                        CHARGE=(" << endl;
+                    comm_file_ofs << "                                CHMEC"
                             << dynamicExcitation->getLoadSet()->getId() << "," << endl;
-                    out << "                                )," << endl;
-                    out << "                      )," << endl;
+                    comm_file_ofs << "                                )," << endl;
+                    comm_file_ofs << "                      )," << endl;
                     dynamicExcitation->markAsWritten();
                     loadSet->markAsWritten();
                 }
             }
         }
-        out << "             )," << endl;
+        comm_file_ofs << "             )," << endl;
     }
-    out << "           );" << endl << endl;
+    comm_file_ofs << "           );" << endl << endl;
 }
 
-void AsterWriter::writeCalcFreq(const AsterModel& asterModel, LinearModal& linearModal, ostream& out) {
+void AsterWriter::writeCalcFreq( LinearModal& linearModal) {
     string suffix;
     bool isBuckling = linearModal.type == Analysis::Type::LINEAR_BUCKLING;
     if (isBuckling) {
@@ -1992,11 +1983,11 @@ void AsterWriter::writeCalcFreq(const AsterModel& asterModel, LinearModal& linea
     if (not isBuckling) {
         switch (frequencySearch->norm) {
         case(FrequencySearch::NormType::MASS): {
-            out << "                       NORM_MODE=_F(NORME='MASS_GENE')," << endl;
+            comm_file_ofs << "                       NORM_MODE=_F(NORME='MASS_GENE')," << endl;
             break;
         }
         case(FrequencySearch::NormType::MAX): {
-            out << "                       NORM_MODE=_F(NORME='TRAN_ROTA')," << endl;
+            comm_file_ofs << "                       NORM_MODE=_F(NORME='TRAN_ROTA')," << endl;
             break;
         }
         default:
@@ -2009,9 +2000,9 @@ void AsterWriter::writeCalcFreq(const AsterModel& asterModel, LinearModal& linea
         const auto& band = static_pointer_cast<BandRange>(frequencySearch->getValue());
         double fstart = band->start;
         if (is_equal(fstart, Globals::UNAVAILABLE_DOUBLE)) {
-            auto lower_cutoff_frequency = asterModel.model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY);
-            if (lower_cutoff_frequency != asterModel.model.parameters.end()) {
-                if (asterModel.model.configuration.logLevel >= LogLevel::TRACE) {
+            auto lower_cutoff_frequency = asterModel->model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY);
+            if (lower_cutoff_frequency != asterModel->model.parameters.end()) {
+                if (asterModel->model.configuration.logLevel >= LogLevel::TRACE) {
                     cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
                 }
                 fstart = lower_cutoff_frequency->second;
@@ -2026,62 +2017,62 @@ void AsterWriter::writeCalcFreq(const AsterModel& asterModel, LinearModal& linea
             swap(fstart, fend);
         }
         if (linearModal.use_power_iteration) {
-            out << "                       OPTION='SEPARE'," << endl;
+            comm_file_ofs << "                       OPTION='SEPARE'," << endl;
         } else if (isBuckling or (is_equal(fstart, Globals::UNAVAILABLE_DOUBLE) and is_equal(fend, Globals::UNAVAILABLE_DOUBLE))) {
             // CALC_CHAR_CRIT is not filtering eigenvalues correctly in Aster 13.6
-            out << "                       OPTION='PLUS_PETITE'," << endl;
+            comm_file_ofs << "                       OPTION='PLUS_PETITE'," << endl;
         } else if (is_equal(fend, Globals::UNAVAILABLE_DOUBLE)) {
-            out << "                       OPTION='CENTRE'," << endl; // LD : could be replaced by PLUS_PETITE + FILTRE
+            comm_file_ofs << "                       OPTION='CENTRE'," << endl; // LD : could be replaced by PLUS_PETITE + FILTRE
         } else {
-            out << "                       OPTION='BANDE'," << endl;
+            comm_file_ofs << "                       OPTION='BANDE'," << endl;
         }
-        out << "                       CALC_" << suffix << "=_F(" << endl;
+        comm_file_ofs << "                       CALC_" << suffix << "=_F(" << endl;
         if (not isBuckling and not is_equal(fstart, Globals::UNAVAILABLE_DOUBLE)) {
-            out << "                                    " << suffix << "=(";
-            out << fstart;
+            comm_file_ofs << "                                    " << suffix << "=(";
+            comm_file_ofs << fstart;
             if (is_equal(fend, Globals::UNAVAILABLE_DOUBLE)) {
-                out << ", " << ")," << endl;
+                comm_file_ofs << ", " << ")," << endl;
             } else {
-                out << ", " << fend;
-                out << ")," << endl;
+                comm_file_ofs << ", " << fend;
+                comm_file_ofs << ")," << endl;
             }
         } else if (not is_equal(band->maxsearch, Globals::UNAVAILABLE_DOUBLE)) {
-            out << "                                    NMAX_" << suffix << "=" << band->maxsearch << endl;
+            comm_file_ofs << "                                    NMAX_" << suffix << "=" << band->maxsearch << endl;
         }
 
-        out << "                                    )," << endl;
+        comm_file_ofs << "                                    )," << endl;
         break;
     }
     case FrequencySearch::FrequencyType::STEP: {
         const auto& frequencyStep = static_pointer_cast<StepRange>(frequencySearch->getValue());
         if (linearModal.use_power_iteration) {
-            out << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
+            comm_file_ofs << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
         } else {
-            out << "                       OPTION='CENTRE'," << endl;
+            comm_file_ofs << "                       OPTION='CENTRE'," << endl;
         }
-        out << "                       CALC_" << suffix << "=_F(" << endl;
-        out << "                                    " << suffix << "=(";
+        comm_file_ofs << "                       CALC_" << suffix << "=_F(" << endl;
+        comm_file_ofs << "                                    " << suffix << "=(";
         for (double frequency = frequencyStep->start; frequency < frequencyStep->end; frequency += frequencyStep->step) {
-            out << frequency << ",";
+            comm_file_ofs << frequency << ",";
         }
-        out << ")," << endl;
-        out << "                                    )," << endl;
+        comm_file_ofs << ")," << endl;
+        comm_file_ofs << "                                    )," << endl;
         break;
     }
     case FrequencySearch::FrequencyType::LIST: {
       const auto& frequencyList = static_pointer_cast<ListValue<double>>(frequencySearch->getValue());
       if (linearModal.use_power_iteration) {
-          out << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
+          comm_file_ofs << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
       } else {
-          out << "                       OPTION='CENTRE'," << endl;
+          comm_file_ofs << "                       OPTION='CENTRE'," << endl;
       }
-      out << "                       CALC_" << suffix << "=_F(" << endl;
-      out << "                                    " << suffix << "=(";
+      comm_file_ofs << "                       CALC_" << suffix << "=_F(" << endl;
+      comm_file_ofs << "                                    " << suffix << "=(";
       for (const double frequency : frequencyList->getList()) {
-          out << frequency << ",";
+          comm_file_ofs << frequency << ",";
       }
-      out << ")," << endl;
-      out << "                                    )," << endl;
+      comm_file_ofs << ")," << endl;
+      comm_file_ofs << "                                    )," << endl;
       break;
     }
     default:
@@ -2090,71 +2081,70 @@ void AsterWriter::writeCalcFreq(const AsterModel& asterModel, LinearModal& linea
     }
 }
 
-double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analysis,
-		ostream& out, double debut) {
+double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 	if (analysis.isOriginal()) {
-		out << "# Analysis original id : " << analysis.getOriginalId() << endl;
+		comm_file_ofs << "# Analysis original id : " << analysis.getOriginalId() << endl;
 	}
 	switch (analysis.type) {
     case Analysis::Type::COMBINATION: {
         auto& combination = static_cast<Combination&>(analysis);
         for (const auto& subPair : combination.coefByAnalysis) {
-            out << "D" << combination.getId() << "_" << subPair.first.id << "=CREA_CHAMP(TYPE_CHAM='NOEU_DEPL_R'," << endl;
-            out << "          OPERATION='EXTR'," << endl;
-            out << "          RESULTAT=RESU" << subPair.first.id << "," << endl;
-            out << "          NOM_CHAM='DEPL'," << endl;
-            out << "          NUME_ORDRE=1,);" << endl << endl;
+            comm_file_ofs << "D" << combination.getId() << "_" << subPair.first.id << "=CREA_CHAMP(TYPE_CHAM='NOEU_DEPL_R'," << endl;
+            comm_file_ofs << "          OPERATION='EXTR'," << endl;
+            comm_file_ofs << "          RESULTAT=RESU" << subPair.first.id << "," << endl;
+            comm_file_ofs << "          NOM_CHAM='DEPL'," << endl;
+            comm_file_ofs << "          NUME_ORDRE=1,);" << endl << endl;
         }
 
-        out << "DEP" << combination.getId() << "=CREA_CHAMP(TYPE_CHAM='NOEU_DEPL_R'," << endl;
-        out << "          OPTION='DEPL'," << endl;
-        out << "          OPERATION='ASSE'," << endl;
-        out << "          MODELE=MODMECA," << endl;
-        out << "          ASSE=(" << endl;
+        comm_file_ofs << "DEP" << combination.getId() << "=CREA_CHAMP(TYPE_CHAM='NOEU_DEPL_R'," << endl;
+        comm_file_ofs << "          OPTION='DEPL'," << endl;
+        comm_file_ofs << "          OPERATION='ASSE'," << endl;
+        comm_file_ofs << "          MODELE=MODMECA," << endl;
+        comm_file_ofs << "          ASSE=(" << endl;
         for (const auto& subPair : combination.coefByAnalysis) {
-            out << "                _F(TOUT='OUI'," << endl;
-            out << "                   CHAM_GD=D" << combination.getId() << "_" << subPair.first.id << "," << endl;
-            out << "                   CUMUL='OUI'," << endl;
-            out << "                   COEF_R=" << subPair.second << ",)," << endl;
+            comm_file_ofs << "                _F(TOUT='OUI'," << endl;
+            comm_file_ofs << "                   CHAM_GD=D" << combination.getId() << "_" << subPair.first.id << "," << endl;
+            comm_file_ofs << "                   CUMUL='OUI'," << endl;
+            comm_file_ofs << "                   COEF_R=" << subPair.second << ",)," << endl;
         }
-        out << "                )," << endl;
-        out << "          )" << endl << endl;
+        comm_file_ofs << "                )," << endl;
+        comm_file_ofs << "          )" << endl << endl;
 
-        out << "RESU" << combination.getId() << "=CREA_RESU(OPERATION='AFFE'," << endl;
-        out << "              TYPE_RESU='MULT_ELAS'," << endl;
-        out << "              NOM_CHAM='DEPL'," << endl;
-        out << "              AFFE=_F(CHAM_GD=DEP" << combination.getId() << "," << endl;
-        out << "                      MODELE=MODMECA," << endl;
-        out << "                      CHAM_MATER=CHMAT," << endl;
-        out << "                      )," << endl;
-        out << "              )" << endl << endl;
+        comm_file_ofs << "RESU" << combination.getId() << "=CREA_RESU(OPERATION='AFFE'," << endl;
+        comm_file_ofs << "              TYPE_RESU='MULT_ELAS'," << endl;
+        comm_file_ofs << "              NOM_CHAM='DEPL'," << endl;
+        comm_file_ofs << "              AFFE=_F(CHAM_GD=DEP" << combination.getId() << "," << endl;
+        comm_file_ofs << "                      MODELE=MODMECA," << endl;
+        comm_file_ofs << "                      CHAM_MATER=CHMAT," << endl;
+        comm_file_ofs << "                      )," << endl;
+        comm_file_ofs << "              )" << endl << endl;
         combination.markAsWritten();
         break;
     }
 	case Analysis::Type::LINEAR_MECA_STAT: {
 		auto& linearMecaStat = static_cast<LinearMecaStat&>(analysis);
 
-		out << "RESU" << linearMecaStat.getId() << "=MECA_STATIQUE(MODELE=MODMECA," << endl;
-		if (not asterModel.model.materials.empty()) {
-            out << "                    CHAM_MATER=CHMAT," << endl;
+		comm_file_ofs << "RESU" << linearMecaStat.getId() << "=MECA_STATIQUE(MODELE=MODMECA," << endl;
+		if (not asterModel->model.materials.empty()) {
+            comm_file_ofs << "                    CHAM_MATER=CHMAT," << endl;
 		}
-		out << "                    CARA_ELEM=CAEL," << endl;
-		out << "                    EXCIT=(" << endl;
+		comm_file_ofs << "                    CARA_ELEM=CAEL," << endl;
+		comm_file_ofs << "                    EXCIT=(" << endl;
 		for (const auto& loadSet : linearMecaStat.getLoadSets()) {
-			out << "                           _F(CHARGE=" << asternameByLoadSet[loadSet] << ")," << endl;
+			comm_file_ofs << "                           _F(CHARGE=" << asternameByLoadSet[loadSet] << ")," << endl;
 		}
 		for (const auto& constraintSet : linearMecaStat.getConstraintSets()) {
 			//GC: dirty fix for #801, a deeper analysis must be done
 			if (not constraintSet->empty()) {
                 cout << "constraintSet:" << *constraintSet << " AsterName: " << asternameByConstraintSet[constraintSet] << "Size:" << constraintSet->size() << endl;
-				out << "                           _F(CHARGE=" << asternameByConstraintSet[constraintSet] << "),"
+				comm_file_ofs << "                           _F(CHARGE=" << asternameByConstraintSet[constraintSet] << "),"
 						<< endl;
 			}
 		}
-		out << "                           )," << endl;
-        out << "                    SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS')," << endl;
-        out << "                    OPTION='SIEF_ELGA'," << endl;
-		out << "                    );" << endl << endl;
+		comm_file_ofs << "                           )," << endl;
+        comm_file_ofs << "                    SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS')," << endl;
+        comm_file_ofs << "                    OPTION='SIEF_ELGA'," << endl;
+		comm_file_ofs << "                    );" << endl << endl;
 		linearMecaStat.markAsWritten();
 		break;
 	}
@@ -2165,34 +2155,34 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 			debut = 0;
 		}
 		double fin = debut + 1.0;
-		StepRange stepRange(asterModel.model, debut, nonLinearStrategy->number_of_increments, fin);
+		StepRange stepRange(asterModel->model, debut, nonLinearStrategy->number_of_increments, fin);
 		debut = fin;
-		string list_name = writeValue(stepRange, out);
-		out << "LAUTO" << nonLinAnalysis.getId()
+		string list_name = writeValue(stepRange);
+		comm_file_ofs << "LAUTO" << nonLinAnalysis.getId()
 				<< "=DEFI_LIST_INST(METHODE='AUTO', DEFI_LIST=_F(LIST_INST=" << list_name << ",),);"
 				<< endl;
-		out << "RAMP" << nonLinAnalysis.getId()
+		comm_file_ofs << "RAMP" << nonLinAnalysis.getId()
 				<< "=DEFI_FONCTION(NOM_PARA='INST', PROL_DROITE='LINEAIRE', VALE=("
 				<< stepRange.start << ",0.0," << stepRange.end << ",1.0,));" << endl;
 		if (nonLinAnalysis.previousAnalysis) {
-			out << "IRAMP" << nonLinAnalysis.getId()
+			comm_file_ofs << "IRAMP" << nonLinAnalysis.getId()
 					<< "=DEFI_FONCTION(NOM_PARA='INST', PROL_DROITE='LINEAIRE', VALE=("
 					<< stepRange.start << ",1.0," << stepRange.end << ",0.0,));" << endl;
 		}
-		out << "RESU" << nonLinAnalysis.getId() << "=STAT_NON_LINE(MODELE=MODMECA," << endl;
-		if (not asterModel.model.materials.empty()) {
-            out << "                    CHAM_MATER=CHMAT," << endl;
+		comm_file_ofs << "RESU" << nonLinAnalysis.getId() << "=STAT_NON_LINE(MODELE=MODMECA," << endl;
+		if (not asterModel->model.materials.empty()) {
+            comm_file_ofs << "                    CHAM_MATER=CHMAT," << endl;
 		}
-		out << "                    CARA_ELEM=CAEL," << endl;
-		out << "                    EXCIT=(" << endl;
+		comm_file_ofs << "                    CARA_ELEM=CAEL," << endl;
+		comm_file_ofs << "                    EXCIT=(" << endl;
 		if (nonLinAnalysis.previousAnalysis) {
 			for (const auto& loadSet : nonLinAnalysis.previousAnalysis->getLoadSets()) {
-				out << "                           _F(CHARGE=" << asternameByLoadSet[loadSet]
+				comm_file_ofs << "                           _F(CHARGE=" << asternameByLoadSet[loadSet]
 						<< ",FONC_MULT=IRAMP" << nonLinAnalysis.getId() << ")," << "# Original id:" << loadSet->getOriginalId() << endl;
 			}
 		}
 		for (const auto& loadSet : nonLinAnalysis.getLoadSets()) {
-			out << "                           _F(CHARGE=" << asternameByLoadSet[loadSet]
+			comm_file_ofs << "                           _F(CHARGE=" << asternameByLoadSet[loadSet]
 					<< ",FONC_MULT=RAMP" << nonLinAnalysis.getId() << ")," << "# Original id:" << loadSet->getOriginalId() << endl;
 		}
 		for (const auto& constraintSet : nonLinAnalysis.getConstraintSets()) {
@@ -2201,12 +2191,12 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 			}
 			//GC: dirty fix for #801, a deeper analysis must be done
 			if (not constraintSet->getConstraints().empty()) {
-				out << "                           _F(CHARGE=" << asternameByConstraintSet[constraintSet] << "),"
+				comm_file_ofs << "                           _F(CHARGE=" << asternameByConstraintSet[constraintSet] << "),"
 						 << "# Original id:" << constraintSet->getOriginalId() << endl;
 			}
 		}
-		out << "                           )," << endl;
-		for (const auto& constraintSet : asterModel.model.constraintSets) {
+		comm_file_ofs << "                           )," << endl;
+		for (const auto& constraintSet : asterModel->model.constraintSets) {
 			if (constraintSet->empty()) {
 				// LD filter empty constraintSet
 				continue;
@@ -2214,17 +2204,17 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 			if (not constraintSet->hasContacts()) {
 				continue;
 			}
-			out << "                    CONTACT=" << asternameByConstraintSet[constraintSet] << "," << "# Original id:" << constraintSet->getOriginalId() << endl;
+			comm_file_ofs << "                    CONTACT=" << asternameByConstraintSet[constraintSet] << "," << "# Original id:" << constraintSet->getOriginalId() << endl;
 		}
-		out << "                    COMPORTEMENT=(" << endl;
-		for (const auto& elementSet : asterModel.model.elementSets) {
+		comm_file_ofs << "                    COMPORTEMENT=(" << endl;
+		for (const auto& elementSet : asterModel->model.elementSets) {
 			if (elementSet->material != nullptr and elementSet->effective()) {
-				out << "                          _F(";
+				comm_file_ofs << "                          _F(";
 				const auto& cellElementSet = dynamic_pointer_cast<CellElementSet>(elementSet);
 				if (cellElementSet == nullptr) {
                     handleWritingError("Writing of ElementSet which is not a CellContainer is not yet implemented");
 				}
-				writeCellContainer(*cellElementSet, out);
+				writeCellContainer(*cellElementSet);
                 const auto& hyelas = elementSet->material->findNature(
                         Nature::NatureType::NATURE_HYPERELASTIC);
                 const auto& binature = elementSet->material->findNature(
@@ -2232,96 +2222,96 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
                 const auto& nlelas = elementSet->material->findNature(
                         Nature::NatureType::NATURE_NONLINEAR_ELASTIC);
                 if (binature) {
-                    out << "RELATION='VMIS_ISOT_LINE',";
+                    comm_file_ofs << "RELATION='VMIS_ISOT_LINE',";
                 } else if (nlelas) {
-                    out << "RELATION='ELAS_VMIS_LINE',";
+                    comm_file_ofs << "RELATION='ELAS_VMIS_LINE',";
                 } else if (hyelas) {
-                    out << "RELATION='ELAS_HYPER',";
-                    out << "DEFORMATION='GROT_GDEP',";
-                } else if (asterModel.model.needsLargeDisplacements() and (elementSet->isBeam() or elementSet->isTruss())) {
-                    out << "RELATION='ELAS_POUTRE_GR',";
-                    out << "DEFORMATION='GROT_GDEP',";
+                    comm_file_ofs << "RELATION='ELAS_HYPER',";
+                    comm_file_ofs << "DEFORMATION='GROT_GDEP',";
+                } else if (asterModel->model.needsLargeDisplacements() and (elementSet->isBeam() or elementSet->isTruss())) {
+                    comm_file_ofs << "RELATION='ELAS_POUTRE_GR',";
+                    comm_file_ofs << "DEFORMATION='GROT_GDEP',";
                 } else {
-                    out << "RELATION='ELAS',";
+                    comm_file_ofs << "RELATION='ELAS',";
                 }
-                out << ")," << endl;
+                comm_file_ofs << ")," << endl;
 			} else {
-//				out << "# WARN Skipping material id " << *elementSet << " because no assignment"
+//				comm_file_ofs << "# WARN Skipping material id " << *elementSet << " because no assignment"
 //						<< endl;
 			}
 
 		}
-		out << "                           )," << endl;
-		out << "                    INCREMENT=_F(LIST_INST=LAUTO" << nonLinAnalysis.getId() << ",),"
+		comm_file_ofs << "                           )," << endl;
+		comm_file_ofs << "                    INCREMENT=_F(LIST_INST=LAUTO" << nonLinAnalysis.getId() << ",),"
 				<< endl;
-		out << "                    ARCHIVAGE=_F(LIST_INST=" << list_name << ",)," << endl;
-		out << "                    NEWTON=_F(REAC_ITER=1,)," << endl;
+		comm_file_ofs << "                    ARCHIVAGE=_F(LIST_INST=" << list_name << ",)," << endl;
+		comm_file_ofs << "                    NEWTON=_F(REAC_ITER=1,)," << endl;
 		if (nonLinAnalysis.previousAnalysis) {
-			out << "                    ETAT_INIT=_F(EVOL_NOLI =RESU"
+			comm_file_ofs << "                    ETAT_INIT=_F(EVOL_NOLI =RESU"
 					<< nonLinAnalysis.previousAnalysis->getId() << ")," << endl;
 		}
-		out << "                    SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS')," << endl;
-		out << "                    );" << endl << endl;
+		comm_file_ofs << "                    SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS')," << endl;
+		comm_file_ofs << "                    );" << endl << endl;
 		nonLinAnalysis.markAsWritten();
 		break;
 	}
 	case Analysis::Type::LINEAR_DYNA_DIRECT_FREQ: {
-        writeAssemblage(asterModel, analysis, out);
-        auto structural_damping = asterModel.model.parameters.find(Model::Parameter::STRUCTURAL_DAMPING);
-        auto frequency_of_interest_radians = asterModel.model.parameters.find(Model::Parameter::FREQUENCY_OF_INTEREST_RADIANS);
-        bool has_structural_damping = structural_damping != asterModel.model.parameters.end() and frequency_of_interest_radians != asterModel.model.parameters.end() and frequency_of_interest_radians->second > 0;
+        writeAssemblage( analysis);
+        auto structural_damping = asterModel->model.parameters.find(Model::Parameter::STRUCTURAL_DAMPING);
+        auto frequency_of_interest_radians = asterModel->model.parameters.find(Model::Parameter::FREQUENCY_OF_INTEREST_RADIANS);
+        bool has_structural_damping = structural_damping != asterModel->model.parameters.end() and frequency_of_interest_radians != asterModel->model.parameters.end() and frequency_of_interest_radians->second > 0;
 		if (has_structural_damping) {
-            out << "AMST" << analysis.getId()
+            comm_file_ofs << "AMST" << analysis.getId()
                 <<  " = COMB_MATR_ASSE(COMB_R = _F ( MATR_ASSE = RIGI"
                 << analysis.getId()
                 << ", COEF_R = " << structural_damping->second / frequency_of_interest_radians->second << "))" << endl;
         }
 		LinearDynaDirectFreq& linearDirect = dynamic_cast<LinearDynaDirectFreq&>(analysis);
-        out << "RESU" << linearDirect.getId() << " = DYNA_VIBRA(" << endl;
-        out << "                   TYPE_CALCUL='HARM'," << endl;
-        out << "                   BASE_CALCUL='PHYS'," << endl;
-		out << "                   MATR_MASS  = MASS" << linearDirect.getId() << ","
+        comm_file_ofs << "RESU" << linearDirect.getId() << " = DYNA_VIBRA(" << endl;
+        comm_file_ofs << "                   TYPE_CALCUL='HARM'," << endl;
+        comm_file_ofs << "                   BASE_CALCUL='PHYS'," << endl;
+		comm_file_ofs << "                   MATR_MASS  = MASS" << linearDirect.getId() << ","
 				<< endl;
-		out << "                   MATR_RIGI  = RIGI" << linearDirect.getId() << ","
+		comm_file_ofs << "                   MATR_RIGI  = RIGI" << linearDirect.getId() << ","
 				<< endl;
         if (has_structural_damping) {
-            out << "                   MATR_AMOR  = AMST" << linearDirect.getId() << ","
+            comm_file_ofs << "                   MATR_AMOR  = AMST" << linearDirect.getId() << ","
 				<< endl;
         } else /* LD Maybe should combine these two cases ? */ {
-            out << "                   MATR_AMOR  = AMOR" << linearDirect.getId() << ","
+            comm_file_ofs << "                   MATR_AMOR  = AMOR" << linearDirect.getId() << ","
 				<< endl;
         }
-        out << "                   LIST_FREQ  = LST" << setfill('0') << setw(5)
+        comm_file_ofs << "                   LIST_FREQ  = LST" << setfill('0') << setw(5)
         << linearDirect.getExcitationFrequencies()->getValue()->getId() << "," << endl;
-		out << "                   EXCIT      = (" << endl;
+		comm_file_ofs << "                   EXCIT      = (" << endl;
 		for (const auto& loadSet : linearDirect.getLoadSets()) {
 			for (const auto& loading : loadSet->getLoadings()) {
 				if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
 					const auto& dynamicExcitation =
                             static_pointer_cast<DynamicExcitation>(loading);
-					out << "                                 _F(" << endl;
-                    out << "                                    VECT_ASSE=FX"
+					comm_file_ofs << "                                 _F(" << endl;
+                    comm_file_ofs << "                                    VECT_ASSE=FX"
                             << linearDirect.getId() << "_"
                             << dynamicExcitation->getId() << "," << endl;
-					out << "                                    FONC_MULT = FCT" << setfill('0')
+					comm_file_ofs << "                                    FONC_MULT = FCT" << setfill('0')
 							<< setw(5) << dynamicExcitation->getFunctionTableB()->getId() << ","
 							<< endl;
-					out << "                                    PHAS_DEG = "
+					comm_file_ofs << "                                    PHAS_DEG = "
 							<< dynamicExcitation->getDynaPhase()->get() << ",)," << endl;
                     dynamicExcitation->markAsWritten();
                     loadSet->markAsWritten();
 				}
 			}
 		}
-		out << "                                 )," << endl;
-		out << "                   #SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS',NPREC=8)," << endl; // MUMPS: Error in function orderMinPriority no valid number of stages in multisector (#stages = 2)
-		out << "                   );" << endl << endl;
+		comm_file_ofs << "                                 )," << endl;
+		comm_file_ofs << "                   #SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS',NPREC=8)," << endl; // MUMPS: Error in function orderMinPriority no valid number of stages in multisector (#stages = 2)
+		comm_file_ofs << "                   );" << endl << endl;
 		linearDirect.markAsWritten();
 	    break;
 	}
 	case Analysis::Type::LINEAR_MODAL:
 	case Analysis::Type::LINEAR_DYNA_MODAL_FREQ: {
-        writeAssemblage(asterModel, analysis, out);
+        writeAssemblage( analysis);
 
 		auto& linearModal = static_cast<LinearModal&>(analysis);
 
@@ -2330,38 +2320,38 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 			resuName = "RESU" + to_string(linearModal.getId());
 		else
 			resuName = "MODES" + to_string(linearModal.getId());
-		out << "U" << resuName << "=CALC_MODES(MATR_RIGI=RIGI" << linearModal.getId()
+		comm_file_ofs << "U" << resuName << "=CALC_MODES(MATR_RIGI=RIGI" << linearModal.getId()
 				<< "," << endl;
-		out << "                       MATR_MASS=MASS" << linearModal.getId() << "," << endl;
+		comm_file_ofs << "                       MATR_MASS=MASS" << linearModal.getId() << "," << endl;
 		if (linearModal.use_power_iteration) {
-            out << "                       SOLVEUR_MODAL=_F(OPTION_INV='DIRECT')," << endl;
+            comm_file_ofs << "                       SOLVEUR_MODAL=_F(OPTION_INV='DIRECT')," << endl;
 		} else {
-            out << "                       SOLVEUR_MODAL=_F(METHODE='TRI_DIAG')," << endl;
+            comm_file_ofs << "                       SOLVEUR_MODAL=_F(METHODE='TRI_DIAG')," << endl;
 		}
-        writeCalcFreq(asterModel, linearModal, out);
-		out << "                       VERI_MODE=_F(STOP_ERREUR='NON',)," << endl;
-		//out << "                       IMPRESSION=_F(CUMUL='OUI',CRIT_EXTR='MASS_EFFE_UN',TOUT_PARA='OUI')," << endl;
-		out << "                       SOLVEUR=_F(METHODE='MUMPS'," << endl;
-		out << "                                  RENUM='PORD'," << endl;
-		out << "                                  NPREC=8," << endl;
-		out << "                                  )," << endl;
-		out << "                       )" << endl << endl;
+        writeCalcFreq( linearModal);
+		comm_file_ofs << "                       VERI_MODE=_F(STOP_ERREUR='NON',)," << endl;
+		//comm_file_ofs << "                       IMPRESSION=_F(CUMUL='OUI',CRIT_EXTR='MASS_EFFE_UN',TOUT_PARA='OUI')," << endl;
+		comm_file_ofs << "                       SOLVEUR=_F(METHODE='MUMPS'," << endl;
+		comm_file_ofs << "                                  RENUM='PORD'," << endl;
+		comm_file_ofs << "                                  NPREC=8," << endl;
+		comm_file_ofs << "                                  )," << endl;
+		comm_file_ofs << "                       )" << endl << endl;
 
 		double lowFreq = 0;
-		if (asterModel.model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY) != asterModel.model.parameters.end()) {
-		    lowFreq = asterModel.model.parameters[Model::Parameter::LOWER_CUTOFF_FREQUENCY];
+		if (asterModel->model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY) != asterModel->model.parameters.end()) {
+		    lowFreq = asterModel->model.parameters[Model::Parameter::LOWER_CUTOFF_FREQUENCY];
 		}
 
 		double highFreq = 1e30;
-		if (asterModel.model.parameters.find(Model::Parameter::UPPER_CUTOFF_FREQUENCY) != asterModel.model.parameters.end()) {
-		    highFreq = asterModel.model.parameters[Model::Parameter::UPPER_CUTOFF_FREQUENCY];
+		if (asterModel->model.parameters.find(Model::Parameter::UPPER_CUTOFF_FREQUENCY) != asterModel->model.parameters.end()) {
+		    highFreq = asterModel->model.parameters[Model::Parameter::UPPER_CUTOFF_FREQUENCY];
 		}
-		out << resuName << "=EXTR_MODE(FILTRE_MODE=_F(MODE=U" << resuName << ", FREQ_MIN=" << lowFreq << ", FREQ_MAX=" << highFreq << "),)" << endl;
+		comm_file_ofs << resuName << "=EXTR_MODE(FILTRE_MODE=_F(MODE=U" << resuName << ", FREQ_MIN=" << lowFreq << ", FREQ_MAX=" << highFreq << "),)" << endl;
 
-		out << "I" << resuName << "=RECU_TABLE(CO=" << resuName << ",NOM_PARA = ('FREQ','MASS_GENE','RIGI_GENE','AMOR_GENE'))" << endl;
-        out << "IMPR_TABLE(TABLE=I" << resuName << ")" << endl << endl;
-        out << "J" << resuName << "=POST_ELEM(RESULTAT=" << resuName << ", MASS_INER=_F(TOUT='OUI'))" << endl;
-        out << "IMPR_TABLE(TABLE=J" << resuName << ")" << endl << endl;
+		comm_file_ofs << "I" << resuName << "=RECU_TABLE(CO=" << resuName << ",NOM_PARA = ('FREQ','MASS_GENE','RIGI_GENE','AMOR_GENE'))" << endl;
+        comm_file_ofs << "IMPR_TABLE(TABLE=I" << resuName << ")" << endl << endl;
+        comm_file_ofs << "J" << resuName << "=POST_ELEM(RESULTAT=" << resuName << ", MASS_INER=_F(TOUT='OUI'))" << endl;
+        comm_file_ofs << "IMPR_TABLE(TABLE=J" << resuName << ")" << endl << endl;
 
 		if (analysis.type == Analysis::Type::LINEAR_MODAL) {
             linearModal.markAsWritten();
@@ -2371,11 +2361,11 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 		LinearDynaModalFreq& linearDynaModalFreq = dynamic_cast<LinearDynaModalFreq&>(analysis);
 
 		if (linearDynaModalFreq.residual_vector) {
-			out << "MOSTA" << linearDynaModalFreq.getId() << "=MODE_STATIQUE(MATR_RIGI=RIGI"
+			comm_file_ofs << "MOSTA" << linearDynaModalFreq.getId() << "=MODE_STATIQUE(MATR_RIGI=RIGI"
 					<< linearDynaModalFreq.getId() << "," << endl;
-			out << "                     MATR_MASS=MASS" << linearDynaModalFreq.getId() << ","
+			comm_file_ofs << "                     MATR_MASS=MASS" << linearDynaModalFreq.getId() << ","
 					<< endl;
-			out << "                     FORCE_NODALE=(" << endl;
+			comm_file_ofs << "                     FORCE_NODALE=(" << endl;
 			for (const auto& loadSet : linearDynaModalFreq.getLoadSets()) {
 				for (const auto& loading : loadSet->getLoadings()) {
 					if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
@@ -2390,22 +2380,22 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
                             for(const int nodePosition : nodal_force->nodePositions()) {
                                 const auto& force = nodal_force->getForceInGlobalCS(nodePosition);
                                 const auto& moment = nodal_force->getMomentInGlobalCS(nodePosition);
-                                out << "                                    _F(NOEUD='"
+                                comm_file_ofs << "                                    _F(NOEUD='"
                                         << Node::MedName(nodePosition) << "'," << endl;
-                                out << "                                      AVEC_CMP=(";
+                                comm_file_ofs << "                                      AVEC_CMP=(";
                                 if (!is_equal(force.x(),0))
-                                    out << "'DX',";
+                                    comm_file_ofs << "'DX',";
                                 if (!is_equal(force.y(),0))
-                                    out << "'DY',";
+                                    comm_file_ofs << "'DY',";
                                 if (!is_equal(force.z(),0))
-                                    out << "'DZ',";
+                                    comm_file_ofs << "'DZ',";
                                 if (!is_equal(moment.x(),0))
-                                    out << "'DRX',";
+                                    comm_file_ofs << "'DRX',";
                                 if (!is_equal(moment.y(),0))
-                                    out << "'DRY',";
+                                    comm_file_ofs << "'DRY',";
                                 if (!is_equal(moment.z(),0))
-                                    out << "'DRZ',";
-                                out << "))," << endl;
+                                    comm_file_ofs << "'DRZ',";
+                                comm_file_ofs << "))," << endl;
                             }
                             dynamicExcitation->markAsWritten();
                             loadSet->markAsWritten();
@@ -2413,185 +2403,185 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 					}
 				}
 			}
-			out << "                                   )" << endl;
-			out << "                     );" << endl << endl;
+			comm_file_ofs << "                                   )" << endl;
+			comm_file_ofs << "                     );" << endl << endl;
 
-			out << "RESVE" << linearDynaModalFreq.getId()
+			comm_file_ofs << "RESVE" << linearDynaModalFreq.getId()
 					<< "=DEFI_BASE_MODALE(RITZ =(_F(MODE_MECA=MODES" << linearDynaModalFreq.getId()
 					<< ",)," << endl;
-			out << "                               _F(MODE_INTF=MOSTA"
+			comm_file_ofs << "                               _F(MODE_INTF=MOSTA"
 					<< linearDynaModalFreq.getId() << ",)," << endl;
-			out << "                               )," << endl;
-			out << "                        NUME_REF=NUMDDL" << linearDynaModalFreq.getId() << ","
+			comm_file_ofs << "                               )," << endl;
+			comm_file_ofs << "                        NUME_REF=NUMDDL" << linearDynaModalFreq.getId() << ","
 					<< endl;
-			out << "                        MATRICE=MASS" << linearDynaModalFreq.getId() << ","
+			comm_file_ofs << "                        MATRICE=MASS" << linearDynaModalFreq.getId() << ","
 					<< endl;
-			out << "                        ORTHO='OUI'," << endl;
-			out << "                        );" << endl << endl;
+			comm_file_ofs << "                        ORTHO='OUI'," << endl;
+			comm_file_ofs << "                        );" << endl << endl;
 
-			out << "modes" << linearDynaModalFreq.getId() << "=" << "RESVE"
+			comm_file_ofs << "modes" << linearDynaModalFreq.getId() << "=" << "RESVE"
 					<< linearDynaModalFreq.getId() << endl;
 		} else {
-			out << "modes" << linearDynaModalFreq.getId() << "=" << "MODES"
+			comm_file_ofs << "modes" << linearDynaModalFreq.getId() << "=" << "MODES"
 					<< linearDynaModalFreq.getId() << endl;
 		}
 
-        out << "PROJ_BASE(BASE=modes" << linearDynaModalFreq.getId() << "," << endl;
-        out << "          MATR_ASSE_GENE=(_F(MATRICE=CO('MASSG" << linearDynaModalFreq.getId()
+        comm_file_ofs << "PROJ_BASE(BASE=modes" << linearDynaModalFreq.getId() << "," << endl;
+        comm_file_ofs << "          MATR_ASSE_GENE=(_F(MATRICE=CO('MASSG" << linearDynaModalFreq.getId()
                 << "')," << endl;
-        out << "                             MATR_ASSE=MASS" << linearDynaModalFreq.getId() << ",),"
+        comm_file_ofs << "                             MATR_ASSE=MASS" << linearDynaModalFreq.getId() << ",),"
                 << endl;
-        out << "                          _F(MATRICE=CO('RIGIG" << linearDynaModalFreq.getId()
+        comm_file_ofs << "                          _F(MATRICE=CO('RIGIG" << linearDynaModalFreq.getId()
                 << "')," << endl;
-        out << "                             MATR_ASSE=RIGI" << linearDynaModalFreq.getId() << ",),"
+        comm_file_ofs << "                             MATR_ASSE=RIGI" << linearDynaModalFreq.getId() << ",),"
                 << endl;
         if (linearDynaModalFreq.getModalDamping() == nullptr) {
-            out << "                          _F(MATRICE=CO('AMORG" << linearDynaModalFreq.getId()
+            comm_file_ofs << "                          _F(MATRICE=CO('AMORG" << linearDynaModalFreq.getId()
                     << "')," << endl;
-            out << "                             MATR_ASSE=AMOR" << linearDynaModalFreq.getId() << ",),"
+            comm_file_ofs << "                             MATR_ASSE=AMOR" << linearDynaModalFreq.getId() << ",),"
                     << endl;
         }
-        out << "                          )," << endl;
-        out << "          VECT_ASSE_GENE=(" << endl;
+        comm_file_ofs << "                          )," << endl;
+        comm_file_ofs << "          VECT_ASSE_GENE=(" << endl;
         for (const auto& loadSet : linearDynaModalFreq.getLoadSets()) {
             for (const auto& loading : loadSet->getLoadings()) {
                 if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
                     const auto& dynamicExcitation = dynamic_pointer_cast<DynamicExcitation>(loading);
-                    out << "                          _F(VECTEUR=CO('VG"
+                    comm_file_ofs << "                          _F(VECTEUR=CO('VG"
                             << linearDynaModalFreq.getId() << "_"
                             << dynamicExcitation->getId() << "')," << endl;
-                    out << "                             VECT_ASSE=FX"
+                    comm_file_ofs << "                             VECT_ASSE=FX"
                             << linearDynaModalFreq.getId() << "_"
                             << dynamicExcitation->getId() << ",";
-                    out << "TYPE_VECT=";
+                    comm_file_ofs << "TYPE_VECT=";
                     switch(dynamicExcitation->excitType) {
                     case DynamicExcitation::DynamicExcitationType::LOAD: {
-                        out << "'FORC',";
+                        comm_file_ofs << "'FORC',";
                         break;
                     };
                     case DynamicExcitation::DynamicExcitationType::DISPLACEMENT: {
-                        out << "'DEPL',";
+                        comm_file_ofs << "'DEPL',";
                         break;
                     };
                     case DynamicExcitation::DynamicExcitationType::VELOCITY: {
-                        out << "'VITE',";
+                        comm_file_ofs << "'VITE',";
                         break;
                     };
                     case DynamicExcitation::DynamicExcitationType::ACCELERATION: {
-                        out << "'ACCE',";
+                        comm_file_ofs << "'ACCE',";
                         break;
                     };
                     default:
                         handleWritingError("Dynamic excitation type " + to_string(static_cast<int>(dynamicExcitation->excitType)) + " not (yet) implemented");
                     }
-                    out << ")," << endl;
+                    comm_file_ofs << ")," << endl;
                     dynamicExcitation->markAsWritten();
                     loadSet->markAsWritten();
                 }
             }
         }
-        out << "                         )," << endl;
-        out << "          );" << endl << endl;
+        comm_file_ofs << "                         )," << endl;
+        comm_file_ofs << "          );" << endl << endl;
 
-		out << "LIMODE" << linearDynaModalFreq.getId() << "=RECU_TABLE(CO=MODES"
+		comm_file_ofs << "LIMODE" << linearDynaModalFreq.getId() << "=RECU_TABLE(CO=MODES"
 				<< linearDynaModalFreq.getId() << "," << endl;
-		out << "                  NOM_PARA = 'FREQ');" << endl << endl;
+		comm_file_ofs << "                  NOM_PARA = 'FREQ');" << endl << endl;
 
-		out << "pfreq" << linearDynaModalFreq.getId() << "= LIMODE" << linearDynaModalFreq.getId()
+		comm_file_ofs << "pfreq" << linearDynaModalFreq.getId() << "= LIMODE" << linearDynaModalFreq.getId()
 				<< ".EXTR_TABLE().values()['FREQ']" << endl;
 
     if (linearDynaModalFreq.getModalDamping() != nullptr) {
-      out << "AMMO_I" << linearDynaModalFreq.getId() << "=CALC_FONC_INTERP(FONCTION = FCT"
+      comm_file_ofs << "AMMO_I" << linearDynaModalFreq.getId() << "=CALC_FONC_INTERP(FONCTION = FCT"
           << setfill('0') << setw(5)
           << linearDynaModalFreq.getModalDamping()->getFunctionTable()->getId() << ","
           << endl;
-      out << "                         VALE_PARA = pfreq" << linearDynaModalFreq.getId() << endl;
-      out << "                         );" << endl << endl;
+      comm_file_ofs << "                         VALE_PARA = pfreq" << linearDynaModalFreq.getId() << endl;
+      comm_file_ofs << "                         );" << endl << endl;
 
-      out << "AMMO_T" << linearDynaModalFreq.getId()
+      comm_file_ofs << "AMMO_T" << linearDynaModalFreq.getId()
           << "=CREA_TABLE(FONCTION=_F(FONCTION = AMMO_I" << linearDynaModalFreq.getId()
           << ")," << endl;
-      out << "                   );" << endl << endl;
+      comm_file_ofs << "                   );" << endl << endl;
 
-      out << "AMMO" << linearDynaModalFreq.getId() << "=AMMO_T" << linearDynaModalFreq.getId()
+      comm_file_ofs << "AMMO" << linearDynaModalFreq.getId() << "=AMMO_T" << linearDynaModalFreq.getId()
           << ".EXTR_TABLE().values()['TOUTRESU']" << endl;
     }
 
-    out << "GENE" << linearDynaModalFreq.getId() << " = DYNA_VIBRA(" << endl;
-    out << "                   TYPE_CALCUL='HARM'," << endl;
-    out << "                   BASE_CALCUL='GENE'," << endl;
-    out << "                   MATR_MASS  = MASSG" << linearDynaModalFreq.getId() << ","
+    comm_file_ofs << "GENE" << linearDynaModalFreq.getId() << " = DYNA_VIBRA(" << endl;
+    comm_file_ofs << "                   TYPE_CALCUL='HARM'," << endl;
+    comm_file_ofs << "                   BASE_CALCUL='GENE'," << endl;
+    comm_file_ofs << "                   MATR_MASS  = MASSG" << linearDynaModalFreq.getId() << ","
             << endl;
-    out << "                   MATR_RIGI  = RIGIG" << linearDynaModalFreq.getId() << ","
+    comm_file_ofs << "                   MATR_RIGI  = RIGIG" << linearDynaModalFreq.getId() << ","
             << endl;
     if (linearDynaModalFreq.getModalDamping() != nullptr) {
-        out << "                   AMOR_MODAL = _F(AMOR_REDUIT = AMMO"
+        comm_file_ofs << "                   AMOR_MODAL = _F(AMOR_REDUIT = AMMO"
             << linearDynaModalFreq.getId() << ",)," << endl;
     } else {
         // LD MATR_AMOR nullifies AMOR_MODAL
-        out << "                   MATR_AMOR  = AMORG" << linearDynaModalFreq.getId() << ","
+        comm_file_ofs << "                   MATR_AMOR  = AMORG" << linearDynaModalFreq.getId() << ","
             << endl;
     }
-    out << "                   LIST_FREQ  = LST" << setfill('0') << setw(5)
+    comm_file_ofs << "                   LIST_FREQ  = LST" << setfill('0') << setw(5)
         << linearDynaModalFreq.getExcitationFrequencies()->getValue()->getId() << "," << endl;
-		out << "                   EXCIT      = (" << endl;
+		comm_file_ofs << "                   EXCIT      = (" << endl;
 		for (const auto& loadSet : linearDynaModalFreq.getLoadSets()) {
 			for (const auto& loading : loadSet->getLoadings()) {
 				if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
 					const auto& dynamicExcitation =
 							dynamic_pointer_cast<DynamicExcitation>(loading);
-					out << "                                 _F(" << endl;
-                    out << "                                    VECT_ASSE_GENE = VG"
+					comm_file_ofs << "                                 _F(" << endl;
+                    comm_file_ofs << "                                    VECT_ASSE_GENE = VG"
                             << linearDynaModalFreq.getId() << "_"
                             << dynamicExcitation->getId() << "," << endl;
-					out << "                                    FONC_MULT = FCT" << setfill('0')
+					comm_file_ofs << "                                    FONC_MULT = FCT" << setfill('0')
 							<< setw(5) << dynamicExcitation->getFunctionTableB()->getId() << ","
 							<< endl;
-					out << "                                    PHAS_DEG = "
+					comm_file_ofs << "                                    PHAS_DEG = "
 							<< dynamicExcitation->getDynaPhase()->get() << ",)," << endl;
                     dynamicExcitation->markAsWritten();
                     loadSet->markAsWritten();
 				}
 			}
 		}
-		out << "                                 )," << endl;
-		out << "                   #SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS',NPREC=8)," << endl; // MUMPS: Error in function orderMinPriority no valid number of stages in multisector (#stages = 2)
-		out << "                   );" << endl << endl;
+		comm_file_ofs << "                                 )," << endl;
+		comm_file_ofs << "                   #SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS',NPREC=8)," << endl; // MUMPS: Error in function orderMinPriority no valid number of stages in multisector (#stages = 2)
+		comm_file_ofs << "                   );" << endl << endl;
 
-        out << "RESU" << linearDynaModalFreq.getId() << " = REST_GENE_PHYS(RESU_GENE = GENE"
+        comm_file_ofs << "RESU" << linearDynaModalFreq.getId() << " = REST_GENE_PHYS(RESU_GENE = GENE"
                 << linearDynaModalFreq.getId() << "," << endl;
-        out << "                       TOUT_ORDRE = 'OUI'," << endl;
-        out << "                       NOM_CHAM = ('DEPL','VITE','ACCE')," << endl;
-        out << "                       );" << endl << endl;
+        comm_file_ofs << "                       TOUT_ORDRE = 'OUI'," << endl;
+        comm_file_ofs << "                       NOM_CHAM = ('DEPL','VITE','ACCE')," << endl;
+        comm_file_ofs << "                       );" << endl << endl;
         linearDynaModalFreq.markAsWritten();
 		break;
 	}
     case Analysis::Type::LINEAR_BUCKLING: {
         auto& linearBuckling = static_cast<LinearBuckling&>(analysis);
 
-        out << "FSIG" << linearBuckling.getId() << " = CREA_CHAMP(OPERATION='EXTR'," << endl;
-        out << "            TYPE_CHAM='ELGA_SIEF_R'," << endl;
-        out << "            RESULTAT=RESU" << linearBuckling.previousAnalysis->getId() << "," << endl;
-        //out << "            NUME_ORDRE=1," << endl;
-        out << "            NOM_CHAM='SIEF_ELGA',)" << endl << endl;
+        comm_file_ofs << "FSIG" << linearBuckling.getId() << " = CREA_CHAMP(OPERATION='EXTR'," << endl;
+        comm_file_ofs << "            TYPE_CHAM='ELGA_SIEF_R'," << endl;
+        comm_file_ofs << "            RESULTAT=RESU" << linearBuckling.previousAnalysis->getId() << "," << endl;
+        //comm_file_ofs << "            NUME_ORDRE=1," << endl;
+        comm_file_ofs << "            NOM_CHAM='SIEF_ELGA',)" << endl << endl;
 
-        writeAssemblage(asterModel, analysis, out);
+        writeAssemblage( analysis);
 
-        out << "RESU" << linearBuckling.getId() << "=CALC_MODES(MATR_RIGI=RIGI" << linearBuckling.getId() << "," << endl;
-        out << "                 MATR_RIGI_GEOM=RIGE" << linearBuckling.getId() << "," << endl;
-        out << "                 TYPE_RESU='MODE_FLAMB'," << endl;
+        comm_file_ofs << "RESU" << linearBuckling.getId() << "=CALC_MODES(MATR_RIGI=RIGI" << linearBuckling.getId() << "," << endl;
+        comm_file_ofs << "                 MATR_RIGI_GEOM=RIGE" << linearBuckling.getId() << "," << endl;
+        comm_file_ofs << "                 TYPE_RESU='MODE_FLAMB'," << endl;
 		if (linearBuckling.use_power_iteration) {
-            out << "                       SOLVEUR_MODAL=_F(OPTION_INV='DIRECT')," << endl;
+            comm_file_ofs << "                       SOLVEUR_MODAL=_F(OPTION_INV='DIRECT')," << endl;
 		} else {
-            out << "                       SOLVEUR_MODAL=_F(METHODE='TRI_DIAG')," << endl;
+            comm_file_ofs << "                       SOLVEUR_MODAL=_F(METHODE='TRI_DIAG')," << endl;
 		}
-        writeCalcFreq(asterModel, linearBuckling, out);
-        out << "             VERI_MODE=_F(STOP_ERREUR='NON',)," << endl;
-        out << "             SOLVEUR=_F(METHODE='MUMPS',)," << endl;
-        out << "       )" << endl << endl;
+        writeCalcFreq( linearBuckling);
+        comm_file_ofs << "             VERI_MODE=_F(STOP_ERREUR='NON',)," << endl;
+        comm_file_ofs << "             SOLVEUR=_F(METHODE='MUMPS',)," << endl;
+        comm_file_ofs << "       )" << endl << endl;
 
-        out << "RESU" << linearBuckling.getId() << " = NORM_MODE(reuse=RESU"<< linearBuckling.getId() << ",MODE=RESU" << linearBuckling.getId() << ",NORME='TRAN_ROTA',)" << endl;
-        out << "TBCRT" << linearBuckling.getId() << " = RECU_TABLE(CO=RESU" << linearBuckling.getId() << ",NOM_PARA='CHAR_CRIT')" << endl;
+        comm_file_ofs << "RESU" << linearBuckling.getId() << " = NORM_MODE(reuse=RESU"<< linearBuckling.getId() << ",MODE=RESU" << linearBuckling.getId() << ",NORME='TRAN_ROTA',)" << endl;
+        comm_file_ofs << "TBCRT" << linearBuckling.getId() << " = RECU_TABLE(CO=RESU" << linearBuckling.getId() << ",NOM_PARA='CHAR_CRIT')" << endl;
         linearBuckling.markAsWritten();
         break;
     }
@@ -2602,59 +2592,56 @@ double AsterWriter::writeAnalysis(const AsterModel& asterModel, Analysis& analys
 	return debut;
 }
 
-void AsterWriter::writeNodalDisplacementAssertion(const AsterModel& asterModel,
-		const NodalDisplacementAssertion& nda, ostream& out) const {
-    UNUSEDV(asterModel);
+void AsterWriter::writeNodalDisplacementAssertion(const NodalDisplacementAssertion& nda) {
+
 	bool relativeComparison = abs(nda.value) >= SMALLEST_RELATIVE_COMPARISON;
-	out << "                     CRITERE = "
-			<< (relativeComparison ? "'RELATIF'," : "'ABSOLU',") << endl;
-	out << "                     NOEUD='" << Node::MedName(nda.nodePosition) << "'," << endl;
-	out << "                     NOM_CMP    = '" << AsterModel::DofByPosition.at(nda.dof.position) << "'," << endl;
-	out << "                     NOM_CHAM   = 'DEPL'," << endl;
+	comm_file_ofs << "                     CRITERE = " << (relativeComparison ? "'RELATIF'," : "'ABSOLU',") << endl;
+	comm_file_ofs << "                     NOEUD='" << Node::MedName(nda.nodePosition) << "'," << endl;
+	comm_file_ofs << "                     NOM_CMP    = '" << AsterModel::DofByPosition.at(nda.dof.position) << "'," << endl;
+	comm_file_ofs << "                     NOM_CHAM   = 'DEPL'," << endl;
 	if (!is_equal(nda.instant, -1)) {
-		out << "                     INST = " << nda.instant << "," << endl;
+		comm_file_ofs << "                     INST = " << nda.instant << "," << endl;
 	} else {
-		out << "                     NUME_ORDRE = 1," << endl;
+		comm_file_ofs << "                     NUME_ORDRE = 1," << endl;
 	}
-    out << "                     REFERENCE = 'SOURCE_EXTERNE'," << endl;
-    out << "                     PRECISION = " << nda.tolerance << "," << endl;
-	out << "                     VALE_REFE = " << nda.value << "," << endl;
-	out << "                     VALE_CALC = " << (is_zero(nda.value) ? 1e-10 : nda.value) << "," << endl;
-	out << "                     TOLE_MACHINE = (" << nda.tolerance << "," << 1e-5 << ")," << endl;
+    comm_file_ofs << "                     REFERENCE = 'SOURCE_EXTERNE'," << endl;
+    comm_file_ofs << "                     PRECISION = " << nda.tolerance << "," << endl;
+	comm_file_ofs << "                     VALE_REFE = " << nda.value << "," << endl;
+	comm_file_ofs << "                     VALE_CALC = " << (is_zero(nda.value) ? 1e-10 : nda.value) << "," << endl;
+	comm_file_ofs << "                     TOLE_MACHINE = (" << nda.tolerance << "," << 1e-5 << ")," << endl;
 
 }
 
-void AsterWriter::writeNodalComplexDisplacementAssertion(const AsterModel& asterModel,
-		const NodalComplexDisplacementAssertion& nda, ostream& out) const {
-    UNUSEDV(asterModel);
+void AsterWriter::writeNodalComplexDisplacementAssertion(const NodalComplexDisplacementAssertion& nda) {
+
     bool relativeComparison = abs(nda.value) >= SMALLEST_RELATIVE_COMPARISON;
-    out << "                     CRITERE = "
+    comm_file_ofs << "                     CRITERE = "
             << (relativeComparison ? "'RELATIF'," : "'ABSOLU',") << endl;
-    out << "                     NOEUD='" << Node::MedName(nda.nodePosition) << "'," << endl;
-    out << "                     NOM_CMP = '" << AsterModel::DofByPosition.at(nda.dof.position)
+    comm_file_ofs << "                     NOEUD='" << Node::MedName(nda.nodePosition) << "'," << endl;
+    comm_file_ofs << "                     NOM_CMP = '" << AsterModel::DofByPosition.at(nda.dof.position)
             << "'," << endl;
-    out << "                     NOM_CHAM = 'DEPL'," << endl;
-    out << "                     FREQ = " << nda.frequency << "," << endl;
-    out << "                     VALE_CALC_C = " << nda.value.real() << "+" << nda.value.imag()
+    comm_file_ofs << "                     NOM_CHAM = 'DEPL'," << endl;
+    comm_file_ofs << "                     FREQ = " << nda.frequency << "," << endl;
+    comm_file_ofs << "                     VALE_CALC_C = " << nda.value.real() << "+" << nda.value.imag()
             << "j," << endl;
-    out << "                     TOLE_MACHINE = (" << (relativeComparison ? nda.tolerance : 1e-5) << "," << 1e-5 << ")," << endl;
+    comm_file_ofs << "                     TOLE_MACHINE = (" << (relativeComparison ? nda.tolerance : 1e-5) << "," << 1e-5 << ")," << endl;
 }
 
-void AsterWriter::writeNodalCellVonMisesAssertion(const AsterModel& asterModel, const NodalCellVonMisesAssertion& ncvmisa, std::ostream& out) const {
-    UNUSEDV(asterModel);
+void AsterWriter::writeNodalCellVonMisesAssertion( const NodalCellVonMisesAssertion& ncvmisa) {
+
     bool relativeComparison = abs(ncvmisa.value) >= SMALLEST_RELATIVE_COMPARISON;
-    out << "                     CRITERE = "
+    comm_file_ofs << "                     CRITERE = "
             << (relativeComparison ? "'RELATIF'," : "'ABSOLU',") << endl;
-    out << "                     NOEUD='" << Node::MedName(ncvmisa.nodePosition) << "'," << endl;
-    out << "                     GROUP_MA='" << Cell::MedName(ncvmisa.cellPosition) << "'," << endl;
-    out << "                     NOM_CMP = 'VMIS'," << endl;
-	out << "                     NUME_ORDRE = 1," << endl;
-    out << "                     NOM_CHAM = 'SIEQ_ELNO'," << endl;
-    out << "                     VALE_CALC = " << ncvmisa.value << "," << endl;
-    out << "                     TOLE_MACHINE = (" << (relativeComparison ? ncvmisa.tolerance : 1e-5) << "," << 1e-5 << ")," << endl;
+    comm_file_ofs << "                     NOEUD='" << Node::MedName(ncvmisa.nodePosition) << "'," << endl;
+    comm_file_ofs << "                     GROUP_MA='" << Cell::MedName(ncvmisa.cellPosition) << "'," << endl;
+    comm_file_ofs << "                     NOM_CMP = 'VMIS'," << endl;
+	comm_file_ofs << "                     NUME_ORDRE = 1," << endl;
+    comm_file_ofs << "                     NOM_CHAM = 'SIEQ_ELNO'," << endl;
+    comm_file_ofs << "                     VALE_CALC = " << ncvmisa.value << "," << endl;
+    comm_file_ofs << "                     TOLE_MACHINE = (" << (relativeComparison ? ncvmisa.tolerance : 1e-5) << "," << 1e-5 << ")," << endl;
 }
 
-void AsterWriter::writeFrequencyAssertion(const Analysis& analysis, const FrequencyAssertion& frequencyAssertion, ostream& out) const {
+void AsterWriter::writeFrequencyAssertion(const Analysis& analysis, const FrequencyAssertion& frequencyAssertion) {
     bool isBuckling = analysis.type == Analysis::Type::LINEAR_BUCKLING;
 
     double lowFreq = 0;
@@ -2671,39 +2658,39 @@ void AsterWriter::writeFrequencyAssertion(const Analysis& analysis, const Freque
     }
 	string resuName = ((analysis.type == Analysis::Type::LINEAR_MODAL or analysis.type == Analysis::Type::LINEAR_BUCKLING) ? "RESU" : "MODES") + to_string(analysis.getId());
 	string critere = (!is_zero(frequencyAssertion.cycles) ? "'RELATIF'," : "'ABSOLU',");
-    out << "                  _F(RESULTAT=" << resuName << "," << endl;
-	out << "                     CRITERE = " << critere << endl;
+    comm_file_ofs << "                  _F(RESULTAT=" << resuName << "," << endl;
+	comm_file_ofs << "                     CRITERE = " << critere << endl;
     if (isBuckling) {
-        out << "                     PARA = 'CHAR_CRIT'," << endl;
-        out << "                     NUME_MODE = " << analysis.getAssertions().size() - frequencyAssertion.number + 1 << "," << endl;
-        out << "                     VALE_CALC = " << -frequencyAssertion.eigenValue << "," << endl;
+        comm_file_ofs << "                     PARA = 'CHAR_CRIT'," << endl;
+        comm_file_ofs << "                     NUME_MODE = " << analysis.getAssertions().size() - frequencyAssertion.number + 1 << "," << endl;
+        comm_file_ofs << "                     VALE_CALC = " << -frequencyAssertion.eigenValue << "," << endl;
     } else {
-        out << "                     PARA = 'FREQ'," << endl;
-        out << "                     NUME_MODE = " << frequencyAssertion.number << "," << endl;
-        out << "                     VALE_CALC = " << frequencyAssertion.cycles << "," << endl;
+        comm_file_ofs << "                     PARA = 'FREQ'," << endl;
+        comm_file_ofs << "                     NUME_MODE = " << frequencyAssertion.number << "," << endl;
+        comm_file_ofs << "                     VALE_CALC = " << frequencyAssertion.cycles << "," << endl;
     }
-	out << "                     TOLE_MACHINE = " << frequencyAssertion.tolerance << "," << endl;
-    out << "                     )," << endl;
+	comm_file_ofs << "                     TOLE_MACHINE = " << frequencyAssertion.tolerance << "," << endl;
+    comm_file_ofs << "                     )," << endl;
 
     if (not isBuckling) {
-        out << "                  _F(RESULTAT=" << resuName << "," << endl;
-        out << "                     CRITERE = " << critere << endl;
-        out << "                     PARA = 'MASS_GENE'," << endl;
-        out << "                     NUME_MODE = " << frequencyAssertion.number << "," << endl;
-        out << "                     VALE_CALC = " << frequencyAssertion.generalizedMass << "," << endl;
-        out << "                     TOLE_MACHINE = " << frequencyAssertion.tolerance << "," << endl;
-        out << "                     )," << endl;
+        comm_file_ofs << "                  _F(RESULTAT=" << resuName << "," << endl;
+        comm_file_ofs << "                     CRITERE = " << critere << endl;
+        comm_file_ofs << "                     PARA = 'MASS_GENE'," << endl;
+        comm_file_ofs << "                     NUME_MODE = " << frequencyAssertion.number << "," << endl;
+        comm_file_ofs << "                     VALE_CALC = " << frequencyAssertion.generalizedMass << "," << endl;
+        comm_file_ofs << "                     TOLE_MACHINE = " << frequencyAssertion.tolerance << "," << endl;
+        comm_file_ofs << "                     )," << endl;
         if (not is_equal(frequencyAssertion.generalizedMass, 1.0)) {
             // Do not check generalized stiffness k_g when generalize mass m_g is normalized
             // since it is the same as checking the frequency : (2*pi*f)**2=k_g/m_g
             // but the error would be squared
-            out << "                  _F(RESULTAT=" << resuName << "," << endl;
-            out << "                     CRITERE = " << critere << endl;
-            out << "                     PARA = 'RIGI_GENE'," << endl;
-            out << "                     NUME_MODE = " << frequencyAssertion.number << "," << endl;
-            out << "                     VALE_CALC = " << frequencyAssertion.generalizedStiffness << "," << endl;
-            out << "                     TOLE_MACHINE = " << frequencyAssertion.tolerance << "," << endl;
-            out << "                     )," << endl;
+            comm_file_ofs << "                  _F(RESULTAT=" << resuName << "," << endl;
+            comm_file_ofs << "                     CRITERE = " << critere << endl;
+            comm_file_ofs << "                     PARA = 'RIGI_GENE'," << endl;
+            comm_file_ofs << "                     NUME_MODE = " << frequencyAssertion.number << "," << endl;
+            comm_file_ofs << "                     VALE_CALC = " << frequencyAssertion.generalizedStiffness << "," << endl;
+            comm_file_ofs << "                     TOLE_MACHINE = " << frequencyAssertion.tolerance << "," << endl;
+            comm_file_ofs << "                     )," << endl;
         }
     }
 
