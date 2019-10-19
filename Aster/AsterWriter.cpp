@@ -109,6 +109,7 @@ void AsterWriter::writeExport() {
 	exp_file_ofs << "P origine Vega++ " << VEGA_VERSION_MAJOR << "." << VEGA_VERSION_MINOR << endl;
 	exp_file_ofs << "P version " << asterModel->getAsterVersion() << endl;
 	exp_file_ofs << "A memjeveux " << asterModel->getMemjeveux() << endl;
+	exp_file_ofs << "A args -max_base 300000" << endl;
 	exp_file_ofs << "A tpmax " << asterModel->getTpmax() << endl;
 	exp_file_ofs << "F comm " << asterModel->getOutputFileName(".comm", false) << " D 1" << endl;
 	exp_file_ofs << "F mail " << asterModel->getOutputFileName(".med", false) << " D 20" << endl;
@@ -119,235 +120,210 @@ void AsterWriter::writeExport() {
 
 }
 
-void AsterWriter::writeImprResultats() {
-	if (not asterModel->model.analyses.empty()) {
+void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
 
-		for (const auto& analysis : asterModel->model.analyses) {
+    comm_file_ofs << "IMPR_RESU(FORMAT='RESULTAT'," << endl;
+    comm_file_ofs << "          RESU=(" << endl;
+    switch (analysis->type) {
+    case (Analysis::Type::COMBINATION):
+    case (Analysis::Type::LINEAR_MECA_STAT): {
+        comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
+                << ", NOM_CHAM='DEPL'," << " VALE_MAX='OUI'," << " VALE_MIN='OUI',),"
+                << endl;
+        break;
+    }
+    case (Analysis::Type::LINEAR_MODAL): {
+        //comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
+        //		<< ", TOUT_PARA='OUI', TOUT_CHAM='NON')," << endl;
+        break;
+    }
+    case (Analysis::Type::LINEAR_BUCKLING): {
+        comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
+                << ", NOM_PARA='CHAR_CRIT', TOUT_CHAM='NON')," << endl;
+        break;
+    }
+    case (Analysis::Type::LINEAR_DYNA_DIRECT_FREQ): {
+        comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
+                << ", NOM_PARA='FREQ', TOUT_CHAM='NON')," << endl;
+        break;
+    }
+    case (Analysis::Type::LINEAR_DYNA_MODAL_FREQ): {
+        break;
+    }
+    case (Analysis::Type::NONLINEAR_MECA_STAT): {
+        comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
+                << ", NOM_CHAM='DEPL'," << " VALE_MAX='OUI'," << " VALE_MIN='OUI',),"
+                << endl;
+        break;
+    }
+    default:
+        comm_file_ofs << "# WARN analysis " << *analysis << " not supported. Skipping." << endl;
+    }
+    comm_file_ofs << "                )," << endl;
+    comm_file_ofs << "          );" << endl << endl;
 
-			const auto& vonMisesOutputs = asterModel->model.objectives.filter(Objective::Type::VONMISES_STRESS_OUTPUT);
+    comm_file_ofs << "IMPR_RESU(FORMAT='MED',UNITE=80," << endl;
+    comm_file_ofs << "          RESU=(" << endl;
+    switch (analysis->type) {
+    case (Analysis::Type::COMBINATION):
+    case (Analysis::Type::LINEAR_MECA_STAT): {
+        comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
+                << ", NOM_CHAM=('DEPL'";
+        if (calc_sigm) {
+            comm_file_ofs << ",'" << sigm_noeu << "'";
+        }
+        comm_file_ofs << ",),)," << endl;
+        break;
+    }
+    case (Analysis::Type::NONLINEAR_MECA_STAT):
+    case (Analysis::Type::LINEAR_BUCKLING):
+    case (Analysis::Type::LINEAR_MODAL): {
+        comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
+                << ", NOM_CHAM = 'DEPL',)," << endl;
+        break;
+    }
+    case (Analysis::Type::LINEAR_DYNA_DIRECT_FREQ): {
+        comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
+                << ", PARTIE='REEL')," << endl;
+        break;
+    }
+    case (Analysis::Type::LINEAR_DYNA_MODAL_FREQ): {
+        comm_file_ofs << "                _F(RESULTAT=MODES" << analysis->getId()
+                << ", NOM_CHAM = 'DEPL',)," << endl;
+        comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
+                << ", PARTIE='REEL')," << endl;
+        break;
+    }
+    default:
+        comm_file_ofs << "# WARN analysis " << *analysis << " not supported. Skipping." << endl;
+    }
+    comm_file_ofs << "                )," << endl;
+    comm_file_ofs << "          );" << endl << endl;
 
-			for (const auto& output : vonMisesOutputs) {
-                const auto& vonMisesOutput = static_pointer_cast<VonMisesStressOutput>(output);
-                comm_file_ofs << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
-                        << endl;
-                comm_file_ofs << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
-                comm_file_ofs << "           MODELE=MODMECA," << endl;
-                comm_file_ofs << "           CONTRAINTE =('SIEQ_ELNO','SIEQ_NOEU')," << endl;
-                writeCellContainer(*vonMisesOutput);
-                comm_file_ofs << ")" << endl;
-			}
-		}
+    const auto& displacementOutputs = asterModel->model.objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT);
+    comm_file_ofs << "RETB" << analysis->getId();
+    if (not displacementOutputs.empty()) {
+        comm_file_ofs << "=POST_RELEVE_T(ACTION=(" << endl;
+        for (auto output : displacementOutputs) {
+            const auto& displacementOutput = static_pointer_cast<const NodalDisplacementOutput>(output);
+            comm_file_ofs << "                _F(INTITULE='DISP" << output->bestId() << "',OPERATION='EXTRACTION',RESULTAT=RESU" << analysis->getId() << ",";
+            writeNodeContainer(*displacementOutput);
+            comm_file_ofs << "NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
+        }
+        comm_file_ofs << "),)" << endl << endl;
+    } else {
 
-		comm_file_ofs << "IMPR_RESU(FORMAT='RESULTAT'," << endl;
-		comm_file_ofs << "          RESU=(" << endl;
-		for (const auto& analysis : asterModel->model.analyses) {
-			switch (analysis->type) {
-            case (Analysis::Type::COMBINATION):
-			case (Analysis::Type::LINEAR_MECA_STAT): {
-				comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
-						<< ", NOM_CHAM='DEPL'," << " VALE_MAX='OUI'," << " VALE_MIN='OUI',),"
-						<< endl;
-				break;
-			}
-			case (Analysis::Type::LINEAR_MODAL): {
-				//comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
-				//		<< ", TOUT_PARA='OUI', TOUT_CHAM='NON')," << endl;
-				break;
-			}
-            case (Analysis::Type::LINEAR_BUCKLING): {
-				comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
-						<< ", NOM_PARA='CHAR_CRIT', TOUT_CHAM='NON')," << endl;
-				break;
-			}
-			case (Analysis::Type::LINEAR_DYNA_DIRECT_FREQ): {
-				comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
-						<< ", NOM_PARA='FREQ', TOUT_CHAM='NON')," << endl;
-				break;
-			}
-			case (Analysis::Type::LINEAR_DYNA_MODAL_FREQ): {
-				break;
-			}
-			case (Analysis::Type::NONLINEAR_MECA_STAT): {
-				comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
-						<< ", NOM_CHAM='DEPL'," << " VALE_MAX='OUI'," << " VALE_MIN='OUI',),"
-						<< endl;
-				break;
-			}
-			default:
-				comm_file_ofs << "# WARN analysis " << *analysis << " not supported. Skipping." << endl;
-			}
-		}
-		comm_file_ofs << "                )," << endl;
-		comm_file_ofs << "          );" << endl << endl;
+        comm_file_ofs << "=CREA_TABLE(RESU=(" << endl;
+        switch (analysis->type) {
+        case (Analysis::Type::COMBINATION):
+        case (Analysis::Type::LINEAR_MODAL):
+        case (Analysis::Type::LINEAR_BUCKLING):
+        case (Analysis::Type::NONLINEAR_MECA_STAT):
+        case (Analysis::Type::LINEAR_MECA_STAT): {
+            comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
+                    << ",TOUT='OUI',NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
+            break;
+        }
+        case (Analysis::Type::LINEAR_DYNA_DIRECT_FREQ): {
+            break;
+        }
+        case (Analysis::Type::LINEAR_DYNA_MODAL_FREQ): {
+            comm_file_ofs << "                _F(RESULTAT=MODES" << analysis->getId()
+                    << ",TOUT='OUI',NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
+            break;
+        }
+        default:
+            comm_file_ofs << "# WARN analysis " << *analysis << " not supported. Skipping." << endl;
+        }
+        comm_file_ofs << "),)" << endl << endl;
+    }
 
-		comm_file_ofs << "IMPR_RESU(FORMAT='MED',UNITE=80," << endl;
-		comm_file_ofs << "          RESU=(" << endl;
-		for (const auto& analysis : asterModel->model.analyses) {
-			switch (analysis->type) {
-            case (Analysis::Type::COMBINATION):
-			case (Analysis::Type::LINEAR_MECA_STAT): {
-				comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
-						<< ", NOM_CHAM=('DEPL'";
-				if (calc_sigm) {
-					comm_file_ofs << ",'" << sigm_noeu << "'";
-				}
-				comm_file_ofs << ",),)," << endl;
-				break;
-			}
-			case (Analysis::Type::NONLINEAR_MECA_STAT):
-			case (Analysis::Type::LINEAR_BUCKLING):
-			case (Analysis::Type::LINEAR_MODAL): {
-				comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
-						<< ", NOM_CHAM = 'DEPL',)," << endl;
-				break;
-			}
-			case (Analysis::Type::LINEAR_DYNA_DIRECT_FREQ): {
-				comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
-						<< ", PARTIE='REEL')," << endl;
-				break;
-			}
-			case (Analysis::Type::LINEAR_DYNA_MODAL_FREQ): {
-				comm_file_ofs << "                _F(RESULTAT=MODES" << analysis->getId()
-						<< ", NOM_CHAM = 'DEPL',)," << endl;
-				comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
-						<< ", PARTIE='REEL')," << endl;
-				break;
-			}
-			default:
-				comm_file_ofs << "# WARN analysis " << *analysis << " not supported. Skipping." << endl;
-			}
-		}
-		comm_file_ofs << "                )," << endl;
-		comm_file_ofs << "          );" << endl << endl;
+    comm_file_ofs << "unite=DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
+    comm_file_ofs << "             FICHIER='REPE_OUT/tbresu_" << analysis->getId() << ".csv')" << endl
+            << endl;
 
-		for (const auto& analysis : asterModel->model.analyses) {
+    comm_file_ofs << "IMPR_TABLE(TABLE=RETB" << analysis->getId() << "," << endl;
+    comm_file_ofs << "           FORMAT='TABLEAU'," << endl;
+    comm_file_ofs << "           UNITE=unite," << endl;
+    comm_file_ofs << "           SEPARATEUR=' ,'," << endl;
+    comm_file_ofs << "           TITRE='RESULTS',)" << endl << endl;
 
-			const auto& displacementOutputs = asterModel->model.objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT);
-			comm_file_ofs << "RETB" << analysis->getId();
-			if (not displacementOutputs.empty()) {
-                comm_file_ofs << "=POST_RELEVE_T(ACTION=(" << endl;
-                for (auto output : displacementOutputs) {
-                    const auto& displacementOutput = static_pointer_cast<const NodalDisplacementOutput>(output);
-                    comm_file_ofs << "                _F(INTITULE='DISP" << output->bestId() << "',OPERATION='EXTRACTION',RESULTAT=RESU" << analysis->getId() << ",";
-                    writeNodeContainer(*displacementOutput);
-                    comm_file_ofs << "NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
-                }
-                comm_file_ofs << "),)" << endl << endl;
-			} else {
+    comm_file_ofs << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
+    comm_file_ofs << "             UNITE=unite,)" << endl << endl;
+    comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=unite),))" << endl << endl;
 
-                comm_file_ofs << "=CREA_TABLE(RESU=(" << endl;
-                switch (analysis->type) {
-                case (Analysis::Type::COMBINATION):
-                case (Analysis::Type::LINEAR_MODAL):
-                case (Analysis::Type::LINEAR_BUCKLING):
-                case (Analysis::Type::NONLINEAR_MECA_STAT):
-                case (Analysis::Type::LINEAR_MECA_STAT): {
-                    comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
-                            << ",TOUT='OUI',NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
-                    break;
-                }
-                case (Analysis::Type::LINEAR_DYNA_DIRECT_FREQ): {
-                    break;
-                }
-                case (Analysis::Type::LINEAR_DYNA_MODAL_FREQ): {
-                    comm_file_ofs << "                _F(RESULTAT=MODES" << analysis->getId()
-                            << ",TOUT='OUI',NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
-                    break;
-                }
-                default:
-                    comm_file_ofs << "# WARN analysis " << *analysis << " not supported. Skipping." << endl;
-                }
-			comm_file_ofs << "),)" << endl << endl;
-			}
+    bool hasRecoveryPoints = false;
+    for (const auto& elementSet : asterModel->model.elementSets) {
+        if (not elementSet->isBeam()) continue;
+        const auto& beam = static_pointer_cast<Beam>(elementSet);
+        if (not beam->recoveryPoints.empty()) {
+            hasRecoveryPoints = true;
+            break;
+        }
+    }
+    if (hasRecoveryPoints) {
 
-			comm_file_ofs << "unite=DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
-			comm_file_ofs << "             FICHIER='REPE_OUT/tbresu_" << analysis->getId() << ".csv')" << endl
-					<< endl;
+        for (const auto& elementSet : asterModel->model.elementSets) {
+            if (not elementSet->isBeam()) continue; // to avoid CALCUL_37 Le TYPE_ELEMENT MECA_BARRE  ne sait pas encore calculer l'option:  SIPO_ELNO.
+            comm_file_ofs << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
+                    << endl;
+            comm_file_ofs << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
+            comm_file_ofs << "           MODELE=MODMECA," << endl;
+            comm_file_ofs << "           CONTRAINTE =('SIPO_NOEU')," << endl;
+            const auto& cellElementSet = dynamic_pointer_cast<CellElementSet>(elementSet);
+            if (cellElementSet == nullptr) {
+                handleWritingError("ElementSet which is not a CellContainer should be written using cellPositions, to be implemented here");
+            }
+            writeCellContainer(*cellElementSet);
+            comm_file_ofs << ")" << endl;
+        }
 
-			comm_file_ofs << "IMPR_TABLE(TABLE=RETB" << analysis->getId() << "," << endl;
-			comm_file_ofs << "           FORMAT='TABLEAU'," << endl;
-			comm_file_ofs << "           UNITE=unite," << endl;
-			comm_file_ofs << "           SEPARATEUR=' ,'," << endl;
-			comm_file_ofs << "           TITRE='RESULTS',)" << endl << endl;
-
-			comm_file_ofs << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
-			comm_file_ofs << "             UNITE=unite,)" << endl << endl;
-			comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=unite),))" << endl << endl;
-		}
-
-		for (const auto& analysis : asterModel->model.analyses) {
-		    bool hasRecoveryPoints = false;
-            for (const auto& elementSet : asterModel->model.elementSets) {
-                if (not elementSet->isBeam()) continue;
-                const auto& beam = static_pointer_cast<Beam>(elementSet);
-                if (not beam->recoveryPoints.empty()) {
-                    hasRecoveryPoints = true;
-                    break;
+        comm_file_ofs << "RCTB" << analysis->getId() << "=MACR_LIGN_COUPE(" << endl;
+        comm_file_ofs << "            RESULTAT=RESU" << analysis->getId() << "," << endl;
+        comm_file_ofs << "            NOM_CHAM='SIPO_NOEU'," << endl;
+        comm_file_ofs << "            MODELE=MODMECA," << endl;
+        comm_file_ofs << "            LIGN_COUPE=(" << endl;
+        for (const auto& elementSet : asterModel->model.elementSets) {
+            if (not elementSet->isBeam()) continue;
+            const auto& beam = static_pointer_cast<Beam>(elementSet);
+            for (const auto& recoveryPoint : beam->recoveryPoints) {
+                const VectorialValue& localCoords = recoveryPoint.getLocalCoords();
+                for (const Cell& cell : beam->getCellsIncludingGroups()) {
+                    const Node& node1 = asterModel->model.mesh.findNode(cell.nodePositions[0]);
+                    const VectorialValue& globalCoords = recoveryPoint.getGlobalCoords(cell.id);
+                    comm_file_ofs << "                    _F(" << endl;
+                    comm_file_ofs << "                        INTITULE='Cell " << cell.id << " stress recovery at (local):" << localCoords << ", global:" << globalCoords << "'," << endl;
+                    comm_file_ofs << "                        NOM_CMP=('SN','SMFY','SMFZ','SVY','SVZ','SMT')," << endl;
+                    comm_file_ofs << "                        TYPE='SEGMENT'," << endl;
+                    comm_file_ofs << "                        DISTANCE_MAX=" << abs(max(localCoords.y(), localCoords.z()))*2 << "," << endl;
+                    comm_file_ofs << "                        NB_POINTS=2," << endl;
+                    comm_file_ofs << "                        COOR_ORIG=(" << globalCoords.x() << "," << globalCoords.y() << "," << globalCoords.z() << ")," << endl;
+                    // TODO LD find a better solution here
+                    comm_file_ofs << "                        COOR_EXTR=(" << node1.x << "," << node1.y << "," << node1.z << ")," << endl;
+                    comm_file_ofs << "                    )," << endl;
                 }
             }
-            if (not hasRecoveryPoints) continue;
+        }
+        comm_file_ofs << "                    )" << endl;
+        comm_file_ofs << "            )" << endl;
 
-            for (const auto& elementSet : asterModel->model.elementSets) {
-                if (not elementSet->isBeam()) continue; // to avoid CALCUL_37 Le TYPE_ELEMENT MECA_BARRE  ne sait pas encore calculer l'option:  SIPO_ELNO.
-                comm_file_ofs << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
-                        << endl;
-                comm_file_ofs << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
-                comm_file_ofs << "           MODELE=MODMECA," << endl;
-                comm_file_ofs << "           CONTRAINTE =('SIPO_NOEU')," << endl;
-                const auto& cellElementSet = dynamic_pointer_cast<CellElementSet>(elementSet);
-                if (cellElementSet == nullptr) {
-                    handleWritingError("ElementSet which is not a CellContainer should be written using cellPositions, to be implemented here");
-                }
-                writeCellContainer(*cellElementSet);
-                comm_file_ofs << ")" << endl;
-            }
+        int unit = 10 + analysis->getId();
+        comm_file_ofs << "DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
+        comm_file_ofs << "             UNITE=" << unit << "," << endl;
+        comm_file_ofs << "             FICHIER='REPE_OUT/tbrecup_" << analysis->getId() << ".csv')" << endl << endl;
 
-            comm_file_ofs << "RCTB" << analysis->getId() << "=MACR_LIGN_COUPE(" << endl;
-            comm_file_ofs << "            RESULTAT=RESU" << analysis->getId() << "," << endl;
-            comm_file_ofs << "            NOM_CHAM='SIPO_NOEU'," << endl;
-            comm_file_ofs << "            MODELE=MODMECA," << endl;
-            comm_file_ofs << "            LIGN_COUPE=(" << endl;
-            for (const auto& elementSet : asterModel->model.elementSets) {
-                if (not elementSet->isBeam()) continue;
-                const auto& beam = static_pointer_cast<Beam>(elementSet);
-                for (const auto& recoveryPoint : beam->recoveryPoints) {
-                    const VectorialValue& localCoords = recoveryPoint.getLocalCoords();
-                    for (const Cell& cell : beam->getCellsIncludingGroups()) {
-                        const Node& node1 = asterModel->model.mesh.findNode(cell.nodePositions[0]);
-                        const VectorialValue& globalCoords = recoveryPoint.getGlobalCoords(cell.id);
-                        comm_file_ofs << "                    _F(" << endl;
-                        comm_file_ofs << "                        INTITULE='Cell " << cell.id << " stress recovery at (local):" << localCoords << ", global:" << globalCoords << "'," << endl;
-                        comm_file_ofs << "                        NOM_CMP=('SN','SMFY','SMFZ','SVY','SVZ','SMT')," << endl;
-                        comm_file_ofs << "                        TYPE='SEGMENT'," << endl;
-                        comm_file_ofs << "                        DISTANCE_MAX=" << abs(max(localCoords.y(), localCoords.z()))*2 << "," << endl;
-                        comm_file_ofs << "                        NB_POINTS=2," << endl;
-                        comm_file_ofs << "                        COOR_ORIG=(" << globalCoords.x() << "," << globalCoords.y() << "," << globalCoords.z() << ")," << endl;
-                        // TODO LD find a better solution here
-                        comm_file_ofs << "                        COOR_EXTR=(" << node1.x << "," << node1.y << "," << node1.z << ")," << endl;
-                        comm_file_ofs << "                    )," << endl;
-                    }
-                }
-            }
-            comm_file_ofs << "                    )" << endl;
-			comm_file_ofs << "            )" << endl;
+        comm_file_ofs << "IMPR_TABLE(TABLE=RCTB" << analysis->getId() << "," << endl;
+        comm_file_ofs << "           FORMAT='TABLEAU'," << endl;
+        comm_file_ofs << "           UNITE=" << unit << "," << endl;
+        comm_file_ofs << "           SEPARATEUR=' ,'," << endl;
+        comm_file_ofs << "           TITRE='RESULTS',)" << endl << endl;
 
-			int unit = 10 + analysis->getId();
-            comm_file_ofs << "DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
-			comm_file_ofs << "             UNITE=" << unit << "," << endl;
-			comm_file_ofs << "             FICHIER='REPE_OUT/tbrecup_" << analysis->getId() << ".csv')" << endl << endl;
+        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=RCTB" << analysis->getId() << "),))" << endl << endl;
 
-            comm_file_ofs << "IMPR_TABLE(TABLE=RCTB" << analysis->getId() << "," << endl;
-			comm_file_ofs << "           FORMAT='TABLEAU'," << endl;
-			comm_file_ofs << "           UNITE=" << unit << "," << endl;
-			comm_file_ofs << "           SEPARATEUR=' ,'," << endl;
-			comm_file_ofs << "           TITRE='RESULTS',)" << endl << endl;
+        comm_file_ofs << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
+        comm_file_ofs << "             UNITE=" << unit << ")" << endl << endl;
+    }
 
-            comm_file_ofs << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
-			comm_file_ofs << "             UNITE=" << unit << ")" << endl << endl;
-		}
-
-
-	}
 }
 
 void AsterWriter::writeAnalyses() {
@@ -369,16 +345,27 @@ void AsterWriter::writeAnalyses() {
 			comm_file_ofs << ")" << endl;
 		}
 
-        bool calc_vmis = asterModel->model.objectives.contains(Objective::Type::NODAL_CELL_VONMISES_ASSERTION);
-        if (calc_vmis) {
+		if (analysis->contains(Objective::Type::NODAL_CELL_VONMISES_ASSERTION)) {
             comm_file_ofs << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
                     << endl;
             comm_file_ofs << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
             comm_file_ofs << "           MODELE=MODMECA," << endl;
             comm_file_ofs << "           CRITERES =('SIEQ_ELNO','SIEQ_NOEU')," << endl;
-            comm_file_ofs << "           TOUT='OUI'," << endl;
+            comm_file_ofs << "           TOUT = 'OUI'," << endl;
             comm_file_ofs << ")" << endl;
-        }
+		} else {
+            const auto& vonMisesOutputs = asterModel->model.objectives.filter(Objective::Type::VONMISES_STRESS_OUTPUT);
+            for (const auto& output : vonMisesOutputs) {
+                const auto& vonMisesOutput = static_pointer_cast<VonMisesStressOutput>(output);
+                comm_file_ofs << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
+                        << endl;
+                comm_file_ofs << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
+                comm_file_ofs << "           MODELE=MODMECA," << endl;
+                comm_file_ofs << "           CRITERES =('SIEQ_ELNO','SIEQ_NOEU')," << endl;
+                writeCellContainer(*vonMisesOutput);
+                comm_file_ofs << ")" << endl;
+            }
+		}
 
 		const auto& assertions = analysis->getAssertions();
 		if (not assertions.empty()) {
@@ -411,6 +398,22 @@ void AsterWriter::writeAnalyses() {
 			comm_file_ofs << "                  )" << endl;
 			comm_file_ofs << "          );" << endl << endl;
 		}
+
+		writeImprResultats(analysis);
+
+		bool usedInNext = false;
+		for (const auto& otherAnalysis : asterModel->model.analyses) {
+            if (otherAnalysis->previousAnalysis == analysis) {
+                usedInNext = true;
+                break;
+            }
+		}
+		if (not usedInNext) {
+            comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=RESU" << analysis->getId() << "),))" << endl << endl;
+		}
+        if (analysis->type == Analysis::Type::LINEAR_DYNA_MODAL_FREQ) {
+            comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=MODES" << analysis->getId() << "),))" << endl << endl;
+        }
 	}
 }
 
@@ -442,8 +445,6 @@ void AsterWriter::writeComm() {
 	writeDefiContact();
 
 	writeAnalyses();
-
-	writeImprResultats();
 
 	comm_file_ofs << "FIN()" << endl;
 }

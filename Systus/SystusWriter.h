@@ -430,9 +430,9 @@ private:
     void writeMatrixFiles(const SystusModel& systusModel, const int idSubcase);
     void writeFrequencyExcit(std::ostream&, const std::shared_ptr<FrequencyExcit>&);
     void writeModalDamping(std::ostream&, const std::shared_ptr<ModalDamping>&);
-    void writeLinearModalAnalysis(std::ostream&, const std::shared_ptr<FrequencySearch>&);
-    void writeLinearDirectAnalysis(std::ostream&, const std::shared_ptr<Analysis>&);
-    int writeLinearModalAnalysis(std::ostream&, const SystusModel& systusModel, const std::shared_ptr<LinearDynaModalFreq>&);
+    int writeLinearModalAnalysis(std::ostream&, const SystusModel& systusModel, const std::shared_ptr<LinearModal>&);
+    void writeDynaDirectAnalysis(std::ostream&, const std::shared_ptr<Analysis>&);
+    int writeDynaModalAnalysis(std::ostream&, const SystusModel& systusModel, const std::shared_ptr<LinearDynaModalFreq>&);
 
 public:
     SystusWriter() = default;

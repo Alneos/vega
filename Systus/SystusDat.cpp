@@ -66,7 +66,120 @@ void SystusWriter::writeModalDamping(std::ostream& out, const shared_ptr<ModalDa
     out << endl;
 }
 
-void SystusWriter::writeLinearDirectAnalysis(ostream& out, const shared_ptr<Analysis>& linearDynaFreq) {
+int SystusWriter::writeLinearModalAnalysis(ostream& out, const SystusModel& systusModel, const shared_ptr<LinearModal>& linearModal) {
+
+    out << "# SOLVE FILE TO USE THE DYNAMIC SOLVER" << endl;
+    out << "# USE FOR EIGEN FREQUENCY CRITERION" << endl;
+    out << endl;
+    out << "# COMPUTING MASS MATRIX" << endl;
+    out << "# AS THE COMMAND DYNAMIC COMPUTE THEM, IT SHOULD BE USELESS." << endl;
+    out << "# BUT THERE SEEM TO BE BUGS ON THE COMMAND, SO WE USE EXPLICITLY THE COMMAND" << endl;
+    out << "CLOSE STIFFNESS MASS" << endl;
+    out << endl;
+    out << "# COMPUTE MODES" << endl;
+    out << "DYNAMIC" << endl;
+    out << endl;
+
+    // Parameters of the analysis
+    const auto& frequencySearch = linearModal->getFrequencySearch();
+    double upperF;
+    double lowerF;
+    int nmodes;
+    switch(frequencySearch->frequencyType) {
+    case FrequencySearch::FrequencyType::BAND: {
+      const auto& band = dynamic_pointer_cast<BandRange>(frequencySearch->getValue());
+      upperF = band->end;
+      lowerF = band->start;
+      if (is_equal(lowerF, Globals::UNAVAILABLE_DOUBLE)) {
+        auto lower_cutoff_frequency = systusModel.model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY);
+        if (lower_cutoff_frequency != systusModel.model.parameters.end()) {
+            if (systusModel.model.configuration.logLevel >= LogLevel::TRACE) {
+                cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
+            }
+            lowerF = lower_cutoff_frequency->second;
+        }
+      }
+      nmodes = (band->maxsearch == vega::Globals::UNAVAILABLE_INT ? defaultNbDesiredRoots : band->maxsearch);
+      break;
+    }
+    default:
+      handleWritingError(
+        "Frequency search " + to_string(static_cast<int>(frequencySearch->frequencyType)) + " not (yet) implemented");
+    }
+
+    // We can't treat the case where only lowerF is defined
+    if (is_equal(upperF, vega::Globals::UNAVAILABLE_DOUBLE)){
+        if (!is_equal(lowerF,vega::Globals::UNAVAILABLE_DOUBLE)){
+            lowerF = vega::Globals::UNAVAILABLE_DOUBLE;
+            handleWritingWarning("Modal analysis with lower bound frequency not supported. Will search for "+to_string(nmodes)+" Eigenmodes instead.", "DAT file");
+        }
+    }else{
+        // If upperF is defined, an unavailable lower bound is treated as 0;
+        if (is_equal(lowerF,vega::Globals::UNAVAILABLE_DOUBLE)){
+            lowerF = 0;
+        }
+    }
+    // Number of iteration
+    int niter = 2*nmodes + 2;
+
+    // Corresponding Systus commands
+    string sShift="";
+    string sSturm="";
+    string sBand="";
+    if (!is_equal(upperF, vega::Globals::UNAVAILABLE_DOUBLE)){
+        // This method is only available since the 2017 version of Systus
+        if (systusModel.getSystusVersion()<2017){
+            handleWritingWarning("Modal analysis with upper bound frequency not supported for version under 2017. Will search for "+to_string(nmodes)+" Eigenmodes instead.", "DAT file");
+            lowerF=vega::Globals::UNAVAILABLE_DOUBLE;
+            upperF=vega::Globals::UNAVAILABLE_DOUBLE;
+        }else{
+            sShift = " FREQUENCY "+ to_string(0.5*(lowerF+upperF));
+            sSturm = " STURM FREQUENCY "+ to_string(0.5*(upperF-lowerF));
+            sBand  = " BETWEEN "+to_string(lowerF)+" AND "+to_string(upperF);
+        }
+    }
+    if ((is_equal(lowerF, vega::Globals::UNAVAILABLE_DOUBLE)) && (is_equal(upperF, vega::Globals::UNAVAILABLE_DOUBLE))){
+        sShift =" SHIFT";
+        sSturm="";
+        sBand="";
+    }
+
+    // Choice of norm
+    string sNorm;
+    switch (frequencySearch->norm) {
+      case(FrequencySearch::NormType::MASS): {
+        sNorm=" NORM MASS";
+        break;
+      }
+      case(FrequencySearch::NormType::MAX): {
+        sNorm="";
+        break;
+      }
+      default: {
+        handleWritingWarning("Requested normalisation not yet implemented, assuming MASS.", "DAT file");
+        sNorm=" NORM MASS";
+      }
+    }
+
+    // Writing the DAT file
+    out << "# WE COMPUTE "<< nmodes << " MODES" << sBand <<"." << endl;
+    out << "# IT'S AN ITERATIVE MEHOD, WITH A MAXIMUM OF "<< niter <<" ITERATIONS" << endl;
+    out << "MODE SUBSPACE BLOCK 3" << sShift<<endl;
+    out << "VECTOR "<< nmodes << sSturm <<" ITER "<< niter <<" PRECISION 1*-6 FORCE"<< sNorm<<endl;
+    out << "METHOD OPTIMIZED" << endl;
+    out << "RETURN" << endl;
+    out << endl;
+
+    // Addentum to compute frequency criterion : maybe useless now
+    out << "# COMPUTE THE STRESS TENSORS." << endl;
+    out << "# MANDATORY TO COMPUTE THE GRADIENTS OF THE FREQUENCY CRITERIONS." << endl;
+    out << "SOLVE FORCE" << endl;
+    linearModal->markAsWritten();
+
+    return nmodes;
+}
+
+void SystusWriter::writeDynaDirectAnalysis(ostream& out, const shared_ptr<Analysis>& linearDynaFreq) {
     out << "# COMPUTING MASS MATRIX" << endl;
     out << "# AS THE COMMAND DYNAMIC COMPUTE THEM, IT SHOULD BE USELESS." << endl;
     out << "# BUT THERE SEEM TO BE BUGS ON THE COMMAND, SO WE USE EXPLICITLY THE COMMAND" << endl;
@@ -95,7 +208,7 @@ void SystusWriter::writeLinearDirectAnalysis(ostream& out, const shared_ptr<Anal
     out << "RETURN"<<endl;
 }
 
-int SystusWriter::writeLinearModalAnalysis(ostream& out, const SystusModel& systusModel, const shared_ptr<LinearDynaModalFreq>& linearDynaModalFreq) {
+int SystusWriter::writeDynaModalAnalysis(ostream& out, const SystusModel& systusModel, const shared_ptr<LinearDynaModalFreq>& linearDynaModalFreq) {
     // See SYSTUS Reference Manual 11.4 "Dynamic Response - Modal method"
 
     // First, we need to do a static analysis
@@ -106,78 +219,7 @@ int SystusWriter::writeLinearModalAnalysis(ostream& out, const SystusModel& syst
     out << "CLOSE MASS" << endl;
     out << endl;
 
-    // Then, we need to run a Modal analysis, to get the eigenvalues
-    // It's a limited version of what is done in Analysis::Type::LINEAR_MODAL, because we need to know
-    // exactly the numbers of modes for the next part (so no STURM)
-    // However, we keep the same syntax, for future development.
-    FrequencySearch& frequencySearch = *(linearDynaModalFreq->getFrequencySearch());
-    double upperF;
-    double lowerF;
-    int nModes;
-    switch(frequencySearch.frequencyType) {
-    case FrequencySearch::FrequencyType::BAND: {
-      BandRange band = dynamic_cast<BandRange&>(*frequencySearch.getValue());
-      upperF = band.end;
-      lowerF = band.start;
-      if (is_equal(lowerF, Globals::UNAVAILABLE_DOUBLE)) {
-        auto lower_cutoff_frequency = systusModel.model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY);
-        if (lower_cutoff_frequency != systusModel.model.parameters.end()) {
-            if (systusModel.model.configuration.logLevel >= LogLevel::TRACE) {
-                cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
-            }
-            lowerF = lower_cutoff_frequency->second;
-        }
-      }
-      nModes = (band.maxsearch == vega::Globals::UNAVAILABLE_INT ? defaultNbDesiredRoots : band.maxsearch);
-      break;
-    }
-    default:
-      handleWritingError(
-        "Frequency search " + to_string(static_cast<int>(frequencySearch.frequencyType)) + " not (yet) implemented");
-    }
-    if ((!is_equal(upperF, vega::Globals::UNAVAILABLE_DOUBLE))||(!is_equal(upperF, vega::Globals::UNAVAILABLE_DOUBLE))){
-        handleWritingWarning("Modal analysis with bound frequency not supported yet. Will search for "+to_string(nModes)+" Eigenmodes instead.", "Analysis file");
-        lowerF=vega::Globals::UNAVAILABLE_DOUBLE;
-        upperF=vega::Globals::UNAVAILABLE_DOUBLE;
-        nModes = defaultNbDesiredRoots;
-    }
-    // Choice of norm
-    string sNorm;
-    switch (frequencySearch.norm) {
-      case(FrequencySearch::NormType::MASS): {
-        sNorm=" NORM MASS";
-        break;
-      }
-      case(FrequencySearch::NormType::MAX): {
-        sNorm="";
-        break;
-      }
-      default: {
-        handleWritingWarning("Requested normalisation not yet implemented, assuming MASS.", "DAT file");
-        sNorm=" NORM MASS";
-      }
-    }
-    // Number of iteration
-    int niter = 2*nModes + 2;
-
-    // Corresponding Systus commands
-    string sShift="";
-    string sSturm="";
-    string sBand="";
-    if ((is_equal(lowerF, vega::Globals::UNAVAILABLE_DOUBLE)) && (is_equal(upperF, vega::Globals::UNAVAILABLE_DOUBLE))){
-        sShift =" SHIFT";
-        sSturm="";
-        sBand="";
-    }
-    out << "# COMPUTE EIGENMODES " << endl;
-    out << "# WE COMPUTE "<< nModes << " MODES" << sBand <<"." << endl;
-    out << "# IT'S AN ITERATIVE MEHOD, WITH A MAXIMUM OF "<< niter <<" ITERATIONS" << endl;
-    out << "DYNAMIC"<<endl;
-    out << "MODE SUBSPACE BLOCK 3" << sShift<<endl;
-    out << "VECTOR "<< nModes << sSturm <<" ITER "<< niter <<" PRECISION 1*-6 FORCE"<< sNorm<<endl;
-    out << "METHOD OPTIMIZED" << endl;
-    out << "RETURN" << endl;
-    out << endl;
+    int nModes = writeLinearModalAnalysis(out, systusModel, linearDynaModalFreq);
 
 
     // Participation part

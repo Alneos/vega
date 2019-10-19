@@ -128,6 +128,9 @@ public:
     virtual bool isLinear() const {
         return false;
     }
+    virtual bool isModal() const {
+        return false;
+    }
     bool validate() const override;
 
     std::map<std::string, std::string> to_map() const noexcept override;
@@ -194,6 +197,9 @@ public:
     bool use_power_iteration = false;
     bool validate() const override;
     bool isLinear() const override {
+        return true;
+    }
+    bool isModal() const override {
         return true;
     }
 };

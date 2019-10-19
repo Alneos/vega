@@ -71,7 +71,7 @@ class AsterWriter final : public Writer {
 	void writeFrequencyAssertion(const Analysis&, const FrequencyAssertion&);
 	void writeLoadset(LoadSet&);
 	std::string writeValue(NamedValue&);
-	void writeImprResultats();
+	void writeImprResultats(const std::shared_ptr<Analysis>& analysis);
 	void list_concept_name(StepRange&);
 	std::shared_ptr<NonLinearStrategy> getNonLinearStrategy(NonLinearMecaStat&);
 	void writeAnalyses();
