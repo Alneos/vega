@@ -23,7 +23,7 @@ using namespace vega;
 
 //____________________________________________________________________________//
 
-BOOST_AUTO_TEST_CASE( test_model_read ) {
+/*BOOST_AUTO_TEST_CASE( test_model_read ) {
 	string testLocation = fs::path(
 	PROJECT_BASE_DIR "/testdata/nastran/alneos/test4a/test4a.dat").make_preferred().string();
 	nastran::NastranParser parser;
@@ -221,6 +221,24 @@ BOOST_AUTO_TEST_CASE(nastran_set_THRU) {
         const auto& setValue = static_pointer_cast<SetValue<int>> (model->find(Reference<NamedValue>{Value::Type::SET, 3}));
         BOOST_CHECK(setValue != nullptr);
         BOOST_CHECK_EQUAL(setValue->getSet().size(), 3);
+	}
+	catch (exception& e) {
+		cerr << e.what() << endl;
+		BOOST_TEST_MESSAGE(string("Application exception") + e.what());
+
+		BOOST_FAIL(string("Parse threw exception ") + e.what());
+	}
+}*/
+
+BOOST_AUTO_TEST_CASE(test_wrong_param) {
+	string testLocation = fs::path(
+		PROJECT_BASE_DIR "/testdata/unitTest/nastranparser/wrong_param.nas").make_preferred().string();
+	nastran::NastranParser parser;
+	try {
+		const unique_ptr<Model> model = parser.parse(
+			ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
+        model->finish();
+        BOOST_CHECK_EQUAL(model->analyses.size(), 1);
 	}
 	catch (exception& e) {
 		cerr << e.what() << endl;

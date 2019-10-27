@@ -248,6 +248,8 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
     comm_file_ofs << "           SEPARATEUR=' ,'," << endl;
     comm_file_ofs << "           TITRE='RESULTS',)" << endl << endl;
 
+    comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=RETB" << analysis->getId() << "),))" << endl << endl;
+
     comm_file_ofs << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
     comm_file_ofs << "             UNITE=unite,)" << endl << endl;
     comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=unite),))" << endl << endl;
@@ -403,9 +405,24 @@ void AsterWriter::writeAnalyses() {
 
 		bool usedInNext = false;
 		for (const auto& otherAnalysis : asterModel->model.analyses) {
-            if (otherAnalysis->previousAnalysis == analysis) {
+            if (otherAnalysis->type == Analysis::Type::NONLINEAR_MECA_STAT and otherAnalysis->previousAnalysis == analysis) {
                 usedInNext = true;
                 break;
+            }
+            if (otherAnalysis->type == Analysis::Type::LINEAR_BUCKLING and otherAnalysis->previousAnalysis == analysis) {
+                usedInNext = true;
+                break;
+            }
+            if (otherAnalysis->type == Analysis::Type::COMBINATION) {
+                const auto& combination = static_pointer_cast<Combination>(otherAnalysis);
+                for (const auto& subPair : combination->coefByAnalysis) {
+                    if (subPair.first.id == analysis->getId()) {
+                        usedInNext = true;
+                        break;
+                    }
+                }
+                if (usedInNext)
+                    break;
             }
 		}
 		if (not usedInNext) {
@@ -2152,7 +2169,7 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 	case Analysis::Type::NONLINEAR_MECA_STAT: {
 		auto& nonLinAnalysis = static_cast<NonLinearMecaStat&>(analysis);
 		shared_ptr<NonLinearStrategy> nonLinearStrategy = getNonLinearStrategy(nonLinAnalysis);
-		if (!nonLinAnalysis.previousAnalysis) {
+		if (nonLinAnalysis.previousAnalysis == nullptr) {
 			debut = 0;
 		}
 		double fin = debut + 1.0;
@@ -2165,7 +2182,7 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 		comm_file_ofs << "RAMP" << nonLinAnalysis.getId()
 				<< "=DEFI_FONCTION(NOM_PARA='INST', PROL_DROITE='LINEAIRE', VALE=("
 				<< stepRange.start << ",0.0," << stepRange.end << ",1.0,));" << endl;
-		if (nonLinAnalysis.previousAnalysis) {
+		if (nonLinAnalysis.previousAnalysis != nullptr) {
 			comm_file_ofs << "IRAMP" << nonLinAnalysis.getId()
 					<< "=DEFI_FONCTION(NOM_PARA='INST', PROL_DROITE='LINEAIRE', VALE=("
 					<< stepRange.start << ",1.0," << stepRange.end << ",0.0,));" << endl;
@@ -2176,7 +2193,7 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 		}
 		comm_file_ofs << "                    CARA_ELEM=CAEL," << endl;
 		comm_file_ofs << "                    EXCIT=(" << endl;
-		if (nonLinAnalysis.previousAnalysis) {
+		if (nonLinAnalysis.previousAnalysis != nullptr) {
 			for (const auto& loadSet : nonLinAnalysis.previousAnalysis->getLoadSets()) {
 				comm_file_ofs << "                           _F(CHARGE=" << asternameByLoadSet[loadSet]
 						<< ",FONC_MULT=IRAMP" << nonLinAnalysis.getId() << ")," << "# Original id:" << loadSet->getOriginalId() << endl;
@@ -2247,7 +2264,7 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 				<< endl;
 		comm_file_ofs << "                    ARCHIVAGE=_F(LIST_INST=" << list_name << ",)," << endl;
 		comm_file_ofs << "                    NEWTON=_F(REAC_ITER=1,)," << endl;
-		if (nonLinAnalysis.previousAnalysis) {
+		if (nonLinAnalysis.previousAnalysis != nullptr) {
 			comm_file_ofs << "                    ETAT_INIT=_F(EVOL_NOLI =RESU"
 					<< nonLinAnalysis.previousAnalysis->getId() << ")," << endl;
 		}
@@ -2307,6 +2324,16 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 		comm_file_ofs << "                                 )," << endl;
 		comm_file_ofs << "                   #SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS',NPREC=8)," << endl; // MUMPS: Error in function orderMinPriority no valid number of stages in multisector (#stages = 2)
 		comm_file_ofs << "                   );" << endl << endl;
+
+
+		// Cannot clean these: causes error in CALC_CHAMP SIGM_ELNO later
+//		comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=MASS" << analysis.getId() << "),))" << endl << endl;
+//		comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=RIGI" << analysis.getId() << "),))" << endl << endl;
+//        if (has_structural_damping) {
+//            comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=AMST" << analysis.getId() << "),))" << endl << endl;
+//        } else /* LD Maybe should combine these two cases ? */ {
+//            comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=AMOR" << analysis.getId() << "),))" << endl << endl;
+//        }
 		linearDirect.markAsWritten();
 	    break;
 	}
@@ -2349,10 +2376,17 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 		}
 		comm_file_ofs << resuName << "=EXTR_MODE(FILTRE_MODE=_F(MODE=U" << resuName << ", FREQ_MIN=" << lowFreq << ", FREQ_MAX=" << highFreq << "),)" << endl;
 
+		// LD cannot clean these because causes error in CALC_CHAMP SIGM_ELNO later see prob19
+		//comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=MASS" << analysis.getId() << "),))" << endl << endl;
+		//comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=RIGI" << analysis.getId() << "),))" << endl << endl;
+        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=U" << resuName << "),))" << endl << endl;
+
 		comm_file_ofs << "I" << resuName << "=RECU_TABLE(CO=" << resuName << ",NOM_PARA = ('FREQ','MASS_GENE','RIGI_GENE','AMOR_GENE'))" << endl;
         comm_file_ofs << "IMPR_TABLE(TABLE=I" << resuName << ")" << endl << endl;
+        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=I" << resuName << "),))" << endl << endl;
         comm_file_ofs << "J" << resuName << "=POST_ELEM(RESULTAT=" << resuName << ", MASS_INER=_F(TOUT='OUI'))" << endl;
         comm_file_ofs << "IMPR_TABLE(TABLE=J" << resuName << ")" << endl << endl;
+        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=J" << resuName << "),))" << endl << endl;
 
 		if (analysis.type == Analysis::Type::LINEAR_MODAL) {
             linearModal.markAsWritten();
@@ -2419,6 +2453,10 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 					<< endl;
 			comm_file_ofs << "                        ORTHO='OUI'," << endl;
 			comm_file_ofs << "                        );" << endl << endl;
+			comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=MODES" << linearDynaModalFreq.getId()
+					<< "),))" << endl << endl;
+			comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=MOSTA" << linearDynaModalFreq.getId()
+					<< "),))" << endl << endl;
 
 			comm_file_ofs << "modes" << linearDynaModalFreq.getId() << "=" << "RESVE"
 					<< linearDynaModalFreq.getId() << endl;
@@ -2490,6 +2528,7 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 
 		comm_file_ofs << "pfreq" << linearDynaModalFreq.getId() << "= LIMODE" << linearDynaModalFreq.getId()
 				<< ".EXTR_TABLE().values()['FREQ']" << endl;
+        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=LIMODE" << linearDynaModalFreq.getId() << "),))" << endl << endl;
 
     if (linearDynaModalFreq.getModalDamping() != nullptr) {
       comm_file_ofs << "AMMO_I" << linearDynaModalFreq.getId() << "=CALC_FONC_INTERP(FONCTION = FCT"
@@ -2549,11 +2588,20 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 		comm_file_ofs << "                   #SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS',NPREC=8)," << endl; // MUMPS: Error in function orderMinPriority no valid number of stages in multisector (#stages = 2)
 		comm_file_ofs << "                   );" << endl << endl;
 
+		comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=MASSG" << analysis.getId() << "),))" << endl << endl;
+		comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=RIGIG" << analysis.getId() << "),))" << endl << endl;
+        if (linearDynaModalFreq.getModalDamping() == nullptr) {
+            comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=AMORG" << analysis.getId() << "),))" << endl << endl;
+        }
+
         comm_file_ofs << "RESU" << linearDynaModalFreq.getId() << " = REST_GENE_PHYS(RESU_GENE = GENE"
                 << linearDynaModalFreq.getId() << "," << endl;
         comm_file_ofs << "                       TOUT_ORDRE = 'OUI'," << endl;
         comm_file_ofs << "                       NOM_CHAM = ('DEPL','VITE','ACCE')," << endl;
         comm_file_ofs << "                       );" << endl << endl;
+
+        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=GENE" << analysis.getId() << "),))" << endl << endl;
+
         linearDynaModalFreq.markAsWritten();
 		break;
 	}
@@ -2583,6 +2631,11 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 
         comm_file_ofs << "RESU" << linearBuckling.getId() << " = NORM_MODE(reuse=RESU"<< linearBuckling.getId() << ",MODE=RESU" << linearBuckling.getId() << ",NORME='TRAN_ROTA',)" << endl;
         comm_file_ofs << "TBCRT" << linearBuckling.getId() << " = RECU_TABLE(CO=RESU" << linearBuckling.getId() << ",NOM_PARA='CHAR_CRIT')" << endl;
+        comm_file_ofs << "IMPR_TABLE(TABLE=TBCRT" << analysis.getId() << ")" << endl << endl;
+        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=FSIG" << analysis.getId() << "),))" << endl << endl;
+        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=RIGI" << analysis.getId() << "),))" << endl << endl;
+        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=RIGE" << analysis.getId() << "),))" << endl << endl;
+        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=TBCRT" << analysis.getId() << "),))" << endl << endl;
         linearBuckling.markAsWritten();
         break;
     }

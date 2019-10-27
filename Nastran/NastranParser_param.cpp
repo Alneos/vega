@@ -228,7 +228,7 @@ void NastranParser::parseParamWTMASS(NastranTokenizer& tok, Model& model) {
 }
 
 NastranParser::parseElementFPtr NastranParser::findParamParser(const string keyword) const {
-    auto result = PARSEPARAM_FUNCTION_BY_KEYWORD.find(keyword);
+    const auto& result = PARSEPARAM_FUNCTION_BY_KEYWORD.find(keyword);
     if (result != PARSEPARAM_FUNCTION_BY_KEYWORD.end()) {
         return result->second;
     } else {
@@ -240,14 +240,12 @@ void NastranParser::parsePARAM(NastranTokenizer& tok, Model& model) {
     string param = tok.nextString();
     boost::to_upper(param);
 
-    auto parser = findParamParser(param);
+    const auto& parser = findParamParser(param);
     if (parser != nullptr) {
         (this->*parser)(tok, model);
 
     } else if (IGNORED_PARAMS.find(param) != IGNORED_PARAMS.end()) {
-        if (model.configuration.logLevel >= LogLevel::TRACE) {
-            cout << "Option PARAM, " << param << " ignored." << endl;
-        }
+        handleParsingWarning("Option PARAM, " + param + " ignored.", tok, model);
         tok.skipToNextKeyword();
     } else {
         handleParsingError("Unknown parameter " + param + " is dismissed.", tok,

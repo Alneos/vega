@@ -440,6 +440,7 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                 addSet(tok, model);
             } else {
                 if (tok.nextSymbolType != NastranTokenizer::SymbolType::SYMBOL_FIELD) {
+                    handleParsingWarning("Case control parameter " + keyword + ": value cannot be parsed. Line:" + tok.currentRawDataLine(), tok, model);
                     context[keyword] = "";
                 } else {
                     vector<string> parts;
