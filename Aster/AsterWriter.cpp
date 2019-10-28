@@ -2522,7 +2522,7 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
         comm_file_ofs << "                         )," << endl;
         comm_file_ofs << "          );" << endl << endl;
 
-		comm_file_ofs << "LIMODE" << linearDynaModalFreq.getId() << "=RECU_TABLE(CO=MODES"
+		comm_file_ofs << "LIMODE" << linearDynaModalFreq.getId() << "=RECU_TABLE(CO=modes"
 				<< linearDynaModalFreq.getId() << "," << endl;
 		comm_file_ofs << "                  NOM_PARA = 'FREQ');" << endl << endl;
 
