@@ -2379,7 +2379,16 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 		// LD cannot clean these because causes error in CALC_CHAMP SIGM_ELNO later see prob19
 		//comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=MASS" << analysis.getId() << "),))" << endl << endl;
 		//comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=RIGI" << analysis.getId() << "),))" << endl << endl;
+
         comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=U" << resuName << "),))" << endl << endl;
+
+        comm_file_ofs << "LIMODE" << analysis.getId() << "=RECU_TABLE(CO=" << resuName << "," << endl;
+		comm_file_ofs << "                  NOM_PARA = 'FREQ');" << endl << endl;
+
+		comm_file_ofs << "pfreq" << analysis.getId() << "= LIMODE" << analysis.getId()
+				<< ".EXTR_TABLE().values()['FREQ']" << endl;
+        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=LIMODE" << analysis.getId() << "),))" << endl << endl;
+
 
 		comm_file_ofs << "I" << resuName << "=RECU_TABLE(CO=" << resuName << ",NOM_PARA = ('FREQ','MASS_GENE','RIGI_GENE','AMOR_GENE'))" << endl;
         comm_file_ofs << "IMPR_TABLE(TABLE=I" << resuName << ")" << endl << endl;
@@ -2453,8 +2462,8 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 					<< endl;
 			comm_file_ofs << "                        ORTHO='OUI'," << endl;
 			comm_file_ofs << "                        );" << endl << endl;
-			comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=MODES" << linearDynaModalFreq.getId()
-					<< "),))" << endl << endl;
+			//comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=MODES" << linearDynaModalFreq.getId() // Needed in IMPR_RESU, will be destroyed later
+			//		<< "),))" << endl << endl;
 			comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=MOSTA" << linearDynaModalFreq.getId()
 					<< "),))" << endl << endl;
 
@@ -2521,14 +2530,6 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
         }
         comm_file_ofs << "                         )," << endl;
         comm_file_ofs << "          );" << endl << endl;
-
-		comm_file_ofs << "LIMODE" << linearDynaModalFreq.getId() << "=RECU_TABLE(CO=MODES"
-				<< linearDynaModalFreq.getId() << "," << endl;
-		comm_file_ofs << "                  NOM_PARA = 'FREQ');" << endl << endl;
-
-		comm_file_ofs << "pfreq" << linearDynaModalFreq.getId() << "= LIMODE" << linearDynaModalFreq.getId()
-				<< ".EXTR_TABLE().values()['FREQ']" << endl;
-        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=LIMODE" << linearDynaModalFreq.getId() << "),))" << endl << endl;
 
         if (linearDynaModalFreq.getModalDamping() != nullptr) {
           comm_file_ofs << "AMMO_I" << linearDynaModalFreq.getId() << "=CALC_FONC_INTERP(FONCTION = FCT"
