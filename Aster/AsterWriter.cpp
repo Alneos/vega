@@ -263,7 +263,7 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
             break;
         }
     }
-    if (hasRecoveryPoints) {
+    if (false and hasRecoveryPoints) {
 
         for (const auto& elementSet : asterModel->model.elementSets) {
             if (not elementSet->isBeam()) continue; // to avoid CALCUL_37 Le TYPE_ELEMENT MECA_BARRE  ne sait pas encore calculer l'option:  SIPO_ELNO.
