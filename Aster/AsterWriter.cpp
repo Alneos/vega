@@ -2522,12 +2522,13 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
         comm_file_ofs << "                         )," << endl;
         comm_file_ofs << "          );" << endl << endl;
 
-		comm_file_ofs << "LIMODE" << linearDynaModalFreq.getId() << "=RECU_TABLE(CO=modes"
+		comm_file_ofs << "LIMODE" << linearDynaModalFreq.getId() << "=RECU_TABLE(CO=MODES"
 				<< linearDynaModalFreq.getId() << "," << endl;
 		comm_file_ofs << "                  NOM_PARA = 'FREQ');" << endl << endl;
 
 		comm_file_ofs << "pfreq" << linearDynaModalFreq.getId() << "= LIMODE" << linearDynaModalFreq.getId()
 				<< ".EXTR_TABLE().values()['FREQ']" << endl;
+        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=LIMODE" << linearDynaModalFreq.getId() << "),))" << endl << endl;
 
         if (linearDynaModalFreq.getModalDamping() != nullptr) {
           comm_file_ofs << "AMMO_I" << linearDynaModalFreq.getId() << "=CALC_FONC_INTERP(FONCTION = FCT"
@@ -2545,8 +2546,6 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
           comm_file_ofs << "AMMO" << linearDynaModalFreq.getId() << "=AMMO_T" << linearDynaModalFreq.getId()
               << ".EXTR_TABLE().values()['TOUTRESU']" << endl;
         }
-
-        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=LIMODE" << linearDynaModalFreq.getId() << "),))" << endl << endl;
 
         comm_file_ofs << "GENE" << linearDynaModalFreq.getId() << " = DYNA_VIBRA(" << endl;
         comm_file_ofs << "                   TYPE_CALCUL='HARM'," << endl;
