@@ -2528,41 +2528,42 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 
 		comm_file_ofs << "pfreq" << linearDynaModalFreq.getId() << "= LIMODE" << linearDynaModalFreq.getId()
 				<< ".EXTR_TABLE().values()['FREQ']" << endl;
+
+        if (linearDynaModalFreq.getModalDamping() != nullptr) {
+          comm_file_ofs << "AMMO_I" << linearDynaModalFreq.getId() << "=CALC_FONC_INTERP(FONCTION = FCT"
+              << setfill('0') << setw(5)
+              << linearDynaModalFreq.getModalDamping()->getFunctionTable()->getId() << ","
+              << endl;
+          comm_file_ofs << "                         VALE_PARA = pfreq" << linearDynaModalFreq.getId() << endl;
+          comm_file_ofs << "                         );" << endl << endl;
+
+          comm_file_ofs << "AMMO_T" << linearDynaModalFreq.getId()
+              << "=CREA_TABLE(FONCTION=_F(FONCTION = AMMO_I" << linearDynaModalFreq.getId()
+              << ")," << endl;
+          comm_file_ofs << "                   );" << endl << endl;
+
+          comm_file_ofs << "AMMO" << linearDynaModalFreq.getId() << "=AMMO_T" << linearDynaModalFreq.getId()
+              << ".EXTR_TABLE().values()['TOUTRESU']" << endl;
+        }
+
         comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=LIMODE" << linearDynaModalFreq.getId() << "),))" << endl << endl;
 
-    if (linearDynaModalFreq.getModalDamping() != nullptr) {
-      comm_file_ofs << "AMMO_I" << linearDynaModalFreq.getId() << "=CALC_FONC_INTERP(FONCTION = FCT"
-          << setfill('0') << setw(5)
-          << linearDynaModalFreq.getModalDamping()->getFunctionTable()->getId() << ","
-          << endl;
-      comm_file_ofs << "                         VALE_PARA = pfreq" << linearDynaModalFreq.getId() << endl;
-      comm_file_ofs << "                         );" << endl << endl;
-
-      comm_file_ofs << "AMMO_T" << linearDynaModalFreq.getId()
-          << "=CREA_TABLE(FONCTION=_F(FONCTION = AMMO_I" << linearDynaModalFreq.getId()
-          << ")," << endl;
-      comm_file_ofs << "                   );" << endl << endl;
-
-      comm_file_ofs << "AMMO" << linearDynaModalFreq.getId() << "=AMMO_T" << linearDynaModalFreq.getId()
-          << ".EXTR_TABLE().values()['TOUTRESU']" << endl;
-    }
-
-    comm_file_ofs << "GENE" << linearDynaModalFreq.getId() << " = DYNA_VIBRA(" << endl;
-    comm_file_ofs << "                   TYPE_CALCUL='HARM'," << endl;
-    comm_file_ofs << "                   BASE_CALCUL='GENE'," << endl;
-    comm_file_ofs << "                   MATR_MASS  = MASSG" << linearDynaModalFreq.getId() << ","
-            << endl;
-    comm_file_ofs << "                   MATR_RIGI  = RIGIG" << linearDynaModalFreq.getId() << ","
-            << endl;
-    if (linearDynaModalFreq.getModalDamping() != nullptr) {
-        comm_file_ofs << "                   AMOR_MODAL = _F(AMOR_REDUIT = AMMO"
-            << linearDynaModalFreq.getId() << ",)," << endl;
-    } else {
-        // LD MATR_AMOR nullifies AMOR_MODAL
-        comm_file_ofs << "                   MATR_AMOR  = AMORG" << linearDynaModalFreq.getId() << ","
-            << endl;
-    }
-    comm_file_ofs << "                   LIST_FREQ  = LST" << setfill('0') << setw(5)
+        comm_file_ofs << "GENE" << linearDynaModalFreq.getId() << " = DYNA_VIBRA(" << endl;
+        comm_file_ofs << "                   TYPE_CALCUL='HARM'," << endl;
+        comm_file_ofs << "                   BASE_CALCUL='GENE'," << endl;
+        comm_file_ofs << "                   MATR_MASS  = MASSG" << linearDynaModalFreq.getId() << ","
+                << endl;
+        comm_file_ofs << "                   MATR_RIGI  = RIGIG" << linearDynaModalFreq.getId() << ","
+                << endl;
+        if (linearDynaModalFreq.getModalDamping() != nullptr) {
+            comm_file_ofs << "                   AMOR_MODAL = _F(AMOR_REDUIT = AMMO"
+                << linearDynaModalFreq.getId() << ",)," << endl;
+        } else {
+            // LD MATR_AMOR nullifies AMOR_MODAL
+            comm_file_ofs << "                   MATR_AMOR  = AMORG" << linearDynaModalFreq.getId() << ","
+                << endl;
+        }
+        comm_file_ofs << "                   LIST_FREQ  = LST" << setfill('0') << setw(5)
         << linearDynaModalFreq.getExcitationFrequencies()->getValue()->getId() << "," << endl;
 		comm_file_ofs << "                   EXCIT      = (" << endl;
 		for (const auto& loadSet : linearDynaModalFreq.getLoadSets()) {
