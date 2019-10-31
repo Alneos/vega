@@ -431,6 +431,15 @@ void AsterWriter::writeAnalyses() {
         if (analysis->type == Analysis::Type::LINEAR_DYNA_MODAL_FREQ) {
             comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=MODES" << analysis->getId() << "),))" << endl << endl;
         }
+        if (analysis->isModal()) {
+            comm_file_ofs << "DETRUIRE(CONCEPT=(" << endl;
+            comm_file_ofs << "    _F(NOM=RIGI" << analysis->getId() << ")," << endl;
+            if (analysis->type != Analysis::Type::LINEAR_BUCKLING) {
+                comm_file_ofs << "    _F(NOM=MASS" << analysis->getId() << ")," << endl;
+                comm_file_ofs << "    _F(NOM=AMOR" << analysis->getId() << ")," << endl;
+            }
+            comm_file_ofs << "))" << endl << endl;
+        }
 	}
 }
 
@@ -2464,8 +2473,10 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 			comm_file_ofs << "                        );" << endl << endl;
 			//comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=MODES" << linearDynaModalFreq.getId() // Needed in IMPR_RESU, will be destroyed later
 			//		<< "),))" << endl << endl;
-			comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=MOSTA" << linearDynaModalFreq.getId()
-					<< "),))" << endl << endl;
+            comm_file_ofs << "DETRUIRE(CONCEPT=(" << endl;
+            comm_file_ofs << "    _F(NOM=MOSTA" << analysis.getId() << ")," << endl;
+            comm_file_ofs << "    _F(NOM=NUMDDL" << analysis.getId() << ")," << endl;
+            comm_file_ofs << "))" << endl << endl;
 
 			comm_file_ofs << "modes" << linearDynaModalFreq.getId() << "=" << "RESVE"
 					<< linearDynaModalFreq.getId() << endl;
@@ -2589,11 +2600,26 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 		comm_file_ofs << "                   #SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS',NPREC=8)," << endl; // MUMPS: Error in function orderMinPriority no valid number of stages in multisector (#stages = 2)
 		comm_file_ofs << "                   );" << endl << endl;
 
-		comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=MASSG" << analysis.getId() << "),))" << endl << endl;
-		comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=RIGIG" << analysis.getId() << "),))" << endl << endl;
+		comm_file_ofs << "DETRUIRE(CONCEPT=(" << endl;
+		comm_file_ofs << "    _F(NOM=MASSG" << analysis.getId() << ")," << endl;
+		comm_file_ofs << "    _F(NOM=RIGIG" << analysis.getId() << ")," << endl;
         if (linearDynaModalFreq.getModalDamping() == nullptr) {
-            comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=AMORG" << analysis.getId() << "),))" << endl << endl;
+            comm_file_ofs << "    _F(NOM=AMORG" << analysis.getId() << ")," << endl;
         }
+        if (linearDynaModalFreq.residual_vector) {
+            comm_file_ofs << "    _F(NOM=RESVE" << analysis.getId() << ")," << endl;
+        }
+		for (const auto& loadSet : linearDynaModalFreq.getLoadSets()) {
+			for (const auto& loading : loadSet->getLoadings()) {
+				if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
+					const auto& dynamicExcitation =
+							dynamic_pointer_cast<DynamicExcitation>(loading);
+				    comm_file_ofs << "    _F(NOM=VG" << analysis.getId() << "_"
+                            << dynamicExcitation->getId() << ")," << endl;
+				}
+			}
+		}
+		comm_file_ofs << "))" << endl << endl;
 
         comm_file_ofs << "RESU" << linearDynaModalFreq.getId() << " = REST_GENE_PHYS(RESU_GENE = GENE"
                 << linearDynaModalFreq.getId() << "," << endl;
@@ -2633,10 +2659,10 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
         comm_file_ofs << "RESU" << linearBuckling.getId() << " = NORM_MODE(reuse=RESU"<< linearBuckling.getId() << ",MODE=RESU" << linearBuckling.getId() << ",NORME='TRAN_ROTA',)" << endl;
         comm_file_ofs << "TBCRT" << linearBuckling.getId() << " = RECU_TABLE(CO=RESU" << linearBuckling.getId() << ",NOM_PARA='CHAR_CRIT')" << endl;
         comm_file_ofs << "IMPR_TABLE(TABLE=TBCRT" << analysis.getId() << ")" << endl << endl;
-        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=FSIG" << analysis.getId() << "),))" << endl << endl;
-        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=RIGI" << analysis.getId() << "),))" << endl << endl;
-        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=RIGE" << analysis.getId() << "),))" << endl << endl;
-        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=TBCRT" << analysis.getId() << "),))" << endl << endl;
+        comm_file_ofs << "DETRUIRE(CONCEPT=(" << endl;
+        comm_file_ofs << "    _F(NOM=FSIG" << analysis.getId() << ")," << endl;
+        comm_file_ofs << "    _F(NOM=TBCRT" << analysis.getId() << ")," << endl;
+        comm_file_ofs << "))" << endl << endl;
         linearBuckling.markAsWritten();
         break;
     }
