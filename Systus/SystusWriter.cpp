@@ -2549,7 +2549,9 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
         if (cellGroup->empty())
             continue;
         nbGroups++;
-        osgr << nbGroups << " \"" << cellGroup->getName() << "\" 2 0 ";
+        string sGroupName= cellGroup->getName();
+        replace(sGroupName.begin(), sGroupName.end(), ' ', '_');
+        osgr << nbGroups << " " << sGroupName << " 2 0 ";
         osgr << "\"PART_ID "<< getPartId(cellGroup->getName(), pids) << "\"  \"\"  ";
         osgr << "\"PART built in VEGA from "<< cellGroup->getComment() << "\"";
         for (const auto& cell : cellGroup->getCells())
@@ -2562,7 +2564,9 @@ void SystusWriter::writeGroups(const SystusModel& systusModel, ostream& out) {
         if (nodeGroup->empty())
             continue;
         nbGroups++;
-        osgr << nbGroups << " \"" << nodeGroup->getName() << "\" 1 0 ";
+        string sGroupName= nodeGroup->getName();
+        replace(sGroupName.begin(), sGroupName.end(), ' ', '_');
+        osgr << nbGroups << " " << sGroupName << " 1 0 ";
         osgr << "\"No method\"  \"\"  ";
         osgr << "\"Group built in VEGA from "<< nodeGroup->getComment() << "\"";
         for (int id : nodeGroup->getNodeIds())
