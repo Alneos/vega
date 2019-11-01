@@ -428,8 +428,13 @@ void AsterWriter::writeAnalyses() {
 		if (not usedInNext) {
             comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=RESU" << analysis->getId() << "),))" << endl << endl;
 		}
+
         if (analysis->type == Analysis::Type::LINEAR_DYNA_MODAL_FREQ) {
-            comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=MODES" << analysis->getId() << "),))" << endl << endl;
+            comm_file_ofs << "DETRUIRE(CONCEPT=(" << endl;
+            comm_file_ofs << "    _F(NOM=MODES" << analysis->getId() << ")," << endl;
+            comm_file_ofs << "    _F(NOM=NUMDDL" << analysis->getId() << ")," << endl;
+            comm_file_ofs << "    _F(NOM=GENE" << analysis->getId() << ")," << endl;
+            comm_file_ofs << "))" << endl << endl;
         }
         if (analysis->isModal()) {
             comm_file_ofs << "DETRUIRE(CONCEPT=(" << endl;
@@ -437,6 +442,8 @@ void AsterWriter::writeAnalyses() {
             if (analysis->type != Analysis::Type::LINEAR_BUCKLING) {
                 comm_file_ofs << "    _F(NOM=MASS" << analysis->getId() << ")," << endl;
                 comm_file_ofs << "    _F(NOM=AMOR" << analysis->getId() << ")," << endl;
+            } else {
+                comm_file_ofs << "    _F(NOM=RIGE" << analysis->getId() << ")," << endl;
             }
             comm_file_ofs << "))" << endl << endl;
         }
@@ -2475,7 +2482,6 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 			//		<< "),))" << endl << endl;
             comm_file_ofs << "DETRUIRE(CONCEPT=(" << endl;
             comm_file_ofs << "    _F(NOM=MOSTA" << analysis.getId() << ")," << endl;
-            comm_file_ofs << "    _F(NOM=NUMDDL" << analysis.getId() << ")," << endl;
             comm_file_ofs << "))" << endl << endl;
 
 			comm_file_ofs << "modes" << linearDynaModalFreq.getId() << "=" << "RESVE"
@@ -2626,8 +2632,6 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
         comm_file_ofs << "                       TOUT_ORDRE = 'OUI'," << endl;
         comm_file_ofs << "                       NOM_CHAM = ('DEPL','VITE','ACCE')," << endl;
         comm_file_ofs << "                       );" << endl << endl;
-
-        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=GENE" << analysis.getId() << "),))" << endl << endl;
 
         linearDynaModalFreq.markAsWritten();
 		break;
