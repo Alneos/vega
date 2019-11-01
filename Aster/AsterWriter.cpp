@@ -430,10 +430,29 @@ void AsterWriter::writeAnalyses() {
 		}
 
         if (analysis->type == Analysis::Type::LINEAR_DYNA_MODAL_FREQ) {
+            const auto& linearDynaModalFreq = static_pointer_cast<LinearDynaModalFreq>(analysis);
             comm_file_ofs << "DETRUIRE(CONCEPT=(" << endl;
             comm_file_ofs << "    _F(NOM=MODES" << analysis->getId() << ")," << endl;
             comm_file_ofs << "    _F(NOM=NUMDDL" << analysis->getId() << ")," << endl;
             comm_file_ofs << "    _F(NOM=GENE" << analysis->getId() << ")," << endl;
+            comm_file_ofs << "    _F(NOM=MASSG" << analysis->getId() << ")," << endl;
+            comm_file_ofs << "    _F(NOM=RIGIG" << analysis->getId() << ")," << endl;
+            if (linearDynaModalFreq->getModalDamping() == nullptr) {
+                comm_file_ofs << "    _F(NOM=AMORG" << analysis->getId() << ")," << endl;
+            }
+            if (linearDynaModalFreq->residual_vector) {
+                comm_file_ofs << "    _F(NOM=RESVE" << analysis->getId() << ")," << endl;
+            }
+            for (const auto& loadSet : linearDynaModalFreq->getLoadSets()) {
+                for (const auto& loading : loadSet->getLoadings()) {
+                    if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
+                        const auto& dynamicExcitation =
+                                dynamic_pointer_cast<DynamicExcitation>(loading);
+                        comm_file_ofs << "    _F(NOM=VG" << analysis->getId() << "_"
+                                << dynamicExcitation->getId() << ")," << endl;
+                    }
+                }
+            }
             comm_file_ofs << "))" << endl << endl;
         }
         if (analysis->isModal()) {
@@ -2549,20 +2568,25 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
         comm_file_ofs << "          );" << endl << endl;
 
         if (linearDynaModalFreq.getModalDamping() != nullptr) {
-          comm_file_ofs << "AMMO_I" << linearDynaModalFreq.getId() << "=CALC_FONC_INTERP(FONCTION = FCT"
+            comm_file_ofs << "AMMO_I" << linearDynaModalFreq.getId() << "=CALC_FONC_INTERP(FONCTION = FCT"
               << setfill('0') << setw(5)
               << linearDynaModalFreq.getModalDamping()->getFunctionTable()->getId() << ","
               << endl;
-          comm_file_ofs << "                         VALE_PARA = pfreq" << linearDynaModalFreq.getId() << endl;
-          comm_file_ofs << "                         );" << endl << endl;
+            comm_file_ofs << "                         VALE_PARA = pfreq" << linearDynaModalFreq.getId() << endl;
+            comm_file_ofs << "                         );" << endl << endl;
 
-          comm_file_ofs << "AMMO_T" << linearDynaModalFreq.getId()
+            comm_file_ofs << "AMMO_T" << linearDynaModalFreq.getId()
               << "=CREA_TABLE(FONCTION=_F(FONCTION = AMMO_I" << linearDynaModalFreq.getId()
               << ")," << endl;
-          comm_file_ofs << "                   );" << endl << endl;
+            comm_file_ofs << "                   );" << endl << endl;
 
-          comm_file_ofs << "AMMO" << linearDynaModalFreq.getId() << "=AMMO_T" << linearDynaModalFreq.getId()
+            comm_file_ofs << "AMMO" << linearDynaModalFreq.getId() << "=AMMO_T" << linearDynaModalFreq.getId()
               << ".EXTR_TABLE().values()['TOUTRESU']" << endl;
+
+            comm_file_ofs << "DETRUIRE(CONCEPT=(" << endl;
+            comm_file_ofs << "    _F(NOM=AMMO_I" << analysis.getId() << ")," << endl;
+            comm_file_ofs << "    _F(NOM=AMMO_T" << analysis.getId() << ")," << endl;
+            comm_file_ofs << "))" << endl << endl;
         }
 
         comm_file_ofs << "GENE" << linearDynaModalFreq.getId() << " = DYNA_VIBRA(" << endl;
@@ -2605,27 +2629,6 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 		comm_file_ofs << "                                 )," << endl;
 		comm_file_ofs << "                   #SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS',NPREC=8)," << endl; // MUMPS: Error in function orderMinPriority no valid number of stages in multisector (#stages = 2)
 		comm_file_ofs << "                   );" << endl << endl;
-
-		comm_file_ofs << "DETRUIRE(CONCEPT=(" << endl;
-		comm_file_ofs << "    _F(NOM=MASSG" << analysis.getId() << ")," << endl;
-		comm_file_ofs << "    _F(NOM=RIGIG" << analysis.getId() << ")," << endl;
-        if (linearDynaModalFreq.getModalDamping() == nullptr) {
-            comm_file_ofs << "    _F(NOM=AMORG" << analysis.getId() << ")," << endl;
-        }
-        if (linearDynaModalFreq.residual_vector) {
-            comm_file_ofs << "    _F(NOM=RESVE" << analysis.getId() << ")," << endl;
-        }
-		for (const auto& loadSet : linearDynaModalFreq.getLoadSets()) {
-			for (const auto& loading : loadSet->getLoadings()) {
-				if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
-					const auto& dynamicExcitation =
-							dynamic_pointer_cast<DynamicExcitation>(loading);
-				    comm_file_ofs << "    _F(NOM=VG" << analysis.getId() << "_"
-                            << dynamicExcitation->getId() << ")," << endl;
-				}
-			}
-		}
-		comm_file_ofs << "))" << endl << endl;
 
         comm_file_ofs << "RESU" << linearDynaModalFreq.getId() << " = REST_GENE_PHYS(RESU_GENE = GENE"
                 << linearDynaModalFreq.getId() << "," << endl;
