@@ -204,6 +204,10 @@ string NastranParser::parseSubcase(NastranTokenizer& tok, Model& model,
                 line+=sep+tok.nextString(true,"");
                 sep="_";
             }
+            string nextKeywordWithoutOptions = nextKeyword.substr(0, nextKeyword.find('('));
+            if (ACCEPTED_CASE_CONTROL_COMMANDS.find(nextKeywordWithoutOptions) == ACCEPTED_CASE_CONTROL_COMMANDS.end()) {
+                handleParsingWarning("Unknown case control command: " + nextKeywordWithoutOptions + " in subcase " + to_string(subCaseId), tok, model);
+            }
             context[nextKeyword] = line;
             if (model.configuration.logLevel >= LogLevel::TRACE) {
                 cout << "Put into context :" << nextKeyword << "=" << line << endl;
@@ -241,6 +245,10 @@ string NastranParser::parseSubcom(NastranTokenizer& tok, Model& model,
             while (tok.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_FIELD) {
                 line+=sep+tok.nextString(true,"");
                 sep="_";
+            }
+            string nextKeywordWithoutOptions = nextKeyword.substr(0, nextKeyword.find('('));
+            if (ACCEPTED_CASE_CONTROL_COMMANDS.find(nextKeywordWithoutOptions) == ACCEPTED_CASE_CONTROL_COMMANDS.end()) {
+                handleParsingWarning("Unknown case control command: " + nextKeywordWithoutOptions + " in subcom " + to_string(subComId), tok, model);
             }
             context[nextKeyword] = line;
         } else {
@@ -455,6 +463,10 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                         context[keyword] = parvalparts[1];
                     } else {
                         trim(parts[0]);boost::to_upper(parts[0]);
+                        string partWithoutOptions = parts[0].substr(0, parts[0].find('('));
+                        if (ACCEPTED_CASE_CONTROL_COMMANDS.find(partWithoutOptions) == ACCEPTED_CASE_CONTROL_COMMANDS.end()) {
+                            handleParsingWarning("Unknown case control command: " + partWithoutOptions + " in executive section", tok, model);
+                        }
                         context[parts[0]] = parts[1];
                     }
                 }
@@ -641,7 +653,10 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
     shared_ptr<Analysis> analysis = nullptr;
 
     // Finding label
-    string labelAnalysis="Analysis_"+to_string(analysis_id);
+    string labelAnalysis="";
+    if (analysis_id != Analysis::NO_ORIGINAL_ID) {
+        labelAnalysis += "Analysis_" + to_string(analysis_id);
+    }
     const auto& it1 = context.find("LABEL");
     if (it1 != context.end())
         labelAnalysis = trim_copy(it1->second);
@@ -848,7 +863,10 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
 void NastranParser::addCombinationAnalysis(NastranTokenizer& tok, Model& model, map<string, string> &context,
         int analysis_id) {
     // Finding label
-    string labelAnalysis="Analysis_"+to_string(analysis_id);
+    string labelAnalysis = "";
+    if (analysis_id != Analysis::NO_ORIGINAL_ID) {
+        labelAnalysis += "Analysis_" + to_string(analysis_id);
+    }
     const auto& label = context.find("LABEL");
     if (label != context.end())
         labelAnalysis = trim_copy(label->second);

@@ -2438,6 +2438,7 @@
 		<Unit filename="testdata/unitTest/nastranparser/set_thru.nas" />
 		<Unit filename="testdata/unitTest/nastranparser/test1.nas" />
 		<Unit filename="testdata/unitTest/nastranparser/wrong_param.nas" />
+		<Unit filename="testdata/unitTest/nastranparser/wrong_param2.nas" />
 		<Unit filename="testdata/unitTest/optistructparser/contact.nas" />
 		<Unit filename="testdata/unitTest/optistructparser/contact2.nas" />
 		<Unit filename="testdata/unitTest/optistructparser/pbushrigid.nas" />

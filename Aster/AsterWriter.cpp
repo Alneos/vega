@@ -2633,7 +2633,7 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
         comm_file_ofs << "RESU" << linearDynaModalFreq.getId() << " = REST_GENE_PHYS(RESU_GENE = GENE"
                 << linearDynaModalFreq.getId() << "," << endl;
         comm_file_ofs << "                       TOUT_ORDRE = 'OUI'," << endl;
-        comm_file_ofs << "                       NOM_CHAM = ('DEPL','VITE','ACCE')," << endl;
+        comm_file_ofs << "                       NOM_CHAM = ('DEPL',)," << endl; //,'VITE','ACCE')," << endl;
         comm_file_ofs << "                       );" << endl << endl;
 
         linearDynaModalFreq.markAsWritten();

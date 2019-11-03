@@ -863,6 +863,85 @@ private:
         "PRGPST",  // Printout command
         "TINY"     // Printout command
     };
+
+    struct fourCharsComparator {
+        bool operator()(const std::string& a, const std::string& b) const {
+            return a.compare(0, 4, b, 0, 4) < 0;
+        }
+    };
+
+    // See 4.2 Case Control Command Descriptions of the Nastran Quick Reference guide page 192
+    std::set<std::string, fourCharsComparator> ACCEPTED_CASE_CONTROL_COMMANDS = {
+        "ANALYSIS", // Specifies the type of analysis being performed for the current subcase.
+        "ASSIGN", // Assigns physical file names or other properties to DBset members or special FORTRAN files that are used by other FMS statements or DMAP modules.
+        "AUTOSPC", // Requests that stiffness singularities and near singularities be automatically constrained via single or multipoint constraints.
+        "B2GG", // Selects direct input damping matrices.
+        "BCONTACT", // Requests line contact output
+        "DESGLB", // IGNORED: Selects the design constraints to be applied at the global level in a design optimization task.
+        "DESOBJ", // IGNORED: Selects the DRESP1 or DRESP2 entry to be used as the design objective.
+        "DESSUB", // IGNORED: Selects the design constraints to be used in a design optimization task for the current subcase.
+        "DESVAR", // IGNORED: Selects a set of DESVAR entries for the design set to be used.
+        "DRSPAN", // IGNORED: Selects a set of DRESP1 entries for the current subcase that are to be used in a DRESP2 or DRESP3 response that spans subcase.
+        "DISP", // Requests the form and type of displacement or pressure vector output.
+        "DLOA", // Selects a dynamic load or an acoustic source to be applied in a transient or frequency response problem.
+        "ECHO", // IGNORED: Controls echo (i.e., printout) of the Bulk Data.
+        "ELFORCE", // equivalent command to FORCE
+        "ELSTRESS", // equivalent command to STRESS
+        "ESE", // IGNORED: Requests the output of the strain energy in selected elements.
+        "FORCE", // IGNORED: Requests the form and type of element force output or particle velocity output in coupled fluid-structural analysis.
+        "FREQUENCY", // Selects the set of forcing frequencies to be solved in frequency response problems.
+        "GPFORCE", // IGNORED: Requests grid point force balance at selected grid points.
+        "GPSTRAIN", // IGNORED: Requests grid points strains for printing only.
+        "GPSTRESS", // IGNORED: Requests grid point stresses for printing only.
+        "K2GG", // Selects direct input stiffness matrices.
+        "LABEL", // Defines a character string that will appear on the third heading line of each page of printer output.
+        "LOAD", // Selects an external static loading set.
+        "LOADSET", // Selects a sequence of static load sets to be applied to the structural model. The load sets may be referenced by dynamic load commands.
+        "MAXIMUM DEFORM", // IGNORED: Defines the magnification of the maximum displacement. All other displacements are scaled accordingly.
+        "MAXLINES", // IGNORED: Sets the maximum number of output lines.
+        "M2GG", // Selects direct input mass matrices.
+        "MEFFMASS", // IGNORED: Requests the output of the modal effective mass, participation factors, and modal effective mass fractions in normal modes analysis.
+        "METHOD", // Selects the real eigenvalue extraction parameters.
+        "MODTRAK", // IGNORED: Selects mode tracking options in design optimization (SOL 200).
+        "MPC", // Selects a multipoint constraint set.
+        "MPCFORCES", // IGNORED: Requests the form and type of multipoint force of constraint vector output.
+        "NLPARM", // Selects the parameters used for nonlinear static analysis.
+        "OLOAD", // IGNORED: Requests the form and type of applied load vector output.
+        "OUTPUT", // IGNORED: Delimits the various types of commands for the structure plotter, curve plotter, grid point stress, and MSGSTRESS.
+        "PRESSURE", // IGNORED: Equivalent to DISPLACEMENT
+        "RESVEC", // Specifies options for and calculation of residual vectors.
+        "SDAMPING", // Requests modal damping as a function of natural frequency in modal solutions or viscoelastic materials as a function of frequency in direct frequency response analysis.
+        "SET", // Defines a set of element identification numbers only for the SURFACE and VOLUME commands (grid point stress) or the OUTRCV Bulk Data entry (p-element data recovery).
+        "SOL", //
+        "SPC", // Selects a single-point constraint set to be applied.
+        "SPCFORCES", // IGNORED: Requests the form and type of single-point force of constraint vector output.
+        "STRAIN", // IGNORED: Requests the form and type of strain output.
+        "STRESS", // Requests the form and type of element stress output.
+        "STRFIELD", // IGNORED: Requests the computation of grid point stresses for graphical postprocessing and mesh stress discontinuities.
+        "SUBSEQ", // Gives the coefficients for forming a linear combination of the previous subcases.
+        "SUBTITLE", // Defines a subtitle that will appear on the second heading line of each page of printer output.
+        "TITLE", // Defines a character string that will appear on the first heading line of each page of printer output.
+        "VECTOR", // IGNORED: Equivalent to DISPLACEMENT,
+        "XLOG", // IGNORED: Selects logarithmic or linear x-axis.
+        "XBLOG", // IGNORED: Selects logarithmic or linear x-axis.
+        "XTLOG", // IGNORED: Selects logarithmic or linear x-axis.
+        "XTITLE", // IGNORED: Defines a character string that will appear along the x-axis.
+        "XBTITLE", // IGNORED: Defines a character string that will appear along the x-axis.
+        "XTTITLE", // IGNORED: Defines a character string that will appear along the x-axis.
+        "XGRID LINES", // IGNORED: Controls the drawing of the grid lines
+        "XBGRID LINES", // IGNORED: Controls the drawing of the grid lines
+        "XTGRID LINES", // IGNORED: Controls the drawing of the grid lines
+        "XYPLOT", // IGNORED: Generate X-Y plots for a plotter
+        "YGRID LINES", // IGNORED: Controls the drawing of the grid lines
+        "YLOG", // IGNORED: Selects logarithmic or linear y-axis.
+        "YBLOG", // IGNORED: Selects logarithmic or linear y-axis.
+        "YTLOG", // IGNORED: Selects logarithmic or linear y-axis.
+        "YBGRID LINES", // IGNORED: Controls the drawing of the grid lines
+        "YTITLE", // IGNORED: Defines a character string that will appear along the y-axis.
+        "YBTITLE", // IGNORED: Defines a character string that will appear along the y-axis.
+        "YTTITLE", // IGNORED: Defines a character string that will appear along the y-axis.
+        "YTGRID LINES", // IGNORED: Controls the drawing of the grid lines
+    };
 public:
     NastranParser() = default;
     NastranParser(const NastranParser& that) = delete;
