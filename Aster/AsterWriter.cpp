@@ -448,6 +448,8 @@ void AsterWriter::writeAnalyses() {
                     if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
                         const auto& dynamicExcitation =
                                 dynamic_pointer_cast<DynamicExcitation>(loading);
+                        comm_file_ofs << "    _F(NOM=FX" << analysis->getId() << "_"
+                                << dynamicExcitation->getId() << ")," << endl;
                         comm_file_ofs << "    _F(NOM=VG" << analysis->getId() << "_"
                                 << dynamicExcitation->getId() << ")," << endl;
                     }
