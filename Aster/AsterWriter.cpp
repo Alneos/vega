@@ -1984,11 +1984,14 @@ void AsterWriter::writeAssemblage( Analysis& analysis) {
         comm_file_ofs << "           CHAM_MATER=CHMAT," << endl;
     }
     comm_file_ofs << "           CARA_ELEM=CAEL," << endl;
-    comm_file_ofs << "           CHARGE=(" << endl;
-    for (const auto& constraintSet : analysis.getConstraintSets()) {
-        comm_file_ofs << "                   BL" << constraintSet->getId() << "," << endl;
+    const auto& constraintSets = analysis.getConstraintSets();
+    if (not constraintSets.empty()) {
+        comm_file_ofs << "           CHARGE=(" << endl;
+        for (const auto& constraintSet : analysis.getConstraintSets()) {
+            comm_file_ofs << "                   BL" << constraintSet->getId() << "," << endl;
+        }
+        comm_file_ofs << "                   )," << endl;
     }
-    comm_file_ofs << "                   )," << endl;
     comm_file_ofs << "           NUME_DDL=CO('NUMDDL" << analysis.getId() << "')," << endl;
     comm_file_ofs << "           MATR_ASSE=(_F(OPTION='RIGI_MECA', MATRICE=CO('RIGI"
             << analysis.getId() << "'),)," << endl;
