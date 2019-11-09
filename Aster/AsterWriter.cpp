@@ -1015,7 +1015,7 @@ void AsterWriter::writeAffeCaraElem() {
 		const auto& composites = asterModel->model.elementSets.filter(ElementSet::Type::COMPOSITE);
 		comm_file_ofs << "                    # writing " << shells.size()+composites.size() << " shells (ou composites)" << endl;
 		if (not (shells.empty() and composites.empty())) {
-			calc_sigm = true;
+			// calc_sigm = true; // disabling for now (see VSLX0004-19)
 			comm_file_ofs << "                    COQUE=(" << endl;
 			for (const auto& elementSet : shells) {
                 const auto& shell = static_pointer_cast<Shell>(elementSet);
