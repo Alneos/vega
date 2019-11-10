@@ -1561,10 +1561,11 @@ void Model::makeCellsFromLMPC(){
         for (const auto& constraintSet : analysis->getConstraintSets()) {
 
             // Group lmpcs by nodePositions
-            map<vector<int>, vector<shared_ptr<LinearMultiplePointConstraint>>> lmpcsByNodepositions;
+            map<set<int>, vector<shared_ptr<LinearMultiplePointConstraint>>> lmpcsByNodepositions;
             for (const auto& constraint : constraintSet->getConstraintsByType(Constraint::Type::LMPC)) {
                 const auto& lmpc = static_pointer_cast<LinearMultiplePointConstraint>(constraint);
-                const auto& sortedNodePositions = lmpc->sortNodePositionByCoefs();
+                //const auto& sortedNodePositions = lmpc->sortNodePositionByCoefs();
+                const auto& sortedNodePositions = lmpc->nodePositions();
                 const auto& it = lmpcsByNodepositions.find(sortedNodePositions);
                 if (it == lmpcsByNodepositions.end()) {
                     lmpcsByNodepositions[sortedNodePositions] = {lmpc};
