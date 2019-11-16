@@ -238,21 +238,20 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
         comm_file_ofs << "),)" << endl << endl;
     }
 
-    comm_file_ofs << "unite=DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
+    comm_file_ofs << "unit" << analysis->getId() << "=DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
     comm_file_ofs << "             FICHIER='REPE_OUT/tbresu_" << analysis->getId() << ".csv')" << endl
             << endl;
 
     comm_file_ofs << "IMPR_TABLE(TABLE=RETB" << analysis->getId() << "," << endl;
     comm_file_ofs << "           FORMAT='TABLEAU'," << endl;
-    comm_file_ofs << "           UNITE=unite," << endl;
+    comm_file_ofs << "           UNITE=unit" << analysis->getId() << "," << endl;
     comm_file_ofs << "           SEPARATEUR=' ,'," << endl;
     comm_file_ofs << "           TITRE='RESULTS',)" << endl << endl;
 
-    comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=RETB" << analysis->getId() << "),))" << endl << endl;
-
+    destroyableConcepts.push_back("RETB" + to_string(analysis->getId()));
     comm_file_ofs << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
-    comm_file_ofs << "             UNITE=unite,)" << endl << endl;
-    comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=unite),))" << endl << endl;
+    comm_file_ofs << "             UNITE=unit" << analysis->getId() << ",)" << endl << endl;
+    destroyableConcepts.push_back("unit" + to_string(analysis->getId()));
 
     bool hasRecoveryPoints = false;
     for (const auto& elementSet : asterModel->model.elementSets) {
@@ -320,8 +319,7 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
         comm_file_ofs << "           SEPARATEUR=' ,'," << endl;
         comm_file_ofs << "           TITRE='RESULTS',)" << endl << endl;
 
-        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=RCTB" << analysis->getId() << "),))" << endl << endl;
-
+        destroyableConcepts.push_back("RCTB" + to_string(analysis->getId()));
         comm_file_ofs << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
         comm_file_ofs << "             UNITE=" << unit << ")" << endl << endl;
     }
@@ -331,7 +329,7 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
 void AsterWriter::writeAnalyses() {
 	double debut = 0;
 	for (const auto& analysis : asterModel->model.analyses) {
-		debut = writeAnalysis(*analysis, debut);
+		debut = writeAnalysis(analysis, debut);
 
 		if (calc_sigm) {
 			comm_file_ofs << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
@@ -405,6 +403,10 @@ void AsterWriter::writeAnalyses() {
 
 		bool usedInNext = false;
 		for (const auto& otherAnalysis : asterModel->model.analyses) {
+            if (otherAnalysis->canReuse(analysis)) {
+                usedInNext = true;
+                break;
+            }
             if (otherAnalysis->type == Analysis::Type::NONLINEAR_MECA_STAT and otherAnalysis->previousAnalysis == analysis) {
                 usedInNext = true;
                 break;
@@ -426,48 +428,19 @@ void AsterWriter::writeAnalyses() {
             }
 		}
 		if (not usedInNext) {
-            comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=RESU" << analysis->getId() << "),))" << endl << endl;
+            destroyableConcepts.push_back("RESU" + to_string(analysis->getId()));
 		}
 
-        if (analysis->type == Analysis::Type::LINEAR_DYNA_MODAL_FREQ) {
-            const auto& linearDynaModalFreq = static_pointer_cast<LinearDynaModalFreq>(analysis);
+		if (not destroyableConcepts.empty()) {
             comm_file_ofs << "DETRUIRE(CONCEPT=(" << endl;
-            comm_file_ofs << "    _F(NOM=MODES" << analysis->getId() << ")," << endl;
-            comm_file_ofs << "    _F(NOM=NUMDDL" << analysis->getId() << ")," << endl;
-            comm_file_ofs << "    _F(NOM=GENE" << analysis->getId() << ")," << endl;
-            comm_file_ofs << "    _F(NOM=MASSG" << analysis->getId() << ")," << endl;
-            comm_file_ofs << "    _F(NOM=RIGIG" << analysis->getId() << ")," << endl;
-            if (linearDynaModalFreq->getModalDamping() == nullptr) {
-                comm_file_ofs << "    _F(NOM=AMORG" << analysis->getId() << ")," << endl;
-            }
-            if (linearDynaModalFreq->residual_vector) {
-                comm_file_ofs << "    _F(NOM=RESVE" << analysis->getId() << ")," << endl;
-            }
-            for (const auto& loadSet : linearDynaModalFreq->getLoadSets()) {
-                for (const auto& loading : loadSet->getLoadings()) {
-                    if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
-                        const auto& dynamicExcitation =
-                                dynamic_pointer_cast<DynamicExcitation>(loading);
-                        comm_file_ofs << "    _F(NOM=FX" << analysis->getId() << "_"
-                                << dynamicExcitation->getId() << ")," << endl;
-                        comm_file_ofs << "    _F(NOM=VG" << analysis->getId() << "_"
-                                << dynamicExcitation->getId() << ")," << endl;
-                    }
-                }
+            for (const auto& destroyableConcept : destroyableConcepts) {
+                comm_file_ofs << "    _F(NOM=" << destroyableConcept << ")," << endl;
             }
             comm_file_ofs << "))" << endl << endl;
-        }
-        if (analysis->isModal()) {
-            comm_file_ofs << "DETRUIRE(CONCEPT=(" << endl;
-            comm_file_ofs << "    _F(NOM=RIGI" << analysis->getId() << ")," << endl;
-            if (analysis->type != Analysis::Type::LINEAR_BUCKLING) {
-                comm_file_ofs << "    _F(NOM=MASS" << analysis->getId() << ")," << endl;
-                comm_file_ofs << "    _F(NOM=AMOR" << analysis->getId() << ")," << endl;
-            } else {
-                comm_file_ofs << "    _F(NOM=RIGE" << analysis->getId() << ")," << endl;
-            }
-            comm_file_ofs << "))" << endl << endl;
-        }
+            destroyableConcepts.clear();
+		}
+
+
 	}
 }
 
@@ -1958,11 +1931,11 @@ void AsterWriter::writeCellContainer(const CellContainer& cellContainer) {
 }
 
 shared_ptr<NonLinearStrategy> AsterWriter::getNonLinearStrategy(
-		NonLinearMecaStat& nonLinAnalysis) {
-	shared_ptr<NonLinearStrategy> nonLinearStrategy;
-	const auto& strategy = nonLinAnalysis.model.find(nonLinAnalysis.strategy_reference);
+		const std::shared_ptr<NonLinearMecaStat>& nonLinAnalysis) {
+	shared_ptr<NonLinearStrategy> nonLinearStrategy = nullptr;
+	const auto& strategy = nonLinAnalysis->model.find(nonLinAnalysis->strategy_reference);
     if (strategy == nullptr) {
-        handleWritingError("Cannot find nonlinear strategy" + to_str(nonLinAnalysis.strategy_reference));
+        handleWritingError("Cannot find nonlinear strategy" + to_str(nonLinAnalysis->strategy_reference));
     }
 	switch (strategy->type) {
 	case Objective::Type::NONLINEAR_STRATEGY: {
@@ -1976,44 +1949,49 @@ shared_ptr<NonLinearStrategy> AsterWriter::getNonLinearStrategy(
 	return nonLinearStrategy;
 }
 
-void AsterWriter::writeAssemblage( Analysis& analysis) {
+void AsterWriter::writeAssemblage(const std::shared_ptr<Analysis>& analysis) {
     bool hasDynamicExcit = asterModel->model.loadSets.contains(LoadSet::Type::DLOAD);
-    bool isBuckling = analysis.type == Analysis::Type::LINEAR_BUCKLING;
+    bool isBuckling = analysis->type == Analysis::Type::LINEAR_BUCKLING;
     comm_file_ofs << "ASSEMBLAGE(MODELE=MODMECA," << endl;
     if (not asterModel->model.materials.empty()) {
         comm_file_ofs << "           CHAM_MATER=CHMAT," << endl;
     }
     comm_file_ofs << "           CARA_ELEM=CAEL," << endl;
-    const auto& constraintSets = analysis.getConstraintSets();
+    const auto& constraintSets = analysis->getConstraintSets();
     if (not constraintSets.empty()) {
         comm_file_ofs << "           CHARGE=(" << endl;
-        for (const auto& constraintSet : analysis.getConstraintSets()) {
+        for (const auto& constraintSet : analysis->getConstraintSets()) {
             comm_file_ofs << "                   BL" << constraintSet->getId() << "," << endl;
         }
         comm_file_ofs << "                   )," << endl;
     }
-    comm_file_ofs << "           NUME_DDL=CO('NUMDDL" << analysis.getId() << "')," << endl;
+    comm_file_ofs << "           NUME_DDL=CO('NUMDDL" << analysis->getId() << "')," << endl;
+    destroyableConcepts.push_back("NUMDDL" + to_string(analysis->getId()));
     comm_file_ofs << "           MATR_ASSE=(_F(OPTION='RIGI_MECA', MATRICE=CO('RIGI"
-            << analysis.getId() << "'),)," << endl;
+            << analysis->getId() << "'),)," << endl;
+    destroyableConcepts.push_back("RIGI" + to_string(analysis->getId()));
     if (isBuckling) {
         comm_file_ofs << "                      _F(OPTION='RIGI_GEOM', MATRICE=CO('RIGE"
-                << analysis.getId() << "'),SIEF_ELGA=FSIG" << analysis.getId() << ",)," << endl;
+                << analysis->getId() << "'),SIEF_ELGA=FSIG" << analysis->getId() << ",)," << endl;
+        destroyableConcepts.push_back("RIGE" + to_string(analysis->getId()));
     } else {
         comm_file_ofs << "                      _F(OPTION='MASS_MECA', MATRICE=CO('MASS"
-                << analysis.getId() << "'),)," << endl;
+                << analysis->getId() << "'),)," << endl;
+        destroyableConcepts.push_back("MASS" + to_string(analysis->getId()));
         comm_file_ofs << "                      _F(OPTION='AMOR_MECA', MATRICE=CO('AMOR"
-                << analysis.getId() << "'),)," << endl;
+                << analysis->getId() << "'),)," << endl;
+        destroyableConcepts.push_back("AMOR" + to_string(analysis->getId()));
     }
     comm_file_ofs << "                      )," << endl;
     if (hasDynamicExcit) {
         comm_file_ofs << "           VECT_ASSE=(" << endl;
-        for (const auto& loadSet : analysis.getLoadSets()) {
+        for (const auto& loadSet : analysis->getLoadSets()) {
             for (const auto& loading : loadSet->getLoadings()) {
                 if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
                     const auto& dynamicExcitation =
                             static_pointer_cast<DynamicExcitation>(loading);
                     comm_file_ofs << "                      _F(OPTION='CHAR_MECA', VECTEUR=CO('FX"
-                            << analysis.getId() << "_" << dynamicExcitation->getId() << "')," << endl;
+                            << analysis->getId() << "_" << dynamicExcitation->getId() << "')," << endl;
                     comm_file_ofs << "                        CHARGE=(" << endl;
                     comm_file_ofs << "                                CHMEC"
                             << dynamicExcitation->getLoadSet()->getId() << "," << endl;
@@ -2029,15 +2007,15 @@ void AsterWriter::writeAssemblage( Analysis& analysis) {
     comm_file_ofs << "           );" << endl << endl;
 }
 
-void AsterWriter::writeCalcFreq( LinearModal& linearModal) {
+void AsterWriter::writeCalcFreq(const std::shared_ptr<LinearModal>& linearModal) {
     string suffix;
-    bool isBuckling = linearModal.type == Analysis::Type::LINEAR_BUCKLING;
+    bool isBuckling = linearModal->type == Analysis::Type::LINEAR_BUCKLING;
     if (isBuckling) {
         suffix = "CHAR_CRIT";
     } else {
         suffix = "FREQ";
     }
-    const auto& frequencySearch = linearModal.getFrequencySearch();
+    const auto& frequencySearch = linearModal->getFrequencySearch();
     if (not isBuckling) {
         switch (frequencySearch->norm) {
         case(FrequencySearch::NormType::MASS): {
@@ -2074,7 +2052,7 @@ void AsterWriter::writeCalcFreq( LinearModal& linearModal) {
             fend = -fend;
             swap(fstart, fend);
         }
-        if (linearModal.use_power_iteration) {
+        if (linearModal->use_power_iteration) {
             comm_file_ofs << "                       OPTION='SEPARE'," << endl;
         } else if (isBuckling or (is_equal(fstart, Globals::UNAVAILABLE_DOUBLE) and is_equal(fend, Globals::UNAVAILABLE_DOUBLE))) {
             // CALC_CHAR_CRIT is not filtering eigenvalues correctly in Aster 13.6
@@ -2103,7 +2081,7 @@ void AsterWriter::writeCalcFreq( LinearModal& linearModal) {
     }
     case FrequencySearch::FrequencyType::STEP: {
         const auto& frequencyStep = static_pointer_cast<StepRange>(frequencySearch->getValue());
-        if (linearModal.use_power_iteration) {
+        if (linearModal->use_power_iteration) {
             comm_file_ofs << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
         } else {
             comm_file_ofs << "                       OPTION='CENTRE'," << endl;
@@ -2119,7 +2097,7 @@ void AsterWriter::writeCalcFreq( LinearModal& linearModal) {
     }
     case FrequencySearch::FrequencyType::LIST: {
       const auto& frequencyList = static_pointer_cast<ListValue<double>>(frequencySearch->getValue());
-      if (linearModal.use_power_iteration) {
+      if (linearModal->use_power_iteration) {
           comm_file_ofs << "                       OPTION='SEPARE'," << endl; // Not using 'PROCHE' because it will always produce modes, even if not finding them
       } else {
           comm_file_ofs << "                       OPTION='CENTRE'," << endl;
@@ -2139,59 +2117,86 @@ void AsterWriter::writeCalcFreq( LinearModal& linearModal) {
     }
 }
 
-double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
-	if (analysis.isOriginal()) {
-		comm_file_ofs << "# Analysis original id : " << analysis.getOriginalId() << endl;
+double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double debut) {
+	if (analysis->isOriginal()) {
+		comm_file_ofs << "# Analysis original id : " << analysis->getOriginalId() << endl;
 	}
-	switch (analysis.type) {
+
+    shared_ptr<Analysis> reusableAnalysis = nullptr;
+    for (const auto& previousAnalysis : asterModel->model.analyses) {
+        if (*previousAnalysis == *analysis)
+            break; // only looking at previous analysis
+        if (analysis->canReuse(previousAnalysis)) {
+            reusableAnalysis = previousAnalysis;
+            break;
+        }
+    }
+
+    bool canBeReused = false;
+    bool isAfter = false;
+    for (const auto& otherAnalysis : asterModel->model.analyses) {
+        if (*otherAnalysis == *analysis) {
+            isAfter = true;
+            continue;
+        }
+        if (not isAfter) {
+            continue; // only looking at following analysis
+        }
+        if (otherAnalysis->canReuse(analysis)) {
+            canBeReused = true;
+            break;
+        }
+    }
+
+	switch (analysis->type) {
     case Analysis::Type::COMBINATION: {
-        auto& combination = static_cast<Combination&>(analysis);
-        for (const auto& subPair : combination.coefByAnalysis) {
-            comm_file_ofs << "D" << combination.getId() << "_" << subPair.first.id << "=CREA_CHAMP(TYPE_CHAM='NOEU_DEPL_R'," << endl;
+        const auto& combination = static_pointer_cast<Combination>(analysis);
+        for (const auto& subPair : combination->coefByAnalysis) {
+            comm_file_ofs << "D" << combination->getId() << "_" << subPair.first.id << "=CREA_CHAMP(TYPE_CHAM='NOEU_DEPL_R'," << endl;
             comm_file_ofs << "          OPERATION='EXTR'," << endl;
             comm_file_ofs << "          RESULTAT=RESU" << subPair.first.id << "," << endl;
             comm_file_ofs << "          NOM_CHAM='DEPL'," << endl;
             comm_file_ofs << "          NUME_ORDRE=1,);" << endl << endl;
         }
 
-        comm_file_ofs << "DEP" << combination.getId() << "=CREA_CHAMP(TYPE_CHAM='NOEU_DEPL_R'," << endl;
+        comm_file_ofs << "DEP" << combination->getId() << "=CREA_CHAMP(TYPE_CHAM='NOEU_DEPL_R'," << endl;
         comm_file_ofs << "          OPTION='DEPL'," << endl;
         comm_file_ofs << "          OPERATION='ASSE'," << endl;
         comm_file_ofs << "          MODELE=MODMECA," << endl;
         comm_file_ofs << "          ASSE=(" << endl;
-        for (const auto& subPair : combination.coefByAnalysis) {
+        for (const auto& subPair : combination->coefByAnalysis) {
             comm_file_ofs << "                _F(TOUT='OUI'," << endl;
-            comm_file_ofs << "                   CHAM_GD=D" << combination.getId() << "_" << subPair.first.id << "," << endl;
+            comm_file_ofs << "                   CHAM_GD=D" << combination->getId() << "_" << subPair.first.id << "," << endl;
             comm_file_ofs << "                   CUMUL='OUI'," << endl;
             comm_file_ofs << "                   COEF_R=" << subPair.second << ",)," << endl;
         }
         comm_file_ofs << "                )," << endl;
         comm_file_ofs << "          )" << endl << endl;
 
-        comm_file_ofs << "RESU" << combination.getId() << "=CREA_RESU(OPERATION='AFFE'," << endl;
+        comm_file_ofs << "RESU" << combination->getId() << "=CREA_RESU(OPERATION='AFFE'," << endl;
         comm_file_ofs << "              TYPE_RESU='MULT_ELAS'," << endl;
         comm_file_ofs << "              NOM_CHAM='DEPL'," << endl;
-        comm_file_ofs << "              AFFE=_F(CHAM_GD=DEP" << combination.getId() << "," << endl;
+        comm_file_ofs << "              AFFE=_F(CHAM_GD=DEP" << combination->getId() << "," << endl;
         comm_file_ofs << "                      MODELE=MODMECA," << endl;
         comm_file_ofs << "                      CHAM_MATER=CHMAT," << endl;
         comm_file_ofs << "                      )," << endl;
         comm_file_ofs << "              )" << endl << endl;
-        combination.markAsWritten();
+        combination->markAsWritten();
         break;
     }
 	case Analysis::Type::LINEAR_MECA_STAT: {
-		auto& linearMecaStat = static_cast<LinearMecaStat&>(analysis);
+		const auto& linearMecaStat = static_pointer_cast<LinearMecaStat>(analysis);
 
-		comm_file_ofs << "RESU" << linearMecaStat.getId() << "=MECA_STATIQUE(MODELE=MODMECA," << endl;
+		comm_file_ofs << "RESU" << linearMecaStat->getId() << "=MECA_STATIQUE(MODELE=MODMECA," << endl;
 		if (not asterModel->model.materials.empty()) {
             comm_file_ofs << "                    CHAM_MATER=CHMAT," << endl;
 		}
 		comm_file_ofs << "                    CARA_ELEM=CAEL," << endl;
 		comm_file_ofs << "                    EXCIT=(" << endl;
-		for (const auto& loadSet : linearMecaStat.getLoadSets()) {
+		for (const auto& loadSet : linearMecaStat->getLoadSets()) {
 			comm_file_ofs << "                           _F(CHARGE=" << asternameByLoadSet[loadSet] << ")," << endl;
 		}
-		for (const auto& constraintSet : linearMecaStat.getConstraintSets()) {
+		for (const auto& constraintSet : linearMecaStat->getConstraintSets()) {
 			//GC: dirty fix for #801, a deeper analysis must be done
 			if (not constraintSet->empty()) {
                 cout << "constraintSet:" << *constraintSet << " AsterName: " << asternameByConstraintSet[constraintSet] << "Size:" << constraintSet->size() << endl;
@@ -2203,47 +2208,47 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
         comm_file_ofs << "                    SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS')," << endl;
         comm_file_ofs << "                    OPTION='SIEF_ELGA'," << endl;
 		comm_file_ofs << "                    );" << endl << endl;
-		linearMecaStat.markAsWritten();
+		linearMecaStat->markAsWritten();
 		break;
 	}
 	case Analysis::Type::NONLINEAR_MECA_STAT: {
-		auto& nonLinAnalysis = static_cast<NonLinearMecaStat&>(analysis);
+		const auto& nonLinAnalysis = static_pointer_cast<NonLinearMecaStat>(analysis);
 		shared_ptr<NonLinearStrategy> nonLinearStrategy = getNonLinearStrategy(nonLinAnalysis);
-		if (nonLinAnalysis.previousAnalysis == nullptr) {
+		if (nonLinAnalysis->previousAnalysis == nullptr) {
 			debut = 0;
 		}
 		double fin = debut + 1.0;
 		StepRange stepRange(asterModel->model, debut, nonLinearStrategy->number_of_increments, fin);
 		debut = fin;
 		string list_name = writeValue(stepRange);
-		comm_file_ofs << "LAUTO" << nonLinAnalysis.getId()
+		comm_file_ofs << "LAUTO" << nonLinAnalysis->getId()
 				<< "=DEFI_LIST_INST(METHODE='AUTO', DEFI_LIST=_F(LIST_INST=" << list_name << ",),);"
 				<< endl;
-		comm_file_ofs << "RAMP" << nonLinAnalysis.getId()
+		comm_file_ofs << "RAMP" << nonLinAnalysis->getId()
 				<< "=DEFI_FONCTION(NOM_PARA='INST', PROL_DROITE='LINEAIRE', VALE=("
 				<< stepRange.start << ",0.0," << stepRange.end << ",1.0,));" << endl;
-		if (nonLinAnalysis.previousAnalysis != nullptr) {
-			comm_file_ofs << "IRAMP" << nonLinAnalysis.getId()
+		if (nonLinAnalysis->previousAnalysis != nullptr) {
+			comm_file_ofs << "IRAMP" << nonLinAnalysis->getId()
 					<< "=DEFI_FONCTION(NOM_PARA='INST', PROL_DROITE='LINEAIRE', VALE=("
 					<< stepRange.start << ",1.0," << stepRange.end << ",0.0,));" << endl;
 		}
-		comm_file_ofs << "RESU" << nonLinAnalysis.getId() << "=STAT_NON_LINE(MODELE=MODMECA," << endl;
+		comm_file_ofs << "RESU" << nonLinAnalysis->getId() << "=STAT_NON_LINE(MODELE=MODMECA," << endl;
 		if (not asterModel->model.materials.empty()) {
             comm_file_ofs << "                    CHAM_MATER=CHMAT," << endl;
 		}
 		comm_file_ofs << "                    CARA_ELEM=CAEL," << endl;
 		comm_file_ofs << "                    EXCIT=(" << endl;
-		if (nonLinAnalysis.previousAnalysis != nullptr) {
-			for (const auto& loadSet : nonLinAnalysis.previousAnalysis->getLoadSets()) {
+		if (nonLinAnalysis->previousAnalysis != nullptr) {
+			for (const auto& loadSet : nonLinAnalysis->previousAnalysis->getLoadSets()) {
 				comm_file_ofs << "                           _F(CHARGE=" << asternameByLoadSet[loadSet]
-						<< ",FONC_MULT=IRAMP" << nonLinAnalysis.getId() << ")," << "# Original id:" << loadSet->getOriginalId() << endl;
+						<< ",FONC_MULT=IRAMP" << nonLinAnalysis->getId() << ")," << "# Original id:" << loadSet->getOriginalId() << endl;
 			}
 		}
-		for (const auto& loadSet : nonLinAnalysis.getLoadSets()) {
+		for (const auto& loadSet : nonLinAnalysis->getLoadSets()) {
 			comm_file_ofs << "                           _F(CHARGE=" << asternameByLoadSet[loadSet]
-					<< ",FONC_MULT=RAMP" << nonLinAnalysis.getId() << ")," << "# Original id:" << loadSet->getOriginalId() << endl;
+					<< ",FONC_MULT=RAMP" << nonLinAnalysis->getId() << ")," << "# Original id:" << loadSet->getOriginalId() << endl;
 		}
-		for (const auto& constraintSet : nonLinAnalysis.getConstraintSets()) {
+		for (const auto& constraintSet : nonLinAnalysis->getConstraintSets()) {
 			if (constraintSet->hasContacts()) {
 				continue;
 			}
@@ -2300,56 +2305,56 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 
 		}
 		comm_file_ofs << "                           )," << endl;
-		comm_file_ofs << "                    INCREMENT=_F(LIST_INST=LAUTO" << nonLinAnalysis.getId() << ",),"
+		comm_file_ofs << "                    INCREMENT=_F(LIST_INST=LAUTO" << nonLinAnalysis->getId() << ",),"
 				<< endl;
 		comm_file_ofs << "                    ARCHIVAGE=_F(LIST_INST=" << list_name << ",)," << endl;
 		comm_file_ofs << "                    NEWTON=_F(REAC_ITER=1,)," << endl;
-		if (nonLinAnalysis.previousAnalysis != nullptr) {
+		if (nonLinAnalysis->previousAnalysis != nullptr) {
 			comm_file_ofs << "                    ETAT_INIT=_F(EVOL_NOLI =RESU"
-					<< nonLinAnalysis.previousAnalysis->getId() << ")," << endl;
+					<< nonLinAnalysis->previousAnalysis->getId() << ")," << endl;
 		}
 		comm_file_ofs << "                    SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS')," << endl;
 		comm_file_ofs << "                    );" << endl << endl;
-		nonLinAnalysis.markAsWritten();
+		nonLinAnalysis->markAsWritten();
 		break;
 	}
 	case Analysis::Type::LINEAR_DYNA_DIRECT_FREQ: {
-        writeAssemblage( analysis);
+        writeAssemblage(analysis);
         auto structural_damping = asterModel->model.parameters.find(Model::Parameter::STRUCTURAL_DAMPING);
         auto frequency_of_interest_radians = asterModel->model.parameters.find(Model::Parameter::FREQUENCY_OF_INTEREST_RADIANS);
         bool has_structural_damping = structural_damping != asterModel->model.parameters.end() and frequency_of_interest_radians != asterModel->model.parameters.end() and frequency_of_interest_radians->second > 0;
 		if (has_structural_damping) {
-            comm_file_ofs << "AMST" << analysis.getId()
+            comm_file_ofs << "AMST" << analysis->getId()
                 <<  " = COMB_MATR_ASSE(COMB_R = _F ( MATR_ASSE = RIGI"
-                << analysis.getId()
+                << analysis->getId()
                 << ", COEF_R = " << structural_damping->second / frequency_of_interest_radians->second << "))" << endl;
         }
-		LinearDynaDirectFreq& linearDirect = dynamic_cast<LinearDynaDirectFreq&>(analysis);
-        comm_file_ofs << "RESU" << linearDirect.getId() << " = DYNA_VIBRA(" << endl;
+		const auto& linearDirect = dynamic_pointer_cast<LinearDynaDirectFreq>(analysis);
+        comm_file_ofs << "RESU" << linearDirect->getId() << " = DYNA_VIBRA(" << endl;
         comm_file_ofs << "                   TYPE_CALCUL='HARM'," << endl;
         comm_file_ofs << "                   BASE_CALCUL='PHYS'," << endl;
-		comm_file_ofs << "                   MATR_MASS  = MASS" << linearDirect.getId() << ","
+		comm_file_ofs << "                   MATR_MASS  = MASS" << linearDirect->getId() << ","
 				<< endl;
-		comm_file_ofs << "                   MATR_RIGI  = RIGI" << linearDirect.getId() << ","
+		comm_file_ofs << "                   MATR_RIGI  = RIGI" << linearDirect->getId() << ","
 				<< endl;
         if (has_structural_damping) {
-            comm_file_ofs << "                   MATR_AMOR  = AMST" << linearDirect.getId() << ","
+            comm_file_ofs << "                   MATR_AMOR  = AMST" << linearDirect->getId() << ","
 				<< endl;
         } else /* LD Maybe should combine these two cases ? */ {
-            comm_file_ofs << "                   MATR_AMOR  = AMOR" << linearDirect.getId() << ","
+            comm_file_ofs << "                   MATR_AMOR  = AMOR" << linearDirect->getId() << ","
 				<< endl;
         }
         comm_file_ofs << "                   LIST_FREQ  = LST" << setfill('0') << setw(5)
-        << linearDirect.getExcitationFrequencies()->getValue()->getId() << "," << endl;
+        << linearDirect->getExcitationFrequencies()->getValue()->getId() << "," << endl;
 		comm_file_ofs << "                   EXCIT      = (" << endl;
-		for (const auto& loadSet : linearDirect.getLoadSets()) {
+		for (const auto& loadSet : linearDirect->getLoadSets()) {
 			for (const auto& loading : loadSet->getLoadings()) {
 				if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
 					const auto& dynamicExcitation =
                             static_pointer_cast<DynamicExcitation>(loading);
 					comm_file_ofs << "                                 _F(" << endl;
                     comm_file_ofs << "                                    VECT_ASSE=FX"
-                            << linearDirect.getId() << "_"
+                            << linearDirect->getId() << "_"
                             << dynamicExcitation->getId() << "," << endl;
 					comm_file_ofs << "                                    FONC_MULT = FCT" << setfill('0')
 							<< setw(5) << dynamicExcitation->getFunctionTableB()->getId() << ","
@@ -2364,50 +2369,34 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 		comm_file_ofs << "                                 )," << endl;
 		comm_file_ofs << "                   #SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS',NPREC=8)," << endl; // MUMPS: Error in function orderMinPriority no valid number of stages in multisector (#stages = 2)
 		comm_file_ofs << "                   );" << endl << endl;
-
-
-		// Cannot clean these: causes error in CALC_CHAMP SIGM_ELNO later
-//		comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=MASS" << analysis.getId() << "),))" << endl << endl;
-//		comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=RIGI" << analysis.getId() << "),))" << endl << endl;
-//        if (has_structural_damping) {
-//            comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=AMST" << analysis.getId() << "),))" << endl << endl;
-//        } else /* LD Maybe should combine these two cases ? */ {
-//            comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=AMOR" << analysis.getId() << "),))" << endl << endl;
-//        }
-		linearDirect.markAsWritten();
+		linearDirect->markAsWritten();
 	    break;
 	}
 	case Analysis::Type::LINEAR_MODAL:
 	case Analysis::Type::LINEAR_DYNA_MODAL_FREQ: {
-        writeAssemblage( analysis);
 
-		auto& linearModal = static_cast<LinearModal&>(analysis);
-
-		shared_ptr<Analysis> reusableAnalysis = nullptr;
-		for (const auto& previousAnalysis : asterModel->model.analyses) {
-		    if (*previousAnalysis == analysis)
-                break;
-            if (analysis.canReuse(previousAnalysis)) {
-                reusableAnalysis = previousAnalysis;
-                break;
-            }
-		}
+		const auto& linearModal = static_pointer_cast<LinearModal>(analysis);
 
 		string resuName;
 		if (reusableAnalysis == nullptr) {
-            if (analysis.type == Analysis::Type::LINEAR_MODAL)
-                resuName = "RESU" + to_string(linearModal.getId());
-            else
-                resuName = "MODES" + to_string(linearModal.getId());
-            comm_file_ofs << "U" << resuName << "=CALC_MODES(MATR_RIGI=RIGI" << linearModal.getId()
+            writeAssemblage( analysis);
+            if (analysis->type == Analysis::Type::LINEAR_MODAL)
+                resuName = "RESU" + to_string(linearModal->getId());
+            else {
+                resuName = "MODES" + to_string(linearModal->getId());
+                if (not canBeReused) {
+                    destroyableConcepts.push_back(resuName);
+                }
+            }
+            comm_file_ofs << "U" << resuName << "=CALC_MODES(MATR_RIGI=RIGI" << linearModal->getId()
                     << "," << endl;
-            comm_file_ofs << "                       MATR_MASS=MASS" << linearModal.getId() << "," << endl;
-            if (linearModal.use_power_iteration) {
+            comm_file_ofs << "                       MATR_MASS=MASS" << linearModal->getId() << "," << endl;
+            if (linearModal->use_power_iteration) {
                 comm_file_ofs << "                       SOLVEUR_MODAL=_F(OPTION_INV='DIRECT')," << endl;
             } else {
                 comm_file_ofs << "                       SOLVEUR_MODAL=_F(METHODE='TRI_DIAG')," << endl;
             }
-            writeCalcFreq( linearModal);
+            writeCalcFreq(linearModal);
             comm_file_ofs << "                       VERI_MODE=_F(STOP_ERREUR='NON',)," << endl;
             //comm_file_ofs << "                       IMPRESSION=_F(CUMUL='OUI',CRIT_EXTR='MASS_EFFE_UN',TOUT_PARA='OUI')," << endl;
             comm_file_ofs << "                       SOLVEUR=_F(METHODE='MUMPS'," << endl;
@@ -2415,6 +2404,7 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
             comm_file_ofs << "                                  NPREC=8," << endl;
             comm_file_ofs << "                                  )," << endl;
             comm_file_ofs << "                       )" << endl << endl;
+            destroyableConcepts.push_back("U" + resuName);
 
             double lowFreq = 0;
             if (asterModel->model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY) != asterModel->model.parameters.end()) {
@@ -2426,12 +2416,6 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
                 highFreq = asterModel->model.parameters[Model::Parameter::UPPER_CUTOFF_FREQUENCY];
             }
             comm_file_ofs << resuName << "=EXTR_MODE(FILTRE_MODE=_F(MODE=U" << resuName << ", FREQ_MIN=" << lowFreq << ", FREQ_MAX=" << highFreq << "),)" << endl;
-
-            // LD cannot clean these because causes error in CALC_CHAMP SIGM_ELNO later see prob19
-            //comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=MASS" << analysis.getId() << "),))" << endl << endl;
-            //comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=RIGI" << analysis.getId() << "),))" << endl << endl;
-
-            comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=U" << resuName << "),))" << endl << endl;
 		} else {
             if (reusableAnalysis->type == Analysis::Type::LINEAR_MODAL)
                 resuName = "RESU" + to_string(reusableAnalysis->getId());
@@ -2439,35 +2423,34 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
                 resuName = "MODES" + to_string(reusableAnalysis->getId());
 		}
 
-        comm_file_ofs << "LIMODE" << analysis.getId() << "=RECU_TABLE(CO=" << resuName << "," << endl;
+        comm_file_ofs << "LIMODE" << analysis->getId() << "=RECU_TABLE(CO=" << resuName << "," << endl;
 		comm_file_ofs << "                  NOM_PARA = 'FREQ');" << endl << endl;
 
-		comm_file_ofs << "pfreq" << analysis.getId() << "= LIMODE" << analysis.getId()
+		comm_file_ofs << "pfreq" << analysis->getId() << "= LIMODE" << analysis->getId()
 				<< ".EXTR_TABLE().values()['FREQ']" << endl;
-        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=LIMODE" << analysis.getId() << "),))" << endl << endl;
-
+        destroyableConcepts.push_back("LIMODE" + to_string(analysis->getId()));
 
 		comm_file_ofs << "I" << resuName << "=RECU_TABLE(CO=" << resuName << ",NOM_PARA = ('FREQ','MASS_GENE','RIGI_GENE','AMOR_GENE'))" << endl;
         comm_file_ofs << "IMPR_TABLE(TABLE=I" << resuName << ")" << endl << endl;
-        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=I" << resuName << "),))" << endl << endl;
+        destroyableConcepts.push_back("I" + resuName);
         comm_file_ofs << "J" << resuName << "=POST_ELEM(RESULTAT=" << resuName << ", MASS_INER=_F(TOUT='OUI'))" << endl;
         comm_file_ofs << "IMPR_TABLE(TABLE=J" << resuName << ")" << endl << endl;
-        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=J" << resuName << "),))" << endl << endl;
+        destroyableConcepts.push_back("J" + resuName);
 
-		if (analysis.type == Analysis::Type::LINEAR_MODAL) {
-            linearModal.markAsWritten();
+		if (analysis->type == Analysis::Type::LINEAR_MODAL) {
+            linearModal->markAsWritten();
 			break;
 		}
 
-		LinearDynaModalFreq& linearDynaModalFreq = dynamic_cast<LinearDynaModalFreq&>(analysis);
+		const auto& linearDynaModalFreq = dynamic_pointer_cast<LinearDynaModalFreq>(analysis);
 
-		if (linearDynaModalFreq.residual_vector) {
-			comm_file_ofs << "MOSTA" << linearDynaModalFreq.getId() << "=MODE_STATIQUE(MATR_RIGI=RIGI"
-					<< linearDynaModalFreq.getId() << "," << endl;
-			comm_file_ofs << "                     MATR_MASS=MASS" << linearDynaModalFreq.getId() << ","
+		if (linearDynaModalFreq->residual_vector) {
+			comm_file_ofs << "MOSTA" << linearDynaModalFreq->getId() << "=MODE_STATIQUE(MATR_RIGI=RIGI"
+					<< linearDynaModalFreq->getId() << "," << endl;
+			comm_file_ofs << "                     MATR_MASS=MASS" << linearDynaModalFreq->getId() << ","
 					<< endl;
 			comm_file_ofs << "                     FORCE_NODALE=(" << endl;
-			for (const auto& loadSet : linearDynaModalFreq.getLoadSets()) {
+			for (const auto& loadSet : linearDynaModalFreq->getLoadSets()) {
 				for (const auto& loading : loadSet->getLoadings()) {
 					if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
                         const auto& dynamicExcitation =
@@ -2507,58 +2490,58 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 			comm_file_ofs << "                                   )" << endl;
 			comm_file_ofs << "                     );" << endl << endl;
 
-			comm_file_ofs << "RESVE" << linearDynaModalFreq.getId()
-					<< "=DEFI_BASE_MODALE(RITZ =(_F(MODE_MECA=MODES" << linearDynaModalFreq.getId()
+			comm_file_ofs << "RESVE" << linearDynaModalFreq->getId()
+					<< "=DEFI_BASE_MODALE(RITZ =(_F(MODE_MECA=MODES" << linearDynaModalFreq->getId()
 					<< ",)," << endl;
+            destroyableConcepts.push_back("RESVE" + to_string(analysis->getId()));
 			comm_file_ofs << "                               _F(MODE_INTF=MOSTA"
-					<< linearDynaModalFreq.getId() << ",)," << endl;
+					<< linearDynaModalFreq->getId() << ",)," << endl;
 			comm_file_ofs << "                               )," << endl;
-			comm_file_ofs << "                        NUME_REF=NUMDDL" << linearDynaModalFreq.getId() << ","
+			comm_file_ofs << "                        NUME_REF=NUMDDL" << linearDynaModalFreq->getId() << ","
 					<< endl;
-			comm_file_ofs << "                        MATRICE=MASS" << linearDynaModalFreq.getId() << ","
+			comm_file_ofs << "                        MATRICE=MASS" << linearDynaModalFreq->getId() << ","
 					<< endl;
 			comm_file_ofs << "                        ORTHO='OUI'," << endl;
 			comm_file_ofs << "                        );" << endl << endl;
-			//comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=MODES" << linearDynaModalFreq.getId() // Needed in IMPR_RESU, will be destroyed later
-			//		<< "),))" << endl << endl;
-            comm_file_ofs << "DETRUIRE(CONCEPT=(" << endl;
-            comm_file_ofs << "    _F(NOM=MOSTA" << analysis.getId() << ")," << endl;
-            comm_file_ofs << "))" << endl << endl;
+			destroyableConcepts.push_back("MOSTA" + to_string(analysis->getId()));
 
-			comm_file_ofs << "modes" << linearDynaModalFreq.getId() << "=" << "RESVE"
-					<< linearDynaModalFreq.getId() << endl;
+			comm_file_ofs << "modes" << linearDynaModalFreq->getId() << "=" << "RESVE"
+					<< linearDynaModalFreq->getId() << endl;
 		} else {
-			comm_file_ofs << "modes" << linearDynaModalFreq.getId() << "=" << "MODES"
-					<< linearDynaModalFreq.getId() << endl;
+			comm_file_ofs << "modes" << linearDynaModalFreq->getId() << "=" << "MODES"
+					<< linearDynaModalFreq->getId() << endl;
 		}
 
-        comm_file_ofs << "PROJ_BASE(BASE=modes" << linearDynaModalFreq.getId() << "," << endl;
-        comm_file_ofs << "          MATR_ASSE_GENE=(_F(MATRICE=CO('MASSG" << linearDynaModalFreq.getId()
+        comm_file_ofs << "PROJ_BASE(BASE=modes" << linearDynaModalFreq->getId() << "," << endl;
+        comm_file_ofs << "          MATR_ASSE_GENE=(_F(MATRICE=CO('MASSG" << linearDynaModalFreq->getId()
                 << "')," << endl;
-        comm_file_ofs << "                             MATR_ASSE=MASS" << linearDynaModalFreq.getId() << ",),"
+        comm_file_ofs << "                             MATR_ASSE=MASS" << linearDynaModalFreq->getId() << ",),"
                 << endl;
-        comm_file_ofs << "                          _F(MATRICE=CO('RIGIG" << linearDynaModalFreq.getId()
+        comm_file_ofs << "                          _F(MATRICE=CO('RIGIG" << linearDynaModalFreq->getId()
                 << "')," << endl;
-        comm_file_ofs << "                             MATR_ASSE=RIGI" << linearDynaModalFreq.getId() << ",),"
+        comm_file_ofs << "                             MATR_ASSE=RIGI" << linearDynaModalFreq->getId() << ",),"
                 << endl;
-        if (linearDynaModalFreq.getModalDamping() == nullptr) {
-            comm_file_ofs << "                          _F(MATRICE=CO('AMORG" << linearDynaModalFreq.getId()
+        destroyableConcepts.push_back("RIGIG" + to_string(analysis->getId()));
+        destroyableConcepts.push_back("MASSG" + to_string(analysis->getId()));
+        if (linearDynaModalFreq->getModalDamping() == nullptr) {
+            comm_file_ofs << "                          _F(MATRICE=CO('AMORG" << linearDynaModalFreq->getId()
                     << "')," << endl;
-            comm_file_ofs << "                             MATR_ASSE=AMOR" << linearDynaModalFreq.getId() << ",),"
+            comm_file_ofs << "                             MATR_ASSE=AMOR" << linearDynaModalFreq->getId() << ",),"
                     << endl;
+            destroyableConcepts.push_back("AMORG" + to_string(analysis->getId()));
         }
         comm_file_ofs << "                          )," << endl;
         comm_file_ofs << "          VECT_ASSE_GENE=(" << endl;
-        for (const auto& loadSet : linearDynaModalFreq.getLoadSets()) {
+        for (const auto& loadSet : linearDynaModalFreq->getLoadSets()) {
             for (const auto& loading : loadSet->getLoadings()) {
                 if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
                     const auto& dynamicExcitation = dynamic_pointer_cast<DynamicExcitation>(loading);
-                    comm_file_ofs << "                          _F(VECTEUR=CO('VG"
-                            << linearDynaModalFreq.getId() << "_"
-                            << dynamicExcitation->getId() << "')," << endl;
-                    comm_file_ofs << "                             VECT_ASSE=FX"
-                            << linearDynaModalFreq.getId() << "_"
-                            << dynamicExcitation->getId() << ",";
+                    const string& vgname = "VG" + to_string(analysis->getId()) + "_" + to_string(dynamicExcitation->getId());
+                    const string& fxname = "FX" + to_string(analysis->getId()) + "_" + to_string(dynamicExcitation->getId());
+                    comm_file_ofs << "                          _F(VECTEUR=CO('" << vgname << "')," << endl;
+                    destroyableConcepts.push_back(vgname);
+                    comm_file_ofs << "                             VECT_ASSE=" << fxname << ",";
+                    destroyableConcepts.push_back(fxname);
                     comm_file_ofs << "TYPE_VECT=";
                     switch(dynamicExcitation->excitType) {
                     case DynamicExcitation::DynamicExcitationType::LOAD: {
@@ -2589,54 +2572,51 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
         comm_file_ofs << "                         )," << endl;
         comm_file_ofs << "          );" << endl << endl;
 
-        if (linearDynaModalFreq.getModalDamping() != nullptr) {
-            comm_file_ofs << "AMMO_I" << linearDynaModalFreq.getId() << "=CALC_FONC_INTERP(FONCTION = FCT"
+        if (linearDynaModalFreq->getModalDamping() != nullptr) {
+            comm_file_ofs << "AMMOI" << linearDynaModalFreq->getId() << "=CALC_FONC_INTERP(FONCTION = FCT"
               << setfill('0') << setw(5)
-              << linearDynaModalFreq.getModalDamping()->getFunctionTable()->getId() << ","
+              << linearDynaModalFreq->getModalDamping()->getFunctionTable()->getId() << ","
               << endl;
-            comm_file_ofs << "                         VALE_PARA = pfreq" << linearDynaModalFreq.getId() << endl;
+            comm_file_ofs << "                         VALE_PARA = pfreq" << linearDynaModalFreq->getId() << endl;
             comm_file_ofs << "                         );" << endl << endl;
 
-            comm_file_ofs << "AMMO_T" << linearDynaModalFreq.getId()
-              << "=CREA_TABLE(FONCTION=_F(FONCTION = AMMO_I" << linearDynaModalFreq.getId()
+            comm_file_ofs << "AMMOT" << linearDynaModalFreq->getId()
+              << "=CREA_TABLE(FONCTION=_F(FONCTION = AMMOI" << linearDynaModalFreq->getId()
               << ")," << endl;
             comm_file_ofs << "                   );" << endl << endl;
 
-            comm_file_ofs << "AMMO" << linearDynaModalFreq.getId() << "=AMMO_T" << linearDynaModalFreq.getId()
+            comm_file_ofs << "AMMO" << linearDynaModalFreq->getId() << "=AMMOT" << linearDynaModalFreq->getId()
               << ".EXTR_TABLE().values()['TOUTRESU']" << endl;
-
-            comm_file_ofs << "DETRUIRE(CONCEPT=(" << endl;
-            comm_file_ofs << "    _F(NOM=AMMO_I" << analysis.getId() << ")," << endl;
-            comm_file_ofs << "    _F(NOM=AMMO_T" << analysis.getId() << ")," << endl;
-            comm_file_ofs << "))" << endl << endl;
+            destroyableConcepts.push_back("AMMOI" + to_string(analysis->getId()));
+            destroyableConcepts.push_back("AMMOT" + to_string(analysis->getId()));
         }
 
-        comm_file_ofs << "GENE" << linearDynaModalFreq.getId() << " = DYNA_VIBRA(" << endl;
+        comm_file_ofs << "GENE" << linearDynaModalFreq->getId() << " = DYNA_VIBRA(" << endl;
         comm_file_ofs << "                   TYPE_CALCUL='HARM'," << endl;
         comm_file_ofs << "                   BASE_CALCUL='GENE'," << endl;
-        comm_file_ofs << "                   MATR_MASS  = MASSG" << linearDynaModalFreq.getId() << ","
+        comm_file_ofs << "                   MATR_MASS  = MASSG" << linearDynaModalFreq->getId() << ","
                 << endl;
-        comm_file_ofs << "                   MATR_RIGI  = RIGIG" << linearDynaModalFreq.getId() << ","
+        comm_file_ofs << "                   MATR_RIGI  = RIGIG" << linearDynaModalFreq->getId() << ","
                 << endl;
-        if (linearDynaModalFreq.getModalDamping() != nullptr) {
+        if (linearDynaModalFreq->getModalDamping() != nullptr) {
             comm_file_ofs << "                   AMOR_MODAL = _F(AMOR_REDUIT = AMMO"
-                << linearDynaModalFreq.getId() << ",)," << endl;
+                << linearDynaModalFreq->getId() << ",)," << endl;
         } else {
             // LD MATR_AMOR nullifies AMOR_MODAL
-            comm_file_ofs << "                   MATR_AMOR  = AMORG" << linearDynaModalFreq.getId() << ","
+            comm_file_ofs << "                   MATR_AMOR  = AMORG" << linearDynaModalFreq->getId() << ","
                 << endl;
         }
         comm_file_ofs << "                   LIST_FREQ  = LST" << setfill('0') << setw(5)
-        << linearDynaModalFreq.getExcitationFrequencies()->getValue()->getId() << "," << endl;
+        << linearDynaModalFreq->getExcitationFrequencies()->getValue()->getId() << "," << endl;
 		comm_file_ofs << "                   EXCIT      = (" << endl;
-		for (const auto& loadSet : linearDynaModalFreq.getLoadSets()) {
+		for (const auto& loadSet : linearDynaModalFreq->getLoadSets()) {
 			for (const auto& loading : loadSet->getLoadings()) {
 				if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
 					const auto& dynamicExcitation =
 							dynamic_pointer_cast<DynamicExcitation>(loading);
 					comm_file_ofs << "                                 _F(" << endl;
                     comm_file_ofs << "                                    VECT_ASSE_GENE = VG"
-                            << linearDynaModalFreq.getId() << "_"
+                            << linearDynaModalFreq->getId() << "_"
                             << dynamicExcitation->getId() << "," << endl;
 					comm_file_ofs << "                                    FONC_MULT = FCT" << setfill('0')
 							<< setw(5) << dynamicExcitation->getFunctionTableB()->getId() << ","
@@ -2652,52 +2632,50 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 		comm_file_ofs << "                   #SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS',NPREC=8)," << endl; // MUMPS: Error in function orderMinPriority no valid number of stages in multisector (#stages = 2)
 		comm_file_ofs << "                   );" << endl << endl;
 
-        comm_file_ofs << "RESU" << linearDynaModalFreq.getId() << " = REST_GENE_PHYS(RESU_GENE = GENE"
-                << linearDynaModalFreq.getId() << "," << endl;
+        comm_file_ofs << "RESU" << linearDynaModalFreq->getId() << " = REST_GENE_PHYS(RESU_GENE = GENE"
+                << linearDynaModalFreq->getId() << "," << endl;
         comm_file_ofs << "                       TOUT_ORDRE = 'OUI'," << endl;
         comm_file_ofs << "                       NOM_CHAM = ('DEPL',)," << endl; //,'VITE','ACCE')," << endl;
         comm_file_ofs << "                       );" << endl << endl;
 
-        linearDynaModalFreq.markAsWritten();
+        linearDynaModalFreq->markAsWritten();
 		break;
 	}
     case Analysis::Type::LINEAR_BUCKLING: {
-        auto& linearBuckling = static_cast<LinearBuckling&>(analysis);
+        const auto& linearBuckling = static_pointer_cast<LinearBuckling>(analysis);
 
-        comm_file_ofs << "FSIG" << linearBuckling.getId() << " = CREA_CHAMP(OPERATION='EXTR'," << endl;
+        comm_file_ofs << "FSIG" << linearBuckling->getId() << " = CREA_CHAMP(OPERATION='EXTR'," << endl;
         comm_file_ofs << "            TYPE_CHAM='ELGA_SIEF_R'," << endl;
-        comm_file_ofs << "            RESULTAT=RESU" << linearBuckling.previousAnalysis->getId() << "," << endl;
+        comm_file_ofs << "            RESULTAT=RESU" << linearBuckling->previousAnalysis->getId() << "," << endl;
         //comm_file_ofs << "            NUME_ORDRE=1," << endl;
         comm_file_ofs << "            NOM_CHAM='SIEF_ELGA',)" << endl << endl;
 
         writeAssemblage( analysis);
 
-        comm_file_ofs << "RESU" << linearBuckling.getId() << "=CALC_MODES(MATR_RIGI=RIGI" << linearBuckling.getId() << "," << endl;
-        comm_file_ofs << "                 MATR_RIGI_GEOM=RIGE" << linearBuckling.getId() << "," << endl;
+        comm_file_ofs << "RESU" << linearBuckling->getId() << "=CALC_MODES(MATR_RIGI=RIGI" << linearBuckling->getId() << "," << endl;
+        comm_file_ofs << "                 MATR_RIGI_GEOM=RIGE" << linearBuckling->getId() << "," << endl;
         comm_file_ofs << "                 TYPE_RESU='MODE_FLAMB'," << endl;
-		if (linearBuckling.use_power_iteration) {
+		if (linearBuckling->use_power_iteration) {
             comm_file_ofs << "                       SOLVEUR_MODAL=_F(OPTION_INV='DIRECT')," << endl;
 		} else {
             comm_file_ofs << "                       SOLVEUR_MODAL=_F(METHODE='TRI_DIAG')," << endl;
 		}
-        writeCalcFreq( linearBuckling);
+        writeCalcFreq(linearBuckling);
         comm_file_ofs << "             VERI_MODE=_F(STOP_ERREUR='NON',)," << endl;
         comm_file_ofs << "             SOLVEUR=_F(METHODE='MUMPS',)," << endl;
         comm_file_ofs << "       )" << endl << endl;
 
-        comm_file_ofs << "RESU" << linearBuckling.getId() << " = NORM_MODE(reuse=RESU"<< linearBuckling.getId() << ",MODE=RESU" << linearBuckling.getId() << ",NORME='TRAN_ROTA',)" << endl;
-        comm_file_ofs << "TBCRT" << linearBuckling.getId() << " = RECU_TABLE(CO=RESU" << linearBuckling.getId() << ",NOM_PARA='CHAR_CRIT')" << endl;
-        comm_file_ofs << "IMPR_TABLE(TABLE=TBCRT" << analysis.getId() << ")" << endl << endl;
-        comm_file_ofs << "DETRUIRE(CONCEPT=(" << endl;
-        comm_file_ofs << "    _F(NOM=FSIG" << analysis.getId() << ")," << endl;
-        comm_file_ofs << "    _F(NOM=TBCRT" << analysis.getId() << ")," << endl;
-        comm_file_ofs << "))" << endl << endl;
-        linearBuckling.markAsWritten();
+        comm_file_ofs << "RESU" << linearBuckling->getId() << " = NORM_MODE(reuse=RESU"<< linearBuckling->getId() << ",MODE=RESU" << linearBuckling->getId() << ",NORME='TRAN_ROTA',)" << endl;
+        comm_file_ofs << "TBCRT" << linearBuckling->getId() << " = RECU_TABLE(CO=RESU" << linearBuckling->getId() << ",NOM_PARA='CHAR_CRIT')" << endl;
+        comm_file_ofs << "IMPR_TABLE(TABLE=TBCRT" << analysis->getId() << ")" << endl << endl;
+        destroyableConcepts.push_back("FSIG" + to_string(analysis->getId()));
+        destroyableConcepts.push_back("TBCRT" + to_string(analysis->getId()));
+        linearBuckling->markAsWritten();
         break;
     }
 	default:
 		handleWritingError(
-				"Analysis " + Analysis::stringByType.at(analysis.type) + " not (yet) implemented");
+				"Analysis " + Analysis::stringByType.at(analysis->type) + " not (yet) implemented");
 	}
 	return debut;
 }

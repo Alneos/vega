@@ -327,6 +327,7 @@ SET (CTEST_BINARY_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 #10 hours for tests
 set (CTEST_TEST_TIMEOUT 36000 CACHE STRING
     "Maximum time allowed before CTest will kill the test.")
+set (CTEST_OUTPUT_ON_FAILURE ON)
 
 include(CheckTypeSize)
 include(CheckFunctionExists)

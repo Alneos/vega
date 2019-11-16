@@ -32,6 +32,7 @@ class AsterWriter final : public Writer {
 	std::map<Reference<NamedValue>, std::string> asternameByValue;
 	std::map<Reference<LoadSet>, std::string> asternameByLoadSet;
 	std::map<Reference<ConstraintSet>, std::string> asternameByConstraintSet;
+	std::list<std::string> destroyableConcepts;
 //	std::set<int> singleGroupCellPositions;
 	static constexpr double SMALLEST_RELATIVE_COMPARISON = 1e-7;
 	std::ofstream exp_file_ofs;
@@ -62,9 +63,9 @@ class AsterWriter final : public Writer {
 	void writeForceSurface(const LoadSet&);
 	void writeNodeContainer(const NodeContainer& nodeContainer);
 	void writeCellContainer(const CellContainer& cellContainer);
-	double writeAnalysis(Analysis& analysis, double debut);
-	void writeAssemblage(Analysis& analysis);
-	void writeCalcFreq(LinearModal& analysis);
+	double writeAnalysis(const std::shared_ptr<Analysis>& analysis, double debut);
+	void writeAssemblage(const std::shared_ptr<Analysis>& analysis);
+	void writeCalcFreq(const std::shared_ptr<LinearModal>& analysis);
 	void writeNodalDisplacementAssertion(const NodalDisplacementAssertion&);
 	void writeNodalComplexDisplacementAssertion(const NodalComplexDisplacementAssertion&);
 	void writeNodalCellVonMisesAssertion(const NodalCellVonMisesAssertion&);
@@ -73,7 +74,7 @@ class AsterWriter final : public Writer {
 	std::string writeValue(NamedValue&);
 	void writeImprResultats(const std::shared_ptr<Analysis>& analysis);
 	void list_concept_name(StepRange&);
-	std::shared_ptr<NonLinearStrategy> getNonLinearStrategy(NonLinearMecaStat&);
+	std::shared_ptr<NonLinearStrategy> getNonLinearStrategy(const std::shared_ptr<NonLinearMecaStat>&);
 	void writeAnalyses();
 
 public:
