@@ -81,34 +81,38 @@ public:
     void add(const Reference<ConstraintSet>&);
     void add(const Reference<Objective>&);
 
-    bool contains(const Reference<LoadSet>) const;
-    bool contains(const Reference<ConstraintSet>) const;
-    bool contains(const Reference<Objective>) const;
+    bool contains(const Reference<LoadSet>) const noexcept;
+    bool contains(const Reference<ConstraintSet>) const noexcept;
+    bool contains(const Reference<Objective>) const noexcept;
 
-    bool contains(const LoadSet::Type) const;
-    bool contains(const ConstraintSet::Type) const;
-    bool contains(const Objective::Type) const;
+    bool contains(const LoadSet::Type) const noexcept;
+    bool contains(const ConstraintSet::Type) const noexcept;
+    bool contains(const Objective::Type) const noexcept;
 
     void remove(const Reference<LoadSet>);
     void remove(const Reference<ConstraintSet>);
     void remove(const Reference<Objective>);
 
-    std::string getLabel() const {return label;}  /**< Getter for the label variable **/
+    virtual bool canReuse(const std::shared_ptr<Analysis>&) const noexcept {
+        return false;
+    }
+
+    std::string getLabel() const noexcept {return label;}  /**< Getter for the label variable **/
 
     /**
      * retrieve the ConstraintSets specific to this analysis
      * plus eventually the common ConstraintSet of all analyzes of the model
      */
-    std::vector<std::shared_ptr<ConstraintSet>> getConstraintSets() const;
+    std::vector<std::shared_ptr<ConstraintSet>> getConstraintSets() const noexcept;
 
     /**
      * retrieve the LoadSets specific to this analysis
      * plus eventually the common LoadSet of all analyzes of the model
      */
-    std::vector<std::shared_ptr<LoadSet>> getLoadSets() const;
-    std::vector<std::shared_ptr<BoundaryCondition>> getBoundaryConditions() const;
-    std::vector<std::shared_ptr<Assertion>> getAssertions() const;
-    std::vector<std::shared_ptr<Objective>> getObjectives() const;
+    std::vector<std::shared_ptr<LoadSet>> getLoadSets() const noexcept;
+    std::vector<std::shared_ptr<BoundaryCondition>> getBoundaryConditions() const noexcept;
+    std::vector<std::shared_ptr<Assertion>> getAssertions() const noexcept;
+    std::vector<std::shared_ptr<Objective>> getObjectives() const noexcept;
 
     /**
      * Return true if the analysis has at least one SPC (or equivalent SPCD, MPCD, etc)
@@ -122,13 +126,16 @@ public:
     std::set<int> boundaryNodePositions() const;
     void copyInto(Analysis& other) const;
 
-    virtual bool isStatic() const {
+    virtual bool isStatic() const noexcept {
         return false;
     }
-    virtual bool isLinear() const {
+    virtual bool isLinear() const noexcept {
         return false;
     }
-    virtual bool isModal() const {
+    virtual bool isModal() const noexcept {
+        return false;
+    }
+    virtual bool isBuckling() const noexcept {
         return false;
     }
     bool validate() const override;
@@ -153,10 +160,10 @@ class Combination: public Analysis {
 public:
     Combination(Model& model, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     std::map<Reference<Analysis>,double> coefByAnalysis;
-    bool isStatic() const override {
+    bool isStatic() const noexcept override {
         return true;
     }
-    bool isLinear() const override {
+    bool isLinear() const noexcept override {
         return true;
     }
 };
@@ -164,10 +171,10 @@ public:
 class LinearMecaStat: public Analysis {
 public:
     LinearMecaStat(Model& model, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
-    bool isStatic() const override {
+    bool isStatic() const noexcept override {
         return true;
     }
-    bool isLinear() const override {
+    bool isLinear() const noexcept override {
         return true;
     }
 };
@@ -179,7 +186,7 @@ public:
             const int original_id = NO_ORIGINAL_ID);
     NonLinearMecaStat(Model& model, const int strategy_original_id, const std::string original_label = "",
             const int original_id = NO_ORIGINAL_ID);
-    bool isStatic() const override {
+    bool isStatic() const noexcept override {
         return true;
     }
     bool validate() const override;
@@ -193,13 +200,13 @@ public:
             const int original_id = NO_ORIGINAL_ID, const Type type = Type::LINEAR_MODAL);
     LinearModal(Model&, const int frequency_band_original_id, const std::string original_label = "",
             const int original_id = NO_ORIGINAL_ID, const Type type = Type::LINEAR_MODAL);
-    std::shared_ptr<FrequencySearch> getFrequencySearch() const;
+    std::shared_ptr<FrequencySearch> getFrequencySearch() const noexcept;
     bool use_power_iteration = false;
     bool validate() const override;
-    bool isLinear() const override {
+    bool isLinear() const noexcept override {
         return true;
     }
-    bool isModal() const override {
+    bool isModal() const noexcept override {
         return true;
     }
 };
@@ -208,7 +215,7 @@ class LinearBuckling: public LinearModal {
 public:
     LinearBuckling(Model&, const Reference<Objective>&, const std::string original_label = "",
             const int original_id = NO_ORIGINAL_ID);
-    bool isLinear() const override {
+    bool isBuckling() const noexcept override {
         return true;
     }
 };
@@ -232,6 +239,7 @@ public:
     const bool residual_vector;
     std::shared_ptr<ModalDamping> getModalDamping() const;
     std::shared_ptr<FrequencyExcit> getExcitationFrequencies() const;
+    bool canReuse(const std::shared_ptr<Analysis>&) const noexcept override;
     bool validate() const override;
 };
 

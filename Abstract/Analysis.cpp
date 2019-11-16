@@ -69,7 +69,7 @@ void Analysis::add(const Reference<LoadSet>& loadSetReference) {
     this->loadSet_references.insert(loadSetReference);
 }
 
-vector<shared_ptr<LoadSet>> Analysis::getLoadSets() const {
+vector<shared_ptr<LoadSet>> Analysis::getLoadSets() const noexcept {
     vector<shared_ptr<LoadSet>> result;
     shared_ptr<LoadSet> commonLoadSet = model.commonLoadSet;
     if (commonLoadSet != nullptr and not commonLoadSet->empty())
@@ -82,7 +82,7 @@ vector<shared_ptr<LoadSet>> Analysis::getLoadSets() const {
     return result;
 }
 
-vector<shared_ptr<BoundaryCondition>> Analysis::getBoundaryConditions() const {
+vector<shared_ptr<BoundaryCondition>> Analysis::getBoundaryConditions() const noexcept {
     vector<shared_ptr<BoundaryCondition>> result;
     for (const auto& constraintSet : getConstraintSets()) {
         if (constraintSet == nullptr) {
@@ -144,7 +144,7 @@ void Analysis::remove(const Reference<Objective> objectiveReference) {
     }
 }
 
-bool Analysis::contains(const Reference<LoadSet> loadSetRef) const {
+bool Analysis::contains(const Reference<LoadSet> loadSetRef) const noexcept {
     for (const auto& loadset : getLoadSets()) {
         if (loadSetRef == loadset->getReference()) {
             return true;
@@ -153,7 +153,7 @@ bool Analysis::contains(const Reference<LoadSet> loadSetRef) const {
     return false;
 }
 
-bool Analysis::contains(const Reference<ConstraintSet> constraintSetRef) const {
+bool Analysis::contains(const Reference<ConstraintSet> constraintSetRef) const noexcept {
     for (const auto& constraintset : getConstraintSets()) {
         if (constraintSetRef == constraintset->getReference()) {
             return true;
@@ -162,7 +162,7 @@ bool Analysis::contains(const Reference<ConstraintSet> constraintSetRef) const {
     return false;
 }
 
-bool Analysis::contains(const Reference<Objective> objectiveRef) const {
+bool Analysis::contains(const Reference<Objective> objectiveRef) const noexcept {
     for (const auto& objective: getObjectives()) {
         if (objectiveRef == objective->getReference()) {
             return true;
@@ -171,7 +171,7 @@ bool Analysis::contains(const Reference<Objective> objectiveRef) const {
     return false;
 }
 
-bool Analysis::contains(const LoadSet::Type type) const {
+bool Analysis::contains(const LoadSet::Type type) const noexcept {
     for (const auto& loadset : getLoadSets()) {
         if (type == loadset->type) {
             return true;
@@ -180,7 +180,7 @@ bool Analysis::contains(const LoadSet::Type type) const {
     return false;
 }
 
-bool Analysis::contains(const ConstraintSet::Type type) const {
+bool Analysis::contains(const ConstraintSet::Type type) const noexcept {
     for (const auto& constraintset : this->getConstraintSets()) {
         if (type == constraintset->type) {
             return true;
@@ -189,7 +189,7 @@ bool Analysis::contains(const ConstraintSet::Type type) const {
     return false;
 }
 
-bool Analysis::contains(const Objective::Type type) const {
+bool Analysis::contains(const Objective::Type type) const noexcept {
     for (const auto& objective : this->getObjectives()) {
         if (type == objective->type) {
             return true;
@@ -199,7 +199,7 @@ bool Analysis::contains(const Objective::Type type) const {
 }
 
 
-vector<shared_ptr<ConstraintSet>> Analysis::getConstraintSets() const {
+vector<shared_ptr<ConstraintSet>> Analysis::getConstraintSets() const noexcept {
     vector<shared_ptr<ConstraintSet>> result;
     shared_ptr<ConstraintSet> commonConstraintSet = model.commonConstraintSet;
     if (commonConstraintSet != nullptr and not commonConstraintSet->empty())
@@ -215,7 +215,7 @@ void Analysis::add(const Reference<Objective>& assertionReference) {
     objectiveReferences.insert(assertionReference);
 }
 
-vector<shared_ptr<Assertion>> Analysis::getAssertions() const {
+vector<shared_ptr<Assertion>> Analysis::getAssertions() const noexcept {
     vector<shared_ptr<Assertion>> assertions;
     for (const auto& assertion_reference : objectiveReferences) {
         const auto& objective = model.find(assertion_reference);
@@ -225,7 +225,7 @@ vector<shared_ptr<Assertion>> Analysis::getAssertions() const {
     return assertions;
 }
 
-vector<shared_ptr<Objective>> Analysis::getObjectives() const {
+vector<shared_ptr<Objective>> Analysis::getObjectives() const noexcept {
     vector<shared_ptr<Objective>> objectives;
     for (const auto& objective_reference : objectiveReferences) {
         const auto& objective = model.find(objective_reference);
@@ -483,7 +483,7 @@ LinearModal::LinearModal(Model& model, const int frequency_band_original_id,
                 frequency_band_original_id) {
 }
 
-shared_ptr<FrequencySearch> LinearModal::getFrequencySearch() const {
+shared_ptr<FrequencySearch> LinearModal::getFrequencySearch() const noexcept {
     return static_pointer_cast<FrequencySearch>(model.find(frequencySearchRef));
 }
 
@@ -530,6 +530,32 @@ bool LinearDynaModalFreq::validate() const {
         isValid = false;
     }
     return isValid;
+}
+
+bool LinearDynaModalFreq::canReuse(const std::shared_ptr<Analysis>& otherAnalysis) const noexcept {
+    if (not otherAnalysis->isModal()) {
+        return false;
+    }
+    if (otherAnalysis->isBuckling()) {
+        return false;
+    }
+    const auto& otherModalAnalysis = static_pointer_cast<LinearModal>(otherAnalysis);
+    if (this->use_power_iteration != otherModalAnalysis->use_power_iteration) {
+        return false;
+    }
+    if (*(this->getFrequencySearch()) != *(otherModalAnalysis->getFrequencySearch())) {
+        return false;
+    }
+    const auto& constraintSets = this->getConstraintSets();
+    const auto& otherConstraintSets = otherModalAnalysis->getConstraintSets();
+    bool hasSameConstraints = otherConstraintSets.size() == constraintSets.size() and
+                equal(begin(otherConstraintSets), end(otherConstraintSets),
+                begin(constraintSets),
+                [](const shared_ptr<ConstraintSet>& lhs, const shared_ptr<ConstraintSet>& rhs){ return *lhs == *rhs; });
+    if (not hasSameConstraints) {
+        return false;
+    }
+    return true;
 }
 
 LinearDynaDirectFreq::LinearDynaDirectFreq(Model& model,

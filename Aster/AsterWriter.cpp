@@ -2383,44 +2383,61 @@ double AsterWriter::writeAnalysis( Analysis& analysis, double debut) {
 
 		auto& linearModal = static_cast<LinearModal&>(analysis);
 
+		shared_ptr<Analysis> reusableAnalysis = nullptr;
+		for (const auto& previousAnalysis : asterModel->model.analyses) {
+		    if (*previousAnalysis == analysis)
+                break;
+            if (analysis.canReuse(previousAnalysis)) {
+                reusableAnalysis = previousAnalysis;
+                break;
+            }
+		}
+
 		string resuName;
-		if (analysis.type == Analysis::Type::LINEAR_MODAL)
-			resuName = "RESU" + to_string(linearModal.getId());
-		else
-			resuName = "MODES" + to_string(linearModal.getId());
-		comm_file_ofs << "U" << resuName << "=CALC_MODES(MATR_RIGI=RIGI" << linearModal.getId()
-				<< "," << endl;
-		comm_file_ofs << "                       MATR_MASS=MASS" << linearModal.getId() << "," << endl;
-		if (linearModal.use_power_iteration) {
-            comm_file_ofs << "                       SOLVEUR_MODAL=_F(OPTION_INV='DIRECT')," << endl;
+		if (reusableAnalysis == nullptr) {
+            if (analysis.type == Analysis::Type::LINEAR_MODAL)
+                resuName = "RESU" + to_string(linearModal.getId());
+            else
+                resuName = "MODES" + to_string(linearModal.getId());
+            comm_file_ofs << "U" << resuName << "=CALC_MODES(MATR_RIGI=RIGI" << linearModal.getId()
+                    << "," << endl;
+            comm_file_ofs << "                       MATR_MASS=MASS" << linearModal.getId() << "," << endl;
+            if (linearModal.use_power_iteration) {
+                comm_file_ofs << "                       SOLVEUR_MODAL=_F(OPTION_INV='DIRECT')," << endl;
+            } else {
+                comm_file_ofs << "                       SOLVEUR_MODAL=_F(METHODE='TRI_DIAG')," << endl;
+            }
+            writeCalcFreq( linearModal);
+            comm_file_ofs << "                       VERI_MODE=_F(STOP_ERREUR='NON',)," << endl;
+            //comm_file_ofs << "                       IMPRESSION=_F(CUMUL='OUI',CRIT_EXTR='MASS_EFFE_UN',TOUT_PARA='OUI')," << endl;
+            comm_file_ofs << "                       SOLVEUR=_F(METHODE='MUMPS'," << endl;
+            comm_file_ofs << "                                  RENUM='PORD'," << endl;
+            comm_file_ofs << "                                  NPREC=8," << endl;
+            comm_file_ofs << "                                  )," << endl;
+            comm_file_ofs << "                       )" << endl << endl;
+
+            double lowFreq = 0;
+            if (asterModel->model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY) != asterModel->model.parameters.end()) {
+                lowFreq = asterModel->model.parameters[Model::Parameter::LOWER_CUTOFF_FREQUENCY];
+            }
+
+            double highFreq = 1e30;
+            if (asterModel->model.parameters.find(Model::Parameter::UPPER_CUTOFF_FREQUENCY) != asterModel->model.parameters.end()) {
+                highFreq = asterModel->model.parameters[Model::Parameter::UPPER_CUTOFF_FREQUENCY];
+            }
+            comm_file_ofs << resuName << "=EXTR_MODE(FILTRE_MODE=_F(MODE=U" << resuName << ", FREQ_MIN=" << lowFreq << ", FREQ_MAX=" << highFreq << "),)" << endl;
+
+            // LD cannot clean these because causes error in CALC_CHAMP SIGM_ELNO later see prob19
+            //comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=MASS" << analysis.getId() << "),))" << endl << endl;
+            //comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=RIGI" << analysis.getId() << "),))" << endl << endl;
+
+            comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=U" << resuName << "),))" << endl << endl;
 		} else {
-            comm_file_ofs << "                       SOLVEUR_MODAL=_F(METHODE='TRI_DIAG')," << endl;
+            if (reusableAnalysis->type == Analysis::Type::LINEAR_MODAL)
+                resuName = "RESU" + to_string(reusableAnalysis->getId());
+            else
+                resuName = "MODES" + to_string(reusableAnalysis->getId());
 		}
-        writeCalcFreq( linearModal);
-		comm_file_ofs << "                       VERI_MODE=_F(STOP_ERREUR='NON',)," << endl;
-		//comm_file_ofs << "                       IMPRESSION=_F(CUMUL='OUI',CRIT_EXTR='MASS_EFFE_UN',TOUT_PARA='OUI')," << endl;
-		comm_file_ofs << "                       SOLVEUR=_F(METHODE='MUMPS'," << endl;
-		comm_file_ofs << "                                  RENUM='PORD'," << endl;
-		comm_file_ofs << "                                  NPREC=8," << endl;
-		comm_file_ofs << "                                  )," << endl;
-		comm_file_ofs << "                       )" << endl << endl;
-
-		double lowFreq = 0;
-		if (asterModel->model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY) != asterModel->model.parameters.end()) {
-		    lowFreq = asterModel->model.parameters[Model::Parameter::LOWER_CUTOFF_FREQUENCY];
-		}
-
-		double highFreq = 1e30;
-		if (asterModel->model.parameters.find(Model::Parameter::UPPER_CUTOFF_FREQUENCY) != asterModel->model.parameters.end()) {
-		    highFreq = asterModel->model.parameters[Model::Parameter::UPPER_CUTOFF_FREQUENCY];
-		}
-		comm_file_ofs << resuName << "=EXTR_MODE(FILTRE_MODE=_F(MODE=U" << resuName << ", FREQ_MIN=" << lowFreq << ", FREQ_MAX=" << highFreq << "),)" << endl;
-
-		// LD cannot clean these because causes error in CALC_CHAMP SIGM_ELNO later see prob19
-		//comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=MASS" << analysis.getId() << "),))" << endl << endl;
-		//comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=RIGI" << analysis.getId() << "),))" << endl << endl;
-
-        comm_file_ofs << "DETRUIRE(CONCEPT=(_F(NOM=U" << resuName << "),))" << endl << endl;
 
         comm_file_ofs << "LIMODE" << analysis.getId() << "=RECU_TABLE(CO=" << resuName << "," << endl;
 		comm_file_ofs << "                  NOM_PARA = 'FREQ');" << endl << endl;
