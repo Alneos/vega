@@ -408,11 +408,8 @@ void AsterWriter::writeAnalyses() {
 		writeImprResultats(analysis);
 
 		bool usedInNext = false;
+		bool canBeReused = asterModel->model.canBeReused(analysis);
 		for (const auto& otherAnalysis : asterModel->model.analyses) {
-            if (otherAnalysis->canReuse(analysis)) {
-                usedInNext = true;
-                break;
-            }
             if (otherAnalysis->type == Analysis::Type::NONLINEAR_MECA_STAT and otherAnalysis->previousAnalysis == analysis) {
                 usedInNext = true;
                 break;
@@ -433,7 +430,7 @@ void AsterWriter::writeAnalyses() {
                     break;
             }
 		}
-		if (not usedInNext) {
+		if (not usedInNext and not canBeReused) {
             destroyableConcepts.push_back("RESU" + to_string(analysis->getId()));
 		}
 
@@ -2443,7 +2440,7 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
             else
                 modalResuName = "MODES" + to_string(reusableAnalysis->getId());
 		    comm_file_ofs << "# Reusing previous results: " << modalResuName << " for analysis " << analysis << endl;
-            handleWritingWarning("# Reusing previous results: " + modalResuName + " for analysis " + to_str(*analysis));
+            handleWritingWarning("Reusing previous results: " + modalResuName + " for analysis " + to_str(*analysis));
 		}
 
         comm_file_ofs << "LIMODE" << analysis->getId() << "=RECU_TABLE(CO=" << modalResuName << "," << endl;
@@ -2553,6 +2550,7 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
         }
 
         comm_file_ofs << "PROJ_BASE(BASE=modes" << linearDynaModalFreq->getId() << "," << endl;
+        comm_file_ofs << "          NUME_DDL_GENE=CO('NDDLG" << linearDynaModalFreq->getId() << "')," << endl;
         comm_file_ofs << "          MATR_ASSE_GENE=(_F(MATRICE=CO('MASSG" << linearDynaModalFreq->getId()
                 << "')," << endl;
         comm_file_ofs << "                             MATR_ASSE=MASS" << modalAnalysis->getId() << ",),"
@@ -2561,6 +2559,7 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
                 << "')," << endl;
         comm_file_ofs << "                             MATR_ASSE=RIGI" << modalAnalysis->getId() << ",),"
                 << endl;
+        destroyableConcepts.push_back("NDDLG" + to_string(analysis->getId()));
         destroyableConcepts.push_back("RIGIG" + to_string(analysis->getId()));
         destroyableConcepts.push_back("MASSG" + to_string(analysis->getId()));
         if (linearDynaModalFreq->getModalDamping() == nullptr) {
@@ -2675,6 +2674,7 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
         comm_file_ofs << "                       TOUT_ORDRE = 'OUI'," << endl;
         comm_file_ofs << "                       NOM_CHAM = ('DEPL',)," << endl; //,'VITE','ACCE')," << endl;
         comm_file_ofs << "                       );" << endl << endl;
+        destroyableConcepts.push_back("GENE" + to_string(analysis->getId()));
 
         linearDynaModalFreq->markAsWritten();
 		break;
