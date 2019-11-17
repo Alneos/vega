@@ -64,7 +64,7 @@ class AsterWriter final : public Writer {
 	void writeNodeContainer(const NodeContainer& nodeContainer);
 	void writeCellContainer(const CellContainer& cellContainer);
 	double writeAnalysis(const std::shared_ptr<Analysis>& analysis, double debut);
-	void writeAssemblage(const std::shared_ptr<Analysis>& analysis);
+	void writeAssemblage(const std::shared_ptr<Analysis>& analysis, bool canBeReused);
 	void writeCalcFreq(const std::shared_ptr<LinearModal>& analysis);
 	void writeNodalDisplacementAssertion(const NodalDisplacementAssertion&);
 	void writeNodalComplexDisplacementAssertion(const NodalComplexDisplacementAssertion&);

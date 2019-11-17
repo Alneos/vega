@@ -35,6 +35,10 @@ BOOST_AUTO_TEST_CASE( beam ) {
 	CommandLineUtils::optistructStudy2Aster("/irt/beam/beam.fem", RUN_ASTER, true, 0.02);
 }
 
+BOOST_AUTO_TEST_CASE( nas102prob6reuse ) {
+	CommandLineUtils::optistructStudy2Aster("/irt/nas102prob6reuse/nas102prob6reuse.fem", RUN_ASTER, true, 0.02);
+}
+
 //BOOST_AUTO_TEST_CASE( bigtest ) {
 //	CommandLineUtils::optistructStudy2Aster("/../../../../local/bigtest/bigtest.fem", false, true, 0.03);
 //}

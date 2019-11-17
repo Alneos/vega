@@ -2422,6 +2422,12 @@
 		<Unit filename="testdata/optistruct/caw/prob6/prob6.dat" />
 		<Unit filename="testdata/optistruct/caw/prob6/prob6.f06" />
 		<Unit filename="testdata/optistruct/irt/beam/beam.fem" />
+		<Unit filename="testdata/optistruct/irt/nas102prob6reuse/nas102prob6reuse.f06" />
+		<Unit filename="testdata/optistruct/irt/nas102prob6reuse/nas102prob6reuse.nas" />
+		<Unit filename="testdata/optistruct/irt/nas102prob6reuse/plate.bdf" />
+		<Unit filename="testdata/optistruct/irt/nas102prob6reuse/readme.txt" />
+		<Unit filename="testdata/optistruct/irt/tcid_contact_qvol/readme.txt" />
+		<Unit filename="testdata/optistruct/irt/tcid_contact_qvol/tcid_contact_qvol.fem" />
 		<Unit filename="testdata/unitTest/nastranparser/README.TXT" />
 		<Unit filename="testdata/unitTest/nastranparser/bush.dat" />
 		<Unit filename="testdata/unitTest/nastranparser/comments.dat" />

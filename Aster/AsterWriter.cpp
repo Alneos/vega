@@ -122,6 +122,8 @@ void AsterWriter::writeExport() {
 
 void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
 
+    shared_ptr<Analysis> reusableAnalysis = asterModel->model.reusableAnalysisFor(analysis);
+
     comm_file_ofs << "IMPR_RESU(FORMAT='RESULTAT'," << endl;
     comm_file_ofs << "          RESU=(" << endl;
     switch (analysis->type) {
@@ -188,8 +190,10 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
         break;
     }
     case (Analysis::Type::LINEAR_DYNA_MODAL_FREQ): {
-        comm_file_ofs << "                _F(RESULTAT=MODES" << analysis->getId()
-                << ", NOM_CHAM = 'DEPL',)," << endl;
+        if (reusableAnalysis == nullptr) {
+            comm_file_ofs << "                _F(RESULTAT=MODES" << analysis->getId()
+                    << ", NOM_CHAM = 'DEPL',)," << endl;
+        }
         comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
                 << ", PARTIE='REEL')," << endl;
         break;
@@ -228,8 +232,10 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
             break;
         }
         case (Analysis::Type::LINEAR_DYNA_MODAL_FREQ): {
-            comm_file_ofs << "                _F(RESULTAT=MODES" << analysis->getId()
+            if (reusableAnalysis == nullptr) {
+                comm_file_ofs << "                _F(RESULTAT=MODES" << analysis->getId()
                     << ",TOUT='OUI',NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
+            }
             break;
         }
         default:
@@ -1949,62 +1955,64 @@ shared_ptr<NonLinearStrategy> AsterWriter::getNonLinearStrategy(
 	return nonLinearStrategy;
 }
 
-void AsterWriter::writeAssemblage(const std::shared_ptr<Analysis>& analysis) {
-    bool hasDynamicExcit = asterModel->model.loadSets.contains(LoadSet::Type::DLOAD);
+void AsterWriter::writeAssemblage(const std::shared_ptr<Analysis>& analysis, bool canBeReused) {
     bool isBuckling = analysis->type == Analysis::Type::LINEAR_BUCKLING;
-    comm_file_ofs << "ASSEMBLAGE(MODELE=MODMECA," << endl;
-    if (not asterModel->model.materials.empty()) {
-        comm_file_ofs << "           CHAM_MATER=CHMAT," << endl;
-    }
-    comm_file_ofs << "           CARA_ELEM=CAEL," << endl;
+
+    ostringstream oss;
+    oss << "MODELE=MODMECA," << endl;
     const auto& constraintSets = analysis->getConstraintSets();
     if (not constraintSets.empty()) {
-        comm_file_ofs << "           CHARGE=(" << endl;
+        oss << "           CHARGE=(" << endl;
         for (const auto& constraintSet : analysis->getConstraintSets()) {
-            comm_file_ofs << "                   BL" << constraintSet->getId() << "," << endl;
+            oss << "                   BL" << constraintSet->getId() << "," << endl;
         }
-        comm_file_ofs << "                   )," << endl;
+        oss << "                   )," << endl;
     }
-    comm_file_ofs << "           NUME_DDL=CO('NUMDDL" << analysis->getId() << "')," << endl;
-    destroyableConcepts.push_back("NUMDDL" + to_string(analysis->getId()));
-    comm_file_ofs << "           MATR_ASSE=(_F(OPTION='RIGI_MECA', MATRICE=CO('RIGI"
-            << analysis->getId() << "'),)," << endl;
-    destroyableConcepts.push_back("RIGI" + to_string(analysis->getId()));
+
+    comm_file_ofs << "NUMDDL" << analysis->getId() << "=NUME_DDL(" << oss.str() << ")" << endl << endl;
+
+    if (not asterModel->model.materials.empty()) {
+        oss << "           CHAM_MATER=CHMAT," << endl;
+    }
+    oss << "           CARA_ELEM=CAEL," << endl;
+    const auto& commonparams = oss.str();
+
+    comm_file_ofs << "RIEL" << analysis->getId() << "=CALC_MATR_ELEM(OPTION='RIGI_MECA'," << commonparams << ")" << endl << endl;
+    comm_file_ofs << "RIGI" << analysis->getId() << "=ASSE_MATRICE(MATR_ELEM=RIEL" << analysis->getId() << ",NUME_DDL=NUMDDL" << analysis->getId() << ")" << endl << endl;
+    if (not canBeReused) {
+        destroyableConcepts.push_back("NUMDDL" + to_string(analysis->getId()));
+        destroyableConcepts.push_back("RIEL" + to_string(analysis->getId()));
+        destroyableConcepts.push_back("RIGI" + to_string(analysis->getId()));
+    }
+
     if (isBuckling) {
-        comm_file_ofs << "                      _F(OPTION='RIGI_GEOM', MATRICE=CO('RIGE"
-                << analysis->getId() << "'),SIEF_ELGA=FSIG" << analysis->getId() << ",)," << endl;
-        destroyableConcepts.push_back("RIGE" + to_string(analysis->getId()));
-    } else {
-        comm_file_ofs << "                      _F(OPTION='MASS_MECA', MATRICE=CO('MASS"
-                << analysis->getId() << "'),)," << endl;
-        destroyableConcepts.push_back("MASS" + to_string(analysis->getId()));
-        comm_file_ofs << "                      _F(OPTION='AMOR_MECA', MATRICE=CO('AMOR"
-                << analysis->getId() << "'),)," << endl;
-        destroyableConcepts.push_back("AMOR" + to_string(analysis->getId()));
-    }
-    comm_file_ofs << "                      )," << endl;
-    if (hasDynamicExcit) {
-        comm_file_ofs << "           VECT_ASSE=(" << endl;
-        for (const auto& loadSet : analysis->getLoadSets()) {
-            for (const auto& loading : loadSet->getLoadings()) {
-                if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
-                    const auto& dynamicExcitation =
-                            static_pointer_cast<DynamicExcitation>(loading);
-                    comm_file_ofs << "                      _F(OPTION='CHAR_MECA', VECTEUR=CO('FX"
-                            << analysis->getId() << "_" << dynamicExcitation->getId() << "')," << endl;
-                    comm_file_ofs << "                        CHARGE=(" << endl;
-                    comm_file_ofs << "                                CHMEC"
-                            << dynamicExcitation->getLoadSet()->getId() << "," << endl;
-                    comm_file_ofs << "                                )," << endl;
-                    comm_file_ofs << "                      )," << endl;
-                    dynamicExcitation->markAsWritten();
-                    loadSet->markAsWritten();
-                }
-            }
+        comm_file_ofs << "RGEL" << analysis->getId() << "=CALC_MATR_ELEM(OPTION='RIGI_GEOM'," << endl;
+        comm_file_ofs << "           MODELE=MODMECA," << endl;
+        if (not asterModel->model.materials.empty()) {
+            comm_file_ofs << "           CHAM_MATER=CHMAT," << endl;
         }
-        comm_file_ofs << "             )," << endl;
+        comm_file_ofs << "           CARA_ELEM=CAEL," << endl;
+        comm_file_ofs << "SIEF_ELGA=FSIG" << analysis->getId() << ")" << endl << endl;
+        comm_file_ofs << "RIGE" << analysis->getId() << "=ASSE_MATRICE(MATR_ELEM=RGEL" << analysis->getId() << ",NUME_DDL=NUMDDL" << analysis->getId() << ")" << endl << endl;
+        if (not canBeReused) {
+            destroyableConcepts.push_back("RGEL" + to_string(analysis->getId()));
+            destroyableConcepts.push_back("RIGE" + to_string(analysis->getId()));
+        }
+    } else {
+        comm_file_ofs << "MAEL" << analysis->getId() << "=CALC_MATR_ELEM(OPTION='MASS_MECA'," << commonparams << ")" << endl << endl;
+        comm_file_ofs << "MASS" << analysis->getId() << "=ASSE_MATRICE(MATR_ELEM=MAEL" << analysis->getId() << ",NUME_DDL=NUMDDL" << analysis->getId() << ")" << endl << endl;
+        comm_file_ofs << "AMEL" << analysis->getId() << "=CALC_MATR_ELEM(OPTION='AMOR_MECA'," << commonparams << endl;
+        comm_file_ofs << "     RIGI_MECA=RIEL" << analysis->getId() << "," << endl;
+        comm_file_ofs << "     MASS_MECA=MAEL" << analysis->getId() << ",)" << endl << endl;
+        comm_file_ofs << "AMOR" << analysis->getId() << "=ASSE_MATRICE(MATR_ELEM=AMEL" << analysis->getId() << "," << endl;
+        comm_file_ofs << "     NUME_DDL=NUMDDL" << analysis->getId() << ")" << endl << endl;
+        if (not canBeReused) {
+            destroyableConcepts.push_back("MAEL" + to_string(analysis->getId()));
+            destroyableConcepts.push_back("MASS" + to_string(analysis->getId()));
+            destroyableConcepts.push_back("AMEL" + to_string(analysis->getId()));
+            destroyableConcepts.push_back("AMOR" + to_string(analysis->getId()));
+        }
     }
-    comm_file_ofs << "           );" << endl << endl;
 }
 
 void AsterWriter::writeCalcFreq(const std::shared_ptr<LinearModal>& linearModal) {
@@ -2122,31 +2130,8 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
 		comm_file_ofs << "# Analysis original id : " << analysis->getOriginalId() << endl;
 	}
 
-    shared_ptr<Analysis> reusableAnalysis = nullptr;
-    for (const auto& previousAnalysis : asterModel->model.analyses) {
-        if (*previousAnalysis == *analysis)
-            break; // only looking at previous analysis
-        if (analysis->canReuse(previousAnalysis)) {
-            reusableAnalysis = previousAnalysis;
-            break;
-        }
-    }
-
-    bool canBeReused = false;
-    bool isAfter = false;
-    for (const auto& otherAnalysis : asterModel->model.analyses) {
-        if (*otherAnalysis == *analysis) {
-            isAfter = true;
-            continue;
-        }
-        if (not isAfter) {
-            continue; // only looking at following analysis
-        }
-        if (otherAnalysis->canReuse(analysis)) {
-            canBeReused = true;
-            break;
-        }
-    }
+    shared_ptr<Analysis> reusableAnalysis = asterModel->model.reusableAnalysisFor(analysis);
+    bool canBeReused = asterModel->model.canBeReused(analysis);
 
 	switch (analysis->type) {
     case Analysis::Type::COMBINATION: {
@@ -2319,7 +2304,8 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
 		break;
 	}
 	case Analysis::Type::LINEAR_DYNA_DIRECT_FREQ: {
-        writeAssemblage(analysis);
+        writeAssemblage(analysis, canBeReused);
+
         auto structural_damping = asterModel->model.parameters.find(Model::Parameter::STRUCTURAL_DAMPING);
         auto frequency_of_interest_radians = asterModel->model.parameters.find(Model::Parameter::FREQUENCY_OF_INTEREST_RADIANS);
         bool has_structural_damping = structural_damping != asterModel->model.parameters.end() and frequency_of_interest_radians != asterModel->model.parameters.end() and frequency_of_interest_radians->second > 0;
@@ -2330,6 +2316,32 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
                 << ", COEF_R = " << structural_damping->second / frequency_of_interest_radians->second << "))" << endl;
         }
 		const auto& linearDirect = dynamic_pointer_cast<LinearDynaDirectFreq>(analysis);
+
+        for (const auto& loadSet : analysis->getLoadSets()) {
+            for (const auto& loading : loadSet->getLoadings()) {
+                if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
+                    const auto& dynamicExcitation = dynamic_pointer_cast<DynamicExcitation>(loading);
+                    const string& vename = "VE" + to_string(analysis->getId()) + "_" + to_string(dynamicExcitation->getId());
+                    comm_file_ofs << vename << " = CALC_VECT_ELEM(OPTION = 'CHAR_MECA'," << endl;
+                    if (not asterModel->model.materials.empty()) {
+                        comm_file_ofs << "           CHAM_MATER=CHMAT," << endl;
+                    }
+                    comm_file_ofs << "           CARA_ELEM=CAEL," << endl;
+                    comm_file_ofs << "                        CHARGE=(" << endl;
+                    comm_file_ofs << "                                CHMEC"
+                            << dynamicExcitation->getLoadSet()->getId() << "," << endl;
+                    comm_file_ofs << "                                )," << endl;
+                    comm_file_ofs << ")" << endl << endl;
+                    destroyableConcepts.push_back(vename);
+                    const string& fxname = "FX" + to_string(analysis->getId()) + "_" + to_string(dynamicExcitation->getId());
+                    comm_file_ofs << fxname << " = ASSE_VECTEUR(VECT_ELEM = " << vename << ", NUME_DDL=NUMDDL" << analysis->getId() << ")" << endl << endl;
+                    destroyableConcepts.push_back(fxname);
+                    dynamicExcitation->markAsWritten();
+                    loadSet->markAsWritten();
+                }
+            }
+        }
+
         comm_file_ofs << "RESU" << linearDirect->getId() << " = DYNA_VIBRA(" << endl;
         comm_file_ofs << "                   TYPE_CALCUL='HARM'," << endl;
         comm_file_ofs << "                   BASE_CALCUL='PHYS'," << endl;
@@ -2377,20 +2389,22 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
 
 		const auto& linearModal = static_pointer_cast<LinearModal>(analysis);
 
-		string resuName;
+		string modalResuName;
+		shared_ptr<Analysis> modalAnalysis = nullptr;
 		if (reusableAnalysis == nullptr) {
-            writeAssemblage( analysis);
+            modalAnalysis = linearModal;
+            writeAssemblage(analysis, canBeReused);
             if (analysis->type == Analysis::Type::LINEAR_MODAL)
-                resuName = "RESU" + to_string(linearModal->getId());
+                modalResuName = "RESU" + to_string(modalAnalysis->getId());
             else {
-                resuName = "MODES" + to_string(linearModal->getId());
+                modalResuName = "MODES" + to_string(modalAnalysis->getId());
                 if (not canBeReused) {
-                    destroyableConcepts.push_back(resuName);
+                    destroyableConcepts.push_back(modalResuName);
                 }
             }
-            comm_file_ofs << "U" << resuName << "=CALC_MODES(MATR_RIGI=RIGI" << linearModal->getId()
+            comm_file_ofs << "U" << modalResuName << "=CALC_MODES(MATR_RIGI=RIGI" << modalAnalysis->getId()
                     << "," << endl;
-            comm_file_ofs << "                       MATR_MASS=MASS" << linearModal->getId() << "," << endl;
+            comm_file_ofs << "                       MATR_MASS=MASS" << modalAnalysis->getId() << "," << endl;
             if (linearModal->use_power_iteration) {
                 comm_file_ofs << "                       SOLVEUR_MODAL=_F(OPTION_INV='DIRECT')," << endl;
             } else {
@@ -2404,7 +2418,7 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
             comm_file_ofs << "                                  NPREC=8," << endl;
             comm_file_ofs << "                                  )," << endl;
             comm_file_ofs << "                       )" << endl << endl;
-            destroyableConcepts.push_back("U" + resuName);
+            destroyableConcepts.push_back("U" + modalResuName);
 
             double lowFreq = 0;
             if (asterModel->model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY) != asterModel->model.parameters.end()) {
@@ -2415,27 +2429,29 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
             if (asterModel->model.parameters.find(Model::Parameter::UPPER_CUTOFF_FREQUENCY) != asterModel->model.parameters.end()) {
                 highFreq = asterModel->model.parameters[Model::Parameter::UPPER_CUTOFF_FREQUENCY];
             }
-            comm_file_ofs << resuName << "=EXTR_MODE(FILTRE_MODE=_F(MODE=U" << resuName << ", FREQ_MIN=" << lowFreq << ", FREQ_MAX=" << highFreq << "),)" << endl;
+            comm_file_ofs << modalResuName << "=EXTR_MODE(FILTRE_MODE=_F(MODE=U" << modalResuName << ", FREQ_MIN=" << lowFreq << ", FREQ_MAX=" << highFreq << "),)" << endl;
+            comm_file_ofs << "I" << modalResuName << "=RECU_TABLE(CO=" << modalResuName << ",NOM_PARA = ('FREQ','MASS_GENE','RIGI_GENE','AMOR_GENE'))" << endl;
+            comm_file_ofs << "IMPR_TABLE(TABLE=I" << modalResuName << ")" << endl << endl;
+            destroyableConcepts.push_back("I" + modalResuName);
+            comm_file_ofs << "J" << modalResuName << "=POST_ELEM(RESULTAT=" << modalResuName << ", MASS_INER=_F(TOUT='OUI'))" << endl;
+            comm_file_ofs << "IMPR_TABLE(TABLE=J" << modalResuName << ")" << endl << endl;
+            destroyableConcepts.push_back("J" + modalResuName);
 		} else {
+		    modalAnalysis = reusableAnalysis;
             if (reusableAnalysis->type == Analysis::Type::LINEAR_MODAL)
-                resuName = "RESU" + to_string(reusableAnalysis->getId());
+                modalResuName = "RESU" + to_string(reusableAnalysis->getId());
             else
-                resuName = "MODES" + to_string(reusableAnalysis->getId());
+                modalResuName = "MODES" + to_string(reusableAnalysis->getId());
+		    comm_file_ofs << "# Reusing previous results: " << modalResuName << " for analysis " << analysis << endl;
+            handleWritingWarning("# Reusing previous results: " + modalResuName + " for analysis " + to_str(*analysis));
 		}
 
-        comm_file_ofs << "LIMODE" << analysis->getId() << "=RECU_TABLE(CO=" << resuName << "," << endl;
+        comm_file_ofs << "LIMODE" << analysis->getId() << "=RECU_TABLE(CO=" << modalResuName << "," << endl;
 		comm_file_ofs << "                  NOM_PARA = 'FREQ');" << endl << endl;
 
 		comm_file_ofs << "pfreq" << analysis->getId() << "= LIMODE" << analysis->getId()
 				<< ".EXTR_TABLE().values()['FREQ']" << endl;
         destroyableConcepts.push_back("LIMODE" + to_string(analysis->getId()));
-
-		comm_file_ofs << "I" << resuName << "=RECU_TABLE(CO=" << resuName << ",NOM_PARA = ('FREQ','MASS_GENE','RIGI_GENE','AMOR_GENE'))" << endl;
-        comm_file_ofs << "IMPR_TABLE(TABLE=I" << resuName << ")" << endl << endl;
-        destroyableConcepts.push_back("I" + resuName);
-        comm_file_ofs << "J" << resuName << "=POST_ELEM(RESULTAT=" << resuName << ", MASS_INER=_F(TOUT='OUI'))" << endl;
-        comm_file_ofs << "IMPR_TABLE(TABLE=J" << resuName << ")" << endl << endl;
-        destroyableConcepts.push_back("J" + resuName);
 
 		if (analysis->type == Analysis::Type::LINEAR_MODAL) {
             linearModal->markAsWritten();
@@ -2446,8 +2462,8 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
 
 		if (linearDynaModalFreq->residual_vector) {
 			comm_file_ofs << "MOSTA" << linearDynaModalFreq->getId() << "=MODE_STATIQUE(MATR_RIGI=RIGI"
-					<< linearDynaModalFreq->getId() << "," << endl;
-			comm_file_ofs << "                     MATR_MASS=MASS" << linearDynaModalFreq->getId() << ","
+					<< modalAnalysis->getId() << "," << endl;
+			comm_file_ofs << "                     MATR_MASS=MASS" << modalAnalysis->getId() << ","
 					<< endl;
 			comm_file_ofs << "                     FORCE_NODALE=(" << endl;
 			for (const auto& loadSet : linearDynaModalFreq->getLoadSets()) {
@@ -2491,15 +2507,15 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
 			comm_file_ofs << "                     );" << endl << endl;
 
 			comm_file_ofs << "RESVE" << linearDynaModalFreq->getId()
-					<< "=DEFI_BASE_MODALE(RITZ =(_F(MODE_MECA=MODES" << linearDynaModalFreq->getId()
+					<< "=DEFI_BASE_MODALE(RITZ =(_F(MODE_MECA=" << modalResuName
 					<< ",)," << endl;
             destroyableConcepts.push_back("RESVE" + to_string(analysis->getId()));
 			comm_file_ofs << "                               _F(MODE_INTF=MOSTA"
 					<< linearDynaModalFreq->getId() << ",)," << endl;
 			comm_file_ofs << "                               )," << endl;
-			comm_file_ofs << "                        NUME_REF=NUMDDL" << linearDynaModalFreq->getId() << ","
+			comm_file_ofs << "                        NUME_REF=NUMDDL" << modalAnalysis->getId() << ","
 					<< endl;
-			comm_file_ofs << "                        MATRICE=MASS" << linearDynaModalFreq->getId() << ","
+			comm_file_ofs << "                        MATRICE=MASS" << modalAnalysis->getId() << ","
 					<< endl;
 			comm_file_ofs << "                        ORTHO='OUI'," << endl;
 			comm_file_ofs << "                        );" << endl << endl;
@@ -2508,25 +2524,49 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
 			comm_file_ofs << "modes" << linearDynaModalFreq->getId() << "=" << "RESVE"
 					<< linearDynaModalFreq->getId() << endl;
 		} else {
-			comm_file_ofs << "modes" << linearDynaModalFreq->getId() << "=" << "MODES"
-					<< linearDynaModalFreq->getId() << endl;
+			comm_file_ofs << "modes" << linearDynaModalFreq->getId() << "=" << modalResuName << endl;
 		}
+
+        for (const auto& loadSet : linearDynaModalFreq->getLoadSets()) {
+            for (const auto& loading : loadSet->getLoadings()) {
+                if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
+                    const auto& dynamicExcitation = dynamic_pointer_cast<DynamicExcitation>(loading);
+                    const string& vename = "VE" + to_string(analysis->getId()) + "_" + to_string(dynamicExcitation->getId());
+                    comm_file_ofs << vename << " = CALC_VECT_ELEM(OPTION = 'CHAR_MECA'," << endl;
+                    if (not asterModel->model.materials.empty()) {
+                        comm_file_ofs << "           CHAM_MATER=CHMAT," << endl;
+                    }
+                    comm_file_ofs << "           CARA_ELEM=CAEL," << endl;
+                    comm_file_ofs << "                        CHARGE=(" << endl;
+                    comm_file_ofs << "                                CHMEC"
+                            << dynamicExcitation->getLoadSet()->getId() << "," << endl;
+                    comm_file_ofs << "                                )," << endl;
+                    comm_file_ofs << ")" << endl << endl;
+                    destroyableConcepts.push_back(vename);
+                    const string& fxname = "FX" + to_string(analysis->getId()) + "_" + to_string(dynamicExcitation->getId());
+                    comm_file_ofs << fxname << " = ASSE_VECTEUR(VECT_ELEM = " << vename << ", NUME_DDL=NUMDDL" << modalAnalysis->getId() << ")" << endl << endl;
+                    destroyableConcepts.push_back(fxname);
+                    dynamicExcitation->markAsWritten();
+                    loadSet->markAsWritten();
+                }
+            }
+        }
 
         comm_file_ofs << "PROJ_BASE(BASE=modes" << linearDynaModalFreq->getId() << "," << endl;
         comm_file_ofs << "          MATR_ASSE_GENE=(_F(MATRICE=CO('MASSG" << linearDynaModalFreq->getId()
                 << "')," << endl;
-        comm_file_ofs << "                             MATR_ASSE=MASS" << linearDynaModalFreq->getId() << ",),"
+        comm_file_ofs << "                             MATR_ASSE=MASS" << modalAnalysis->getId() << ",),"
                 << endl;
         comm_file_ofs << "                          _F(MATRICE=CO('RIGIG" << linearDynaModalFreq->getId()
                 << "')," << endl;
-        comm_file_ofs << "                             MATR_ASSE=RIGI" << linearDynaModalFreq->getId() << ",),"
+        comm_file_ofs << "                             MATR_ASSE=RIGI" << modalAnalysis->getId() << ",),"
                 << endl;
         destroyableConcepts.push_back("RIGIG" + to_string(analysis->getId()));
         destroyableConcepts.push_back("MASSG" + to_string(analysis->getId()));
         if (linearDynaModalFreq->getModalDamping() == nullptr) {
             comm_file_ofs << "                          _F(MATRICE=CO('AMORG" << linearDynaModalFreq->getId()
                     << "')," << endl;
-            comm_file_ofs << "                             MATR_ASSE=AMOR" << linearDynaModalFreq->getId() << ",),"
+            comm_file_ofs << "                             MATR_ASSE=AMOR" << modalAnalysis->getId() << ",),"
                     << endl;
             destroyableConcepts.push_back("AMORG" + to_string(analysis->getId()));
         }
@@ -2537,11 +2577,9 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
                 if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
                     const auto& dynamicExcitation = dynamic_pointer_cast<DynamicExcitation>(loading);
                     const string& vgname = "VG" + to_string(analysis->getId()) + "_" + to_string(dynamicExcitation->getId());
-                    const string& fxname = "FX" + to_string(analysis->getId()) + "_" + to_string(dynamicExcitation->getId());
                     comm_file_ofs << "                          _F(VECTEUR=CO('" << vgname << "')," << endl;
                     destroyableConcepts.push_back(vgname);
-                    comm_file_ofs << "                             VECT_ASSE=" << fxname << ",";
-                    destroyableConcepts.push_back(fxname);
+                    comm_file_ofs << "                             VECT_ASSE=" << "FX" << analysis->getId() << "_" << dynamicExcitation->getId() << ",";
                     comm_file_ofs << "TYPE_VECT=";
                     switch(dynamicExcitation->excitType) {
                     case DynamicExcitation::DynamicExcitationType::LOAD: {
@@ -2650,7 +2688,7 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
         //comm_file_ofs << "            NUME_ORDRE=1," << endl;
         comm_file_ofs << "            NOM_CHAM='SIEF_ELGA',)" << endl << endl;
 
-        writeAssemblage( analysis);
+        writeAssemblage(analysis, canBeReused);
 
         comm_file_ofs << "RESU" << linearBuckling->getId() << "=CALC_MODES(MATR_RIGI=RIGI" << linearBuckling->getId() << "," << endl;
         comm_file_ofs << "                 MATR_RIGI_GEOM=RIGE" << linearBuckling->getId() << "," << endl;

@@ -734,6 +734,34 @@ bool Model::needsLargeDisplacements() const {
     return not is_zero(largeDisp);
 }
 
+std::shared_ptr<Analysis> Model::reusableAnalysisFor(const shared_ptr<Analysis>& analysis) const noexcept {
+    for (const auto& previousAnalysis : this->analyses) {
+        if (*previousAnalysis == *analysis)
+            break; // only looking at previous analysis
+        if (analysis->canReuse(previousAnalysis)) {
+            return previousAnalysis;
+        }
+    }
+    return nullptr;
+}
+
+bool Model::canBeReused(const shared_ptr<Analysis>& analysis) const noexcept {
+    bool isAfter = false;
+    for (const auto& otherAnalysis : this->analyses) {
+        if (*otherAnalysis == *analysis) {
+            isAfter = true;
+            continue;
+        }
+        if (not isAfter) {
+            continue; // only looking at following analysis
+        }
+        if (otherAnalysis->canReuse(analysis)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void Model::generateSkin() {
 
     for (const auto& loading : loadings) {

@@ -407,6 +407,9 @@ public:
     std::vector<std::shared_ptr<Beam>> getTrusses() const;
     bool needsLargeDisplacements() const;
 
+    std::shared_ptr<Analysis> reusableAnalysisFor(const std::shared_ptr<Analysis>&) const noexcept;
+    bool canBeReused(const std::shared_ptr<Analysis>&) const noexcept;
+
     /**
      * Method that is called when parsing is complete.
      */
