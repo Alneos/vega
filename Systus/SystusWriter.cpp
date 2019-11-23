@@ -3089,6 +3089,7 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
     out << "# CONVERSION OF RESULTS FOR POST-PROCESSING" << endl;
     out << comment<<"CONVERT "<< sSolver << endl;
     out << comment<<"POST 1" << endl;
+    out << comment<<"FILE DISPLACEMENT" << endl;
     out << comment<<"RETURN" << endl;
     out << endl;
 

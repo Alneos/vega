@@ -755,7 +755,14 @@ bool Model::canBeReused(const shared_ptr<Analysis>& analysis) const noexcept {
         if (not isAfter) {
             continue; // only looking at following analysis
         }
-        if (otherAnalysis->canReuse(analysis)) {
+//        if (otherAnalysis->canReuse(analysis)) {
+//            return true;
+//        }
+        const auto& reusableAnalysis = reusableAnalysisFor(otherAnalysis);
+        if (reusableAnalysis == nullptr) {
+            continue;
+        }
+        if (*reusableAnalysisFor(otherAnalysis) == *analysis) {
             return true;
         }
     }

@@ -337,24 +337,43 @@ void AsterWriter::writeAnalyses() {
 	for (const auto& analysis : asterModel->model.analyses) {
 		debut = writeAnalysis(analysis, debut);
 
-		if (calc_sigm) {
-			comm_file_ofs << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
+		const string& resuName = "RESU" + to_string(analysis->getId());
+
+		if (analysis->isStatic() and analysis->type != Analysis::Type::COMBINATION) {
+			comm_file_ofs << resuName << "=CALC_CHAMP(reuse=" << resuName << ","
 					<< endl;
-			comm_file_ofs << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
+			comm_file_ofs << "           RESULTAT=" << resuName << "," << endl;
+			comm_file_ofs << "           MODELE=MODMECA," << endl;
+            if (not asterModel->model.materials.empty()) {
+                comm_file_ofs << "           CHAM_MATER=CHMAT," << endl;
+            }
+            comm_file_ofs << "           CARA_ELEM=CAEL," << endl;
+			comm_file_ofs << "           FORCE = ('FORC_NODA')," << endl;
+			comm_file_ofs << ")" << endl;
+
+            comm_file_ofs << "C" << resuName << "=POST_ELEM(RESULTAT=" << resuName << ", TRAV_EXT=_F())" << endl;
+            comm_file_ofs << "IMPR_TABLE(TABLE=C" << resuName << ")" << endl << endl;
+            destroyableConcepts.push_back("C" + resuName);
+		}
+
+		if (calc_sigm) {
+			comm_file_ofs << resuName << "=CALC_CHAMP(reuse=" << resuName << ","
+					<< endl;
+			comm_file_ofs << "           RESULTAT=" << resuName << "," << endl;
 			comm_file_ofs << "           MODELE=MODMECA," << endl;
             if (not asterModel->model.materials.empty()) {
                 comm_file_ofs << "           CHAM_MATER=CHMAT," << endl;
             }
             comm_file_ofs << "           CARA_ELEM=CAEL," << endl;
 			comm_file_ofs << "           CONTRAINTE =('SIGM_ELNO')," << endl;
-			comm_file_ofs << "           FORCE = 'REAC_NODA'," << endl;
+			comm_file_ofs << "           FORCE = ('REAC_NODA', )," << endl;
 			comm_file_ofs << ")" << endl;
 		}
 
 		if (analysis->contains(Objective::Type::NODAL_CELL_VONMISES_ASSERTION)) {
-            comm_file_ofs << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
+            comm_file_ofs << resuName << "=CALC_CHAMP(reuse=" << resuName << ","
                     << endl;
-            comm_file_ofs << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
+            comm_file_ofs << "           RESULTAT=" << resuName << "," << endl;
             comm_file_ofs << "           MODELE=MODMECA," << endl;
             comm_file_ofs << "           CRITERES =('SIEQ_ELNO','SIEQ_NOEU')," << endl;
             comm_file_ofs << "           TOUT = 'OUI'," << endl;
@@ -363,9 +382,9 @@ void AsterWriter::writeAnalyses() {
             const auto& vonMisesOutputs = asterModel->model.objectives.filter(Objective::Type::VONMISES_STRESS_OUTPUT);
             for (const auto& output : vonMisesOutputs) {
                 const auto& vonMisesOutput = static_pointer_cast<VonMisesStressOutput>(output);
-                comm_file_ofs << "RESU" << analysis->getId() << "=CALC_CHAMP(reuse=RESU" << analysis->getId() << ","
+                comm_file_ofs << resuName << "=CALC_CHAMP(reuse=" << resuName << ","
                         << endl;
-                comm_file_ofs << "           RESULTAT=RESU" << analysis->getId() << "," << endl;
+                comm_file_ofs << "           RESULTAT=" << resuName << "," << endl;
                 comm_file_ofs << "           MODELE=MODMECA," << endl;
                 comm_file_ofs << "           CRITERES =('SIEQ_ELNO','SIEQ_NOEU')," << endl;
                 writeCellContainer(*vonMisesOutput);
@@ -380,7 +399,7 @@ void AsterWriter::writeAnalyses() {
 			for (const auto& assertion : assertions) {
 				switch (assertion->type) {
 				case Objective::Type::NODAL_DISPLACEMENT_ASSERTION:
-					comm_file_ofs << "                  _F(RESULTAT=RESU" << analysis->getId() << "," << endl;
+					comm_file_ofs << "                  _F(RESULTAT=" << resuName << "," << endl;
 					writeNodalDisplacementAssertion( dynamic_cast<const NodalDisplacementAssertion&>(*assertion));
                     comm_file_ofs << "                     )," << endl;
 					break;
@@ -388,12 +407,12 @@ void AsterWriter::writeAnalyses() {
 					writeFrequencyAssertion(*analysis, dynamic_cast<const FrequencyAssertion&>(*assertion));
 					break;
 				case Objective::Type::NODAL_COMPLEX_DISPLACEMENT_ASSERTION:
-					comm_file_ofs << "                  _F(RESULTAT=RESU" << analysis->getId() << "," << endl;
+					comm_file_ofs << "                  _F(RESULTAT=" << resuName << "," << endl;
 					writeNodalComplexDisplacementAssertion( dynamic_cast<const NodalComplexDisplacementAssertion&>(*assertion));
                     comm_file_ofs << "                     )," << endl;
 					break;
                 case Objective::Type::NODAL_CELL_VONMISES_ASSERTION:
-					comm_file_ofs << "                  _F(RESULTAT=RESU" << analysis->getId() << "," << endl;
+					comm_file_ofs << "                  _F(RESULTAT=" << resuName << "," << endl;
 					writeNodalCellVonMisesAssertion( dynamic_cast<const NodalCellVonMisesAssertion&>(*assertion));
                     comm_file_ofs << "                     )," << endl;
 					break;
@@ -431,7 +450,7 @@ void AsterWriter::writeAnalyses() {
             }
 		}
 		if (not usedInNext and not canBeReused) {
-            destroyableConcepts.push_back("RESU" + to_string(analysis->getId()));
+            destroyableConcepts.push_back(resuName);
 		}
 
 		if (not destroyableConcepts.empty()) {
@@ -2168,8 +2187,8 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
     }
 	case Analysis::Type::LINEAR_MECA_STAT: {
 		const auto& linearMecaStat = static_pointer_cast<LinearMecaStat>(analysis);
-
-		comm_file_ofs << "RESU" << linearMecaStat->getId() << "=MECA_STATIQUE(MODELE=MODMECA," << endl;
+        string statResuName = "RESU" + to_string(linearMecaStat->getId());
+		comm_file_ofs << statResuName << "=MECA_STATIQUE(MODELE=MODMECA," << endl;
 		if (not asterModel->model.materials.empty()) {
             comm_file_ofs << "                    CHAM_MATER=CHMAT," << endl;
 		}
