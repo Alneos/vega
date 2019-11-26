@@ -268,7 +268,7 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
             break;
         }
     }
-    if (false and hasRecoveryPoints) {
+    if (false /* disabling because too big for rebuild, need to find a better solution, a field maybe? */ and hasRecoveryPoints) {
 
         for (const auto& elementSet : asterModel->model.elementSets) {
             if (not elementSet->isBeam()) continue; // to avoid CALCUL_37 Le TYPE_ELEMENT MECA_BARRE  ne sait pas encore calculer l'option:  SIPO_ELNO.
@@ -354,6 +354,59 @@ void AsterWriter::writeAnalyses() {
             comm_file_ofs << "C" << resuName << "=POST_ELEM(RESULTAT=" << resuName << ", TRAV_EXT=_F())" << endl;
             comm_file_ofs << "IMPR_TABLE(TABLE=C" << resuName << ")" << endl << endl;
             destroyableConcepts.push_back("C" + resuName);
+
+            const auto& poutres = asterModel->model.getBeams();
+            const auto& barres = asterModel->model.getTrusses();
+            if (not poutres.empty() or (asterModel->model.needsLargeDisplacements() and not barres.empty())) {
+                const string& localDispTableName = "TBLO" + to_string(analysis->getId());
+                comm_file_ofs << localDispTableName << "=POST_RELEVE_T(" << endl;
+                comm_file_ofs << "                  ACTION=(" << endl;
+                for (const auto& it : asterModel->model.mesh.cellGroupNameByCspos){
+                    if (asterModel->model.elementSets.filter(ElementSet::Type::CONTINUUM).size() == asterModel->model.elementSets.size()) {
+                        // LD workaround for case no beams, discrete, shells, composites... only solids in model, but segments in geometry
+                        // TODO : probably this loop should be applyed to elementSets and not over groups!!
+                        continue;
+                    }
+                    const auto& cs= asterModel->model.mesh.getCoordinateSystemByPosition(it.first);
+                    if (cs->type!=CoordinateSystem::Type::RELATIVE){
+                       //handleWritingError("Coordinate System of Group "+ it.second+" is not an ORIENTATION.");
+                       continue;
+                    }
+                    const auto& group = static_pointer_cast<CellGroup>(asterModel->model.mesh.findGroup(it.second));
+                    const auto& cells = group->getCells();
+                    if (cells.size() != 1) {
+                        continue; // Can only handle single cell groups here (need X vector)
+                    }
+                    const auto& nodePositions = (*cells.begin()).nodePositions;
+                    const auto& ocs = static_pointer_cast<OrientationCoordinateSystem>(cs);
+                    const auto& vectY = ocs->getV();
+                    comm_file_ofs << "                            _F(OPERATION='EXTRACTION',";
+                    comm_file_ofs << "INTITULE='" << it.second << "', NOEUD=('" << Node::MedName(nodePositions.front()) << "','" << Node::MedName(nodePositions.back()) << "'),";
+                    comm_file_ofs << "RESULTAT=" << resuName << ",NOM_CHAM='DEPL',TOUT_CMP='OUI',";
+                    comm_file_ofs << "REPERE='LOCAL',VECT_Y=(" << vectY.x() << "," << vectY.y() << "," << vectY.z() << "),)," << endl;
+                }
+                comm_file_ofs << "                      )," << endl;
+                comm_file_ofs << "                      INFO=1," << endl;
+                comm_file_ofs << "                  )" << endl << endl;
+
+                comm_file_ofs << "uloc" << analysis->getId() << "=DEFI_FICHIER(ACTION='ASSOCIER'," << endl;
+                comm_file_ofs << "             FICHIER='REPE_OUT/tbresloc_" << analysis->getId() << ".csv')" << endl
+                        << endl;
+
+                comm_file_ofs << "IMPR_TABLE(TABLE=" << localDispTableName << "," << endl;
+                comm_file_ofs << "           FORMAT='TABLEAU'," << endl;
+                comm_file_ofs << "           UNITE=uloc" << analysis->getId() << "," << endl;
+                comm_file_ofs << "           SEPARATEUR=' ,'," << endl;
+                comm_file_ofs << "           TITRE='RESULTS',)" << endl << endl;
+
+                destroyableConcepts.push_back(localDispTableName);
+                comm_file_ofs << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
+                comm_file_ofs << "             UNITE=uloc" << analysis->getId() << ",)" << endl << endl;
+                destroyableConcepts.push_back("uloc" + to_string(analysis->getId()));
+
+                comm_file_ofs << "IMPR_TABLE(TABLE=" << localDispTableName << ")" << endl << endl;
+
+            }
 		}
 
 		if (calc_sigm) {
