@@ -1199,6 +1199,79 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                     break;
                 }
 
+                case Loading::Type::FORCE_LINE: {
+                    shared_ptr<ForceLine> forceLine = dynamic_pointer_cast<ForceLine>(loading);
+                    double FX=0.0;
+                    double FY=0.0;
+                    double FZ=0.0;
+                    double MX=0.0;
+                    double MY=0.0;
+                    double MZ=0.0;
+                    switch(forceLine->dof.code) {
+                    case DOF::Code::DX_CODE:
+                        FX = 1.0;
+                        break;
+                    case DOF::Code::DY_CODE:
+                        FY = 1.0;
+                        break;
+                    case DOF::Code::DZ_CODE:
+                        FZ = 1.0;
+                        break;
+                    case DOF::Code::RX_CODE:
+                        MX = 1.0;
+                        break;
+                    case DOF::Code::RY_CODE:
+                        MY = 1.0;
+                        break;
+                    case DOF::Code::RZ_CODE:
+                        MZ =1.0;
+                        break;
+                    default:
+                        handleWritingError("DOF not yet handled", "Loadings");
+                    }
+
+                    // Only uniform distribution are supported yet
+                    const auto& functionTable = dynamic_pointer_cast<FunctionTable>(forceLine->force);
+                    auto it = functionTable->getBeginValuesXY();
+                    double p1 = it->second;
+                    it++;
+                    while (it != functionTable->getEndValuesXY()){
+                        double p2 = it->second;
+                        if (!(is_equal(p1,p2))){
+                            handleWritingWarning("Only uniform linear forces are supported. First values kept.", "Loadings");
+                            it=functionTable->getEndValuesXY();
+                        }else{
+                            it++;
+                        }
+                    }
+                    vector<double> vec;
+                    double normvec = 0.0;
+                    vec.push_back(1);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(FX*p1); normvec=max(normvec, abs(FX));
+                    vec.push_back(FY*p1); normvec=max(normvec, abs(FY));
+                    vec.push_back(FZ*p1); normvec=max(normvec, abs(FZ));
+                    if (systusOption == SystusOption::SHELL) {
+                        vec.push_back(MX*p1); normvec=max(normvec, abs(MX));
+                        vec.push_back(MY*p1); normvec=max(normvec, abs(MY));
+                        vec.push_back(MZ*p1); normvec=max(normvec, abs(MZ));
+                    }
+                    if (!is_zero(normvec)){
+                        vectors[vectorId]=vec;
+                        for (const int cellId : forceLine->getCellIdsIncludingGroups()){
+                          loadingVectorsIdByLocalLoadingByCellId[cellId][idLoadCase].push_back(vectorId);
+                        }
+                        vectorId++;
+                    }
+                    forceLine->markAsWritten();
+                    break;
+                }
+
+
                 case Loading::Type::DYNAMIC_EXCITATION:{
                     shared_ptr<DynamicExcitation> dE = dynamic_pointer_cast<DynamicExcitation>(loading);
                     shared_ptr<LoadSet> dEL = dE->getLoadSet();
