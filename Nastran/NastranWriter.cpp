@@ -716,6 +716,7 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 		pshell.add(shell->bestId());
 		pshell.add(shell->material->bestId());
 		pshell.add(shell->thickness);
+		pshell.add(shell->material->bestId()); // MID2 for bending
 		out << pshell;
 		shell->markAsWritten();
 	}

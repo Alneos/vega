@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
     string nastranOutputSyntax = "modern"; // cosmic cannot handle PLOAD4 on volume cells
     map<SolverName, bool> canrunBySolverName = {
         {SolverName::CODE_ASTER, RUN_ASTER},
-//        {SolverName::SYSTUS, RUN_SYSTUS},
+        {SolverName::SYSTUS, false},
         {SolverName::NASTRAN, false}, // cosmic cannot handle PLOAD4 on volume cells
     };
     const map<CellType, string>& meshByCellType = {
@@ -298,6 +298,11 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                         const auto& analysis = make_shared<LinearMecaStat>(*model, "PLOAD2", analysisId);
                         const auto& loadSet = make_shared<LoadSet>(*model, LoadSet::Type::LOAD, loadSetId);
                         model->add(loadSet);
+
+                        const auto& spcrot = make_shared<SinglePointConstraint>(*model, DOF::RX, 0.0);
+                        spcrot->addCellGroup(volgroup->getName());
+                        model->add(spcrot);
+                        model->addConstraintIntoConstraintSet(*spcrot, *constraintSet);
 
                         analysis->add(*loadSet);
                         analysis->add(*constraintSet);

@@ -404,7 +404,6 @@ void AsterWriter::writeAnalyses() {
                 comm_file_ofs << "             UNITE=uloc" << analysis->getId() << ",)" << endl << endl;
                 destroyableConcepts.push_back("uloc" + to_string(analysis->getId()));
 
-                comm_file_ofs << "IMPR_TABLE(TABLE=" << localDispTableName << ")" << endl << endl;
 
             }
 		}
@@ -548,7 +547,7 @@ void AsterWriter::writeComm() {
 
 	writeAnalyses();
 
-	comm_file_ofs << "FIN()" << endl;
+	comm_file_ofs << "FIN(RETASSAGE='OUI')" << endl;
 }
 
 void AsterWriter::writeLireMaillage() {
