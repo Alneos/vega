@@ -163,4 +163,25 @@ BOOST_AUTO_TEST_CASE(optistruct_twosubcases) {
 	}
 }
 
+BOOST_AUTO_TEST_CASE(optistruct_multilineset) {
+	string testLocation = fs::path(
+		PROJECT_BASE_DIR "/testdata/unitTest/optistructparser/multilineset.nas").make_preferred().string();
+	optistruct::OptistructParser parser;
+	try {
+		const unique_ptr<Model> model = parser.parse(
+			ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
+        const auto& setGroup = dynamic_pointer_cast<NodeGroup>(model->mesh.findGroup("SET_5"));
+        const auto& nodeIds = setGroup->getNodeIds();
+        BOOST_CHECK_EQUAL(nodeIds.size(), 7);
+        model->finish();
+        BOOST_CHECK_EQUAL(nodeIds.size(), 7);
+	}
+	catch (exception& e) {
+		cerr << e.what() << endl;
+		BOOST_TEST_MESSAGE(string("Application exception") + e.what());
+
+		BOOST_FAIL(string("Parse threw exception ") + e.what());
+	}
+}
+
 //____________________________________________________________________________//

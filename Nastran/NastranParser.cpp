@@ -3192,7 +3192,7 @@ void NastranParser::parseSPCADD(NastranTokenizer& tok, Model& model) {
             // Example: case of SPC in local coordinate system later replaced by MPCs during finish()
             // Possible alternative: make sure that these SPCs are found also with methods like
             // Model.getConstraintsByConstraintSet() etc. which seems not to be the case now
-            Reference<ConstraintSet> constraintSetReference(ConstraintSet::Type::SPC, constraintSet_id);
+            const Reference<ConstraintSet>& constraintSetReference{ConstraintSet::Type::SPC, constraintSet_id};
             auto constraintSet = model.constraintSets.find(constraintSetReference);
             if (constraintSet == nullptr) {
                 constraintSet = make_shared<ConstraintSet>(model, ConstraintSet::Type::SPC, constraintSet_id);

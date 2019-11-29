@@ -210,7 +210,10 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
         comm_file_ofs << "=POST_RELEVE_T(ACTION=(" << endl;
         for (auto output : displacementOutputs) {
             const auto& displacementOutput = static_pointer_cast<const NodalDisplacementOutput>(output);
-            comm_file_ofs << "                _F(INTITULE='DISP" << output->bestId() << "',OPERATION='EXTRACTION',RESULTAT=RESU" << analysis->getId() << ",";
+            comm_file_ofs << "                _F(INTITULE='DISPR" << output->bestId() << "',FORMAT_C='REEL',OPERATION='EXTRACTION',RESULTAT=RESU" << analysis->getId() << "," << endl;
+            writeNodeContainer(*displacementOutput);
+            comm_file_ofs << "NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
+            comm_file_ofs << "                _F(INTITULE='DISPI" << output->bestId() << "',FORMAT_C='IMAG',OPERATION='EXTRACTION',RESULTAT=RESU" << analysis->getId() << "," << endl;
             writeNodeContainer(*displacementOutput);
             comm_file_ofs << "NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
         }
@@ -2510,7 +2513,7 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
                 modalResuName = "RESU" + to_string(reusableAnalysis->getId());
             else
                 modalResuName = "MODES" + to_string(reusableAnalysis->getId());
-		    comm_file_ofs << "# Reusing previous results: " << modalResuName << " for analysis " << analysis << endl;
+		    comm_file_ofs << "# Reusing previous results: " << modalResuName << " for analysis " << *analysis << endl;
             handleWritingWarning("Reusing previous results: " + modalResuName + " for analysis " + to_str(*analysis));
 		}
 
