@@ -673,7 +673,7 @@ shared_ptr<CellGroup> Mesh::createCellGroup(const string& name, int groupId, con
         }
 		throw invalid_argument(errorMessage);
 	}
-	shared_ptr<CellGroup> group= shared_ptr<CellGroup>(new CellGroup(*this, name, groupId, comment));
+	shared_ptr<CellGroup> group = shared_ptr<CellGroup>(new CellGroup(*this, name, groupId, comment));
 	this->groupByName[name] = group;
 	if (groupId != CellGroup::NO_ORIGINAL_ID) {
 		this->groupById[groupId] = group;

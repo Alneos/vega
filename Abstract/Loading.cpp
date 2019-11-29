@@ -71,13 +71,13 @@ const string LoadSet::name = "LoadSet";
 const map<LoadSet::Type, string> LoadSet::stringByType = { { LoadSet::Type::LOAD, "LOAD" }, { LoadSet::Type::DLOAD, "DLOAD" }, {
 		LoadSet::Type::EXCITEID, "EXCITEID" }, { LoadSet::Type::LOADSET, "LOADSET" }, { LoadSet::Type::ALL, "ALL" } };
 
-string LoadSet::getGroupName(Loading::Type loadingType) {
-    string loadingGroupName = Loading::stringByType.find(loadingType)->second;
-    if (loadingGroupName.size() >= 15) {
+string LoadSet::getGroupName() const noexcept {
+    string loadSetGroupName = LoadSet::stringByType.find(this->type)->second;
+    if (loadSetGroupName.size() >= 15) {
         // LD Workaround to try to limit group name size (max 24 chars in Aster)
-        loadingGroupName = "TYPE" + to_string(static_cast<int>(loadingType));
+        loadSetGroupName = "LSTYPE" + to_string(static_cast<int>(this->type));
     }
-    return stringByType.find(this->type)->second + "_" + loadingGroupName + "_ID" + to_string(this->bestId());
+    return "LS_" + loadSetGroupName + "_" + to_string(this->bestId());
 }
 
 ostream &operator<<(ostream &out, const LoadSet& loadset) {
@@ -150,7 +150,7 @@ DOFS Gravity::getDOFSForNode(const int nodePosition) const {
 	return DOFS::NO_DOFS;
 }
 set<int> Gravity::nodePositions() const {
-	return set<int>();
+	return {};
 }
 
 VectorialValue Gravity::getGravityVector() const {
@@ -188,7 +188,7 @@ DOFS Rotation::getDOFSForNode(const int nodePosition) const {
 }
 
 set<int> Rotation::nodePositions() const {
-	return set<int>();
+	return {};
 }
 
 bool Rotation::ineffective() const {
@@ -426,7 +426,7 @@ StaticPressure::StaticPressure(Model& model, const std::shared_ptr<LoadSet> load
 }
 
 VectorialValue StaticPressure::getForceInGlobalCS(int nodePosition) const {
-    set<int> posSet = nodePositions();
+    const auto& posSet = nodePositions();
 	if (posSet.find(nodePosition) == posSet.end()) {
 	    return VectorialValue();
 	}
@@ -604,7 +604,7 @@ VectorialValue ForceSurface::getMoment() const {
 
 DOFS ForceSurface::getDOFSForNode(const int nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
-	set<int> nodes = nodePositions();
+	const auto& nodes = nodePositions();
 	if (nodes.find(nodePosition) != nodes.end()) {
 		if (!is_zero(force.x()))
 			dofs += DOF::DX;
@@ -680,7 +680,7 @@ ForceLine::ForceLine(Model& model, const std::shared_ptr<LoadSet> loadset, const
 
 DOFS ForceLine::getDOFSForNode(const int nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
-	set<int> nodes = nodePositions();
+	const auto& nodes = nodePositions();
 	if (nodes.find(nodePosition) != nodes.end()) {
 		if (!force->iszero())
 			dofs = dof;
@@ -711,7 +711,7 @@ NormalPressionFace::NormalPressionFace(Model& model, const std::shared_ptr<LoadS
 
 DOFS NormalPressionFace::getDOFSForNode(const int nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
-	set<int> nodes = nodePositions();
+	const auto& nodes = nodePositions();
 	if (nodes.find(nodePosition) != nodes.end()) {
 		dofs += DOFS::TRANSLATIONS;
 	}
@@ -805,7 +805,7 @@ shared_ptr<FunctionPlaceHolder> DynamicExcitation::getFunctionTablePPlaceHolder(
 }
 
 set<int> DynamicExcitation::nodePositions() const {
-    return set<int>();
+    return {};
 }
 
 DOFS DynamicExcitation::getDOFSForNode(const int nodePosition) const {

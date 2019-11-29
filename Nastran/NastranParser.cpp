@@ -933,10 +933,7 @@ void NastranParser::parseBSURF(NastranTokenizer& tok, Model& model) {
     int id = tok.nextInt();
     string gname = "BSURF_" + to_string(id);
     auto gsurf = model.mesh.createCellGroup(gname, CellGroup::NO_ORIGINAL_ID, "BSURF");
-    const auto& cellIds = tok.nextInts();
-    for (int cellId : cellIds) {
-        gsurf->addCellId(cellId);
-    }
+    gsurf->addCellIds(tok.nextInts());
     const auto& surface = make_shared<BoundarySurface>(model, id);
     surface->add(*gsurf);
     model.add(surface);
@@ -1062,7 +1059,7 @@ void NastranParser::parseCONM1(NastranTokenizer& tok, Model& model) {
     int cpos = ci == 0 ? CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID : ci;
     int cellPosition = model.mesh.addCell(eid, CellType::POINT1, { g }, false, cpos);
     auto mnodale = model.mesh.createCellGroup("CONM1_" + to_string(eid), CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
-    mnodale->addCellId(model.mesh.findCell(cellPosition).id);
+    mnodale->addCellPosition(cellPosition);
 
     const auto& nodalMassMatrix = make_shared<DiscretePoint>(model, MatrixType::SYMMETRIC, eid);
 
@@ -1116,7 +1113,7 @@ void NastranParser::parseCONM2(NastranTokenizer& tok, Model& model) {
     int cpos = ci == 0 ? CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID : ci;
     int cellPosition = model.mesh.addCell(eid, CellType::POINT1, { g }, false, cpos);
     auto mnodale = model.mesh.createCellGroup("CONM2_" + to_string(eid), CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
-    mnodale->addCellId(model.mesh.findCell(cellPosition).id);
+    mnodale->addCellPosition(cellPosition);
     nodalMass->add(*mnodale);
 
     model.add(nodalMass);
@@ -2540,9 +2537,7 @@ void NastranParser::parsePLOAD2(NastranTokenizer& tok, Model& model) {
     double p = tok.nextDouble();
     const auto& loadSet = model.getOrCreateLoadSet(loadset_id, LoadSet::Type::LOAD);
     const auto& normalPressionFace = make_shared<NormalPressionFace>(model, loadSet, p);
-    for(int cellId : tok.nextInts()) {
-        normalPressionFace->addCellId(cellId);
-    }
+    normalPressionFace->addCellIds(tok.nextInts());
     model.add(normalPressionFace);
 }
 
@@ -3095,19 +3090,15 @@ void NastranParser::parseSET3(NastranTokenizer& tok, Model& model) {
     if (des == "GRID") {
         shared_ptr<NodeGroup> nodeGroup = model.mesh.findOrCreateNodeGroup(name,sid,"SET3");
         const auto& ids = tok.nextInts();
+        nodeGroup->addNodeIds(ids);
         const auto& setValue = make_shared<SetValue<int>>(model, set<int>{ids.begin(), ids.end()}, sid);
-        for (int id : ids) {
-            nodeGroup->addNodeId(id);
-        }
         setValue->markAsWritten();
         model.add(setValue);
     } else if (des == "ELEM") {
         shared_ptr<CellGroup> cellGroup = model.mesh.createCellGroup(name,sid,"SET3");
         const auto& ids = tok.nextInts();
+        cellGroup->addCellIds(ids);
         const auto& setValue = make_shared<SetValue<int>>(model, set<int>{ids.begin(), ids.end()}, sid);
-        for (int id : ids) {
-            cellGroup->addCellId(id);
-        }
         setValue->markAsWritten();
         model.add(setValue);
     } else {
@@ -3164,10 +3155,7 @@ void NastranParser::parseSPC1(NastranTokenizer& tok, Model& model) {
     //shared_ptr<NodeGroup> spcNodeGroup = model.mesh.findOrCreateNodeGroup(name,NodeGroup::NO_ORIGINAL_ID,"SPC1");
 
     // Parsing Nodes
-    for(int gridId : tok.nextInts()) {
-        //spcNodeGroup->addNodeId(gridId);
-        spc->addNodeId(gridId);
-    }
+    spc->addNodeIds(tok.nextInts());
 
     // Adding the constraint to the model
     model.add(spc);

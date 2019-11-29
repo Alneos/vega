@@ -126,6 +126,15 @@ bool ConstraintSet::hasContacts() const noexcept {
 	return false;
 }
 
+string ConstraintSet::getGroupName() const noexcept {
+    string constraintSetGroupName = ConstraintSet::stringByType.find(this->type)->second;
+    if (constraintSetGroupName.size() >= 15) {
+        // LD Workaround to try to limit group name size (max 24 chars in Aster)
+        constraintSetGroupName = "LSTYPE" + to_string(static_cast<int>(this->type));
+    }
+    return "CS_" + constraintSetGroupName + "_" + to_string(this->bestId());
+}
+
 ostream &operator<<(ostream &out, const ConstraintSet& constraintSet) noexcept {
     out << to_str(constraintSet);
     return out;

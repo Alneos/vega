@@ -100,7 +100,7 @@ public:
 	inline bool empty() const noexcept { return size() == 0;};
 	std::set<std::shared_ptr<Loading>, ptrLess<Loading> > getLoadings() const;
 	std::set<std::shared_ptr<Loading>, ptrLess<Loading> > getLoadingsByType(Loading::Type) const;
-	std::string getGroupName(Loading::Type);
+	std::string getGroupName() const noexcept;
 	bool validate() const override;
 	std::unique_ptr<LoadSet> clone() const;
 	bool hasFunctions() const;

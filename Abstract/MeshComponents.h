@@ -421,10 +421,12 @@ public:
     void addCellPosition(int cellPosition) noexcept;
     void addCellId(int cellId) noexcept;
     // These methods should be templated but this class is based on incomplete types (Mesh) so cannot move the function implementation inside header :..(
-    void addCellIds(const std::vector<int>& otherIds) noexcept;
-    void addCellPositions(const std::vector<int>& otherPositions) noexcept;
-    void addCellIds(const std::set<int>& otherIds) noexcept;
-    void addCellPositions(const std::set<int>& otherPositions) noexcept;
+    void addCellIds(const std::vector<int>&) noexcept;
+    void addCellIds(const std::set<int>&)  noexcept;
+    void addCellIds(const std::list<int>&) noexcept;
+    void addCellPositions(const std::vector<int>&) noexcept;
+    void addCellPositions(const std::set<int>&) noexcept;
+    void addCellPositions(const std::list<int>&) noexcept;
     void addCellGroup(const std::string& groupName);
     void add(const Cell& cell) noexcept;
     //virtual void add(const Group& group);
@@ -463,16 +465,19 @@ class CellGroup final: public Group, private CellContainer {
     CellGroup(Mesh& mesh, const std::string & name, int id = NO_ORIGINAL_ID, const std::string & comment = "") noexcept;
     CellGroup(const CellGroup& that) = delete;
 public:
-    void addCellId(int cellId) noexcept;
-    void addCellIds(const std::vector<int>& cellIds) noexcept;
-    void addCellPosition(int cellPosition) noexcept;
-    bool containsCellPosition(int cellPosition) const noexcept;
+    using CellContainer::addCellPosition;
+    using CellContainer::addCellId;
+    using CellContainer::addCellIds;
+    using CellContainer::addCellPositions;
+    using CellContainer::containsCellPosition;
     void removeCellPosition(int cellPosition) noexcept;
     std::set<Cell> getCells();
     std::set<int> cellPositions() noexcept;
     std::set<int> cellIds() noexcept;
     std::set<int> nodePositions() const noexcept override;
-    bool empty() const noexcept override;
+    bool empty() const noexcept override {
+        return CellContainer::empty();
+    }
 };
 
 class NodeGroup;
@@ -498,6 +503,10 @@ public:
     /** Should be template but uses incomplete type Mesh, so cannot put the implementation inside header */
     void addNodeIds(const std::set<int>&) noexcept;
     void addNodeIds(const std::vector<int>&) noexcept;
+    void addNodeIds(const std::list<int>&) noexcept;
+    void addNodePositions(const std::set<int>&) noexcept;
+    void addNodePositions(const std::vector<int>&) noexcept;
+    void addNodePositions(const std::list<int>&) noexcept;
     void addNodePosition(int) noexcept;
     //void addNodeGroup(const std::string& groupName);
     void add(const Node&) noexcept;
@@ -527,16 +536,20 @@ private:
     friend Mesh;
     NodeGroup(Mesh& mesh, const std::string& name, int groupId, const std::string& comment="    ") noexcept;
 public:
-    // Add a node using its numerical id. If the node hasn't been yet defined it reserve position in the model.
-    void addNodeId(int nodeId) noexcept;
+    using NodeContainer::addNodeId;
+    using NodeContainer::addNodeIds;
+    using NodeContainer::addNodePosition;
+    using NodeContainer::addNodePositions;
     void addNode(const Node& node) noexcept;
     void addNodeByPosition(int nodePosition) noexcept;
     void removeNodeByPosition(int nodePosition) noexcept;
     bool containsNodePosition(int nodePosition) const noexcept;
     std::set<int> nodePositions() const noexcept override;
-    bool empty() const noexcept override;
     std::set<int> getNodeIds() const noexcept;
     std::set<Node> getNodes() const;
+    bool empty() const noexcept override {
+        return NodeContainer::empty();
+    }
     NodeGroup(const NodeGroup& that) = delete;
 };
 

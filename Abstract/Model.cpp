@@ -1506,7 +1506,7 @@ void Model::splitDirectMatrices(const unsigned int sizeMax){
                     esToAddByStackNumber[{stF,stF+1}]=newElementSet;
                     esToAddByStackNumber[{stF+1,stF+1}]=newElementSet;
                 }
-            }else{
+            } else {
                 newElementSet = it2->second;
             }
 
@@ -1553,13 +1553,13 @@ void Model::makeCellsFromDirectMatrices() {
         const auto& matrix = static_pointer_cast<MatrixElement>(elementSetM);
 
         // If cells already exists, we do nothing
-        if (!matrix->empty()){
+        if (!matrix->empty()) {
             //TODO: Display informative message in debug mode.
             continue;
         }
 
         // If matrix is void, we do nothing (should not happen)
-        if (matrix->nodePositions().size()==0){
+        if (matrix->nodePositions().size()==0) {
             //TODO: Display informative message in debug mode.
             continue;
         }
@@ -1588,7 +1588,7 @@ void Model::makeCellsFromDirectMatrices() {
 }
 
 
-void Model::makeCellsFromLMPC(){
+void Model::makeCellsFromLMPC() {
 
     shared_ptr<Material> materialLMPC= nullptr;
 
@@ -2026,6 +2026,21 @@ void Model::convert0DDiscretsInto1D() {
     }
 }
 
+void Model::createLoadsetsConstraintsetsGroups() {
+    for (const auto& loadSet : this->loadSets) {
+        const auto& loadSetNodeGroup = mesh.createNodeGroup(loadSet->getGroupName(), Group::NO_ORIGINAL_ID, "Display nodegroup for : " + to_str(*loadSet));
+        for (const auto& loading : loadSet->getLoadings()) {
+            loadSetNodeGroup->addNodePositions(loading->nodePositions());
+        }
+    }
+    for (const auto& constraintSet : this->constraintSets) {
+        const auto& constraintSetGroup = mesh.createNodeGroup(constraintSet->getGroupName(), Group::NO_ORIGINAL_ID, "Display nodegroup for : " + to_str(*constraintSet));
+        for (const auto& constraint : constraintSet->getConstraints()) {
+            constraintSetGroup->addNodePositions(constraint->nodePositions());
+        }
+    }
+}
+
 void Model::finish() {
     if (finished) {
         return;
@@ -2150,6 +2165,8 @@ void Model::finish() {
     if (this->configuration.changeParametricForceLineToAbsolute) {
         changeParametricForceLineToAbsolute();
     }
+
+    createLoadsetsConstraintsetsGroups();
 
     if (this->configuration.removeIneffectives) {
         removeUnassignedMaterials();

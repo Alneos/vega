@@ -85,6 +85,7 @@ public:
 	const Type type;
 	static const std::string name;
 	static const std::map<Type, std::string> stringByType;
+	std::string getGroupName() const noexcept;
 	void add(const Reference<ConstraintSet>&); // LD Hack : see parseSPCADD
 	std::set<std::shared_ptr<Constraint>, ptrLess<Constraint>> getConstraints() const noexcept;
 	std::set<std::shared_ptr<Constraint>, ptrLess<Constraint>> getConstraintsByType(Constraint::Type) const noexcept;
@@ -193,6 +194,7 @@ public:
 	void emulateLocalDisplacementConstraint();
 	bool hasReferences() const noexcept;
 	bool ineffective() const noexcept override;
+	std::string getGroupName() const noexcept;
 //    bool canGroup() const noexcept override final {
 //        return true;
 //    }

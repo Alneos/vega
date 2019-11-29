@@ -138,6 +138,11 @@ private:
     void convert0DDiscretsInto1D();
 
     /**
+     * Create groups out of loadsets and constraintsets (mainly for display)
+     */
+    void createLoadsetsConstraintsetsGroups();
+
+    /**
      * Get a non rigid material (virtual)
      */
     std::shared_ptr<Material> getVirtualMaterial();
