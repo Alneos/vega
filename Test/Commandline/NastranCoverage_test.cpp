@@ -389,9 +389,9 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
             }
             for (const auto& canRunEntry : canrunBySolverName) {
                 const SolverName& solverName = canRunEntry.first;
-                if (cellType == CellType::SEG2 and solverName == SolverName::SYSTUS) {
-                    continue; // FORCE_BEAM not yet translated
-                }
+//                if (cellType == CellType::SEG2 and solverName == SolverName::SYSTUS) {
+//                    continue; // FORCE_BEAM not yet translated
+//                }
                 CommandLineUtils::run(modelFile.string(), nastranSolver.getSolverName(), solverName, canRunEntry.second, true, 0.005, nastranOutputSyntax=="cosmic95");
                 //std::this_thread::sleep_for (std::chrono::seconds(1));
             }

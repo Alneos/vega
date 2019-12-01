@@ -362,8 +362,8 @@ void NastranTokenizer::splitFixedFormat(string& line, const bool longFormat, con
 		}
 	}
 	string line2;
-	char c = static_cast<char>(this->instrream.peek());
-	if (explicitContinuation or c == '+') {
+	char c0 = static_cast<char>(this->instrream.peek());
+	if (explicitContinuation or c0 == '+') {
 		//todo:check that continuation tokens are the same
 		bool iseof = readLineSkipComment(line2);
 		if (!iseof) {
