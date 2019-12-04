@@ -1115,11 +1115,7 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
 
                 case Loading::Type::NORMAL_PRESSION_FACE: {
                     shared_ptr<NormalPressionFace> npf = static_pointer_cast<NormalPressionFace>(loading);
-                    //writeNodalForceVector(systusModel, nodalForce, idLoadCase, vectorId);
-                    //VectorialValue force = npf->getForce();
-                    //VectorialValue moment = npf->getMoment();
                     vector<double> vec;
-                    //double normvec = 0.0;
                     vec.push_back(1);
                     vec.push_back(0);
                     vec.push_back(1); // This is a force normal to the surface of the element
