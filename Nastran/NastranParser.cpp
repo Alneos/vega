@@ -2536,7 +2536,7 @@ void NastranParser::parsePLOAD2(NastranTokenizer& tok, Model& model) {
     int loadset_id = tok.nextInt();
     double p = tok.nextDouble();
     const auto& loadSet = model.getOrCreateLoadSet(loadset_id, LoadSet::Type::LOAD);
-    const auto& normalPressionFace = make_shared<NormalPressionFace>(model, loadSet, p);
+    const auto& normalPressionFace = make_shared<NormalPressionFace>(model, loadSet, -p);
     normalPressionFace->addCellIds(tok.nextInts());
     model.add(normalPressionFace);
 }
