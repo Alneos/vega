@@ -1,0 +1,33 @@
+                                                                                                                                   
+0                                                                                                            SUBCASE 1              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             3      G      0.0            0.0            2.765143E+01   0.0            1.229211E-01   0.0
+             4      G      0.0            0.0            2.765145E+01   0.0            1.229229E-01   0.0
+                                                                                                                                    
+0                                                                                                            SUBCASE 2              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             3      G      0.0            0.0            2.765143E+01   0.0            1.229211E-01   0.0
+             4      G      0.0            0.0            2.765145E+01   0.0            1.229229E-01   0.0
+                                                                                                                                    
+0                                                                                                            SUBCASE 3              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             3      G      0.0            0.0            3.685426E+01   0.0            1.842505E-01   0.0
+             4      G      0.0            0.0            3.685454E+01   0.0            1.842995E-01   0.0
+                                                                                                                                    
+0                                                                                                            SUBCASE 4              
+ 
+                                             D I S P L A C E M E N T   V E C T O R
+ 
+      POINT ID.   TYPE          T1             T2             T3             R1             R2             R3
+             3      G      0.0            0.0            3.685425E+01   0.0            1.842379E-01   0.0
+             4      G      0.0            0.0            3.685465E+01   0.0            1.843121E-01   0.0
+

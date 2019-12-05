@@ -333,5 +333,9 @@ BOOST_AUTO_TEST_CASE( rbar_massif) {
 	CommandLineUtils::nastranStudy2Aster("/irt/rbar_massif/rbar_massif.nas", RUN_ASTER, true, 0.02);
 }
 
+BOOST_AUTO_TEST_CASE( allpload) {
+	CommandLineUtils::nastranStudy2Aster("/irt/allpload/allpload.nas", RUN_ASTER, true, 0.02);
+}
+
 } /* namespace test */
 } /* namespace vega */

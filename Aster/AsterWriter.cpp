@@ -2586,7 +2586,7 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
 			comm_file_ofs << "                               )," << endl;
 			comm_file_ofs << "                        NUME_REF=NUMDDL" << modalAnalysis->getId() << ","
 					<< endl;
-			comm_file_ofs << "                        MATRICE=MASS" << modalAnalysis->getId() << ","
+			comm_file_ofs << "                        MATRICE=RIGI" << modalAnalysis->getId() << ","
 					<< endl;
 			comm_file_ofs << "                        ORTHO='OUI'," << endl;
 			comm_file_ofs << "                        );" << endl << endl;
