@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
     fs::path inputFpath = fs::path(PROJECT_BASE_DIR "/testdata/nastran/irt/coverage");
     fs::path testOutputBase = fs::path(PROJECT_BINARY_DIR "/Testing/nastrancoverage");
 	ConfigurationParameters::TranslationMode translationMode = ConfigurationParameters::TranslationMode::MODE_STRICT;
-    string nastranOutputSyntax = "modern"; // cosmic cannot handle PLOAD4 on volume cells
+    string nastranOutputSyntax = "cosmic95"; // cosmic cannot handle PLOAD4 on volume cells
     map<SolverName, bool> canrunBySolverName = {
         {SolverName::CODE_ASTER, RUN_ASTER},
         {SolverName::SYSTUS, false},
@@ -107,7 +107,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
             ConfigurationParameters configuration = ConfigurationParameters(inputFname.string(), nastranSolver,
                 solverVersion, "test_3d_cantilever_" + cellType.description, outputPath.string(), LogLevel::DEBUG, translationMode, testFname.string(),
                 0.02, false, false, "", "", "lagrangian", 0.0, 0.0, "auto", "systus", {}, "table", 9, "direct",
-                nastranOutputSyntax);
+                "modern");
             nastran::NastranParser parser;
             unique_ptr<Model> model = parser.parse(configuration);
 
@@ -404,9 +404,9 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
             }
             for (const auto& canRunEntry : canrunBySolverName) {
                 const SolverName& solverName = canRunEntry.first;
-//                if (cellType == CellType::SEG2 and solverName == SolverName::SYSTUS) {
-//                    continue; // FORCE_BEAM not yet translated
-//                }
+                if (cellType.dimension == SpaceDimension::DIMENSION_3D and solverName == SolverName::NASTRAN) {
+                    continue; // PLOAD4 not available in Cosmic Nastran
+                }
                 CommandLineUtils::run(modelFile.string(), nastranSolver.getSolverName(), solverName, canRunEntry.second, true, 0.005, nastranOutputSyntax=="cosmic95");
                 //std::this_thread::sleep_for (std::chrono::seconds(1));
             }
