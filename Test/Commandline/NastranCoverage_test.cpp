@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
     map<SolverName, bool> canrunBySolverName = {
         {SolverName::CODE_ASTER, RUN_ASTER},
         {SolverName::SYSTUS, false},
-        {SolverName::NASTRAN, false}, // cosmic cannot handle PLOAD4 on volume cells
+        {SolverName::NASTRAN, RUN_NASTRAN}, // cosmic cannot handle PLOAD4 on volume cells
     };
     const map<CellType, string>& meshByCellType = {
         {CellType::SEG2, "MeshSegLin"},
@@ -84,6 +84,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
         {SpaceDimension::DIMENSION_2D, {
                                         //LoadingTest::FORCE_NODALE, // NOOK 32% on Quad FY ?
                                         LoadingTest::NORMAL_PRESSION_SHELL,
+                                        LoadingTest::NORMAL_PRESSION_FACE,
                                        }},
         {SpaceDimension::DIMENSION_3D, {
                                         LoadingTest::FORCE_SURFACE,
@@ -324,20 +325,34 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                         analysis->add(*constraintSet);
                         analysis->add(*nodalOutput);
                         model->add(analysis);
-                        for (const Cell& surfCell : dynamic_pointer_cast<CellGroup>(x300group)->getCells()) {
-                            const auto volCellAndFacenum = model->mesh.volcellAndFaceNum_from_skincell(surfCell);
-                            const Cell& volCell = volCellAndFacenum.first;
-                            const int faceNum = volCellAndFacenum.second;
-                            const pair<int, int> applicationNodeIds = volCell.two_nodeids_from_facenum(faceNum);
-                            shared_ptr<NormalPressionFace> pressionFace = nullptr;
-                            if (applicationNodeIds.second == Globals::UNAVAILABLE_INT) {
-                                pressionFace = make_shared<NormalPressionFaceTwoNodes>(*model, loadSet, applicationNodeIds.first, -p);
-                            } else {
-                                pressionFace = make_shared<NormalPressionFaceTwoNodes>(*model, loadSet, applicationNodeIds.first, applicationNodeIds.second, -p);
-                            }
-                            pressionFace->add(volCell);
+                        switch (cellType.dimension.code) {
+                        case SpaceDimension::Code::DIMENSION2D_CODE: {
+                            shared_ptr<NormalPressionFace> pressionFace = make_shared<NormalPressionFace>(*model, loadSet, p);
+                            pressionFace->add(*volgroup);
                             model->add(pressionFace);
+                            break;
                         }
+                        case SpaceDimension::Code::DIMENSION3D_CODE: {
+                            for (const Cell& surfCell : dynamic_pointer_cast<CellGroup>(x300group)->getCells()) {
+                                const auto volCellAndFacenum = model->mesh.volcellAndFaceNum_from_skincell(surfCell);
+                                const Cell& volCell = volCellAndFacenum.first;
+                                const int faceNum = volCellAndFacenum.second;
+                                const pair<int, int> applicationNodeIds = volCell.two_nodeids_from_facenum(faceNum);
+                                shared_ptr<NormalPressionFace> pressionFace = nullptr;
+                                if (applicationNodeIds.second == Globals::UNAVAILABLE_INT) {
+                                    pressionFace = make_shared<NormalPressionFaceTwoNodes>(*model, loadSet, applicationNodeIds.first, -p);
+                                } else {
+                                    pressionFace = make_shared<NormalPressionFaceTwoNodes>(*model, loadSet, applicationNodeIds.first, applicationNodeIds.second, -p);
+                                }
+                                pressionFace->add(volCell);
+                                model->add(pressionFace);
+                            }
+                            break;
+                        }
+                        default:
+                            throw logic_error("Normal pression face coverage on this cell type not yet implemented");
+                        }
+
                         loadSetId++;
                         analysisId++;
                         break;
