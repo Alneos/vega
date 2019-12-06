@@ -1828,13 +1828,14 @@ void AsterWriter::writeNodalForce( const LoadSet& loadSet) {
 }
 
 void AsterWriter::writePression(const LoadSet& loadSet) {
-	const auto& loading = loadSet.getLoadingsByType(
+	const auto& pressions = loadSet.getLoadingsByType(
 			Loading::Type::NORMAL_PRESSION_FACE);
-	if (not loading.empty()) {
+	if (not pressions.empty()) {
 		comm_file_ofs << "           PRES_REP=(" << endl;
-		for (const auto& pressionFace : loading) {
+		for (const auto& pressionFace : pressions) {
 			const auto& normalPressionFace = static_pointer_cast<NormalPressionFace>(pressionFace);
-			comm_file_ofs << "                         _F(PRES= " << normalPressionFace->intensity << ",";
+			//  U4.44.01 $6.6 PRES_REP "La pression est positive suivant le sens contraire de la normale à l’élément."
+			comm_file_ofs << "                         _F(PRES= " << -normalPressionFace->intensity << ",";
 			writeCellContainer(*normalPressionFace);
 			comm_file_ofs << "                         )," << endl;
 			pressionFace->markAsWritten();
@@ -1844,13 +1845,15 @@ void AsterWriter::writePression(const LoadSet& loadSet) {
 }
 
 void AsterWriter::writeForceCoque(const LoadSet& loadSet) {
-    return; // TODO : change type of loading in parser to something specific for shell elements
-	const auto& pressionFaces = loadSet.getLoadingsByType(Loading::Type::NORMAL_PRESSION_FACE);
+	const auto& pressionFaces = loadSet.getLoadingsByType(Loading::Type::NORMAL_PRESSION_SHELL);
 	if (not pressionFaces.empty()) {
 		comm_file_ofs << "           FORCE_COQUE=(" << endl;
 		for (const auto& pressionFace : pressionFaces) {
-			const auto& normalPressionFace = static_pointer_cast<NormalPressionFace>(pressionFace);
-			comm_file_ofs << "                        _F(PRES=" << normalPressionFace->intensity << ",";
+			const auto& normalPressionFace = static_pointer_cast<NormalPressionShell>(pressionFace);
+			// U4.44.01 §7.3 FORCE_COQUE PRES
+			// "La pression appliquée est positive suivant le sens contraire de la normale à l’élément
+			// (définie par l’orientation de chaque maille)
+			comm_file_ofs << "                        _F(PRES=" << -normalPressionFace->intensity << ",";
 			writeCellContainer(*normalPressionFace);
 			comm_file_ofs << "                         )," << endl;
 			normalPressionFace->markAsWritten();

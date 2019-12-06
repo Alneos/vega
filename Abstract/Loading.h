@@ -42,6 +42,7 @@ public:
 		FORCE_LINE,
 		NODAL_FORCE,
 		NORMAL_PRESSION_FACE,
+		NORMAL_PRESSION_SHELL,
 		COMBINED_LOADING,
 		INITIAL_TEMPERATURE,
 		IMPOSED_DISPLACEMENT
@@ -324,7 +325,7 @@ public:
 };
 
 /**
- *  Responsible of being a force applied to a surface (a Pressure over a Shell or a Pressure over a Solid face)
+ *  Responsible of being a force applied to a surface (over a Shell or over a Solid face)
  */
 class ForceSurface: public CellLoading {
 protected:
@@ -395,8 +396,28 @@ public:
 class NormalPressionFace: public CellLoading {
 
 public:
-	double intensity;
+	double intensity; /**< positive in the direction of the normal (Aster convention) */
 	NormalPressionFace(Model&, const std::shared_ptr<LoadSet> loadset, double intensity, const int original_id = NO_ORIGINAL_ID);
+	DOFS getDOFSForNode(const int nodePosition) const override;
+	bool validate() const override;
+	SpaceDimension getLoadingDimension() const noexcept override {
+		return SpaceDimension::DIMENSION_2D;
+	}
+	std::unique_ptr<Loading> clone() const override;
+	void scale(const double factor) override;
+	bool ineffective() const override;
+	virtual std::vector<int> getApplicationFaceNodeIds() const override {
+		return {};
+	}
+};
+
+/**
+ A normal pression applied to a shell element
+ */
+class NormalPressionShell: public CellLoading {
+public:
+	double intensity; /**< positive in the direction of the normal (Aster convention) */
+	NormalPressionShell(Model&, const std::shared_ptr<LoadSet> loadset, double intensity, const int original_id = NO_ORIGINAL_ID);
 	DOFS getDOFSForNode(const int nodePosition) const override;
 	bool validate() const override;
 	SpaceDimension getLoadingDimension() const noexcept override {

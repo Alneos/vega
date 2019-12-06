@@ -181,6 +181,10 @@ BOOST_AUTO_TEST_CASE( rbar_z ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/rbar_z/rbar_z.nas", RUN_SYSTUS, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( rbar_z_mpc ) {
+	CommandLineUtils::nastranStudy2Systus("/irt/rbar_z_mpc/rbar_z_mpc.nas", RUN_SYSTUS, true, 0.00001);
+}
+
 BOOST_AUTO_TEST_CASE( rbe2_z_mpc ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/rbe2_z_mpc/rbe2_z_mpc.nas", RUN_SYSTUS, true, 1.5);
 }

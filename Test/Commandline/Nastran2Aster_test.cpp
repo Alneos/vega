@@ -288,6 +288,10 @@ BOOST_AUTO_TEST_CASE( rbar_z ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/rbar_z/rbar_z.nas", RUN_ASTER, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( rbar_z_mpc ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/rbar_z_mpc/rbar_z_mpc.nas", RUN_ASTER, true, 0.00001);
+}
+
 BOOST_AUTO_TEST_CASE( rbe2_z_mpc ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_z_mpc/rbe2_z_mpc.nas", RUN_ASTER, true, 0.00001);
 }

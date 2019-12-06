@@ -539,6 +539,20 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
             forceSurface->markAsWritten();
         }
 
+        const auto& normalPressionShells = loadingSet->getLoadingsByType(
+				Loading::Type::NORMAL_PRESSION_SHELL);
+        for (const auto& loading : normalPressionShells) {
+            const auto& normalPressionShell = static_pointer_cast<NormalPressionShell>(loading);
+            for (const int cellId: normalPressionShell->getCellIdsIncludingGroups()) {
+                Line pload2("PLOAD2");
+                pload2.add(loadingSet->bestId());
+                pload2.add(normalPressionShell->intensity);
+                pload2.add(cellId);
+                out << pload2;
+            }
+            normalPressionShell->markAsWritten();
+        }
+
 		const auto& normalPressionFaces = loadingSet->getLoadingsByType(
 				Loading::Type::NORMAL_PRESSION_FACE);
         for (const auto& loading : normalPressionFaces) {
@@ -549,7 +563,7 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
                 Line pload4("PLOAD4");
                 pload4.add(loadingSet->bestId());
                 pload4.add(cellId);
-                pload4.add(normalPressionFace->intensity);
+                pload4.add(-normalPressionFace->intensity);
                 pload4.add("");
                 pload4.add("");
                 pload4.add("");

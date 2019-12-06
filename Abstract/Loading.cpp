@@ -32,6 +32,7 @@ const map<Loading::Type, string> Loading::stringByType = {
 		{ Loading::Type::GRAVITY, "GRAVITY" },
 		{ Loading::Type::ROTATION, "ROTATION" },
 		{ Loading::Type::NORMAL_PRESSION_FACE, "NORMAL_PRESSION_FACE" },
+		{ Loading::Type::NORMAL_PRESSION_SHELL, "NORMAL_PRESSION_SHELL" },
 		{ Loading::Type::INITIAL_TEMPERATURE, "INITIAL_TEMPERATURE" },
 		{ Loading::Type::FORCE_LINE, "FORCE_LINE" },
 		{ Loading::Type::FORCE_SURFACE, "FORCE_SURFACE" },
@@ -732,6 +733,37 @@ bool NormalPressionFace::ineffective() const {
 
 bool NormalPressionFace::validate() const {
 	// TODO validate : Check that all the elements are 2D
+	return true;
+}
+
+NormalPressionShell::NormalPressionShell(Model& model, const std::shared_ptr<LoadSet> loadset, double intensity, const int original_id) :
+		CellLoading(model, loadset, Loading::Type::NORMAL_PRESSION_SHELL, original_id,
+				CoordinateSystem::GLOBAL_COORDINATE_SYSTEM), intensity(intensity) {
+}
+
+DOFS NormalPressionShell::getDOFSForNode(const int nodePosition) const {
+	DOFS dofs(DOFS::NO_DOFS);
+	const auto& nodes = nodePositions();
+	if (nodes.find(nodePosition) != nodes.end()) {
+		dofs += DOFS::TRANSLATIONS;
+	}
+	return dofs;
+}
+
+unique_ptr<Loading> NormalPressionShell::clone() const {
+	return make_unique<NormalPressionShell>(*this);
+}
+
+void NormalPressionShell::scale(const double factor) {
+	intensity *= factor;
+}
+
+bool NormalPressionShell::ineffective() const {
+	return is_zero(intensity);
+}
+
+bool NormalPressionShell::validate() const {
+	// TODO validate : Check that all the elements are 2D (and maybe that they are also shells?)
 	return true;
 }
 

@@ -308,9 +308,9 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                         analysis->add(*constraintSet);
                         analysis->add(*nodalOutput);
                         model->add(analysis);
-                        shared_ptr<NormalPressionFace> pressionFace = make_shared<NormalPressionFace>(*model, loadSet, p);
-                        pressionFace->add(*volgroup);
-                        model->add(pressionFace);
+                        shared_ptr<NormalPressionShell> pressionShell = make_shared<NormalPressionShell>(*model, loadSet, p);
+                        pressionShell->add(*volgroup);
+                        model->add(pressionShell);
                         loadSetId++;
                         analysisId++;
                         break;
@@ -331,9 +331,9 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                             const pair<int, int> applicationNodeIds = volCell.two_nodeids_from_facenum(faceNum);
                             shared_ptr<NormalPressionFace> pressionFace = nullptr;
                             if (applicationNodeIds.second == Globals::UNAVAILABLE_INT) {
-                                pressionFace = make_shared<NormalPressionFaceTwoNodes>(*model, loadSet, applicationNodeIds.first, p);
+                                pressionFace = make_shared<NormalPressionFaceTwoNodes>(*model, loadSet, applicationNodeIds.first, -p);
                             } else {
-                                pressionFace = make_shared<NormalPressionFaceTwoNodes>(*model, loadSet, applicationNodeIds.first, applicationNodeIds.second, p);
+                                pressionFace = make_shared<NormalPressionFaceTwoNodes>(*model, loadSet, applicationNodeIds.first, applicationNodeIds.second, -p);
                             }
                             pressionFace->add(volCell);
                             model->add(pressionFace);

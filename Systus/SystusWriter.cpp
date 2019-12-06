@@ -1107,14 +1107,14 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
 
                 switch (loading->type) {
                 case Loading::Type::NODAL_FORCE: {
-                    shared_ptr<NodalForce> nodalForce = dynamic_pointer_cast<NodalForce>(loading);
+                    const auto& nodalForce = static_pointer_cast<NodalForce>(loading);
                     writeNodalForceVector(systusModel, nodalForce, idLoadCase, vectorId);
                     nodalForce->markAsWritten();
                     break;
                 }
 
                 case Loading::Type::NORMAL_PRESSION_FACE: {
-                    shared_ptr<NormalPressionFace> npf = static_pointer_cast<NormalPressionFace>(loading);
+                    const auto& npf = static_pointer_cast<NormalPressionFace>(loading);
                     vector<double> vec;
                     vec.push_back(1);
                     vec.push_back(0);
@@ -1124,7 +1124,29 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                     vec.push_back(0);
                     vec.push_back(0.0);
                     vec.push_back(0.0);
-                    vec.push_back(-npf->intensity);
+                    vec.push_back(npf->intensity);
+                    if (!is_zero(npf->intensity)){
+                        vectors[vectorId]=vec;
+                        for (const int cellId : npf->getCellIdsIncludingGroups()){
+                          loadingVectorsIdByLocalLoadingByCellId[cellId][idLoadCase].push_back(vectorId);
+                        }
+                        vectorId++;
+                    }
+                    npf->markAsWritten();
+                    break;
+                }
+                case Loading::Type::NORMAL_PRESSION_SHELL: {
+                    const auto& npf = static_pointer_cast<NormalPressionShell>(loading);
+                    vector<double> vec;
+                    vec.push_back(1);
+                    vec.push_back(0);
+                    vec.push_back(1); // This is a force normal to the surface of the element
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0);
+                    vec.push_back(0.0);
+                    vec.push_back(0.0);
+                    vec.push_back(npf->intensity);
                     if (!is_zero(npf->intensity)){
                         vectors[vectorId]=vec;
                         for (const int cellId : npf->getCellIdsIncludingGroups()){
@@ -1136,7 +1158,7 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                     break;
                 }
                 case Loading::Type::GRAVITY: {
-                    shared_ptr<Gravity> gravity = dynamic_pointer_cast<Gravity>(loading);
+                    const auto& gravity = static_pointer_cast<Gravity>(loading);
                     VectorialValue acceleration = gravity->getAccelerationVector();
                     vector<double> vec;
                     double normvec = 0.0;
@@ -1165,7 +1187,7 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                 }
 
                 case Loading::Type::FORCE_SURFACE: {
-                    shared_ptr<ForceSurface> forceSurface = dynamic_pointer_cast<ForceSurface>(loading);
+                    const auto& forceSurface = static_pointer_cast<ForceSurface>(loading);
                     VectorialValue force = forceSurface->getForce();
                     VectorialValue moment = forceSurface->getMoment();
                     vector<double> vec;
@@ -1196,7 +1218,7 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                 }
 
                 case Loading::Type::FORCE_LINE: {
-                    shared_ptr<ForceLine> forceLine = dynamic_pointer_cast<ForceLine>(loading);
+                    const auto& forceLine = static_pointer_cast<ForceLine>(loading);
                     double FX=0.0;
                     double FY=0.0;
                     double FZ=0.0;
@@ -1269,8 +1291,8 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
 
 
                 case Loading::Type::DYNAMIC_EXCITATION:{
-                    shared_ptr<DynamicExcitation> dE = dynamic_pointer_cast<DynamicExcitation>(loading);
-                    shared_ptr<LoadSet> dEL = dE->getLoadSet();
+                    const auto& dE = static_pointer_cast<DynamicExcitation>(loading);
+                    const auto& dEL = dE->getLoadSet();
                     if (dEL->type != LoadSet::Type::EXCITEID){
                         handleWritingWarning("Dynamic loading must refer an EXCITED Loadset. Dismissing load "+ to_string(dE->bestId()));
                         break;
@@ -1291,7 +1313,7 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                     // Frequency amplitude
                     double amplitude=1.0;
                     if (systusModel.configuration.systusDynamicMethod=="direct"){
-                        shared_ptr<FunctionTable> aTable = dE->getFunctionTableB();
+                        const auto& aTable = dE->getFunctionTableB();
 
                         //TODO: Test the units of the table ?
                         amplitude = aTable->getBeginValuesXY()->second;
@@ -1310,7 +1332,7 @@ void SystusWriter::fillLoadingsVectors(const SystusModel& systusModel, const int
                             continue;
                         }
 
-                        shared_ptr<NodalForce> nodalForce = dynamic_pointer_cast<NodalForce>(dLoading);
+                        const auto& nodalForce = static_pointer_cast<NodalForce>(dLoading);
                         writeNodalForceVector(systusModel, nodalForce, idLoadCase, vectorId);
                         nodalForce->markAsWritten();
                     }

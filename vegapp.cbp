@@ -2410,7 +2410,6 @@
 		<Unit filename="testdata/nastran/irt/truss3/readme.txt" />
 		<Unit filename="testdata/nastran/irt/truss3/truss3.f06" />
 		<Unit filename="testdata/nastran/irt/truss3/truss3.nas" />
-		<Unit filename="testdata/nastran/irt/truss3/truss3_cosmic.nas.out" />
 		<Unit filename="testdata/nastran/irt/truss4/readme.txt" />
 		<Unit filename="testdata/nastran/irt/truss4/truss4.f06" />
 		<Unit filename="testdata/nastran/irt/truss4/truss4.nas" />

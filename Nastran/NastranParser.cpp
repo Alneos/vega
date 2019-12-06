@@ -2536,7 +2536,10 @@ void NastranParser::parsePLOAD2(NastranTokenizer& tok, Model& model) {
     int loadset_id = tok.nextInt();
     double p = tok.nextDouble();
     const auto& loadSet = model.getOrCreateLoadSet(loadset_id, LoadSet::Type::LOAD);
-    const auto& normalPressionFace = make_shared<NormalPressionFace>(model, loadSet, -p);
+    // https://knowledge.autodesk.com/support/nastran/learn-explore/caas/CloudHelp/cloudhelp/2019/ENU/NSTRN-Reference/files/GUID-DC59FE67-D314-4E68-B9BC-10790C755D32-htm.html
+    // The direction of the pressure is computed according to the right-hand rule
+    // using the grid point sequence specified on the element entry.
+    const auto& normalPressionFace = make_shared<NormalPressionShell>(model, loadSet, p);
     normalPressionFace->addCellIds(tok.nextInts());
     model.add(normalPressionFace);
 }
@@ -2598,13 +2601,15 @@ void NastranParser::parsePLOAD4(NastranTokenizer& tok, Model& model) {
 
         model.add(normalPressionFace);
     } else if (not has_direction and g1 != Globals::UNAVAILABLE_INT) {
+        // For the faces of solid elements, the direction of positive pressure (defaulted continuation)
+        // is inward
         shared_ptr<NormalPressionFaceTwoNodes> pressionFaceTwoNodes = nullptr;
         if (g3_or_4 != Globals::UNAVAILABLE_INT) {
             pressionFaceTwoNodes = make_shared<NormalPressionFaceTwoNodes>(model, loadSet, g1, g3_or_4,
-                p1);
+                -p1);
         } else {
             pressionFaceTwoNodes = make_shared<NormalPressionFaceTwoNodes>(model, loadSet, g1,
-                p1);
+                -p1);
         }
         for(int cellId = eid1; cellId <= eid2; cellId++) {
             pressionFaceTwoNodes->addCellId(cellId);
