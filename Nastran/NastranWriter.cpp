@@ -263,7 +263,7 @@ void NastranWriter::writeCells(const Model& model, ofstream& out) const
 					keyword = "CQUAD8";
 					break;
 				default:
-					handleWritingError("Unimplemented type");
+					handleWritingError("Unimplemented shell type:" + cell.type.description);
 				}
 			} else if (elementSet->type == ElementSet::Type::CONTINUUM) {
 			    if (isCosmic()) {
@@ -287,7 +287,7 @@ void NastranWriter::writeCells(const Model& model, ofstream& out) const
                         keyword = "CPYRA";
                         break;
                     default:
-                        handleWritingError("Unimplemented type");
+                        handleWritingError("Unimplemented cosmic continuum type:" + cell.type.description);
                     }
 			    } else {
                     switch (cell.type.code) {
@@ -308,7 +308,7 @@ void NastranWriter::writeCells(const Model& model, ofstream& out) const
                         keyword = "CPYRA";
                         break;
                     default:
-                        handleWritingError("Unimplemented type");
+                        handleWritingError("Unimplemented continuum type:" + cell.type.description);
                     }
 			    }
 			}
@@ -589,11 +589,11 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
             if (normalPressionFace == nullptr)
                 continue;
             for (const int cellId: normalPressionFace->getCellIdsIncludingGroups()) {
-                Line pload2("PLOAD2");
-                pload2.add(loadingSet->bestId());
-                pload2.add(normalPressionFace->intensity);
-                pload2.add(cellId);
-                out << pload2;
+                Line pload4("PLOAD4");
+                pload4.add(loadingSet->bestId());
+                pload4.add(cellId);
+                pload4.add(normalPressionFace->intensity);
+                out << pload4;
             }
             normalPressionFace->markAsWritten();
         }

@@ -101,6 +101,7 @@ nightly_systus:
     - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/aster -t /srv/data/input_mod/v02_K9Kgen6_simplif/sc1_normmass/v02_K9Kgen6_simplif_sc1_normmass.f06 /srv/data/input_mod/v02_K9Kgen6_simplif/sc1_normmass/v02_K9Kgen6_simplif_sc1_normmass.fem optistruct aster
     - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/aster -t /srv/data/input/v02_K9Kgen6_simplif/refres/v02_K9Kgen6_simplif.f06 -x 0.05 /srv/data/input/v02_K9Kgen6_simplif/original/v02_K9Kgen6_simplif.fem optistruct aster
     - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/aster /srv/data/input/Safran_AB_RadiusBlock_v1.fem optistruct aster
+    - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/aster /srv/data/input_mod/Safran_AB_RadiusBlock_v2/Safran_AB_RadiusBlock_v2_pbushrepl/Safran_AB_RadiusBlock_v2_pbushrepl.fem  optistruct aster
     - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/aster /srv/data/input_mod/v02_K9Kgen6_rebuild/rebuild_sc1_2_3_normmass/v02_K9Kgen6_rebuild_sc1_2_3_normmass.fem optistruct aster
     - /srv/data/vegapp --solver-version=2018 -s -o /srv/data/$OUTDIR/systus /srv/data/input_mod/v02_K9Kgen6_rebuild/rebuild_sc1_2_3_normmass/v02_K9Kgen6_rebuild_sc1_2_3_normmass.fem optistruct systus
     - /srv/data/vegapp -s -o /srv/data/$OUTDIR/aster /srv/data/input/v02_K9Kgen6_rebuild/v02_K9Kgen6_rebuild.fem optistruct aster
