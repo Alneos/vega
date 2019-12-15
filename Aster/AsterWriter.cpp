@@ -2270,7 +2270,7 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
 			}
 		}
 		comm_file_ofs << "                           )," << endl;
-        comm_file_ofs << "                    SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS')," << endl;
+        comm_file_ofs << "                    SOLVEUR=_F(RENUM='PORD',METHODE='MUMPS',RESI_RELA=1E-4)," << endl;
         comm_file_ofs << "                    OPTION='SIEF_ELGA'," << endl;
 		comm_file_ofs << "                    );" << endl << endl;
 		linearMecaStat->markAsWritten();
