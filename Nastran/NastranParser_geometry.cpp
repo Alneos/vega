@@ -428,16 +428,20 @@ void NastranParser::parseElem(NastranTokenizer& tok, Model& model,
     int property_id = tok.nextInt(true, cell_id);
     auto it = cellTypes.begin();
     CellType cellType = *it;
-    vector<int> nastranConnect;
     unsigned int i = 0;
-    while (tok.isNextInt()) {
-        if (it == cellTypes.end())
-            handleParsingError("Format element not supported "+cellType.to_str(), tok, model);
+    const auto& nodeIds = tok.nextInts();
+    while (cellType.numNodes != nodeIds.size()) {
+        if (it == cellTypes.end()) {
+            cerr << "cellType.numNodes:" << cellType.numNodes << ", nodeIds.size():" << nodeIds.size() << endl;
+            cerr << "cell_id:" << cell_id << ", property_id:" << property_id << ", i:" << i << endl;
+            handleParsingError("Format element not supported:"+cellType.to_str() + " for line: " + tok.currentRawDataLine(), tok, model);
+        }
         cellType = *it;
-        for (; i < cellType.numNodes; i++)
-            nastranConnect.push_back(tok.nextInt());
         it++;
     }
+    vector<int> nastranConnect;
+    nastranConnect.reserve(nodeIds.size());
+    nastranConnect.insert( nastranConnect.end(), nodeIds.begin(), nodeIds.end() );
     vector<int> medConnect;
     auto nastran2med_it = nastran2medNodeConnectByCellType.find(cellType.code);
     if (nastran2med_it == nastran2medNodeConnectByCellType.end()) {

@@ -204,7 +204,13 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
     comm_file_ofs << "                )," << endl;
     comm_file_ofs << "          );" << endl << endl;
 
-    const auto& displacementOutputs = asterModel->model.objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT);
+    //const auto& displacementOutputs = asterModel->model.objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT);
+    vector<shared_ptr<Objective>> displacementOutputs;
+    for (const auto& objective : analysis->getObjectives()) {
+        if (objective->type != Objective::Type::NODAL_DISPLACEMENT_OUTPUT)
+            continue;
+        displacementOutputs.push_back(objective);
+    }
     comm_file_ofs << "RETB" << analysis->getId();
     if (not displacementOutputs.empty()) {
         comm_file_ofs << "=POST_RELEVE_T(ACTION=(" << endl;

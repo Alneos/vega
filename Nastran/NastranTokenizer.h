@@ -78,7 +78,7 @@ private:
 
     void splitFixedFormat(std::string& line, bool longFormat, bool firstLine);
 
-    bool readLineSkipComment(std::string& line);
+    bool readLineSkipComment(std::string& line, bool firstLine);
     void splitFreeFormat(std::string line, bool firstLine);
     void parseBulkSectionLine(std::string line);
     void parseParameters();

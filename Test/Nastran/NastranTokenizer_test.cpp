@@ -421,3 +421,31 @@ BOOST_AUTO_TEST_CASE(nastran_DESOPT_ANALYSIS) {
     BOOST_CHECK_EQUAL("STATICS", tokenizer.currentDataLine()[1]);
 }
 
+BOOST_AUTO_TEST_CASE(nastran_two_CPENTA) {
+    string nastranLine =
+           //12345678|2345678|2345678|2345678|
+            "CPENTA    125505       2     239     294     320     714     769     795\n"
+            "        \n"
+            "CPENTA    125506       2     239     320     371     714     795     846\n"
+            "        \n"
+            ;
+    istringstream istr(nastranLine);
+    NastranTokenizer tok(istr);
+    tok.bulkSection();
+    tok.nextLine();
+    BOOST_CHECK(tok.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_KEYWORD);
+    BOOST_CHECK_EQUAL("CPENTA", tok.nextString());
+    BOOST_CHECK_EQUAL(125505, tok.nextInt());
+    BOOST_CHECK_EQUAL(2, tok.nextInt());
+    BOOST_CHECK_EQUAL(6, tok.nextInts().size());
+    //BOOST_CHECK(tok.isNextEmpty());
+    BOOST_TEST_CHECKPOINT("Reading next CPENTA line");
+    tok.nextLine();
+    BOOST_CHECK(tok.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_KEYWORD);
+    BOOST_CHECK_EQUAL("CPENTA", tok.nextString());
+    BOOST_CHECK_EQUAL(125506, tok.nextInt());
+    BOOST_CHECK_EQUAL(2, tok.nextInt());
+    BOOST_CHECK_EQUAL(6, tok.nextInts().size());
+    //BOOST_CHECK(tok.isNextEmpty());
+}
+

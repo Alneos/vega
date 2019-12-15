@@ -119,12 +119,12 @@ string NastranTokenizer::nextSymbolString() {
     return result;
 }
 
-bool NastranTokenizer::readLineSkipComment(string& line) {
+bool NastranTokenizer::readLineSkipComment(string& line, bool firstLine) {
 	bool eof = true;
 	while (getline(this->instrream, line)) {
 		lineNumber += 1;
-		if (!line.empty() and !all_of(line.begin(), line.end(), [](int c) {return isblank(c);})
-				and line[0] != '$') {
+		bool blankLine = all_of(line.begin(), line.end(), [](int c) {return isblank(c);});
+		if (not line.empty() and not blankLine and line[0] != '$') {
 			boost::iterator_range<string::iterator> middle_dollar = boost::find_first(line, "$");
 			if (middle_dollar) {
 				boost::erase_tail(line,
@@ -136,6 +136,9 @@ bool NastranTokenizer::readLineSkipComment(string& line) {
 				eof = false;
 				break;
 			}
+        } else if (not firstLine and blankLine) {
+            eof = false;
+            break;
 		} else if (boost::starts_with(line, HM_COMMENT_START)) {
 		    boost::erase_head(line, static_cast<int>(HM_COMMENT_START.size()));
 		    vector<string> commentParts;
@@ -173,7 +176,7 @@ void NastranTokenizer::splitFreeFormat(string line, bool firstLine) {
 	char c = static_cast<char>(this->instrream.peek());
 	string line2;
     if (explicitContinuation || c == ',' || c == '+' || c == '*') {
-		readLineSkipComment(line2);
+		readLineSkipComment(line2, false);
 		splitFreeFormat(line2, false);
 	}
 }
@@ -303,7 +306,7 @@ void NastranTokenizer::nextLine() {
 	currentLineVector.reserve(128);
 	currentField = 0;
 
-	bool iseof = readLineSkipComment(this->currentLine);
+	bool iseof = readLineSkipComment(this->currentLine, true);
 	if (!iseof) {
 		switch (currentSection) {
 		case SectionType::SECTION_EXECUTIVE:
@@ -365,7 +368,7 @@ void NastranTokenizer::splitFixedFormat(string& line, const bool longFormat, con
 	char c0 = static_cast<char>(this->instrream.peek());
 	if (explicitContinuation or c0 == '+') {
 		//todo:check that continuation tokens are the same
-		bool iseof = readLineSkipComment(line2);
+		bool iseof = readLineSkipComment(line2, false);
 		if (!iseof) {
 			splitFixedFormat(line2, longFormat, false);
 		} else {
@@ -377,7 +380,7 @@ void NastranTokenizer::splitFixedFormat(string& line, const bool longFormat, con
 		 */
 		char c = static_cast<char>(this->instrream.peek());
 		if (c == ' ' || c == '+' || c == '*' || c=='\t') {
-			readLineSkipComment(line2);
+			readLineSkipComment(line2, false);
 			//fill the current line with empty fields
 			for (; count < fieldMax; count++) {
 				currentLineVector.push_back("");
