@@ -36,11 +36,16 @@ const string Objective::name = "Objective";
 
 const map<Objective::Type, string> Objective::stringByType = {
         { Objective::Type::NODAL_DISPLACEMENT_ASSERTION, "NODAL_DISPLACEMENT_ASSERTION" },
+        { Objective::Type::NODAL_COMPLEX_DISPLACEMENT_ASSERTION, "NODAL_COMPLEX_DISPLACEMENT_ASSERTION" },
+        { Objective::Type::NODAL_CELL_VONMISES_ASSERTION, "NODAL_CELL_VONMISES_ASSERTION" },
         { Objective::Type::FREQUENCY_ASSERTION, "FREQUENCY_ASSERTION" },
         { Objective::Type::FREQUENCY_SEARCH, "FREQUENCY_SEARCH" },
         { Objective::Type::FREQUENCY_EXCIT, "FREQUENCY_EXCIT" },
         { Objective::Type::MODAL_DAMPING, "MODAL_DAMPING" },
-        { Objective::Type::NONLINEAR_STRATEGY, "NONLINEAR_STRATEGY" }
+        { Objective::Type::NONLINEAR_STRATEGY, "NONLINEAR_STRATEGY" },
+        { Objective::Type::ARC_LENGTH_METHOD, "ARC_LENGTH_METHOD" },
+        { Objective::Type::NODAL_DISPLACEMENT_OUTPUT, "NODAL_DISPLACEMENT_OUTPUT" },
+        { Objective::Type::VONMISES_STRESS_OUTPUT, "VONMISES_STRESS_OUTPUT" },
 };
 
 ostream &operator<<(ostream &out, const Objective& objective) {

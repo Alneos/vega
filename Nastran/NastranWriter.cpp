@@ -892,6 +892,7 @@ string NastranWriter::writeModel(Model& model,
             out << cellGroup->getId();
         }
         out << endl;
+        objective->markAsWritten();
     }
 	for (const auto& analysis : model.analyses) {
 		out << "SUBCASE " << analysis->bestId() << endl;
@@ -918,11 +919,15 @@ string NastranWriter::writeModel(Model& model,
                     out << nodeGroup->getId();
                 }
                 out << endl;
+                objective->markAsWritten();
                 break;
             }
             default:
                 continue;
             }
+		}
+		for (const auto& assertion : analysis->getAssertions()) {
+		    assertion->markAsWritten(); // Nastran cannot write assertions AFAIK
 		}
 		analysis->markAsWritten();
 	}

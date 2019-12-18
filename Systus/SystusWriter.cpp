@@ -895,14 +895,14 @@ void SystusWriter::generateSubcases(const SystusModel& systusModel,
             if (idSubcase == systusSubcases.size()){
                 characteristicAnalysis.push_back(cAna);
                 systusSubcases.push_back({analysis.getId()});
-            }else{
+            } else {
                 // Already existing subcases
                 systusSubcases[idSubcase].push_back(analysis.getId());
             }
             analysis.markAsWritten();
 
         }
-    }else{
+    } else {
 
         // On "single mode", each analysis is in its own subcase.
         if ((configuration.systusSubcases.size()==1) &&
@@ -911,7 +911,7 @@ void SystusWriter::generateSubcases(const SystusModel& systusModel,
                 const Analysis& analysis = *it;
                 systusSubcases.push_back({analysis.getId()});
             }
-        }else{
+        } else {
             // We use the user defined lists
 
             // We make a correspondence between the User defined Id (aka "Original Id")
@@ -3108,35 +3108,36 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
 
 
     // We find the first Analysis of the Subcase, which will be our reference
-    const int idAnalysis = systusSubcases[idSubcase][0];
-    const shared_ptr<Analysis> analysis = systusModel.model.getAnalysis(idAnalysis);
-    if (analysis== nullptr){
-        handleWritingError("Analysis " + to_string(idAnalysis) + " not found.");
+    const int idFirstAnalysis = systusSubcases[idSubcase][0];
+    const shared_ptr<Analysis> firstAnalysis = systusModel.model.getAnalysis(idFirstAnalysis);
+    if (firstAnalysis== nullptr){
+        handleWritingError("Analysis " + to_string(idFirstAnalysis) + " not found.");
     }
 
     string sSolver="";
     string sReload="";
     string sClean= "";
 
-    switch (analysis->type) {
+    switch (firstAnalysis->type) {
     case Analysis::Type::LINEAR_MECA_STAT: {
 
         out << "SOLVE METHOD OPTIMISED" << endl;
         sSolver = "RESU";
-        analysis->markAsWritten();
+        firstAnalysis->markAsWritten();
         break;
     }
     case Analysis::Type::LINEAR_MODAL:{
-        const auto& linearModal = static_pointer_cast<LinearModal>(analysis);
+        const auto& linearModal = static_pointer_cast<LinearModal>(firstAnalysis);
         writeLinearModalAnalysis(out, systusModel, linearModal);
         sSolver = "RESU";
+        linearModal->markAsWritten();
         break;
     }
 
     // Modal Dynamic Analysis
     case Analysis::Type::LINEAR_DYNA_MODAL_FREQ: {
         sSolver = "TRAN";
-        const auto& linearDynaModalFreq = static_pointer_cast<LinearDynaModalFreq>(analysis);
+        const auto& linearDynaModalFreq = static_pointer_cast<LinearDynaModalFreq>(firstAnalysis);
 
         if (systusModel.configuration.systusDynamicMethod=="direct") {
             handleWritingWarning("Requested direct solver, but the original study is modal.", "Analysis file");
@@ -3159,14 +3160,15 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         break;
     }
     case Analysis::Type::COMBINATION: {
-        string message = "Ignoring COMBINATION Analysis : " + to_str(analysis) + "(for now, to be implemented).";
+        string message = "Ignoring COMBINATION Analysis : " + to_str(firstAnalysis) + "(for now, to be implemented).";
         out << "#" << message << endl;
         handleWritingWarning(message);
+        firstAnalysis->markAsWritten();
         return; // Do not try to post process for now to avoid errors
     }
     default:
         handleWritingError(
-                "Analysis " + Analysis::stringByType.at(analysis->type) + " not (yet) implemented");
+                "Analysis " + Analysis::stringByType.at(firstAnalysis->type) + " not (yet) implemented");
     }
 
     // We Save Results
@@ -3198,41 +3200,62 @@ void SystusWriter::writeDat(const SystusModel& systusModel, const vega::Configur
         out << endl;
     }
 
-    vector<shared_ptr<Assertion>> assertions = analysis->getAssertions();
-    if (not assertions.empty()) {
-        out << "LANGAGE" << endl;
-        out << "variable displacement[" << nbDOFS << "],"
-                "frequency, phase[" << nbDOFS << "];" << endl;
-        out << "iResu=open_file(\"" << systusModel.getName() << "_" << analysis->getId()
-                                        << ".RESU\", \"write\");" << endl << endl;
+    for (const int idAnalysis : systusSubcases[idSubcase]) { // LD 20191218 handing case of multiple analyses regrouped under the same subcase
+        const shared_ptr<Analysis> analysis = systusModel.model.getAnalysis(idAnalysis);
+        if (analysis== nullptr){
+            handleWritingError("Analysis " + to_string(idAnalysis) + " not found.");
+        }
+        vector<shared_ptr<Assertion>> assertions = analysis->getAssertions();
+        if (not assertions.empty()) {
+            out << "LANGAGE" << endl;
+            out << "variable displacement[" << nbDOFS << "],"
+                    "frequency, phase[" << nbDOFS << "];" << endl;
+            out << "iResu=open_file(\"" << systusModel.getName() << "_" << analysis->getId()
+                                            << ".RESU\", \"write\");" << endl << endl;
 
-        for (const auto& assertion : assertions) {
-            switch (assertion->type) {
-            case Objective::Type::NODAL_DISPLACEMENT_ASSERTION:
-                writeNodalDisplacementAssertion(*assertion, out);
-                assertion->markAsWritten();
-                break;
-            case Objective::Type::FREQUENCY_ASSERTION:
-                if (analysis->type == Analysis::Type::LINEAR_DYNA_MODAL_FREQ)
+            for (const auto& assertion : assertions) {
+                switch (assertion->type) {
+                case Objective::Type::NODAL_DISPLACEMENT_ASSERTION: {
+                    writeNodalDisplacementAssertion(*assertion, out);
+                    assertion->markAsWritten();
                     break;
-                writeFrequencyAssertion(*assertion, out);
-                assertion->markAsWritten();
-                break;
-            case Objective::Type::NODAL_COMPLEX_DISPLACEMENT_ASSERTION:
-                writeNodalComplexDisplacementAssertion(*assertion, out);
-                assertion->markAsWritten();
-                break;
-            case Objective::Type::NODAL_CELL_VONMISES_ASSERTION:
-                handleWritingWarning("Von Mises assertion check not yet implemented, ignoring");
-                break;
-            default:
-                handleWritingError("Not implemented");
+                }
+                case Objective::Type::FREQUENCY_ASSERTION: {
+                    if (analysis->type == Analysis::Type::LINEAR_DYNA_MODAL_FREQ) {
+                        handleWritingWarning("Ignoring frequency assertion for analysis of type linear dyna modal");
+                        assertion->markAsWritten();
+                        break;
+                    }
+                    writeFrequencyAssertion(*assertion, out);
+                    assertion->markAsWritten();
+                    break;
+                }
+                case Objective::Type::NODAL_COMPLEX_DISPLACEMENT_ASSERTION: {
+                    writeNodalComplexDisplacementAssertion(*assertion, out);
+                    assertion->markAsWritten();
+                    break;
+                }
+                case Objective::Type::NODAL_CELL_VONMISES_ASSERTION: {
+                    handleWritingWarning("Von Mises assertion check not yet implemented, ignoring");
+                    assertion->markAsWritten();
+                    break;
+                }
+                default:
+                    handleWritingError("Not implemented");
+                }
+                out << endl;
             }
-            out << endl;
+
+            out << "close_file(iResu)" << endl;
+            out << "end;" << endl;
         }
 
-        out << "close_file(iResu)" << endl;
-        out << "end;" << endl;
+        for (const auto& objective : analysis->getObjectives()) {
+            if (objective->isOutput()) {
+                handleWritingWarning("Output request " + to_str(objective) + " not yet implemented, ignoring");
+                objective->markAsWritten();
+            }
+        }
     }
 }
 

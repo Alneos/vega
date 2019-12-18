@@ -2190,6 +2190,7 @@ bool Model::validate() {
     size_t sizeCos = constraintSets.size();string sCos = ( (sizeCos > 1) ? "s are " : " is ");
     size_t sizeAna = analyses.size();      string sAna = ( (sizeAna > 1) ? "es are " : "is is ");
     size_t sizeTar = targets.size();       string sTar = ( (sizeTar > 1) ? "s are " : " is ");
+    size_t sizeObj = objectives.size();    string sObj = ( (sizeObj > 1) ? "s are " : " is ");
 
     bool validMat = materials.validate();
     bool validEle = elementSets.validate();
@@ -2199,6 +2200,7 @@ bool Model::validate() {
     bool validCos = constraintSets.validate();
     bool validAna = analyses.validate();
     bool validTar = targets.validate();
+    bool validObj = objectives.validate();
 
     if (configuration.logLevel >= LogLevel::DEBUG) {
        cout << "The " << sizeMat << " material"     << sMat << (validMat ? "" : "NOT ") << "valid." << endl;
@@ -2209,9 +2211,10 @@ bool Model::validate() {
        cout << "The " << sizeCos << " constraintSet"<< sCos << (validCos ? "" : "NOT ") << "valid." << endl;
        cout << "The " << sizeAna << " analys"      << sAna << (validAna ? "" : "NOT ") << "valid." << endl;
        if (sizeTar >= 1) cout << "The " << sizeTar << " target"      << sTar << (validTar ? "" : "NOT ") << "valid." << endl;
+       if (sizeObj >= 1) cout << "The " << sizeObj << " objective"      << sObj << (validObj ? "" : "NOT ") << "valid." << endl;
     }
     bool allValid = meshValid && validMat && validEle && validLoa && validLos && validCon
-            && validCos && validAna && validTar;
+            && validCos && validAna && validTar && validObj;
     this->afterValidation = true;
     return allValid;
 }
@@ -2227,6 +2230,7 @@ bool Model::checkWritten() const {
     size_t sizeCos = constraintSets.size();
     size_t sizeAna = analyses.size();
     size_t sizeTar = targets.size();
+    size_t sizeObj = objectives.size();
 
     bool validMat = materials.checkWritten();
     bool validEle = elementSets.checkWritten();
@@ -2236,6 +2240,7 @@ bool Model::checkWritten() const {
     bool validCos = true;
     bool validAna = analyses.checkWritten();
     bool validTar = true;
+    bool validObj = true;
 
     for (const auto& analysis : analyses) {
         if (not analysis->isWritten()) {
@@ -2261,6 +2266,13 @@ bool Model::checkWritten() const {
             }
         }
 
+        for (const auto& objective : analysis->getObjectives()) {
+            validObj = validObj and objective->isWritten();
+            if (configuration.logLevel >= LogLevel::DEBUG and not objective->isWritten()) {
+                cerr << "Objective:" << *objective << " has not been written" << endl;
+            }
+        }
+
     }
 
     string sMat = ( (sizeMat > 1) ? "s have " : " has ");
@@ -2271,6 +2283,7 @@ bool Model::checkWritten() const {
     string sCos = ( (sizeCos > 1) ? "s have " : " has ");
     string sAna = ( (sizeAna > 1) ? "es have " : "is has ");
     string sTar = ( (sizeTar > 1) ? "s have " : " has ");
+    string sObj = ( (sizeObj > 1) ? "s have " : " has ");
 
     if (configuration.logLevel >= LogLevel::DEBUG) {
         if (not validMat) cout << "The " << sizeMat << " material"     << sMat << "NOT been all written." << endl;
@@ -2281,7 +2294,7 @@ bool Model::checkWritten() const {
         if (not validCos) cout << "The " << sizeCos << " constraintSet"<< sCos << "NOT been all written." << endl;
         if (not validAna) cout << "The " << sizeAna << " analys"      << sAna << "NOT been all written." << endl;
         if (not validTar) cout << "The " << sizeTar << " target"      << sTar << "NOT been all written." << endl;
-
+        if (not validObj) cout << "The " << sizeObj << " objective"      << sObj << "NOT been all written." << endl;
     }
 
     if (configuration.logLevel >= LogLevel::TRACE) {
@@ -2293,9 +2306,10 @@ bool Model::checkWritten() const {
         if (validCos) cout << "The " << sizeCos << " constraintSet"<< sCos << "been written." << endl;
         if (validAna) cout << "The " << sizeAna << " analys"      << sAna << "been written." << endl;
         if (validTar) cout << "The " << sizeTar << " target"      << sTar << "been written." << endl;
+        if (validObj) cout << "The " << sizeObj << " objective"      << sObj << "been written." << endl;
     }
     bool allValid = validMat && validEle && validLoa && validLos && validCon
-            && validCos && validAna && validTar;
+            && validCos && validAna && validTar && validObj;
     return allValid;
 }
 

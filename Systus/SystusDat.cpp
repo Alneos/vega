@@ -174,7 +174,6 @@ int SystusWriter::writeLinearModalAnalysis(ostream& out, const SystusModel& syst
     out << "# COMPUTE THE STRESS TENSORS." << endl;
     out << "# MANDATORY TO COMPUTE THE GRADIENTS OF THE FREQUENCY CRITERIONS." << endl;
     out << "SOLVE FORCE" << endl;
-    linearModal->markAsWritten();
 
     return nmodes;
 }

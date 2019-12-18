@@ -222,6 +222,7 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
             comm_file_ofs << "                _F(INTITULE='DISPI" << output->bestId() << "',FORMAT_C='IMAG',OPERATION='EXTRACTION',RESULTAT=RESU" << analysis->getId() << "," << endl;
             writeNodeContainer(*displacementOutput);
             comm_file_ofs << "NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
+            output->markAsWritten();
         }
         comm_file_ofs << "),)" << endl << endl;
     } else {
@@ -450,6 +451,7 @@ void AsterWriter::writeAnalyses() {
                 comm_file_ofs << "           CRITERES =('SIEQ_ELNO','SIEQ_NOEU')," << endl;
                 writeCellContainer(*vonMisesOutput);
                 comm_file_ofs << ")" << endl;
+                output->markAsWritten();
             }
 		}
 
@@ -480,6 +482,7 @@ void AsterWriter::writeAnalyses() {
 				default:
 					handleWritingError("Assertion type not (yet) implemented");
 				}
+				assertion->markAsWritten();
 			}
 			comm_file_ofs << "                  )" << endl;
 			comm_file_ofs << "          );" << endl << endl;
