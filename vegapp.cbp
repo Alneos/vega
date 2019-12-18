@@ -2436,6 +2436,7 @@
 		<Unit filename="testdata/unitTest/nastranparser/multilineset.nas" />
 		<Unit filename="testdata/unitTest/nastranparser/pload4d.nas" />
 		<Unit filename="testdata/unitTest/nastranparser/rbar_massif.nas" />
+		<Unit filename="testdata/unitTest/nastranparser/set_examples.nas" />
 		<Unit filename="testdata/unitTest/nastranparser/set_in_subcase.nas" />
 		<Unit filename="testdata/unitTest/nastranparser/set_thru.nas" />
 		<Unit filename="testdata/unitTest/nastranparser/test1.nas" />

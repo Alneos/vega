@@ -230,6 +230,27 @@ BOOST_AUTO_TEST_CASE(nastran_set_THRU) {
 	}
 }
 
+BOOST_AUTO_TEST_CASE(nastran_set_examples) {
+	string testLocation = fs::path(
+		PROJECT_BASE_DIR "/testdata/unitTest/nastranparser/set_examples.nas").make_preferred().string();
+	nastran::NastranParser parser;
+	try {
+		const unique_ptr<Model> model = parser.parse(
+			ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
+        model->finish();
+        BOOST_CHECK_EQUAL(model->analyses.size(), 1);
+        BOOST_CHECK_EQUAL(model->values.size(), 0); // Cannot currently handle any case in this test, might change in the future
+        const auto& setValue = static_pointer_cast<SetValue<int>> (model->find(Reference<NamedValue>{Value::Type::SET, 1}));
+        BOOST_CHECK(setValue == nullptr);
+	}
+	catch (exception& e) {
+		cerr << e.what() << endl;
+		BOOST_TEST_MESSAGE(string("Application exception") + e.what());
+
+		BOOST_FAIL(string("Parse threw exception ") + e.what());
+	}
+}
+
 BOOST_AUTO_TEST_CASE(test_wrong_param) {
 	string testLocation = fs::path(
 		PROJECT_BASE_DIR "/testdata/unitTest/nastranparser/wrong_param.nas").make_preferred().string();

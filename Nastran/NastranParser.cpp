@@ -292,7 +292,21 @@ void NastranParser::addSet(NastranTokenizer& tok, Model& model) {
     set<int> values;
     trim(parts[1]);boost::to_upper(parts[1]);
 
-    if (parts[1] != "ALL") {
+    //const list<string>& types = {"TRIA3","TRIA6","TRIAR","QUAD4","QUAD8","QUADR","HEXA","PENTA","TETRA"};
+
+    if (boost::starts_with(parts[1],"ALL")) {
+        handleParsingWarning("ALL in SET not yet implemented, ignoring", tok, model);
+    } else if (boost::starts_with(parts[1],"INCLUDE")
+               or boost::starts_with(parts[1],"EXCLUDE")
+               or boost::starts_with(parts[1],"ELEMENTS")
+               or boost::starts_with(parts[1],"GRID")) {
+        handleParsingWarning(parts[1] + " in SET not yet implemented, ignoring", tok, model);
+    } else if (boost::algorithm::contains(parts[1],"EXCEPT")) {
+        handleParsingWarning("EXCEPT in SET not yet implemented, ignoring", tok, model);
+    } else if (not isdigit(parts[1][0])) {
+        handleParsingWarning(parts[1] + " in SET not yet implemented, ignoring", tok, model);
+    } else {
+        cerr << parts[1] << endl;
         split(parvalparts, parts[1], boost::is_any_of(", "), boost::algorithm::token_compress_on);
         for (size_t i = 0;i < parvalparts.size(); i++) {
             if (i + 2 < parvalparts.size() and parvalparts[i+1] == "THRU") {
@@ -306,8 +320,6 @@ void NastranParser::addSet(NastranTokenizer& tok, Model& model) {
         }
         const auto& setValue = make_shared<SetValue<int>>(model, values, setid);
         model.add(setValue);
-    } else {
-        handleParsingWarning("ALL in SET not yet implemented, ignoring", tok, model);
     }
 }
 
