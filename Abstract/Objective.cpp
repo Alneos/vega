@@ -287,7 +287,7 @@ vector<shared_ptr<CellGroup>> VonMisesStressOutput::getCellGroups() const {
     if (collection != nullptr) {
         const auto& setValue = dynamic_pointer_cast<SetValue<int>>(model.find(*collection));
         if (setValue == nullptr)
-            throw logic_error("Cannot find set of displacement output nodes");
+            throw logic_error("Cannot find set of von mises output cells");
         const string& groupName = "SET_" + to_string(setValue->getOriginalId());
         shared_ptr<CellGroup> cellGroup = nullptr;
         if (not model.mesh.hasGroup(groupName)) {

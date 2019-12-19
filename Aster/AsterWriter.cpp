@@ -670,12 +670,12 @@ string AsterWriter::writeValue(NamedValue& value) {
             comm_file_ofs << "                        VALE = (";
             if (listValue.isintegral()) {
                 const auto& listIntValue = static_cast<ListValue<int>&>(value);
-                for (const int val : listIntValue.getList()) {
+                for (const auto val : listIntValue.getList()) {
                     comm_file_ofs << val << ",";
                 }
             } else {
                 const auto& listDblValue = static_cast<ListValue<double>&>(value);
-                for (const double val : listDblValue.getList()) {
+                for (const auto val : listDblValue.getList()) {
                     comm_file_ofs << val << ",";
                 }
             }
@@ -687,7 +687,7 @@ string AsterWriter::writeValue(NamedValue& value) {
 	}
     case Value::Type::SET: {
 		auto& setValue = static_cast<SetValueBase&>(value);
-		if (not setValue.isintegral()) {
+		if (not setValue.isintegral() and not setValue.isfloating()) {
             handleWritingError("non-integral set not yet implemented");
 		} else if (not setValue.empty()) {
             ostringstream list_concept_ss;
@@ -697,7 +697,12 @@ string AsterWriter::writeValue(NamedValue& value) {
             comm_file_ofs << "                        VALE = (";
             if (setValue.isintegral()) {
                 const auto& setIntValue = static_cast<SetValue<int>&>(value);
-                for (const int val : setIntValue.getSet()) {
+                for (const auto val : setIntValue.getSet()) {
+                    comm_file_ofs << val << ",";
+                }
+            } else if (setValue.isfloating()) {
+                const auto& setFloatValue = static_cast<SetValue<double>&>(value);
+                for (const auto val : setFloatValue.getSet()) {
                     comm_file_ofs << val << ",";
                 }
             } else {

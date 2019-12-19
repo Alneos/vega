@@ -2026,7 +2026,7 @@ void Model::convert0DDiscretsInto1D() {
     }
 }
 
-void Model::createLoadsetsConstraintsetsGroups() {
+void Model::createSetGroups() {
     for (const auto& loadSet : this->loadSets) {
         const auto& loadSetNodeGroup = mesh.createNodeGroup(loadSet->getGroupName(), Group::NO_ORIGINAL_ID, "Display nodegroup for : " + to_str(*loadSet));
         for (const auto& loading : loadSet->getLoadings()) {
@@ -2038,6 +2038,18 @@ void Model::createLoadsetsConstraintsetsGroups() {
         for (const auto& constraint : constraintSet->getConstraints()) {
             constraintSetGroup->addNodePositions(constraint->nodePositions());
         }
+    }
+    for (auto output : objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT)) {
+        const auto& displacementOutput = static_pointer_cast<const NodalDisplacementOutput>(output);
+        if (not displacementOutput->hasNodeGroups())
+            continue;
+        displacementOutput->getNodeGroups(); // LD TODO Lazy creation :..(
+    }
+    for (auto output : objectives.filter(Objective::Type::VONMISES_STRESS_OUTPUT)) {
+        const auto& vonMisesOutput = static_pointer_cast<const VonMisesStressOutput>(output);
+        if (not vonMisesOutput->hasCellGroups())
+            continue;
+        vonMisesOutput->getCellGroups(); // LD TODO Lazy creation :..(
     }
 }
 
@@ -2166,7 +2178,7 @@ void Model::finish() {
         changeParametricForceLineToAbsolute();
     }
 
-    createLoadsetsConstraintsetsGroups();
+    createSetGroups();
 
     if (this->configuration.removeIneffectives) {
         removeUnassignedMaterials();

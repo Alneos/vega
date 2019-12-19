@@ -117,6 +117,7 @@ public:
         NamedValue(model, Value::Type::LIST, original_id) {
     }
     virtual bool isintegral() const = 0;
+    virtual bool isfloating() const = 0;
     virtual bool empty() const = 0;
 };
 
@@ -145,6 +146,9 @@ public:
     bool isintegral() const override {
         return std::is_integral<T>::value;
     }
+    bool isfloating() const override {
+        return std::is_floating_point<T>::value;
+    }
 };
 
 class SetValueBase: public NamedValue {
@@ -153,6 +157,7 @@ public:
         NamedValue(model, Value::Type::SET, original_id) {
     }
     virtual bool isintegral() const = 0;
+    virtual bool isfloating() const = 0;
     virtual bool empty() const = 0;
 };
 
@@ -176,6 +181,9 @@ public:
     }
     bool isintegral() const override {
         return std::is_integral<T>::value;
+    }
+    bool isfloating() const override {
+        return std::is_floating_point<T>::value;
     }
 };
 

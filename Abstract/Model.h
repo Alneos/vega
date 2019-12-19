@@ -138,9 +138,9 @@ private:
     void convert0DDiscretsInto1D();
 
     /**
-     * Create groups out of loadsets and constraintsets (mainly for display)
+     * Create groups out of loadsets and constraintsets and SETs (mainly for display)
      */
-    void createLoadsetsConstraintsetsGroups();
+    void createSetGroups();
 
     /**
      * Get a non rigid material (virtual)
