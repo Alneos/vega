@@ -32,12 +32,24 @@
 
 namespace vega {
 
-class Model;
+class InputContext {
+public:
+    InputContext(int lineNumber, std::string fileName, std::string line) : lineNumber{lineNumber}, fileName{fileName}, line{line} {
+    };
+    InputContext() = default;
+    InputContext(const InputContext&) = default;
+    InputContext& operator=(const InputContext&) = default;
+    int lineNumber = -1;
+    std::string fileName = "";
+    std::string line = "";
+};
+
 /**
  * An object that need to reference to a vega class can use this template to create a reference to an object of that class
  */
 template<class T>
 class Reference final {
+    InputContext inputContext;
 public:
     template<class T2> friend std::string to_str(const Reference<T2>&);
     template<class T2> friend std::ostream& operator<<(std::ostream&, const Reference<T2>&);
@@ -46,7 +58,7 @@ public:
     typename T::Type type;
     int original_id;
     int id;
-    Reference(const typename T::Type type, const int original_id = NO_ID, const int id = NO_ID) noexcept;
+    Reference(const typename T::Type, const int original_id = NO_ID, const int id = NO_ID) noexcept;
     Reference(const T&) noexcept;
     Reference(const std::shared_ptr<T>&) noexcept;
     bool has_original_id() const noexcept {
@@ -54,6 +66,19 @@ public:
     }
     bool has_id() const noexcept {
         return id != NO_ID;
+    }
+    /**
+     * Add some context about the input where it has been found
+     */
+    void setInputContext(const InputContext& context) noexcept {
+        inputContext = context;
+    }
+
+    /**
+     * Get the context about the input where it has been found
+     */
+    InputContext getInputContext() const noexcept {
+        return inputContext;
     }
 };
 
@@ -64,12 +89,12 @@ Reference<T>::Reference(const typename T::Type type, const int original_id, cons
 
 template<class T>
 Reference<T>::Reference(const T& t) noexcept :
-        type(t.type), original_id(t.getOriginalId()), id(t.getId()) {
+        inputContext{t.getInputContext()}, type(t.type), original_id(t.getOriginalId()), id(t.getId()) {
 }
 
 template<class T>
 Reference<T>::Reference(const std::shared_ptr<T>& ptr) noexcept :
-        type(ptr->type), original_id(ptr->getOriginalId()), id(ptr->getId()) {
+        inputContext{ptr->getInputContext()}, type(ptr->type), original_id(ptr->getOriginalId()), id(ptr->getId()) {
 }
 
 template<class T>
@@ -117,7 +142,11 @@ std::string to_str(const Reference<T>& reference) {
     else
         type = "type " + T::name + "<" + std::to_string(static_cast<int>(reference.type)) + "> not yet mapped in stringByType";
 
-    oss << "Reference[" << type << "; " << id << "]";
+    oss << "Reference[" << type << "; " << id;
+    if (reference.inputContext.lineNumber >= 1) {
+        oss << ";input " << reference.inputContext.lineNumber << " " << reference.inputContext.line;
+    }
+    oss << "]";
 
     return oss.str();
 }

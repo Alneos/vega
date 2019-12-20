@@ -479,8 +479,7 @@ LinearModal::LinearModal(Model& model, const Reference<Objective>& frequencySear
 
 LinearModal::LinearModal(Model& model, const int frequency_band_original_id,
         const string original_label, const int original_id, const Type type) :
-        Analysis(model, type, original_label, original_id), frequencySearchRef(Objective::Type::FREQUENCY_SEARCH,
-                frequency_band_original_id) {
+        Analysis(model, type, original_label, original_id), frequencySearchRef(Objective::Type::FREQUENCY_SEARCH, frequency_band_original_id) {
 }
 
 shared_ptr<FrequencySearch> LinearModal::getFrequencySearch() const noexcept {
@@ -508,9 +507,7 @@ LinearDynaModalFreq::LinearDynaModalFreq(Model& model, const int frequency_band_
         const bool residual_vector, const string original_label, const int original_id) :
         LinearModal(model, frequency_band_original_id, original_label, original_id,
                 Analysis::Type::LINEAR_DYNA_MODAL_FREQ),
-                modal_damping_reference(Objective::Type::MODAL_DAMPING,
-                modal_damping_original_id), frequencyExcitationRef(Objective::Type::FREQUENCY_EXCIT,
-                frequency_value_original_id), residual_vector(residual_vector) {
+                modal_damping_reference(Objective::Type::MODAL_DAMPING, modal_damping_original_id), frequencyExcitationRef(Objective::Type::FREQUENCY_EXCIT, frequency_value_original_id), residual_vector(residual_vector) {
 }
 
 shared_ptr<ModalDamping> LinearDynaModalFreq::getModalDamping() const {
@@ -562,8 +559,7 @@ LinearDynaDirectFreq::LinearDynaDirectFreq(Model& model,
         const int frequency_value_original_id,
         const string original_label, const int original_id) :
         Analysis(model, Analysis::Type::LINEAR_DYNA_DIRECT_FREQ, original_label, original_id),
-                frequencyExcitationRef(Objective::Type::FREQUENCY_EXCIT,
-                frequency_value_original_id) {
+                frequencyExcitationRef(Objective::Type::FREQUENCY_EXCIT, frequency_value_original_id) {
 }
 
 shared_ptr<FrequencyExcit> LinearDynaDirectFreq::getExcitationFrequencies() const {

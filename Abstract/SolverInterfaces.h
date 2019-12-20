@@ -17,6 +17,7 @@
 #include <istream>
 #include "ConfigurationParameters.h"
 #include "Utility.h"
+#include "Object.h"
 #include <string>
 
 namespace vega {
@@ -60,11 +61,13 @@ protected:
 
 public:
 	virtual ~Tokenizer() = default;
-	inline vega::LogLevel getLogLevel()const noexcept {return logLevel;};
+	inline vega::LogLevel getLogLevel() const noexcept {return logLevel;};
 	inline std::string getFileName() const noexcept {return fileName;};
 	//inline vega::ConfigurationParameters::TranslationMode getTranslationMode() const {return translationMode;};
 	inline int getLineNumber() const noexcept {return lineNumber;};
 	inline std::string getCurrentKeyword() const noexcept {return currentKeyword;};
+	virtual std::string currentRawDataLine() const = 0;
+	inline InputContext getInputContext() const noexcept {return {lineNumber, fileName, currentRawDataLine()};}
 	void setCurrentKeyword(std::string cK) noexcept {currentKeyword=cK;};
 
     /**
@@ -93,6 +96,7 @@ protected:
 	Parser() = default;
 public:
 	virtual ~Parser() = default;
+
 	ConfigurationParameters::TranslationMode translationMode = ConfigurationParameters::TranslationMode::BEST_EFFORT;
 	/**
 	 * Read a model from a specific file format.

@@ -186,7 +186,7 @@ public:
      */
     std::vector<std::string> currentDataLine() const;
 
-    std::string currentRawDataLine() const;
+    std::string currentRawDataLine() const override;
     /**
      * Advances to next data line, discarding the current content.
      */

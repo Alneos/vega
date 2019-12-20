@@ -40,6 +40,7 @@ template<class T> class Identifiable {
     int original_id;
     int id;
     bool written = false;
+    InputContext inputContext;
 public:
     static const int NO_ORIGINAL_ID;
 
@@ -66,6 +67,20 @@ public:
      */
     void markAsWritten() noexcept {
         written = true;
+    }
+
+    /**
+     * Add some context about the input where it has been found
+     */
+    void setInputContext(const InputContext& context) noexcept {
+        inputContext = context;
+    }
+
+    /**
+     * Get the context about the input where it has been found
+     */
+    InputContext getInputContext() const noexcept {
+        return inputContext;
     }
 
     int bestId() const noexcept {
@@ -150,6 +165,10 @@ std::string to_str(const T& t) noexcept {
         else
             first = false;
         oss << kv.first << "=" << kv.second;
+    }
+    const auto& inputContext = t.getInputContext();
+    if (inputContext.lineNumber >= 1) {
+        oss << ";input " << inputContext.lineNumber << " " << inputContext.line;
     }
     oss << "}";
 

@@ -182,10 +182,8 @@ public:
 class NonLinearMecaStat: public Analysis {
 public:
     Reference<Objective> strategy_reference;
-    NonLinearMecaStat(Model& model, const NonLinearStrategy& strategy, const std::string original_label = "",
-            const int original_id = NO_ORIGINAL_ID);
-    NonLinearMecaStat(Model& model, const int strategy_original_id, const std::string original_label = "",
-            const int original_id = NO_ORIGINAL_ID);
+    NonLinearMecaStat(Model& model, const NonLinearStrategy& strategy, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
+    NonLinearMecaStat(Model& model, const int strategy_original_id, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     bool isStatic() const noexcept override {
         return true;
     }
@@ -196,10 +194,8 @@ class LinearModal: public Analysis {
 protected:
     Reference<Objective> frequencySearchRef;
 public:
-    LinearModal(Model&, const Reference<Objective>&, const std::string original_label = "",
-            const int original_id = NO_ORIGINAL_ID, const Type type = Type::LINEAR_MODAL);
-    LinearModal(Model&, const int frequency_band_original_id, const std::string original_label = "",
-            const int original_id = NO_ORIGINAL_ID, const Type type = Type::LINEAR_MODAL);
+    LinearModal(Model&, const Reference<Objective>&, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID, const Type type = Type::LINEAR_MODAL);
+    LinearModal(Model&, const int frequency_band_original_id, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID, const Type type = Type::LINEAR_MODAL);
     std::shared_ptr<FrequencySearch> getFrequencySearch() const noexcept;
     bool use_power_iteration = false;
     bool validate() const override;
@@ -213,8 +209,7 @@ public:
 
 class LinearBuckling: public LinearModal {
 public:
-    LinearBuckling(Model&, const Reference<Objective>&, const std::string original_label = "",
-            const int original_id = NO_ORIGINAL_ID);
+    LinearBuckling(Model&, const Reference<Objective>&, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     bool isBuckling() const noexcept override {
         return true;
     }
