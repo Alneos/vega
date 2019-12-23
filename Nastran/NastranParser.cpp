@@ -3405,17 +3405,18 @@ void NastranParser::parseTABLED1(NastranTokenizer& tok, Model& model) {
     interpolation = tok.nextString(true, "LINEAR");
     FunctionTable::Interpolation value =
             (interpolation == "LINEAR") ? FunctionTable::Interpolation::LINEAR : FunctionTable::Interpolation::LOGARITHMIC;
-
-    const auto& functionTable = make_shared<FunctionTable>(model, parameter, value, FunctionTable::Interpolation::NONE,
-            FunctionTable::Interpolation::NONE, original_id);
-
     // The next 5 fields are empty (but not in the free syntax).
     // We do a special treatment for the first one, which can be filled in the OPTISTRUCT syntax
-    if (tok.isNextInt()) {
-        int flat = tok.nextInt(); UNUSEDV(flat);
-        handleParsingWarning("FLAT field is dismissed (OPTISTRUCT syntax)", tok, model);
-    }
+    int flat = 0;
+    if (tok.isNextInt())
+        flat = tok.nextInt();
     tok.skipToNotEmpty();
+
+    FunctionTable::Interpolation right =
+            (flat != 0) ? FunctionTable::Interpolation::CONSTANT : FunctionTable::Interpolation::NONE;
+
+    const auto& functionTable = make_shared<FunctionTable>(model, parameter, value, FunctionTable::Interpolation::NONE,
+            right, original_id);
 
     double x,y;
     string sField = "";
