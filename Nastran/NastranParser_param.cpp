@@ -71,6 +71,19 @@ void NastranParser::parseParamAUTOSPC(NastranTokenizer& tok, Model& model) {
     }
 }
 
+void NastranParser::parseParamCHECKEL(NastranTokenizer& tok, Model& model) {
+
+    /* Default = YES
+       If NO element quality checks are not performed, but mathematical validity checks are performed.
+       If YES, ... are performed. Any violation of error limits is counted as fatal and the run will stop.
+       If FULL ... same as for YES and messages are printed for all elements violating limits.
+     */
+    string value = tok.nextString(true, "YES");
+    if (value == "YES" or value == "FULL") {
+        model.parameters[Model::Parameter::ELEMENT_QUALITY_CHECK] = value;
+    }
+}
+
 void NastranParser::parseParamGRDPNT(NastranTokenizer& tok, Model& model) {
     /*GRDPNT
      Default = -1
@@ -122,7 +135,7 @@ void NastranParser::parseParamHFREQ(NastranTokenizer& tok, Model& model) {
      */
     double val = tok.nextDouble(true, 1e30);
     if (!is_equal(val, 1e30)) {
-        model.parameters[Model::Parameter::UPPER_CUTOFF_FREQUENCY] = val;
+        model.parameters[Model::Parameter::UPPER_CUTOFF_FREQUENCY] = to_string_with_precision(val);
     }
 }
 
@@ -136,7 +149,7 @@ void NastranParser::parseParamK6ROT(NastranTokenizer& tok, Model& model) {
                 "Non zero parameter K6ROT : " + to_string(val),
                 tok, model);
     }
-    model.parameters[Model::Parameter::SHELL_NORMAL_STIFFNESS_FACTOR] = val;
+    model.parameters[Model::Parameter::SHELL_NORMAL_STIFFNESS_FACTOR] = to_string_with_precision(val);
 }
 
 void NastranParser::parseParamINREL(NastranTokenizer& tok, Model& model) {
@@ -156,21 +169,21 @@ void NastranParser::parseParamINREL(NastranTokenizer& tok, Model& model) {
 void NastranParser::parseParamLFREQ(NastranTokenizer& tok, Model& model) {
     double val = tok.nextDouble(true, 0.0);
     if (!is_equal(val, 0.0)) {
-        model.parameters[Model::Parameter::LOWER_CUTOFF_FREQUENCY] = val;
+        model.parameters[Model::Parameter::LOWER_CUTOFF_FREQUENCY] = to_string_with_precision(val);
     }
 }
 
 void NastranParser::parseParamG(NastranTokenizer& tok, Model& model) {
     double val = tok.nextDouble(true, 0.0);
     if (!is_equal(val, 0.0)) {
-        model.parameters[Model::Parameter::STRUCTURAL_DAMPING] = val;
+        model.parameters[Model::Parameter::STRUCTURAL_DAMPING] = to_string_with_precision(val);
     }
 }
 
 void NastranParser::parseParamW3(NastranTokenizer& tok, Model& model) {
     double val = tok.nextDouble(true, 0.0);
     if (!is_equal(val, 0.0)) {
-        model.parameters[Model::Parameter::FREQUENCY_OF_INTEREST_RADIANS] = val;
+        model.parameters[Model::Parameter::FREQUENCY_OF_INTEREST_RADIANS] = to_string_with_precision(val);
     }
 }
 
@@ -188,9 +201,9 @@ void NastranParser::parseParamLGDISP(NastranTokenizer& tok, Model& model) {
      linear elements and added to the differential stiffness of the
      nonlinear elements.
      */
-    double val = tok.nextDouble(true, -1);
+    int val = tok.nextInt(true, -1);
     if (!is_equal(val, -1)) {
-        model.parameters[Model::Parameter::LARGE_DISPLACEMENTS] = val;
+        model.parameters[Model::Parameter::LARGE_DISPLACEMENTS] = to_string(val);
     }
 }
 
@@ -233,13 +246,13 @@ void NastranParser::parseParamPRTMAXIM(NastranTokenizer& tok, Model& model) {
      */
     string value = tok.nextString(true, "NO");
     if (value == "YES") {
-        model.parameters[Model::Parameter::PRINT_MAXIM] = 1.0;
+        model.parameters[Model::Parameter::PRINT_MAXIM] = value;
     }
 }
 
 void NastranParser::parseParamWTMASS(NastranTokenizer& tok, Model& model) {
     double value = tok.nextDouble(true, 1);
-    model.parameters[Model::Parameter::MASS_OVER_FORCE_MULTIPLIER] = value;
+    model.parameters[Model::Parameter::MASS_OVER_FORCE_MULTIPLIER] = to_string_with_precision(value);
 }
 
 NastranParser::parseElementFPtr NastranParser::findParamParser(const string keyword) const {

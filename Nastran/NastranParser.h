@@ -75,7 +75,7 @@ private:
 
     void addSet(NastranTokenizer& tok, Model& model);
     void addAnalysis(NastranTokenizer& tok, Model& model, std::map<std::string, std::string>& context, int analysis_id =
-            Analysis::NO_ORIGINAL_ID);
+            Analysis::NO_ORIGINAL_ID, const InputContext& = {});
     void addCombinationAnalysis(NastranTokenizer& tok, Model& model, std::map<std::string, std::string>& context, int analysis_id =
             Analysis::NO_ORIGINAL_ID);
 
@@ -567,6 +567,11 @@ private:
     void parseNLPCI(NastranTokenizer& tok, Model& model);
 
     /**
+     * PARAM CHECKEL
+     */
+    void parseParamCHECKEL(NastranTokenizer& tok, Model& model);
+
+    /**
      * PARAM NOCOMPS
      */
     void parseParamNOCOMPS(NastranTokenizer& tok, Model& model);
@@ -893,6 +898,7 @@ private:
         "DISP", // Requests the form and type of displacement or pressure vector output.
         "DLOA", // Selects a dynamic load or an acoustic source to be applied in a transient or frequency response problem.
         "ECHO", // IGNORED: Controls echo (i.e., printout) of the Bulk Data.
+        "ELCHECK",  // requires element quality checks
         "ELFORCE", // equivalent command to FORCE
         "ELSTRESS", // equivalent command to STRESS
         "ESE", // IGNORED: Requests the output of the strain energy in selected elements.

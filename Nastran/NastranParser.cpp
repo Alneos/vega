@@ -187,6 +187,7 @@ const std::unordered_map<std::string, NastranParser::NastranAnalysis> NastranPar
 
 string NastranParser::parseSubcase(NastranTokenizer& tok, Model& model,
         map<string, string> context) {
+    const auto& inputContext = tok.getInputContext();
     int subCaseId = tok.nextInt(true, 0);
     string nextKeyword;
     bool bParseSubcase =true;
@@ -222,7 +223,7 @@ string NastranParser::parseSubcase(NastranTokenizer& tok, Model& model,
     }
 
     try{
-        addAnalysis(tok, model, context, subCaseId);
+        addAnalysis(tok, model, context, subCaseId, inputContext);
     }catch (std::string&){
         return nextKeyword;
     }
@@ -306,7 +307,6 @@ void NastranParser::addSet(NastranTokenizer& tok, Model& model) {
     } else if (not isdigit(parts[1][0])) {
         handleParsingWarning(parts[1] + " in SET not yet implemented, ignoring", tok, model);
     } else {
-        cerr << parts[1] << endl;
         split(parvalparts, parts[1], boost::is_any_of(", "), boost::algorithm::token_compress_on);
         for (size_t i = 0;i < parvalparts.size(); i++) {
             if (i + 2 < parvalparts.size() and parvalparts[i+1] == "THRU") {
@@ -335,14 +335,18 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
     keyword = tok.nextString(true, "");
     trim(keyword);boost::to_upper(keyword);
 
-    while (canContinue){
+    while (canContinue) {
 
-        try{
+        try {
             tok.setCurrentKeyword(keyword);
-            if (keyword.find("BEGIN") != string::npos) {
+
+            if (keyword.empty()) {
+                tok.skipToNextKeyword();
+                canContinue = canContinue && (tok.nextSymbolType != NastranTokenizer::SymbolType::SYMBOL_EOF);
+            } else if (keyword.find("BEGIN") != string::npos) {
                 canContinue = false;
                 if (!subCaseFound) {
-                    addAnalysis(tok, model, context);
+                    addAnalysis(tok, model, context, Analysis::NO_ORIGINAL_ID, tok.getInputContext());
                 }
             } else if (keyword == "B2GG") {
                 // Selects direct input damping matrix or matrices.
@@ -632,7 +636,7 @@ NastranParser::NastranAnalysis NastranParser::autoSubcaseAnalysis(map<string, st
 }
 
 void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string, string> &context,
-        int analysis_id) {
+        int analysis_id, const InputContext& inputContext) {
 
     string analysis_str;
     const auto& it0 = context.find("SOL");
@@ -892,7 +896,7 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
          Selectionsmade in an individual subcase supersede the selections made above the subcases.
          */
     analysis->previousAnalysis = previous;
-    analysis->setInputContext(tok.getInputContext());
+    analysis->setInputContext(inputContext);
     model.add(analysis);
 
 }

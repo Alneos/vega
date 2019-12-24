@@ -96,7 +96,7 @@ int SystusWriter::writeLinearModalAnalysis(ostream& out, const SystusModel& syst
             if (systusModel.model.configuration.logLevel >= LogLevel::TRACE) {
                 cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
             }
-            lowerF = lower_cutoff_frequency->second;
+            lowerF = stod(lower_cutoff_frequency->second);
         }
       }
       nmodes = (band->maxsearch == vega::Globals::UNAVAILABLE_INT ? defaultNbDesiredRoots : band->maxsearch);

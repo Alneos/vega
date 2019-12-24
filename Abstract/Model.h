@@ -258,7 +258,7 @@ public:
     Container<ElementSet> elementSets{*this};
     Container<Material> materials{*this};
     Container<Target> targets{*this};
-    std::map<Parameter, double> parameters;
+    std::map<Parameter, std::string> parameters;
     bool onlyMesh = false;
 
     Model(std::string name, std::string inputSolverVersion = "UNKNOWN",

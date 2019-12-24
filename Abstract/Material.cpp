@@ -135,8 +135,8 @@ double ElasticNature::getRho() const {
 	double mass_multiplier = 1;
 	auto it = model.parameters.find(Model::Parameter::MASS_OVER_FORCE_MULTIPLIER);
 	if (it != model.parameters.end()) {
-		mass_multiplier = it->second;
-		assert(!is_zero(it->second));
+		mass_multiplier = stod(it->second);
+		assert(!is_zero(mass_multiplier));
 	}
 	return (is_equal(rho, UNAVAILABLE_DOUBLE)) ? 0 : rho * mass_multiplier;
 }

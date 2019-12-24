@@ -166,6 +166,4 @@ void handler(int sig) {
     exit(1);
 }
 
-//__________ ValueOrReference
-
 } /* namespace vega */

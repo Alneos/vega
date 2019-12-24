@@ -129,9 +129,12 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
     switch (analysis->type) {
     case (Analysis::Type::COMBINATION):
     case (Analysis::Type::LINEAR_MECA_STAT): {
-        comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
-                << ", NOM_CHAM='DEPL'," << " VALE_MAX='OUI'," << " VALE_MIN='OUI',),"
-                << endl;
+        const auto& print_maxim = asterModel->model.parameters.find(Model::Parameter::PRINT_MAXIM);
+        if (print_maxim != asterModel->model.parameters.end() and print_maxim->second != "NO") {
+            comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
+                    << ", NOM_CHAM='DEPL'," << " VALE_MAX='OUI'," << " VALE_MIN='OUI',),"
+                    << endl;
+        }
         break;
     }
     case (Analysis::Type::LINEAR_MODAL): {
@@ -534,7 +537,7 @@ void AsterWriter::writeAnalyses() {
 }
 
 void AsterWriter::writeComm() {
-	string asterVersion(asterModel->getAsterVersion());
+	//string asterVersion(asterModel->getAsterVersion());
 	comm_file_ofs << "#Vega++ version " << VEGA_VERSION_MAJOR << "." << VEGA_VERSION_MINOR << endl;
 	comm_file_ofs << "#Aster version " << asterModel->getAsterVersion() << endl;
 	comm_file_ofs << "DEBUT(PAR_LOT='NON', IGNORE_ALARM=('SUPERVIS_1'))" << endl;
@@ -567,10 +570,19 @@ void AsterWriter::writeComm() {
 
 void AsterWriter::writeLireMaillage() {
 	comm_file_ofs << mail_name << "=LIRE_MAILLAGE(FORMAT='MED',";
-	if (asterModel->configuration.logLevel >= LogLevel::DEBUG and asterModel->model.mesh.countNodes() < 100) {
-		comm_file_ofs << "INFO_MED=2,VERI_MAIL=_F(VERIF='OUI',),INFO=2";
+    const auto& element_check = asterModel->model.parameters.find(Model::Parameter::ELEMENT_QUALITY_CHECK);
+
+    if (element_check != asterModel->model.parameters.end()) {
+        if (element_check->second != "NO") {
+            comm_file_ofs << "VERI_MAIL=_F(VERIF='OUI',),";
+        }
+	} else if (asterModel->configuration.logLevel >= LogLevel::DEBUG and asterModel->model.mesh.countNodes() < 100) {
+		comm_file_ofs << "VERI_MAIL=_F(VERIF='OUI',),";
 	} else {
 		comm_file_ofs << "VERI_MAIL=_F(VERIF='NON',),";
+	}
+    if (asterModel->configuration.logLevel >= LogLevel::DEBUG) {
+		comm_file_ofs << "INFO_MED=2,INFO=2";
 	}
 	comm_file_ofs << ");" << endl << endl;
 
@@ -2148,7 +2160,7 @@ void AsterWriter::writeCalcFreq(const std::shared_ptr<LinearModal>& linearModal)
                 if (asterModel->model.configuration.logLevel >= LogLevel::TRACE) {
                     cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
                 }
-                fstart = lower_cutoff_frequency->second;
+                fstart = stod(lower_cutoff_frequency->second);
             } else {
                 fstart = 0.0;
             }
@@ -2283,7 +2295,6 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
 		for (const auto& constraintSet : linearMecaStat->getConstraintSets()) {
 			//GC: dirty fix for #801, a deeper analysis must be done
 			if (not constraintSet->empty()) {
-                cout << "constraintSet:" << *constraintSet << " AsterName: " << asternameByConstraintSet[constraintSet] << "Size:" << constraintSet->size() << endl;
 				comm_file_ofs << "                           _F(CHARGE=" << asternameByConstraintSet[constraintSet] << "),"
 						<< endl;
 			}
@@ -2405,14 +2416,14 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
 	case Analysis::Type::LINEAR_DYNA_DIRECT_FREQ: {
         writeAssemblage(analysis, canBeReused);
 
-        auto structural_damping = asterModel->model.parameters.find(Model::Parameter::STRUCTURAL_DAMPING);
-        auto frequency_of_interest_radians = asterModel->model.parameters.find(Model::Parameter::FREQUENCY_OF_INTEREST_RADIANS);
-        bool has_structural_damping = structural_damping != asterModel->model.parameters.end() and frequency_of_interest_radians != asterModel->model.parameters.end() and frequency_of_interest_radians->second > 0;
+        const auto& structural_damping = asterModel->model.parameters.find(Model::Parameter::STRUCTURAL_DAMPING);
+        const auto& frequency_of_interest_radians = asterModel->model.parameters.find(Model::Parameter::FREQUENCY_OF_INTEREST_RADIANS);
+        bool has_structural_damping = structural_damping != asterModel->model.parameters.end() and frequency_of_interest_radians != asterModel->model.parameters.end() and stod(frequency_of_interest_radians->second) > 0;
 		if (has_structural_damping) {
             comm_file_ofs << "AMST" << analysis->getId()
                 <<  " = COMB_MATR_ASSE(COMB_R = _F ( MATR_ASSE = RIGI"
                 << analysis->getId()
-                << ", COEF_R = " << structural_damping->second / frequency_of_interest_radians->second << "))" << endl;
+                << ", COEF_R = " << stod(structural_damping->second) / stod(frequency_of_interest_radians->second) << "))" << endl;
         }
 		const auto& linearDirect = dynamic_pointer_cast<LinearDynaDirectFreq>(analysis);
 
@@ -2521,12 +2532,12 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
 
             double lowFreq = 0;
             if (asterModel->model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY) != asterModel->model.parameters.end()) {
-                lowFreq = asterModel->model.parameters[Model::Parameter::LOWER_CUTOFF_FREQUENCY];
+                lowFreq = stod(asterModel->model.parameters[Model::Parameter::LOWER_CUTOFF_FREQUENCY]);
             }
 
             double highFreq = 1e30;
             if (asterModel->model.parameters.find(Model::Parameter::UPPER_CUTOFF_FREQUENCY) != asterModel->model.parameters.end()) {
-                highFreq = asterModel->model.parameters[Model::Parameter::UPPER_CUTOFF_FREQUENCY];
+                highFreq = stod(asterModel->model.parameters[Model::Parameter::UPPER_CUTOFF_FREQUENCY]);
             }
             comm_file_ofs << modalResuName << "=EXTR_MODE(FILTRE_MODE=_F(MODE=U" << modalResuName << ", FREQ_MIN=" << lowFreq << ", FREQ_MAX=" << highFreq << "),)" << endl;
             comm_file_ofs << "I" << modalResuName << "=RECU_TABLE(CO=" << modalResuName << ",NOM_PARA = ('FREQ','MASS_GENE','RIGI_GENE','AMOR_GENE'))" << endl;
@@ -2874,12 +2885,12 @@ void AsterWriter::writeFrequencyAssertion(const Analysis& analysis, const Freque
 
     double lowFreq = 0;
     if (analysis.model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY) != analysis.model.parameters.end()) {
-        lowFreq = analysis.model.parameters[Model::Parameter::LOWER_CUTOFF_FREQUENCY];
+        lowFreq = stod(analysis.model.parameters[Model::Parameter::LOWER_CUTOFF_FREQUENCY]);
     }
 
     double highFreq = 1e30;
     if (analysis.model.parameters.find(Model::Parameter::UPPER_CUTOFF_FREQUENCY) != analysis.model.parameters.end()) {
-        highFreq = analysis.model.parameters[Model::Parameter::UPPER_CUTOFF_FREQUENCY];
+        highFreq = stod(analysis.model.parameters[Model::Parameter::UPPER_CUTOFF_FREQUENCY]);
     }
     if (not isBuckling and (frequencyAssertion.cycles < lowFreq or frequencyAssertion.cycles > highFreq)) {
         return; // Cannot check this frequency: it will be excluded by results

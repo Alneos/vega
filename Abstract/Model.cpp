@@ -729,7 +729,7 @@ bool Model::needsLargeDisplacements() const {
     double largeDisp = 0;
     auto it = this->parameters.find(Model::Parameter::LARGE_DISPLACEMENTS);
     if (it != this->parameters.end()) {
-        largeDisp = it->second;
+        largeDisp = stod(it->second);
     }
     return not is_zero(largeDisp);
 }
