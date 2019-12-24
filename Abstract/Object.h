@@ -168,7 +168,7 @@ std::string to_str(const T& t) noexcept {
     }
     const auto& inputContext = t.getInputContext();
     if (inputContext.lineNumber >= 1) {
-        oss << ";input " << inputContext.lineNumber << " " << inputContext.line;
+        oss << ";input[" << inputContext.lineNumber << "]:'" << inputContext.line << "'";
     }
     oss << "}";
 

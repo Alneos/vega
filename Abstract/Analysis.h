@@ -110,9 +110,17 @@ public:
      * plus eventually the common LoadSet of all analyzes of the model
      */
     std::vector<std::shared_ptr<LoadSet>> getLoadSets() const noexcept;
+    std::vector<std::shared_ptr<Constraint>> getConstraints() const noexcept;
+    std::vector<std::shared_ptr<Loading>> getLoadings() const noexcept;
     std::vector<std::shared_ptr<BoundaryCondition>> getBoundaryConditions() const noexcept;
     std::vector<std::shared_ptr<Assertion>> getAssertions() const noexcept;
     std::vector<std::shared_ptr<Objective>> getObjectives() const noexcept;
+
+    std::vector<std::shared_ptr<ConstraintSet>> filter(const ConstraintSet::Type& type) const noexcept;
+    std::vector<std::shared_ptr<LoadSet>> filter(const LoadSet::Type& type) const noexcept;
+    std::vector<std::shared_ptr<Constraint>> filter(const Constraint::Type& type) const noexcept;
+    std::vector<std::shared_ptr<Loading>> filter(const Loading::Type& type) const noexcept;
+    std::vector<std::shared_ptr<Objective>> filter(const Objective::Type& type) const noexcept;
 
     /**
      * Return true if the analysis has at least one SPC (or equivalent SPCD, MPCD, etc)

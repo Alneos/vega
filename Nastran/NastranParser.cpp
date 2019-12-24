@@ -855,6 +855,13 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
                 model.add(nodalOutput);
                 analysis->add(nodalOutput->getReference());
             }
+        } else if (!key.compare(0, 4, "OFREQUENCY")) {
+            if (id != 0) {
+                auto frequencyOutput = make_shared<FrequencyOutput>(model, make_shared<Reference<NamedValue>>(Value::Type::SET, id));
+                frequencyOutput->setInputContext(tok.getInputContext());
+                model.add(frequencyOutput);
+                analysis->add(frequencyOutput->getReference());
+            }
         } else if (!key.compare(0, 4, "STRESS")) {
             if (id != 0) {
                 shared_ptr<VonMisesStressOutput> stressOutput = nullptr;

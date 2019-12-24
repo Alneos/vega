@@ -46,6 +46,7 @@ const map<Objective::Type, string> Objective::stringByType = {
         { Objective::Type::ARC_LENGTH_METHOD, "ARC_LENGTH_METHOD" },
         { Objective::Type::NODAL_DISPLACEMENT_OUTPUT, "NODAL_DISPLACEMENT_OUTPUT" },
         { Objective::Type::VONMISES_STRESS_OUTPUT, "VONMISES_STRESS_OUTPUT" },
+        { Objective::Type::FREQUENCY_OUTPUT, "FREQUENCY_OUTPUT" },
 };
 
 ostream &operator<<(ostream &out, const Objective& objective) {
@@ -306,6 +307,17 @@ vector<shared_ptr<CellGroup>> VonMisesStressOutput::getCellGroups() const {
 
 bool VonMisesStressOutput::hasCellGroups() const noexcept {
     return collection != nullptr or CellContainer::hasCellGroups();
+}
+
+FrequencyOutput::FrequencyOutput(Model& model, shared_ptr<Reference<NamedValue>> collection, int original_id) :
+        Output(model, Objective::Type::FREQUENCY_OUTPUT, original_id), collection(collection) {
+}
+
+std::shared_ptr<NamedValue> FrequencyOutput::getCollection() const {
+    if (collection != nullptr) {
+        return model.find(*collection);
+    }
+    return nullptr;
 }
 
 } /* namespace vega */

@@ -54,6 +54,7 @@ public:
         ARC_LENGTH_METHOD,
         NODAL_DISPLACEMENT_OUTPUT,
         VONMISES_STRESS_OUTPUT,
+        FREQUENCY_OUTPUT,
     };
 protected:
     Model& model;
@@ -278,6 +279,14 @@ public:
     VonMisesStressOutput(Model& model, std::shared_ptr<Reference<NamedValue>> collection = nullptr, int original_id = NO_ORIGINAL_ID);
     virtual std::vector<std::shared_ptr<CellGroup>> getCellGroups() const override final;
     virtual bool hasCellGroups() const noexcept override final;
+};
+
+class FrequencyOutput: public Output {
+private:
+    std::shared_ptr<Reference<NamedValue>> collection;
+public:
+    FrequencyOutput(Model& model, std::shared_ptr<Reference<NamedValue>> collection = nullptr, int original_id = NO_ORIGINAL_ID);
+    std::shared_ptr<NamedValue> getCollection() const;
 };
 
 

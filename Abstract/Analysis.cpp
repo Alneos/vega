@@ -82,6 +82,36 @@ vector<shared_ptr<LoadSet>> Analysis::getLoadSets() const noexcept {
     return result;
 }
 
+vector<shared_ptr<Constraint>> Analysis::getConstraints() const noexcept {
+    vector<shared_ptr<Constraint>> result;
+    for (const auto& constraintSet : getConstraintSets()) {
+        if (constraintSet == nullptr) {
+            continue;
+        }
+        for (const auto& constraint : constraintSet->getConstraints()) {
+            if (constraint != nullptr) {
+                result.push_back(constraint);
+            }
+        }
+    }
+    return result;
+}
+
+vector<shared_ptr<Loading>> Analysis::getLoadings() const noexcept {
+    vector<shared_ptr<Loading>> result;
+    for (const auto& loadSet : getLoadSets()) {
+        if (loadSet == nullptr) {
+            continue;
+        }
+        for (const auto& loading : loadSet->getLoadings()) {
+            if (loading != nullptr) {
+                result.push_back(loading);
+            }
+        }
+    }
+    return result;
+}
+
 vector<shared_ptr<BoundaryCondition>> Analysis::getBoundaryConditions() const noexcept {
     vector<shared_ptr<BoundaryCondition>> result;
     for (const auto& constraintSet : getConstraintSets()) {
@@ -234,9 +264,59 @@ vector<shared_ptr<Objective>> Analysis::getObjectives() const noexcept {
     return objectives;
 }
 
+vector<shared_ptr<ConstraintSet>> Analysis::filter(const ConstraintSet::Type& type) const noexcept {
+    vector<shared_ptr<ConstraintSet>> constraintSets;
+    for (const auto& constraintSet : getConstraintSets()) {
+        if (constraintSet->type != type)
+            continue;
+        constraintSets.push_back(constraintSet);
+    }
+    return constraintSets;
+}
+
+vector<shared_ptr<LoadSet>> Analysis::filter(const LoadSet::Type& type) const noexcept {
+    vector<shared_ptr<LoadSet>> loadSets;
+    for (const auto& loadSet : getLoadSets()) {
+        if (loadSet->type != type)
+            continue;
+        loadSets.push_back(loadSet);
+    }
+    return loadSets;
+}
+
+vector<shared_ptr<Constraint>> Analysis::filter(const Constraint::Type& type) const noexcept {
+    vector<shared_ptr<Constraint>> constraints;
+    for (const auto& constraint : getConstraints()) {
+        if (constraint->type != type)
+            continue;
+        constraints.push_back(constraint);
+    }
+    return constraints;
+}
+
+vector<shared_ptr<Loading>> Analysis::filter(const Loading::Type& type) const noexcept {
+    vector<shared_ptr<Loading>> loadings;
+    for (const auto& loading : getLoadings()) {
+        if (loading->type != type)
+            continue;
+        loadings.push_back(loading);
+    }
+    return loadings;
+}
+
+vector<shared_ptr<Objective>> Analysis::filter(const Objective::Type& type) const noexcept {
+    vector<shared_ptr<Objective>> objectives;
+    for (const auto& objective : getObjectives()) {
+        if (objective->type != type)
+            continue;
+        objectives.push_back(objective);
+    }
+    return objectives;
+}
+
 bool Analysis::hasSPC() const noexcept {
 
-    for (const auto& cs : this->getConstraintSets()){
+    for (const auto& cs : getConstraintSets()){
 
         switch(cs->type){
 

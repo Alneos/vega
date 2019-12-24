@@ -204,13 +204,8 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
     comm_file_ofs << "                )," << endl;
     comm_file_ofs << "          );" << endl << endl;
 
-    //const auto& displacementOutputs = asterModel->model.objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT);
-    vector<shared_ptr<Objective>> displacementOutputs;
-    for (const auto& objective : analysis->getObjectives()) {
-        if (objective->type != Objective::Type::NODAL_DISPLACEMENT_OUTPUT)
-            continue;
-        displacementOutputs.push_back(objective);
-    }
+    const auto& displacementOutputs = analysis->filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT);
+    const auto& frequencyOutputs = analysis->filter(Objective::Type::FREQUENCY_OUTPUT);
     comm_file_ofs << "RETB" << analysis->getId();
     if (not displacementOutputs.empty()) {
         comm_file_ofs << "=POST_RELEVE_T(ACTION=(" << endl;
@@ -218,6 +213,14 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
             const auto& displacementOutput = static_pointer_cast<const NodalDisplacementOutput>(output);
             comm_file_ofs << "                _F(INTITULE='DISPR" << output->bestId() << "',FORMAT_C='REEL',OPERATION='EXTRACTION',RESULTAT=RESU" << analysis->getId() << "," << endl;
             writeNodeContainer(*displacementOutput);
+            if (not frequencyOutputs.empty()) {
+                comm_file_ofs << "LIST_FREQ=";
+                for (auto output2 : frequencyOutputs) {
+                    const auto& frequencyOutput = static_pointer_cast<const FrequencyOutput>(output2);
+                    comm_file_ofs << "LST" << setfill('0') << setw(5) << frequencyOutput->getCollection()->getId() << ",";
+                }
+                comm_file_ofs << ",";
+            }
             comm_file_ofs << "NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
             comm_file_ofs << "                _F(INTITULE='DISPI" << output->bestId() << "',FORMAT_C='IMAG',OPERATION='EXTRACTION',RESULTAT=RESU" << analysis->getId() << "," << endl;
             writeNodeContainer(*displacementOutput);
@@ -680,7 +683,11 @@ string AsterWriter::writeValue(NamedValue& value) {
                 }
             }
             comm_file_ofs << ")," << endl;
-            comm_file_ofs << "                        );" << endl << endl;
+            comm_file_ofs << "                        );";
+            if (listValue.isOriginal()) {
+                comm_file_ofs << "# Original id " << listValue.getOriginalId() << endl;
+            }
+            comm_file_ofs << endl << endl;
         }
         listValue.markAsWritten();
         break;
@@ -709,7 +716,11 @@ string AsterWriter::writeValue(NamedValue& value) {
                 handleWritingError("non-integral set not yet implemented");
             }
             comm_file_ofs << ")," << endl;
-            comm_file_ofs << "                        );" << endl << endl;
+            comm_file_ofs << "                        );";
+            if (setValue.isOriginal()) {
+                comm_file_ofs << "# Original id " << setValue.getOriginalId() << endl;
+            }
+            comm_file_ofs << endl << endl;
         }
         setValue.markAsWritten();
         break;

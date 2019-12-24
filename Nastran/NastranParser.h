@@ -469,6 +469,14 @@ private:
     void parseParamK6ROT(NastranTokenizer& tok, Model& model);
 
     /**
+     * PARAM INREL
+     * INREL controls the calculation of inertia relief or enforced
+     * acceleration in linear static analysis, buckling analysis, and
+     * differential stiffness in dynamic analysis.
+     */
+    void parseParamINREL(NastranTokenizer& tok, Model& model);
+
+    /**
      * PARAM G
      * Specifies the uniform structural damping coefficient
      * in the formulation of global damping matrix in direct transient solutions.
@@ -906,6 +914,7 @@ private:
         "MPC", // Selects a multipoint constraint set.
         "MPCFORCES", // IGNORED: Requests the form and type of multipoint force of constraint vector output.
         "NLPARM", // Selects the parameters used for nonlinear static analysis.
+        "OFREQUENCY", // Selects the frequencies to output
         "OLOAD", // IGNORED: Requests the form and type of applied load vector output.
         "OUTPUT", // IGNORED: Delimits the various types of commands for the structure plotter, curve plotter, grid point stress, and MSGSTRESS.
         "PRESSURE", // IGNORED: Equivalent to DISPLACEMENT

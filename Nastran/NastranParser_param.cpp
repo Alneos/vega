@@ -41,6 +41,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "GRDPNT", &NastranParser::parseParamGRDPNT },
                 { "HFREQ", &NastranParser::parseParamHFREQ },
                 { "K6ROT", &NastranParser::parseParamK6ROT },
+                { "INREL", &NastranParser::parseParamINREL },
                 { "LFREQ", &NastranParser::parseParamLFREQ },
                 { "LGDISP", &NastranParser::parseParamLGDISP },
                 { "NOCOMPS", &NastranParser::parseParamNOCOMPS },
@@ -136,6 +137,20 @@ void NastranParser::parseParamK6ROT(NastranTokenizer& tok, Model& model) {
                 tok, model);
     }
     model.parameters[Model::Parameter::SHELL_NORMAL_STIFFNESS_FACTOR] = val;
+}
+
+void NastranParser::parseParamINREL(NastranTokenizer& tok, Model& model) {
+    /* Default = 0
+       INREL controls the calculation of inertia relief or enforced
+       acceleration in linear static analysis, buckling analysis, and
+       differential stiffness in dynamic analysis. INREL = -1 or -2 requests
+       that inertia relief or enforced acceleration be performed. ...*/
+    string val = tok.nextString(true, "NO");
+    if (val != "NO" and val != "0") {
+        handleParsingWarning(
+                "INREL has been required: " + val + ", cannot handle yet",
+                tok, model);
+    }
 }
 
 void NastranParser::parseParamLFREQ(NastranTokenizer& tok, Model& model) {
