@@ -853,7 +853,6 @@ private:
     protected:
     // see also http://www.altairhyperworks.com/hwhelp/Altair/hw12.0/help/hm/hmbat.htm?design_variables.htm
     std::set<std::string> IGNORED_KEYWORDS = {
-        "CHECKEL", // Active le test de qualité des éléments. Inutile de le traduire.
         "DCONSTR", "DCONADD", "DESVAR", "DLINK", //nastran optimization keywords
         "DOPTPRM", // Nastran optimization keyword
         "DEQATN", // Defines one or more equations for use in design sensitivity

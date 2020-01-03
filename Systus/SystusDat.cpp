@@ -87,16 +87,16 @@ int SystusWriter::writeLinearModalAnalysis(ostream& out, const SystusModel& syst
     int nmodes;
     switch(frequencySearch->frequencyType) {
     case FrequencySearch::FrequencyType::BAND: {
-      const auto& band = dynamic_pointer_cast<BandRange>(frequencySearch->getValue());
+      const auto& band = static_pointer_cast<BandRange>(frequencySearch->getValue());
       upperF = band->end;
       lowerF = band->start;
       if (is_equal(lowerF, Globals::UNAVAILABLE_DOUBLE)) {
-        auto lower_cutoff_frequency = systusModel.model.parameters.find(Model::Parameter::LOWER_CUTOFF_FREQUENCY);
-        if (lower_cutoff_frequency != systusModel.model.parameters.end()) {
+        const string& lower_cutoff_frequency = systusModel.model.getParameter(ModelParameter::LOWER_CUTOFF_FREQUENCY);
+        if (lower_cutoff_frequency != "") {
             if (systusModel.model.configuration.logLevel >= LogLevel::TRACE) {
                 cout << "Parameter LOWER_CUTOFF_FREQUENCY present, redefining frequency band" << endl;
             }
-            lowerF = stod(lower_cutoff_frequency->second);
+            lowerF = stod(lower_cutoff_frequency);
         }
       }
       nmodes = (band->maxsearch == vega::Globals::UNAVAILABLE_INT ? defaultNbDesiredRoots : band->maxsearch);

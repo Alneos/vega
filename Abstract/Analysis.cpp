@@ -65,6 +65,22 @@ ostream &operator<<(ostream &out, const Analysis& analysis) {
     return out;
 }
 
+void Analysis::setParameter(const ModelParameter& parameter, const string& value) noexcept {
+    parameters[parameter] = value;
+}
+
+bool Analysis::contains(const ModelParameter& parameter) const noexcept {
+    return this->parameters.find(parameter) != this->parameters.end()
+            or model.contains(parameter);
+}
+
+string Analysis::getParameter(const ModelParameter& parameter) const noexcept {
+    const auto& analysisParameter = this->parameters.find(parameter);
+    if (analysisParameter != this->parameters.end())
+        return analysisParameter->second;
+    return model.getParameter(parameter);
+}
+
 void Analysis::add(const Reference<LoadSet>& loadSetReference) {
     this->loadSet_references.insert(loadSetReference);
 }

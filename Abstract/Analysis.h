@@ -41,6 +41,7 @@
 namespace vega {
 
 class Model;
+enum class ModelParameter;
 class ModelConfiguration;
 
 /**
@@ -66,6 +67,7 @@ protected:
     std::set<Reference<LoadSet>>loadSet_references;
     std::set<Reference<ConstraintSet>> constraintSet_references;
     std::set<Reference<Objective>> objectiveReferences;
+    std::map<ModelParameter, std::string> parameters;
     Analysis(Model& model, const Type Type, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     Analysis(const Analysis& that) = delete;
 
@@ -92,6 +94,12 @@ public:
     void remove(const Reference<LoadSet>);
     void remove(const Reference<ConstraintSet>);
     void remove(const Reference<Objective>);
+
+    void setParameter(const ModelParameter& parameter, const std::string& value) noexcept;
+
+    bool contains(const ModelParameter& parameter) const noexcept;
+
+    std::string getParameter(const ModelParameter& parameter) const noexcept;
 
     virtual bool canReuse(const std::shared_ptr<Analysis>&) const noexcept {
         return false;

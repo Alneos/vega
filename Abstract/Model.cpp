@@ -725,13 +725,28 @@ vector<shared_ptr<Beam>> Model::getTrusses() const {
     return result;
 }
 
+void Model::setParameter(const ModelParameter& parameter, const string& value) noexcept {
+    parameters[parameter] = value;
+}
+
+bool Model::contains(const ModelParameter& parameter) const noexcept {
+    return this->parameters.find(parameter) != this->parameters.end();
+}
+
+string Model::getParameter(const ModelParameter& parameter) const noexcept {
+    const auto& modelParameter = this->parameters.find(parameter);
+    if (modelParameter != this->parameters.end())
+        return modelParameter->second;
+    return "";
+}
+
 bool Model::needsLargeDisplacements() const {
-    double largeDisp = 0;
-    auto it = this->parameters.find(Model::Parameter::LARGE_DISPLACEMENTS);
+    int largeDisp = 0;
+    auto it = this->parameters.find(ModelParameter::LARGE_DISPLACEMENTS);
     if (it != this->parameters.end()) {
-        largeDisp = stod(it->second);
+        largeDisp = stoi(it->second);
     }
-    return not is_zero(largeDisp);
+    return largeDisp != 0;
 }
 
 std::shared_ptr<Analysis> Model::reusableAnalysisFor(const shared_ptr<Analysis>& analysis) const noexcept {

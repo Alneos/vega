@@ -33,6 +33,18 @@ class Mesh;
  * Responsible of collecting any information for a finite element problem definition.
  */
 
+enum class ModelParameter {
+    MASS_OVER_FORCE_MULTIPLIER,
+    PRINT_MAXIM,
+    LARGE_DISPLACEMENTS,
+    LOWER_CUTOFF_FREQUENCY,
+    UPPER_CUTOFF_FREQUENCY,
+    ELEMENT_QUALITY_CHECK,
+    STRUCTURAL_DAMPING,
+    FREQUENCY_OF_INTEREST_RADIANS,
+    SHELL_NORMAL_STIFFNESS_FACTOR /**< see Nastran K6ROT, Aster COEF_RIGI_DRZ http://eric.cabrol.free.fr/CalculEF/params_Nastran.html */
+};
+
 class Model final {
 private:
     std::shared_ptr<Material> virtualMaterial = nullptr;
@@ -160,18 +172,6 @@ public:
     Mesh mesh; /**< Handles geometrical information */
     const ModelConfiguration configuration;
     vega::ConfigurationParameters::TranslationMode translationMode;
-
-    enum class Parameter {
-        MASS_OVER_FORCE_MULTIPLIER,
-        PRINT_MAXIM,
-        LARGE_DISPLACEMENTS,
-        LOWER_CUTOFF_FREQUENCY,
-        UPPER_CUTOFF_FREQUENCY,
-        ELEMENT_QUALITY_CHECK,
-        STRUCTURAL_DAMPING,
-        FREQUENCY_OF_INTEREST_RADIANS,
-        SHELL_NORMAL_STIFFNESS_FACTOR /**< see Nastran K6ROT, Aster COEF_RIGI_DRZ http://eric.cabrol.free.fr/CalculEF/params_Nastran.html */
-    };
     const std::shared_ptr<LoadSet> commonLoadSet;
     const std::shared_ptr<ConstraintSet> commonConstraintSet;
 
@@ -247,6 +247,7 @@ private:
         bool checkWritten() const; /**< Says if all container objects have been written in output (or not) */
     }; /* Container class */
     std::unordered_map<int,CellContainer> material_assignment_by_material_id;
+    std::map<ModelParameter, std::string> parameters;
 public:
     Container<Analysis> analyses{*this};
     Container<Objective> objectives{*this};
@@ -258,7 +259,6 @@ public:
     Container<ElementSet> elementSets{*this};
     Container<Material> materials{*this};
     Container<Target> targets{*this};
-    std::map<Parameter, std::string> parameters;
     bool onlyMesh = false;
 
     Model(std::string name, std::string inputSolverVersion = "UNKNOWN",
@@ -298,6 +298,11 @@ public:
 
     std::shared_ptr<LoadSet> getOrCreateLoadSet(int loadset_id, vega::LoadSet::Type loadset_type); /**< Return or create a LoadSet by its real Id **/
 
+    void setParameter(const ModelParameter& parameter, const std::string& value) noexcept;
+
+    bool contains(const ModelParameter& parameter) const noexcept;
+
+    std::string getParameter(const ModelParameter& parameter) const noexcept;
 
     /* Get the Id of all elements belonging to set */
     //TODO: make a template, general function?

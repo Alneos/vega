@@ -1856,6 +1856,7 @@
 		<Unit filename="Abstract/Object.h" />
 		<Unit filename="Abstract/Objective.cpp" />
 		<Unit filename="Abstract/Objective.h" />
+		<Unit filename="Abstract/Parameter.h" />
 		<Unit filename="Abstract/Reference.h" />
 		<Unit filename="Abstract/SolverInterfaces.cpp" />
 		<Unit filename="Abstract/SolverInterfaces.h" />

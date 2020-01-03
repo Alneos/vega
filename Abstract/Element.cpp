@@ -839,9 +839,8 @@ NodalMass::NodalMass(Model& model, double m, double ixx, double iyy, double izz,
 
 double NodalMass::getMass() const {
 	double mass_multiplier = 1.0;
-	auto it = model.parameters.find(Model::Parameter::MASS_OVER_FORCE_MULTIPLIER);
-	if (it != model.parameters.end()) {
-		mass_multiplier = stod(it->second);
+	if (model.contains(ModelParameter::MASS_OVER_FORCE_MULTIPLIER)) {
+		mass_multiplier = stod(model.getParameter(ModelParameter::MASS_OVER_FORCE_MULTIPLIER));
 		assert(!is_zero(mass_multiplier));
 	}
 	return m * mass_multiplier;
