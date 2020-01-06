@@ -1602,7 +1602,6 @@ void Model::makeCellsFromDirectMatrices() {
     }
 }
 
-
 void Model::makeCellsFromLMPC() {
 
     shared_ptr<Material> materialLMPC= nullptr;
@@ -1615,12 +1614,84 @@ void Model::makeCellsFromLMPC() {
             for (const auto& constraint : constraintSet->getConstraintsByType(Constraint::Type::LMPC)) {
                 const auto& lmpc = static_pointer_cast<LinearMultiplePointConstraint>(constraint);
                 //const auto& sortedNodePositions = lmpc->sortNodePositionByCoefs();
-                const auto& sortedNodePositions = lmpc->nodePositions();
-                const auto& it = lmpcsByNodepositions.find(sortedNodePositions);
+                const auto& nodePositions = lmpc->nodePositions();
+                const auto& it = lmpcsByNodepositions.find(nodePositions);
                 if (it == lmpcsByNodepositions.end()) {
-                    lmpcsByNodepositions[sortedNodePositions] = {lmpc};
+                    lmpcsByNodepositions[nodePositions] = {lmpc};
                 } else {
-                    lmpcsByNodepositions[sortedNodePositions].push_back(lmpc);
+                    lmpcsByNodepositions[nodePositions].push_back(lmpc);
+                }
+            }
+
+            map<vector<DOFCoefs>, vector<shared_ptr<LinearMultiplePointConstraint>>> lmpcsBySetOfCoefs;
+            //set<set<int>> regroupedNodePositions;
+            for (auto lmpcIt = lmpcsByNodepositions.begin(); lmpcIt != lmpcsByNodepositions.end();) {
+            //for(const auto& lmpcEntry : lmpcsByNodepositions) {
+                const auto& sortedNodePositions = lmpcIt->first;
+                const auto& lmpcs = lmpcIt->second;
+                if (lmpcs.size() != 1) {
+                    ++lmpcIt;
+                    continue; // Only re-grouping single lmpcs
+                }
+
+                const auto& lmpc = lmpcs[0];
+
+                vector<DOFCoefs> sortedCoefs;
+                for (int nodePosition : sortedNodePositions){
+                    sortedCoefs.push_back(lmpc->getDoFCoefsForNode(nodePosition));
+                }
+
+                const auto it = lmpcsBySetOfCoefs.find(sortedCoefs);
+                if (it != lmpcsBySetOfCoefs.end()) {
+                    lmpcsBySetOfCoefs[sortedCoefs] = {lmpc};
+                } else {
+                    lmpcsBySetOfCoefs[sortedCoefs].push_back(lmpc);
+                }
+                lmpcIt = lmpcsByNodepositions.erase( lmpcIt );
+
+                //regroupedNodePositions.insert(sortedNodePositions);
+                //lmpcsByNodepositions.erase(lmpcEntry);
+            }
+            //lmpcsByNodepositions.erase(remove_if(lmpcsByNodepositions.begin(), lmpcsByNodepositions.end(), IsOdd), lmpcsByNodepositions.end());
+
+            for(const auto& lmpcEntry : lmpcsBySetOfCoefs) {
+                const auto& sortedCoefs = lmpcEntry.first;
+                const auto& lmpcs = lmpcEntry.second;
+                shared_ptr<CellGroup> group = nullptr;
+                for(const auto& lmpc : lmpcs) {
+                    const auto& nodePositions = lmpc->nodePositions();
+
+                    // Creating a cell and adding it to the CellGroup
+                    vector<int> sortedNodeIds;
+                    for (int nodePosition : nodePositions ) {
+                        sortedNodeIds.push_back(mesh.findNodeId(nodePosition));
+                    }
+
+                    // If not found, creating an ElementSet, a CellGroup and a (single) dummy rigid material
+                    if (materialLMPC == nullptr){
+                        materialLMPC = make_shared<Material>(*this);
+                        materialLMPC->addNature(make_shared<RigidNature>(*this, 1));
+                        this->add(materialLMPC);
+                    }
+
+                    int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::polyType(static_cast<unsigned int>(sortedNodeIds.size())), sortedNodeIds, true);
+                    if (group == nullptr) {
+                        group = mesh.createCellGroup("MPC_"+to_string(analysis->bestId())+"_"+to_string(lmpc->bestId()), CellGroup::NO_ORIGINAL_ID, "MPC");
+                    }
+                    group->addCellPosition(cellPosition);
+                    if (configuration.logLevel >= LogLevel::DEBUG){
+                        cout << "Added cell id " << mesh.findCellId(cellPosition) << " in group " << group->getName() << " from " << *lmpc << "." << endl;
+                    }
+
+                    shared_ptr<Lmpc> elementsetLMPC = make_shared<Lmpc>(*this, analysis->getId());
+                    elementsetLMPC->add(*group);
+                    elementsetLMPC->assignMaterial(materialLMPC);
+                    elementsetLMPC->appendDofCoefs(sortedCoefs);
+                    this->add(elementsetLMPC);
+
+                    if (configuration.logLevel >= LogLevel::DEBUG){
+                        cout << "Created elementSet " << *elementsetLMPC << " from " << *lmpc<<"." << endl;
+                    }
                 }
             }
 
@@ -1661,7 +1732,7 @@ void Model::makeCellsFromLMPC() {
 
                         int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::polyType(static_cast<unsigned int>(sortedNodeIds.size())), sortedNodeIds, true);
                         group = mesh.createCellGroup("MPC_"+to_string(analysis->bestId())+"_"+to_string(lmpc->bestId()), CellGroup::NO_ORIGINAL_ID, "MPC");
-                         group->addCellPosition(cellPosition);
+                        group->addCellPosition(cellPosition);
                         if (configuration.logLevel >= LogLevel::DEBUG){
                             cout << "Added cell id " << mesh.findCellId(cellPosition) << " in group " << group->getName() << " from " << *lmpc << "." << endl;
                         }
@@ -2043,24 +2114,32 @@ void Model::convert0DDiscretsInto1D() {
 
 void Model::createSetGroups() {
     for (const auto& loadSet : this->loadSets) {
+        if (not loadSet->isOriginal())
+            continue;
         const auto& loadSetNodeGroup = mesh.createNodeGroup(loadSet->getGroupName(), Group::NO_ORIGINAL_ID, "Display nodegroup for : " + to_str(*loadSet));
         for (const auto& loading : loadSet->getLoadings()) {
             loadSetNodeGroup->addNodePositions(loading->nodePositions());
         }
     }
     for (const auto& constraintSet : this->constraintSets) {
+        if (not constraintSet->isOriginal())
+            continue;
         const auto& constraintSetGroup = mesh.createNodeGroup(constraintSet->getGroupName(), Group::NO_ORIGINAL_ID, "Display nodegroup for : " + to_str(*constraintSet));
         for (const auto& constraint : constraintSet->getConstraints()) {
             constraintSetGroup->addNodePositions(constraint->nodePositions());
         }
     }
     for (auto output : objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT)) {
+        if (not output->isOriginal())
+            continue;
         const auto& displacementOutput = static_pointer_cast<const NodalDisplacementOutput>(output);
         if (not displacementOutput->hasNodeGroups())
             continue;
         displacementOutput->getNodeGroups(); // LD TODO Lazy creation :..(
     }
     for (auto output : objectives.filter(Objective::Type::VONMISES_STRESS_OUTPUT)) {
+        if (not output->isOriginal())
+            continue;
         const auto& vonMisesOutput = static_pointer_cast<const VonMisesStressOutput>(output);
         if (not vonMisesOutput->hasCellGroups())
             continue;
