@@ -344,10 +344,13 @@ int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &node
 	} else {
 		cellId = id;
 	}
-	if (cellType.numNodes == 0) {
-		cerr << "Unsupported cell type" << cellType << endl;
-	}
+
+    if (cellType.numNodes == 0) {
+        throw logic_error("Cell without nodes");
+    }
+
 	if (this->logLevel >= LogLevel::TRACE) {
+
 		//check connectivity, it causes strange errors in med
 		set<int> coord_set(nodeIds.begin(), nodeIds.end());
 		if (coord_set.size() != nodeIds.size()) {
@@ -363,11 +366,12 @@ int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &node
 			throw logic_error(
 					"CellId: " + to_string(cellId) + " Already used.");
 		}
-	}
-	if ((cellType.specificSize) && (cellType.numNodes != nodeIds.size())) {
-		cerr << "Cell " << cellId << " not added because connectivity array differs from expected "
-				"length";
-		throw logic_error("Invalid cell");
+
+        if ((cellType.specificSize) && (cellType.numNodes != nodeIds.size())) {
+            cerr << "Cell " << cellId << " not added because connectivity array differs from expected "
+                    "length";
+            throw logic_error("Invalid cell");
+        }
 	}
 
 	cells.cellpositionById[cellId] = cellPosition;
@@ -378,13 +382,12 @@ int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &node
 	if (cells.nodepositionsByCelltype.find(cellType) == cells.nodepositionsByCelltype.end()) {
 		cells.nodepositionsByCelltype[cellType] = make_shared<deque<int>>(deque<int>());
 	}
-	shared_ptr<deque<int>> nodePositionsPtr = cells.nodepositionsByCelltype[cellType];
+	const auto& nodePositionsPtr = cells.nodepositionsByCelltype[cellType];
 	for (const auto& nodeId : nodeIds) {
 		nodePositionsPtr->push_back(findOrReserveNode(nodeId, elementId));
 	}
 	if (cpos != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-		std::shared_ptr<CellGroup> coordinateSystemCellGroup = this->getOrCreateCellGroupForCS(cpos);
-		coordinateSystemCellGroup->addCellId(cellId);
+		this->getOrCreateCellGroupForCS(cpos)->addCellId(cellId);
 		cellData.csPos = cpos;
     }
 	cells.cellDatas.push_back(cellData);
@@ -416,12 +419,12 @@ int Mesh::updateCell(int id, const CellType &cellType, const std::vector<int> &n
                     "Duplicate node in connectivity cellId:"
                             + to_string(id));
         }
-    }
 
-    if ((cellType.specificSize) && (cellType.numNodes != nodeIds.size())) {
-        cerr << "Cell " << id << " not updated because connectivity array differs from expected "
-                "length";
-        throw logic_error("Invalid cell");
+        if ((cellType.specificSize) && (cellType.numNodes != nodeIds.size())) {
+            cerr << "Cell " << id << " not updated because connectivity array differs from expected "
+                    "length";
+            throw logic_error("Invalid cell");
+        }
     }
 
     // We don't update the old data, which is too complicated
@@ -437,13 +440,12 @@ int Mesh::updateCell(int id, const CellType &cellType, const std::vector<int> &n
     if (cells.nodepositionsByCelltype.find(cellType) == cells.nodepositionsByCelltype.end()) {
         cells.nodepositionsByCelltype[cellType] = make_shared<deque<int>>(deque<int>());
     }
-    shared_ptr<deque<int>> nodePositionsPtr = cells.nodepositionsByCelltype[cellType];
+    const auto& nodePositionsPtr = cells.nodepositionsByCelltype[cellType];
 	for (const auto& nodeId : nodeIds) {
 		nodePositionsPtr->push_back(findOrReserveNode(nodeId));
 	}
     if (cpos != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-        const auto& coordinateSystemCellGroup = this->getOrCreateCellGroupForCS(cpos);
-        coordinateSystemCellGroup->addCellId(id);
+        this->getOrCreateCellGroupForCS(cpos)->addCellId(id);
         cellData.csPos = cpos;
     }
     cells.cellDatas.push_back(cellData);

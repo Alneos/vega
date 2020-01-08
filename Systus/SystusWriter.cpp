@@ -688,6 +688,7 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
             rotationNodeIdByTranslationNodeId[master.id]=master_rot_id;
         }
 
+        map<int, int> updatedPositionByOldPosition;
         for (const int cellPosition : elementSet->cellPositions()) {
             const Cell& cell = mesh.findCell(cellPosition);
             vector<int> nodes = cell.nodeIds;
@@ -717,15 +718,25 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
                 break;
             }
             case (3):{
-                mesh.updateCell(cell.id, CellType::POLY3, nodes, true);
+                int newPosition = mesh.updateCell(cell.id, CellType::POLY3, nodes, true);
+                updatedPositionByOldPosition[cellPosition] = newPosition;
                 break;
             }
             case(4):{
-                mesh.updateCell(cell.id, CellType::POLY4, nodes, true);
+                int newPosition = mesh.updateCell(cell.id, CellType::POLY4, nodes, true);
+                updatedPositionByOldPosition[cellPosition] = newPosition;
                 break;
             }
             default:
                 handleWritingError("Not (yet) implemented, maybe nothing to do in this case?");
+            }
+
+        }
+        const auto& cellElementSet = dynamic_pointer_cast<CellElementSet>(elementSet);
+        if (cellElementSet != nullptr) {
+            for (const auto& updateEntry : updatedPositionByOldPosition) {
+                cellElementSet->removeCellPositionExcludingGroups(updateEntry.first);
+                cellElementSet->addCellPosition(updateEntry.second);
             }
         }
         rbars->markAsWritten();
@@ -775,6 +786,7 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
         }
 
         // Updating the cells
+        map<int, int> updatedPositionByOldPosition;
         for (const int cellPosition : elementSet->cellPositions()) {
             const Cell& cell = mesh.findCell(cellPosition);
             vector<int> nodes = cell.nodeIds;
@@ -794,15 +806,24 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
 
             switch (nodes.size()){
             case (3):{
-                mesh.updateCell(cell.id, CellType::POLY3, nodes, true);
+                int newPosition = mesh.updateCell(cell.id, CellType::POLY3, nodes, true);
+                updatedPositionByOldPosition[cellPosition] = newPosition;
                 break;
             }
             case(5):{
-                mesh.updateCell(cell.id, CellType::POLY5, nodes, true);
+                int newPosition = mesh.updateCell(cell.id, CellType::POLY5, nodes, true);
+                updatedPositionByOldPosition[cellPosition] = newPosition;
                 break;
             }
             default:
                 handleWritingError("Not (yet) implemented, maybe nothing to do in this case?");
+            }
+        }
+        const auto& cellElementSet = dynamic_pointer_cast<CellElementSet>(elementSet);
+        if (cellElementSet != nullptr) {
+            for (const auto& updateEntry : updatedPositionByOldPosition) {
+                cellElementSet->removeCellPositionExcludingGroups(updateEntry.first);
+                cellElementSet->addCellPosition(updateEntry.second);
             }
         }
         rbe3->markAsWritten();
@@ -842,14 +863,24 @@ void SystusWriter::generateRBEs(SystusModel& systusModel,
         // With a Lagrangian formulation, we add a Lagrange node.
         // Lagrange node must NOT have an orientation, as they inherit it from the original node.
         if (configuration.systusRBE2TranslationMode.compare("lagrangian")==0){
+            map<int, int> updatedPositionByOldPosition;
             for (const int cellPosition : elementSet->cellPositions()) {
                 const Cell& cell = mesh.findCell(cellPosition);
+                //cout << "Adding lagrangian to cell:" << cell << endl;
                 vector<int> nodes = cell.nodeIds;
                 const Node& first = mesh.findNode(cell.nodePositions[0]);
                 int first_lagr_position = mesh.addNode(Node::AUTO_ID, first.lx, first.ly, first.lz, first.positionCS, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
                 int first_lagr_id = mesh.findNodeId(first_lagr_position);
                 nodes.push_back(first_lagr_id);
-                mesh.updateCell(cell.id, CellType::polyType(static_cast<unsigned int>(nodes.size())), nodes, true);
+                int newPosition = mesh.updateCell(cell.id, CellType::polyType(static_cast<unsigned int>(nodes.size())), nodes, true);
+                updatedPositionByOldPosition[cellPosition] = newPosition;
+            }
+            const auto& cellElementSet = dynamic_pointer_cast<CellElementSet>(elementSet);
+            if (cellElementSet != nullptr) {
+                for (const auto& updateEntry : updatedPositionByOldPosition) {
+                    cellElementSet->removeCellPositionExcludingGroups(updateEntry.first);
+                    cellElementSet->addCellPosition(updateEntry.second);
+                }
             }
         }
         lmpc->markAsWritten();
@@ -2566,7 +2597,7 @@ void SystusWriter::writeElements(const SystusModel& systusModel, const int idSub
             const Cell& cell = mesh.findCell(cellPosition);
 
             if (systusModel.model.configuration.logLevel >= LogLevel::TRACE){
-                cout << "Writing cell id " << cell.id << "from " << elementSet->name << endl;
+                cout << "Writing cell " << cell << " from " << elementSet->name << endl;
             }
             auto systus2med_it = systus2medNodeConnectByCellType.find(cell.type.code);
             if (systus2med_it == systus2medNodeConnectByCellType.end()) {

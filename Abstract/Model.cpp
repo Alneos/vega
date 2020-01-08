@@ -861,7 +861,7 @@ void Model::generateBeamsToDisplayMasterSlaveConstraint() {
         for (const auto& constraint : constraints) {
             switch (constraint->type) {
             case Constraint::Type::RIGID: {
-                if (!virtualGroupRigid) {
+                if (virtualGroupRigid == nullptr) {
                     const auto& virtualBeam = make_shared<CircularSectionBeam>(*this, 0.001, Beam::BeamModel::EULER, 0.0);
                     if (this->configuration.addVirtualMaterial) {
                         virtualBeam->assignMaterial(getVirtualMaterial());
@@ -885,7 +885,7 @@ void Model::generateBeamsToDisplayMasterSlaveConstraint() {
                 break;
             }
             case Constraint::Type::RBE3: {
-                if (!virtualGroupRBE3) {
+                if (virtualGroupRBE3 == nullptr) {
                     const auto& virtualBeam = make_shared<CircularSectionBeam>(*this, 0.001, Beam::BeamModel::EULER, 0.0);
                     if (configuration.addVirtualMaterial) {
                         virtualBeam->assignMaterial(getVirtualMaterial());
@@ -1623,78 +1623,6 @@ void Model::makeCellsFromLMPC() {
                 }
             }
 
-            map<vector<DOFCoefs>, vector<shared_ptr<LinearMultiplePointConstraint>>> lmpcsBySetOfCoefs;
-            //set<set<int>> regroupedNodePositions;
-            for (auto lmpcIt = lmpcsByNodepositions.begin(); lmpcIt != lmpcsByNodepositions.end();) {
-            //for(const auto& lmpcEntry : lmpcsByNodepositions) {
-                const auto& sortedNodePositions = lmpcIt->first;
-                const auto& lmpcs = lmpcIt->second;
-                if (lmpcs.size() != 1) {
-                    ++lmpcIt;
-                    continue; // Only re-grouping single lmpcs
-                }
-
-                const auto& lmpc = lmpcs[0];
-
-                vector<DOFCoefs> sortedCoefs;
-                for (int nodePosition : sortedNodePositions){
-                    sortedCoefs.push_back(lmpc->getDoFCoefsForNode(nodePosition));
-                }
-
-                const auto it = lmpcsBySetOfCoefs.find(sortedCoefs);
-                if (it != lmpcsBySetOfCoefs.end()) {
-                    lmpcsBySetOfCoefs[sortedCoefs] = {lmpc};
-                } else {
-                    lmpcsBySetOfCoefs[sortedCoefs].push_back(lmpc);
-                }
-                lmpcIt = lmpcsByNodepositions.erase( lmpcIt );
-
-                //regroupedNodePositions.insert(sortedNodePositions);
-                //lmpcsByNodepositions.erase(lmpcEntry);
-            }
-            //lmpcsByNodepositions.erase(remove_if(lmpcsByNodepositions.begin(), lmpcsByNodepositions.end(), IsOdd), lmpcsByNodepositions.end());
-
-            for(const auto& lmpcEntry : lmpcsBySetOfCoefs) {
-                const auto& sortedCoefs = lmpcEntry.first;
-                const auto& lmpcs = lmpcEntry.second;
-                shared_ptr<CellGroup> group = nullptr;
-                for(const auto& lmpc : lmpcs) {
-                    const auto& nodePositions = lmpc->nodePositions();
-
-                    // Creating a cell and adding it to the CellGroup
-                    vector<int> sortedNodeIds;
-                    for (int nodePosition : nodePositions ) {
-                        sortedNodeIds.push_back(mesh.findNodeId(nodePosition));
-                    }
-
-                    // If not found, creating an ElementSet, a CellGroup and a (single) dummy rigid material
-                    if (materialLMPC == nullptr){
-                        materialLMPC = make_shared<Material>(*this);
-                        materialLMPC->addNature(make_shared<RigidNature>(*this, 1));
-                        this->add(materialLMPC);
-                    }
-
-                    int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::polyType(static_cast<unsigned int>(sortedNodeIds.size())), sortedNodeIds, true);
-                    if (group == nullptr) {
-                        group = mesh.createCellGroup("MPC_"+to_string(analysis->bestId())+"_"+to_string(lmpc->bestId()), CellGroup::NO_ORIGINAL_ID, "MPC");
-                    }
-                    group->addCellPosition(cellPosition);
-                    if (configuration.logLevel >= LogLevel::DEBUG){
-                        cout << "Added cell id " << mesh.findCellId(cellPosition) << " in group " << group->getName() << " from " << *lmpc << "." << endl;
-                    }
-
-                    shared_ptr<Lmpc> elementsetLMPC = make_shared<Lmpc>(*this, analysis->getId());
-                    elementsetLMPC->add(*group);
-                    elementsetLMPC->assignMaterial(materialLMPC);
-                    elementsetLMPC->appendDofCoefs(sortedCoefs);
-                    this->add(elementsetLMPC);
-
-                    if (configuration.logLevel >= LogLevel::DEBUG){
-                        cout << "Created elementSet " << *elementsetLMPC << " from " << *lmpc<<"." << endl;
-                    }
-                }
-            }
-
             for(const auto& lmpcEntry : lmpcsByNodepositions) {
                 const auto& sortedNodePositions = lmpcEntry.first;
                 const auto& lmpcs = lmpcEntry.second;
@@ -1718,7 +1646,6 @@ void Model::makeCellsFromLMPC() {
                     // Looking for the CellGroup corresponding to the current DOFCoefs.
 //                    const auto it = groupBySetOfCoefs.find(sortedCoefs);
 
-                    shared_ptr<CellGroup> group = nullptr;
 //                    if(it != groupBySetOfCoefs.end()) {
 //                        group = it->second;
 //                    } else
@@ -1731,16 +1658,17 @@ void Model::makeCellsFromLMPC() {
                         }
 
                         int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::polyType(static_cast<unsigned int>(sortedNodeIds.size())), sortedNodeIds, true);
-                        group = mesh.createCellGroup("MPC_"+to_string(analysis->bestId())+"_"+to_string(lmpc->bestId()), CellGroup::NO_ORIGINAL_ID, "MPC");
-                        group->addCellPosition(cellPosition);
-                        if (configuration.logLevel >= LogLevel::DEBUG){
-                            cout << "Added cell id " << mesh.findCellId(cellPosition) << " in group " << group->getName() << " from " << *lmpc << "." << endl;
-                        }
+                        //const auto& group = mesh.createCellGroup("MPC_"+to_string(analysis->bestId())+"_"+to_string(lmpc->bestId()), CellGroup::NO_ORIGINAL_ID, "MPC");
+                        //group->addCellPosition(cellPosition);
+                        //if (configuration.logLevel >= LogLevel::DEBUG){
+                        //    cout << "Added cell id " << mesh.findCellId(cellPosition) << " in group " << group->getName() << " from " << *lmpc << "." << endl;
+                        //}
 
 //                        groupBySetOfCoefs[sortedCoefs]= group;
 
                         elementsetLMPC = make_shared<Lmpc>(*this, analysis->getId());
-                        elementsetLMPC->add(*group);
+                        //elementsetLMPC->add(*group);
+                        elementsetLMPC->addCellPosition(cellPosition);
                         elementsetLMPC->assignMaterial(materialLMPC);
                         elementsetLMPC->appendDofCoefs(sortedCoefs);
                         this->add(elementsetLMPC);
@@ -1792,9 +1720,9 @@ void Model::makeCellsFromRBE(){
             materialRBE2->addNature(make_shared<RigidNature>(*this, 1));
             this->add(materialRBE2);
 
-            const auto& group = mesh.createCellGroup("RBE2_"+to_string(constraint->bestId()), CellGroup::NO_ORIGINAL_ID, "RBE2");
+            //const auto& group = mesh.createCellGroup("RBE2_"+to_string(constraint->bestId()), CellGroup::NO_ORIGINAL_ID, "RBE2");
             const auto& elementsetRbe2 = make_shared<Rbar>(*this, mesh.findNodeId(rbe2->getMaster()));
-            elementsetRbe2->add(*group);
+            //elementsetRbe2->add(*group);
             elementsetRbe2->assignMaterial(materialRBE2);
             this->add(elementsetRbe2);
 
@@ -1803,14 +1731,15 @@ void Model::makeCellsFromRBE(){
             for (int position : rbe2->getSlaves()){
                 const int slaveId = mesh.findNodeId(position);
                 int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, {masterId, slaveId}, true);
-                group->addCellPosition(cellPosition);
+                //group->addCellPosition(cellPosition);
+                elementsetRbe2->addCellPosition(cellPosition);
             }
 
             // Removing the constraint from the model.
             toBeRemoved.push_back(constraint);
-            if (configuration.logLevel >= LogLevel::TRACE){
-                cout << "Building cells in cellgroup "<<group->getName()<<" from "<< *rbe2<<"."<<endl;
-            }
+            //if (configuration.logLevel >= LogLevel::TRACE){
+            //    cout << "Building cells in cellgroup "<<group->getName()<<" from "<< *rbe2<<"."<<endl;
+            //}
         }
 
         for (const auto& constraint : constraintSet->getConstraintsByType(Constraint::Type::QUASI_RIGID)) {
@@ -1839,19 +1768,20 @@ void Model::makeCellsFromRBE(){
             elementsetRBAR->assignMaterial(materialRBAR);
             this->add(elementsetRBAR);
 
-            const auto& group = mesh.createCellGroup("RBAR_"+to_string(constraint->bestId()), CellGroup::NO_ORIGINAL_ID, "RBAR");
+            //const auto& group = mesh.createCellGroup("RBAR_"+to_string(constraint->bestId()), CellGroup::NO_ORIGINAL_ID, "RBAR");
 
             for (int position : rbar->getSlaves()) {
                 const int slaveId = mesh.findNodeId(position);
                 if (not rbar->hasMaster() and slaveId == masterId)
                     continue;
                 int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, {masterId, slaveId}, true);
-                group->addCellPosition(cellPosition);
+                //group->addCellPosition(cellPosition);
+                elementsetRBAR->addCellPosition(cellPosition);
             }
-            elementsetRBAR->add(*group);
-            if (configuration.logLevel >= LogLevel::TRACE){
-                cout << "Building cells in cellgroup "<<group->getName()<<" from "<< *rbar<<"."<<endl;
-            }
+            //elementsetRBAR->add(*group);
+            //if (configuration.logLevel >= LogLevel::TRACE){
+            //    cout << "Building cells in cellgroup "<<group->getName()<<" from "<< *rbar<<"."<<endl;
+            //}
 
             // Removing the constraint from the model.
             toBeRemoved.push_back(constraint);
