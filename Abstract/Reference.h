@@ -147,6 +147,7 @@ std::string to_str(const Reference<T>& reference) {
     if (reference.inputContext.lineNumber >= 1) {
         auto contextLine = reference.inputContext.line;
         std::replace( contextLine.begin(), contextLine.end(), '\n', '|');
+        std::replace( contextLine.begin(), contextLine.end(), '\r', '|');
         oss << ";input " << reference.inputContext.lineNumber << " " << contextLine;
     }
     oss << "]";

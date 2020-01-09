@@ -171,6 +171,7 @@ std::string to_str(const T& t) noexcept {
     if (inputContext.lineNumber >= 1) {
         auto contextLine = inputContext.line;
         std::replace( contextLine.begin(), contextLine.end(), '\n', '|');
+        std::replace( contextLine.begin(), contextLine.end(), '\r', '|');
         oss << ";input[" << inputContext.lineNumber << "]:'" << contextLine << "'";
     }
     oss << "}";
