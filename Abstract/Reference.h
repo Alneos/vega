@@ -29,6 +29,7 @@
 #include <boost/functional/hash.hpp>
 #include <fstream>
 #include <ostream>
+#include <algorithm>
 
 namespace vega {
 
@@ -144,7 +145,9 @@ std::string to_str(const Reference<T>& reference) {
 
     oss << "Reference[" << type << "; " << id;
     if (reference.inputContext.lineNumber >= 1) {
-        oss << ";input " << reference.inputContext.lineNumber << " " << reference.inputContext.line;
+        auto contextLine = reference.inputContext.line;
+        std::replace( contextLine.begin(), contextLine.end(), '\n', '|');
+        oss << ";input " << reference.inputContext.lineNumber << " " << contextLine;
     }
     oss << "]";
 
