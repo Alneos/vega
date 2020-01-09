@@ -2046,7 +2046,7 @@ void Model::createSetGroups() {
     for (const auto& loadSet : this->loadSets) {
         if (not loadSet->isOriginal())
             continue;
-        const auto& loadSetNodeGroup = mesh.createNodeGroup(loadSet->getGroupName(), Group::NO_ORIGINAL_ID, "Display nodegroup for : " + to_str(*loadSet));
+        const auto& loadSetNodeGroup = mesh.createNodeGroup(loadSet->getGroupName(), Group::NO_ORIGINAL_ID, "Display nodegroup for loadset : " + LoadSet::stringByType.at(loadSet->type) + "_" + to_string(loadSet->bestId()));
         for (const auto& loading : loadSet->getLoadings()) {
             loadSetNodeGroup->addNodePositions(loading->nodePositions());
         }
@@ -2054,7 +2054,7 @@ void Model::createSetGroups() {
     for (const auto& constraintSet : this->constraintSets) {
         if (not constraintSet->isOriginal())
             continue;
-        const auto& constraintSetGroup = mesh.createNodeGroup(constraintSet->getGroupName(), Group::NO_ORIGINAL_ID, "Display nodegroup for : " + to_str(*constraintSet));
+        const auto& constraintSetGroup = mesh.createNodeGroup(constraintSet->getGroupName(), Group::NO_ORIGINAL_ID, "Display nodegroup for constraintset : " + ConstraintSet::stringByType.at(constraintSet->type) + "_" + to_string(constraintSet->bestId()));
         for (const auto& constraint : constraintSet->getConstraints()) {
             constraintSetGroup->addNodePositions(constraint->nodePositions());
         }
