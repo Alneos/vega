@@ -118,6 +118,13 @@ Line& Line::add(int value) noexcept {
 	return *this;
 }
 
+Line& Line::skip(int numFieldsToSkip) noexcept {
+    for (int i = 0; i < numFieldsToSkip; i++) {
+        add();
+    }
+	return *this;
+}
+
 Line& Line::add(const vector<double> values) noexcept {
 	for(double value : values) {
 		this->add(value);
@@ -291,6 +298,18 @@ void NastranWriter::writeCells(const Model& model, ofstream& out) const
                     }
 			    } else {
                     switch (cell.type.code) {
+                    case CellType::Code::TRI3_CODE:
+                        keyword = "CTRIA3";
+                        break;
+                    case CellType::Code::TRI6_CODE:
+                        keyword = "CTRIA6";
+                        break;
+                    case CellType::Code::QUAD4_CODE:
+                        keyword = "CQUAD4";
+                        break;
+                    case CellType::Code::QUAD8_CODE:
+                        keyword = "CQUAD8";
+                        break;
                     case CellType::Code::HEXA8_CODE:
                     case CellType::Code::HEXA20_CODE:
                         keyword = "CHEXA";
@@ -385,7 +404,7 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
         for (const auto& constraint : rigidConstraints) {
             const auto& rigid = static_pointer_cast<RigidConstraint>(constraint);
             Line rbe2("RBE2");
-            rbe2.add(constraintSet->bestId());
+            rbe2.add(rigid->bestId());
             const int masterId = model.mesh.findNodeId(rigid->getMaster());
             rbe2.add(masterId);
             rbe2.add(DOFS::ALL_DOFS);
@@ -403,7 +422,7 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
             const auto& quasiRigid = static_pointer_cast<QuasiRigidConstraint>(constraint);
             if (not quasiRigid->hasMaster() and quasiRigid->getSlaves().size() == 2) {
                 Line rbar("RBAR");
-                rbar.add(constraintSet->bestId());
+                rbar.add(quasiRigid->bestId());
                 for (int slavePosition : quasiRigid->getSlaves()) {
                     rbar.add(model.mesh.findNodeId(slavePosition));
                 }
@@ -431,7 +450,7 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
         for (const auto& constraint : rbe3Constraints) {
             const auto& rbe3Constraint = static_pointer_cast<RBE3>(constraint);
             Line rbe3("RBE3");
-            rbe3.add(constraintSet->bestId());
+            rbe3.add(rbe3Constraint->bestId());
             rbe3.add();
             const int masterPosition = model.mesh.findNodeId(rbe3Constraint->getMaster());
             rbe3.add(model.mesh.findNodeId(masterPosition));
@@ -471,6 +490,50 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
 			}
             out << mpc;
             lmpc->markAsWritten();
+        }
+		constraintSet->markAsWritten();
+
+		const auto& surfaceSlideConstraints = constraintSet->getConstraintsByType(
+				Constraint::Type::SURFACE_SLIDE_CONTACT);
+        for (const auto& constraint : surfaceSlideConstraints) {
+            const auto& surfaceSlide =
+                    static_pointer_cast<SurfaceSlide>(constraint);
+
+            const auto& slaveBoundary = dynamic_pointer_cast<BoundaryElementFace>(model.find(surfaceSlide->slave));
+            Line slaveSurf("SURF");
+            slaveSurf.add(slaveBoundary->getId());
+            slaveSurf.add("ELFACE");
+            slaveSurf.skip(6);
+            for (const auto& faceInfo : slaveBoundary->faceInfos) {
+                slaveSurf.add(faceInfo.cellId);
+                slaveSurf.add(faceInfo.nodeid1);
+                slaveSurf.add(faceInfo.nodeid2);
+                slaveSurf.skip(5);
+            }
+            out << slaveSurf;
+            slaveBoundary->markAsWritten();
+
+            const auto& masterBoundary = dynamic_pointer_cast<BoundaryElementFace>(model.find(surfaceSlide->master));
+            Line masterSurf("SURF");
+            masterSurf.add(masterBoundary->getId());
+            masterSurf.add("ELFACE");
+            masterSurf.skip(6);
+            for (const auto& faceInfo : masterBoundary->faceInfos) {
+                masterSurf.add(faceInfo.cellId);
+                masterSurf.add(faceInfo.nodeid1);
+                masterSurf.add(faceInfo.nodeid2);
+                masterSurf.skip(5);
+            }
+            out << masterSurf;
+            masterBoundary->markAsWritten();
+
+            Line contact("CONTACT");
+            contact.add(constraintSet->getId());
+            contact.add("SLIDE");
+            contact.add(slaveBoundary->getId());
+            contact.add(masterBoundary->getId());
+            out << contact;
+            surfaceSlide->markAsWritten();
         }
 		constraintSet->markAsWritten();
 	}

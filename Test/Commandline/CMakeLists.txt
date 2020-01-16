@@ -124,6 +124,24 @@ target_link_libraries(
 
 add_test(NAME NastranCoverage COMMAND NastranCoverage_test)
 
+add_executable(
+ IRTMiniRBS_test
+ IRTMiniRBS_test.cpp
+)
+
+SET_TARGET_PROPERTIES(IRTMiniRBS_test PROPERTIES LINK_SEARCH_START_STATIC ${STATIC_LINKING})
+SET_TARGET_PROPERTIES(IRTMiniRBS_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINKING})
+
+target_link_libraries(
+ IRTMiniRBS_test
+ nastran
+ command_line_test_utils
+ commandline
+)
+
+#add_test(NAME IRTMiniRBS COMMAND IRTMiniRBS_test)
+
+
 #uncomment to see details of each test method (update tests.cmake with
 #the batch file ../update_tests.sh
 #include(tests.cmake)

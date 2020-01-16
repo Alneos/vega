@@ -38,6 +38,7 @@ public:
 	Line& add(std::string) noexcept;
 	Line& add(const char*) noexcept;
 	Line& add(int) noexcept;
+	Line& skip(int) noexcept;
 	Line& add(const std::vector<int>) noexcept;
 	Line& add(const std::vector<double>) noexcept;
 	Line& add(const DOFS) noexcept;

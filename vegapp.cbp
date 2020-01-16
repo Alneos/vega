@@ -2036,6 +2036,7 @@
 		</Unit>
 		<Unit filename="Test/Commandline/CommandLineUtils.cpp" />
 		<Unit filename="Test/Commandline/CommandLineUtils.h" />
+		<Unit filename="Test/Commandline/IRTMiniRBS_test.cpp" />
 		<Unit filename="Test/Commandline/Nastran2Aster_test.cpp" />
 		<Unit filename="Test/Commandline/Nastran2Nastran_test.cpp" />
 		<Unit filename="Test/Commandline/Nastran2Systus_test.cpp" />

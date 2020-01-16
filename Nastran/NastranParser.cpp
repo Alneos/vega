@@ -3223,7 +3223,7 @@ void NastranParser::parseSET3(NastranTokenizer& tok, Model& model) {
         setValue->setInputContext(tok.getInputContext());
         model.add(setValue);
     } else {
-        handleParsingError("Unsupported DES value in SET3", tok, model);
+        handleParsingError("Unsupported DES value in SET3 : " + des, tok, model);
     }
 
 }

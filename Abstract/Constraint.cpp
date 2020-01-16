@@ -883,21 +883,21 @@ set<int> ZoneContact::nodePositions() const {
     set<int> result;
     const auto& masterBody = dynamic_pointer_cast<ContactBody>(model.find(master));
     if (masterBody == nullptr) {
-        throw logic_error("Cannot find master body");
+        throw logic_error("Cannot find master body in zone contact");
     }
     const auto& masterBoundary = dynamic_pointer_cast<BoundarySurface>(model.find(masterBody->boundary));
     if (masterBoundary == nullptr) {
-        throw logic_error("Cannot find master body boundary");
+        throw logic_error("Cannot find master body boundary in zone contact");
     }
     const auto& masterNodePositions = masterBoundary->getNodePositionsIncludingGroups();
     result.insert(masterNodePositions.begin(), masterNodePositions.end());
     const auto& slaveBody = dynamic_pointer_cast<ContactBody>(model.find(slave));
     if (slaveBody == nullptr) {
-        throw logic_error("Cannot find slave body");
+        throw logic_error("Cannot find slave body in zone contact");
     }
     const auto& slaveBoundary = dynamic_pointer_cast<BoundarySurface>(model.find(slaveBody->boundary));
     if (slaveBoundary == nullptr) {
-        throw logic_error("Cannot find slave body boundary");
+        throw logic_error("Cannot find slave body boundary in zone contact");
     }
     const auto& slaveNodePositions = slaveBoundary->getNodePositionsIncludingGroups();
     result.insert(slaveNodePositions.begin(), slaveNodePositions.end());
@@ -912,19 +912,19 @@ void ZoneContact::removeNodePosition(int nodePosition) {
 bool ZoneContact::ineffective() const {
     const auto& masterBody = dynamic_pointer_cast<ContactBody>(model.find(master));
     if (masterBody == nullptr) {
-        throw logic_error("Cannot find master body");
+        throw logic_error("Cannot find master body (zone contact)");
     }
     const auto& masterBoundary = dynamic_pointer_cast<BoundarySurface>(model.find(masterBody->boundary));
     if (masterBoundary == nullptr) {
-        throw logic_error("Cannot find master body boundary");
+        throw logic_error("Cannot find master body boundary (zone contact)");
     }
     const auto& slaveBody = dynamic_pointer_cast<ContactBody>(model.find(slave));
     if (slaveBody == nullptr) {
-        throw logic_error("Cannot find slave body");
+        throw logic_error("Cannot find slave body (zone contact)");
     }
     const auto& slaveBoundary = dynamic_pointer_cast<BoundarySurface>(model.find(slaveBody->boundary));
     if (slaveBoundary == nullptr) {
-        throw logic_error("Cannot find slave body boundary");
+        throw logic_error("Cannot find slave body boundary (zone contact)");
     }
     return masterBoundary->empty() or slaveBoundary->empty();
 }
@@ -942,7 +942,7 @@ set<int> SurfaceSlide::nodePositions() const {
     set<int> result;
     const auto& masterBoundary = dynamic_pointer_cast<BoundaryElementFace>(model.find(master));
     if (masterBoundary == nullptr) {
-        throw logic_error("Cannot find master body boundary");
+        throw logic_error("Cannot find master body boundary in surface slide");
     }
     if (masterBoundary->surfaceCellGroup == nullptr) {
         throw logic_error("Cannot find master body cells");
