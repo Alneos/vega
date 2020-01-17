@@ -209,12 +209,12 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
 
     const auto& displacementOutputs = analysis->filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT);
     const auto& frequencyOutputs = analysis->filter(Objective::Type::FREQUENCY_OUTPUT);
-    comm_file_ofs << "RETB" << analysis->getId();
+    string retbName = "RETB" + to_string(analysis->getId());
     if (not displacementOutputs.empty()) {
-        comm_file_ofs << "=POST_RELEVE_T(ACTION=(" << endl;
+        comm_file_ofs << retbName << "=POST_RELEVE_T(ACTION=(" << endl;
         for (auto output : displacementOutputs) {
             const auto& displacementOutput = static_pointer_cast<const NodalDisplacementOutput>(output);
-            comm_file_ofs << "                _F(INTITULE='DISPR" << output->bestId() << "',FORMAT_C='REEL',OPERATION='EXTRACTION',RESULTAT=RESU" << analysis->getId() << "," << endl;
+            comm_file_ofs << "                _F(INTITULE='DISP0R" << output->bestId() << "',FORMAT_C='REEL',OPERATION='EXTRACTION',RESULTAT=RESU" << analysis->getId() << "," << endl;
             writeNodeContainer(*displacementOutput);
             if (not frequencyOutputs.empty()) {
                 comm_file_ofs << "LIST_FREQ=";
@@ -227,15 +227,18 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
                 comm_file_ofs << "TOUT_ORDRE='OUI',";
             }
             comm_file_ofs << "NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
-            comm_file_ofs << "                _F(INTITULE='DISPI" << output->bestId() << "',FORMAT_C='IMAG',OPERATION='EXTRACTION',RESULTAT=RESU" << analysis->getId() << "," << endl;
+            comm_file_ofs << "                _F(INTITULE='DISP1I" << output->bestId() << "',FORMAT_C='IMAG',OPERATION='EXTRACTION',RESULTAT=RESU" << analysis->getId() << "," << endl;
             writeNodeContainer(*displacementOutput);
             comm_file_ofs << "NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
             output->markAsWritten();
         }
         comm_file_ofs << "),)" << endl << endl;
+        comm_file_ofs << retbName << "=CALC_TABLE(TABLE=" << retbName << ",reuse=" << retbName << ",ACTION=(" << endl;
+        comm_file_ofs << "                _F(OPERATION='TRI',NOM_PARA=('NUME_ORDRE'))," << endl;
+        comm_file_ofs << "),)" << endl << endl;
     } else {
 
-        comm_file_ofs << "=CREA_TABLE(RESU=(" << endl;
+        comm_file_ofs << retbName << "=CREA_TABLE(RESU=(" << endl;
         switch (analysis->type) {
         case (Analysis::Type::COMBINATION):
         case (Analysis::Type::LINEAR_MODAL):
@@ -266,13 +269,13 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
     comm_file_ofs << "             FICHIER='REPE_OUT/tbresu_" << analysis->getId() << ".csv')" << endl
             << endl;
 
-    comm_file_ofs << "IMPR_TABLE(TABLE=RETB" << analysis->getId() << "," << endl;
+    comm_file_ofs << "IMPR_TABLE(TABLE=" << retbName << "," << endl;
     comm_file_ofs << "           FORMAT='TABLEAU'," << endl;
     comm_file_ofs << "           UNITE=unit" << analysis->getId() << "," << endl;
     comm_file_ofs << "           SEPARATEUR=' ,'," << endl;
     comm_file_ofs << "           TITRE='RESULTS',)" << endl << endl;
 
-    destroyableConcepts.push_back("RETB" + to_string(analysis->getId()));
+    destroyableConcepts.push_back(retbName);
     comm_file_ofs << "DEFI_FICHIER(ACTION='LIBERER'," << endl;
     comm_file_ofs << "             UNITE=unit" << analysis->getId() << ",)" << endl << endl;
     destroyableConcepts.push_back("unit" + to_string(analysis->getId()));
