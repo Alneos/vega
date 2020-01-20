@@ -1623,69 +1623,57 @@ void Model::makeCellsFromLMPC() {
                 }
             }
 
+            // Re-group nodePositions by cell dof coefs
+            map<vector<vector<DOFCoefs>>, shared_ptr<Lmpc>> elmpcByDOFCoefs;
             for(const auto& lmpcEntry : lmpcsByNodepositions) {
                 const auto& sortedNodePositions = lmpcEntry.first;
                 const auto& lmpcs = lmpcEntry.second;
 
-                // Creating a cell and adding it to the CellGroup
-                vector<int> sortedNodeIds;
-                for (int nodePosition : sortedNodePositions ) {
-                    sortedNodeIds.push_back(mesh.findNodeId(nodePosition));
-                }
-
-//                map< vector<DOFCoefs>, shared_ptr<CellGroup>> groupBySetOfCoefs;
-                int lmpcPos = 0;
-                shared_ptr<Lmpc> elementsetLMPC = nullptr;
+                vector<vector<DOFCoefs>> cellDofCoefs;
                 for (const auto& lmpc : lmpcs) {
                     // We sort the Coeffs in order to fuse various LMPC into the same ElementSet/CellGroup
                     vector<DOFCoefs> sortedCoefs;
                     for (int nodePosition : sortedNodePositions){
                         sortedCoefs.push_back(lmpc->getDoFCoefsForNode(nodePosition));
                     }
+                    cellDofCoefs.push_back(sortedCoefs);
+                    lmpc->markAsWritten();
+                }
+                for (size_t i = 0; i < cellDofCoefs.size(); i += Lmpc::LMPCCELL_DOFNUM) {
+                    const auto& cellDofCoefsSlice = vector<vector<DOFCoefs>>(cellDofCoefs.begin() + i, cellDofCoefs.begin() + min(i + Lmpc::LMPCCELL_DOFNUM, cellDofCoefs.size()));
 
-                    // Looking for the CellGroup corresponding to the current DOFCoefs.
-//                    const auto it = groupBySetOfCoefs.find(sortedCoefs);
+                    vector<int> sortedNodeIds;
+                    for (int nodePosition : sortedNodePositions ) {
+                        sortedNodeIds.push_back(mesh.findNodeId(nodePosition));
+                    }
+                    int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::polyType(static_cast<unsigned int>(sortedNodeIds.size())), sortedNodeIds, true);
 
-//                    if(it != groupBySetOfCoefs.end()) {
-//                        group = it->second;
-//                    } else
-                    if (lmpcPos % Lmpc::LMPCCELL_DOFNUM == 0) {
-                        // If not found, creating an ElementSet, a CellGroup and a (single) dummy rigid material
+                    const auto& it = elmpcByDOFCoefs.find(cellDofCoefsSlice);
+                    shared_ptr<Lmpc> elementsetLMPC = nullptr;
+                    if (it == elmpcByDOFCoefs.end()) {
+
                         if (materialLMPC == nullptr){
                             materialLMPC = make_shared<Material>(*this);
                             materialLMPC->addNature(make_shared<RigidNature>(*this, 1));
                             this->add(materialLMPC);
                         }
-
-                        int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::polyType(static_cast<unsigned int>(sortedNodeIds.size())), sortedNodeIds, true);
-                        //const auto& group = mesh.createCellGroup("MPC_"+to_string(analysis->bestId())+"_"+to_string(lmpc->bestId()), CellGroup::NO_ORIGINAL_ID, "MPC");
-                        //group->addCellPosition(cellPosition);
-                        //if (configuration.logLevel >= LogLevel::DEBUG){
-                        //    cout << "Added cell id " << mesh.findCellId(cellPosition) << " in group " << group->getName() << " from " << *lmpc << "." << endl;
-                        //}
-
-//                        groupBySetOfCoefs[sortedCoefs]= group;
-
                         elementsetLMPC = make_shared<Lmpc>(*this, analysis->getId());
-                        //elementsetLMPC->add(*group);
-                        elementsetLMPC->addCellPosition(cellPosition);
                         elementsetLMPC->assignMaterial(materialLMPC);
-                        elementsetLMPC->appendDofCoefs(sortedCoefs);
+                        elmpcByDOFCoefs[cellDofCoefsSlice] = elementsetLMPC;
+                        for (const auto& lmpcDofCoefs : cellDofCoefs) {
+                            elementsetLMPC->appendDofCoefs(lmpcDofCoefs);
+                        }
                         this->add(elementsetLMPC);
-
                         if (configuration.logLevel >= LogLevel::DEBUG){
-                            cout << "Created elementSet " << *elementsetLMPC << " from " << *lmpc<<"." << endl;
+                            cout << "Created a new elementSet " << *elementsetLMPC << " for cell " << cellPosition << " for lmpcs " << cellDofCoefs << " ." << endl;
                         }
-                        lmpcPos++;
-
                     } else {
-                        elementsetLMPC->appendDofCoefs(sortedCoefs);
+                        elementsetLMPC = elmpcByDOFCoefs[cellDofCoefsSlice];
                         if (configuration.logLevel >= LogLevel::DEBUG){
-                            cout << "Adding another equation to elementSet " << *elementsetLMPC << " from " << *lmpc<<"." << endl;
+                            cout << "Adding to existing elementSet " << *elementsetLMPC << " the cell " << cellPosition << " for lmpcs " << cellDofCoefs << " ." << endl;
                         }
-                        lmpcPos++;
                     }
-
+                    elementsetLMPC->addCellPosition(cellPosition);
                 }
             }
         }

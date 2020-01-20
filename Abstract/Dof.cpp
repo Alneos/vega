@@ -559,5 +559,21 @@ bool DOFCoefs::operator== (const DOFCoefs & other) const noexcept {
     return true;
 }
 
+ostream &operator<<(ostream &out, const DOFCoefs& dofCoefs) noexcept {
+	bool first = true;
+	out << "[";
+	for (char i = 0; i < 6; i++) {
+		DOF curDof = DOF::findByPosition(i);
+        if (!first) {
+            out << ",";
+        } else {
+            first = false;
+        }
+        out << curDof << "=" << dofCoefs.getValue(curDof);
+	}
+	out << "]";
+	return out;
+}
+
 
 }

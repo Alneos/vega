@@ -196,6 +196,7 @@ public:
 class DOFCoefs {
 private:
     std::array<double, 6> coefs;
+    friend std::ostream &operator<<(std::ostream &out, const DOFCoefs& coefs) noexcept;
 public:
     DOFCoefs(double dx = 0, double dy = 0, double dz = 0, double rx = 0, double ry = 0,
             double rz = 0) noexcept;
