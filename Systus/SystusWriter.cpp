@@ -447,9 +447,9 @@ void SystusWriter::getSystusAutomaticOption(const SystusModel& systusModel, Syst
         case ElementSet::Type::GENERIC_SECTION_BEAM:
         case ElementSet::Type::I_SECTION_BEAM:
         case ElementSet::Type::RECTANGULAR_SECTION_BEAM: {
-            //const auto& beam = dynamic_pointer_cast<const Beam>(elementSet);
-            //has1DOr2DElements = has1DOr2DElements or not beam->isBar();
-            has1DOr2DElements=true;
+            const auto& beam = static_pointer_cast<const Beam>(elementSet);
+            has1DOr2DElements = has1DOr2DElements or not beam->isTruss();
+            //has1DOr2DElements=true;
             break;
         }
         case ElementSet::Type::SHELL:{
