@@ -121,20 +121,6 @@ void StepRange::scale(double factor) {
     throw logic_error("Should not try to scale stepranges");
 }
 
-SpreadRange::SpreadRange(const Model& model, double start, int count, double end, double spread, int original_id) :
-		ValueRange(model, Value::Type::SPREAD_RANGE, original_id), start(start), count(count), end(end), spread(spread) {
-    assert(end > start);
-}
-
-bool SpreadRange::iszero() const {
-    return is_equal(start, end) || count == 0;
-}
-
-void SpreadRange::scale(double factor) {
-    UNUSEDV(factor);
-    throw logic_error("Should not try to scale spreadranges");
-}
-
 Function::Function(const Model& model, Type type, int original_id, ParaName paraX, ParaName paraY) :
         NamedValue(model, type, original_id), paraX(paraX), paraY(paraY) {
 }

@@ -239,23 +239,6 @@ public:
     bool iszero() const override;
 };
 
-/**
- * spread, +/- the factional amount specified for each value which occurs in the range.
- * see Nastran FREQ4
- */
-class SpreadRange: public ValueRange {
-public:
-    const double start;
-    int count;
-    double end;
-    double spread;
-public:
-    SpreadRange(const Model& model, double start, int count, double end, double spread, int original_id =
-            NO_ORIGINAL_ID);
-    void scale(double factor) override;
-    bool iszero() const override;
-};
-
 class Function: public NamedValue {
 public:
     enum class ParaName {
@@ -330,10 +313,10 @@ class FunctionTable: public Function {
 protected:
     std::vector<std::pair<double, double> > valuesXY;
 public:
-    const Interpolation parameter;
-    const Interpolation value;
-    const Interpolation left;
-    const Interpolation right;
+    const Interpolation parameter = Interpolation::LINEAR;
+    const Interpolation value = Interpolation::LINEAR;
+    const Interpolation left = Interpolation::NONE;
+    const Interpolation right = Interpolation::NONE;
 
 public:
     FunctionTable(const Model&, Interpolation parameter = Interpolation::LINEAR, Interpolation value = Interpolation::LINEAR,

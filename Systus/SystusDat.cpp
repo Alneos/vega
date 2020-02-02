@@ -54,6 +54,24 @@ void SystusWriter::writeModalDamping(std::ostream& out, const shared_ptr<ModalDa
         handleWritingWarning("Dismissing damping table with wrong units ("+to_string(static_cast<int>(modalDampingTable->getParaY()))+"/"+to_string(static_cast<int>(modalDampingTable->getParaX()))+")", "Analysis file");
     } else {
         double firstDamping = modalDampingTable->getBeginValuesXY()->second;
+        switch(modalDamping->dampingType) {
+        case (ModalDamping::DampingType::CRIT): {
+            // nothing to do in this case
+            break;
+        }
+        case (ModalDamping::DampingType::G): {
+            firstDamping *= 2.0; // G = 2*CRIT
+            break;
+        }
+        case (ModalDamping::DampingType::Q): {
+            firstDamping = 1 / firstDamping; // Q = 1/CRIT
+            break;
+        }
+        default: {
+            handleWritingError("Modal damping type not (yet) implemented");
+            break;
+        }
+        }
         out << "GAMMA "<< firstDamping;
         // Systus 2017 allows to define damping for each modes, and not for frequency range. So we can only translate
         // constant dampings !

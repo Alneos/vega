@@ -762,26 +762,6 @@ string AsterWriter::writeValue(NamedValue& value) {
 		stepRange.markAsWritten();
 		break;
 	}
-	case Value::Type::SPREAD_RANGE: {
-        auto& spreadRange = static_cast<SpreadRange&>(value);
-        if (not spreadRange.iszero()) {
-            ostringstream list_concept_ss;
-            list_concept_ss << "LST" << setfill('0') << setw(5) << spreadRange.getId();
-            concept_name = list_concept_ss.str();
-            comm_file_ofs << concept_name << "=DEFI_LIST_FREQ(" << endl;
-            comm_file_ofs << "                        DEBUT = " << spreadRange.start << "," << endl;
-            comm_file_ofs << "                        INTERVALLE = _F(JUSQU_A = " << spreadRange.end << "," << endl;
-            comm_file_ofs << "                                        NOMBRE = " << spreadRange.count << endl;
-            comm_file_ofs << "                                        )," << endl;
-            comm_file_ofs << "                        RAFFINEMENT = _F(LIST_RAFFINE = XXXX" << "," << endl;
-            comm_file_ofs << "                                        CRITERE = 'RELATIF'," << endl;
-            comm_file_ofs << "                                        DISPERSION = " << spreadRange.spread << endl;
-            comm_file_ofs << "                                        )," << endl;
-            comm_file_ofs << "                        );" << endl << endl;
-        }
-        spreadRange.markAsWritten();
-        break;
-		}
 	case Value::Type::FUNCTION_TABLE: {
 		auto& functionTable = static_cast<FunctionTable&>(value);
 		ostringstream concept_ss;
@@ -2560,12 +2540,12 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
             handleWritingWarning("Reusing previous results: " + modalResuName + " for analysis " + to_str(*analysis));
 		}
 
-        comm_file_ofs << "LIMODE" << analysis->getId() << "=RECU_TABLE(CO=" << modalResuName << "," << endl;
-		comm_file_ofs << "                  NOM_PARA = 'FREQ');" << endl << endl;
+//        comm_file_ofs << "LIMODE" << analysis->getId() << "=RECU_TABLE(CO=" << modalResuName << "," << endl;
+//		comm_file_ofs << "                  NOM_PARA = 'FREQ');" << endl << endl;
 
-		comm_file_ofs << "pfreq" << analysis->getId() << "= LIMODE" << analysis->getId()
-				<< ".EXTR_TABLE().values()['FREQ']" << endl;
-        destroyableConcepts.push_back("LIMODE" + to_string(analysis->getId()));
+        string freqList = "pfreq" + to_string(analysis->getId());
+		comm_file_ofs << freqList << "=" << modalResuName << ".LIST_VARI_ACCES()['FREQ']" << endl;
+//        destroyableConcepts.push_back("LIMODE" + to_string(analysis->getId()));
 
 		if (analysis->type == Analysis::Type::LINEAR_MODAL) {
             linearModal->markAsWritten();
@@ -2727,28 +2707,71 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
         comm_file_ofs << "          );" << endl << endl;
 
         if (linearDynaModalFreq->getModalDamping() != nullptr) {
-            comm_file_ofs << "AMMOI" << linearDynaModalFreq->getId() << "=CALC_FONC_INTERP(FONCTION = FCT"
+            comm_file_ofs << "AMMOI" << analysis->getId() << "=CALC_FONC_INTERP(FONCTION = FCT"
               << setfill('0') << setw(5)
               << linearDynaModalFreq->getModalDamping()->getFunctionTable()->getId() << ","
               << endl;
-            comm_file_ofs << "                         VALE_PARA = pfreq" << linearDynaModalFreq->getId() << endl;
+            comm_file_ofs << "                         VALE_PARA = " << freqList << endl;
             comm_file_ofs << "                         );" << endl << endl;
 
-            comm_file_ofs << "AMMOT" << linearDynaModalFreq->getId()
-              << "=CREA_TABLE(FONCTION=_F(FONCTION = AMMOI" << linearDynaModalFreq->getId()
+            switch(linearDynaModalFreq->getModalDamping()->dampingType) {
+            case (ModalDamping::DampingType::CRIT): {
+                comm_file_ofs << "AMMOS" << analysis->getId() << " = AMMOI" << analysis->getId() << endl;
+                break;
+            }
+            case (ModalDamping::DampingType::G): {
+                comm_file_ofs << "AMMOS" << analysis->getId() << " = CALC_FONCTION(COMB=_F(COEF=2.0, FONCTION=" << analysis->getId() << "))" << endl;
+                destroyableConcepts.push_back("AMMOS" + to_string(analysis->getId()));
+                break;
+            }
+            default: {
+                handleWritingError("Modal damping type not (yet) implemented");
+                break;
+            }
+            }
+            comm_file_ofs << "AMMOT" << analysis->getId()
+              << "=CREA_TABLE(FONCTION=_F(FONCTION = AMMOS" << analysis->getId()
               << ")," << endl;
             comm_file_ofs << "                   );" << endl << endl;
 
-            comm_file_ofs << "AMMO" << linearDynaModalFreq->getId() << "=AMMOT" << linearDynaModalFreq->getId()
+            comm_file_ofs << "AMMO" << analysis->getId() << "=AMMOT" << analysis->getId()
               << ".EXTR_TABLE().values()['TOUTRESU']" << endl;
             destroyableConcepts.push_back("AMMOI" + to_string(analysis->getId()));
             destroyableConcepts.push_back("AMMOT" + to_string(analysis->getId()));
         }
 
-        comm_file_ofs << "GENE" << linearDynaModalFreq->getId() << " = DYNA_VIBRA(" << endl;
+        const auto& frequencyExcit = static_pointer_cast<FrequencyExcit>(linearDynaModalFreq->getExcitationFrequencies());
+        if (frequencyExcit->frequencyType == FrequencyExcit::FrequencyType::SPREAD) {
+            ostringstream list_concept_ss;
+            list_concept_ss << "LSPR" << setfill('0') << setw(4) << frequencyExcit->getId();
+            string concept_name = list_concept_ss.str();
+            const auto& frequencyExcitBand = static_pointer_cast<BandRange>(frequencyExcit->getValue());
+            comm_file_ofs << concept_name << "=DEFI_LIST_FREQ(" << endl;
+            comm_file_ofs << "                        DEBUT = " << frequencyExcitBand->start << "," << endl;
+            comm_file_ofs << "                        INTERVALLE = _F(JUSQU_A = " << frequencyExcitBand->end << "," << endl;
+            comm_file_ofs << "                                        NOMBRE = " << frequencyExcitBand->maxsearch << endl;
+            comm_file_ofs << "                                        )," << endl;
+            comm_file_ofs << "                        RAFFINEMENT = _F(LIST_RAFFINE = " << freqList << "," << endl;
+            comm_file_ofs << "                                        CRITERE = 'RELATIF'," << endl;
+            comm_file_ofs << "                                        DISPERSION = " << frequencyExcit->spread << endl;
+            comm_file_ofs << "                                        )," << endl;
+            comm_file_ofs << "                        );" << endl << endl;
+            destroyableConcepts.push_back(concept_name);
+        } else if (frequencyExcit->frequencyType == FrequencyExcit::FrequencyType::INTERPOLATE) {
+            ostringstream list_concept_ss;
+            list_concept_ss << "LSIP" << setfill('0') << setw(4) << frequencyExcit->getId();
+            const auto& frequencyExcitBand = static_pointer_cast<BandRange>(frequencyExcit->getValue());
+            string concept_name = list_concept_ss.str();
+            string frequencyCount = to_string(frequencyExcitBand->maxsearch);
+            comm_file_ofs << "efreq" << analysis->getId() << " = np.concatenate([np.linspace(x, x+1-1/" << frequencyCount << "," << frequencyCount << ") for x in freqList.Valeurs()])" << endl;
+            comm_file_ofs << concept_name << "= DEFI_LIST_REEL(VALE=efreq" << analysis->getId() << ")" << endl;
+            destroyableConcepts.push_back(concept_name);
+        }
+
+        comm_file_ofs << "GENE" << analysis->getId() << " = DYNA_VIBRA(" << endl;
         comm_file_ofs << "                   TYPE_CALCUL='HARM'," << endl;
         comm_file_ofs << "                   BASE_CALCUL='GENE'," << endl;
-        comm_file_ofs << "                   MATR_MASS  = MASSG" << linearDynaModalFreq->getId() << ","
+        comm_file_ofs << "                   MATR_MASS  = MASSG" << analysis->getId() << ","
                 << endl;
         comm_file_ofs << "                   MATR_RIGI  = RIGIG" << linearDynaModalFreq->getId() << ","
                 << endl;
@@ -2760,14 +2783,22 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
             comm_file_ofs << "                   MATR_AMOR  = AMORG" << linearDynaModalFreq->getId() << ","
                 << endl;
         }
-        comm_file_ofs << "                   LIST_FREQ  = LST" << setfill('0') << setw(5)
-        << linearDynaModalFreq->getExcitationFrequencies()->getValue()->getId() << "," << endl;
+        if (frequencyExcit->frequencyType == FrequencyExcit::FrequencyType::SPREAD) {
+            comm_file_ofs << "                   LIST_FREQ  = LSPR" << setfill('0') << setw(4)
+            << frequencyExcit->getValue()->getId() << "," << endl;
+        } else if (frequencyExcit->frequencyType == FrequencyExcit::FrequencyType::INTERPOLATE) {
+            comm_file_ofs << "                   LIST_FREQ  = LSIP" << setfill('0') << setw(4)
+            << frequencyExcit->getValue()->getId() << "," << endl;
+        } else {
+            comm_file_ofs << "                   LIST_FREQ  = LST" << setfill('0') << setw(5)
+            << frequencyExcit->getValue()->getId() << "," << endl;
+        }
 		comm_file_ofs << "                   EXCIT      = (" << endl;
 		for (const auto& loadSet : linearDynaModalFreq->getLoadSets()) {
 			for (const auto& loading : loadSet->getLoadings()) {
 				if (loading->type == Loading::Type::DYNAMIC_EXCITATION) {
 					const auto& dynamicExcitation =
-							dynamic_pointer_cast<DynamicExcitation>(loading);
+							static_pointer_cast<DynamicExcitation>(loading);
 					comm_file_ofs << "                                 _F(" << endl;
                     comm_file_ofs << "                                    VECT_ASSE_GENE = VG"
                             << linearDynaModalFreq->getId() << "_"

@@ -2270,7 +2270,7 @@ bool Model::checkWritten() const {
         if (not analysis->isWritten()) {
             continue;
         }
-        if (configuration.logLevel >= LogLevel::DEBUG) {
+        if (configuration.logLevel >= LogLevel::TRACE) {
             cerr << "Checking if analysis:" << *analysis << " has been written" << endl;
         }
         for (const auto& loadSet : analysis->getLoadSets()) {

@@ -206,18 +206,18 @@ FunctionPlaceHolder FrequencyExcit::getValueRangePlaceHolder() const {
     return FunctionPlaceHolder(model, namedValue.type, namedValue.original_id, Function::ParaName::FREQ);
 }
 
-ModalDamping::ModalDamping(Model& model, const FunctionTable& function_table, int original_id) :
+ModalDamping::ModalDamping(Model& model, const FunctionTable& function_table, const DampingType dampingType , int original_id) :
         AnalysisParameter(model, Objective::Type::MODAL_DAMPING, original_id), function_table(Value::Type::FUNCTION_TABLE,
-                Reference<NamedValue>::NO_ID, function_table.getId()) {
+                Reference<NamedValue>::NO_ID, function_table.getId()), dampingType(dampingType) {
 }
 
-ModalDamping::ModalDamping(Model& model, int function_table_original_id, int original_id) :
+ModalDamping::ModalDamping(Model& model, int function_table_original_id, const DampingType dampingType, int original_id) :
         AnalysisParameter(model, Objective::Type::MODAL_DAMPING, original_id), function_table(Value::Type::FUNCTION_TABLE,
-                function_table_original_id) {
+                function_table_original_id), dampingType(dampingType) {
 }
 
 shared_ptr<FunctionTable> ModalDamping::getFunctionTable() const {
-    return dynamic_pointer_cast<FunctionTable>(model.find(function_table));
+    return static_pointer_cast<FunctionTable>(model.find(function_table));
 }
 
 FunctionPlaceHolder ModalDamping::getFunctionTablePlaceHolder() const {

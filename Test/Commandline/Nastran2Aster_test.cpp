@@ -228,7 +228,7 @@ BOOST_AUTO_TEST_CASE( pload ) {
 }
 
 //BOOST_AUTO_TEST_CASE( sine_wave ) {
-//  RLOAD2 TYPE=ACCE
+//    //  RLOAD2 TYPE=ACCE, SPCD loading
 //	CommandLineUtils::nastranStudy2Aster("/irt/sine_test/sine_test.nas", RUN_ASTER, true, 0.00001);
 //}
 

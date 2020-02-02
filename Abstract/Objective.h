@@ -186,8 +186,7 @@ public:
     enum class FrequencyType {
         BAND,
         STEP,
-        LIST,
-        SPREAD
+        LIST
     };
 
     enum class NormType {
@@ -210,6 +209,7 @@ public:
         BAND,
         STEP,
         LIST,
+        INTERPOLATE,
         SPREAD
     };
 
@@ -219,6 +219,7 @@ public:
     };
     FrequencyExcit(Model&, const FrequencyType frequencyType, const NamedValue&, const NormType norm = NormType::MASS, int original_id = NO_ORIGINAL_ID);
     const FrequencyType frequencyType;
+    double spread = 0.0;
     const NormType norm;  /**< Method for normalizing eigenvectors: MASS or MAX **/
     std::shared_ptr<NamedValue> getValue() const;
     FunctionPlaceHolder getValueRangePlaceHolder() const;
@@ -228,10 +229,16 @@ class ModalDamping: public AnalysisParameter {
 protected:
     Reference<NamedValue> function_table;
 public:
+    enum class DampingType {
+        G,
+        CRIT,
+        Q
+    };
     std::shared_ptr<Value> function = nullptr;
-    ModalDamping(Model& model, const FunctionTable& function_table, int original_id =
+    DampingType dampingType;
+    ModalDamping(Model& model, const FunctionTable& function_table, const DampingType dampingType, int original_id =
             NO_ORIGINAL_ID);
-    ModalDamping(Model& model, int function_table_id, int original_id = NO_ORIGINAL_ID);
+    ModalDamping(Model& model, int function_table_id, const DampingType dampingType, int original_id = NO_ORIGINAL_ID);
     std::shared_ptr<FunctionTable> getFunctionTable() const;
     FunctionPlaceHolder getFunctionTablePlaceHolder() const;
 };

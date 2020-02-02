@@ -100,6 +100,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "FORCE2", &NastranParser::parseFORCE2 },
                 { "FREQ", &NastranParser::parseFREQ },
                 { "FREQ1", &NastranParser::parseFREQ1 },
+                { "FREQ3", &NastranParser::parseFREQ3 },
                 { "FREQ4", &NastranParser::parseFREQ4 },
                 { "GRAV", &NastranParser::parseGRAV },
                 { "GRID", &NastranParser::parseGRID },
@@ -1630,19 +1631,40 @@ void NastranParser::parseFREQ1(NastranTokenizer& tok, Model& model) {
     model.add(frequencyExcit);
 }
 
+void NastranParser::parseFREQ3(NastranTokenizer& tok, Model& model) {
+    int sid = tok.nextInt();
+    double startf = tok.nextDouble();
+    double endf = tok.nextDouble();
+    string type = tok.nextString(true, "LINEAR");
+    if (type != "LINEAR")
+        handleParsingError("Only LINEAR FREQ3 supported.", tok, model);
+    int nef = tok.nextInt(true, 10);
+    double cluster = tok.nextDouble(true, 1.0);
+    if (not is_equal(cluster, 1.0))
+        handleParsingError("CLUSTER in FREQ3 not (yet) supported.", tok, model);
+
+    const auto& bandRange = make_shared<BandRange>(model, startf, nef, endf);
+    //stepRange.setParaX(Function::ParaName::FREQ);
+    const auto& frequencyExcit = make_shared<FrequencyExcit>(model, FrequencyExcit::FrequencyType::INTERPOLATE, *bandRange, FrequencyExcit::NormType::MASS, sid);
+    bandRange->setInputContext(tok.getInputContext());
+    model.add(bandRange);
+    frequencyExcit->setInputContext(tok.getInputContext());
+    model.add(frequencyExcit);
+}
+
 void NastranParser::parseFREQ4(NastranTokenizer& tok, Model& model) {
     int sid = tok.nextInt();
     double f1 = tok.nextDouble();
     double f2 = tok.nextDouble();
     double spread = tok.nextDouble();
-    int count = tok.nextInt(true, 1);
+    int nef = tok.nextInt(true, 1);
 
-    const auto& spreadRange = make_shared<SpreadRange>(model, f1, count, f2, spread);
+    const auto& bandRange = make_shared<BandRange>(model, f1, nef, f2);
     //spreadRange.setParaX(Function::ParaName::FREQ);
-    const auto& frequencyExcit = make_shared<FrequencyExcit>(model, FrequencyExcit::FrequencyType::SPREAD, *spreadRange, FrequencyExcit::NormType::MASS, sid);
-
-    spreadRange->setInputContext(tok.getInputContext());
-    model.add(spreadRange);
+    const auto& frequencyExcit = make_shared<FrequencyExcit>(model, FrequencyExcit::FrequencyType::SPREAD, *bandRange, FrequencyExcit::NormType::MASS, sid);
+    frequencyExcit->spread = spread;
+    bandRange->setInputContext(tok.getInputContext());
+    model.add(bandRange);
     frequencyExcit->setInputContext(tok.getInputContext());
     model.add(frequencyExcit);
 }
@@ -3155,6 +3177,9 @@ void NastranParser::parseRLOAD2(NastranTokenizer& tok, Model& model) {
         excitRef = loadId; // HACK?
     } else if (model.find(Reference<LoadSet>{LoadSet::Type::LOAD, darea_set_id}) != nullptr) {
         excitRef = Reference<LoadSet>{LoadSet::Type::LOAD, darea_set_id};
+    } else {
+        // If there is no LOADSET request in the Case Control, then EXCITEID may directly reference DAREA, static, and thermal load set entries.
+        handleParsingWarning("RLOAD2 directly referencing EXCITEID not yet handled, seems to be working?", tok, model);
     }
     // If needed, creates a LoadSet EXCITEID for the DynamicExcitation
 //    LoadSet darea(model, LoadSet::Type::EXCITEID, darea_set_id);
@@ -3349,9 +3374,6 @@ void NastranParser::parseSPCD(NastranTokenizer& tok, Model& model) {
 void NastranParser::parseTABDMP1(NastranTokenizer& tok, Model& model) {
     int original_id = tok.nextInt();
     string type = tok.nextString(true, "G");
-    if (type != "CRIT"){
-        handleParsingError("Only CRIT type supported.", tok, model);
-    }
     const auto& functionTable = make_shared<FunctionTable>(model, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::LINEAR,
             FunctionTable::Interpolation::NONE, FunctionTable::Interpolation::CONSTANT);
 
@@ -3400,7 +3422,17 @@ void NastranParser::parseTABDMP1(NastranTokenizer& tok, Model& model) {
 
     functionTable->setParaX(Function::ParaName::FREQ);
     functionTable->setParaY(Function::ParaName::AMOR);
-    const auto& modalDamping = make_shared<ModalDamping>(model, *functionTable, original_id);
+    ModalDamping::DampingType dampingType;
+    if (type == "CRIT") {
+        dampingType = ModalDamping::DampingType::CRIT;
+    } else if (type == "G") {
+        dampingType = ModalDamping::DampingType::G;
+    } else if (type == "Q") {
+        dampingType = ModalDamping::DampingType::Q;
+    } else {
+        handleParsingError("Damping type not yet implemented : " + type, tok, model);
+    }
+    const auto& modalDamping = make_shared<ModalDamping>(model, *functionTable, dampingType, original_id);
 
     functionTable->setInputContext(tok.getInputContext());
     model.add(functionTable);

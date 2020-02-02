@@ -431,6 +431,11 @@ private:
     void parseFREQ1(NastranTokenizer& tok, Model& model);
 
     /**
+     * Parse the keyword FREQ1 (page 1560 of MDN Nastran 2006 Quick Reference Guide.)
+     */
+    void parseFREQ3(NastranTokenizer& tok, Model& model);
+
+    /**
      * Parse the keyword FREQ4
      */
     void parseFREQ4(NastranTokenizer& tok, Model& model);
