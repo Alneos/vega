@@ -174,7 +174,7 @@ void NastranTokenizer::splitFreeFormat(string line, bool firstLine) {
 		}
 	}
 	char c = static_cast<char>(this->instrream.peek());
-	string line2;
+    string line2;
     if (explicitContinuation || c == ',' || c == '+' || c == '*') {
 		readLineSkipComment(line2, false);
 		splitFreeFormat(line2, false);
@@ -366,6 +366,13 @@ void NastranTokenizer::splitFixedFormat(string& line, const bool longFormat, con
 	}
 	string line2;
 	char c0 = static_cast<char>(this->instrream.peek());
+
+	while (c0 == '$') { // Trying to skip "comment inside card case"
+        getline(this->instrream, line2);
+        lineNumber += 1;
+        c0 = static_cast<char>(this->instrream.peek());
+    }
+
 	if (explicitContinuation or c0 == '+') {
 		//todo:check that continuation tokens are the same
 		bool iseof = readLineSkipComment(line2, false);
@@ -398,7 +405,7 @@ string NastranTokenizer::nextString(bool returnDefaultIfNotFoundOrBlank, string 
     if (value.empty()) {
         if (returnDefaultIfNotFoundOrBlank){
             return defaultValue;
-        }else{
+        } else {
             string message = "Missing String value for Field Number " + to_string(currentField - 1);
             handleParsingError(message);
         }
@@ -494,9 +501,9 @@ double NastranTokenizer::nextDouble(bool returnDefaultIfNotFoundOrBlank, double 
 	double result = 0.0;
 	string value = trim_copy(nextSymbolString());
 	if (value.empty()) {
-	    if (returnDefaultIfNotFoundOrBlank){
+	    if (returnDefaultIfNotFoundOrBlank) {
 	        return defaultValue;
-	    }else{
+	    } else {
 	        string message = "Missing Double value for Field Number " + to_string(currentField - 1);
 	        handleParsingError(message);
 	    }

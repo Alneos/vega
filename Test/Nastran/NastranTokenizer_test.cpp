@@ -449,3 +449,22 @@ BOOST_AUTO_TEST_CASE(nastran_two_CPENTA) {
     //BOOST_CHECK(tok.isNextEmpty());
 }
 
+BOOST_AUTO_TEST_CASE(nastran_comment_inside_card) {
+    string nastranLine =
+           //12345678|2345678|2345678|2345678|
+           "TABLED1      801  LINEAR  LINEAR       1\n"
+           "$ +           50.0     1.0  1500.0     1.0    ENDT\n"
+           "+           51.0     1.0  2500.0     1.0    ENDT\n"
+           ;
+    istringstream istr(nastranLine);
+    NastranTokenizer tok(istr);
+    tok.bulkSection();
+    tok.nextLine();
+    BOOST_CHECK(tok.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_KEYWORD);
+    BOOST_CHECK_EQUAL("TABLED1", tok.nextString());
+    BOOST_CHECK_EQUAL(801, tok.nextInt());
+    BOOST_CHECK_EQUAL("LINEAR", tok.nextString());
+    BOOST_CHECK_EQUAL("LINEAR", tok.nextString());
+    BOOST_CHECK_EQUAL(1, tok.nextInt());
+    BOOST_CHECK_EQUAL(51, tok.nextDouble());//BOOST_CHECK(tok.isNextEmpty());
+}
