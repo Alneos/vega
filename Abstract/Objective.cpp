@@ -28,8 +28,11 @@ using namespace std;
 
 namespace vega {
 
-Objective::Objective(Model& model, Objective::Type type, int original_id) :
-        Identifiable(original_id), model(model), type(type) {
+Objective::Objective(Model& model, const std::shared_ptr<ObjectiveSet> objectiveSet, Objective::Type type, int original_id) :
+        Identifiable(original_id), model(model), type(type), objectiveset(objectiveSet) {
+    if (objectiveSet != nullptr) {
+        model.addObjectiveIntoObjectiveSet(this->getReference(), objectiveSet->getReference());
+    }
 }
 
 const string Objective::name = "Objective";
@@ -42,7 +45,7 @@ const map<Objective::Type, string> Objective::stringByType = {
         { Objective::Type::FREQUENCY_SEARCH, "FREQUENCY_SEARCH" },
         { Objective::Type::FREQUENCY_EXCIT, "FREQUENCY_EXCIT" },
         { Objective::Type::MODAL_DAMPING, "MODAL_DAMPING" },
-        { Objective::Type::NONLINEAR_STRATEGY, "NONLINEAR_STRATEGY" },
+        { Objective::Type::NONLINEAR_PARAMETERS, "NONLINEAR_PARAMETERS" },
         { Objective::Type::ARC_LENGTH_METHOD, "ARC_LENGTH_METHOD" },
         { Objective::Type::NODAL_DISPLACEMENT_OUTPUT, "NODAL_DISPLACEMENT_OUTPUT" },
         { Objective::Type::VONMISES_STRESS_OUTPUT, "VONMISES_STRESS_OUTPUT" },
@@ -56,6 +59,10 @@ ostream &operator<<(ostream &out, const Objective& objective) {
 
 ObjectiveSet::ObjectiveSet(Model& model, Type type, int original_id) :
         Identifiable(original_id), model(model), type(type) {
+}
+
+ObjectiveSet::ObjectiveSet(Model& model, const Reference<ObjectiveSet>& objectiveSetRef) :
+		Identifiable(objectiveSetRef.original_id), model(model), type(objectiveSetRef.type) {
 }
 
 void ObjectiveSet::add(const Reference<ObjectiveSet>& objectiveSetReference) {
@@ -87,10 +94,22 @@ size_t ObjectiveSet::size() const {
     return getObjectives().size();
 }
 
+unique_ptr<ObjectiveSet> ObjectiveSet::clone() const {
+	return make_unique<ObjectiveSet>(*this);
+}
+
 const string ObjectiveSet::name = "ObjectiveSet";
 
 const map<ObjectiveSet::Type, string> ObjectiveSet::stringByType = {
-    { ObjectiveSet::Type::FREQ, "FREQ" },
+    { ObjectiveSet::Type::FREQ, "FREQUENCY_EXCIT" },
+    { ObjectiveSet::Type::METHOD, "FREQUENCY_SEARCH" },
+    { ObjectiveSet::Type::DISP, "DISPLACEMENT_OUTPUT" },
+    { ObjectiveSet::Type::OFREQ, "FREQUENCY_OUTPUT" },
+    { ObjectiveSet::Type::STRESS, "STRESS_OUTPUT" },
+    { ObjectiveSet::Type::SDAMP, "STRUCTURAL_DAMPING" },
+    { ObjectiveSet::Type::NONLINEAR_STRATEGY, "NONLINEAR_STRATEGY" },
+    { ObjectiveSet::Type::ASSERTION, "ASSERTION" },
+    { ObjectiveSet::Type::ALL, "ALL" },
     };
 
 ostream &operator<<(ostream &out, const ObjectiveSet& objectiveSet) {
@@ -98,13 +117,13 @@ ostream &operator<<(ostream &out, const ObjectiveSet& objectiveSet) {
     return out;
 }
 
-Assertion::Assertion(Model& model, Type type, double tolerance, int original_id) :
-        Objective(model, type, original_id), tolerance(tolerance) {
+Assertion::Assertion(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, Type type, double tolerance, int original_id) :
+        Objective(model, objectiveset, type, original_id), tolerance(tolerance) {
 }
 
-NodalAssertion::NodalAssertion(Model& model, Type type, double tolerance, int nodeId,
+NodalAssertion::NodalAssertion(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, Type type, double tolerance, int nodeId,
         DOF dof, int original_id) :
-        Assertion(model, type, tolerance, original_id), nodePosition(model.mesh.findOrReserveNode(nodeId)), nodeId(nodeId), dof(dof) {
+        Assertion(model, objectiveset, type, tolerance, original_id), nodePosition(model.mesh.findOrReserveNode(nodeId)), nodeId(nodeId), dof(dof) {
 }
 
 DOFS NodalAssertion::getDOFSForNode(const int nodePosition) const {
@@ -115,9 +134,9 @@ set<int> NodalAssertion::nodePositions() const {
     return {nodePosition};
 }
 
-NodalDisplacementAssertion::NodalDisplacementAssertion(Model& model, double tolerance,
+NodalDisplacementAssertion::NodalDisplacementAssertion(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, double tolerance,
         int nodeId, DOF dof, double value, double instant, int original_id) :
-        NodalAssertion(model, Objective::Type::NODAL_DISPLACEMENT_ASSERTION, tolerance, nodeId, dof,
+        NodalAssertion(model, objectiveset, Objective::Type::NODAL_DISPLACEMENT_ASSERTION, tolerance, nodeId, dof,
                 original_id), value(value), instant(instant) {
 }
 
@@ -128,9 +147,10 @@ ostream &operator<<(ostream &out, const NodalDisplacementAssertion& objective) {
 }
 
 NodalComplexDisplacementAssertion::NodalComplexDisplacementAssertion(Model& model,
+        const std::shared_ptr<ObjectiveSet> objectiveset,
         double tolerance, int nodeId, DOF dof, complex<double> value, double frequency,
         int original_id) :
-        NodalAssertion(model, Objective::Type::NODAL_COMPLEX_DISPLACEMENT_ASSERTION, tolerance, nodeId, dof,
+        NodalAssertion(model, objectiveset, Objective::Type::NODAL_COMPLEX_DISPLACEMENT_ASSERTION, tolerance, nodeId, dof,
                 original_id), value(value), frequency(frequency) {
 }
 
@@ -140,9 +160,9 @@ ostream &operator<<(ostream &out, const NodalComplexDisplacementAssertion& objec
     return out;
 }
 
-FrequencyAssertion::FrequencyAssertion(Model& model, int number, double cycles, double eigenValue, double generalizedMass, double generalizedStiffness,
+FrequencyAssertion::FrequencyAssertion(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, int number, double cycles, double eigenValue, double generalizedMass, double generalizedStiffness,
         double tolerance, int original_id) :
-        Assertion(model, Objective::Type::FREQUENCY_ASSERTION, tolerance, original_id), number(number), cycles(cycles), eigenValue(eigenValue), generalizedMass(generalizedMass), generalizedStiffness(generalizedStiffness) {
+        Assertion(model, objectiveset, Objective::Type::FREQUENCY_ASSERTION, tolerance, original_id), number(number), cycles(cycles), eigenValue(eigenValue), generalizedMass(generalizedMass), generalizedStiffness(generalizedStiffness) {
 }
 
 DOFS FrequencyAssertion::getDOFSForNode(const int nodePosition) const {
@@ -159,8 +179,9 @@ ostream &operator<<(ostream &out, const FrequencyAssertion& objective) {
 }
 
 NodalCellVonMisesAssertion::NodalCellVonMisesAssertion(Model& model,
+        const std::shared_ptr<ObjectiveSet> objectiveset,
         double tolerance, int cellId, int nodeId, double value, int original_id) :
-        Assertion(model, Objective::Type::NODAL_CELL_VONMISES_ASSERTION, tolerance, original_id),
+        Assertion(model, objectiveset, Objective::Type::NODAL_CELL_VONMISES_ASSERTION, tolerance, original_id),
         nodePosition(model.mesh.findOrReserveNode(nodeId)), nodeId(nodeId), cellPosition(model.mesh.findCellPosition(cellId)), cellId(cellId), value(value) {
 }
 
@@ -178,12 +199,12 @@ ostream &operator<<(ostream &out, const NodalCellVonMisesAssertion& objective) {
     return out;
 }
 
-AnalysisParameter::AnalysisParameter(Model& model, Type type, int original_id) :
-        Objective(model, type, original_id) {
+AnalysisParameter::AnalysisParameter(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, Type type, int original_id) :
+        Objective(model, objectiveset, type, original_id) {
 }
 
-FrequencySearch::FrequencySearch(Model& model, const FrequencyType frequencyType, const NamedValue& namedValue, NormType norm, int original_id) :
-        AnalysisParameter(model, Objective::Type::FREQUENCY_SEARCH, original_id), namedValue(namedValue), frequencyType(frequencyType), norm(norm) {
+FrequencySearch::FrequencySearch(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, const FrequencyType frequencyType, const NamedValue& namedValue, NormType norm, int original_id) :
+        AnalysisParameter(model, objectiveset, Objective::Type::FREQUENCY_SEARCH, original_id), namedValue(namedValue), frequencyType(frequencyType), norm(norm) {
 }
 
 shared_ptr<NamedValue> FrequencySearch::getValue() const {
@@ -194,8 +215,8 @@ FunctionPlaceHolder FrequencySearch::getValueRangePlaceHolder() const {
     return FunctionPlaceHolder(model, namedValue.type, namedValue.original_id, Function::ParaName::FREQ);
 }
 
-FrequencyExcit::FrequencyExcit(Model& model, const FrequencyType frequencyType, const NamedValue& namedValue, NormType norm, int original_id) :
-        AnalysisParameter(model, Objective::Type::FREQUENCY_EXCIT, original_id), namedValue(namedValue), frequencyType(frequencyType), norm(norm) {
+FrequencyExcit::FrequencyExcit(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, const FrequencyType frequencyType, const NamedValue& namedValue, NormType norm, int original_id) :
+        AnalysisParameter(model, objectiveset, Objective::Type::FREQUENCY_EXCIT, original_id), namedValue(namedValue), frequencyType(frequencyType), norm(norm) {
 }
 
 shared_ptr<NamedValue> FrequencyExcit::getValue() const {
@@ -206,13 +227,13 @@ FunctionPlaceHolder FrequencyExcit::getValueRangePlaceHolder() const {
     return FunctionPlaceHolder(model, namedValue.type, namedValue.original_id, Function::ParaName::FREQ);
 }
 
-ModalDamping::ModalDamping(Model& model, const FunctionTable& function_table, const DampingType dampingType , int original_id) :
-        AnalysisParameter(model, Objective::Type::MODAL_DAMPING, original_id), function_table(Value::Type::FUNCTION_TABLE,
+ModalDamping::ModalDamping(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, const FunctionTable& function_table, const DampingType dampingType , int original_id) :
+        AnalysisParameter(model, objectiveset, Objective::Type::MODAL_DAMPING, original_id), function_table(Value::Type::FUNCTION_TABLE,
                 Reference<NamedValue>::NO_ID, function_table.getId()), dampingType(dampingType) {
 }
 
-ModalDamping::ModalDamping(Model& model, int function_table_original_id, const DampingType dampingType, int original_id) :
-        AnalysisParameter(model, Objective::Type::MODAL_DAMPING, original_id), function_table(Value::Type::FUNCTION_TABLE,
+ModalDamping::ModalDamping(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, int function_table_original_id, const DampingType dampingType, int original_id) :
+        AnalysisParameter(model, objectiveset, Objective::Type::MODAL_DAMPING, original_id), function_table(Value::Type::FUNCTION_TABLE,
                 function_table_original_id), dampingType(dampingType) {
 }
 
@@ -224,21 +245,21 @@ FunctionPlaceHolder ModalDamping::getFunctionTablePlaceHolder() const {
     return FunctionPlaceHolder(model, function_table.type, function_table.original_id, Function::ParaName::FREQ);
 }
 
-NonLinearStrategy::NonLinearStrategy(Model& model, int number_of_increments, int original_id) :
-        AnalysisParameter(model, Objective::Type::NONLINEAR_STRATEGY, original_id), number_of_increments(
+NonLinearStrategy::NonLinearStrategy(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, int number_of_increments, int original_id) :
+        AnalysisParameter(model, objectiveset, Objective::Type::NONLINEAR_PARAMETERS, original_id), number_of_increments(
                 number_of_increments) {
 }
 
-ArcLengthMethod::ArcLengthMethod(Model& model, const Reference<Objective>& strategy_reference, int original_id) :
-        AnalysisParameter(model, Objective::Type::ARC_LENGTH_METHOD, original_id), strategy_reference(strategy_reference) {
+ArcLengthMethod::ArcLengthMethod(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, const Reference<Objective>& strategy_reference, int original_id) :
+        AnalysisParameter(model, objectiveset, Objective::Type::ARC_LENGTH_METHOD, original_id), strategy_reference(strategy_reference) {
 }
 
-Output::Output(Model& model, Type type, int original_id) :
-        Objective(model, type, original_id) {
+Output::Output(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, Type type, int original_id) :
+        Objective(model, objectiveset, type, original_id) {
 }
 
-NodalDisplacementOutput::NodalDisplacementOutput(Model& model, shared_ptr<Reference<NamedValue>> collection, int original_id) :
-        Output(model, Objective::Type::NODAL_DISPLACEMENT_OUTPUT, original_id), NodeContainer(model.mesh), collection(collection) {
+NodalDisplacementOutput::NodalDisplacementOutput(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, shared_ptr<Reference<NamedValue>> collection, int original_id) :
+        Output(model, objectiveset, Objective::Type::NODAL_DISPLACEMENT_OUTPUT, original_id), NodeContainer(model.mesh), collection(collection) {
 }
 
 vector<shared_ptr<NodeGroup>> NodalDisplacementOutput::getNodeGroups() const {
@@ -279,8 +300,8 @@ bool NodalDisplacementOutput::hasNodeGroups() const noexcept {
     return collection != nullptr or NodeContainer::hasNodeGroups();
 }
 
-VonMisesStressOutput::VonMisesStressOutput(Model& model, shared_ptr<Reference<NamedValue>> collection, int original_id) :
-        Output(model, Objective::Type::VONMISES_STRESS_OUTPUT, original_id), CellContainer(model.mesh), collection(collection) {
+VonMisesStressOutput::VonMisesStressOutput(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, shared_ptr<Reference<NamedValue>> collection, int original_id) :
+        Output(model, objectiveset, Objective::Type::VONMISES_STRESS_OUTPUT, original_id), CellContainer(model.mesh), collection(collection) {
 }
 
 vector<shared_ptr<CellGroup>> VonMisesStressOutput::getCellGroups() const {
@@ -309,8 +330,8 @@ bool VonMisesStressOutput::hasCellGroups() const noexcept {
     return collection != nullptr or CellContainer::hasCellGroups();
 }
 
-FrequencyOutput::FrequencyOutput(Model& model, shared_ptr<Reference<NamedValue>> collection, int original_id) :
-        Output(model, Objective::Type::FREQUENCY_OUTPUT, original_id), collection(collection) {
+FrequencyOutput::FrequencyOutput(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, shared_ptr<Reference<NamedValue>> collection, int original_id) :
+        Output(model, objectiveset, Objective::Type::FREQUENCY_OUTPUT, original_id), collection(collection) {
 }
 
 std::shared_ptr<NamedValue> FrequencyOutput::getCollection() const {

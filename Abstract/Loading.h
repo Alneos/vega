@@ -49,7 +49,7 @@ public:
 	};
 protected:
 	Model& model;
-	Loading(Model&, const std::shared_ptr<LoadSet> loadset, Loading::Type, const int original_id =
+	Loading(Model&, const std::shared_ptr<LoadSet>, Loading::Type, const int original_id =
 			NO_ORIGINAL_ID, const Reference<CoordinateSystem> csref = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM);
 public:
 	const Type type;

@@ -21,6 +21,7 @@ namespace vega {
 
 constexpr int LoadSet::COMMON_SET_ID; // required for C++11
 constexpr int ConstraintSet::COMMON_SET_ID; // required for C++11
+constexpr int ObjectiveSet::COMMON_SET_ID; // required for C++11
 
 Model::Model(string name, string inputSolverVersion, SolverName inputSolver,
         const ModelConfiguration configuration, const vega::ConfigurationParameters::TranslationMode translationMode) :
@@ -30,7 +31,8 @@ Model::Model(string name, string inputSolverVersion, SolverName inputSolver,
         mesh{configuration.logLevel, name},
         configuration(configuration), translationMode(translationMode), //
         commonLoadSet(make_shared<LoadSet>(*this, LoadSet::Type::ALL, LoadSet::COMMON_SET_ID)), //
-		commonConstraintSet(make_shared<ConstraintSet>(*this, ConstraintSet::Type::ALL, ConstraintSet::COMMON_SET_ID)) {
+		commonConstraintSet(make_shared<ConstraintSet>(*this, ConstraintSet::Type::ALL, ConstraintSet::COMMON_SET_ID)), //
+        commonObjectiveSet(make_shared<ObjectiveSet>(*this, ObjectiveSet::Type::ALL, ObjectiveSet::COMMON_SET_ID)) { //
     //this->mesh = make_shared<Mesh>(configuration.logLevel, name);
     this->finished = false;
     this->onlyMesh = false;
@@ -83,6 +85,13 @@ void Model::add(const shared_ptr<Objective>& objective) {
         cout << "Adding " << *objective << endl;
     }
     objectives.add(objective);
+}
+
+void Model::add(const shared_ptr<ObjectiveSet>& objectiveSet) {
+    if (configuration.logLevel >= LogLevel::TRACE) {
+        cout << "Adding " << *objectiveSet << endl;
+    }
+    objectiveSets.add(objectiveSet);
 }
 
 void Model::add(const shared_ptr<NamedValue>& value) {
@@ -234,11 +243,12 @@ void Model::remove(const Reference<Loading> loadingReference) {
 
 template<>
 void Model::remove(const Reference<LoadSet> loadSetReference) {
-    shared_ptr<LoadSet> loadSet = loadSets.find(loadSetReference);
     for (const auto& analysis : analyses) {
         if (analysis->contains(loadSetReference)) {
-            if (configuration.logLevel >= LogLevel::TRACE)
+            if (configuration.logLevel >= LogLevel::TRACE) {
+                const auto& loadSet = loadSets.find(loadSetReference);
                 cout << "Disassociating empty " << *loadSet << " from " << *analysis << endl;
+            }
             analysis->remove(loadSetReference);
         }
     }
@@ -247,11 +257,12 @@ void Model::remove(const Reference<LoadSet> loadSetReference) {
 
 template<>
 void Model::remove(const Reference<ConstraintSet> constraintSetReference) {
-    shared_ptr<ConstraintSet> constraintSet = constraintSets.find(constraintSetReference);
     for (const auto& analysis : analyses) {
         if (analysis->contains(constraintSetReference)) {
-            if (configuration.logLevel >= LogLevel::TRACE)
+            if (configuration.logLevel >= LogLevel::TRACE) {
+                const auto& constraintSet = constraintSets.find(constraintSetReference);
                 cout << "Disassociating empty " << *constraintSet << " from " << *analysis << endl;
+            }
             analysis->remove(constraintSetReference);
         }
     }
@@ -259,16 +270,37 @@ void Model::remove(const Reference<ConstraintSet> constraintSetReference) {
 }
 
 template<>
+void Model::remove(const Reference<ObjectiveSet> objectiveSetReference) {
+    for (const auto& analysis : analyses) {
+        if (analysis->contains(objectiveSetReference)) {
+            if (configuration.logLevel >= LogLevel::TRACE) {
+                const auto& objectiveSet = objectiveSets.find(objectiveSetReference);
+                cout << "Disassociating empty " << *objectiveSet << " from " << *analysis << endl;
+            }
+            analysis->remove(objectiveSetReference);
+        }
+    }
+    objectiveSets.erase(objectiveSetReference);
+}
+
+template<>
 void Model::remove(const Reference<Objective> objectiveReference) {
-    shared_ptr<Objective> objective = objectives.find(objectiveReference);
-    if (objective && objective->isAssertion()) {
-        for (const auto& analysis : analyses) {
-            if (analysis->contains(objectiveReference)) {
-                if (configuration.logLevel >= LogLevel::TRACE) {
-                    cout << "Disassociating dangling " << *objective << " from  " << *analysis
-                            << endl;
+    for (const auto& it : objectiveReferences_by_objectiveSet_ids) {
+        for (const auto& it2 : it.second) {
+            if (it2 == objectiveReference) {
+                objectiveReferences_by_objectiveSet_ids[it.first].erase(it2);
+                break; // iterator is invalid now
+            }
+        }
+    }
+    for (const auto& it : objectiveReferences_by_objectiveSet_original_ids_by_objectiveSet_type) {
+        for (const auto& it2 : it.second) {
+            for (const auto& it3 : it2.second) {
+                if (it3 == objectiveReference) {
+                    objectiveReferences_by_objectiveSet_original_ids_by_objectiveSet_type[it.first][it2.first].erase(
+                            it3);
+                            break; // iterator is invalid now
                 }
-                analysis->remove(objectiveReference);
             }
         }
     }
@@ -278,6 +310,11 @@ void Model::remove(const Reference<Objective> objectiveReference) {
 template<>
 shared_ptr<Objective> Model::find(const Reference<Objective> reference) const {
     return objectives.find(reference);
+}
+
+template<>
+shared_ptr<ObjectiveSet> Model::find(const Reference<ObjectiveSet> reference) const {
+    return objectiveSets.find(reference);
 }
 
 template<>
@@ -353,6 +390,20 @@ void Model::addLoadingIntoLoadSet(const Reference<Loading>& loadingReference,
     }
 }
 
+void Model::addObjectiveIntoObjectiveSet(const Reference<Objective>& objectiveReference,
+        const Reference<ObjectiveSet>& objectiveSetReference) {
+    if (objectiveReference.has_id())
+        objectiveReferences_by_objectiveSet_ids[objectiveSetReference.id].insert(objectiveReference);
+    if (objectiveReference.has_original_id())
+        objectiveReferences_by_objectiveSet_original_ids_by_objectiveSet_type[objectiveSetReference.type][objectiveSetReference.original_id].insert(
+                objectiveReference);
+    if (objectiveSetReference == commonObjectiveSet->getReference() && find(commonObjectiveSet->getReference()) == nullptr)
+        add(commonObjectiveSet); // commonObjectiveSet is added to the model if needed
+    if (this->find(objectiveSetReference) == nullptr) {
+        const auto& objectiveSet = make_shared<ObjectiveSet>(*this, objectiveSetReference.type, objectiveSetReference.original_id);
+        this->add(objectiveSet);
+    }
+}
 
 shared_ptr<LoadSet> Model::getOrCreateLoadSet(int loadset_id, LoadSet::Type loadset_type){
 
@@ -366,6 +417,17 @@ shared_ptr<LoadSet> Model::getOrCreateLoadSet(int loadset_id, LoadSet::Type load
     return loadSetPtr;
 }
 
+shared_ptr<ObjectiveSet> Model::getOrCreateObjectiveSet(int objectiveset_id, ObjectiveSet::Type objectiveset_type){
+
+    Reference<ObjectiveSet> objectiveSetReference(objectiveset_type, objectiveset_id);
+    shared_ptr<ObjectiveSet> objectiveSetPtr = this->find(objectiveSetReference);
+    if (objectiveSetPtr == nullptr){
+        ObjectiveSet objectiveSet(*this, objectiveset_type, objectiveset_id);
+        objectiveSetPtr = objectiveSet.clone();
+        this->objectiveSets.add(objectiveSetPtr);
+    }
+    return objectiveSetPtr;
+}
 
 set<shared_ptr<Loading>, ptrLess<Loading>> Model::getLoadingsByLoadSet(
         const Reference<LoadSet>& loadSetReference) const {
@@ -1084,7 +1146,7 @@ void Model::removeAssertionsMissingDOFS()
         if (configuration.logLevel >= LogLevel::TRACE)
             cout << "Removed ineffective " << *objective << endl;
 
-        remove(Reference<Objective>(*objective));
+        remove(objective->getReference());
     }
 }
 
@@ -1941,19 +2003,14 @@ void Model::makeBoundarySurfaces() {
 }
 
 void Model::addAutoAnalysis() {
-    bool linearStatic = true;
     // LD very basic implementation of analysis detection. Should also look for non linear materials etc ?
-    for(const auto& nonLinearStrategy : objectives.filter(Objective::Type::NONLINEAR_STRATEGY)) {
-        const auto& analysis = make_shared<NonLinearMecaStat>(*this, nonLinearStrategy->getOriginalId());
+    if (objectives.contains(Objective::Type::NONLINEAR_PARAMETERS)) {
+        const auto& analysis = make_shared<NonLinearMecaStat>(*this, this->commonObjectiveSet);
         this->add(analysis);
-        linearStatic = false;
-    }
-    for(const auto& modalStrategy : objectives.filter(Objective::Type::FREQUENCY_SEARCH)) {
-        const auto& analysis = make_shared<LinearModal>(*this, *modalStrategy);
+    } else if (objectives.contains(Objective::Type::FREQUENCY_SEARCH)) {
+        const auto& analysis = make_shared<LinearModal>(*this, this->commonObjectiveSet);
         this->add(analysis);
-        linearStatic = false;
-    }
-    if (linearStatic) {
+    } else {
         const auto& analysis = make_shared<LinearMecaStat>(*this);
         this->add(analysis);
     }

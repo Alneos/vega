@@ -121,18 +121,19 @@ struct CsvGrammar: qi::grammar<stream_iterator_type, void(), qi::locals<vector<L
 		UNUSEDV(num_step);
 		i = 0;
 		assert(result_number != -1);
+		const auto& objectiveSet = model.getOrCreateObjectiveSet(result_number, ObjectiveSet::Type::ASSERTION);
 		shared_ptr<Analysis> analysis = model.analyses.find(result_number);
+		if (analysis != nullptr) {
+            analysis->add(objectiveSet);
+		}
 		for (LineItems position : positions) {
 			auto it = dofPosition_by_lineItemEnum.find(position);
 			if (it != dofPosition_by_lineItemEnum.end()) {
 				double value = atof(columns[i].c_str());
 				assert(nodeId != Node::UNAVAILABLE_NODE);
-				const auto& nda = make_shared<NodalDisplacementAssertion>(model, configuration.testTolerance, nodeId,
+				const auto& nda = make_shared<NodalDisplacementAssertion>(model, objectiveSet, configuration.testTolerance, nodeId,
 						DOF::findByPosition(it->second), value, time);
 				model.add(nda);
-				if (analysis) {
-					analysis->add(*nda);
-				}
 			}
 			i++;
 		}

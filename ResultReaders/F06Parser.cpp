@@ -33,7 +33,7 @@ namespace result {
 using boost::algorithm::trim;
 using boost::algorithm::trim_copy;
 
-int F06Parser::readDisplacementSection(Model& model,
+int F06Parser::readDisplacementSection(int currentSubCase, Model& model,
 		const ConfigurationParameters& configuration, ifstream& istream,
 		vector<shared_ptr<Assertion>>& assertions, double loadStep) {
 	string header;
@@ -72,6 +72,12 @@ int F06Parser::readDisplacementSection(Model& model,
 					//		<< endl;
 					continue;
 				}
+				shared_ptr<ObjectiveSet> objectiveSet = nullptr;
+				if (currentSubCase == NO_SUBCASE) {
+                    objectiveSet = model.commonObjectiveSet;
+				} else {
+                    objectiveSet = model.getOrCreateObjectiveSet(currentSubCase, ObjectiveSet::Type::ASSERTION);
+				}
 				VectorialValue translation(stod(tokens[2]), stod(tokens[3]), stod(tokens[4]));
 				VectorialValue rotation(stod(tokens[5]), stod(tokens[6]), stod(tokens[7]));
 
@@ -90,7 +96,7 @@ int F06Parser::readDisplacementSection(Model& model,
 					double value = values[i];
 					if (abs(value) < 1e-12)
 						value = 0.;
-					assertions.push_back(make_shared<NodalDisplacementAssertion>(model, configuration.testTolerance,
+					assertions.push_back(make_shared<NodalDisplacementAssertion>(model, objectiveSet, configuration.testTolerance,
 									nodeId, DOF::findByPosition(i), value, loadStep));
 				}
 
@@ -112,7 +118,7 @@ int F06Parser::readDisplacementSection(Model& model,
 	return subcase_id /* It could have consumed the next subcase id so we give it back for the next section parsing */;
 }
 
-int F06Parser::readEigenvalueSection(Model& model,
+int F06Parser::readEigenvalueSection(int currentSubCase, Model& model,
 		const ConfigurationParameters& configuration, ifstream& istream,
 		vector<shared_ptr<Assertion>>& assertions) {
 	string currentLine;
@@ -158,8 +164,14 @@ int F06Parser::readEigenvalueSection(Model& model,
 			double generalizedStiffness = stod(tokens.at(6));
 			if (abs(cycles) < 1e-12)
 				cycles = 0.;
+            shared_ptr<ObjectiveSet> objectiveSet = nullptr;
+            if (currentSubCase == NO_SUBCASE) {
+                    objectiveSet = model.commonObjectiveSet;
+            } else {
+                    objectiveSet = model.getOrCreateObjectiveSet(currentSubCase, ObjectiveSet::Type::ASSERTION);
+            }
 			assertions.push_back(
-					make_shared<FrequencyAssertion>(model, number, cycles, eigenValue, generalizedMass, generalizedStiffness, configuration.testTolerance));
+					make_shared<FrequencyAssertion>(model, objectiveSet, number, cycles, eigenValue, generalizedMass, generalizedStiffness, configuration.testTolerance));
 		}
 	} catch (const exception &e) {
 		string message("Error ");
@@ -177,7 +189,7 @@ int F06Parser::readEigenvalueSection(Model& model,
 	return subcase_id /* It could have consumed the next subcase id so we give it back for the next section parsing */;
 }
 
-int F06Parser::readComplexDisplacementSection(Model& model,
+int F06Parser::readComplexDisplacementSection(int currentSubCase, Model& model,
 		const ConfigurationParameters& configuration, ifstream& istream,
 		vector<shared_ptr<Assertion>>& assertions, double frequency) {
 	string currentLine;
@@ -214,7 +226,12 @@ int F06Parser::readComplexDisplacementSection(Model& model,
 				throw exception();
 
 			int nodeId = stoi(tokens[1]);
-
+			shared_ptr<ObjectiveSet> objectiveSet = nullptr;
+            if (currentSubCase == NO_SUBCASE) {
+                objectiveSet = model.commonObjectiveSet;
+            } else {
+                objectiveSet = model.getOrCreateObjectiveSet(currentSubCase, ObjectiveSet::Type::ASSERTION);
+            }
 			for (dof_int i = 0; i < 6; i++) {
 				double real = stod(tokens[3 + i]);
 				if (abs(real) < 1e-12)
@@ -225,7 +242,7 @@ int F06Parser::readComplexDisplacementSection(Model& model,
 				complex<double> value(real, imag);
 
 				assertions.push_back(
-						make_shared<NodalComplexDisplacementAssertion>(model, configuration.testTolerance,
+						make_shared<NodalComplexDisplacementAssertion>(model, objectiveSet, configuration.testTolerance,
 								nodeId, DOF::findByPosition(i), value, frequency));
 			}
 		}
@@ -309,8 +326,14 @@ int F06Parser::readStressesForSolidsSection(int currentSubCase, Model& model,
                             back_inserter(tokens));
                     int nodeId = stoi(tokens[1]);
                     double vonMises = stod(tokens[tokens.size() - 1] /* sometimes smaller values have (or not) spaces between them, should cut using columns */);
+                    shared_ptr<ObjectiveSet> objectiveSet = nullptr;
+                    if (currentSubCase == NO_SUBCASE) {
+                        objectiveSet = model.commonObjectiveSet;
+                    } else {
+                        objectiveSet = model.getOrCreateObjectiveSet(currentSubCase, ObjectiveSet::Type::ASSERTION);
+                    }
                     assertions.push_back(
-                            make_shared<NodalCellVonMisesAssertion>(model, configuration.testTolerance, cellId,
+                            make_shared<NodalCellVonMisesAssertion>(model, objectiveSet, configuration.testTolerance, cellId,
                                     nodeId, vonMises));
                     if (configuration.outputSolver.getSolverName() == SolverName::CODE_ASTER) {
                         // Workaround to avoid MAILLE in COMM file
@@ -344,10 +367,11 @@ int F06Parser::addAssertionsToModel(int currentSubcase, double loadStep, Model &
 		const ConfigurationParameters& configuration, ifstream& istream) {
 
 	vector<shared_ptr<Assertion>> assertions;
-	int nextSubcase = readDisplacementSection(model, configuration, istream, assertions, loadStep);
+	int nextSubcase = readDisplacementSection(currentSubcase,model, configuration, istream, assertions, loadStep);
 	shared_ptr<Analysis> analysis;
 	if (currentSubcase != NO_SUBCASE) {
 		analysis = model.analyses.find(currentSubcase);
+		analysis->add(Reference<ObjectiveSet>{ObjectiveSet::Type::ASSERTION, currentSubcase});
 		if (analysis == nullptr and model.configuration.logLevel >= LogLevel::INFO) {
 			cout << "Could not find subcase : " << currentSubcase << " in model." << endl;
 		}
@@ -358,7 +382,6 @@ int F06Parser::addAssertionsToModel(int currentSubcase, double loadStep, Model &
 	for (const auto& assertion : assertions) {
 		if (analysis != nullptr) {
 			model.add(assertion);
-			analysis->add(assertion->getReference());
 			if (model.configuration.logLevel >= LogLevel::TRACE) {
 				cout << "Adding NodalDisplacementAssertion : " << *assertion << " to subcase: "
 						<< currentSubcase << endl;
@@ -374,10 +397,11 @@ int F06Parser::addAssertionsToModel(int currentSubcase, double loadStep, Model &
 int F06Parser::addFrequencyAssertionsToModel(int currentSubCase, Model& model,
 		const ConfigurationParameters& configuration, ifstream& istream) {
 	vector<shared_ptr<Assertion>> assertions;
-	int nextSubcase = readEigenvalueSection(model, configuration, istream, assertions);
+	int nextSubcase = readEigenvalueSection(currentSubCase, model, configuration, istream, assertions);
 	shared_ptr<Analysis> analysis;
 	if (currentSubCase != NO_SUBCASE) {
 		analysis = model.analyses.find(currentSubCase);
+		analysis->add(Reference<ObjectiveSet>{ObjectiveSet::Type::ASSERTION, currentSubCase});
 		if (analysis == nullptr and model.configuration.logLevel >= LogLevel::INFO) {
 			cout << "Could not find subcase : " << currentSubCase << " in model." << endl;
 		}
@@ -393,7 +417,6 @@ int F06Parser::addFrequencyAssertionsToModel(int currentSubCase, Model& model,
 	for (const auto& assertion : assertions) {
 		if (analysis != nullptr) {
 			model.add(assertion);
-			analysis->add(Reference<Objective>(*assertion));
 			if (model.configuration.logLevel >= LogLevel::TRACE) {
 				cout << "Adding FrequencyAssertion : " << *assertion << " to subcase: "
 						<< currentSubCase << endl;
@@ -409,11 +432,12 @@ int F06Parser::addFrequencyAssertionsToModel(int currentSubCase, Model& model,
 int F06Parser::addComplexAssertionsToModel(int currentSubCase, double frequency, Model& model,
 		const ConfigurationParameters& configuration, ifstream& istream) {
 	vector<shared_ptr<Assertion>> assertions;
-	int nextSubcase = readComplexDisplacementSection(model, configuration, istream, assertions,
+	int nextSubcase = readComplexDisplacementSection(currentSubCase, model, configuration, istream, assertions,
 			frequency);
 	shared_ptr<Analysis> analysis;
 	if (currentSubCase != NO_SUBCASE) {
 		analysis = model.analyses.find(currentSubCase);
+		analysis->add(Reference<ObjectiveSet>{ObjectiveSet::Type::ASSERTION, currentSubCase});
 		if (analysis == nullptr and model.configuration.logLevel >= LogLevel::INFO) {
 			cout << "Could not find subcase : " << currentSubCase << " in model." << endl;
 		}
@@ -426,7 +450,6 @@ int F06Parser::addComplexAssertionsToModel(int currentSubCase, double frequency,
 	for (const auto& assertion : assertions) {
 		if (analysis != nullptr) {
 			model.add(assertion);
-			analysis->add(assertion->getReference());
 			if (model.configuration.logLevel >= LogLevel::TRACE) {
 				cout << "Adding Complex Displacement Assertion : " << *assertion << " to subcase: "
 						<< currentSubCase << endl;
@@ -447,6 +470,7 @@ int F06Parser::addVonMisesAssertionsToModel(int currentSubcase, Model &model,
 	shared_ptr<Analysis> analysis;
 	if (currentSubcase != NO_SUBCASE) {
 		analysis = model.analyses.find(currentSubcase);
+		analysis->add(Reference<ObjectiveSet>{ObjectiveSet::Type::ASSERTION, currentSubcase});
 		if (analysis == nullptr and model.configuration.logLevel >= LogLevel::INFO) {
 			cout << "Could not find subcase : " << currentSubcase << " in model." << endl;
 		}
@@ -457,7 +481,6 @@ int F06Parser::addVonMisesAssertionsToModel(int currentSubcase, Model &model,
 	for (const auto& assertion : assertions) {
 		if (analysis != nullptr) {
 			model.add(assertion);
-			analysis->add(assertion->getReference());
 			if (model.configuration.logLevel >= LogLevel::TRACE) {
 				cout << "Adding VonMisesAssertion : " << *assertion << " to subcase: "
 						<< currentSubcase << endl;

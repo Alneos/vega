@@ -66,7 +66,7 @@ public:
 protected:
     std::set<Reference<LoadSet>>loadSet_references;
     std::set<Reference<ConstraintSet>> constraintSet_references;
-    std::set<Reference<Objective>> objectiveReferences;
+    std::set<Reference<ObjectiveSet>> objectiveSet_references;
     std::map<ModelParameter, std::string> parameters;
     Analysis(Model& model, const Type Type, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     Analysis(const Analysis& that) = delete;
@@ -81,19 +81,20 @@ public:
 
     void add(const Reference<LoadSet>&);
     void add(const Reference<ConstraintSet>&);
-    void add(const Reference<Objective>&);
+    void add(const Reference<ObjectiveSet>&);
 
     bool contains(const Reference<LoadSet>) const noexcept;
     bool contains(const Reference<ConstraintSet>) const noexcept;
-    bool contains(const Reference<Objective>) const noexcept;
+    bool contains(const Reference<ObjectiveSet>) const noexcept;
 
     bool contains(const LoadSet::Type) const noexcept;
     bool contains(const ConstraintSet::Type) const noexcept;
+    bool contains(const ObjectiveSet::Type) const noexcept;
     bool contains(const Objective::Type) const noexcept;
 
     void remove(const Reference<LoadSet>);
     void remove(const Reference<ConstraintSet>);
-    void remove(const Reference<Objective>);
+    void remove(const Reference<ObjectiveSet>);
 
     void setParameter(const ModelParameter& parameter, const std::string& value) noexcept;
 
@@ -112,6 +113,8 @@ public:
      * plus eventually the common ConstraintSet of all analyzes of the model
      */
     std::vector<std::shared_ptr<ConstraintSet>> getConstraintSets() const noexcept;
+
+    std::vector<std::shared_ptr<ObjectiveSet>> getObjectiveSets() const noexcept;
 
     /**
      * retrieve the LoadSets specific to this analysis
@@ -197,9 +200,9 @@ public:
 
 class NonLinearMecaStat: public Analysis {
 public:
-    Reference<Objective> strategy_reference;
-    NonLinearMecaStat(Model& model, const NonLinearStrategy& strategy, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
-    NonLinearMecaStat(Model& model, const int strategy_original_id, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
+    Reference<ObjectiveSet> strategy_reference;
+    NonLinearMecaStat(Model& model, const Reference<ObjectiveSet>&, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
+    //NonLinearMecaStat(Model& model, const int strategy_original_id, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     bool isStatic() const noexcept override {
         return true;
     }
@@ -208,10 +211,10 @@ public:
 
 class LinearModal: public Analysis {
 protected:
-    Reference<Objective> frequencySearchRef;
+    Reference<ObjectiveSet> frequencySearchRef;
 public:
-    LinearModal(Model&, const Reference<Objective>&, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID, const Type type = Type::LINEAR_MODAL);
-    LinearModal(Model&, const int frequency_band_original_id, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID, const Type type = Type::LINEAR_MODAL);
+    LinearModal(Model&, const Reference<ObjectiveSet>&, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID, const Type type = Type::LINEAR_MODAL);
+    //LinearModal(Model&, const int frequency_band_original_id, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID, const Type type = Type::LINEAR_MODAL);
     std::shared_ptr<FrequencySearch> getFrequencySearch() const noexcept;
     bool use_power_iteration = false;
     bool validate() const override;
@@ -225,7 +228,7 @@ public:
 
 class LinearBuckling: public LinearModal {
 public:
-    LinearBuckling(Model&, const Reference<Objective>&, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
+    LinearBuckling(Model&, const Reference<ObjectiveSet>&, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     bool isBuckling() const noexcept override {
         return true;
     }
@@ -240,13 +243,17 @@ public:
  */
 class LinearDynaModalFreq: public LinearModal {
 protected:
-    Reference<Objective> modal_damping_reference;
-    Reference<Objective> frequencyExcitationRef;
+    Reference<ObjectiveSet> modal_damping_reference;
+    Reference<ObjectiveSet> frequencyExcitationRef;
 public:
-    LinearDynaModalFreq(Model& model, const int frequency_band_original_id,
-            const int modal_damping_original_id, const int frequency_value_original_id,
+    LinearDynaModalFreq(Model&, const Reference<ObjectiveSet>& frequencySearch,
+            const Reference<ObjectiveSet>& modalDamping, const Reference<ObjectiveSet>& frequencyExcit,
             const bool residual_vector = false,
             const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
+//    LinearDynaModalFreq(Model&, const int frequency_band_original_id,
+//            const int modal_damping_original_id, const int frequency_value_original_id,
+//            const bool residual_vector = false,
+//            const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     const bool residual_vector;
     std::shared_ptr<ModalDamping> getModalDamping() const;
     std::shared_ptr<FrequencyExcit> getExcitationFrequencies() const;
@@ -260,11 +267,14 @@ public:
  */
 class LinearDynaDirectFreq: public Analysis {
 protected:
-    Reference<Objective> frequencyExcitationRef;
+    Reference<ObjectiveSet> frequencyExcitationRef;
 public:
-    LinearDynaDirectFreq(Model& model,
-            const int frequency_value_original_id,
+    LinearDynaDirectFreq(Model&,
+            const Reference<ObjectiveSet>& frequencyExcit,
             const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
+//    LinearDynaDirectFreq(Model& model,
+//            const int frequency_value_original_id,
+//            const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     std::shared_ptr<FrequencyExcit> getExcitationFrequencies() const;
     bool validate() const override;
 };

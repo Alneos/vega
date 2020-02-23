@@ -148,7 +148,7 @@ BOOST_AUTO_TEST_CASE(test_4a) {
 
 	shared_ptr<LinearMecaStat> linearMecaStat1 = dynamic_pointer_cast<LinearMecaStat>(
 			model->find(Reference<Analysis>(Analysis::Type::LINEAR_MECA_STAT, 1)));
-	BOOST_ASSERT(linearMecaStat1!=nullptr);
+	BOOST_ASSERT(linearMecaStat1 != nullptr);
 	//before finish() in the model are present all the assertion found in the f06 file
 	vector<shared_ptr<Assertion>> all_assertions = linearMecaStat1->getAssertions();
 	BOOST_CHECK_EQUAL(all_assertions.size(), 54);
@@ -199,10 +199,10 @@ BOOST_AUTO_TEST_CASE(test_modal_disp) {
 	discrete->add(*cn2);
 	model->add(discrete);
     const auto& bandRange = make_shared<BandRange>(*model, 0.0, 10, 1000);
-    const auto& frequencySearch = make_shared<FrequencySearch>(*model, FrequencySearch::FrequencyType::BAND, *bandRange);
+    const auto& frequencySearch = make_shared<FrequencySearch>(*model, model->commonObjectiveSet, FrequencySearch::FrequencyType::BAND, *bandRange);
     model->add(bandRange);
     model->add(frequencySearch);
-	model->add(make_shared<LinearModal>(*model, *frequencySearch, "", 1));
+	model->add(make_shared<LinearModal>(*model, model->commonObjectiveSet, "", 1));
 	model->add(make_shared<LinearMecaStat>(*model, "", 2));
 
 	BOOST_TEST_CHECKPOINT("Before Parse");

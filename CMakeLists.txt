@@ -170,6 +170,11 @@ if(COMPILER_SUPPORTS_OVERLOADED_VIRTUAL)
   add_compile_options(-Woverloaded-virtual)
 endif()
 
+#CHECK_CXX_COMPILER_FLAG(-fsanitize=null COMPILER_SUPPORTS_SANITIZE_NULL)
+#if(COMPILER_SUPPORTS_SANITIZE_NULL)
+#  add_compile_options(-fsanitize=null)
+#endif()
+
 # boost variant constructor uses this see ValueOrReference
 #CHECK_CXX_COMPILER_FLAG(-Wzero-as-null-pointer-constant COMPILER_SUPPORTS_ZERO_AS_NULL_POINTER_CONSTANT)
 #if(COMPILER_SUPPORTS_ZERO_AS_NULL_POINTER_CONSTANT)

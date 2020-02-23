@@ -37,6 +37,7 @@
 namespace vega {
 
 class Model;
+class ObjectiveSet;
 
 class Objective: public Identifiable<Objective> {
 private:
@@ -50,7 +51,7 @@ public:
         FREQUENCY_SEARCH,
         FREQUENCY_EXCIT,
         MODAL_DAMPING,
-        NONLINEAR_STRATEGY,
+        NONLINEAR_PARAMETERS,
         ARC_LENGTH_METHOD,
         NODAL_DISPLACEMENT_OUTPUT,
         VONMISES_STRESS_OUTPUT,
@@ -63,8 +64,9 @@ public:
     const Type type;
     static const std::string name;
     static const std::map<Type, std::string> stringByType;
+    const std::shared_ptr<ObjectiveSet> objectiveset;
 protected:
-    Objective(Model&, Objective::Type, int original_id = NO_ORIGINAL_ID);
+    Objective(Model&, const std::shared_ptr<ObjectiveSet>, Objective::Type, int original_id = NO_ORIGINAL_ID);
     Objective(const Objective& that) = delete;
 public:
     virtual ~Objective() = default;
@@ -85,10 +87,18 @@ class ObjectiveSet final: public Identifiable<ObjectiveSet> {
 	friend std::ostream &operator<<(std::ostream&, const ObjectiveSet&);
 public:
 	enum class Type {
-		FREQ
+	    DISP,
+		FREQ,
+		METHOD,
+		OFREQ,
+		STRESS,
+		SDAMP,
+		NONLINEAR_STRATEGY,
+		ASSERTION,
+		ALL
 	};
 	ObjectiveSet(Model&, Type type, int original_id = NO_ORIGINAL_ID);
-    ObjectiveSet(const ObjectiveSet& that) = delete;
+	ObjectiveSet(Model&, const Reference<ObjectiveSet>& objectiveSetRef);
 	static constexpr int COMMON_SET_ID = 0;
 	const Type type;
 	static const std::string name;
@@ -98,12 +108,12 @@ public:
 	std::set<std::shared_ptr<Objective>, ptrLess<Objective>> getObjectivesByType(Objective::Type) const;
 	size_t size() const;
 	inline bool empty() const noexcept {return size() == 0;};
-	std::shared_ptr<ObjectiveSet> clone() const;
+	std::unique_ptr<ObjectiveSet> clone() const;
 };
 
 class Assertion: public Objective {
 protected:
-    Assertion(Model&, Type, double tolerance, int original_id = NO_ORIGINAL_ID);
+    Assertion(Model&, const std::shared_ptr<ObjectiveSet>, Type, double tolerance, int original_id = NO_ORIGINAL_ID);
 public:
     const double tolerance;
     virtual DOFS getDOFSForNode(const int nodePosition) const = 0;
@@ -115,7 +125,7 @@ public:
 
 class NodalAssertion: public Assertion {
 protected:
-    NodalAssertion(Model&, Type, double tolerance, int nodeId, DOF dof,
+    NodalAssertion(Model&, const std::shared_ptr<ObjectiveSet>, Type, double tolerance, int nodeId, DOF dof,
             int original_id = NO_ORIGINAL_ID);
 public:
     const int nodePosition;
@@ -129,7 +139,7 @@ class NodalDisplacementAssertion: public NodalAssertion {
 public:
     const double value;
     const double instant = -1;
-    NodalDisplacementAssertion(Model&, double tolerance, int nodeId, DOF dof,
+    NodalDisplacementAssertion(Model&, const std::shared_ptr<ObjectiveSet>, double tolerance, int nodeId, DOF dof,
             double value, double instant, int original_id = NO_ORIGINAL_ID);
     friend std::ostream& operator<<(std::ostream&, const NodalDisplacementAssertion&);
 };
@@ -138,7 +148,7 @@ class NodalComplexDisplacementAssertion: public NodalAssertion {
 public:
     const std::complex<double> value;
     const double frequency = -1;
-    NodalComplexDisplacementAssertion(Model&, double tolerance, int nodeId, DOF dof,
+    NodalComplexDisplacementAssertion(Model&, const std::shared_ptr<ObjectiveSet>, double tolerance, int nodeId, DOF dof,
             std::complex<double> value, double frequency, int original_id = NO_ORIGINAL_ID);
     friend std::ostream& operator<<(std::ostream&, const NodalComplexDisplacementAssertion&);
 };
@@ -151,7 +161,7 @@ public:
     const double eigenValue;
     const double generalizedMass;
     const double generalizedStiffness;
-    FrequencyAssertion(Model&, int number, double cycles, double eigenValue, double generalizedMass, double generalizedStiffness, double tolerance, int original_id =
+    FrequencyAssertion(Model&, const std::shared_ptr<ObjectiveSet>, int number, double cycles, double eigenValue, double generalizedMass, double generalizedStiffness, double tolerance, int original_id =
             NO_ORIGINAL_ID);
     DOFS getDOFSForNode(const int nodePosition) const override final;
     std::set<int> nodePositions() const override final;
@@ -166,7 +176,7 @@ public:
     const int cellPosition;
     const int cellId;
     const double value;
-    NodalCellVonMisesAssertion(Model&, double tolerance, int cellId, int nodeId, double value, int original_id =
+    NodalCellVonMisesAssertion(Model&, const std::shared_ptr<ObjectiveSet>, double tolerance, int cellId, int nodeId, double value, int original_id =
             NO_ORIGINAL_ID);
     DOFS getDOFSForNode(const int nodePosition) const override final;
     std::set<int> nodePositions() const override final;
@@ -175,7 +185,7 @@ public:
 
 class AnalysisParameter: public Objective {
 public:
-    AnalysisParameter(Model&, Type type, int original_id = NO_ORIGINAL_ID);
+    AnalysisParameter(Model&, const std::shared_ptr<ObjectiveSet>, Type type, int original_id = NO_ORIGINAL_ID);
 };
 
 class FrequencySearch: public AnalysisParameter {
@@ -193,7 +203,7 @@ public:
         MASS,
         MAX
     };
-    FrequencySearch(Model&, const FrequencyType frequencyType, const NamedValue&, const NormType norm = NormType::MASS, int original_id = NO_ORIGINAL_ID);
+    FrequencySearch(Model&, const std::shared_ptr<ObjectiveSet>, const FrequencyType frequencyType, const NamedValue&, const NormType norm = NormType::MASS, int original_id = NO_ORIGINAL_ID);
     const FrequencyType frequencyType;
     const NormType norm;  /**< Method for normalizing eigenvectors: MASS or MAX **/
     std::shared_ptr<NamedValue> getValue() const;
@@ -217,7 +227,7 @@ public:
         MASS,
         MAX
     };
-    FrequencyExcit(Model&, const FrequencyType frequencyType, const NamedValue&, const NormType norm = NormType::MASS, int original_id = NO_ORIGINAL_ID);
+    FrequencyExcit(Model&, const std::shared_ptr<ObjectiveSet>, const FrequencyType frequencyType, const NamedValue&, const NormType norm = NormType::MASS, int original_id = NO_ORIGINAL_ID);
     const FrequencyType frequencyType;
     double spread = 0.0;
     const NormType norm;  /**< Method for normalizing eigenvectors: MASS or MAX **/
@@ -236,9 +246,9 @@ public:
     };
     std::shared_ptr<Value> function = nullptr;
     DampingType dampingType;
-    ModalDamping(Model& model, const FunctionTable& function_table, const DampingType dampingType, int original_id =
+    ModalDamping(Model& model, const std::shared_ptr<ObjectiveSet>, const FunctionTable& function_table, const DampingType dampingType, int original_id =
             NO_ORIGINAL_ID);
-    ModalDamping(Model& model, int function_table_id, const DampingType dampingType, int original_id = NO_ORIGINAL_ID);
+    ModalDamping(Model& model, const std::shared_ptr<ObjectiveSet>, int function_table_id, const DampingType dampingType, int original_id = NO_ORIGINAL_ID);
     std::shared_ptr<FunctionTable> getFunctionTable() const;
     FunctionPlaceHolder getFunctionTablePlaceHolder() const;
 };
@@ -246,19 +256,19 @@ public:
 class NonLinearStrategy: public AnalysisParameter {
 public:
     const int number_of_increments;
-    NonLinearStrategy(Model& model, const int number_of_increments, int original_id =
+    NonLinearStrategy(Model& model, const std::shared_ptr<ObjectiveSet>, const int number_of_increments, int original_id =
             NO_ORIGINAL_ID);
 };
 
 class ArcLengthMethod: public AnalysisParameter {
 public:
-    ArcLengthMethod(Model& model, const Reference<Objective>& strategy_reference, int original_id = NO_ORIGINAL_ID);
+    ArcLengthMethod(Model& model, const std::shared_ptr<ObjectiveSet>, const Reference<Objective>& strategy_reference, int original_id = NO_ORIGINAL_ID);
     const Reference<Objective>& strategy_reference;
 };
 
 class Output: public Objective {
 protected:
-    Output(Model&, Type, int original_id = NO_ORIGINAL_ID);
+    Output(Model&, const std::shared_ptr<ObjectiveSet>, Type, int original_id = NO_ORIGINAL_ID);
 public:
     bool isOutput() const override {
         return true;
@@ -273,7 +283,7 @@ public:
         REAL_IMAGINARY,
         PHASE_MAGNITUDE
     };
-    NodalDisplacementOutput(Model& model, std::shared_ptr<Reference<NamedValue>> collection = nullptr, int original_id = NO_ORIGINAL_ID);
+    NodalDisplacementOutput(Model& model, const std::shared_ptr<ObjectiveSet>, std::shared_ptr<Reference<NamedValue>> collection = nullptr, int original_id = NO_ORIGINAL_ID);
     ComplexOutputType complexOutput;
     virtual std::vector<std::shared_ptr<NodeGroup>> getNodeGroups() const override final;
     virtual bool hasNodeGroups() const noexcept override final;
@@ -283,7 +293,7 @@ class VonMisesStressOutput: public Output, public CellContainer {
 private:
     std::shared_ptr<Reference<NamedValue>> collection;
 public:
-    VonMisesStressOutput(Model& model, std::shared_ptr<Reference<NamedValue>> collection = nullptr, int original_id = NO_ORIGINAL_ID);
+    VonMisesStressOutput(Model& model, const std::shared_ptr<ObjectiveSet>, std::shared_ptr<Reference<NamedValue>> collection = nullptr, int original_id = NO_ORIGINAL_ID);
     virtual std::vector<std::shared_ptr<CellGroup>> getCellGroups() const override final;
     virtual bool hasCellGroups() const noexcept override final;
 };
@@ -292,7 +302,7 @@ class FrequencyOutput: public Output {
 private:
     std::shared_ptr<Reference<NamedValue>> collection;
 public:
-    FrequencyOutput(Model& model, std::shared_ptr<Reference<NamedValue>> collection = nullptr, int original_id = NO_ORIGINAL_ID);
+    FrequencyOutput(Model& model, const std::shared_ptr<ObjectiveSet>, std::shared_ptr<Reference<NamedValue>> collection = nullptr, int original_id = NO_ORIGINAL_ID);
     std::shared_ptr<NamedValue> getCollection() const;
 };
 

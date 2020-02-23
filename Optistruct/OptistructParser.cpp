@@ -149,7 +149,8 @@ void OptistructParser::parseSET(nastran::NastranTokenizer& tok, Model& model) {
         setValue->markAsWritten();
         const auto& frequencyValue = make_shared<ListValue<double>>(model, values);
         model.add(frequencyValue);
-        const auto& frequencyRange = make_shared<FrequencySearch>(model, FrequencySearch::FrequencyType::LIST, *frequencyValue, FrequencySearch::NormType::MASS, sid);
+        const auto& objectiveSet = model.getOrCreateObjectiveSet(sid, ObjectiveSet::Type::METHOD);
+        const auto& frequencyRange = make_shared<FrequencySearch>(model, objectiveSet, FrequencySearch::FrequencyType::LIST, *frequencyValue, FrequencySearch::NormType::MASS);
         model.add(frequencyRange);
     } else {
         handleParsingError("Unsupported TYPE value in SET", tok, model);

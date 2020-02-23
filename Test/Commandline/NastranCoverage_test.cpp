@@ -137,8 +137,13 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
             const auto& constraintSet = make_shared<ConstraintSet>(*model, ConstraintSet::Type::SPC, spcSetId);
             model->add(constraintSet);
 
+            // Add objectiveSet
+            int objectiveSetId = 1;
+            const auto& objectiveSet = make_shared<ObjectiveSet>(*model, ObjectiveSet::Type::ASSERTION, objectiveSetId);
+            model->add(objectiveSet);
+
             // Add output
-            const auto& nodalOutput = make_shared<NodalDisplacementOutput>(*model);
+            const auto& nodalOutput = make_shared<NodalDisplacementOutput>(*model, objectiveSet);
             if (x300group->type == Group::Type::NODEGROUP) {
                 nodalOutput->addNodeGroup(x300group->getName());
             } else {
@@ -147,7 +152,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
             model->add(nodalOutput);
 
             if (cellType.dimension > SpaceDimension::DIMENSION_1D) {
-                const auto& vmisOutput = make_shared<VonMisesStressOutput>(*model);
+                const auto& vmisOutput = make_shared<VonMisesStressOutput>(*model, objectiveSet);
                 vmisOutput->addCellGroup(x0group->getName());
                 model->add(vmisOutput);
             }
@@ -227,7 +232,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                             model->add(loadSet);
                             analysis->add(*loadSet);
                             analysis->add(*constraintSet);
-                            analysis->add(*nodalOutput);
+                            analysis->add(*objectiveSet);
                             model->add(analysis);
                             const auto& forceLoading = make_shared<NodalForce>(*model, loadSet, force);
                             if (x300group->type == Group::Type::NODEGROUP) {
@@ -252,7 +257,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
 
                             analysis->add(*loadSet);
                             analysis->add(*constraintSet);
-                            analysis->add(*nodalOutput);
+                            analysis->add(*objectiveSet);
                             model->add(analysis);
                             for (const Cell& surfCell : dynamic_pointer_cast<CellGroup>(x300group)->getCells()) {
                                 const auto volCellAndFacenum = model->mesh.volcellAndFaceNum_from_skincell(surfCell);
@@ -289,7 +294,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
                         }
                         analysis->add(*loadSet);
                         analysis->add(*constraintSet);
-                        analysis->add(*nodalOutput);
+                        analysis->add(*objectiveSet);
                         model->add(analysis);
                         loadSetId++;
                         analysisId++;
@@ -307,7 +312,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
 
                         analysis->add(*loadSet);
                         analysis->add(*constraintSet);
-                        analysis->add(*nodalOutput);
+                        analysis->add(*objectiveSet);
                         model->add(analysis);
                         shared_ptr<NormalPressionShell> pressionShell = make_shared<NormalPressionShell>(*model, loadSet, p);
                         pressionShell->add(*volgroup);
@@ -323,7 +328,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
 
                         analysis->add(*loadSet);
                         analysis->add(*constraintSet);
-                        analysis->add(*nodalOutput);
+                        analysis->add(*objectiveSet);
                         model->add(analysis);
                         switch (cellType.dimension.code) {
                         case SpaceDimension::Code::DIMENSION2D_CODE: {
@@ -364,7 +369,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
 
                         analysis->add(*loadSet);
                         analysis->add(*constraintSet);
-                        analysis->add(*nodalOutput);
+                        analysis->add(*objectiveSet);
                         model->add(analysis);
 
                         for (const Cell& surfCell : dynamic_pointer_cast<CellGroup>(x300group)->getCells()) {

@@ -443,7 +443,8 @@ void AsterWriter::writeAnalyses() {
 			comm_file_ofs << ")" << endl;
 		}
 
-		if (analysis->contains(Objective::Type::NODAL_CELL_VONMISES_ASSERTION)) {
+		if (analysis->contains(Objective::Type::VONMISES_STRESS_OUTPUT) or
+            analysis->contains(Objective::Type::NODAL_CELL_VONMISES_ASSERTION)) {
             comm_file_ofs << resuName << "=CALC_CHAMP(reuse=" << resuName << ","
                     << endl;
             comm_file_ofs << "           RESULTAT=" << resuName << "," << endl;
@@ -2039,16 +2040,9 @@ shared_ptr<NonLinearStrategy> AsterWriter::getNonLinearStrategy(
     if (strategy == nullptr) {
         handleWritingError("Cannot find nonlinear strategy" + to_str(nonLinAnalysis->strategy_reference));
     }
-	switch (strategy->type) {
-	case Objective::Type::NONLINEAR_STRATEGY: {
-		nonLinearStrategy = static_pointer_cast<NonLinearStrategy>(strategy);
-		break;
-	}
-	default:
-		// Nothing to do
-		break;
-	}
-	return nonLinearStrategy;
+    const auto& objectiveSet = nonLinAnalysis->model.find(nonLinAnalysis->strategy_reference);
+    const auto& objectives = objectiveSet->getObjectivesByType(Objective::Type::NONLINEAR_PARAMETERS);
+	return static_pointer_cast<NonLinearStrategy>(*objectives.begin());
 }
 
 void AsterWriter::writeAssemblage(const std::shared_ptr<Analysis>& analysis, bool canBeReused) {

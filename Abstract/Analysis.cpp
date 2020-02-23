@@ -85,6 +85,10 @@ void Analysis::add(const Reference<LoadSet>& loadSetReference) {
     this->loadSet_references.insert(loadSetReference);
 }
 
+void Analysis::add(const Reference<ObjectiveSet>& objectiveSetReference) {
+    this->objectiveSet_references.insert(objectiveSetReference);
+}
+
 vector<shared_ptr<LoadSet>> Analysis::getLoadSets() const noexcept {
     vector<shared_ptr<LoadSet>> result;
     shared_ptr<LoadSet> commonLoadSet = model.commonLoadSet;
@@ -179,11 +183,11 @@ void Analysis::remove(const Reference<ConstraintSet> constraintSetReference) {
     }
 }
 
-void Analysis::remove(const Reference<Objective> objectiveReference) {
-    auto it = objectiveReferences.begin();
-    while (it != objectiveReferences.end()) {
-        if (*it == objectiveReference) {
-            it = objectiveReferences.erase(it);
+void Analysis::remove(const Reference<ObjectiveSet> objectiveSetReference) {
+    auto it = objectiveSet_references.begin();
+    while (it != objectiveSet_references.end()) {
+        if (*it == objectiveSetReference) {
+            it = objectiveSet_references.erase(it);
         } else {
             ++it;
         }
@@ -208,9 +212,9 @@ bool Analysis::contains(const Reference<ConstraintSet> constraintSetRef) const n
     return false;
 }
 
-bool Analysis::contains(const Reference<Objective> objectiveRef) const noexcept {
-    for (const auto& objective: getObjectives()) {
-        if (objectiveRef == objective->getReference()) {
+bool Analysis::contains(const Reference<ObjectiveSet> objectiveSetRef) const noexcept {
+    for (const auto& objectiveSet: getObjectiveSets()) {
+        if (objectiveSetRef == objectiveSet->getReference()) {
             return true;
         }
     }
@@ -229,6 +233,15 @@ bool Analysis::contains(const LoadSet::Type type) const noexcept {
 bool Analysis::contains(const ConstraintSet::Type type) const noexcept {
     for (const auto& constraintset : this->getConstraintSets()) {
         if (type == constraintset->type) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Analysis::contains(const ObjectiveSet::Type type) const noexcept {
+    for (const auto& objectiveSet : this->getObjectiveSets()) {
+        if (type == objectiveSet->type) {
             return true;
         }
     }
@@ -257,27 +270,46 @@ vector<shared_ptr<ConstraintSet>> Analysis::getConstraintSets() const noexcept {
     return result;
 }
 
-void Analysis::add(const Reference<Objective>& assertionReference) {
-    objectiveReferences.insert(assertionReference);
+vector<shared_ptr<ObjectiveSet>> Analysis::getObjectiveSets() const noexcept {
+    vector<shared_ptr<ObjectiveSet>> result;
+    shared_ptr<ObjectiveSet> commonObjectiveSet = model.commonObjectiveSet;
+    if (commonObjectiveSet != nullptr and not commonObjectiveSet->empty())
+        result.push_back(commonObjectiveSet);
+    for (const auto& objectiveSetReference : this->objectiveSet_references) {
+        result.push_back(model.find(objectiveSetReference));
+    }
+
+    return result;
 }
 
 vector<shared_ptr<Assertion>> Analysis::getAssertions() const noexcept {
-    vector<shared_ptr<Assertion>> assertions;
-    for (const auto& assertion_reference : objectiveReferences) {
-        const auto& objective = model.find(assertion_reference);
-        if (not objective->isAssertion()) continue;
-        assertions.push_back(static_pointer_cast<Assertion>(objective));
+    vector<shared_ptr<Assertion>> result;
+    for (const auto& objectiveSet : getObjectiveSets()) {
+        if (objectiveSet == nullptr) {
+            continue;
+        }
+        for (const auto& objective : objectiveSet->getObjectives()) {
+            if (objective != nullptr and objective->isAssertion()) {
+                result.push_back(static_pointer_cast<Assertion>(objective));
+            }
+        }
     }
-    return assertions;
+    return result;
 }
 
 vector<shared_ptr<Objective>> Analysis::getObjectives() const noexcept {
-    vector<shared_ptr<Objective>> objectives;
-    for (const auto& objective_reference : objectiveReferences) {
-        const auto& objective = model.find(objective_reference);
-        objectives.push_back(objective);
+    vector<shared_ptr<Objective>> result;
+    for (const auto& objectiveSet : getObjectiveSets()) {
+        if (objectiveSet == nullptr) {
+            continue;
+        }
+        for (const auto& objective : objectiveSet->getObjectives()) {
+            if (objective != nullptr) {
+                result.push_back(objective);
+            }
+        }
     }
-    return objectives;
+    return result;
 }
 
 vector<shared_ptr<ConstraintSet>> Analysis::filter(const ConstraintSet::Type& type) const noexcept {
@@ -381,6 +413,14 @@ bool Analysis::validate() const {
             result = false;
         }
     }
+    for (const auto& objectiveSetReference : this->objectiveSet_references) {
+        if (model.find(objectiveSetReference) == nullptr) {
+            if (model.configuration.logLevel >= LogLevel::INFO) {
+                cout << "Missing objectiveset reference:" << objectiveSetReference << endl;
+            }
+            result = false;
+        }
+    }
     return result;
 }
 
@@ -465,8 +505,8 @@ void Analysis::copyInto(Analysis& other) const {
     for(const auto& constraintSetRef : constraintSet_references) {
         other.add(constraintSetRef);
     }
-    for(const auto& objectiveRef : objectiveReferences) {
-        other.add(objectiveRef);
+    for(const auto& objectiveSetRef : objectiveSet_references) {
+        other.add(objectiveSetRef);
     }
 }
 
@@ -557,29 +597,37 @@ LinearMecaStat::LinearMecaStat(Model& model, const string original_label, const 
 
 }
 
-NonLinearMecaStat::NonLinearMecaStat(Model& model, const int strategy_id,
+NonLinearMecaStat::NonLinearMecaStat(Model& model, const Reference<ObjectiveSet>& strategy,
         const string original_label, const int original_id) :
-        Analysis(model, Analysis::Type::NONLINEAR_MECA_STAT, original_label, original_id), strategy_reference(
-                Objective::Type::NONLINEAR_STRATEGY, strategy_id) {
+        Analysis(model, Analysis::Type::NONLINEAR_MECA_STAT, original_label, original_id), strategy_reference(strategy) {
 
 }
+
+//NonLinearMecaStat::NonLinearMecaStat(Model& model, const int strategy_id,
+//        const string original_label, const int original_id) :
+//        Analysis(model, Analysis::Type::NONLINEAR_MECA_STAT, original_label, original_id), strategy_reference(
+//                Objective::Type::NONLINEAR_PARAMETERS, strategy_id) {
+//
+//}
 
 bool NonLinearMecaStat::validate() const {
     return Analysis::validate();
 }
 
-LinearModal::LinearModal(Model& model, const Reference<Objective>& frequencySearchRef,
+LinearModal::LinearModal(Model& model, const Reference<ObjectiveSet>& frequencySearchRef,
         const string original_label, const int original_id, const Type type) :
         Analysis(model, type, original_label, original_id), frequencySearchRef(frequencySearchRef) {
 }
 
-LinearModal::LinearModal(Model& model, const int frequency_band_original_id,
-        const string original_label, const int original_id, const Type type) :
-        Analysis(model, type, original_label, original_id), frequencySearchRef(Objective::Type::FREQUENCY_SEARCH, frequency_band_original_id) {
-}
+//LinearModal::LinearModal(Model& model, const int frequency_band_original_id,
+//        const string original_label, const int original_id, const Type type) :
+//        Analysis(model, type, original_label, original_id), frequencySearchRef(Objective::Type::FREQUENCY_SEARCH, frequency_band_original_id) {
+//}
 
 shared_ptr<FrequencySearch> LinearModal::getFrequencySearch() const noexcept {
-    return static_pointer_cast<FrequencySearch>(model.find(frequencySearchRef));
+    const auto& objectiveSet = model.find(frequencySearchRef);
+    const auto& objectives = objectiveSet->getObjectivesByType(Objective::Type::FREQUENCY_SEARCH);
+    return static_pointer_cast<FrequencySearch>(*objectives.begin());
 }
 
 bool LinearModal::validate() const {
@@ -593,25 +641,29 @@ bool LinearModal::validate() const {
     return isValid;
 }
 
-LinearBuckling::LinearBuckling(Model& model, const Reference<Objective>& frequencySearchRef,
+LinearBuckling::LinearBuckling(Model& model, const Reference<ObjectiveSet>& frequencySearchRef,
         const string original_label, const int original_id) :
         LinearModal(model, frequencySearchRef, original_label, original_id, Type::LINEAR_BUCKLING) {
 }
 
-LinearDynaModalFreq::LinearDynaModalFreq(Model& model, const int frequency_band_original_id,
-        const int modal_damping_original_id, const int frequency_value_original_id,
+LinearDynaModalFreq::LinearDynaModalFreq(Model& model, const Reference<ObjectiveSet>& frequencySearchRef,
+        const Reference<ObjectiveSet>& modalDamping, const Reference<ObjectiveSet>& frequencyExcitRef,
         const bool residual_vector, const string original_label, const int original_id) :
-        LinearModal(model, frequency_band_original_id, original_label, original_id,
+        LinearModal(model, frequencySearchRef, original_label, original_id,
                 Analysis::Type::LINEAR_DYNA_MODAL_FREQ),
-                modal_damping_reference(Objective::Type::MODAL_DAMPING, modal_damping_original_id), frequencyExcitationRef(Objective::Type::FREQUENCY_EXCIT, frequency_value_original_id), residual_vector(residual_vector) {
+                modal_damping_reference{modalDamping}, frequencyExcitationRef{frequencyExcitRef}, residual_vector(residual_vector) {
 }
 
 shared_ptr<ModalDamping> LinearDynaModalFreq::getModalDamping() const {
-    return static_pointer_cast<ModalDamping>(model.find(modal_damping_reference));
+    const auto& objectiveSet = model.find(modal_damping_reference);
+    const auto& objectives = objectiveSet->getObjectivesByType(Objective::Type::MODAL_DAMPING);
+    return static_pointer_cast<ModalDamping>(*objectives.begin());
 }
 
 shared_ptr<FrequencyExcit> LinearDynaModalFreq::getExcitationFrequencies() const {
-    return static_pointer_cast<FrequencyExcit>(model.find(frequencyExcitationRef));
+    const auto& objectiveSet = model.find(frequencyExcitationRef);
+    const auto& objectives = objectiveSet->getObjectivesByType(Objective::Type::FREQUENCY_EXCIT);
+    return static_pointer_cast<FrequencyExcit>(*objectives.begin());
 }
 
 bool LinearDynaModalFreq::validate() const {
@@ -652,14 +704,16 @@ bool LinearDynaModalFreq::canReuse(const std::shared_ptr<Analysis>& otherAnalysi
 }
 
 LinearDynaDirectFreq::LinearDynaDirectFreq(Model& model,
-        const int frequency_value_original_id,
+        const Reference<ObjectiveSet>& frequencyExcit,
         const string original_label, const int original_id) :
         Analysis(model, Analysis::Type::LINEAR_DYNA_DIRECT_FREQ, original_label, original_id),
-                frequencyExcitationRef(Objective::Type::FREQUENCY_EXCIT, frequency_value_original_id) {
+                frequencyExcitationRef{frequencyExcit} {
 }
 
 shared_ptr<FrequencyExcit> LinearDynaDirectFreq::getExcitationFrequencies() const {
-    return static_pointer_cast<FrequencyExcit>(model.find(frequencyExcitationRef));
+    const auto& objectiveSet = model.find(frequencyExcitationRef);
+    const auto& objectives = objectiveSet->getObjectivesByType(Objective::Type::FREQUENCY_EXCIT);
+    return static_pointer_cast<FrequencyExcit>(*objectives.begin());
 }
 
 bool LinearDynaDirectFreq::validate() const {

@@ -403,7 +403,7 @@ BOOST_AUTO_TEST_CASE(auto_analysis_nonlin) {
     configuration.autoDetectAnalysis = true;
     configuration.logLevel = LogLevel::DEBUG;
 	Model model{"inputfile", "10.3", SolverName::NASTRAN, configuration};
-    const auto& nls = make_shared<NonLinearStrategy>(model, 1);
+    const auto& nls = make_shared<NonLinearStrategy>(model, model.commonObjectiveSet, 1);
 	model.add(nls);
 	model.finish();
 	BOOST_CHECK(model.validate());
@@ -476,22 +476,24 @@ BOOST_AUTO_TEST_CASE( reference_str ) {
 BOOST_AUTO_TEST_CASE(test_ineffective_assertions_removed) {
 	unique_ptr<Model> model = createModelWith1HEXA8();
 	const auto& analysis = make_shared<LinearMecaStat>(*model);
-	const auto& nda = make_shared<NodalDisplacementAssertion>(*model, 0.0001, 50, DOF::DZ, 1., 1);
-	analysis->add(nda->getReference());
+	const auto& objectiveSet = model->getOrCreateObjectiveSet(1, ObjectiveSet::Type::ASSERTION);
+	const auto& nda = make_shared<NodalDisplacementAssertion>(*model, objectiveSet, 0.0001, 50, DOF::DZ, 1., 1);
+	analysis->add(objectiveSet);
 	model->add(nda);
 
-	const auto& nda2 = make_shared<NodalDisplacementAssertion>(*model, 0.0001, 51, DOF::RX, 1., 1);
-	analysis->add(nda2->getReference());
+	const auto& nda2 = make_shared<NodalDisplacementAssertion>(*model, objectiveSet, 0.0001, 51, DOF::RX, 1., 1);
 	model->add(nda2);
 	model->add(analysis);
 	BOOST_CHECK_EQUAL(2, model->objectives.size());
-	model->finish();
+	BOOST_CHECK_EQUAL(2, objectiveSet->getObjectives().size());
+	BOOST_CHECK_EQUAL(2, analysis->getAssertions().size());
+	model->finish(); // this should remove one assertion because there is no rotation DOF
 	BOOST_CHECK(analysis->validate());
 	BOOST_CHECK(model->validate());
 	BOOST_CHECK_EQUAL(model->analyses.size(), 1);
 	BOOST_CHECK_EQUAL(model->objectives.size(), 1);
 	const auto& assertions = model->analyses.first()->getAssertions();
-	BOOST_CHECK_EQUAL(assertions.size(), static_cast<size_t>(1));
+	BOOST_CHECK_EQUAL(assertions.size(), 1);
 }
 
 BOOST_AUTO_TEST_CASE(test_rbe3_assertions_not_removed) {
@@ -503,12 +505,10 @@ BOOST_AUTO_TEST_CASE(test_rbe3_assertions_not_removed) {
 	model.add(rbe3);
 	model.addConstraintIntoConstraintSet(rbe3->getReference(), model.commonConstraintSet->getReference());
 	const auto& analysis = make_shared<LinearMecaStat>(model);
-	const auto& nda = make_shared<NodalDisplacementAssertion>(model, 0.0001, 100, DOF::DZ, 1., 1);
-	analysis->add(nda->getReference());
+	const auto& nda = make_shared<NodalDisplacementAssertion>(model, model.commonObjectiveSet, 0.0001, 100, DOF::DZ, 1., 1);
 	model.add(nda);
 
-	const auto& nda2 = make_shared<NodalDisplacementAssertion>(model, 0.0001, 101, DOF::RX, 1., 1);
-	analysis->add(nda2->getReference());
+	const auto& nda2 = make_shared<NodalDisplacementAssertion>(model, model.commonObjectiveSet, 0.0001, 101, DOF::RX, 1., 1);
 	model.add(nda2);
 	model.add(analysis);
 	BOOST_CHECK_EQUAL(2, model.objectives.size());

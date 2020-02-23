@@ -29,11 +29,11 @@ private:
 			const ConfigurationParameters&, std::ifstream&);
     int addVonMisesAssertionsToModel(int currentSubCase, Model&,
 			const ConfigurationParameters&, std::ifstream&);
-	int readDisplacementSection(Model& model, const ConfigurationParameters&,
+	int readDisplacementSection(int currentSubCase, Model& model, const ConfigurationParameters&,
 			std::ifstream& istream, std::vector<std::shared_ptr<Assertion>>& assertions, double loadStep);
-	int readEigenvalueSection(Model&, const ConfigurationParameters&, std::ifstream&,
+	int readEigenvalueSection(int currentSubCase, Model&, const ConfigurationParameters&, std::ifstream&,
 			std::vector<std::shared_ptr<Assertion>>&);
-	int readComplexDisplacementSection(Model&, const ConfigurationParameters&, std::ifstream&,
+	int readComplexDisplacementSection(int currentSubCase, Model&, const ConfigurationParameters&, std::ifstream&,
 			std::vector<std::shared_ptr<Assertion>>&, double frequency);
     int readStressesForSolidsSection(int currentSubCase, Model& model, const ConfigurationParameters&,
 			std::ifstream& istream, std::vector<std::shared_ptr<Assertion>>& assertions);

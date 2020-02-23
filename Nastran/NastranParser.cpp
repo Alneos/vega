@@ -699,75 +699,75 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
     } else if (analysis_type == NastranAnalysis::BUCKL and previous != nullptr) {
 
         map<string, string>::iterator it;
-        int frequency_band_original_id = 0;
+        int frequency_search_sid = 0;
         for (it = context.begin(); it != context.end(); it++) {
             if (it->first.find("METHOD") != string::npos) {
-                frequency_band_original_id = stoi(it->second);
+                frequency_search_sid = stoi(it->second);
                 break;
             }
         }
         if (it == context.end())
-            handleParsingError("METHOD not found for linear modal analysis", tok, model);
+            handleParsingError("METHOD not found for linear buckling analysis", tok, model);
 
-        analysis = make_shared<LinearBuckling>(model, Reference<Objective>(Objective::Type::FREQUENCY_SEARCH, frequency_band_original_id), labelAnalysis, analysis_id);
+        analysis = make_shared<LinearBuckling>(model, Reference<ObjectiveSet>{ObjectiveSet::Type::METHOD, frequency_search_sid}, labelAnalysis, analysis_id);
 
     } else if (analysis_type == NastranAnalysis::MODES) {
 
         map<string, string>::iterator it;
-        int frequency_band_original_id = 0;
+        int frequency_search_sid = 0;
         for (it = context.begin(); it != context.end(); it++) {
             if (it->first.find("METHOD") != string::npos) {
-                frequency_band_original_id = stoi(it->second);
+                frequency_search_sid = stoi(it->second);
                 break;
             }
         }
         if (it == context.end())
             handleParsingError("METHOD not found for linear modal analysis", tok, model);
 
-        analysis = make_shared<LinearModal>(model, frequency_band_original_id, labelAnalysis, analysis_id);
+        analysis = make_shared<LinearModal>(model, Reference<ObjectiveSet>{ObjectiveSet::Type::METHOD, frequency_search_sid}, labelAnalysis, analysis_id);
 
     } else if (analysis_type == NastranAnalysis::NLSTATIC) {
 
         auto itparam = context.find("NLPARM");
-        int strategy_original_id = 0;
+        int strategy_sid = 0;
         if (itparam == context.end())
             handleParsingError("NLPARM not found for non linear analysis", tok, model);
         else
-            strategy_original_id = stoi(itparam->second);
+            strategy_sid = stoi(itparam->second);
 
-        analysis = make_shared<NonLinearMecaStat>(model, strategy_original_id, labelAnalysis, analysis_id);
+        analysis = make_shared<NonLinearMecaStat>(model, Reference<ObjectiveSet>{ObjectiveSet::Type::NONLINEAR_STRATEGY, strategy_sid}, labelAnalysis, analysis_id);
 
 
     } else if (analysis_type == NastranAnalysis::DFREQ) {
-        int frequency_value_original_id = 0;
+        int frequency_excit_sid = 0;
         map<string, string>::iterator it;
         for (it = context.begin(); it != context.end(); it++) {
             if (it->first.find("FREQ") == 0)
-                frequency_value_original_id = stoi(it->second);
+                frequency_excit_sid = stoi(it->second);
         }
-        if (frequency_value_original_id == 0)
+        if (frequency_excit_sid == 0)
             handleParsingError("FREQ not found for linear dynamic direct frequency analysis", tok, model);
-        analysis = make_shared<LinearDynaDirectFreq>(model, frequency_value_original_id, labelAnalysis, analysis_id);
+        analysis = make_shared<LinearDynaDirectFreq>(model, Reference<ObjectiveSet>{ObjectiveSet::Type::FREQ, frequency_excit_sid}, labelAnalysis, analysis_id);
 
     } else if (analysis_type == NastranAnalysis::MFREQ) {
 
-        int frequency_band_original_id = 0;
-        int modal_damping_original_id = 0;
-        int frequency_value_original_id = 0;
+        int frequency_search_sid = 0;
+        int modal_damping_sid = 0;
+        int frequency_excit_sid = 0;
 
         map<string, string>::iterator it;
         for (it = context.begin(); it != context.end(); it++) {
             if (it->first.find("METHOD") == 0)
-                frequency_band_original_id = stoi(it->second);
+                frequency_search_sid = stoi(it->second);
             if (it->first.find("SDAMPING") == 0)
-                modal_damping_original_id = stoi(it->second);
+                modal_damping_sid = stoi(it->second);
             if (it->first.find("FREQ") == 0)
-                frequency_value_original_id = stoi(it->second);
+                frequency_excit_sid = stoi(it->second);
         }
 
-//        if (modal_damping_original_id == 0)
+//        if (modal_damping_sid == 0)
 //            handleParsingError("SDAMPING not found for linear dynamic modal frequency analysis", tok, model);
-        if (frequency_value_original_id == 0)
+        if (frequency_excit_sid == 0)
             handleParsingError("FREQ not found for linear dynamic modal frequency analysis", tok, model);
 
         bool residual_vector = false;
@@ -776,11 +776,13 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
         if (it != context.end() and it->first.compare(0, search_for.size(), search_for) == 0 and it->second == "YES")
             residual_vector = true;
 
-        if (frequency_band_original_id == 0)
+        if (frequency_search_sid == 0)
             handleParsingError("METHOD not found for linear dynamic modal frequency analysis", tok, model);
 
-        analysis = make_shared<LinearDynaModalFreq>(model, frequency_band_original_id, modal_damping_original_id,
-                frequency_value_original_id, residual_vector, labelAnalysis, analysis_id);
+        analysis = make_shared<LinearDynaModalFreq>(model, Reference<ObjectiveSet>{ObjectiveSet::Type::METHOD, frequency_search_sid},
+                                                    Reference<ObjectiveSet>{ObjectiveSet::Type::SDAMP, modal_damping_sid},
+                                                    Reference<ObjectiveSet>{ObjectiveSet::Type::FREQ, frequency_excit_sid},
+                                                    residual_vector, labelAnalysis, analysis_id);
 
     } else {
         handleParsingError("Analysis " + analysis_str + " Not implemented", tok, model);
@@ -850,7 +852,15 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
             }
         } else if (!key.compare(0, 4, "DISP")) {
             if (id != 0) {
-                auto nodalOutput = make_shared<NodalDisplacementOutput>(model, make_shared<Reference<NamedValue>>(Value::Type::SET, id));
+                const Reference<ObjectiveSet>& objectiveSetReference{ObjectiveSet::Type::DISP, id};
+                analysis->add(objectiveSetReference);
+                auto objectiveSet = model.find(objectiveSetReference);
+                if (model.find(objectiveSetReference) == nullptr) {
+                    objectiveSet = make_shared<ObjectiveSet>(model, ObjectiveSet::Type::DISP, id);
+                    objectiveSet->setInputContext(tok.getInputContext());
+                    model.add(objectiveSet);
+                }
+                auto nodalOutput = make_shared<NodalDisplacementOutput>(model, objectiveSet, make_shared<Reference<NamedValue>>(Value::Type::SET, id));
                 for (const auto& option:options) {
                     if (option == "PHASE") {
                         nodalOutput->complexOutput = NodalDisplacementOutput::ComplexOutputType::PHASE_MAGNITUDE;
@@ -858,26 +868,39 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
                 }
                 nodalOutput->setInputContext(tok.getInputContext());
                 model.add(nodalOutput);
-                analysis->add(nodalOutput->getReference());
             }
         } else if (!key.compare(0, 4, "OFREQUENCY")) {
             if (id != 0) {
-                auto frequencyOutput = make_shared<FrequencyOutput>(model, make_shared<Reference<NamedValue>>(Value::Type::SET, id));
+                Reference<ObjectiveSet> objectiveSetReference(ObjectiveSet::Type::OFREQ, id);
+                analysis->add(objectiveSetReference);
+                auto objectiveSet = model.find(objectiveSetReference);
+                if (model.find(objectiveSetReference) == nullptr) {
+                    objectiveSet = make_shared<ObjectiveSet>(model, ObjectiveSet::Type::OFREQ, id);
+                    objectiveSet->setInputContext(tok.getInputContext());
+                    model.add(objectiveSet);
+                }
+                auto frequencyOutput = make_shared<FrequencyOutput>(model, objectiveSet, make_shared<Reference<NamedValue>>(Value::Type::SET, id));
                 frequencyOutput->setInputContext(tok.getInputContext());
                 model.add(frequencyOutput);
-                analysis->add(frequencyOutput->getReference());
             }
         } else if (!key.compare(0, 4, "STRESS")) {
             if (id != 0) {
+                Reference<ObjectiveSet> objectiveSetReference(ObjectiveSet::Type::STRESS, id);
+                analysis->add(objectiveSetReference);
+                auto objectiveSet = model.find(objectiveSetReference);
+                if (model.find(objectiveSetReference) == nullptr) {
+                    objectiveSet = make_shared<ObjectiveSet>(model, ObjectiveSet::Type::STRESS, id);
+                    objectiveSet->setInputContext(tok.getInputContext());
+                    model.add(objectiveSet);
+                }
                 shared_ptr<VonMisesStressOutput> stressOutput = nullptr;
                 for (const auto& option:options) {
                     if (option == "VMIS") {
-                        stressOutput = make_shared<VonMisesStressOutput>(model, make_shared<Reference<NamedValue>>(Value::Type::SET, id));
+                        stressOutput = make_shared<VonMisesStressOutput>(model, objectiveSet, make_shared<Reference<NamedValue>>(Value::Type::SET, id));
                     }
                 }
                 stressOutput->setInputContext(tok.getInputContext());
                 model.add(stressOutput);
-                analysis->add(stressOutput->getReference());
             }
         }
     }
@@ -1416,6 +1439,7 @@ void NastranParser::parseDPHASE(NastranTokenizer& tok, Model& model) {
 
 void NastranParser::parseEIGB(NastranTokenizer& tok, Model& model) {
     int sid = tok.nextInt();
+    const auto& objectiveSet = model.getOrCreateObjectiveSet(sid, ObjectiveSet::Type::METHOD);
     string method = tok.nextString(true); UNUSEDV(method);
     double lower = tok.nextDouble(true);
     double upper = tok.nextDouble(true);
@@ -1453,7 +1477,7 @@ void NastranParser::parseEIGB(NastranTokenizer& tok, Model& model) {
 
     const auto& bandRange = make_shared<BandRange>(model, lower, ndp, upper);
     //bandRange.setParaX(Function::ParaName::FREQ);
-    const auto& frequencyTarget = make_shared<FrequencySearch>(model, FrequencySearch::FrequencyType::BAND, *bandRange, norm, sid);
+    const auto& frequencyTarget = make_shared<FrequencySearch>(model, objectiveSet, FrequencySearch::FrequencyType::BAND, *bandRange, norm);
 
     bandRange->setInputContext(tok.getInputContext());
     model.add(bandRange);
@@ -1462,7 +1486,8 @@ void NastranParser::parseEIGB(NastranTokenizer& tok, Model& model) {
 }
 
 void NastranParser::parseEIGR(NastranTokenizer& tok, Model& model) {
-    int original_id = tok.nextInt();
+    int sid = tok.nextInt();
+    const auto& objectiveSet = model.getOrCreateObjectiveSet(sid, ObjectiveSet::Type::METHOD);
     string method = tok.nextString(true);
     if (method !="LAN"){
         handleParsingError("Only Lanczos method (LAN) is supported.", tok, model);
@@ -1501,7 +1526,7 @@ void NastranParser::parseEIGR(NastranTokenizer& tok, Model& model) {
 
     const auto& bandRange = make_shared<BandRange>(model, lower, nd, upper);
     //bandRange.setParaX(Function::ParaName::FREQ);
-    const auto& frequencySearch = make_shared<FrequencySearch>(model, FrequencySearch::FrequencyType::BAND, *bandRange, norm, original_id);
+    const auto& frequencySearch = make_shared<FrequencySearch>(model, objectiveSet, FrequencySearch::FrequencyType::BAND, *bandRange, norm);
 
     bandRange->setInputContext(tok.getInputContext());
     model.add(bandRange);
@@ -1510,7 +1535,8 @@ void NastranParser::parseEIGR(NastranTokenizer& tok, Model& model) {
 }
 
 void NastranParser::parseEIGRL(NastranTokenizer& tok, Model& model) {
-    int original_id = tok.nextInt();
+    int sid = tok.nextInt();
+    const auto& objectiveSet = model.getOrCreateObjectiveSet(sid, ObjectiveSet::Type::METHOD);
     double lower = tok.nextDouble(true);
     double upper = tok.nextDouble(true);
     int nd = tok.nextInt(true);
@@ -1547,7 +1573,7 @@ void NastranParser::parseEIGRL(NastranTokenizer& tok, Model& model) {
     }
     const auto& bandRange = make_shared<BandRange>(model, lower, nd, upper);
     //bandRange.setParaX(Function::ParaName::FREQ);
-    const auto& frequencySearch = make_shared<FrequencySearch>(model, FrequencySearch::FrequencyType::BAND, *bandRange, norm, original_id);
+    const auto& frequencySearch = make_shared<FrequencySearch>(model, objectiveSet, FrequencySearch::FrequencyType::BAND, *bandRange, norm);
 
     bandRange->setInputContext(tok.getInputContext());
     model.add(bandRange);
@@ -1606,25 +1632,27 @@ void NastranParser::parseFORCE2(NastranTokenizer& tok, Model& model) {
 
 void NastranParser::parseFREQ(NastranTokenizer& tok, Model& model) {
     int sid = tok.nextInt();
+    const auto& objectiveSet = model.getOrCreateObjectiveSet(sid, ObjectiveSet::Type::FREQ);
     list<double> frequencies = tok.nextDoubles();
 
     const auto& frequencyValue = make_shared<ListValue<double>>(model, frequencies);
     frequencyValue->setInputContext(tok.getInputContext());
     model.add(frequencyValue);
-    const auto& frequencyRange = make_shared<FrequencyExcit>(model, FrequencyExcit::FrequencyType::LIST, *frequencyValue, FrequencyExcit::NormType::MASS, sid);
+    const auto& frequencyRange = make_shared<FrequencyExcit>(model, objectiveSet, FrequencyExcit::FrequencyType::LIST, *frequencyValue, FrequencyExcit::NormType::MASS);
     frequencyRange->setInputContext(tok.getInputContext());
     model.add(frequencyRange);
 }
 
 void NastranParser::parseFREQ1(NastranTokenizer& tok, Model& model) {
     int sid = tok.nextInt();
+    const auto& objectiveSet = model.getOrCreateObjectiveSet(sid, ObjectiveSet::Type::FREQ);
     double start = tok.nextDouble();
     double step = tok.nextDouble();
     int count = tok.nextInt(true, 1);
 
     const auto& stepRange = make_shared<StepRange>(model, start, step, count);
     //stepRange.setParaX(Function::ParaName::FREQ);
-    const auto& frequencyExcit = make_shared<FrequencyExcit>(model, FrequencyExcit::FrequencyType::STEP, *stepRange, FrequencyExcit::NormType::MASS, sid);
+    const auto& frequencyExcit = make_shared<FrequencyExcit>(model, objectiveSet, FrequencyExcit::FrequencyType::STEP, *stepRange, FrequencyExcit::NormType::MASS);
     stepRange->setInputContext(tok.getInputContext());
     model.add(stepRange);
     frequencyExcit->setInputContext(tok.getInputContext());
@@ -1633,6 +1661,7 @@ void NastranParser::parseFREQ1(NastranTokenizer& tok, Model& model) {
 
 void NastranParser::parseFREQ3(NastranTokenizer& tok, Model& model) {
     int sid = tok.nextInt();
+    const auto& objectiveSet = model.getOrCreateObjectiveSet(sid, ObjectiveSet::Type::FREQ);
     double startf = tok.nextDouble();
     double endf = tok.nextDouble();
     string type = tok.nextString(true, "LINEAR");
@@ -1645,7 +1674,7 @@ void NastranParser::parseFREQ3(NastranTokenizer& tok, Model& model) {
 
     const auto& bandRange = make_shared<BandRange>(model, startf, nef, endf);
     //stepRange.setParaX(Function::ParaName::FREQ);
-    const auto& frequencyExcit = make_shared<FrequencyExcit>(model, FrequencyExcit::FrequencyType::INTERPOLATE, *bandRange, FrequencyExcit::NormType::MASS, sid);
+    const auto& frequencyExcit = make_shared<FrequencyExcit>(model, objectiveSet, FrequencyExcit::FrequencyType::INTERPOLATE, *bandRange, FrequencyExcit::NormType::MASS);
     bandRange->setInputContext(tok.getInputContext());
     model.add(bandRange);
     frequencyExcit->setInputContext(tok.getInputContext());
@@ -1654,6 +1683,7 @@ void NastranParser::parseFREQ3(NastranTokenizer& tok, Model& model) {
 
 void NastranParser::parseFREQ4(NastranTokenizer& tok, Model& model) {
     int sid = tok.nextInt();
+    const auto& objectiveSet = model.getOrCreateObjectiveSet(sid, ObjectiveSet::Type::FREQ);
     double f1 = tok.nextDouble();
     double f2 = tok.nextDouble();
     double spread = tok.nextDouble();
@@ -1661,7 +1691,7 @@ void NastranParser::parseFREQ4(NastranTokenizer& tok, Model& model) {
 
     const auto& bandRange = make_shared<BandRange>(model, f1, nef, f2);
     //spreadRange.setParaX(Function::ParaName::FREQ);
-    const auto& frequencyExcit = make_shared<FrequencyExcit>(model, FrequencyExcit::FrequencyType::SPREAD, *bandRange, FrequencyExcit::NormType::MASS, sid);
+    const auto& frequencyExcit = make_shared<FrequencyExcit>(model, objectiveSet, FrequencyExcit::FrequencyType::SPREAD, *bandRange, FrequencyExcit::NormType::MASS);
     frequencyExcit->spread = spread;
     bandRange->setInputContext(tok.getInputContext());
     model.add(bandRange);
@@ -1939,7 +1969,8 @@ void NastranParser::parseMPC(NastranTokenizer& tok, Model& model) {
 }
 
 void NastranParser::parseNLPARM(NastranTokenizer& tok, Model& model) {
-    int original_id = tok.nextInt();
+    int sid = tok.nextInt();
+    const auto& objectiveSet = model.getOrCreateObjectiveSet(sid, ObjectiveSet::Type::NONLINEAR_STRATEGY);
     int number_of_increments = tok.nextInt(true, 10);
 
     if (!tok.isEmptyUntilNextKeyword()){
@@ -1947,20 +1978,20 @@ void NastranParser::parseNLPARM(NastranTokenizer& tok, Model& model) {
         handleParsingWarning("All parameters are ignored except NINC.", tok, model);
     }
 
-    const auto& nonLinearStrategy = make_shared<NonLinearStrategy>(model, number_of_increments, original_id);
+    const auto& nonLinearStrategy = make_shared<NonLinearStrategy>(model, objectiveSet, number_of_increments);
     nonLinearStrategy->setInputContext(tok.getInputContext());
     model.add(nonLinearStrategy);
 }
 
 void NastranParser::parseNLPCI(NastranTokenizer& tok, Model& model) {
-    int original_id = tok.nextInt();
-
+    int sid = tok.nextInt();
+    const auto& objectiveSet = model.getOrCreateObjectiveSet(sid, ObjectiveSet::Type::NONLINEAR_STRATEGY);
     if (!tok.isEmptyUntilNextKeyword()){
         tok.skipToNextKeyword();
         handleParsingWarning("All parameters are ignored.", tok, model);
     }
 
-    const auto& arcLengthMethod = make_shared<ArcLengthMethod>(model, Reference<Objective>(Objective::Type::NONLINEAR_STRATEGY, original_id));
+    const auto& arcLengthMethod = make_shared<ArcLengthMethod>(model, objectiveSet, Reference<Objective>(Objective::Type::NONLINEAR_PARAMETERS));
     arcLengthMethod->setInputContext(tok.getInputContext());
     model.add(arcLengthMethod);
 }
@@ -3372,7 +3403,8 @@ void NastranParser::parseSPCD(NastranTokenizer& tok, Model& model) {
 }
 
 void NastranParser::parseTABDMP1(NastranTokenizer& tok, Model& model) {
-    int original_id = tok.nextInt();
+    int sid = tok.nextInt();
+    const auto& objectiveSet = model.getOrCreateObjectiveSet(sid, ObjectiveSet::Type::SDAMP);
     string type = tok.nextString(true, "G");
     const auto& functionTable = make_shared<FunctionTable>(model, FunctionTable::Interpolation::LINEAR, FunctionTable::Interpolation::LINEAR,
             FunctionTable::Interpolation::NONE, FunctionTable::Interpolation::CONSTANT);
@@ -3432,7 +3464,7 @@ void NastranParser::parseTABDMP1(NastranTokenizer& tok, Model& model) {
     } else {
         handleParsingError("Damping type not yet implemented : " + type, tok, model);
     }
-    const auto& modalDamping = make_shared<ModalDamping>(model, *functionTable, dampingType, original_id);
+    const auto& modalDamping = make_shared<ModalDamping>(model, objectiveSet, *functionTable, dampingType);
 
     functionTable->setInputContext(tok.getInputContext());
     model.add(functionTable);

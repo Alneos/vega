@@ -174,6 +174,7 @@ public:
     vega::ConfigurationParameters::TranslationMode translationMode;
     const std::shared_ptr<LoadSet> commonLoadSet;
     const std::shared_ptr<ConstraintSet> commonConstraintSet;
+    const std::shared_ptr<ObjectiveSet> commonObjectiveSet;
 
 private:
     std::unordered_map<LoadSet::Type, std::map<int, std::set<Reference<Loading>> > ,EnumClassHash>
@@ -257,6 +258,7 @@ public:
     Container<Constraint> constraints{*this};
     Container<ConstraintSet> constraintSets{*this};
     Container<ElementSet> elementSets{*this};
+    Container<ObjectiveSet> objectiveSets{*this};
     Container<Material> materials{*this};
     Container<Target> targets{*this};
     bool onlyMesh = false;
@@ -278,6 +280,7 @@ public:
     void add(const std::shared_ptr<Constraint>&);
     void add(const std::shared_ptr<ConstraintSet>&);
     void add(const std::shared_ptr<Objective>&);
+    void add(const std::shared_ptr<ObjectiveSet>&);
     void add(const std::shared_ptr<NamedValue>&);
     void add(const std::shared_ptr<ElementSet>&);
     void add(const std::shared_ptr<Target>&);
@@ -295,8 +298,10 @@ public:
     std::shared_ptr<ElementSet> getElementSet(int id) const; /**< Return an ElementSet by its Vega Id **/
     std::shared_ptr<Material> getMaterial(int id) const; /**< Return a Material by its Vega Id **/
     std::shared_ptr<Target> getTarget(int id) const; /**< Return a Material by its Vega Id **/
+    std::shared_ptr<ObjectiveSet> getObjectiveSet(int id) const;   /**< Return an ObjectiveSet by its Vega Id **/
 
-    std::shared_ptr<LoadSet> getOrCreateLoadSet(int loadset_id, vega::LoadSet::Type loadset_type); /**< Return or create a LoadSet by its real Id **/
+    std::shared_ptr<LoadSet> getOrCreateLoadSet(int loadset_id, vega::LoadSet::Type); /**< Return or create a LoadSet by its real Id **/
+    std::shared_ptr<ObjectiveSet> getOrCreateObjectiveSet(int objectiveSet_id, vega::ObjectiveSet::Type); /**< Return or create a LoadSet by its real Id **/
 
     void setParameter(const ModelParameter& parameter, const std::string& value) noexcept;
 
@@ -331,6 +336,11 @@ public:
      * If needed, create and add the LoadSet reference to the model.
      */
     void addLoadingIntoLoadSet(const Reference<Loading>&, const Reference<LoadSet>&);
+
+    /**
+     * Add an Objective reference into an ObjectiveSet reference.
+     */
+    void addObjectiveIntoObjectiveSet(const Reference<Objective>&, const Reference<ObjectiveSet>&);
 
     /**
      * Retrieve all the Loadings corresponding to a given LoadSet.
