@@ -132,21 +132,6 @@ int SystusWriter::DOFSToInt(const DOFS dofs) const{
     return iout;
 }
 
-int SystusWriter::DOFToInt(const DOF dof) const{
-    if (dof == DOF::DX)
-        return 1;
-    if (dof == DOF::DY)
-        return 2;
-    if (dof == DOF::DZ)
-        return 3;
-    if (dof == DOF::RX)
-        return 4;
-    if (dof == DOF::RY)
-        return 5;
-    if (dof == DOF::RZ)
-        return 6;
-    return -1;
-}
 
 
 
@@ -1843,25 +1828,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             shared_ptr<StiffnessMatrix> sm = dynamic_pointer_cast<StiffnessMatrix>(elementSet);
             systus_ascid_t tId= tables.size()+1;
             SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
-
-            //Numbering the node internally to the element
-            map<int, int> positionToSytusNumber;
-            int iSystus= 1;
-            for (const int pos : sm->nodePositions()){
-                positionToSytusNumber[pos]=iSystus;
-                iSystus++;
-            }
-
-            // Building the table
-            for (const auto np : sm->nodePairs()){
-                int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
-                shared_ptr<const DOFMatrix> dM = sm->findSubmatrix(np.first, np.second);
-                for (const auto dof: dM->componentByDofs){
-                    int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
-                    aTable.add(pairCode+dofCode);
-                    aTable.add(dof.second);
-                }
-            }
+            aTable.fill(sm, nbDOFS);
             tables.push_back(aTable);
             tableByElementSet[elementSet->getId()]=tId;
             sm->markAsWritten();
@@ -1871,25 +1838,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             shared_ptr<MassMatrix> mm = dynamic_pointer_cast<MassMatrix>(elementSet);
             systus_ascid_t tId= tables.size()+1;
             SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
-
-            //Numbering the node internally to the element
-            map<int, int> positionToSytusNumber;
-            int iSystus= 1;
-            for (const int pos : mm->nodePositions()){
-                positionToSytusNumber[pos]=iSystus;
-                iSystus++;
-            }
-
-            // Building the table
-            for (const auto np : mm->nodePairs()){
-                int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
-                shared_ptr<const DOFMatrix> dM = mm->findSubmatrix(np.first, np.second);
-                for (const auto dof: dM->componentByDofs){
-                    int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
-                    aTable.add(pairCode+dofCode);
-                    aTable.add(dof.second);
-                }
-            }
+            aTable.fill(mm,nbDOFS);
             tables.push_back(aTable);
             tableByElementSet[elementSet->getId()]=tId*100;
             mm->markAsWritten();
@@ -1899,25 +1848,7 @@ void SystusWriter::fillTables(const SystusModel& systusModel, const int idSubcas
             shared_ptr<DampingMatrix> dm = dynamic_pointer_cast<DampingMatrix>(elementSet);
             systus_ascid_t tId= tables.size()+1;
             SystusTable aTable{tId, SystusTableLabel::TL_STANDARD, 0};
-
-            //Numbering the node internally to the element
-            map<int, int> positionToSytusNumber;
-            int iSystus= 1;
-            for (const int pos : dm->nodePositions()){
-                positionToSytusNumber[pos]=iSystus;
-                iSystus++;
-            }
-
-            // Building the table
-            for (const auto np : dm->nodePairs()){
-                int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
-                shared_ptr<const DOFMatrix> dM = dm->findSubmatrix(np.first, np.second);
-                for (const auto dof: dM->componentByDofs){
-                    int dofCode = 10*DOFToInt(dof.first.first) + DOFToInt(dof.first.second);
-                    aTable.add(pairCode+dofCode);
-                    aTable.add(dof.second);
-                }
-            }
+            aTable.fill(dm, nbDOFS);
             tables.push_back(aTable);
             tableByElementSet[elementSet->getId()]=tId*10000;
             dm->markAsWritten();
@@ -2103,6 +2034,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
         tableByElementSet[elementSet->getId()]=-SystusWriter::DampingAccessId*10000;
         seIdByElementSet[elementSet->getId()]= seId;
         dampingMatrices.add(aMatrix);
+        dam->markAsWritten();
     }
 
 
@@ -2135,6 +2067,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
         tableByElementSet[elementSet->getId()]=-SystusWriter::MassAccessId*100;
         seIdByElementSet[elementSet->getId()]= seId;
         massMatrices.add(aMatrix);
+        mm->markAsWritten();
     }
 
     for (const auto& elementSet : systusModel.model.elementSets.filter(ElementSet::Type::STIFFNESS_MATRIX)) {
@@ -2166,6 +2099,7 @@ void SystusWriter::fillMatrices(const SystusModel& systusModel, const int idSubc
         tableByElementSet[elementSet->getId()]=-SystusWriter::StiffnessAccessId;
         seIdByElementSet[elementSet->getId()]= seId;
         stiffnessMatrices.add(aMatrix);
+        sm->markAsWritten();
     }
 
 }
