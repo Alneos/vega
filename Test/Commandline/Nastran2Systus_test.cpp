@@ -235,6 +235,9 @@ BOOST_AUTO_TEST_CASE( rbe2_hexapoi_nonalign_dist ) {
 //        CommandLineUtils::nastranStudy2Systus("/irt/allpload/allpload.nas", RUN_SYSTUS, true, 0.01);
 //}
 
+BOOST_AUTO_TEST_CASE( grav_coord) {
+	CommandLineUtils::nastranStudy2Systus("/irt/grav-coord/grav-coord.nas", RUN_SYSTUS, true, 0.00001);
+}
 
 } /* namespace test */
 } /* namespace vega */

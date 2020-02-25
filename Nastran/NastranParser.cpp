@@ -1132,7 +1132,7 @@ void NastranParser::parseCONM1(NastranTokenizer& tok, Model& model) {
         handleParsingWarning("coordinate system CID=-1 not supported and dismissed.", tok, model);
         ci = 0;
     }
-    int cpos = ci == 0 ? CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID : ci;
+    int cpos = ci == 0 ? CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID : model.mesh.findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, ci));
     int cellPosition = model.mesh.addCell(eid, CellType::POINT1, { g }, false, cpos);
     auto mnodale = model.mesh.createCellGroup("CONM1_" + to_string(eid), CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
     mnodale->addCellPosition(cellPosition);
@@ -1160,8 +1160,7 @@ void NastranParser::parseCONM2(NastranTokenizer& tok, Model& model) {
     int g = tok.nextInt(); // Grid point identification number
     int ci = tok.nextInt(true, 0);
     if (ci == -1) {
-        string message = "coordinate system CID=-1 not supported and dismissed.";
-        handleParsingWarning(message, tok, model);
+        handleParsingWarning("coordinate system CID=-1 not supported and dismissed.", tok, model);
         ci = 0;
     }
     const double mass = tok.nextDouble();
@@ -1170,9 +1169,8 @@ void NastranParser::parseCONM2(NastranTokenizer& tok, Model& model) {
     const double x3 = tok.nextDouble(true, 0.0);
 
     // User defined CID is only important if the offset is not null
-    if ((ci != 0) && (!is_zero(x1) || !is_zero(x2) || !is_zero(x3))) {
-        string message = "coordinate system CID not supported and dismissed.";
-        handleParsingWarning(message, tok, model);
+    if ((ci != 0) and (not is_zero(x1) or not is_zero(x2) or not is_zero(x3))) {
+        handleParsingWarning("coordinate system CID not supported and dismissed.", tok, model);
         ci = 0;
     }
     tok.skip(1);
@@ -1186,7 +1184,7 @@ void NastranParser::parseCONM2(NastranTokenizer& tok, Model& model) {
 
     const auto& nodalMass = make_shared<NodalMass>(model, mass, i11, i22, i33, -i21, -i31, -i32, x1, x2, x3, eid);
 
-    int cpos = ci == 0 ? CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID : ci;
+    int cpos = ci == 0 ? CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID : model.mesh.findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, ci));
     int cellPosition = model.mesh.addCell(eid, CellType::POINT1, { g }, false, cpos);
     auto mnodale = model.mesh.createCellGroup("CONM2_" + to_string(eid), CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
     mnodale->addCellPosition(cellPosition);

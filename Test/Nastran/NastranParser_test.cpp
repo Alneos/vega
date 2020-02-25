@@ -287,4 +287,24 @@ BOOST_AUTO_TEST_CASE(test_wrong_param2) {
 	}
 }
 
+BOOST_AUTO_TEST_CASE(test_github_issue28_conm2_coord) {
+	string testLocation = fs::path(
+		PROJECT_BASE_DIR "/testdata/unitTest/nastranparser/github_issue28.nas").make_preferred().string();
+	nastran::NastranParser parser;
+	try {
+		const unique_ptr<Model> model = parser.parse(
+			ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
+        model->finish();
+        BOOST_CHECK_EQUAL(model->analyses.size(), 3);
+        BOOST_CHECK(model->mesh.findCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, 608)) != nullptr);
+	}
+	catch (exception& e) {
+		cerr << e.what() << endl;
+		BOOST_TEST_MESSAGE(string("Application exception") + e.what());
+
+		BOOST_FAIL(string("Parse threw exception ") + e.what());
+	}
+}
+
+
 //____________________________________________________________________________//

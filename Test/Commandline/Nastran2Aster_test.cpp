@@ -341,5 +341,9 @@ BOOST_AUTO_TEST_CASE( allpload) {
 	CommandLineUtils::nastranStudy2Aster("/irt/allpload/allpload.nas", RUN_ASTER, true, 0.02);
 }
 
+BOOST_AUTO_TEST_CASE( grav_coord) {
+	CommandLineUtils::nastranStudy2Aster("/irt/grav-coord/grav-coord.nas", RUN_ASTER, true, 0.00001);
+}
+
 } /* namespace test */
 } /* namespace vega */

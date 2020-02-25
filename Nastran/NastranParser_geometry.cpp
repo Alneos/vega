@@ -656,13 +656,12 @@ void NastranParser::parseSPOINT(NastranTokenizer& tok, Model& model) {
     double x1 = 0.0;
     double x2 = 0.0;
     double x3 = 0.0;
-    int cpos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
 
     // Creating or finding the Node Group and Constraint
     const auto& spc = make_shared<SinglePointConstraint>(model, DOFS::ALL_DOFS-DOF::DX, 0.0);
     const auto& spcNodeGroup = model.mesh.findOrCreateNodeGroup("SPC_SPOINT",NodeGroup::NO_ORIGINAL_ID,"SPOINT");
 
-    int nodePosition = model.mesh.addNode(id1, x1, x2, x3, cpos, cpos);
+    int nodePosition = model.mesh.addNode(id1, x1, x2, x3);
     model.mesh.allowDOFS(nodePosition, DOF::DX);
     spcNodeGroup->addNodeId(id1);
     spc->addNodeId(id1);
@@ -674,7 +673,7 @@ void NastranParser::parseSPOINT(NastranTokenizer& tok, Model& model) {
     if (format1) {
         while (tok.isNextInt()){
             const int id2 = tok.nextInt();
-            nodePosition = model.mesh.addNode(id2, x1, x2, x3, cpos, cpos);
+            nodePosition = model.mesh.addNode(id2, x1, x2, x3);
             model.mesh.allowDOFS(nodePosition, DOF::DX);
             spcNodeGroup->addNodeId(id2);
             spc->addNodeId(id2);
@@ -689,7 +688,7 @@ void NastranParser::parseSPOINT(NastranTokenizer& tok, Model& model) {
             //format2
             const int id2 = tok.nextInt();
             for (int id=id1+1; id<=id2; id++){
-                nodePosition = model.mesh.addNode(id, x1, x2, x3, cpos, cpos);
+                nodePosition = model.mesh.addNode(id, x1, x2, x3);
                 model.mesh.allowDOFS(nodePosition, DOF::DX);
                 spcNodeGroup->addNodeId(id);
                 spc->addNodeId(id);
