@@ -236,7 +236,7 @@ BOOST_AUTO_TEST_CASE( rbe2_hexapoi_nonalign_dist ) {
 //}
 
 BOOST_AUTO_TEST_CASE( grav_coord) {
-	CommandLineUtils::nastranStudy2Systus("/irt/grav-coord/grav-coord.nas", RUN_SYSTUS, true, 0.00001);
+	CommandLineUtils::nastranStudy2Systus("/irt/grav-coord/grav-coord.nas", RUN_SYSTUS, true, 0.0001);
 }
 
 } /* namespace test */
