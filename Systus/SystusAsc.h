@@ -31,6 +31,7 @@
 #include <string>
 #include <iostream>
 #include "../Abstract/Dof.h"
+#include "../Abstract/Element.h"
 
 
 namespace vega {
@@ -62,10 +63,10 @@ public:
     std::vector<double> values;
 
     SystusTable(systus_ascid_t id, SystusTableLabel label=SystusTableLabel::TL_STANDARD, systus_ascid_t type=1);
-    //SystusTable(const SystusTable& that) = delete;
     virtual ~SystusTable() = default;
 
     void add(double value);
+    void fill(std::shared_ptr<MatrixElement> me, int nbDOFS);
     friend std::ostream &operator<<(std::ostream &out, const SystusTable& st);
 
 };
@@ -84,7 +85,6 @@ public:
     std::vector<double> values;
 
     SystusMatrix(systus_ascid_t id, int nbNodes, int nbDOFS);
-    //SystusMatrix(const SystusMatrix& that) = delete;
     virtual ~SystusMatrix() = default;
 
     void setValue(int i, int j, int dofi, int dofj, double value);
@@ -150,6 +150,8 @@ std::ostream& operator<<(std::ostream& os, const SystusSubOption & ssO);
  */
 double initSystusAscConstraintVector(std::vector<double> & vec);
 
+/** Converts a vega DOF to its integer Systus counterpart **/
+int DOFToInt(const DOF dof);
 
 
 } // namespace systus

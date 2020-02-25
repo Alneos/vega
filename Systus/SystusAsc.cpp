@@ -67,6 +67,37 @@ void SystusTable::add(const double value){
     this->values.push_back(value);
 }
 
+void SystusTable::fill(std::shared_ptr<MatrixElement> me, int nbDOFS){
+
+    //Numbering the node internally to the element
+    map<int, int> positionToSytusNumber;
+    int iSystus= 1;
+    for (const int pos : me->nodePositions()){
+        positionToSytusNumber[pos]=iSystus;
+        iSystus++;
+    }
+
+    // Building the table
+    for (const auto np : me->nodePairs()){
+        int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
+        shared_ptr<const DOFMatrix> dM = me->findSubmatrix(np.first, np.second);
+        for (const auto dof: dM->componentByDofs){
+            int dofi=DOFToInt(dof.first.first);
+            if (dofi> nbDOFS)
+                throw logic_error("Invalid degree of freedom ("+to_string(dofi)+") for Systus Table.");
+            int dofj=DOFToInt(dof.first.second);
+            if (dofj> nbDOFS)
+                throw logic_error("Invalid degree of freedom ("+to_string(dofj)+") for Systus Table.");
+            int dofCode = 10*dofi + dofj;
+            this->values.push_back(pairCode+dofCode);
+            this->values.push_back(dof.second);
+        }
+    }
+
+}
+
+
+
 
 // Start of Systus Matrix
 
@@ -77,7 +108,10 @@ SystusMatrix::SystusMatrix(systus_ascid_t id, int nbDOFS, int nbNodes ) :
 }
 
 void SystusMatrix::setValue(int i, int j, int dofi, int dofj, double value){
-
+    if (dofi> this->nbDOFS)
+        throw logic_error("Invalid degree of freedom ("+to_string(dofi)+") for Systus Matrix.");
+    if (dofj> this->nbDOFS)
+        throw logic_error("Invalid degree of freedom ("+to_string(dofj)+") for Systus Matrix.");
     int pos = (dofi-1) + nbDOFS*(dofj-1) + nbDOFS*nbDOFS*(i-1)+ nbDOFS*nbDOFS*nbNodes*(j-1);
     if (pos> this->size)
         throw logic_error("Invalid access to Systus Matrix.");
@@ -181,6 +215,23 @@ double initSystusAscConstraintVector(std::vector<double> & vec){
     vec.push_back(0);
     vec.push_back(0);
     return 0.0;
+}
+
+
+int DOFToInt(const DOF dof){
+    if (dof == DOF::DX)
+        return 1;
+    if (dof == DOF::DY)
+        return 2;
+    if (dof == DOF::DZ)
+        return 3;
+    if (dof == DOF::RX)
+        return 4;
+    if (dof == DOF::RY)
+        return 5;
+    if (dof == DOF::RZ)
+        return 6;
+    return -1;
 }
 
 

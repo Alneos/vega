@@ -287,8 +287,7 @@ private:
     int DOFSToMaterial(const DOFS dofs, std::ostream& out) const;
     /** Converts a vega DOFS to its integer Systus counterpart **/
     int DOFSToInt(const DOFS dofs) const;
-    /** Converts a vega DOF to its integer Systus counterpart **/
-    int DOFToInt(const DOF dof) const;
+
 
     /** Find an available Part Id for a Cell Group.
      * If possible, try to use the suffix (_NN) of the Group Name. **/
