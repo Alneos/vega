@@ -450,9 +450,14 @@ void SystusWriter::getSystusAutomaticOption(const SystusModel& systusModel, Syst
         case ElementSet::Type::LMPC:
         case ElementSet::Type::STIFFNESS_MATRIX:
         case ElementSet::Type::MASS_MATRIX:
-        case ElementSet::Type::DAMPING_MATRIX:
-        case ElementSet::Type::SCALAR_SPRING:{
+        case ElementSet::Type::DAMPING_MATRIX:{
             has1DOr2DElements= true;
+            break; // -Wimplicit-fallthrough
+        }
+        case ElementSet::Type::SCALAR_SPRING:{
+            const auto& discrete = static_pointer_cast<const Discrete>(elementSet);
+            has1DOr2DElements= has1DOr2DElements or discrete->hasRotations();
+            has3DElements= has3DElements or not(discrete->hasRotations());
             break; // -Wimplicit-fallthrough
         }
 
