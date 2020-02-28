@@ -1948,7 +1948,7 @@ void SystusWriter::fillMaterial(const SystusModel& systusModel, const int idSubc
     UNUSEDV(idSubcase);
 
     // Specific material for specific element set
-    //int idSkinMaterial
+    int idSkinMaterial=-1;
 
     for (const auto& elementSet : systusModel.model.elementSets) {
 
@@ -1959,9 +1959,11 @@ void SystusWriter::fillMaterial(const SystusModel& systusModel, const int idSubc
         /* Initialize a new systus material */
         map<SMF, string> systusMat;
         ostringstream ogmat;
-        fillMaterialField(SMF::ID, static_cast<int>(systusMaterial.size()+1), systusMat);
-        fillMaterialField(SMF::MID, static_cast<int>(systusMaterial.size()+1), systusMat);
+        int materialId=static_cast<int>(systusMaterial.size()+1);
+        fillMaterialField(SMF::ID, materialId, systusMat);
+        fillMaterialField(SMF::MID, materialId, systusMat);
         bool isValid=true;
+        bool isNewMaterial=true;
 
         // Elements with VEGA material
         const auto& material = elementSet->material;
@@ -2201,9 +2203,15 @@ void SystusWriter::fillMaterial(const SystusModel& systusModel, const int idSubc
                 break;
             }
 
-            // Skin elements, usually used to support surfacic load, don't need material
-            // So we only store an id.
+            // Skin elements are used to support surface load, don't need material
+            // We all point them to the same "dummy" material, with only the id
             case ElementSet::Type::SKIN:{
+                if (idSkinMaterial==-1){
+                    idSkinMaterial=materialId;
+                }else{
+                    materialId=idSkinMaterial;
+                    isNewMaterial=false;
+                }
                 break;
             }
 
@@ -2222,8 +2230,10 @@ void SystusWriter::fillMaterial(const SystusModel& systusModel, const int idSubc
 
         // Adds the material
         if (isValid){
-            materialIdByElementSetId[elementSet->getId()]=systusMaterial.size()+1;
-            systusMaterial.push_back(systusMat);
+            materialIdByElementSetId[elementSet->getId()]=materialId;
+            if (isNewMaterial){
+                systusMaterial.push_back(systusMat);
+            }
         }
     }
 

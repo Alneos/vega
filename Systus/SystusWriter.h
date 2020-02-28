@@ -125,7 +125,7 @@ private:
     std::map<int, systus_ascid_t> tableByLoadcase;
     std::map<int, systus_ascid_t> seIdByElementSet; /**< Number of the matrix associated to SE (element X9XX type 0). **/
     std::map<int, std::string > filebyAccessId;        /**< Names of matrix files **/
-    std::map<int, systus_ascid_t> materialIdByElementSetId; /**< Link between ElementSet and Systus Material **/
+    std::map<int, int> materialIdByElementSetId; /**< Link between ElementSet and Systus Material **/
 
     /**
      * Renumbers the nodes
