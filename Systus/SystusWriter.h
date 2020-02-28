@@ -103,6 +103,7 @@ private:
 
     std::map<int, std::vector<systus_ascid_t> > lists;
     std::map<systus_ascid_t, std::vector<double>> vectors;
+    std::vector<std::map<SMF, std::string>> systusMaterial;   /**< Store Systus Material **/
     std::map<int, int> rotationNodeIdByTranslationNodeId; /**< nodeId, nodeId > :  map between the reference node and the reference rotation for 190X elements in 3D mode.**/
     std::map<int, std::map<int, int>> localLoadingIdByLoadsetIdByAnalysisId;
     std::map<int, systus_ascid_t> loadingVectorIdByLocalLoading;
@@ -124,6 +125,8 @@ private:
     std::map<int, systus_ascid_t> tableByLoadcase;
     std::map<int, systus_ascid_t> seIdByElementSet; /**< Number of the matrix associated to SE (element X9XX type 0). **/
     std::map<int, std::string > filebyAccessId;        /**< Names of matrix files **/
+    std::map<int, systus_ascid_t> materialIdByElementSetId; /**< Link between ElementSet and Systus Material **/
+
     /**
      * Renumbers the nodes
      * see Systus ref manual chapter 15 or chapter 13 2.7
@@ -284,7 +287,7 @@ private:
     /** Converts a vega DOFS to its ASC material counterpart.
      *  Return the number of material field filled.
      **/
-    int DOFSToMaterial(const DOFS dofs, std::ostream& out) const;
+    //int DOFSToMaterial(const DOFS dofs, std::ostream& out) const;
     /** Converts a vega DOFS to its integer Systus counterpart **/
     int DOFSToInt(const DOFS dofs) const;
 
@@ -293,7 +296,7 @@ private:
      * If possible, try to use the suffix (_NN) of the Group Name. **/
     int getPartId(const std::string partName, std::set<int> & usedPartId);
     static const std::unordered_map<CellType::Code, std::vector<int>, EnumClassHash> systus2medNodeConnectByCellType;
-    void writeAsc(const SystusModel&, const ConfigurationParameters&, const int idSubcase, std::ostream&);
+    void writeAsc(const SystusModel&, const int idSubcase, std::ostream&);
     void getSystusInformations(const SystusModel&, const ConfigurationParameters&);
 
     /**
@@ -321,6 +324,17 @@ private:
     void fillTables(const SystusModel&, const int idSubcase);
     void fillVectors(const SystusModel&, const int idSubcase);
     void fillLists(const SystusModel&, const int idSubcase);
+    
+    /**
+     * Convert DOFS to its ASC material counterpart, in the relevant systus material.
+     */
+    void fillDOFSMaterialField(const DOFS dofs, std::map<SMF, std::string> & systusMat) const;
+    /**
+     * Fills various material fields in the relevant systus material.
+     */
+    void fillMaterialField(const SMF key, const double value, std::map<SMF, std::string> & systusMat) const;
+    void fillMaterialField(const SMF key, const int value, std::map<SMF, std::string> & systusMat) const;
+    void fillMaterial(const SystusModel& systusModel, const int idSubcase);
 
     /**
      *  Generate a rigidity for a a Rbar Element Set. The formulation we use is
@@ -389,20 +403,11 @@ private:
      */
     void writeGroups(const SystusModel&, std::ostream&);
     /**
-     * Writes a Material Field in the ASC Material lines.
-     * Output verifies the syntax " number value" where the number is
-     * the integer conversion of the SMF::key.
-     * Value here is a double.
+     * Writes a Material in the ASC Material lines.
+     * Output verifies the syntax "Id 0 f1 v1 f2 v2" where the fi are the integer 
+     * conversion of the SMF::key, and vi the corresponding value.
      */
-    void writeMaterialField(const SMF key, const double value, int& nbfields, std::ostream& out) const;
-    /**
-     * Writes a Material Field in the ASC Material lines.
-     * Output verifies the syntax " number value" where the number is
-     * the integer conversion of the SMF::key.
-     * Value here is an integer.
-     */
-    void writeMaterialField(const SMF key, const int value, int& nbfields, std::ostream& out) const ;
-    void writeMaterials(const SystusModel&, const ConfigurationParameters&, const int, std::ostream&);
+    void writeMaterial(const SystusModel&, const int, std::ostream&);
     void writeLoads(std::ostream&);
     void writeLists(std::ostream&);
     /**
