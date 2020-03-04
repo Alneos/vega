@@ -596,22 +596,6 @@ DOFCoefs LinearMultiplePointConstraint::getDoFCoefsForNode(
     return dofCoefs;
 }
 
-std::vector<int> LinearMultiplePointConstraint::sortNodePositionByCoefs() const{
-
-    std::set<int> np=this->nodePositions();
-    std::vector<int> indices(np.size());
-    int i = 0;
-    for (const auto n : np ){
-        indices[i]=n;
-        i++;
-    }
-    std::sort(
-            begin(indices), end(indices),
-            [&](int a, int b) { return this->dofCoefsByNodePosition.at(a) < this->dofCoefsByNodePosition.at(b); }
-    );
-    return indices;
-}
-
 Contact::Contact(Model& model, Type type, int original_id) :
         Constraint(model, type, original_id) {
 }

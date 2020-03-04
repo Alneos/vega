@@ -446,11 +446,21 @@ void SystusWriter::getSystusAutomaticOption(const SystusModel& systusModel, Syst
          * use. We could check every one of them to know which is what but it
          * seems a waste of time. For now, we suppose they are all 6DLLs
          */
-        case ElementSet::Type::LMPC:
         case ElementSet::Type::STIFFNESS_MATRIX:
         case ElementSet::Type::MASS_MATRIX:
         case ElementSet::Type::DAMPING_MATRIX:{
             has1DOr2DElements= true;
+            break; // -Wimplicit-fallthrough
+        }
+
+        /*
+         * Those elements can be either with 3 or 6 DLLs, depending on the user
+         * use.
+         */
+        case ElementSet::Type::LMPC:{
+            const auto& lmpc = static_pointer_cast<const Lmpc>(elementSet);
+            has1DOr2DElements= has1DOr2DElements or lmpc->hasRotations();
+            has3DElements= has3DElements or not(lmpc->hasRotations());
             break; // -Wimplicit-fallthrough
         }
         case ElementSet::Type::SCALAR_SPRING:{
@@ -486,7 +496,6 @@ void SystusWriter::getSystusAutomaticOption(const SystusModel& systusModel, Syst
         default: {
             handleWritingWarning("Unknown type of ElementSet for "+to_str(*elementSet), "Automatic Option");}
         } /* switch */
-
         // No need to test everything if we already know the needed informations.
         if (has1DOr2DElements&&has3DElements){
             break;

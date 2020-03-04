@@ -609,6 +609,7 @@ public:
     dof_int getDofCount() const noexcept {
         return dofcount;
     }
+    bool hasRotations() const;
 };
 
 /**

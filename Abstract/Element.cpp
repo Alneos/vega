@@ -1117,6 +1117,18 @@ void Lmpc::appendDofCoefs(vector<DOFCoefs> dofCoefs) {
     this->dofCoefsByDof.push_back(dofCoefs);
 }
 
+bool Lmpc::hasRotations() const{
+    for (dof_int dofnum = 0; dofnum < this->getDofCount(); dofnum++){
+        for (DOFCoefs dofCoefs : this->dofCoefsByDof[dofnum]){
+            for (dof_int i= 3; i< 6; i++){
+                if (!(is_zero(dofCoefs[i])))
+                        return true;
+            }
+        }
+    }
+    return false;
+}
+
 SurfaceSlideSet::SurfaceSlideSet(Model& model, int original_id) :
                 RigidSet(model, ElementSet::Type::SURFACE_SLIDE_CONTACT, Globals::UNAVAILABLE_INT, original_id) {
 }

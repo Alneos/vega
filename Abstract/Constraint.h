@@ -219,10 +219,6 @@ public:
     void addParticipation(int nodeId, double dx = 0, double dy = 0, double dz = 0, double rx = 0,
             double ry = 0, double rz = 0);
     DOFCoefs getDoFCoefsForNode(int nodePosition) const;
-    /**
-     * Sort all nodes positions by increasing coefs. Usefull to fuse various LMPC into ones.
-     */
-    std::vector<int> sortNodePositionByCoefs() const;
     std::set<int> nodePositions() const override final;
     DOFS getDOFSForNode(int nodePosition) const override;
     void removeNodePosition(int nodePosition) override;
