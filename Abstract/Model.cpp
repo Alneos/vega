@@ -2347,8 +2347,16 @@ bool Model::checkWritten() const {
         }
 
         for (const auto& objective : analysis->getObjectives()) {
+            if (objective->isWritten()) {
+                continue;
+            }
+            if (objective->isOutput()) {
+                if (configuration.logLevel >= LogLevel::TRACE) {
+                    cerr << "Output objective:" << *objective << " has not been written" << endl;
+                }
+            }
             validObj = validObj and objective->isWritten();
-            if (configuration.logLevel >= LogLevel::DEBUG and not objective->isWritten()) {
+            if (configuration.logLevel >= LogLevel::DEBUG) {
                 cerr << "Objective:" << *objective << " has not been written" << endl;
             }
         }

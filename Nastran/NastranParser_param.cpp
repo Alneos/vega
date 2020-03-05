@@ -274,7 +274,9 @@ void NastranParser::parsePARAM(NastranTokenizer& tok, Model& model) {
         (this->*parser)(tok, model);
 
     } else if (IGNORED_PARAMS.find(param) != IGNORED_PARAMS.end()) {
-        handleParsingWarning("Option PARAM, " + param + " ignored.", tok, model);
+        if (model.configuration.logLevel >= LogLevel::INFO) {
+            cout << "Option PARAM, " + param + " ignored." << endl;
+        }
         tok.skipToNextKeyword();
     } else {
         handleParsingError("Unknown parameter " + param + " is dismissed.", tok,

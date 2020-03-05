@@ -164,8 +164,7 @@ void NastranParser::parseCBAR(NastranTokenizer& tok, Model& model) {
     int cpos = parseOrientation(point1, point2, tok, model);
     string offt = tok.nextString(true);
     if (!offt.empty() && offt != "GGG") {
-        string message = "OFFT " + offt + " not supported and taken as GGG.";
-        handleParsingWarning(message, tok, model);
+        handleParsingWarning("OFFT " + offt + " not supported and taken as GGG.", tok, model);
     }
 
     // Pin flags : not supported.

@@ -1701,8 +1701,7 @@ void NastranParser::parseGRAV(NastranTokenizer& tok, Model& model) {
     int sid = tok.nextInt();
     int csid = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     if (csid != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-        string message = "CoordinateSystem not supported.";
-        handleParsingWarning(message, tok, model);
+        handleParsingWarning("CoordinateSystem not supported.", tok, model);
     }
     double acceleration = tok.nextDouble(true, 0);
     double x = tok.nextDouble(true, 0);
@@ -1710,8 +1709,7 @@ void NastranParser::parseGRAV(NastranTokenizer& tok, Model& model) {
     double z = tok.nextDouble(true, 0);
     int mb = tok.nextInt(true, 0);
     if (mb != 0) {
-        string message = "MB not supported.";
-        handleParsingWarning(message, tok, model);
+        handleParsingWarning("MB not supported.", tok, model);
     }
 
     const auto& loadSet = model.getOrCreateLoadSet(sid, LoadSet::Type::LOAD);
@@ -1780,19 +1778,19 @@ void NastranParser::parseMAT1(NastranTokenizer& tok, Model& model) {
     double ge = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
 
     // Default behavior from page 1664 of MDN Nastran 2006 Quick Reference Guide
-    if ((is_equal(e,Globals::UNAVAILABLE_DOUBLE))&&(is_equal(g,Globals::UNAVAILABLE_DOUBLE))){
-        string message = "Material " + to_string(material_id)+": E and G may not both be blank.";
-        handleParsingWarning(message, tok, model);
+    if ((is_equal(e,Globals::UNAVAILABLE_DOUBLE)) and (is_equal(g,Globals::UNAVAILABLE_DOUBLE))) {
+        handleParsingWarning("Material " + to_string(material_id)+": E and G may not both be blank.", tok, model);
     }
-    if (is_equal(nu,Globals::UNAVAILABLE_DOUBLE)){
-        if (is_equal(g,Globals::UNAVAILABLE_DOUBLE)){
+    if (is_equal(nu,Globals::UNAVAILABLE_DOUBLE)) {
+        if (is_equal(g,Globals::UNAVAILABLE_DOUBLE)) {
             nu = 0.0;
             g = 0.0;
-        }else if (is_equal(e,Globals::UNAVAILABLE_DOUBLE)){
+        } else if (is_equal(e,Globals::UNAVAILABLE_DOUBLE)) {
             nu = 0.0;
             e = 0.0;
-        }else
+        } else {
             nu = e/(2.0*g)-1;
+        }
     }
     if ((is_equal(e,Globals::UNAVAILABLE_DOUBLE))&&
             (!is_equal(g,Globals::UNAVAILABLE_DOUBLE))&&(!is_equal(nu,Globals::UNAVAILABLE_DOUBLE))){
@@ -1973,7 +1971,7 @@ void NastranParser::parseNLPARM(NastranTokenizer& tok, Model& model) {
 
     if (!tok.isEmptyUntilNextKeyword()){
         tok.skipToNextKeyword();
-        handleParsingWarning("All parameters are ignored except NINC.", tok, model);
+        handleParsingWarning("All NLPARM parameters are ignored except NINC.", tok, model);
     }
 
     const auto& nonLinearStrategy = make_shared<NonLinearStrategy>(model, objectiveSet, number_of_increments);
@@ -1986,7 +1984,7 @@ void NastranParser::parseNLPCI(NastranTokenizer& tok, Model& model) {
     const auto& objectiveSet = model.getOrCreateObjectiveSet(sid, ObjectiveSet::Type::NONLINEAR_STRATEGY);
     if (!tok.isEmptyUntilNextKeyword()){
         tok.skipToNextKeyword();
-        handleParsingWarning("All parameters are ignored.", tok, model);
+        handleParsingWarning("All NLPCI parameters are ignored.", tok, model);
     }
 
     const auto& arcLengthMethod = make_shared<ArcLengthMethod>(model, objectiveSet, Reference<Objective>(Objective::Type::NONLINEAR_PARAMETERS));
@@ -2118,7 +2116,7 @@ void NastranParser::parsePBARL(NastranTokenizer& tok, Model& model) {
 
     if (!tok.isEmptyUntilNextKeyword()) {
         tok.skipToNextKeyword();
-        handleParsingWarning("Ignoring rest of line.", tok,
+        handleParsingWarning("Ignoring last part of PBARL line.", tok,
              model);
     }
 
@@ -2133,7 +2131,7 @@ void NastranParser::parsePBEAM(NastranTokenizer& tok, Model& model) {
     double moment_of_inertia_Y = tok.nextDouble(true, 0.0);
     double areaProductOfInertia = tok.nextDouble(true, 0.0);
     if (!is_equal(areaProductOfInertia, 0.0)) {
-        handleParsingWarning("Area product of inertia not implemented.", tok, model);
+        handleParsingWarning("Area PBEAM product of inertia not implemented.", tok, model);
     }
     double torsionalConstant = tok.nextDouble(true, 0.0);
     double nsm = tok.nextDouble(true, 0.0);
@@ -2344,42 +2342,42 @@ void NastranParser::parsePBUSH(NastranTokenizer& tok, Model& model) {
                 if (tok.nextString() == "RIGID")
                     k1 = DBL_MAX;
                 else
-                    handleParsingError("Unsupported value (for now)", tok, model);
+                    handleParsingError("Unsupported PBUSH flag value (for now)", tok, model);
             if (tok.isNextDouble() or tok.isNextEmpty())
                 k2=tok.nextDouble(true, 0.0);
             else
                 if (tok.nextString() == "RIGID")
                     k2 = DBL_MAX;
                 else
-                    handleParsingError("Unsupported value (for now)", tok, model);
+                    handleParsingError("Unsupported PBUSH flag value (for now)", tok, model);
             if (tok.isNextDouble() or tok.isNextEmpty())
                 k3=tok.nextDouble(true, 0.0);
             else
                 if (tok.nextString() == "RIGID")
                     k3 = DBL_MAX;
                 else
-                    handleParsingError("Unsupported value (for now)", tok, model);
+                    handleParsingError("Unsupported PBUSH flag value (for now)", tok, model);
             if (tok.isNextDouble() or tok.isNextEmpty())
                 k4=tok.nextDouble(true, 0.0);
             else
                 if (tok.nextString() == "RIGID")
                     k4 = DBL_MAX;
                 else
-                    handleParsingError("Unsupported value (for now)", tok, model);
+                    handleParsingError("Unsupported PBUSH flag value (for now)", tok, model);
             if (tok.isNextDouble() or tok.isNextEmpty())
                 k5=tok.nextDouble(true, 0.0);
             else
                 if (tok.nextString() == "RIGID")
                     k5 = DBL_MAX;
                 else
-                    handleParsingError("Unsupported value (for now)", tok, model);
+                    handleParsingError("Unsupported PBUSH flag value (for now)", tok, model);
             if (tok.isNextDouble() or tok.isNextEmpty())
                 k6=tok.nextDouble(true, 0.0);
             else
                 if (tok.nextString() == "RIGID")
                     k6 = DBL_MAX;
                 else
-                    handleParsingError("Unsupported value (for now)", tok, model);
+                    handleParsingError("Unsupported PBUSH flag value (for now)", tok, model);
         }else if (flag=="B"){ // Force-Per-velocity Damping (Default 0.0)
             b1=tok.nextDouble(true, 0.0);
             b2=tok.nextDouble(true, 0.0);
@@ -2400,17 +2398,17 @@ void NastranParser::parsePBUSH(NastranTokenizer& tok, Model& model) {
             ea=tok.nextDouble(true, 1.0);
             et=tok.nextDouble(true, 1.0);
         }else{
-            handleParsingWarning(string("unknown flag: ")+flag, tok, model);
+            handleParsingWarning("unknown PBUSH flag: " + flag, tok, model);
         }
     }
     if (!is_equal(ge1, 0) || !is_equal(ge2, 0) || !is_equal(ge3, 0) || !is_equal(ge4, 0)
             || !is_equal(ge5, 0) || !is_equal(ge6, 0) ) {
         ge1=0.0; ge2=0.0; ge3=0.0; ge4=0.0; ge5=0.0; ge6=0.0;
-        handleParsingWarning(string("Structural Damping constants GE not supported. Default (0.0) assumed."), tok, model);
+        handleParsingWarning(string("Structural PBUSH Damping constants GE not supported. Default (0.0) assumed."), tok, model);
     }
     if (!is_equal(sa, 1.0) || !is_equal(st, 1.0) || !is_equal(ea, 1.0) || !is_equal(et,1.0)) {
         sa=1.0; st=1.0; ea=1.0; et=1.0;
-        handleParsingWarning(string("Stress and Strain recovery coefficients (SA, ST, EA, ET ) not supported. Default (1.0) assumed."), tok, model);
+        handleParsingWarning(string("Stress and Strain PBUSH recovery coefficients (SA, ST, EA, ET ) not supported. Default (1.0) assumed."), tok, model);
     }
 
     const auto& structuralElement = make_shared<StructuralSegment>(model, MatrixType::DIAGONAL, pid);
@@ -3020,8 +3018,7 @@ void NastranParser::parseRFORCE(NastranTokenizer& tok, Model& model) {
     int csid = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     if (csid != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
         csid = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
-        string message = "CoordinateSystem not supported and taken as 0.";
-        handleParsingWarning(message, tok, model);
+        handleParsingWarning("CoordinateSystem not supported and taken as 0.", tok, model);
     }
     double a = tok.nextDouble();
     double r1 = tok.nextDouble();
@@ -3030,20 +3027,17 @@ void NastranParser::parseRFORCE(NastranTokenizer& tok, Model& model) {
 
     int method = tok.nextInt(true, 1);
     if (method != 1) {
-        string message = "METHOD not supported. Default (1) assumed.";
-        handleParsingWarning(message, tok, model);
+        handleParsingWarning("METHOD not supported. Default (1) assumed.", tok, model);
     }
 
     double racc = tok.nextDouble(true, 0);
     if (!is_equal(racc, 0.0)) {
-        string message = "Scale factor of angular acceleration (RACC) not supported. Default (0.0) assumed.";
-        handleParsingWarning(message, tok, model);
+        handleParsingWarning("Scale factor of angular acceleration (RACC) not supported. Default (0.0) assumed.", tok, model);
     }
 
     int mb = tok.nextInt(true, 0);
     if (mb != 0) {
-        string message = "MB not supported. Default (0) assumed.";
-        handleParsingWarning(message, tok, model);
+        handleParsingWarning("MB not supported. Default (0) assumed.", tok, model);
     }
     const auto& loadset = model.getOrCreateLoadSet(sid, LoadSet::Type::LOAD);
     const auto& rotation = make_shared<RotationNode>(model, loadset, a, g, r1, r2, r3);
@@ -3617,8 +3611,7 @@ dof_int NastranParser::parseDOF(NastranTokenizer& tok, Model& model, bool return
 
     // Check for errors
     if ((dofread!=defaultValue) && ((dofread<0) || (dofread>6))){
-        string message = "Out of bound degrees of freedom : " + std::to_string(dofread);
-        handleParsingWarning(message, tok, model);
+        handleParsingWarning("Out of bound degrees of freedom : " + std::to_string(dofread), tok, model);
     }
     // Scalar point have a "0" Nastran DOF, translated as a "0" (DX) Vega DOF
     if (dofread==0){
