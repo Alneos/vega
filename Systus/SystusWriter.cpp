@@ -234,7 +234,7 @@ CartesianCoordinateSystem SystusWriter::buildElementDefaultReferentiel(const Sys
 
 }
 
-int SystusWriter::auto_part_id = 99999999;
+int SystusWriter::auto_part_id = 9999999;
 
 int SystusWriter::getPartId(const string partName, set<int> & usedPartId) {
 
@@ -2953,7 +2953,7 @@ void SystusWriter::writeMaterial(const SystusModel& systusModel,
         const int idSubcase, ostream& out) {
 
     // Suppressing warnings. Technically, we don't need these variables. We
-    // keep them to remember that only evrything in here is heavily dependent 
+    // keep them to remember that only evrything in here is heavily dependent
     // of the model and subcase.
     UNUSEDV(systusModel);
     UNUSEDV(idSubcase);

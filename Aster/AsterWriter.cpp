@@ -2518,7 +2518,7 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
                 highFreq = stod(asterModel->model.getParameter(ModelParameter::UPPER_CUTOFF_FREQUENCY));
             }
             comm_file_ofs << modalResuName << "=EXTR_MODE(FILTRE_MODE=_F(MODE=U" << modalResuName << ", FREQ_MIN=" << lowFreq << ", FREQ_MAX=" << highFreq << "),)" << endl;
-            comm_file_ofs << "I" << modalResuName << "=RECU_TABLE(CO=" << modalResuName << ",NOM_PARA = ('FREQ','MASS_GENE','RIGI_GENE','AMOR_GENE'))" << endl;
+            comm_file_ofs << "I" << modalResuName << "=RECU_TABLE(CO=" << modalResuName << ",NOM_PARA = ('FREQ','MASS_GENE','RIGI_GENE','AMOR_GENE','FACT_PARTICI_DX','FACT_PARTICI_DY','FACT_PARTICI_DZ','MASS_EFFE_DX','MASS_EFFE_DY','MASS_EFFE_DZ','MASS_EFFE_UN_DX','MASS_EFFE_UN_DY','MASS_EFFE_UN_DZ',))" << endl;
             comm_file_ofs << "IMPR_TABLE(TABLE=I" << modalResuName << ")" << endl << endl;
             destroyableConcepts.push_back("I" + modalResuName);
             comm_file_ofs << "J" << modalResuName << "=POST_ELEM(RESULTAT=" << modalResuName << ", MASS_INER=_F(TOUT='OUI'))" << endl;
