@@ -2151,7 +2151,7 @@ void AsterWriter::writeCalcFreq(const std::shared_ptr<LinearModal>& linearModal)
         }
         if (linearModal->use_power_iteration) {
             comm_file_ofs << "                       OPTION='SEPARE'," << endl;
-        } else if (isBuckling or (is_equal(fstart, Globals::UNAVAILABLE_DOUBLE) and is_equal(fend, Globals::UNAVAILABLE_DOUBLE))) {
+        } else if (isBuckling or not is_equal(band->maxsearch, Globals::UNAVAILABLE_INT)) {
             // CALC_CHAR_CRIT is not filtering eigenvalues correctly in Aster 13.6
             comm_file_ofs << "                       OPTION='PLUS_PETITE'," << endl;
         } else if (is_equal(fend, Globals::UNAVAILABLE_DOUBLE)) {
