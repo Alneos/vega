@@ -72,6 +72,8 @@ BOOST_AUTO_TEST_CASE( dmigstfl ) {
 }
 
 BOOST_AUTO_TEST_CASE( sdld27a ) {
+    // Strange problem, maybe because of installation, working fine before 14/04/2020 broken 15/04/2020
+    // changes this day: using PLUS_PETITE instead of CENTRE
 	CommandLineUtils::nastranStudy2Aster("/irt/sdld27a/sdld27a.bdf", RUN_ASTER, true, 0.00001);
 }
 

@@ -3202,7 +3202,7 @@ void NastranParser::parseRLOAD2(NastranTokenizer& tok, Model& model) {
         excitRef = Reference<LoadSet>{LoadSet::Type::LOAD, darea_set_id};
     } else {
         // If there is no LOADSET request in the Case Control, then EXCITEID may directly reference DAREA, static, and thermal load set entries.
-        handleParsingWarning("RLOAD2 directly referencing EXCITEID not yet handled, seems to be working?", tok, model);
+        //handleParsingWarning("RLOAD2 directly referencing EXCITEID not yet handled, seems to be working?", tok, model);
     }
     // If needed, creates a LoadSet EXCITEID for the DynamicExcitation
 //    LoadSet darea(model, LoadSet::Type::EXCITEID, darea_set_id);
