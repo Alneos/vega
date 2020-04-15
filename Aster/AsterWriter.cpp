@@ -2160,17 +2160,17 @@ void AsterWriter::writeCalcFreq(const std::shared_ptr<LinearModal>& linearModal)
             comm_file_ofs << "                       OPTION='BANDE'," << endl;
         }
         comm_file_ofs << "                       CALC_" << suffix << "=_F(" << endl;
-        if (not isBuckling and not is_equal(fstart, Globals::UNAVAILABLE_DOUBLE)) {
+        if (not is_equal(band->maxsearch, Globals::UNAVAILABLE_INT)) {
+            comm_file_ofs << "                                    NMAX_" << suffix << "=" << band->maxsearch << endl;
+        } else if (not isBuckling and not is_equal(fstart, Globals::UNAVAILABLE_DOUBLE)) {
             comm_file_ofs << "                                    " << suffix << "=(";
             comm_file_ofs << fstart;
-            if (is_equal(fend, Globals::UNAVAILABLE_DOUBLE)) {
+            if (is_equal(fend, Globals::UNAVAILABLE_INT)) {
                 comm_file_ofs << ", " << ")," << endl;
             } else {
                 comm_file_ofs << ", " << fend;
                 comm_file_ofs << ")," << endl;
             }
-        } else if (not is_equal(band->maxsearch, Globals::UNAVAILABLE_DOUBLE)) {
-            comm_file_ofs << "                                    NMAX_" << suffix << "=" << band->maxsearch << endl;
         }
 
         comm_file_ofs << "                                    )," << endl;
