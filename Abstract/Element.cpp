@@ -1138,9 +1138,9 @@ unique_ptr<ElementSet> SurfaceSlideSet::clone() const {
 }
 
 // ScalarSpring Methods
-ScalarSpring::ScalarSpring(Model& model, int original_id, double stiffness, double damping) :
+ScalarSpring::ScalarSpring(Model& model, int original_id, double stiffness, double damping, double mass) :
                 Discrete(model, ElementSet::Type::SCALAR_SPRING, MatrixType::SYMMETRIC, original_id), stiffness(stiffness),
-                damping(damping){
+                damping(damping), mass(mass){
 }
 
 double ScalarSpring::getStiffness() const {
@@ -1151,16 +1151,24 @@ double ScalarSpring::getDamping() const {
     return this->damping;
 }
 
+double ScalarSpring::getMass() const {
+    return this->mass;
+}
+
 std::map<std::pair<DOF, DOF>, vector<int>> ScalarSpring::getCellPositionByDOFS() const{
     return this->cellpositionByDOFS;
 }
 
 void ScalarSpring::setStiffness(const double stiffness){
-    this->stiffness=stiffness;
+    this->stiffness = stiffness;
 }
 
-void ScalarSpring::setDamping (const double damping){
-    this->damping=damping;
+void ScalarSpring::setDamping(const double damping){
+    this->damping = damping;
+}
+
+void ScalarSpring::setMass(const double mass){
+    this->mass = mass;
 }
 
 bool ScalarSpring::hasStiffness() const {
@@ -1172,7 +1180,7 @@ bool ScalarSpring::hasDamping() const {
 }
 
 bool ScalarSpring::hasMass() const {
-    return false;
+    return !(is_zero(this->mass) || is_equal(this->mass, Globals::UNAVAILABLE_DOUBLE));
 }
 
 unique_ptr<ElementSet> ScalarSpring::clone() const {
@@ -1222,80 +1230,100 @@ bool ScalarSpring::hasRotations() const {
 vector<double> ScalarSpring::asStiffnessVector(bool addRotationsIfNotPresent) const {
 	vector<double> result;
 	char ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
-	int max_row_element_index = 0;
-	for (int colindex = 0; colindex < 2; ++colindex) {
-		for (char coldof = 0; coldof < ncomp; coldof++) {
-			DOF colcode = DOF::findByPosition(coldof);
-			max_row_element_index++;
-			int row_element_index = 0;
-			for (int rowindex = 0; rowindex < 2; ++rowindex) {
-				for (char rowdof = 0; rowdof < ncomp; rowdof++) {
-					row_element_index++;
-					if (row_element_index > max_row_element_index) {
-						break;
-					}
-					DOF rowcode = DOF::findByPosition(rowdof);
-                    auto codeIter = this->cellpositionByDOFS.find({rowcode, colcode});
-                    if (codeIter != this->cellpositionByDOFS.end() and colindex == 1 and row_element_index <= 2) {
-                        result.push_back(stiffness);
-                    } else {
-                        result.push_back(0.0);
+
+    if (isDiagonal()) {
+        result.insert(result.end(), ncomp, stiffness);
+    } else if (isSymmetric()) {
+        int max_row_element_index = 0;
+        for (int colindex = 0; colindex < 2; ++colindex) {
+            for (char coldof = 0; coldof < ncomp; coldof++) {
+                DOF colcode = DOF::findByPosition(coldof);
+                max_row_element_index++;
+                int row_element_index = 0;
+                for (int rowindex = 0; rowindex < 2; ++rowindex) {
+                    for (char rowdof = 0; rowdof < ncomp; rowdof++) {
+                        row_element_index++;
+                        if (row_element_index > max_row_element_index) {
+                            break;
+                        }
+                        DOF rowcode = DOF::findByPosition(rowdof);
+                        auto codeIter = this->cellpositionByDOFS.find({rowcode, colcode});
+                        if (codeIter != this->cellpositionByDOFS.end() and colindex == 1 and row_element_index <= 2) {
+                            result.push_back(stiffness);
+                        } else {
+                            result.push_back(0.0);
+                        }
                     }
-				}
-			}
-		}
-	}
+                }
+            }
+        }
+    } else {
+        throw logic_error("not yet implemented");
+    }
 	return result;
 }
 
 vector<double> ScalarSpring::asDampingVector(bool addRotationsIfNotPresent) const {
 	vector<double> result;
 	char ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
-	int max_row_element_index = 0;
-	for (int colindex = 0; colindex < 2; ++colindex) {
-		for (char coldof = 0; coldof < ncomp; coldof++) {
-			DOF colcode = DOF::findByPosition(coldof);
-			max_row_element_index++;
-			int row_element_index = 0;
-			for (int rowindex = 0; rowindex < 2; ++rowindex) {
-				for (char rowdof = 0; rowdof < ncomp; rowdof++) {
-					row_element_index++;
-					if (row_element_index > max_row_element_index) {
-						break;
-					}
-					DOF rowcode = DOF::findByPosition(rowdof);
-                    auto codeIter = this->cellpositionByDOFS.find({rowcode, colcode});
-                    if (codeIter != this->cellpositionByDOFS.end() and colindex == 1 and row_element_index <= 2) {
-                        result.push_back(damping);
-                    } else {
-                        result.push_back(0.0);
+    if (isDiagonal()) {
+        result.insert(result.end(), ncomp, damping);
+    } else if (isSymmetric()) {
+        int max_row_element_index = 0;
+        for (int colindex = 0; colindex < 2; ++colindex) {
+            for (char coldof = 0; coldof < ncomp; coldof++) {
+                DOF colcode = DOF::findByPosition(coldof);
+                max_row_element_index++;
+                int row_element_index = 0;
+                for (int rowindex = 0; rowindex < 2; ++rowindex) {
+                    for (char rowdof = 0; rowdof < ncomp; rowdof++) {
+                        row_element_index++;
+                        if (row_element_index > max_row_element_index) {
+                            break;
+                        }
+                        DOF rowcode = DOF::findByPosition(rowdof);
+                        auto codeIter = this->cellpositionByDOFS.find({rowcode, colcode});
+                        if (codeIter != this->cellpositionByDOFS.end() and colindex == 1 and row_element_index <= 2) {
+                            result.push_back(damping);
+                        } else {
+                            result.push_back(0.0);
+                        }
                     }
-				}
-			}
-		}
-	}
+                }
+            }
+        }
+    } else {
+        throw logic_error("not yet implemented");
+    }
 	return result;
 }
 
 vector<double> ScalarSpring::asMassVector(bool addRotationsIfNotPresent) const {
 	vector<double> result;
 	char ncomp = (addRotationsIfNotPresent || hasRotations()) ? 6 : 3;
-	int max_row_element_index = 0;
-	for (int colindex = 0; colindex < 2; ++colindex) {
-		for (char coldof = 0; coldof < ncomp; coldof++) {
-			max_row_element_index++;
-			int row_element_index = 0;
-			for (int rowindex = 0; rowindex < 2; ++rowindex) {
-				for (char rowdof = 0; rowdof < ncomp; rowdof++) {
-					row_element_index++;
-					if (row_element_index > max_row_element_index) {
-						break;
-					}
-					result.push_back(damping);
-				}
-			}
-		}
-	}
+
+    if (isDiagonal()) {
+        result.insert(result.end(), ncomp, mass);
+    } else if (isSymmetric()) {
+        int max_row_element_index = 0;
+        for (int colindex = 0; colindex < 2; ++colindex) {
+            for (char coldof = 0; coldof < ncomp; coldof++) {
+                max_row_element_index++;
+                int row_element_index = 0;
+                for (int rowindex = 0; rowindex < 2; ++rowindex) {
+                    for (char rowdof = 0; rowdof < ncomp; rowdof++) {
+                        row_element_index++;
+                        if (row_element_index > max_row_element_index) {
+                            break;
+                        }
+                        result.push_back(mass);
+                    }
+                }
+            }
+        }
+    } else {
+        throw logic_error("not yet implemented");
+    }
 	return result;
 }
 

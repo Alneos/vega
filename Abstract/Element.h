@@ -631,13 +631,16 @@ private:
     std::map<std::pair<DOF, DOF>, std::vector<int>> cellpositionByDOFS;
     double stiffness = 0.0;
     double damping = 0.0;
+    double mass = 0.0;
 public:
-    ScalarSpring(Model&, int original_id = NO_ORIGINAL_ID, double stiffness = Globals::UNAVAILABLE_DOUBLE, double damping= Globals::UNAVAILABLE_DOUBLE);
+    ScalarSpring(Model&, int original_id = NO_ORIGINAL_ID, double stiffness = 0.0, double damping = 0.0, double mass = 0.0);
     double getStiffness() const;
     double getDamping() const;
+    double getMass() const;
     std::map<std::pair<DOF, DOF>, std::vector<int>> getCellPositionByDOFS() const;
     void setStiffness(const double stiffness);
     void setDamping (const double damping);
+    void setMass (const double mass);
     bool hasStiffness() const override;
     bool hasDamping() const override;
     bool hasMass() const override;

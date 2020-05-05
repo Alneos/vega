@@ -240,5 +240,9 @@ BOOST_AUTO_TEST_CASE( grav_coord) {
 	CommandLineUtils::nastranStudy2Systus("/irt/grav-coord/grav-coord.nas", false, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( sdld21b ) {
+	CommandLineUtils::nastranStudy2Systus("/irt/sdld21b/sdld21b.bdf", RUN_SYSTUS, true, 0.00001);
+}
+
 } /* namespace test */
 } /* namespace vega */

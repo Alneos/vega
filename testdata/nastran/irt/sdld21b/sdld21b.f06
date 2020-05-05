@@ -1,0 +1,725 @@
+0    SDLD21A                                                                                                 SUBCASE 1
+
+                                              R E A L   E I G E N V A L U E S
+                                         (BEFORE AUGMENTATION OF RESIDUAL VECTORS)
+   MODE    EXTRACTION      EIGENVALUE            RADIANS             CYCLES            GENERALIZED         GENERALIZED
+    NO.       ORDER                                                                       MASS              STIFFNESS
+        1         1        1.206148E+03        3.472964E+01        5.527393E+00        4.639911E+01        5.596417E+04
+        2         2        4.679111E+03        6.840403E+01        1.088684E+01        4.639911E+01        2.171066E+05
+        3         3        1.000000E+04        1.000000E+02        1.591549E+01        6.000000E+01        6.000000E+05
+        4         4        1.652704E+04        1.285575E+02        2.046057E+01        4.639911E+01        7.668398E+05
+        5         5        2.347296E+04        1.532089E+02        2.438395E+01        4.639911E+01        1.089124E+06
+        6         6        3.000000E+04        1.732051E+02        2.756644E+01        6.000000E+01        1.800000E+06
+        7         7        3.532089E+04        1.879385E+02        2.991134E+01        4.639911E+01        1.638858E+06
+        8         8        3.879385E+04        1.969615E+02        3.134740E+01        4.639911E+01        1.800000E+06
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  5.000000E+00
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G      1.023696E-04   0.0            0.0
+                          -8.518355E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  5.500000E+00
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G      4.506944E-04   0.0            0.0
+                          -7.791593E-04   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  6.000000E+00
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -9.410107E-05   0.0            0.0
+                          -1.058470E-05   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  6.500000E+00
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -4.139046E-05   0.0            0.0
+                          -2.608169E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  7.000000E+00
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -2.423217E-05   0.0            0.0
+                          -1.223206E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  7.500000E+00
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -1.569141E-05   0.0            0.0
+                          -7.673939E-07   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  8.000000E+00
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -1.050879E-05   0.0            0.0
+                          -5.816939E-07   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  8.500000E+00
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -6.934306E-06   0.0            0.0
+                          -5.127815E-07   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  9.000000E+00
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -4.184147E-06   0.0            0.0
+                          -5.221266E-07   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  9.500000E+00
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -1.775612E-06   0.0            0.0
+                          -6.335505E-07   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  1.000000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G      8.414258E-07   0.0            0.0
+                          -1.033464E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  1.050000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G      5.187968E-06   0.0            0.0
+                          -3.437447E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  1.100000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -7.329226E-06   0.0            0.0
+                          -1.216712E-05   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  1.150000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -3.561109E-06   0.0            0.0
+                          -1.809970E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  1.200000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -7.057509E-07   0.0            0.0
+                          -9.620619E-07   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  1.250000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G      1.100572E-06   0.0            0.0
+                          -8.477485E-07   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  1.300000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G      2.642397E-06   0.0            0.0
+                          -9.344773E-07   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  1.350000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G      4.224751E-06   0.0            0.0
+                          -1.178840E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  1.400000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G      6.103950E-06   0.0            0.0
+                          -1.675363E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  1.450000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G      8.669794E-06   0.0            0.0
+                          -2.756037E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  1.500000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G      1.265556E-05   0.0            0.0
+                          -5.665167E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  1.550000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G      1.752286E-05   0.0            0.0
+                          -1.650145E-05   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  1.600000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -5.849899E-06   0.0            0.0
+                          -3.213396E-05   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  1.650000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -1.373944E-05   0.0            0.0
+                          -1.089434E-05   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  1.700000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -8.563551E-06   0.0            0.0
+                          -4.469873E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  1.750000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -5.169557E-06   0.0            0.0
+                          -2.641062E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  1.800000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -2.860530E-06   0.0            0.0
+                          -2.041475E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  1.850000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -1.032628E-06   0.0            0.0
+                          -1.980327E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  1.900000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G      6.398614E-07   0.0            0.0
+                          -2.390489E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  1.950000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G      2.273996E-06   0.0            0.0
+                          -3.631399E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  2.000000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G      2.978468E-06   0.0            0.0
+                          -6.697006E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  2.050000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -1.053078E-06   0.0            0.0
+                          -9.432304E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  2.100000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -4.034223E-06   0.0            0.0
+                          -5.999708E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  2.150000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -3.049174E-06   0.0            0.0
+                          -3.487319E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  2.200000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -1.622358E-06   0.0            0.0
+                          -2.602535E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  2.250000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -3.336389E-07   0.0            0.0
+                          -2.480561E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  2.300000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G      8.209544E-07   0.0            0.0
+                          -2.898553E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  2.350000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G      1.703759E-06   0.0            0.0
+                          -3.978822E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  2.400000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G      1.555108E-06   0.0            0.0
+                          -5.727278E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  2.450000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -2.526130E-07   0.0            0.0
+                          -6.475499E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  2.500000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -1.253637E-06   0.0            0.0
+                          -5.270338E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  2.550000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -7.149567E-07   0.0            0.0
+                          -4.340684E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  2.600000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G      2.337163E-07   0.0            0.0
+                          -4.360834E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  2.650000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G      9.592295E-07   0.0            0.0
+                          -5.251949E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  2.700000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G      7.929791E-07   0.0            0.0
+                          -6.812203E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  2.750000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -8.471415E-07   0.0            0.0
+                          -7.934669E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  2.800000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -2.697371E-06   0.0            0.0
+                          -7.291917E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  2.850000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -3.199555E-06   0.0            0.0
+                          -5.939942E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  2.900000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -2.814731E-06   0.0            0.0
+                          -5.153721E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  2.950000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -2.314642E-06   0.0            0.0
+                          -5.076789E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  3.000000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -2.090413E-06   0.0            0.0
+                          -5.482053E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  3.050000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -2.339422E-06   0.0            0.0
+                          -6.152765E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  3.100000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -3.291324E-06   0.0            0.0
+                          -6.739163E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  3.150000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -4.752482E-06   0.0            0.0
+                          -6.564056E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  3.200000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -5.869337E-06   0.0            0.0
+                          -5.489370E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  3.250000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -6.223006E-06   0.0            0.0
+                          -4.170466E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  3.300000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -6.063183E-06   0.0            0.0
+                          -3.085081E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  3.350000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -5.697957E-06   0.0            0.0
+                          -2.307454E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  3.400000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -5.288683E-06   0.0            0.0
+                          -1.767824E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  3.450000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -4.897968E-06   0.0            0.0
+                          -1.389885E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  3.500000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -4.544737E-06   0.0            0.0
+                          -1.119036E-06   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  3.550000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -4.231301E-06   0.0            0.0
+                          -9.198171E-07   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  3.600000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -3.954385E-06   0.0            0.0
+                          -7.695731E-07   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  3.650000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -3.709303E-06   0.0            0.0
+                          -6.536601E-07   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  3.700000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -3.491452E-06   0.0            0.0
+                          -5.624117E-07   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  3.750000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -3.296781E-06   0.0            0.0
+                          -4.892946E-07   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  3.800000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -3.121861E-06   0.0            0.0
+                          -4.297850E-07   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  3.850000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -2.963844E-06   0.0            0.0
+                          -3.806817E-07   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  3.900000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -2.820373E-06   0.0            0.0
+                          -3.396706E-07   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  3.950000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -2.689493E-06   0.0            0.0
+                          -3.050476E-07   0.0            0.0
+1
+
+0    SDLD21A                                                                                                 SUBCASE 1
+      FREQUENCY =  4.000000E+01
+                                       C O M P L E X   D I S P L A C E M E N T   V E C T O R
+                                                          (REAL/IMAGINARY)
+
+      POINT ID.   TYPE          T1             T2             T3
+0            5      G     -2.569582E-06   0.0            0.0
+                          -2.755362E-07   0.0            0.0
+1

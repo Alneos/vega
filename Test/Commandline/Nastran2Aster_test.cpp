@@ -71,6 +71,10 @@ BOOST_AUTO_TEST_CASE( dmigstfl ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/dmigstfl/dmigstfl.nas", RUN_ASTER, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE( sdld21b ) {
+	CommandLineUtils::nastranStudy2Aster("/irt/sdld21b/sdld21b.bdf", RUN_ASTER, true, 0.00001);
+}
+
 BOOST_AUTO_TEST_CASE( sdld27a ) {
     // Strange problem, maybe because of installation, working fine before 14/04/2020 broken 15/04/2020
     // changes this day: using PLUS_PETITE instead of CENTRE
@@ -198,7 +202,7 @@ BOOST_AUTO_TEST_CASE( nas120probF ) {
 }
 
 BOOST_AUTO_TEST_CASE( test_2dof108 ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/2dof108/2dof108.bdf", false, true, 0.05);
+	CommandLineUtils::nastranStudy2Aster("/irt/2dof108/2dof108.bdf", RUN_ASTER, true, 0.05);
 }
 
 BOOST_AUTO_TEST_CASE( rbe3 ) {

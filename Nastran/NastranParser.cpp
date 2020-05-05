@@ -3474,15 +3474,23 @@ void NastranParser::parseTABLED1(NastranTokenizer& tok, Model& model) {
             (interpolation == "LINEAR") ? FunctionTable::Interpolation::LINEAR : FunctionTable::Interpolation::LOGARITHMIC;
     // The next 5 fields are empty (but not in the free syntax).
     // We do a special treatment for the first one, which can be filled in the OPTISTRUCT syntax
-    int flat = 0;
+    int flat = -1;
     if (tok.isNextInt())
         flat = tok.nextInt();
     tok.skipToNotEmpty();
 
-    FunctionTable::Interpolation right =
-            (flat != 0) ? FunctionTable::Interpolation::CONSTANT : FunctionTable::Interpolation::NONE;
 
-    const auto& functionTable = make_shared<FunctionTable>(model, parameter, value, FunctionTable::Interpolation::NONE,
+    FunctionTable::Interpolation left = FunctionTable::Interpolation::LINEAR; // Remark 6 The table look-up is performed using linear interpolation within the table and linear extrapolation outside the table using the two starting or endpoints
+    FunctionTable::Interpolation right;
+
+    if (flat != -1) {
+        right = (flat != 0) ? FunctionTable::Interpolation::CONSTANT : FunctionTable::Interpolation::NONE;
+    } else {
+        right = FunctionTable::Interpolation::LINEAR; // Remark 6 The table look-up is performed using linear interpolation within the table and linear extrapolation outside the table using the two starting or endpoints
+    }
+
+
+    const auto& functionTable = make_shared<FunctionTable>(model, parameter, value, left,
             right, original_id);
 
     double x,y;
