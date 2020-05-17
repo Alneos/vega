@@ -1909,11 +1909,6 @@
 		<Unit filename="Commandline/vegamain.cpp">
 			<Option target="vegapp" />
 		</Unit>
-		<Unit filename="Dockerfile" />
-		<Unit filename="Dockerfile_centos7" />
-		<Unit filename="Dockerfile_jenkins" />
-		<Unit filename="Dockerfile_xcompile" />
-		<Unit filename="Dockerfile_xgitlab" />
 		<Unit filename="Doxyfile.in">
 			<Option virtualFolder="CMake Files/" />
 		</Unit>
@@ -2214,6 +2209,15 @@
 		<Unit filename="cmakemodules/nightly_win.cmake">
 			<Option virtualFolder="CMake Files/cmakemodules/" />
 		</Unit>
+		<Unit filename="docker/Dockerfile_alpine" />
+		<Unit filename="docker/Dockerfile_centos7" />
+		<Unit filename="docker/Dockerfile_jenkins" />
+		<Unit filename="docker/Dockerfile_tianyi" />
+		<Unit filename="docker/Dockerfile_ubuntu18" />
+		<Unit filename="docker/Dockerfile_xcentos7" />
+		<Unit filename="docker/Dockerfile_xcompile" />
+		<Unit filename="docker/Dockerfile_xgitlab" />
+		<Unit filename="docker/dockerdata/nastran" />
 		<Unit filename="testdata/nastran/alneos/rbar1mod/rbar1mod.dat" />
 		<Unit filename="testdata/nastran/alneos/rbar1mod/rbar1mod.f06" />
 		<Unit filename="testdata/nastran/alneos/rbar1mod/readme.txt" />

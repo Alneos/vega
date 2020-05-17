@@ -12,7 +12,7 @@ node('maven') {
       sh "ls"
       sh "whoami"
       sh "docker --version"
-      sh "docker build -t ${image} -f Dockerfile_jenkins ."
+      sh "docker build -t ${image} -f ./docker/Dockerfile_jenkins ."
       sh "docker save ${image} -o vegapp.tar"
       sh "docker images -q"
       sh "ls -l"

@@ -58,6 +58,7 @@ public:
         LINEAR_MECA_STAT,
         LINEAR_BUCKLING,
         LINEAR_MODAL,
+        LINEAR_MODAL_COMPLEX,
         LINEAR_DYNA_DIRECT_FREQ,
         LINEAR_DYNA_MODAL_FREQ,
         NONLINEAR_MECA_STAT,
@@ -232,6 +233,12 @@ public:
     bool isBuckling() const noexcept override {
         return true;
     }
+};
+
+class LinearModalComplex: public LinearModal {
+    Reference<ObjectiveSet> complexMethodRef;
+public:
+    LinearModalComplex(Model&, const Reference<ObjectiveSet>&, const Reference<ObjectiveSet>&, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
 };
 
 /**

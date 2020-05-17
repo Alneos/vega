@@ -45,7 +45,9 @@ protected:
         NLSTATIC = 106,
         DFREQ = 108,
         DTRAN = 109,
+        MCEIG = 110,
         MFREQ = 111,
+        MTRAN = 112,
         DESOPT = 200
     };
     using parseElementFPtr = void (NastranParser::*)(NastranTokenizer& tok, Model& model);
@@ -382,6 +384,12 @@ private:
      * EIGB Defines data needed to perform buckling analysis.
      */
     void parseEIGB(NastranTokenizer& tok, Model& model);
+
+    /**
+     * Parse the keyword EIGC (page 1509 of MDN Nastran 2006 Quick Reference Guide.)
+     * Options are not supported.
+     */
+    void parseEIGC(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword EIGR (page 1517 of MDN Nastran 2006 Quick Reference Guide.)

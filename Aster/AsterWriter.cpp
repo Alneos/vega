@@ -46,13 +46,15 @@ string AsterWriter::writeModel(Model& model,
 	}
 
     fs::path inputFile(asterModel->configuration.inputFile);
-	if (fs::exists(inputFile)) {
-		fs::copy_file(inputFile, fs::absolute(path) / inputFile.filename(), fs::copy_option::overwrite_if_exists);
+    const auto& inputFileCopy = fs::absolute(path) / inputFile.filename();
+	if (fs::exists(inputFile) and not fs::exists(inputFileCopy)) {
+		fs::copy_file(inputFile, inputFileCopy); // LD 06/05/2020 overwrite can cause issues if output directory is default (output=current) or set to ".", input file is overwritten or it causes an error because it is already open
 	}
 
     fs::path testFile = asterModel->configuration.resultFile;
-	if (fs::exists(testFile)) {
-		fs::copy_file(testFile, fs::absolute(path) / testFile.filename(), fs::copy_option::overwrite_if_exists);
+    const auto& testFileCopy = fs::absolute(path) / testFile.filename();
+	if (fs::exists(testFile) and not fs::exists(testFileCopy)) {
+		fs::copy_file(testFile, testFileCopy); // LD 06/05/2020 overwrite can cause issues if output directory is default (output=current) or set to ".", input file is overwritten or it causes an error because it is already open
 	}
 
 	if (configuration.createGraph) {
@@ -2145,9 +2147,10 @@ void AsterWriter::writeCalcFreq(const std::shared_ptr<LinearModal>& linearModal)
         }
         double fend = band->end;
         if (isBuckling and not is_equal(band->end, Globals::UNAVAILABLE_DOUBLE)) {
+            /* Not needed after C_A v14
             fstart = -fstart;
             fend = -fend;
-            swap(fstart, fend);
+            swap(fstart, fend);*/
         }
         if (linearModal->use_power_iteration) {
             comm_file_ofs << "                       OPTION='SEPARE'," << endl;
@@ -2473,6 +2476,7 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
 	    break;
 	}
 	case Analysis::Type::LINEAR_MODAL:
+    case Analysis::Type::LINEAR_MODAL_COMPLEX:
 	case Analysis::Type::LINEAR_DYNA_MODAL_FREQ: {
 
 		const auto& linearModal = static_pointer_cast<LinearModal>(analysis);
@@ -2541,7 +2545,8 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
 		comm_file_ofs << freqList << "=" << modalResuName << ".LIST_VARI_ACCES()['FREQ']" << endl;
 //        destroyableConcepts.push_back("LIMODE" + to_string(analysis->getId()));
 
-		if (analysis->type == Analysis::Type::LINEAR_MODAL) {
+		if (analysis->type == Analysis::Type::LINEAR_MODAL
+            or analysis->type == Analysis::Type::LINEAR_MODAL_COMPLEX) {
             linearModal->markAsWritten();
 			break;
 		}

@@ -179,9 +179,12 @@ const std::unordered_map<std::string, NastranParser::NastranAnalysis> NastranPar
         { "SEDFREQ", NastranAnalysis::DFREQ },
         { "109", NastranAnalysis::DTRAN },
         { "SEDTRAN", NastranAnalysis::DTRAN },
+        { "110", NastranAnalysis::MCEIG },
+        { "SEMCEIG", NastranAnalysis::MCEIG },
         { "111", NastranAnalysis::MFREQ },
-        { "MFREQ", NastranAnalysis::MFREQ },
-        { "SEMTRAN", NastranAnalysis::MFREQ },
+        { "SEMFREQ", NastranAnalysis::MFREQ },
+        { "112", NastranAnalysis::MTRAN },
+        { "SEMTRAN", NastranAnalysis::MTRAN },
         { "200", NastranAnalysis::DESOPT },
         { "DESOPT", NastranAnalysis::DESOPT },
 };
@@ -619,13 +622,22 @@ NastranParser::NastranAnalysis NastranParser::autoSubcaseAnalysis(map<string, st
         }
     }
     bool hasMethod = false;
+    bool hasCMethod = false;
     for (const auto& contextEntry: context) {
         if (contextEntry.first.find("METHOD") != string::npos) {
             hasMethod = true;
             break;
         }
     }
-    if (hasMethod) {
+    for (const auto& contextEntry: context) {
+        if (contextEntry.first.find("CMETHOD") != string::npos) {
+            hasCMethod = true;
+            break;
+        }
+    }
+    if (hasCMethod) {
+        return NastranAnalysis::MCEIG;
+    } else if (hasMethod) {
         for (const auto& contextEntry: context) {
             if (contextEntry.first.find("SDAMPING") != string::npos) {
                 return NastranAnalysis::MFREQ;
@@ -710,6 +722,30 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
             handleParsingError("METHOD not found for linear buckling analysis", tok, model);
 
         analysis = make_shared<LinearBuckling>(model, Reference<ObjectiveSet>{ObjectiveSet::Type::METHOD, frequency_search_sid}, labelAnalysis, analysis_id);
+
+    } else if (analysis_type == NastranAnalysis::MCEIG) {
+
+        map<string, string>::iterator it;
+        int frequency_search_sid = 0;
+        for (it = context.begin(); it != context.end(); it++) {
+            if (it->first.find("METHOD") != string::npos) {
+                frequency_search_sid = stoi(it->second);
+                break;
+            }
+        }
+        if (it == context.end())
+            handleParsingError("METHOD not found for linear complex modal analysis", tok, model);
+        int complex_method_sid = 0;
+        for (it = context.begin(); it != context.end(); it++) {
+            if (it->first.find("CMETHOD") != string::npos) {
+                complex_method_sid = stoi(it->second);
+                break;
+            }
+        }
+        if (it == context.end())
+            handleParsingError("CMETHOD not found for linear complex modal analysis", tok, model);
+
+        analysis = make_shared<LinearModalComplex>(model, Reference<ObjectiveSet>{ObjectiveSet::Type::METHOD, frequency_search_sid}, Reference<ObjectiveSet>{ObjectiveSet::Type::CMETHOD, complex_method_sid}, labelAnalysis, analysis_id);
 
     } else if (analysis_type == NastranAnalysis::MODES) {
 
@@ -1433,6 +1469,22 @@ void NastranParser::parseDPHASE(NastranTokenizer& tok, Model& model) {
     const auto& dynaphase = make_shared<DynaPhase>(model, dphase, original_id);
     dynaphase->setInputContext(tok.getInputContext());
     model.add(dynaphase);
+}
+
+void NastranParser::parseEIGC(NastranTokenizer& tok, Model& model) {
+    int sid = tok.nextInt();
+    const auto& objectiveSet = model.getOrCreateObjectiveSet(sid, ObjectiveSet::Type::CMETHOD);
+
+    FrequencySearch::NormType norm; UNUSEDV(norm);
+    string normString = tok.nextString(true, "MASS");
+    if (normString == "MASS")
+        norm = FrequencySearch::NormType::MASS;
+    else if (normString == "MAX")
+        norm = FrequencySearch::NormType::MAX;
+    else {
+        handleParsingWarning("Only MASS and MAX normalizing method (NORM) supported. Default (MASS) assumed.", tok, model);
+        norm = FrequencySearch::NormType::MAX;
+    }
 }
 
 void NastranParser::parseEIGB(NastranTokenizer& tok, Model& model) {

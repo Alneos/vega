@@ -91,7 +91,7 @@ const string AsterModel::getOutputFileName(string extension, bool absolute) cons
 }
 
 const string AsterModel::getAsterVersion() const {
-    string result = "STABLE";
+    string result = "stable";
     if (!this->configuration.solverVersion.empty()) {
         result = this->configuration.solverVersion;
     }

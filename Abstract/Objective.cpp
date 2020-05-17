@@ -43,6 +43,7 @@ const map<Objective::Type, string> Objective::stringByType = {
         { Objective::Type::NODAL_CELL_VONMISES_ASSERTION, "NODAL_CELL_VONMISES_ASSERTION" },
         { Objective::Type::FREQUENCY_ASSERTION, "FREQUENCY_ASSERTION" },
         { Objective::Type::FREQUENCY_SEARCH, "FREQUENCY_SEARCH" },
+        { Objective::Type::COMPLEX_FREQUENCY_METHOD, "COMPLEX_FREQUENCY_METHOD" },
         { Objective::Type::FREQUENCY_EXCIT, "FREQUENCY_EXCIT" },
         { Objective::Type::MODAL_DAMPING, "MODAL_DAMPING" },
         { Objective::Type::NONLINEAR_PARAMETERS, "NONLINEAR_PARAMETERS" },
@@ -103,6 +104,7 @@ const string ObjectiveSet::name = "ObjectiveSet";
 const map<ObjectiveSet::Type, string> ObjectiveSet::stringByType = {
     { ObjectiveSet::Type::FREQ, "FREQUENCY_EXCIT" },
     { ObjectiveSet::Type::METHOD, "FREQUENCY_SEARCH" },
+    { ObjectiveSet::Type::CMETHOD, "CMETHOD" },
     { ObjectiveSet::Type::DISP, "DISPLACEMENT_OUTPUT" },
     { ObjectiveSet::Type::OFREQ, "FREQUENCY_OUTPUT" },
     { ObjectiveSet::Type::STRESS, "STRESS_OUTPUT" },
@@ -213,6 +215,10 @@ shared_ptr<NamedValue> FrequencySearch::getValue() const {
 
 FunctionPlaceHolder FrequencySearch::getValueRangePlaceHolder() const {
     return FunctionPlaceHolder(model, namedValue.type, namedValue.original_id, Function::ParaName::FREQ);
+}
+
+ComplexFrequencyMethod::ComplexFrequencyMethod(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, const std::shared_ptr<ObjectiveSet> complexMethodSet, NormType norm, int original_id) :
+        AnalysisParameter(model, objectiveset, Objective::Type::COMPLEX_FREQUENCY_METHOD, original_id), norm(norm), complexMethodSet(complexMethodSet) {
 }
 
 FrequencyExcit::FrequencyExcit(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, const FrequencyType frequencyType, const NamedValue& namedValue, NormType norm, int original_id) :

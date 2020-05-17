@@ -45,6 +45,7 @@ const string Analysis::name = "Analysis";
 const map<Analysis::Type, string> Analysis::stringByType = {
         { Analysis::Type::LINEAR_MECA_STAT, "LINEAR_MECA_STAT" },
         { Analysis::Type::LINEAR_MODAL, "LINEAR_MODAL" },
+        { Analysis::Type::LINEAR_MODAL_COMPLEX, "LINEAR_MODAL_COMPLEX" },
         { Analysis::Type::LINEAR_BUCKLING, "LINEAR_BUCKLING" },
         { Analysis::Type::LINEAR_DYNA_DIRECT_FREQ, "LINEAR_DYNA_DIRECT_FREQ" },
         { Analysis::Type::LINEAR_DYNA_MODAL_FREQ, "LINEAR_DYNA_MODAL_FREQ" },
@@ -644,6 +645,12 @@ bool LinearModal::validate() const {
 LinearBuckling::LinearBuckling(Model& model, const Reference<ObjectiveSet>& frequencySearchRef,
         const string original_label, const int original_id) :
         LinearModal(model, frequencySearchRef, original_label, original_id, Type::LINEAR_BUCKLING) {
+}
+
+LinearModalComplex::LinearModalComplex(Model& model, const Reference<ObjectiveSet>& frequencySearchRef,
+        const Reference<ObjectiveSet>& complexMethodRef,
+        const string original_label, const int original_id) :
+        LinearModal(model, frequencySearchRef, original_label, original_id, Type::LINEAR_MODAL_COMPLEX), complexMethodRef(complexMethodRef) {
 }
 
 LinearDynaModalFreq::LinearDynaModalFreq(Model& model, const Reference<ObjectiveSet>& frequencySearchRef,

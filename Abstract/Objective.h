@@ -49,6 +49,7 @@ public:
         NODAL_CELL_VONMISES_ASSERTION,
         FREQUENCY_ASSERTION,
         FREQUENCY_SEARCH,
+        COMPLEX_FREQUENCY_METHOD,
         FREQUENCY_EXCIT,
         MODAL_DAMPING,
         NONLINEAR_PARAMETERS,
@@ -90,6 +91,7 @@ public:
 	    DISP,
 		FREQ,
 		METHOD,
+		CMETHOD,
 		OFREQ,
 		STRESS,
 		SDAMP,
@@ -208,6 +210,18 @@ public:
     const NormType norm;  /**< Method for normalizing eigenvectors: MASS or MAX **/
     std::shared_ptr<NamedValue> getValue() const;
     FunctionPlaceHolder getValueRangePlaceHolder() const;
+};
+
+class ComplexFrequencyMethod: public AnalysisParameter {
+public:
+
+    enum class NormType {
+        MASS,
+        MAX
+    };
+    ComplexFrequencyMethod(Model&, const std::shared_ptr<ObjectiveSet>, const std::shared_ptr<ObjectiveSet>, const NormType norm = NormType::MASS, int original_id = NO_ORIGINAL_ID);
+    const NormType norm;  /**< Method for normalizing eigenvectors: MASS or MAX **/
+    const std::shared_ptr<ObjectiveSet> complexMethodSet;
 };
 
 class FrequencyExcit: public AnalysisParameter {
