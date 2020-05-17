@@ -2946,7 +2946,7 @@ void AsterWriter::writeFrequencyAssertion(const Analysis& analysis, const Freque
 	comm_file_ofs << "                     CRITERE = " << critere << endl;
     if (isBuckling) {
         comm_file_ofs << "                     PARA = 'CHAR_CRIT'," << endl;
-        comm_file_ofs << "                     NUME_MODE = " << analysis.getAssertions().size() - frequencyAssertion.number + 1 << "," << endl;
+        comm_file_ofs << "                     NUME_MODE = " << frequencyAssertion.number << "," << endl;
         comm_file_ofs << "                     VALE_CALC = " << frequencyAssertion.eigenValue << "," << endl;
     } else {
         comm_file_ofs << "                     PARA = 'FREQ'," << endl;
