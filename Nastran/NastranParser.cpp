@@ -1892,8 +1892,9 @@ void NastranParser::parseMAT8(NastranTokenizer& tok, Model& model) {
     double g12 = tok.nextDouble();
     double g1Z = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
     double g2Z = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    double rho = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
     shared_ptr<Material> material = model.getOrCreateMaterial(material_id);
-    material->addNature(make_shared<OrthotropicNature>(model, e1, e2, nu12, g12, g2Z, g1Z));
+    material->addNature(make_shared<OrthotropicNature>(model, e1, e2, nu12, g12, g2Z, g1Z, rho));
 }
 
 void NastranParser::parseMATHP(NastranTokenizer& tok, Model& model) {

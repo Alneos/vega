@@ -105,17 +105,26 @@ class OrthotropicNature: public Nature {
     double _g_longitudinal_transverse;
     double _g_transverse_normal;
     double _g_longitudinal_normal;
+    double rho;
 public:
     OrthotropicNature(const Model&, const double e_longitudinal, const double e_transverse,
             const double nu_longitudinal_transverse, const double g_longitudinal_transverse,
-            const double g_transverse_normal = UNAVAILABLE_DOUBLE, const double g_longitudinal_normal = UNAVAILABLE_DOUBLE);
+            const double g_transverse_normal = UNAVAILABLE_DOUBLE, const double g_longitudinal_normal = UNAVAILABLE_DOUBLE,
+            const double rho = UNAVAILABLE_DOUBLE);
     double getE_longitudinal() const;
     double getE_transverse() const;
     double getNu_longitudinal_transverse() const;
     double getG_longitudinal_transverse() const;
     double getG_transverse_normal() const;
     double getG_longitudinal_normal() const;
-
+    /**
+     * Get mass density (in kg.m^{-3})
+     */
+    double getRho() const;
+    /**
+     * Get mass density as equivalent force density (in N.m^{-3})
+     */
+    double getRhoAsForceDensity() const;
 };
 
 class BilinearElasticNature: public Nature {

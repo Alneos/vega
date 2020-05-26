@@ -136,7 +136,19 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
     }
     case ElementSet::Type::SHELL:
     case ElementSet::Type::COMPOSITE: {
-        result = "('DKT',)";
+        if (not model.analyses.contains(Analysis::Type::NONLINEAR_MECA_STAT)) {
+            // Some tests are better with DST "shell", other are worst "nastrancoverage cantilever tria"
+            result = "('DKT',)"; // DST
+        } else {
+            // Workaround for MECANONLINE_3
+            // Erreur utilisateur :                                                                                           !
+            //   Vous essayez de faire un calcul non-linéaire mécanique ou un post-traitement sur un modèle dont les éléments !
+            //   ne sont pas programmés pour cela.                                                                            !
+            //   On arrête le calcul.                                                                                         !
+            // Risques & conseils :                                                                                           !
+            //   Vous devriez changer de modélisation.
+            result = "('DKT',)";
+        }
         /*??
          coque_3D.modelisations = ("COQUE_3D",)
          */

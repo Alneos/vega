@@ -124,7 +124,7 @@ void AsterWriter::writeExport() {
 
 void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
 
-    shared_ptr<Analysis> reusableAnalysis = asterModel->model.reusableAnalysisFor(analysis);
+    const auto& reusableAnalysis = asterModel->model.reusableAnalysisFor(analysis);
 
     comm_file_ofs << "IMPR_RESU(FORMAT='RESULTAT'," << endl;
     comm_file_ofs << "          RESU=(" << endl;
@@ -477,20 +477,20 @@ void AsterWriter::writeAnalyses() {
 				switch (assertion->type) {
 				case Objective::Type::NODAL_DISPLACEMENT_ASSERTION:
 					comm_file_ofs << "                  _F(RESULTAT=" << resuName << "," << endl;
-					writeNodalDisplacementAssertion( dynamic_cast<const NodalDisplacementAssertion&>(*assertion));
+					writeNodalDisplacementAssertion( dynamic_pointer_cast<NodalDisplacementAssertion>(assertion));
                     comm_file_ofs << "                     )," << endl;
 					break;
 				case Objective::Type::FREQUENCY_ASSERTION:
-					writeFrequencyAssertion(*analysis, dynamic_cast<const FrequencyAssertion&>(*assertion));
+					writeFrequencyAssertion(analysis, dynamic_pointer_cast<FrequencyAssertion>(assertion));
 					break;
 				case Objective::Type::NODAL_COMPLEX_DISPLACEMENT_ASSERTION:
 					comm_file_ofs << "                  _F(RESULTAT=" << resuName << "," << endl;
-					writeNodalComplexDisplacementAssertion( dynamic_cast<const NodalComplexDisplacementAssertion&>(*assertion));
+					writeNodalComplexDisplacementAssertion( dynamic_pointer_cast<NodalComplexDisplacementAssertion>(assertion));
                     comm_file_ofs << "                     )," << endl;
 					break;
                 case Objective::Type::NODAL_CELL_VONMISES_ASSERTION:
 					comm_file_ofs << "                  _F(RESULTAT=" << resuName << "," << endl;
-					writeNodalCellVonMisesAssertion( dynamic_cast<const NodalCellVonMisesAssertion&>(*assertion));
+					writeNodalCellVonMisesAssertion( dynamic_pointer_cast<NodalCellVonMisesAssertion>(assertion));
                     comm_file_ofs << "                     )," << endl;
 					break;
 				default:
@@ -560,7 +560,7 @@ void AsterWriter::writeComm() {
 	writeAffeModele();
 
 	for (const auto& value : asterModel->model.values) {
-		writeValue(*value);
+		writeValue(value);
 	}
 
 	writeMaterials();
@@ -679,57 +679,57 @@ void AsterWriter::writeAffeModele() {
 	comm_file_ofs << "                    );" << endl << endl;
 }
 
-string AsterWriter::writeValue(NamedValue& value) {
+string AsterWriter::writeValue(const shared_ptr<NamedValue>& value) {
 	string concept_name;
 
-	switch (value.type) {
+	switch (value->type) {
 	case Value::Type::LIST: {
-		auto& listValue = static_cast<ListValueBase&>(value);
-        if (not listValue.empty()) {
+		const auto& listValue = static_pointer_cast<ListValueBase>(value);
+        if (not listValue->empty()) {
             ostringstream list_concept_ss;
-            list_concept_ss << "LST" << setfill('0') << setw(5) << listValue.getId();
+            list_concept_ss << "LST" << setfill('0') << setw(5) << listValue->getId();
             concept_name = list_concept_ss.str();
             comm_file_ofs << concept_name << "=DEFI_LIST_REEL(" << endl;
             comm_file_ofs << "                        VALE = (";
-            if (listValue.isintegral()) {
-                const auto& listIntValue = static_cast<ListValue<int>&>(value);
-                for (const auto val : listIntValue.getList()) {
+            if (listValue->isintegral()) {
+                const auto& listIntValue = static_pointer_cast<ListValue<int>>(value);
+                for (const auto& val : listIntValue->getList()) {
                     comm_file_ofs << val << ",";
                 }
             } else {
-                const auto& listDblValue = static_cast<ListValue<double>&>(value);
-                for (const auto val : listDblValue.getList()) {
+                const auto& listDblValue = static_pointer_cast<ListValue<double>>(value);
+                for (const auto& val : listDblValue->getList()) {
                     comm_file_ofs << val << ",";
                 }
             }
             comm_file_ofs << ")," << endl;
             comm_file_ofs << "                        );";
-            if (listValue.isOriginal()) {
-                comm_file_ofs << "# Original id " << listValue.getOriginalId() << endl;
+            if (listValue->isOriginal()) {
+                comm_file_ofs << "# Original id " << listValue->getOriginalId() << endl;
             }
             comm_file_ofs << endl << endl;
         }
-        listValue.markAsWritten();
+        listValue->markAsWritten();
         break;
 	}
     case Value::Type::SET: {
-		auto& setValue = static_cast<SetValueBase&>(value);
-		if (not setValue.isintegral() and not setValue.isfloating()) {
+		const auto& setValue = static_pointer_cast<SetValueBase>(value);
+		if (not setValue->isintegral() and not setValue->isfloating()) {
             handleWritingError("non-integral set not yet implemented");
-		} else if (not setValue.empty()) {
+		} else if (not setValue->empty()) {
             ostringstream list_concept_ss;
-            list_concept_ss << "LST" << setfill('0') << setw(5) << setValue.getId();
+            list_concept_ss << "LST" << setfill('0') << setw(5) << setValue->getId();
             concept_name = list_concept_ss.str();
             comm_file_ofs << concept_name << "=DEFI_LIST_REEL(" << endl;
             comm_file_ofs << "                        VALE = (";
-            if (setValue.isintegral()) {
-                const auto& setIntValue = static_cast<SetValue<int>&>(value);
-                for (const auto val : setIntValue.getSet()) {
+            if (setValue->isintegral()) {
+                const auto& setIntValue = static_pointer_cast<SetValue<int>>(value);
+                for (const auto val : setIntValue->getSet()) {
                     comm_file_ofs << val << ",";
                 }
-            } else if (setValue.isfloating()) {
-                const auto& setFloatValue = static_cast<SetValue<double>&>(value);
-                for (const auto val : setFloatValue.getSet()) {
+            } else if (setValue->isfloating()) {
+                const auto& setFloatValue = static_pointer_cast<SetValue<double>>(value);
+                for (const auto val : setFloatValue->getSet()) {
                     comm_file_ofs << val << ",";
                 }
             } else {
@@ -737,72 +737,72 @@ string AsterWriter::writeValue(NamedValue& value) {
             }
             comm_file_ofs << ")," << endl;
             comm_file_ofs << "                        );";
-            if (setValue.isOriginal()) {
-                comm_file_ofs << "# Original id " << setValue.getOriginalId() << endl;
+            if (setValue->isOriginal()) {
+                comm_file_ofs << "# Original id " << setValue->getOriginalId() << endl;
             }
             comm_file_ofs << endl << endl;
         }
-        setValue.markAsWritten();
+        setValue->markAsWritten();
         break;
 	}
 	case Value::Type::STEP_RANGE: {
-		auto& stepRange = static_cast<StepRange&>(value);
-		if (not stepRange.iszero()) {
+		const auto& stepRange = static_pointer_cast<StepRange>(value);
+		if (not stepRange->iszero()) {
             ostringstream list_concept_ss;
-            list_concept_ss << "LST" << setfill('0') << setw(5) << stepRange.getId();
+            list_concept_ss << "LST" << setfill('0') << setw(5) << stepRange->getId();
             concept_name = list_concept_ss.str();
-            if (not is_equal(stepRange.end, Globals::UNAVAILABLE_DOUBLE)) {
+            if (not is_equal(stepRange->end, Globals::UNAVAILABLE_DOUBLE)) {
                 comm_file_ofs << concept_name << "=DEFI_LIST_REEL(" << endl;
-                comm_file_ofs << "                        DEBUT = " << stepRange.start << "," << endl;
-                comm_file_ofs << "                        INTERVALLE = _F(JUSQU_A = " << stepRange.end << "," << endl;
-                comm_file_ofs << "                                        NOMBRE = " << stepRange.count << endl;
+                comm_file_ofs << "                        DEBUT = " << stepRange->start << "," << endl;
+                comm_file_ofs << "                        INTERVALLE = _F(JUSQU_A = " << stepRange->end << "," << endl;
+                comm_file_ofs << "                                        NOMBRE = " << stepRange->count << endl;
                 comm_file_ofs << "                                        )," << endl;
                 comm_file_ofs << "                        );" << endl << endl;
             } else {
                 comm_file_ofs << "# Ignoring " << concept_name << " because: no end value" << endl;
             }
 		}
-		stepRange.markAsWritten();
+		stepRange->markAsWritten();
 		break;
 	}
 	case Value::Type::FUNCTION_TABLE: {
-		auto& functionTable = static_cast<FunctionTable&>(value);
+		const auto& functionTable = static_pointer_cast<FunctionTable>(value);
 		ostringstream concept_ss;
-		concept_ss << "FCT" << setfill('0') << setw(5) << functionTable.getId();
+		concept_ss << "FCT" << setfill('0') << setw(5) << functionTable->getId();
 		concept_name = concept_ss.str();
 		comm_file_ofs << concept_name << "=DEFI_FONCTION(" << endl;
-		if (functionTable.hasParaX())
+		if (functionTable->hasParaX())
 			comm_file_ofs << "                       NOM_PARA='"
-					<< AsterModel::NomParaByParaName.find(functionTable.getParaX())->second << "',"
+					<< AsterModel::NomParaByParaName.find(functionTable->getParaX())->second << "',"
 					<< endl;
 
-		if (functionTable.hasParaY())
+		if (functionTable->hasParaY())
 			comm_file_ofs << "                       NOM_RESU='"
-					<< AsterModel::NomParaByParaName.find(functionTable.getParaY())->second << "',"
+					<< AsterModel::NomParaByParaName.find(functionTable->getParaY())->second << "',"
 					<< endl;
 
 		comm_file_ofs << "                       VALE = (" << endl;
-		for (auto it = functionTable.getBeginValuesXY();
-				it != functionTable.getEndValuesXY(); it++)
+		for (auto it = functionTable->getBeginValuesXY();
+				it != functionTable->getEndValuesXY(); it++)
 			comm_file_ofs << "                               " << it->first << ", " << it->second << ","
 					<< endl;
 		comm_file_ofs << "                               )," << endl;
 		comm_file_ofs << "                       INTERPOL = ('"
-				<< AsterModel::InterpolationByInterpolation.find(functionTable.parameter)->second
-				<< "','" << AsterModel::InterpolationByInterpolation.find(functionTable.value)->second
+				<< AsterModel::InterpolationByInterpolation.find(functionTable->parameter)->second
+				<< "','" << AsterModel::InterpolationByInterpolation.find(functionTable->value)->second
 				<< "')," << endl;
 		comm_file_ofs << "                       PROL_GAUCHE='"
-				<< AsterModel::ProlongementByInterpolation.find(functionTable.left)->second << "',"
+				<< AsterModel::ProlongementByInterpolation.find(functionTable->left)->second << "',"
 				<< endl;
 		comm_file_ofs << "                       PROL_DROITE='"
-				<< AsterModel::ProlongementByInterpolation.find(functionTable.right)->second << "',"
+				<< AsterModel::ProlongementByInterpolation.find(functionTable->right)->second << "',"
 				<< endl;
 		comm_file_ofs << "                       );";
-		if (functionTable.isOriginal()) {
-			comm_file_ofs << "# Original id:" << functionTable.getOriginalId();
+		if (functionTable->isOriginal()) {
+			comm_file_ofs << "# Original id:" << functionTable->getOriginalId();
 		}
 		comm_file_ofs << endl << endl;
-		functionTable.markAsWritten();
+		functionTable->markAsWritten();
 		break;
 	}
 	case Value::Type::SCALAR:
@@ -2294,7 +2294,7 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
 			debut = 0;
 		}
 		double fin = debut + 1.0;
-		StepRange stepRange(asterModel->model, debut, nonLinearStrategy->number_of_increments, fin);
+		const auto& stepRange = make_shared<StepRange>(asterModel->model, debut, nonLinearStrategy->number_of_increments, fin);
 		debut = fin;
 		string list_name = writeValue(stepRange);
 		comm_file_ofs << "LAUTO" << nonLinAnalysis->getId()
@@ -2302,11 +2302,11 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
 				<< endl;
 		comm_file_ofs << "RAMP" << nonLinAnalysis->getId()
 				<< "=DEFI_FONCTION(NOM_PARA='INST', PROL_DROITE='LINEAIRE', VALE=("
-				<< stepRange.start << ",0.0," << stepRange.end << ",1.0,));" << endl;
+				<< stepRange->start << ",0.0," << stepRange->end << ",1.0,));" << endl;
 		if (nonLinAnalysis->previousAnalysis != nullptr) {
 			comm_file_ofs << "IRAMP" << nonLinAnalysis->getId()
 					<< "=DEFI_FONCTION(NOM_PARA='INST', PROL_DROITE='LINEAIRE', VALE=("
-					<< stepRange.start << ",1.0," << stepRange.end << ",0.0,));" << endl;
+					<< stepRange->start << ",1.0," << stepRange->end << ",0.0,));" << endl;
 		}
 		comm_file_ofs << "RESU" << nonLinAnalysis->getId() << "=STAT_NON_LINE(MODELE=MODMECA," << endl;
 		if (not asterModel->model.materials.empty()) {
@@ -2876,104 +2876,111 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
 	return debut;
 }
 
-void AsterWriter::writeNodalDisplacementAssertion(const NodalDisplacementAssertion& nda) {
+void AsterWriter::writeNodalDisplacementAssertion(const shared_ptr<NodalDisplacementAssertion>& nda) {
 
-	bool relativeComparison = abs(nda.value) >= SMALLEST_RELATIVE_COMPARISON;
+	bool relativeComparison = abs(nda->value) >= SMALLEST_RELATIVE_COMPARISON;
 	comm_file_ofs << "                     CRITERE = " << (relativeComparison ? "'RELATIF'," : "'ABSOLU',") << endl;
-	comm_file_ofs << "                     NOEUD='" << Node::MedName(nda.nodePosition) << "'," << endl;
-	comm_file_ofs << "                     NOM_CMP    = '" << AsterModel::DofByPosition.at(nda.dof.position) << "'," << endl;
+	comm_file_ofs << "                     NOEUD='" << Node::MedName(nda->nodePosition) << "'," << endl;
+	comm_file_ofs << "                     NOM_CMP    = '" << AsterModel::DofByPosition.at(nda->dof.position) << "'," << endl;
 	comm_file_ofs << "                     NOM_CHAM   = 'DEPL'," << endl;
-	if (!is_equal(nda.instant, -1)) {
-		comm_file_ofs << "                     INST = " << nda.instant << "," << endl;
+	if (!is_equal(nda->instant, -1)) {
+		comm_file_ofs << "                     INST = " << nda->instant << "," << endl;
 	} else {
 		comm_file_ofs << "                     NUME_ORDRE = 1," << endl;
 	}
     comm_file_ofs << "                     REFERENCE = 'SOURCE_EXTERNE'," << endl;
-    comm_file_ofs << "                     PRECISION = " << nda.tolerance << "," << endl;
-	comm_file_ofs << "                     VALE_REFE = " << nda.value << "," << endl;
-	comm_file_ofs << "                     VALE_CALC = " << (is_zero(nda.value) ? 1e-10 : nda.value) << "," << endl;
-	comm_file_ofs << "                     TOLE_MACHINE = (" << nda.tolerance << "," << 1e-5 << ")," << endl;
+    comm_file_ofs << "                     PRECISION = " << nda->tolerance << "," << endl;
+	comm_file_ofs << "                     VALE_REFE = " << nda->value << "," << endl;
+	comm_file_ofs << "                     VALE_CALC = " << (is_zero(nda->value) ? 1e-10 : nda->value) << "," << endl;
+	comm_file_ofs << "                     TOLE_MACHINE = (" << nda->tolerance << "," << 1e-5 << ")," << endl;
 
 }
 
-void AsterWriter::writeNodalComplexDisplacementAssertion(const NodalComplexDisplacementAssertion& nda) {
+void AsterWriter::writeNodalComplexDisplacementAssertion(const shared_ptr<NodalComplexDisplacementAssertion>& nda) {
 
-    bool relativeComparison = abs(nda.value) >= SMALLEST_RELATIVE_COMPARISON;
+    bool relativeComparison = abs(nda->value) >= SMALLEST_RELATIVE_COMPARISON;
     comm_file_ofs << "                     CRITERE = "
             << (relativeComparison ? "'RELATIF'," : "'ABSOLU',") << endl;
-    comm_file_ofs << "                     NOEUD='" << Node::MedName(nda.nodePosition) << "'," << endl;
-    comm_file_ofs << "                     NOM_CMP = '" << AsterModel::DofByPosition.at(nda.dof.position)
+    comm_file_ofs << "                     NOEUD='" << Node::MedName(nda->nodePosition) << "'," << endl;
+    comm_file_ofs << "                     NOM_CMP = '" << AsterModel::DofByPosition.at(nda->dof.position)
             << "'," << endl;
     comm_file_ofs << "                     NOM_CHAM = 'DEPL'," << endl;
-    comm_file_ofs << "                     FREQ = " << nda.frequency << "," << endl;
-    comm_file_ofs << "                     VALE_CALC_C = " << nda.value.real() << "+" << nda.value.imag()
+    comm_file_ofs << "                     FREQ = " << nda->frequency << "," << endl;
+    comm_file_ofs << "                     VALE_CALC_C = " << nda->value.real() << "+" << nda->value.imag()
             << "j," << endl;
-    comm_file_ofs << "                     TOLE_MACHINE = (" << (relativeComparison ? nda.tolerance : 1e-5) << "," << 1e-5 << ")," << endl;
+    comm_file_ofs << "                     TOLE_MACHINE = (" << (relativeComparison ? nda->tolerance : 1e-5) << "," << 1e-5 << ")," << endl;
 }
 
-void AsterWriter::writeNodalCellVonMisesAssertion( const NodalCellVonMisesAssertion& ncvmisa) {
+void AsterWriter::writeNodalCellVonMisesAssertion(const shared_ptr<NodalCellVonMisesAssertion>& ncvmisa) {
 
-    bool relativeComparison = abs(ncvmisa.value) >= SMALLEST_RELATIVE_COMPARISON;
+    bool relativeComparison = abs(ncvmisa->value) >= SMALLEST_RELATIVE_COMPARISON;
     comm_file_ofs << "                     CRITERE = "
             << (relativeComparison ? "'RELATIF'," : "'ABSOLU',") << endl;
-    comm_file_ofs << "                     NOEUD='" << Node::MedName(ncvmisa.nodePosition) << "'," << endl;
-    comm_file_ofs << "                     GROUP_MA='" << Cell::MedName(ncvmisa.cellPosition) << "'," << endl;
+    comm_file_ofs << "                     NOEUD='" << Node::MedName(ncvmisa->nodePosition) << "'," << endl;
+    comm_file_ofs << "                     GROUP_MA='" << Cell::MedName(ncvmisa->cellPosition) << "'," << endl;
     comm_file_ofs << "                     NOM_CMP = 'VMIS'," << endl;
 	comm_file_ofs << "                     NUME_ORDRE = 1," << endl;
     comm_file_ofs << "                     NOM_CHAM = 'SIEQ_ELNO'," << endl;
-    comm_file_ofs << "                     VALE_CALC = " << ncvmisa.value << "," << endl;
-    comm_file_ofs << "                     TOLE_MACHINE = (" << (relativeComparison ? ncvmisa.tolerance : 1e-5) << "," << 1e-5 << ")," << endl;
+    comm_file_ofs << "                     VALE_CALC = " << ncvmisa->value << "," << endl;
+    comm_file_ofs << "                     TOLE_MACHINE = (" << (relativeComparison ? ncvmisa->tolerance : 1e-5) << "," << 1e-5 << ")," << endl;
 }
 
-void AsterWriter::writeFrequencyAssertion(const Analysis& analysis, const FrequencyAssertion& frequencyAssertion) {
-    bool isBuckling = analysis.type == Analysis::Type::LINEAR_BUCKLING;
+void AsterWriter::writeFrequencyAssertion(const shared_ptr<Analysis>& analysis, const shared_ptr<FrequencyAssertion>& frequencyAssertion) {
+    bool isBuckling = analysis->type == Analysis::Type::LINEAR_BUCKLING;
 
     double lowFreq = 0;
-    if (analysis.contains(ModelParameter::LOWER_CUTOFF_FREQUENCY)) {
-        lowFreq = stod(analysis.getParameter(ModelParameter::LOWER_CUTOFF_FREQUENCY));
+    if (analysis->contains(ModelParameter::LOWER_CUTOFF_FREQUENCY)) {
+        lowFreq = stod(analysis->getParameter(ModelParameter::LOWER_CUTOFF_FREQUENCY));
     }
 
     double highFreq = 1e30;
-    if (analysis.contains(ModelParameter::UPPER_CUTOFF_FREQUENCY)) {
-        highFreq = stod(analysis.getParameter(ModelParameter::UPPER_CUTOFF_FREQUENCY));
+    if (analysis->contains(ModelParameter::UPPER_CUTOFF_FREQUENCY)) {
+        highFreq = stod(analysis->getParameter(ModelParameter::UPPER_CUTOFF_FREQUENCY));
     }
-    if (not isBuckling and (frequencyAssertion.cycles < lowFreq or frequencyAssertion.cycles > highFreq)) {
+    if (not isBuckling and (frequencyAssertion->cycles < lowFreq or frequencyAssertion->cycles > highFreq)) {
         return; // Cannot check this frequency: it will be excluded by results
     }
-	string resuName = ((analysis.type == Analysis::Type::LINEAR_MODAL or analysis.type == Analysis::Type::LINEAR_BUCKLING) ? "RESU" : "MODES") + to_string(analysis.getId());
-	string critere = (!is_zero(frequencyAssertion.cycles) ? "'RELATIF'," : "'ABSOLU',");
+    string resuName;
+    const auto& reusableAnalysis = asterModel->model.reusableAnalysisFor(analysis);
+    if (reusableAnalysis == nullptr) {
+        resuName = ((analysis->type == Analysis::Type::LINEAR_MODAL or analysis->type == Analysis::Type::LINEAR_BUCKLING) ? "RESU" : "UMODES") + to_string(analysis->getId());
+    } else {
+        resuName = ((reusableAnalysis->type == Analysis::Type::LINEAR_MODAL or reusableAnalysis->type == Analysis::Type::LINEAR_BUCKLING) ? "RESU" : "UMODES") + to_string(reusableAnalysis->getId());
+    }
+
+	string critere = (!is_zero(frequencyAssertion->cycles) ? "'RELATIF'," : "'ABSOLU',");
     comm_file_ofs << "                  _F(RESULTAT=" << resuName << "," << endl;
 	comm_file_ofs << "                     CRITERE = " << critere << endl;
     if (isBuckling) {
         comm_file_ofs << "                     PARA = 'CHAR_CRIT'," << endl;
-        comm_file_ofs << "                     NUME_MODE = " << frequencyAssertion.number << "," << endl;
-        comm_file_ofs << "                     VALE_CALC = " << frequencyAssertion.eigenValue << "," << endl;
+        comm_file_ofs << "                     NUME_MODE = " << frequencyAssertion->number << "," << endl;
+        comm_file_ofs << "                     VALE_CALC = " << frequencyAssertion->eigenValue << "," << endl;
     } else {
         comm_file_ofs << "                     PARA = 'FREQ'," << endl;
-        comm_file_ofs << "                     NUME_MODE = " << frequencyAssertion.number << "," << endl;
-        comm_file_ofs << "                     VALE_CALC = " << frequencyAssertion.cycles << "," << endl;
+        comm_file_ofs << "                     NUME_MODE = " << frequencyAssertion->number << "," << endl;
+        comm_file_ofs << "                     VALE_CALC = " << frequencyAssertion->cycles << "," << endl;
     }
-	comm_file_ofs << "                     TOLE_MACHINE = " << frequencyAssertion.tolerance << "," << endl;
+	comm_file_ofs << "                     TOLE_MACHINE = " << frequencyAssertion->tolerance << "," << endl;
     comm_file_ofs << "                     )," << endl;
 
     if (not isBuckling) {
         comm_file_ofs << "                  _F(RESULTAT=" << resuName << "," << endl;
         comm_file_ofs << "                     CRITERE = " << critere << endl;
         comm_file_ofs << "                     PARA = 'MASS_GENE'," << endl;
-        comm_file_ofs << "                     NUME_MODE = " << frequencyAssertion.number << "," << endl;
-        comm_file_ofs << "                     VALE_CALC = " << frequencyAssertion.generalizedMass << "," << endl;
-        comm_file_ofs << "                     TOLE_MACHINE = " << frequencyAssertion.tolerance << "," << endl;
+        comm_file_ofs << "                     NUME_MODE = " << frequencyAssertion->number << "," << endl;
+        comm_file_ofs << "                     VALE_CALC = " << frequencyAssertion->generalizedMass << "," << endl;
+        comm_file_ofs << "                     TOLE_MACHINE = " << frequencyAssertion->tolerance << "," << endl;
         comm_file_ofs << "                     )," << endl;
-        if (not is_equal(frequencyAssertion.generalizedMass, 1.0)) {
+        if (not is_equal(frequencyAssertion->generalizedMass, 1.0)) {
             // Do not check generalized stiffness k_g when generalize mass m_g is normalized
             // since it is the same as checking the frequency : (2*pi*f)**2=k_g/m_g
             // but the error would be squared
             comm_file_ofs << "                  _F(RESULTAT=" << resuName << "," << endl;
             comm_file_ofs << "                     CRITERE = " << critere << endl;
             comm_file_ofs << "                     PARA = 'RIGI_GENE'," << endl;
-            comm_file_ofs << "                     NUME_MODE = " << frequencyAssertion.number << "," << endl;
-            comm_file_ofs << "                     VALE_CALC = " << frequencyAssertion.generalizedStiffness << "," << endl;
-            comm_file_ofs << "                     TOLE_MACHINE = " << frequencyAssertion.tolerance << "," << endl;
+            comm_file_ofs << "                     NUME_MODE = " << frequencyAssertion->number << "," << endl;
+            comm_file_ofs << "                     VALE_CALC = " << frequencyAssertion->generalizedStiffness << "," << endl;
+            comm_file_ofs << "                     TOLE_MACHINE = " << frequencyAssertion->tolerance << "," << endl;
             comm_file_ofs << "                     )," << endl;
         }
     }

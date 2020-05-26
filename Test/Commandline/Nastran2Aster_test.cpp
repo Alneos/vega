@@ -353,5 +353,9 @@ BOOST_AUTO_TEST_CASE( grav_coord) {
 	CommandLineUtils::nastranStudy2Aster("/irt/grav-coord/grav-coord.nas", RUN_ASTER, true, 0.00001);
 }
 
+//BOOST_AUTO_TEST_CASE(cord2c) {
+//	CommandLineUtils::nastranStudy2Aster("/irt/cord2c/INPUT.dat", RUN_ASTER, true, 0.00001);
+//}
+
 } /* namespace test */
 } /* namespace vega */

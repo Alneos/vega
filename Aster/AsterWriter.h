@@ -66,14 +66,14 @@ class AsterWriter final : public Writer {
 	double writeAnalysis(const std::shared_ptr<Analysis>& analysis, double debut);
 	void writeAssemblage(const std::shared_ptr<Analysis>& analysis, bool canBeReused);
 	void writeCalcFreq(const std::shared_ptr<LinearModal>& analysis);
-	void writeNodalDisplacementAssertion(const NodalDisplacementAssertion&);
-	void writeNodalComplexDisplacementAssertion(const NodalComplexDisplacementAssertion&);
-	void writeNodalCellVonMisesAssertion(const NodalCellVonMisesAssertion&);
-	void writeFrequencyAssertion(const Analysis&, const FrequencyAssertion&);
-	void writeLoadset(LoadSet&);
-	std::string writeValue(NamedValue&);
+	void writeNodalDisplacementAssertion(const std::shared_ptr<NodalDisplacementAssertion>&);
+	void writeNodalComplexDisplacementAssertion(const std::shared_ptr<NodalComplexDisplacementAssertion>&);
+	void writeNodalCellVonMisesAssertion(const std::shared_ptr<NodalCellVonMisesAssertion>&);
+	void writeFrequencyAssertion(const std::shared_ptr<Analysis>&, const std::shared_ptr<FrequencyAssertion>&);
+	void writeLoadset(const std::shared_ptr<LoadSet>&);
+	std::string writeValue(const std::shared_ptr<NamedValue>&);
 	void writeImprResultats(const std::shared_ptr<Analysis>& analysis);
-	void list_concept_name(StepRange&);
+	void list_concept_name(const std::shared_ptr<StepRange>&);
 	std::shared_ptr<NonLinearStrategy> getNonLinearStrategy(const std::shared_ptr<NonLinearMecaStat>&);
 	void writeAnalyses();
 

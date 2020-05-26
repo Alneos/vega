@@ -158,11 +158,11 @@ double ElasticNature::getGE() const {
 
 OrthotropicNature::OrthotropicNature(const Model& model, const double e_longitudinal, const double e_transverse,
                                      const double nu_longitudinal_transverse, const double g_longitudinal_transverse,
-                                     const double g_transverse_normal, const double g_longitudinal_normal) :
+                                     const double g_transverse_normal, const double g_longitudinal_normal, const double rho) :
 		Nature(model, Nature::NatureType::NATURE_ORTHOTROPIC), _e_longitudinal(e_longitudinal), _e_transverse(e_transverse),
 		_nu_longitudinal_transverse(nu_longitudinal_transverse),
 		_g_longitudinal_transverse(g_longitudinal_transverse), _g_transverse_normal(g_transverse_normal),
-		_g_longitudinal_normal(g_longitudinal_normal) {
+		_g_longitudinal_normal(g_longitudinal_normal), rho(rho) {
 }
 
 double OrthotropicNature::getE_longitudinal() const {
@@ -187,6 +187,19 @@ double OrthotropicNature::getG_transverse_normal() const {
 
 double OrthotropicNature::getG_longitudinal_normal() const {
 	return _g_longitudinal_normal;
+}
+
+double OrthotropicNature::getRho() const {
+	double mass_multiplier = 1;
+	if (model.contains(ModelParameter::MASS_OVER_FORCE_MULTIPLIER)) {
+		mass_multiplier = stod(model.getParameter(ModelParameter::MASS_OVER_FORCE_MULTIPLIER));
+		assert(!is_zero(mass_multiplier));
+	}
+	return (is_equal(rho, UNAVAILABLE_DOUBLE)) ? 0 : rho * mass_multiplier;
+}
+
+double OrthotropicNature::getRhoAsForceDensity() const {
+	return (is_equal(rho, UNAVAILABLE_DOUBLE)) ? 0 : rho;
 }
 
 BilinearElasticNature::BilinearElasticNature(const Model& model, const double elastic_limit,
