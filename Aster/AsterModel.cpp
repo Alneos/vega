@@ -116,9 +116,11 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
     switch (elementSet->type) {
     case ElementSet::Type::SKIN:
     case ElementSet::Type::CONTINUUM: {
-        if (modelType == ModelType::TRIDIMENSIONAL_SI and not model.analyses.contains(Analysis::Type::NONLINEAR_MECA_STAT)) {
+        if (modelType == ModelType::TRIDIMENSIONAL_SI and \
+            not model.analyses.contains(Analysis::Type::NONLINEAR_MECA_STAT)) {
             result = "('3D', '3D_SI')";
-        } else if (modelType == ModelType::TRIDIMENSIONAL_SI and model.analyses.contains(Analysis::Type::NONLINEAR_MECA_STAT)) {
+        } else if (modelType == ModelType::TRIDIMENSIONAL_SI and \
+                   model.analyses.contains(Analysis::Type::NONLINEAR_MECA_STAT)) {
             // Workaround for problem ELEMENTS4_73
             // Les comportements écrits en configuration de référence ne sont pas disponibles     !
             // sur les éléments linéaires pour la modélisation 3D_SI.                             !
@@ -136,9 +138,10 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
     }
     case ElementSet::Type::SHELL:
     case ElementSet::Type::COMPOSITE: {
-        if (not model.analyses.contains(Analysis::Type::NONLINEAR_MECA_STAT)) {
+        if (model.analyses.contains(Analysis::Type::LINEAR_MECA_STAT)) {
             // Some tests are better with DST "shell", other are worst "nastrancoverage cantilever tria"
-            result = "('DKT',)"; // DST
+            // Also Q4G only gives similar results to nastran in linear static (but non corresponding ones in modal)
+            result = "('DKT',)"; // DST // Q4G // Q4GG // DKTG
         } else {
             // Workaround for MECANONLINE_3
             // Erreur utilisateur :                                                                                           !
@@ -147,6 +150,9 @@ const string AsterModel::getModelisations(const shared_ptr<ElementSet> elementSe
             //   On arrête le calcul.                                                                                         !
             // Risques & conseils :                                                                                           !
             //   Vous devriez changer de modélisation.
+
+            // Workaround for CALCUL_37
+            // Le TYPE_ELEMENT MEQ4QU4  ne sait pas encore calculer l'option:  RIGI_MECA_GE.
             result = "('DKT',)";
         }
         /*??
