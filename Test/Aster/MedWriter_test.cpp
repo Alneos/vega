@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE( test_CellGroup2Families )
     const auto& gn2 = mesh.createCellGroup("GMA2");
     gn2->addCellId(1);
     cellGroups.push_back(gn2);
-    unordered_map<CellType::Code, int, EnumClassHash> cellCountByType;
+    unordered_map<CellType::Code, size_t, EnumClassHash> cellCountByType;
     cellCountByType[CellType::Code::SEG2_CODE] = 3;
     cellCountByType[CellType::Code::TRI3_CODE] = 3;
     CellGroup2Families cg2fam(mesh, cellCountByType, cellGroups);

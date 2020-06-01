@@ -1152,7 +1152,7 @@ void NastranParser::parseCONROD(NastranTokenizer& tok, Model& model) {
     double nsm = tok.nextDouble(true, 0.0);
     model.mesh.addCell(eid, CellType::SEG2, {g1, g2});
     const auto& genericSectionBeam = make_shared<GenericSectionBeam>(model, a, 0, 0, j, 0, 0, GenericSectionBeam::BeamModel::TRUSS, nsm);
-    genericSectionBeam->assignMaterial(mid);
+    genericSectionBeam->assignMaterial(Reference<Material>(Material::Type::MATERIAL,mid));
     shared_ptr<CellGroup> cellGroup = model.mesh.createCellGroup("CONROD_" + to_string(eid), Group::NO_ORIGINAL_ID, "CONROD");
     cellGroup->addCellId(eid);
     genericSectionBeam->add(*cellGroup);
@@ -2048,7 +2048,7 @@ void NastranParser::parseNLPCI(NastranTokenizer& tok, Model& model) {
 
 void NastranParser::parsePBAR(NastranTokenizer& tok, Model& model) {
     int elemId = tok.nextInt();
-    int material_id = tok.nextInt();
+    int mid = tok.nextInt();
     double area = tok.nextDouble();
     const double i1 = tok.nextDouble(true, 0.0); // I1 = Izz
     const double i2 = tok.nextDouble(true, 0.0); // I2 = Iyy
@@ -2088,7 +2088,7 @@ void NastranParser::parsePBAR(NastranTokenizer& tok, Model& model) {
 
     const auto& genericSectionBeam = make_shared<GenericSectionBeam>(model, area, i2, i1, j, invk2, invk1, Beam::BeamModel::TIMOSHENKO, nsm,
             elemId);
-    genericSectionBeam->assignMaterial(material_id);
+    genericSectionBeam->assignMaterial(Reference<Material>(Material::Type::MATERIAL,mid));
     genericSectionBeam->add(*getOrCreateCellGroup(elemId, model, "PBAR"));
     std::list<std::pair<double, double>> reccoefs = { {c1, c2}, {d1, d2}, {e1, e2}, {f1, f2} };
     for (const auto& reccoef : reccoefs) {
@@ -2106,7 +2106,7 @@ void NastranParser::parsePBAR(NastranTokenizer& tok, Model& model) {
 
 void NastranParser::parsePBARL(NastranTokenizer& tok, Model& model) {
     int propertyId = tok.nextInt(); // PID
-    int material_id = tok.nextInt();
+    int mid = tok.nextInt();
 
     string group = tok.nextString(true, "MSCBML0");
     if (group!="MSCBML0"){
@@ -2123,7 +2123,7 @@ void NastranParser::parsePBARL(NastranTokenizer& tok, Model& model) {
         nsm = tok.nextDouble(true, 0.0);
         const auto& rectangularSectionBeam = make_shared<RectangularSectionBeam>(model, width, height, Beam::BeamModel::TIMOSHENKO, nsm,
                 propertyId);
-        rectangularSectionBeam->assignMaterial(material_id);
+        rectangularSectionBeam->assignMaterial(Reference<Material>(Material::Type::MATERIAL,mid));
         rectangularSectionBeam->add(*getOrCreateCellGroup(propertyId, model, "PBARL"));
         rectangularSectionBeam->setInputContext(tok.getInputContext());
         model.add(rectangularSectionBeam);
@@ -2132,7 +2132,7 @@ void NastranParser::parsePBARL(NastranTokenizer& tok, Model& model) {
         double radius = tok.nextDouble();
         nsm = tok.nextDouble(true, 0.0);
         const auto& circularSectionBeam = make_shared<CircularSectionBeam>(model, radius, Beam::BeamModel::TIMOSHENKO, nsm, propertyId);
-        circularSectionBeam->assignMaterial(material_id);
+        circularSectionBeam->assignMaterial(Reference<Material>(Material::Type::MATERIAL,mid));
         circularSectionBeam->add(*getOrCreateCellGroup(propertyId, model, "PBARL"));
         circularSectionBeam->setInputContext(tok.getInputContext());
         model.add(circularSectionBeam);
@@ -2142,7 +2142,7 @@ void NastranParser::parsePBARL(NastranTokenizer& tok, Model& model) {
         double intRadius = tok.nextDouble();
         nsm = tok.nextDouble(true, 0.0);
         const auto& tubeSectionBeam = make_shared<TubeSectionBeam>(model, intRadius, extRadius - intRadius, Beam::BeamModel::TIMOSHENKO, nsm, propertyId);
-        tubeSectionBeam->assignMaterial(material_id);
+        tubeSectionBeam->assignMaterial(Reference<Material>(Material::Type::MATERIAL,mid));
         tubeSectionBeam->add(*getOrCreateCellGroup(propertyId, model, "PBARL"));
         tubeSectionBeam->setInputContext(tok.getInputContext());
         model.add(tubeSectionBeam);
@@ -2158,7 +2158,7 @@ void NastranParser::parsePBARL(NastranTokenizer& tok, Model& model) {
         const auto& iSectionBeam = make_shared<ISectionBeam>(model, upper_flange_width, lower_flange_width,
                 upper_flange_thickness, lower_flange_thickness, beam_height, web_thickness,
                 Beam::BeamModel::TIMOSHENKO, nsm, propertyId);
-        iSectionBeam->assignMaterial(material_id);
+        iSectionBeam->assignMaterial(Reference<Material>(Material::Type::MATERIAL,mid));
         iSectionBeam->add(*getOrCreateCellGroup(propertyId, model, "PBARL"));
         iSectionBeam->setInputContext(tok.getInputContext());
         model.add(iSectionBeam);
@@ -2177,7 +2177,7 @@ void NastranParser::parsePBARL(NastranTokenizer& tok, Model& model) {
 
 void NastranParser::parsePBEAM(NastranTokenizer& tok, Model& model) {
     int elemId = tok.nextInt();
-    int material_id = tok.nextInt();
+    int mid = tok.nextInt();
 
     double area_cross_section = tok.nextDouble(true, 0.0);
     double moment_of_inertia_Z = tok.nextDouble(true, 0.0);
@@ -2224,7 +2224,7 @@ void NastranParser::parsePBEAM(NastranTokenizer& tok, Model& model) {
     const auto& genericSectionBeam = make_shared<GenericSectionBeam>(model, area_cross_section, moment_of_inertia_Y,
             moment_of_inertia_Z, torsionalConstant, 0.0, 0.0, GenericSectionBeam::BeamModel::EULER, nsm,
             elemId);
-    genericSectionBeam->assignMaterial(material_id);
+    genericSectionBeam->assignMaterial(Reference<Material>(Material::Type::MATERIAL,mid));
     genericSectionBeam->add(*getOrCreateCellGroup(elemId, model, "PBEAM"));
     genericSectionBeam->setInputContext(tok.getInputContext());
     model.add(genericSectionBeam);
@@ -2301,7 +2301,7 @@ void NastranParser::parsePBEAML(NastranTokenizer& tok, Model& model) {
         double height = tok.nextDouble();
         nsm = tok.nextDouble(true, 0.0);
         const auto& rectangularSectionBeam = make_shared<RectangularSectionBeam>(model, width, height, Beam::BeamModel::TIMOSHENKO, nsm, pid);
-        rectangularSectionBeam->assignMaterial(mid);
+        rectangularSectionBeam->assignMaterial(Reference<Material>(Material::Type::MATERIAL,mid));
         rectangularSectionBeam->add(*getOrCreateCellGroup(pid, model,"PBEAML"));
         rectangularSectionBeam->setInputContext(tok.getInputContext());
         model.add(rectangularSectionBeam);
@@ -2310,7 +2310,7 @@ void NastranParser::parsePBEAML(NastranTokenizer& tok, Model& model) {
         double radius = tok.nextDouble();
         nsm = tok.nextDouble(true, 0.0);
         const auto& circularSectionBeam = make_shared<CircularSectionBeam>(model, radius, Beam::BeamModel::TIMOSHENKO, nsm, pid);
-        circularSectionBeam->assignMaterial(mid);
+        circularSectionBeam->assignMaterial(Reference<Material>(Material::Type::MATERIAL,mid));
         circularSectionBeam->add(*getOrCreateCellGroup(pid, model,"PBEAML"));
         circularSectionBeam->setInputContext(tok.getInputContext());
         model.add(circularSectionBeam);
@@ -2320,7 +2320,7 @@ void NastranParser::parsePBEAML(NastranTokenizer& tok, Model& model) {
         double intRadius = tok.nextDouble();
         nsm = tok.nextDouble(true, 0.0);
         const auto& tubeSectionBeam = make_shared<TubeSectionBeam>(model, intRadius, extRadius - intRadius, Beam::BeamModel::TIMOSHENKO, nsm, pid);
-        tubeSectionBeam->assignMaterial(mid);
+        tubeSectionBeam->assignMaterial(Reference<Material>(Material::Type::MATERIAL,mid));
         tubeSectionBeam->add(*getOrCreateCellGroup(pid, model,"PBEAML"));
         tubeSectionBeam->setInputContext(tok.getInputContext());
         model.add(tubeSectionBeam);
@@ -2337,7 +2337,7 @@ void NastranParser::parsePBEAML(NastranTokenizer& tok, Model& model) {
         const auto& iSectionBeam = make_shared<ISectionBeam>(model, upper_flange_width, lower_flange_width,
                 upper_flange_thickness, lower_flange_thickness, beam_height, web_thickness,
                 Beam::BeamModel::TIMOSHENKO, nsm, pid);
-        iSectionBeam->assignMaterial(mid);
+        iSectionBeam->assignMaterial(Reference<Material>(Material::Type::MATERIAL,mid));
         iSectionBeam->add(*getOrCreateCellGroup(pid, model,"PBEAML"));
         iSectionBeam->setInputContext(tok.getInputContext());
         model.add(iSectionBeam);
@@ -2388,7 +2388,7 @@ void NastranParser::parsePBUSH(NastranTokenizer& tok, Model& model) {
     while (!(tok.isEmptyUntilNextKeyword())){
         tok.skipToNotEmpty();
         string flag = tok.nextString();
-        if (flag=="K"){ // Stiffness values (Default 0.0)
+        if (flag=="K") { // Stiffness values (Default 0.0)
             if (tok.isNextDouble() or tok.isNextEmpty())
                 k1=tok.nextDouble(true, 0.0);
             else
@@ -2431,26 +2431,26 @@ void NastranParser::parsePBUSH(NastranTokenizer& tok, Model& model) {
                     k6 = DBL_MAX;
                 else
                     handleParsingError("Unsupported PBUSH flag value (for now)", tok, model);
-        }else if (flag=="B"){ // Force-Per-velocity Damping (Default 0.0)
+        } else if (flag=="B") { // Force-Per-velocity Damping (Default 0.0)
             b1=tok.nextDouble(true, 0.0);
             b2=tok.nextDouble(true, 0.0);
             b3=tok.nextDouble(true, 0.0);
             b4=tok.nextDouble(true, 0.0);
             b5=tok.nextDouble(true, 0.0);
             b6=tok.nextDouble(true, 0.0);
-        }else if (flag=="GE"){ // Structural Damping constants (Default 0.0)
+        } else if (flag=="GE") { // Structural Damping constants (Default 0.0)
             ge1=tok.nextDouble(true, 0.0);
             ge2=tok.nextDouble(true, 0.0);
             ge3=tok.nextDouble(true, 0.0);
             ge4=tok.nextDouble(true, 0.0);
             ge5=tok.nextDouble(true, 0.0);
             ge6=tok.nextDouble(true, 0.0);
-        }else if(flag=="RCV"){ // Stress and Strain recovery coefficient (Default 1.0)
+        } else if(flag=="RCV") { // Stress and Strain recovery coefficient (Default 1.0)
             sa=tok.nextDouble(true, 1.0);
             st=tok.nextDouble(true, 1.0);
             ea=tok.nextDouble(true, 1.0);
             et=tok.nextDouble(true, 1.0);
-        }else{
+        } else {
             handleParsingWarning("unknown PBUSH flag: " + flag, tok, model);
         }
     }
@@ -2487,35 +2487,34 @@ void NastranParser::parsePBUSH(NastranTokenizer& tok, Model& model) {
 
 void NastranParser::parsePCOMP(NastranTokenizer& tok, Model& model) {
     int pid = tok.nextInt();
-    if (tok.isNextEmpty(7)) {
-        tok.skip(7);
+    double z0 = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    if (tok.isNextEmpty(6)) {
+        tok.skip(6);
     } else {
         handleParsingError("PCOMP fields not yet handled", tok, model);
     }
     const auto& composite = make_shared<Composite>(model, pid);
-    shared_ptr<CellGroup> cellGroup = getOrCreateCellGroup(pid, model,"PCOMP");
-    composite->add(*cellGroup);
     int mid1 = tok.nextInt();
-    shared_ptr<Material> material = model.getOrCreateMaterial(mid1);
-    composite->assignMaterial(material);
+    composite->assignMaterial(Reference<Material>(Material::Type::MATERIAL,mid1));
     double t1 = tok.nextDouble();
     double theta1 = tok.nextDouble(true, 0.0);
     tok.skip(1); // SOUT1
-    composite->addLayer(material->getId(), t1, theta1);
+    composite->addLayer(mid1, t1, theta1);
     while(not tok.isNextEmpty(4) and not tok.isEmptyUntilNextKeyword()) {
         int midn = tok.nextInt(true, mid1);
-        if (midn != mid1) {
-            handleParsingError("Multi material relationship not yet handled or tested", tok, model);
-        }
-        shared_ptr<Material> layermatn= model.getOrCreateMaterial(midn);
-        // LD TODO : should change relationship between materials and cellgroups : it is a many to many with composites
-        composite->assignMaterial(layermatn);
+        composite->assignMaterial(Reference<Material>(Material::Type::MATERIAL,midn));
         double tn = tok.nextDouble(true, t1);
         double thetan = tok.nextDouble(true, theta1);
         tok.skip(1); // SOUTn
-        composite->addLayer(layermatn->getId(), tn, thetan);
+        composite->addLayer(midn, tn, thetan);
+    }
+    if (is_equal(z0, Globals::UNAVAILABLE_DOUBLE)) {
+        composite->offset = composite->getTotalThickness() / 2.0; // default -1/2 element thickness
+    } else {
+        composite->offset = z0;
     }
     composite->setInputContext(tok.getInputContext());
+    composite->add(*getOrCreateCellGroup(pid, model, "PCOMP"));
     model.add(composite);
 }
 
@@ -2851,7 +2850,7 @@ void NastranParser::parsePLSOLID(NastranTokenizer& tok, Model& model) {
     }
     // TODO LD: add large strain and large rotation somewhere, to be used in COMPORTEMENT
     const auto& continuum = make_shared<Continuum>(model, ModelType::TRIDIMENSIONAL, pid);
-    continuum->assignMaterial(mid);
+    continuum->assignMaterial(Reference<Material>(Material::Type::MATERIAL, mid));
     continuum->add(*getOrCreateCellGroup(pid, model, "PLSOLID"));
     continuum->setInputContext(tok.getInputContext());
     model.add(continuum);
@@ -2859,7 +2858,7 @@ void NastranParser::parsePLSOLID(NastranTokenizer& tok, Model& model) {
 
 void NastranParser::parsePROD(NastranTokenizer& tok, Model& model) {
     int propId = tok.nextInt();
-    int material_id = tok.nextInt();
+    int mid = tok.nextInt();
     double a = tok.nextDouble();
     double j = tok.nextDouble(true, 0.0);
     double c = tok.nextDouble(true, 0.0);
@@ -2873,7 +2872,7 @@ void NastranParser::parsePROD(NastranTokenizer& tok, Model& model) {
     double equivalent_inertia_moment = pow(a, 2) / 4 / boost::math::constants::pi<double>(); // Using circular beam formula
     const auto& genericSectionBeam = make_shared<GenericSectionBeam>(model, a, equivalent_inertia_moment, equivalent_inertia_moment, j, 1.0, 1.0, GenericSectionBeam::BeamModel::TRUSS, nsm,
             propId);
-    genericSectionBeam->assignMaterial(material_id);
+    genericSectionBeam->assignMaterial(Reference<Material>(Material::Type::MATERIAL, mid));
     genericSectionBeam->add(*getOrCreateCellGroup(propId, model, "PROD"));
     genericSectionBeam->setInputContext(tok.getInputContext());
     model.add(genericSectionBeam);
@@ -2881,10 +2880,10 @@ void NastranParser::parsePROD(NastranTokenizer& tok, Model& model) {
 
 void NastranParser::parsePSHELL(NastranTokenizer& tok, Model& model) {
     int propId = tok.nextInt();
-    int material_id1 = tok.nextInt();
+    int mid1 = tok.nextInt();
     double thickness = tok.nextDouble(true, 0.0);
-    int material_id2 = tok.nextInt(true);
-    if (material_id2 != Globals::UNAVAILABLE_INT && material_id2 != material_id1) {
+    int mid2 = tok.nextInt(true);
+    if (mid2 != Globals::UNAVAILABLE_INT && mid2 != mid1) {
         handleParsingWarning("Material 2 not yet supported and dismissed.", tok, model);
     }
     double bending_moment = tok.nextDouble(true, 1.0);
@@ -2892,8 +2891,8 @@ void NastranParser::parsePSHELL(NastranTokenizer& tok, Model& model) {
         handleParsingWarning("Bending moment of inertia ratio != 1.0 not supported", tok,
                 model);
     }
-    int material_id3 = tok.nextInt(true);
-    if (material_id3 != Globals::UNAVAILABLE_INT && material_id3 != material_id1) {
+    int mid3 = tok.nextInt(true);
+    if (mid3 != Globals::UNAVAILABLE_INT && mid3 != mid1) {
         handleParsingWarning("Material 3 not yet supported and dismissed.", tok, model);
     }
     double ts_t_ratio = tok.nextDouble(true, 0.833333);
@@ -2907,13 +2906,13 @@ void NastranParser::parsePSHELL(NastranTokenizer& tok, Model& model) {
             || !is_equal(z2, Globals::UNAVAILABLE_DOUBLE)) {
         handleParsingWarning("Fiber distances z1,z2 not supported", tok, model);
     }
-    int material_id4 = tok.nextInt(true);
-    if (material_id4 != Globals::UNAVAILABLE_INT && material_id4 != material_id1) {
+    int mid4 = tok.nextInt(true);
+    if (mid4 != Globals::UNAVAILABLE_INT && mid4 != mid1) {
         handleParsingWarning("Material 4 not yet supported and dismissed.", tok, model);
     }
 
-    const auto& shell = make_shared<Shell>(model, thickness, nsm, propId);
-    shell->assignMaterial(material_id1);
+    const auto& shell = make_shared<Shell>(model, thickness, nsm, 0.0, propId);
+    shell->assignMaterial(Reference<Material>(Material::Type::MATERIAL, mid1));
     shell->add(*getOrCreateCellGroup(propId, model,"PSHELL"));
     shell->setInputContext(tok.getInputContext());
     model.add(shell);
@@ -2921,7 +2920,7 @@ void NastranParser::parsePSHELL(NastranTokenizer& tok, Model& model) {
 
 void NastranParser::parsePSOLID(NastranTokenizer& tok, Model& model) {
     int elemId = tok.nextInt();
-    int material_id = tok.nextInt();
+    int mid = tok.nextInt();
     int material_coordinate_system = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
     if (material_coordinate_system != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
         handleParsingWarning("Material coordinate system!=0 not supported and dismissed.", tok, model);
@@ -2956,7 +2955,7 @@ void NastranParser::parsePSOLID(NastranTokenizer& tok, Model& model) {
         handleParsingWarning("PSOLID fctn " + fctn + " Not implemented", tok, model);
     }
     const auto& continuum = make_shared<Continuum>(model, *modelType, elemId);
-    continuum->assignMaterial(material_id);
+    continuum->assignMaterial(Reference<Material>(Material::Type::MATERIAL, mid));
     continuum->add(*getOrCreateCellGroup(elemId, model, "PSOLID"));
     continuum->setInputContext(tok.getInputContext());
     model.add(continuum);

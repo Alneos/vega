@@ -324,7 +324,7 @@ private:
     void fillTables(const SystusModel&, const int idSubcase);
     void fillVectors(const SystusModel&, const int idSubcase);
     void fillLists(const SystusModel&, const int idSubcase);
-    
+
     /**
      * Convert DOFS to its ASC material counterpart, in the relevant systus material.
      */
@@ -404,7 +404,7 @@ private:
     void writeGroups(const SystusModel&, std::ostream&);
     /**
      * Writes a Material in the ASC Material lines.
-     * Output verifies the syntax "Id 0 f1 v1 f2 v2" where the fi are the integer 
+     * Output verifies the syntax "Id 0 f1 v1 f2 v2" where the fi are the integer
      * conversion of the SMF::key, and vi the corresponding value.
      */
     void writeMaterial(const SystusModel&, const int, std::ostream&);
@@ -420,7 +420,7 @@ private:
     void writeNodalDisplacementAssertion(Assertion& assertion, std::ostream& out);
     void writeNodalComplexDisplacementAssertion(Assertion& assertion, std::ostream& out);
     void writeFrequencyAssertion(Assertion& assertion, std::ostream& out);
-    void writeNodalForceVector(const SystusModel& systusModel, std::shared_ptr<NodalForce> nodalForce, const int idLoadCase, systus_ascid_t& vectorId);
+    void writeNodalForceVector(const SystusModel& systusModel, const std::shared_ptr<NodalForce>& nodalForce, const int idLoadCase, systus_ascid_t& vectorId);
 
     std::string toString() const override {
         return "SystusWriter";

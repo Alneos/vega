@@ -68,6 +68,7 @@ public:
     };
 protected:
     Model& model;
+    std::set<Reference<Material>> materialRefs;
     ElementSet(Model&, Type, const ModelType& modelType = ModelType::TRIDIMENSIONAL,
             int original_id = NO_ORIGINAL_ID);
 public:
@@ -76,13 +77,11 @@ public:
     static const std::map<Type, std::string> stringByType;
     const Type type;
     const ModelType& modelType;
-    std::shared_ptr<Material> material;
-    void assignMaterial(int materialId);
-    void assignMaterial(std::shared_ptr<Material> material) {
-        this->material = material;
-    }
+
     ModelType getModelType() const;
-    virtual void add(const CellGroup& cellGroup) = 0;
+    std::set<std::shared_ptr<Material>> getMaterials() const;
+    std::shared_ptr<Material> mainMaterial() const;
+    bool hasMaterials() const;
     virtual bool validate() const override;
     virtual std::unique_ptr<ElementSet> clone() const = 0;
     virtual DOFS getDOFSForNode(const int nodePosition) const = 0;
@@ -130,6 +129,8 @@ public:
     virtual bool effective() const override {
         return CellContainer::hasCellsIncludingGroups();
     }
+    void assignMaterial(const Reference<Material>& materialRef);
+    void assignMaterial(const std::shared_ptr<Material>& material);
 };
 
 class RecoveryPoint {
@@ -290,19 +291,19 @@ public:
 };
 
 class Shell: public CellElementSet {
-
-public:
-	const double thickness;
-	protected:
+protected:
 	double additional_mass;
-	public:
-	Shell(Model&, double thickness, double additional_mass = 0, int original_id = NO_ORIGINAL_ID);
+public:
+	Shell(Model&, double thickness, double additional_mass = 0, double offset = 0, int original_id = NO_ORIGINAL_ID);
+	const double thickness;
+	double offset;
 	std::unique_ptr<ElementSet> clone() const override {
 		return std::make_unique<Shell>(*this);
 	}
 	double getAdditionalRho() const override {
 		return additional_mass / std::max(thickness, DBL_MIN);
 	}
+	bool containsNonzeroOffsetCell() const;
 	bool isShell() const override final {
 		return true;
 	}
@@ -330,13 +331,15 @@ public:
 
 class Composite: public CellElementSet {
     std::vector<CompositeLayer> layers;
-	public:
+public:
+    double offset = 0.0;
 	Composite(Model&, int original_id = NO_ORIGINAL_ID);
 	std::unique_ptr<ElementSet> clone() const override {
 		return std::make_unique<Composite>(*this);
 	}
 	void addLayer(int materialId, double thickness, double orientation = 0);
 	double getTotalThickness();
+	bool containsNonzeroOffsetCell() const;
 	inline const std::vector<CompositeLayer>& getLayers() const {
 	    return layers;
 	}

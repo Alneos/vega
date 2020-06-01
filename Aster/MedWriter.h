@@ -54,7 +54,7 @@ private:
     std::unordered_map<CellType::Code, std::shared_ptr<std::vector<int>>, EnumClassHash> cellFamiliesByType;
     const Mesh& mesh;
 public:
-    CellGroup2Families(const Mesh& mesh, std::unordered_map<CellType::Code, int, EnumClassHash> cellCountByType,
+    CellGroup2Families(const Mesh& mesh, std::unordered_map<CellType::Code, size_t, EnumClassHash> cellCountByType,
             const std::vector<std::shared_ptr<CellGroup>>& cellGroups);
     std::vector<Family> getFamilies() const;
     std::unordered_map<CellType::Code, std::shared_ptr<std::vector<int>>, EnumClassHash> getFamilyOnCells() const;

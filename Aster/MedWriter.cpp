@@ -92,7 +92,7 @@ vector<int> NodeGroup2Families::getFamilyOnNodes() const {
 }
 
 CellGroup2Families::CellGroup2Families(
-		const Mesh& mesh, unordered_map<CellType::Code, int, EnumClassHash> cellCountByType,
+		const Mesh& mesh, unordered_map<CellType::Code, size_t, EnumClassHash> cellCountByType,
 		const vector<shared_ptr<CellGroup>>& cellGroups) : mesh(mesh) {
 	int currentFamilyId = 0;
 	unordered_map<int, int> newFamilyByOldfamily;
@@ -320,9 +320,9 @@ void MedWriter::writeMED(const Model& model, const string& medFileName) {
 	}
 	vector<shared_ptr<CellGroup>> cellGroups = model.mesh.getCellGroups();
 	if (not cellGroups.empty()) {
-		unordered_map<CellType::Code, int, EnumClassHash> cellCountByType;
+		unordered_map<CellType::Code, size_t, EnumClassHash> cellCountByType;
 		for (const auto& typeAndCodePair : CellType::typeByCode) {
-			int cellNum = model.mesh.countCells(*typeAndCodePair.second);
+			size_t cellNum = model.mesh.countCells(*typeAndCodePair.second);
 			if (cellNum > 0) {
 				cellCountByType[typeAndCodePair.first] = cellNum;
 			}

@@ -34,8 +34,7 @@ ModelType::ModelType(string name, const SpaceDimension dimension) :
 }
 
 ElementSet::ElementSet(Model& model, Type type, const ModelType& modelType, int original_id) :
-		Identifiable(original_id), model(model), type(type), modelType(modelType), material(
-		nullptr) {
+		Identifiable(original_id), model(model), type(type), modelType(modelType) {
 }
 
 const string ElementSet::name = "ElementSet";
@@ -70,8 +69,39 @@ ostream &operator<<(ostream &out, const ElementSet& elementSet) {
 	return out;
 }
 
-void ElementSet::assignMaterial(int materialId) {
-	this->material = this->model.getOrCreateMaterial(materialId);
+void CellElementSet::assignMaterial(const Reference<Material>& materialRef) {
+    if (model.configuration.logLevel >= LogLevel::TRACE)
+        cout << "Material:" << materialRef << " assigned to elementSet:" << *this << endl;
+    materialRefs.insert(materialRef);
+}
+
+void CellElementSet::assignMaterial(const shared_ptr<Material>& material) {
+    if (model.configuration.logLevel >= LogLevel::TRACE)
+        cout << "Material:" << *material << " assigned to elementSet:" << *this << endl;
+    materialRefs.insert(material->getReference());
+}
+
+set<shared_ptr<Material>> ElementSet::getMaterials() const {
+    set<shared_ptr<Material>> materials;
+    for (const auto& materialRef : materialRefs) {
+        materials.insert(this->model.materials.find(materialRef));
+    }
+    if (model.configuration.logLevel >= LogLevel::TRACE)
+        cout << "ElementSet:" << *this << " has assigned materials:" << materials << endl;
+    return materials;
+}
+
+bool ElementSet::hasMaterials() const {
+    if (model.configuration.logLevel >= LogLevel::TRACE)
+        cout << "ElementSet:" << *this << " has:" << materialRefs.size() << " assigned materials" << endl;
+    return not materialRefs.empty();
+}
+
+std::shared_ptr<Material> ElementSet::mainMaterial() const {
+    const auto& mainMaterial = this->model.materials.find(*(materialRefs.begin()));
+    if (model.configuration.logLevel >= LogLevel::TRACE)
+        cout << "ElementSet:" << *this << " has main material:" << *mainMaterial << endl;
+    return mainMaterial;
 }
 
 ModelType ElementSet::getModelType() const {
@@ -81,11 +111,11 @@ ModelType ElementSet::getModelType() const {
 bool ElementSet::validate() const {
 	bool validElement = true;
 
-	if (material == nullptr && model.configuration.partitionModel) {
+/*	if (material == nullptr && model.configuration.partitionModel) {
 		cerr << *this << " has no material assigned, "
 				<< "and config. param partitionModel is set to True." << endl;
 		validElement = false;
-	}
+	}*/
 	return validElement;
 }
 
@@ -313,9 +343,16 @@ double GenericSectionBeam::getInvShearAreaFactorZ() const {
 
 
 
-Shell::Shell(Model& model, double thickness, double additional_mass, int original_id) :
-		CellElementSet(model, ElementSet::Type::SHELL, model.modelType, original_id), thickness(thickness), additional_mass(
-				additional_mass) {
+Shell::Shell(Model& model, double thickness, double additional_mass, double offset, int original_id) :
+		CellElementSet(model, ElementSet::Type::SHELL, model.modelType, original_id),
+		additional_mass(additional_mass), thickness(thickness), offset(offset) {
+}
+
+bool Shell::containsNonzeroOffsetCell() const {
+    for (const Cell& cell : this->getCellsIncludingGroups()) {
+        if (not is_zero(cell.offset)) return true;
+    }
+    return false;
 }
 
 DOFS Shell::getDOFSForNode(const int nodePosition) const {
@@ -341,6 +378,13 @@ double Composite::getTotalThickness() {
         total += layer.getThickness();
     }
     return total;
+}
+
+bool Composite::containsNonzeroOffsetCell() const {
+    for (const Cell& cell : this->getCellsIncludingGroups()) {
+        if (not is_zero(cell.offset)) return true;
+    }
+    return false;
 }
 
 DOFS Composite::getDOFSForNode(const int nodePosition) const {

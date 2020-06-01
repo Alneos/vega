@@ -896,9 +896,9 @@ void AsterWriter::writeMaterials() {
         comm_file_ofs << "                    AFFE=(" << endl;
         for (const auto& material : asterModel->model.materials) {
             const auto& cells = material->getAssignment();
-            if (not cells.empty()) {
+            if (cells != nullptr and not cells->empty()) {
                 comm_file_ofs << "                          _F(MATER=M" << material->getId() << ",";
-                writeCellContainer(cells);
+                writeCellContainer(*cells);
                 comm_file_ofs << ")," << endl;
             } else {
                 comm_file_ofs << "# WARN Skipping material id " << material->getId() << " because no assignment"
@@ -1100,6 +1100,11 @@ void AsterWriter::writeAffeCaraElem() {
 					comm_file_ofs << endl;
 					comm_file_ofs << "                              EPAIS="
 							<< shell->thickness << "," << endl;
+                    if (not is_zero(shell->offset)) {
+                        comm_file_ofs << "                              EXCENTREMENT="
+                                << shell->offset << "," << endl;
+                        comm_file_ofs << "                              INER_ROTA='OUI'," << endl;
+                    }
 					comm_file_ofs << "                              VECTEUR=(0.9,0.1,0.2))," << endl;
 				} else {
 					comm_file_ofs
@@ -1116,6 +1121,11 @@ void AsterWriter::writeAffeCaraElem() {
 					comm_file_ofs << endl;
 					comm_file_ofs << "                              EPAIS="
 							<< composite->getTotalThickness() << "," << endl;
+                    if (not is_zero(composite->offset)) {
+                        comm_file_ofs << "                              EXCENTREMENT="
+                                << composite->offset << "," << endl;
+                        comm_file_ofs << "                              INER_ROTA='OUI'," << endl;
+                    }
 					comm_file_ofs << "                              COQUE_NCOU="
 							<< composite->getLayers().size() << "," << endl;
 					comm_file_ofs << "                              VECTEUR=(1.0,0.0,0.0))," << endl;
@@ -2347,38 +2357,39 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
 		}
 		comm_file_ofs << "                    COMPORTEMENT=(" << endl;
 		for (const auto& elementSet : asterModel->model.elementSets) {
-			if (elementSet->material != nullptr and elementSet->effective()) {
-				comm_file_ofs << "                          _F(";
-				const auto& cellElementSet = dynamic_pointer_cast<CellElementSet>(elementSet);
-				if (cellElementSet == nullptr) {
-                    handleWritingError("Writing of ElementSet which is not a CellContainer is not yet implemented");
-				}
-				writeCellContainer(*cellElementSet);
-                const auto& hyelas = elementSet->material->findNature(
-                        Nature::NatureType::NATURE_HYPERELASTIC);
-                const auto& binature = elementSet->material->findNature(
-                        Nature::NatureType::NATURE_BILINEAR_ELASTIC);
-                const auto& nlelas = elementSet->material->findNature(
-                        Nature::NatureType::NATURE_NONLINEAR_ELASTIC);
-                if (binature) {
-                    comm_file_ofs << "RELATION='VMIS_ISOT_LINE',";
-                } else if (nlelas) {
-                    comm_file_ofs << "RELATION='ELAS_VMIS_LINE',";
-                } else if (hyelas) {
-                    comm_file_ofs << "RELATION='ELAS_HYPER',";
-                    comm_file_ofs << "DEFORMATION='GROT_GDEP',";
-                } else if (asterModel->model.needsLargeDisplacements() and (elementSet->isBeam() or elementSet->isTruss())) {
-                    comm_file_ofs << "RELATION='ELAS_POUTRE_GR',";
-                    comm_file_ofs << "DEFORMATION='GROT_GDEP',";
+            for (const auto& material : elementSet->getMaterials()) {
+                if (elementSet->hasMaterials() and elementSet->effective()) {
+                    comm_file_ofs << "                          _F(";
+                    const auto& cellElementSet = dynamic_pointer_cast<CellElementSet>(elementSet);
+                    if (cellElementSet == nullptr) {
+                        handleWritingError("Writing of ElementSet which is not a CellContainer is not yet implemented");
+                    }
+                    writeCellContainer(*cellElementSet);
+                    const auto& hyelas = material->findNature(
+                            Nature::NatureType::NATURE_HYPERELASTIC);
+                    const auto& binature = material->findNature(
+                            Nature::NatureType::NATURE_BILINEAR_ELASTIC);
+                    const auto& nlelas = material->findNature(
+                            Nature::NatureType::NATURE_NONLINEAR_ELASTIC);
+                    if (binature) {
+                        comm_file_ofs << "RELATION='VMIS_ISOT_LINE',";
+                    } else if (nlelas) {
+                        comm_file_ofs << "RELATION='ELAS_VMIS_LINE',";
+                    } else if (hyelas) {
+                        comm_file_ofs << "RELATION='ELAS_HYPER',";
+                        comm_file_ofs << "DEFORMATION='GROT_GDEP',";
+                    } else if (asterModel->model.needsLargeDisplacements() and (elementSet->isBeam() or elementSet->isTruss())) {
+                        comm_file_ofs << "RELATION='ELAS_POUTRE_GR',";
+                        comm_file_ofs << "DEFORMATION='GROT_GDEP',";
+                    } else {
+                        comm_file_ofs << "RELATION='ELAS',";
+                    }
+                    comm_file_ofs << ")," << endl;
                 } else {
-                    comm_file_ofs << "RELATION='ELAS',";
+    //				comm_file_ofs << "# WARN Skipping material id " << *elementSet << " because no assignment"
+    //						<< endl;
                 }
-                comm_file_ofs << ")," << endl;
-			} else {
-//				comm_file_ofs << "# WARN Skipping material id " << *elementSet << " because no assignment"
-//						<< endl;
-			}
-
+            }
 		}
 		comm_file_ofs << "                           )," << endl;
 		comm_file_ofs << "                    INCREMENT=_F(LIST_INST=LAUTO" << nonLinAnalysis->getId() << ",),"

@@ -254,13 +254,13 @@ int SystusWriter::writeDynaModalAnalysis(ostream& out, const SystusModel& systus
     out << endl;
 
     // Harmonic part
-    const int nbNodes = static_cast<int>(systusModel.model.mesh.countNodes());
-    const int nbElements = systusModel.model.mesh.countCells();
+    const size_t nbNodes = systusModel.model.mesh.countNodes();
+    const size_t nbElements = systusModel.model.mesh.countCells();
     out << "# MODAL DYNAMIC ANALYSIS"<<endl;
     out << "DYNAMIC" << endl;
     out << "# IF THERE IS NNN RIGID BODY MODES, ADD 'RIGID NNN' TO THE NEXT LINE."<<endl;
     out << "HARMONIC RESPONSE MODAL "<< nModes<< " FORCE "<< nbLoadcases <<endl;
-    if (tableByLoadcase.size()>0){
+    if (not tableByLoadcase.empty()){
         out <<"FUNCTION "<< tableByLoadcase[1] <<endl;
         cout <<"FUNCTION "<< tableByLoadcase[0] <<endl;
     }

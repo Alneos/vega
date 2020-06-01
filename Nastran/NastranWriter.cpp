@@ -341,15 +341,23 @@ void NastranWriter::writeCells(const Model& model, ofstream& out) const
                 for (unsigned int i2 = 0; i2 < cell.type.numNodes; i2++)
                     nasConnect[med2nastranNodeConnectByCellType[i2]] = cell.nodeIds[i2];
             }
-            vector<double> x1x2x3;
-            string F;
+
+            Line cellLine{keyword};
+            cellLine.add(cell.id).add(elementSet->bestId()).add(nasConnect);
+
             if (elementSet->isBeam() and cell.hasOrientation) {
+                vector<double> x1x2x3;
+                string F;
                 const auto& v = cell.orientation->getV();
                 x1x2x3 = {v.x(), v.y(), v.z()};
                 if (isCosmic())
                     F = "1";
+                cellLine.add(x1x2x3).add(F);
+            } else if (elementSet->isShell()) {
+                cellLine.add(); // theta (real) or matid (int)
+                cellLine.add(cell.offset);
             }
-			out << Line(keyword).add(cell.id).add(elementSet->bestId()).add(nasConnect).add(x1x2x3).add(F);
+			out << cellLine;
 		}
 	}
 }
@@ -768,7 +776,7 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 	for (const auto& truss : model.getTrusses()) {
 		Line prod("PROD");
 		prod.add(truss->bestId());
-		prod.add(truss->material->bestId());
+		prod.add(truss->mainMaterial()->bestId());
 		prod.add(truss->getAreaCrossSection());
 		prod.add(truss->getTorsionalConstant());
 		out << truss;
@@ -778,7 +786,7 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 	    string beamModel = isCosmic() ? "PBAR" : "PBEAM";
 		Line pbeam(beamModel);
 		pbeam.add(beam->bestId());
-		pbeam.add(beam->material->bestId());
+		pbeam.add(beam->mainMaterial()->bestId());
 		pbeam.add(beam->getAreaCrossSection());
 		pbeam.add(beam->getMomentOfInertiaZ());
 		pbeam.add(beam->getMomentOfInertiaY());
@@ -791,9 +799,9 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 		const auto& shell = dynamic_pointer_cast<Shell>(elementSet);
 		Line pshell("PSHELL");
 		pshell.add(shell->bestId());
-		pshell.add(shell->material->bestId());
+		pshell.add(shell->mainMaterial()->bestId());
 		pshell.add(shell->thickness);
-		pshell.add(shell->material->bestId()); // MID2 for bending
+		pshell.add(shell->mainMaterial()->bestId()); // MID2 for bending
 		out << pshell;
 		shell->markAsWritten();
 	}
@@ -801,7 +809,7 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 	    string keyword = isCosmic() ? "PIHEX" : "PSOLID";
 		Line psolid(keyword);
 		psolid.add(continuum->bestId());
-		psolid.add(continuum->material->bestId());
+		psolid.add(continuum->mainMaterial()->bestId());
 		if (continuum->modelType == ModelType::TRIDIMENSIONAL and not isCosmic()) {
             psolid.add(0);
             psolid.add("THREE");

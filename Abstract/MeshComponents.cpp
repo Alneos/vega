@@ -423,11 +423,12 @@ const unordered_map<CellType::Code, vector<int>, EnumClassHash > Cell::CORNERNOD
 
 Cell::Cell(int id, const CellType &type, const std::vector<int> &nodeIds, int position,
 		const std::vector<int> &nodePositions, bool isvirtual,
-		int cspos, int element_id, int cellTypePosition,
-		std::shared_ptr<OrientationCoordinateSystem> orientation) noexcept :
+		int cspos, int element_id, size_t cellTypePosition,
+		std::shared_ptr<OrientationCoordinateSystem> orientation, double offset) noexcept :
 		id(id), position(position), hasOrientation(cspos!=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID), type(type),
-				nodeIds(nodeIds), nodePositions(nodePositions), isvirtual(isvirtual), elementId(
-						element_id), cellTypePosition(cellTypePosition), cspos(cspos), orientation(orientation) {
+				nodeIds(nodeIds), nodePositions(nodePositions), isvirtual(isvirtual),
+				elementId(element_id), cellTypePosition(cellTypePosition), cspos(cspos), orientation(orientation),
+                offset(offset) {
 }
 
 int Cell::findNodeIdPosition(int node_id2) const {
@@ -616,7 +617,7 @@ Cell CellIterator::next() {
 	return result;
 }
 
-void CellIterator::increment(int i) {
+void CellIterator::increment(size_t i) {
 	position += i;
 	//cout << "currentPos " << position << "end " << endPosition << endl;
 	if (position > endPosition) {
@@ -632,7 +633,7 @@ CellIterator& CellIterator::operator ++() {
 }
 
 CellIterator CellIterator::operator ++(int) {
-	increment(1);
+	increment(1); // argument must be ignored https://en.cppreference.com/w/cpp/language/operators#Increment_and_decrement
 	return *this;
 }
 
@@ -783,7 +784,7 @@ void CellContainer::removeAllCellsExcludingGroups() noexcept {
     cellPositions.clear();
 }
 
-set<int> CellContainer::getCellIdsIncludingGroups() const noexcept {
+set<int> CellContainer::getCellIdsExcludingGroups() const noexcept {
 	set<int> result;
 	transform(cellPositions.begin(),
               cellPositions.end(),
@@ -791,6 +792,11 @@ set<int> CellContainer::getCellIdsIncludingGroups() const noexcept {
               [&](const int cellPosition) {
                   return mesh.findCellId(cellPosition);
               });
+	return result;
+}
+
+set<int> CellContainer::getCellIdsIncludingGroups() const noexcept {
+	auto&& result = getCellIdsExcludingGroups();
     for (const auto& groupName : cellGroupNames) {
         const auto& group = dynamic_pointer_cast<CellGroup>(mesh.findGroup(groupName));
         if (group != nullptr) {
@@ -874,10 +880,22 @@ bool CellContainer::hasCellGroups() const noexcept {
 	return not cellGroupNames.empty();
 }
 
+string CellContainer::to_str() const {
+    ostringstream out;
+	out << "CellContainer[";
+	if (not cellPositions.empty()) {
+        out << "cell ids:[" << cellPositions << "],";
+	}
+	if (not cellGroupNames.empty()) {
+        out << "cell groups:[" << cellGroupNames << "],";
+	}
+	out << "]";
+	return out.str();
+}
+
 void CellGroup::removeCellPosition(int cellPosition) noexcept {
     CellContainer::removeCellPositionExcludingGroups(cellPosition);
 }
-
 
 /*******************
  * Node container;
@@ -1047,6 +1065,25 @@ vector<shared_ptr<NodeGroup>> NodeContainer::getNodeGroups() const {
 		nodeGroups.push_back(group);
 	}
 	return nodeGroups;
+}
+
+string NodeContainer::to_str() const {
+    ostringstream out;
+	out << "NodeContainer[";
+	if (hasCellsExcludingGroups()) {
+        out << "cell ids:[" << getCellIdsExcludingGroups() << "],";
+	}
+	if (hasCellGroups()) {
+        out << "cell groups:[" << getCellGroups() << "],";
+	}
+	if (not nodePositions.empty()) {
+        out << "node ids:[" << getNodeIdsExcludingGroups() << "],";
+	}
+	if (not nodeGroupNames.empty()) {
+        out << "node groups:[" << nodeGroupNames << "],";
+	}
+	out << "]";
+	return out.str();
 }
 
 } /* namespace vega */

@@ -124,7 +124,7 @@ bool NodeStorage::validate() const {
 	return validNodes;
 }
 
-CellData::CellData(int id, const CellType& type, bool isvirtual, int elementId, int cellTypePosition) :
+CellData::CellData(int id, const CellType& type, bool isvirtual, int elementId, size_t cellTypePosition) :
 		id(id), typeCode(type.code), isvirtual(isvirtual), elementId(
 				elementId), cellTypePosition(cellTypePosition) {
 }
@@ -330,8 +330,8 @@ void Mesh::allowDOFS(int nodePosition, const DOFS& allowed) noexcept {
 			| allowed);
 }
 
-int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &nodeIds,
-		bool virtualCell, const int cpos, int elementId) {
+int Mesh::addCell(int id, const CellType& cellType, const std::vector<int>& nodeIds,
+		bool virtualCell, const int cpos, int elementId, double offset) {
 	int cellId;
 	const int cellPosition = static_cast<int>(cells.cellDatas.size());
 
@@ -375,7 +375,7 @@ int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &node
 	}
 
 	cells.cellpositionById[cellId] = cellPosition;
-	const int cellTypePosition = static_cast<int>(cellPositionsByType.find(cellType)->second.size());
+	const size_t cellTypePosition = cellPositionsByType.find(cellType)->second.size();
 	cellPositionsByType.find(cellType)->second.push_back(cellPosition);
 	CellData cellData(cellId, cellType, virtualCell, elementId, cellTypePosition);
 
@@ -386,11 +386,43 @@ int Mesh::addCell(int id, const CellType &cellType, const std::vector<int> &node
 	for (const auto& nodeId : nodeIds) {
 		nodePositionsPtr->push_back(findOrReserveNode(nodeId, elementId));
 	}
+
+    switch (cellType.dimension.code) {
+    case SpaceDimension::Code::DIMENSION0D_CODE: {
+        if (cells.additional0DdataByCelltype.find(cellType) == cells.additional0DdataByCelltype.end())
+            cells.additional0DdataByCelltype[cellType] = {};
+        cells.additional0DdataByCelltype[cellType].push_back(DimensionData0D{});
+        break;
+    }
+    case SpaceDimension::Code::DIMENSION1D_CODE: {
+        if (cells.additional1DdataByCelltype.find(cellType) == cells.additional1DdataByCelltype.end())
+            cells.additional1DdataByCelltype[cellType] = {};
+        cells.additional1DdataByCelltype[cellType].push_back(DimensionData1D{});
+        break;
+    }
+    case SpaceDimension::Code::DIMENSION2D_CODE: {
+        if (cells.additional2DdataByCelltype.find(cellType) == cells.additional2DdataByCelltype.end())
+            cells.additional2DdataByCelltype[cellType] = {};
+        cells.additional2DdataByCelltype[cellType].push_back(DimensionData2D{offset});
+        break;
+    }
+    case SpaceDimension::Code::DIMENSION3D_CODE: {
+/*        if (cells.additional3DdataByCelltype.find(cellType) == cells.additional3DdataByCelltype.end())
+            cells.additional3DdataByCelltype[cellType] = {};
+        cells.additional3DdataByCelltype[cellType].push_back(DimensionData3D{});*/
+        break;
+    }
+    default: {
+        throw logic_error("Not yet implemented");
+    }
+    }
+
 	if (cpos != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
 		this->getOrCreateCellGroupForCS(cpos)->addCellId(cellId);
 		cellData.csPos = cpos;
     }
 	cells.cellDatas.push_back(cellData);
+
 	return cellPosition;
 }
 
@@ -468,13 +500,13 @@ Cell Mesh::findCell(int cellPosition) const {
 		throw logic_error("Unavailable cell requested.");
 	}
 	const auto& cellData = cells.cellDatas[cellPosition];
-	const CellType* type = CellType::findByCode(cellData.typeCode);
-	const unsigned int numNodes = type->numNodes;
+	const CellType* cellType = CellType::findByCode(cellData.typeCode);
+	const unsigned int numNodes = cellType->numNodes;
 	vector<int> nodeIds;
 	nodeIds.resize(numNodes);
-	auto it = cells.nodepositionsByCelltype.find(*type);
+	auto it = cells.nodepositionsByCelltype.find(*cellType);
 	const auto& globalNodePositions = *(it->second);
-	const int start = cellData.cellTypePosition * numNodes;
+	const size_t start = cellData.cellTypePosition * numNodes;
 	vector<int> nodePositions(globalNodePositions.begin() + start,
 			globalNodePositions.begin() + start + numNodes);
 	for (unsigned int i = 0; i < numNodes; i++) {
@@ -484,8 +516,34 @@ Cell Mesh::findCell(int cellPosition) const {
 	shared_ptr<OrientationCoordinateSystem> ocs = nullptr;
 	if (cellData.csPos!=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID)
         ocs = static_pointer_cast<OrientationCoordinateSystem>(coordinateSystemStorage.findByPosition(cellData.csPos));
+
+    double offset;
+    switch (cellType->dimension.code) {
+    case SpaceDimension::Code::DIMENSION0D_CODE: {
+        const auto& additional0Ddata = cells.additional0DdataByCelltype.at(*cellType)[cellData.cellTypePosition];
+        UNUSEDV(additional0Ddata);
+        break;
+    }
+    case SpaceDimension::Code::DIMENSION1D_CODE: {
+        const auto& additional1Ddata = cells.additional1DdataByCelltype.at(*cellType)[cellData.cellTypePosition];
+        UNUSEDV(additional1Ddata);
+        break;
+    }
+    case SpaceDimension::Code::DIMENSION2D_CODE: {
+        const auto& additional2Ddata = cells.additional2DdataByCelltype.at(*cellType)[cellData.cellTypePosition];
+        offset = additional2Ddata.offset;
+        break;
+    }
+    case SpaceDimension::Code::DIMENSION3D_CODE: {
+        //const auto& additional3Ddata = cells.additional3DdataByCelltype.at(*cellType)[cellData.cellTypePosition];
+        break;
+    }
+    default: {
+        throw logic_error("Not yet implemented");
+    }
+    }
 	// Should stay as a "return unnamed" so that compiler can avoid rvalue copy
-	return Cell(cellData.id, *type, nodeIds, cellPosition, nodePositions, false, cellData.csPos, cellData.elementId, cellData.cellTypePosition, ocs);
+	return Cell(cellData.id, *cellType, nodeIds, cellPosition, nodePositions, false, cellData.csPos, cellData.elementId, cellData.cellTypePosition, ocs, offset);
 }
 
 int Mesh::generateSkinCell(const vector<int>& faceIds, const SpaceDimension& dimension) {
@@ -598,8 +656,8 @@ string Mesh::getName() const noexcept {
     return name;
 }
 
-int Mesh::countCells() const noexcept {
-	return static_cast<int>(cells.cellpositionById.size());
+size_t Mesh::countCells() const noexcept {
+	return cells.cellpositionById.size();
 }
 
 void Mesh::finish() noexcept {
@@ -768,7 +826,7 @@ shared_ptr<Group> Mesh::findGroup(int originalId) const noexcept {
 	return groupIterator->second;
 }
 
-int Mesh::countCells(const CellType& type) const noexcept {
+size_t Mesh::countCells(const CellType& type) const noexcept {
 
 	//if (type.code == CellType::POLYL.code) {
 	//	//FIXME polylines not handled

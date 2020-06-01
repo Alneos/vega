@@ -738,23 +738,40 @@ shared_ptr<Material> Model::getOrCreateMaterial(int material_id, bool createIfNo
     return result;
 }
 
-CellContainer Model::getMaterialAssignment(int materialId) const {
-    auto it = material_assignment_by_material_id.find(materialId);
-    if (it != material_assignment_by_material_id.end()) {
+shared_ptr<CellContainer> Model::getMaterialAssignment(const Reference<Material>& materialRef) const {
+    const auto& it = material_assignment_by_materialRef.find(materialRef);
+    if (it != material_assignment_by_materialRef.end()) {
         return it->second;
     } else {
-        //return empty cell container if no assignment is found
-        return CellContainer(mesh);
+        return nullptr;
     }
 }
 
-void Model::assignMaterial(int material_id, const CellContainer& materialAssign) {
-    auto it = material_assignment_by_material_id.find(material_id);
-    if (it != material_assignment_by_material_id.end()) {
-        it->second.add(materialAssign);
+bool Model::hasMaterialAssignment(const Reference<Material>& materialRef) const {
+
+    const auto& it = material_assignment_by_materialRef.find(materialRef);
+    if (it != material_assignment_by_materialRef.end()) {
+        return not it->second->empty();
     } else {
-        material_assignment_by_material_id.insert({material_id, materialAssign});
+        return false;
     }
+}
+
+void Model::assignMaterial(const Reference<Material>& materialRef, const CellContainer& materialAssign) {
+    if (configuration.logLevel >= LogLevel::TRACE)
+        cout << "Previous material assignments:" << material_assignment_by_materialRef << endl;
+    const auto& it = material_assignment_by_materialRef.find(materialRef);
+    if (it != material_assignment_by_materialRef.end()) {
+        if (configuration.logLevel >= LogLevel::TRACE)
+            cout << "Adding another assignment:" << materialAssign.to_str() << " to material:" << materialRef << endl;
+        it->second->add(materialAssign);
+    } else {
+        if (configuration.logLevel >= LogLevel::TRACE)
+            cout << "Creating first assignment:" << materialAssign.to_str() << " to material:" << materialRef << endl;
+        material_assignment_by_materialRef[materialRef] = make_shared<CellContainer>(materialAssign);
+    }
+    if (configuration.logLevel >= LogLevel::TRACE)
+        cout << "Current material assignments:" << material_assignment_by_materialRef << endl;
 }
 
 shared_ptr<Material> Model::getVirtualMaterial() {
@@ -888,17 +905,22 @@ void Model::emulateAdditionalMass() {
             // copy elementSet
             const shared_ptr<ElementSet>& newElementSet = elementSet->clone();
             newElementSet->resetId();
+            const auto& cellElementSet = dynamic_pointer_cast<CellElementSet>(newElementSet);
+            if (cellElementSet == nullptr)
+                throw logic_error("additional mass but elementset is not a cellcontainer?");
+
             // assign new material
             const auto& newMaterial = make_shared<Material>(*this);
             newMaterial->addNature(make_shared<ElasticNature>(*this, 0, 0, 0, rho));
             materials.add(newMaterial);
-            newElementSet->assignMaterial(newMaterial);
+            cellElementSet->assignMaterial(newMaterial);
             // copy and assign new cellGroup
             ostringstream oss;
             oss << "created by emulateAdditionalMass() because of elementSet: " << elementSet << " additional rho:" << rho;
             const auto& newCellGroup = mesh.createCellGroup(
                     "VAM_" + to_string(newElementSets.size()), Group::NO_ORIGINAL_ID, oss.str());
-            newElementSet->add(*newCellGroup);
+            const auto& cellContainer = dynamic_pointer_cast<CellContainer>(elementSet);
+            cellContainer->add(*newCellGroup);
             newElementSets.push_back(newElementSet);
             for (const int cellPosition : elementSet->cellPositions()) {
                 const Cell& cell = mesh.findCell(cellPosition);
@@ -979,7 +1001,7 @@ void Model::generateBeamsToDisplayMasterSlaveConstraint() {
 
 void Model::generateMaterialAssignments() {
     if (configuration.partitionModel) {
-        if (not this->material_assignment_by_material_id.empty()) {
+        if (not this->material_assignment_by_materialRef.empty()) {
             cerr << "generateMaterialAssignments with PartitionModel is not "
                     << " yet implemented. " << endl
                     << "This method should partition the elementSets"
@@ -992,17 +1014,14 @@ void Model::generateMaterialAssignments() {
             if (cellElementSet == nullptr) {
                 throw logic_error("Assigning an ElementSet which is not a CellContainer to a Material not yet implemeted");
             }
-            if (element->material) {
-                int mat_id = element->material->getId();
-                auto material_assignment_entry = material_assignment_by_material_id.find(mat_id);
+            if (cellElementSet->empty()) {
+                throw logic_error("Assigning an ElementSet to an empty CellContainer?");
+            }
+            for (const auto& material : element->getMaterials()) {
                 if (element->effective()) {
-                    if (material_assignment_entry != material_assignment_by_material_id.end()) {
-                        material_assignment_entry->second.add(*cellElementSet);
-                    } else {
-                        CellContainer assignment(mesh);
-                        assignment.add(*cellElementSet);
-                        material_assignment_by_material_id.insert({mat_id, assignment});
-                    }
+                    if (configuration.logLevel >= LogLevel::TRACE)
+                        cout << "Generating assignment for material:" << *material << " to elementSet:" << *cellElementSet << endl;
+                    assignMaterial(material->getReference(), *cellElementSet);
                 }
             }
         }
@@ -1636,7 +1655,7 @@ void Model::makeCellsFromDirectMatrices() {
         }
 
         // If matrix is void, we do nothing (should not happen)
-        if (matrix->nodePositions().size()==0) {
+        if (matrix->nodePositions().empty()) {
             //TODO: Display informative message in debug mode.
             continue;
         }
@@ -1666,7 +1685,7 @@ void Model::makeCellsFromDirectMatrices() {
 
 void Model::makeCellsFromLMPC() {
 
-    shared_ptr<Material> materialLMPC= nullptr;
+    shared_ptr<Material> materialLMPC = nullptr;
 
     for (const auto& analysis : this->analyses) {
         for (const auto& constraintSet : analysis->getConstraintSets()) {
@@ -2121,6 +2140,63 @@ void Model::createSetGroups() {
     }
 }
 
+void Model::splitElementsByCellOffsets() {
+    vector<shared_ptr<ElementSet>> elementSetsToAdd;
+    vector<shared_ptr<ElementSet>> elementSetsToRemove;
+    map<long, shared_ptr<CellContainer>> cellPositionsByRoundedOffset;
+
+    for (const auto& elementSet : elementSets.filter(ElementSet::Type::SHELL)) {
+        const auto& shell = static_pointer_cast<Shell>(elementSet);
+        if (not shell->containsNonzeroOffsetCell())
+            continue;
+        elementSetsToRemove.push_back(shell);
+        for (const Cell& cell : shell->getCellsIncludingGroups()) {
+            long offsetRounded = lround(pow(cell.offset,6));
+            const auto& it = cellPositionsByRoundedOffset.find(offsetRounded);
+            if (it == cellPositionsByRoundedOffset.end()) {
+                const shared_ptr<ElementSet>& clonedElement = shell->clone();
+                const auto& clonedShell = dynamic_pointer_cast<Shell>(clonedElement);
+                clonedShell->clear();
+                clonedShell->offset = shell->offset + cell.offset;
+                clonedShell->add(cell);
+                cellPositionsByRoundedOffset[offsetRounded] = clonedShell;
+                elementSetsToAdd.push_back(clonedShell);
+            } else {
+                it->second->add(cell);
+            }
+        }
+    }
+
+    for (const auto& elementSet : elementSets.filter(ElementSet::Type::COMPOSITE)) {
+        const auto& composite = static_pointer_cast<Composite>(elementSet);
+        if (not composite->containsNonzeroOffsetCell())
+            continue;
+        elementSetsToRemove.push_back(composite);
+        for (const Cell& cell : composite->getCellsIncludingGroups()) {
+            long offsetRounded = lround(pow(cell.offset,6));
+            const auto& it = cellPositionsByRoundedOffset.find(offsetRounded);
+            if (it == cellPositionsByRoundedOffset.end()) {
+                const shared_ptr<ElementSet>& clonedElement = composite->clone();
+                const auto& clonedComposite = dynamic_pointer_cast<Composite>(clonedElement);
+                clonedComposite->clear();
+                clonedComposite->offset = composite->offset + cell.offset;
+                clonedComposite->add(cell);
+                cellPositionsByRoundedOffset[offsetRounded] = clonedComposite;
+                elementSetsToAdd.push_back(clonedComposite);
+            } else {
+                it->second->add(cell);
+            }
+        }
+    }
+
+    for (const auto& elementSet : elementSetsToRemove){
+        this->elementSets.erase(Reference<ElementSet>(*elementSet));
+    }
+    for (const auto& elementSet : elementSetsToAdd){
+        this->add(elementSet);
+    }
+}
+
 void Model::finish() {
     if (finished) {
         return;
@@ -2237,6 +2313,10 @@ void Model::finish() {
 
     if (this->configuration.addVirtualMaterial) {
         assignVirtualMaterial();
+    }
+
+    if (this->configuration.splitElementsByCellOffsets){
+        //splitElementsByCellOffsets();
     }
 
     assignElementsToCells();
@@ -2403,10 +2483,12 @@ bool Model::checkWritten() const {
 
 void Model::assignVirtualMaterial() {
     for (const auto& element : elementSets.filter(ElementSet::Type::STRUCTURAL_SEGMENT)) {
-        element->assignMaterial(getVirtualMaterial());
+        const auto& cellElementSet = static_pointer_cast<CellElementSet>(element);
+        cellElementSet->assignMaterial(getVirtualMaterial());
     }
     for (const auto& element : elementSets.filter(ElementSet::Type::NODAL_MASS)) {
-        element->assignMaterial(getVirtualMaterial());
+        const auto& cellElementSet = static_pointer_cast<CellElementSet>(element);
+        cellElementSet->assignMaterial(getVirtualMaterial());
     }
 }
 

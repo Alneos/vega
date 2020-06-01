@@ -167,14 +167,14 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
             // Assign material and model
             double beamWidth = 10;
             double beamHeight = 20;
-            shared_ptr<ElementSet> elementSet = nullptr;
+            shared_ptr<CellElementSet> elementSet = nullptr;
             switch(cellType.dimension.code) {
             case SpaceDimension::Code::DIMENSION1D_CODE: {
                 elementSet = make_shared<RectangularSectionBeam>(*model, beamWidth, beamHeight, Beam::BeamModel::TIMOSHENKO, 0.0, volgroup->bestId());
                 break;
             }
             case SpaceDimension::Code::DIMENSION2D_CODE: {
-                elementSet = make_shared<Shell>(*model, beamWidth, 0.0, volgroup->bestId());
+                elementSet = make_shared<Shell>(*model, beamWidth, 0.0, 0.0, volgroup->bestId());
                 break;
             }
             case SpaceDimension::Code::DIMENSION3D_CODE: {
@@ -184,7 +184,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
             default:
                 throw invalid_argument("Dimension coverage not yet implemented");
             }
-            elementSet->assignMaterial(matId);
+            elementSet->assignMaterial(Reference<Material>(Material::Type::MATERIAL,matId));
             elementSet->add(*volgroup);
             model->add(elementSet);
 

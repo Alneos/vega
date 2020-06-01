@@ -629,17 +629,13 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, Model& model,
             handleParsingWarning("THETA/MCID parameter ignored.", tok, model);
         //}
     }
-    if (!is_zero(zoffs)){
-        handleParsingWarning("non-null ZOFFS parameter ignored.", tok, model);
-    }
     if (tflag!=0){
         handleParsingWarning("non-null TFLAG ("+ to_string(tflag)+") parameter ignored.", tok, model);
     }
     if (isThereT){
         handleParsingWarning("membrane thickness is ignored.", tok, model);
     }
-
-    model.mesh.addCell(cell_id, cellType, nodeIds, false, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, property_id);
+    model.mesh.addCell(cell_id, cellType, nodeIds, false, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, property_id, zoffs);
     addProperty(tok, property_id, cell_id, model);
 
 }

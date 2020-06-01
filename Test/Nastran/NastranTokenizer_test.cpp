@@ -468,3 +468,28 @@ BOOST_AUTO_TEST_CASE(nastran_comment_inside_card) {
     BOOST_CHECK_EQUAL(1, tok.nextInt());
     BOOST_CHECK_EQUAL(51, tok.nextDouble());//BOOST_CHECK(tok.isNextEmpty());
 }
+
+BOOST_AUTO_TEST_CASE(nastran_cord2c_multiline) {
+    string nastranLine =
+          //12345678|2345678|2345678|2345678|2345678|2345678|2345678|2345678|2345678|2345678|
+           "CORD2C      5001          8.9553     0.0     0.0108.9553     0.0     0.0+       \n"
+           "+         8.9553   100.0     0.0\n"
+           ;
+    istringstream istr(nastranLine);
+    NastranTokenizer tok(istr);
+    tok.bulkSection();
+    tok.nextLine();
+    BOOST_CHECK(tok.nextSymbolType == NastranTokenizer::SymbolType::SYMBOL_KEYWORD);
+    BOOST_CHECK_EQUAL("CORD2C", tok.nextString());
+    BOOST_CHECK_EQUAL(5001, tok.nextInt());
+    BOOST_CHECK(tok.isNextEmpty());tok.skip(1);
+    BOOST_CHECK_EQUAL(8.9553, tok.nextDouble());
+    BOOST_CHECK_EQUAL(0.0, tok.nextDouble());
+    BOOST_CHECK_EQUAL(0.0, tok.nextDouble());
+    BOOST_CHECK_EQUAL(108.9553, tok.nextDouble());
+    BOOST_CHECK_EQUAL(0.0, tok.nextDouble());
+    BOOST_CHECK_EQUAL(0.0, tok.nextDouble());
+    BOOST_CHECK_EQUAL(8.9553, tok.nextDouble());
+    BOOST_CHECK_EQUAL(100.0, tok.nextDouble());
+    BOOST_CHECK_EQUAL(0.0, tok.nextDouble());
+}

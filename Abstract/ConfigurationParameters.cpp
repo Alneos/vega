@@ -60,6 +60,7 @@ ModelConfiguration ConfigurationParameters::getModelConfiguration() const {
         configuration.changeParametricForceLineToAbsolute = true;
         configuration.alwaysUseGroupsForCells = true;
         configuration.convertCompletelyRigidsIntoMPCs = true;
+        configuration.splitElementsByCellOffsets = true;
     } else if (this->outputSolver.getSolverName() == SolverName::SYSTUS) {
         configuration.createSkin = true;
         configuration.emulateAdditionalMass = true;
@@ -76,6 +77,7 @@ ModelConfiguration ConfigurationParameters::getModelConfiguration() const {
         configuration.autoDetectAnalysis = true;
         configuration.replaceRigidSegments = true;
         configuration.convert0DDiscretsInto1D = true;
+        configuration.splitElementsByCellOffsets = true;
     } else if (this->outputSolver.getSolverName() == SolverName::NASTRAN) {
         // default should be always false
         configuration.autoDetectAnalysis = true;

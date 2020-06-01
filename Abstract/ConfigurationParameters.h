@@ -183,6 +183,12 @@ public:
      */
     bool convertCompletelyRigidsIntoMPCs = false;
 
+
+    /**
+     * Split parts by cell offsets (see CQUAD4 ZOFFS)
+     */
+    bool splitElementsByCellOffsets = false;
+
 };
 // TODO: THe Configuration Parameters should be much more generalized. With this,
 // it's a pain in the keyboard to add options!!

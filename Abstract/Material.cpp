@@ -253,12 +253,30 @@ void RigidNature::setLagrangian(double lagrangian) {
     this->lagrangian = lagrangian;
 }
 
-CellContainer Material::getAssignment() const {
-	return this->model.getMaterialAssignment(this->getId());
+shared_ptr<CellContainer> Material::getAssignment() const {
+    const auto& assignment = this->model.getMaterialAssignment(this->getReference());
+    if (model.configuration.logLevel >= LogLevel::TRACE) {
+        if (assignment != nullptr) {
+            cout << "Found assignment:" << this->model.getMaterialAssignment(this->getReference())->to_str() << " to material:" << *this << endl;
+        } else {
+            cout << "Assignment to material:" << *this << " not found." << endl;
+        }
+    }
+	return this->model.getMaterialAssignment(this->getReference());
+}
+
+bool Material::hasAssignment() const {
+    if (model.configuration.logLevel >= LogLevel::TRACE) {
+        cout << "Found assignment to material:" << *this << " = " << this->model.hasMaterialAssignment(this->getReference()) << endl;
+    }
+	return this->model.hasMaterialAssignment(this->getReference());
 }
 
 void Material::assignMaterial(const CellContainer& cellsToAssign) {
-	this->model.assignMaterial(this->getId(), cellsToAssign);
+    if (model.configuration.logLevel >= LogLevel::TRACE) {
+        cout << "Assigning:" << cellsToAssign.to_str() << " to material:" << *this << endl;
+    }
+	this->model.assignMaterial(this->getReference(), cellsToAssign);
 }
 
 }

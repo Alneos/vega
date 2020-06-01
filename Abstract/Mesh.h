@@ -92,13 +92,13 @@ public:
 
 class CellData final {
 public:
-	CellData(int id, const CellType& type, bool isvirtual, int elementId, int cellTypePosition);
+	CellData(int id, const CellType& type, bool isvirtual, int elementId, size_t cellTypePosition);
 	const int id;
 	const CellType::Code typeCode;
 	const bool isvirtual;
 	int csPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID; /**< Vega Position Number for the CS **/
 	int elementId;
-	const int cellTypePosition;
+	const size_t cellTypePosition;
 };
 
 class CellStorage final {
@@ -109,6 +109,10 @@ private:
 
 	const LogLevel logLevel;
 	std::vector<CellData> cellDatas;
+    std::map<CellType, std::vector<DimensionData0D>> additional0DdataByCelltype;
+	std::map<CellType, std::vector<DimensionData1D>> additional1DdataByCelltype;
+	std::map<CellType, std::vector<DimensionData2D>> additional2DdataByCelltype;
+	std::map<CellType, std::vector<DimensionData3D>> additional3DdataByCelltype;
 	std::map<int, int> cellpositionById;
 	std::map<CellType, std::shared_ptr<std::deque<int>>> nodepositionsByCelltype;
 	/*
@@ -243,14 +247,20 @@ public:
 	//returns a set of nodePositions
 	std::set<int> findOrReserveNodes(const std::set<int>& nodeIds) noexcept;
 
-	int countCells() const noexcept;
-	int countCells(const CellType &type) const noexcept;
+	size_t countCells() const noexcept;
+	size_t countCells(const CellType &type) const noexcept;
 	/** Add a cell to the mesh.
 	 *  The vector nodesIds regroups the nodes use to build the cell. Nodes Ids are expressed as "input node number"
 	 *  and will be added to the model if not already defined.
 	 **/
-    int addCell(int id, const CellType &type, const std::vector<int> &nodesIds,
-            bool virtualCell = false, const int cpos=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int elementId = Cell::UNAVAILABLE_CELL);
+    int addCell(int id,
+                const CellType &type,
+                const std::vector<int> &nodesIds,
+                bool virtualCell = false,
+                const int cpos=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
+                int elementId = Cell::UNAVAILABLE_CELL,
+                double offset = 0.0);
+
     /**
      *  Update a cell to the mesh.
 	 *  The vector nodesIds regroups the nodes use to build the cell. Nodes Ids are expressed as "input node number"

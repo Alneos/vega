@@ -155,6 +155,11 @@ private:
     void createSetGroups();
 
     /**
+     * Split parts by cell thicknesses
+     */
+    void splitElementsByCellOffsets();
+
+    /**
      * Get a non rigid material (virtual)
      */
     std::shared_ptr<Material> getVirtualMaterial();
@@ -247,7 +252,7 @@ private:
         bool validate(); /**< Says if model parts are coherent (no unresolved references, etc.) AND SOMETIMES IT TRIES TO FIX THEM :( */
         bool checkWritten() const; /**< Says if all container objects have been written in output (or not) */
     }; /* Container class */
-    std::unordered_map<int,CellContainer> material_assignment_by_material_id;
+    std::unordered_map<Reference<Material>,std::shared_ptr<CellContainer>> material_assignment_by_materialRef;
     std::map<ModelParameter, std::string> parameters;
 public:
     Container<Analysis> analyses{*this};
@@ -360,13 +365,14 @@ public:
      *
      * If no assigment is found it returns an empty cell container.
      */
-    CellContainer getMaterialAssignment(int materialId) const;
+    std::shared_ptr<CellContainer> getMaterialAssignment(const Reference<Material>&) const;
+    bool hasMaterialAssignment(const Reference<Material>&) const;
     /**
      * Assign a material to a group of cells. There are two ways of assigning
      * a material: either trough this method or with an ElementSet.
      * Choose the one appropriate to your input model.
      */
-    void assignMaterial(int materialId, const CellContainer& cellsToAssign);
+    void assignMaterial(const Reference<Material>&, const CellContainer& cellsToAssign);
 
     /**
      * Add a Constraint reference into a ConstraintSet reference.
