@@ -1985,20 +1985,20 @@ void NastranParser::parseMOMENT(NastranTokenizer& tok, Model& model) {
     int loadset_id = tok.nextInt();
     int node_id = tok.nextInt();
     int csid = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-    if (csid != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-        handleParsingWarning("MOMENT coordinate system not supported", tok, model);
-    }
     double scale = tok.nextDouble(true);
     double frx = tok.nextDouble(true) * scale;
     double fry = tok.nextDouble(true) * scale;
     double frz = tok.nextDouble(true) * scale;
 
     const auto& loadSet = model.getOrCreateLoadSet(loadset_id, LoadSet::Type::LOAD);
-    const auto& force1 = make_shared<NodalForce>(model, loadSet, VectorialValue(0, 0, 0), VectorialValue(frx, fry, frz),
-            Loading::NO_ORIGINAL_ID);
-    force1->addNodeId(node_id);
-    force1->setInputContext(tok.getInputContext());
-    model.add(force1);
+    const auto& moment1 = make_shared<NodalForce>(model, loadSet,
+                                                 VectorialValue(0, 0, 0),
+                                                 VectorialValue(frx, fry, frz),
+                                                 Loading::NO_ORIGINAL_ID,
+                                                 Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, csid));
+    moment1->addNodeId(node_id);
+    moment1->setInputContext(tok.getInputContext());
+    model.add(moment1);
 }
 
 void NastranParser::parseMPC(NastranTokenizer& tok, Model& model) {

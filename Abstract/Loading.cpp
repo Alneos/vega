@@ -290,27 +290,27 @@ NodalForce::NodalForce(Model& model, const std::shared_ptr<LoadSet> loadset, dou
 VectorialValue NodalForce::localToGlobal(int nodePosition, const VectorialValue& vectorialValue) const {
 	if (!hasCoordinateSystem())
 		return vectorialValue;
-	shared_ptr<CoordinateSystem> coordSystem = model.mesh.findCoordinateSystem(csref);
+	const auto& coordSystem = model.mesh.findCoordinateSystem(csref);
 	if (!coordSystem) {
 		ostringstream oss;
 		oss << "Coordinate system: " << csref
 				<< " for nodal force not found." << endl;
 		throw logic_error(oss.str());
 	}
-	const Node& node = model.mesh.findNode(nodePosition);
+	const auto& node = model.mesh.findNode(nodePosition);
 	coordSystem->updateLocalBase(VectorialValue(node.x, node.y, node.z));
 	return coordSystem->vectorToGlobal(vectorialValue);
 }
 
 VectorialValue NodalForce::getForceInGlobalCS(int nodePosition) const {
-    set<int> posSet = nodePositions();
+    const auto& posSet = nodePositions();
 	if (posSet.find(nodePosition) == posSet.end())
         throw logic_error("Requested node has not been assigned to this loading");
 	return localToGlobal(nodePosition, force);
 }
 
 VectorialValue NodalForce::getMomentInGlobalCS(int nodePosition) const {
-    set<int> posSet = nodePositions();
+    const auto& posSet = nodePositions();
 	if (posSet.find(nodePosition) == posSet.end())
         throw logic_error("Requested node has not been assigned to this loading");
 	return localToGlobal(nodePosition, moment);
@@ -318,7 +318,7 @@ VectorialValue NodalForce::getMomentInGlobalCS(int nodePosition) const {
 
 DOFS NodalForce::getDOFSForNode(const int nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
-	set<int> posSet = nodePositions();
+	const auto& posSet = nodePositions();
 	if (posSet.find(nodePosition) != posSet.end()) {
         VectorialValue globalForce = getForceInGlobalCS(nodePosition);
         VectorialValue globalTorque = getMomentInGlobalCS(nodePosition);
@@ -361,7 +361,7 @@ NodalForceTwoNodes::NodalForceTwoNodes(Model& model, const std::shared_ptr<LoadS
 VectorialValue NodalForceTwoNodes::getForceInGlobalCS(int nodePosition) const {
 	const Node& node1 = model.mesh.findNode(node_position1);
 	const Node& node2 = model.mesh.findNode(node_position2);
-	VectorialValue direction = (VectorialValue(node2.x, node2.y, node2.z)
+	const auto& direction = (VectorialValue(node2.x, node2.y, node2.z)
 			- VectorialValue(node1.x, node1.y, node1.z)).normalized();
 	return localToGlobal(nodePosition, magnitude * direction);
 }
