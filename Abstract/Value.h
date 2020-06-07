@@ -159,6 +159,9 @@ public:
     virtual bool isintegral() const = 0;
     virtual bool isfloating() const = 0;
     virtual bool empty() const = 0;
+    virtual bool isAll() const {
+        return false;
+    }
 };
 
 template<class T> class SetValue: public SetValueBase {
@@ -184,6 +187,31 @@ public:
     }
     bool isfloating() const override {
         return std::is_floating_point<T>::value;
+    }
+};
+
+class SetValueAll: public SetValueBase {
+public:
+    SetValueAll(const Model& model, int original_id = NO_ORIGINAL_ID):
+        SetValueBase(model, original_id) {
+    }
+    bool empty() const override {
+        return false;
+    }
+    bool isintegral() const override {
+        return true;
+    }
+    bool isfloating() const override {
+        return false;
+    }
+    bool isAll() const override {
+        return true;
+    }
+    void scale(double) override {
+        // nothing to do
+    }
+    bool iszero() const override {
+        return false;
     }
 };
 

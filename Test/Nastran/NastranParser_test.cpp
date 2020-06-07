@@ -239,7 +239,7 @@ BOOST_AUTO_TEST_CASE(nastran_set_examples) {
 			ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
         model->finish();
         BOOST_CHECK_EQUAL(model->analyses.size(), 1);
-        BOOST_CHECK_EQUAL(model->values.size(), 0); // Cannot currently handle any case in this test, might change in the future
+        BOOST_CHECK_EQUAL(model->values.size(), 1);
         const auto& setValue = static_pointer_cast<SetValue<int>> (model->find(Reference<NamedValue>{Value::Type::SET, 1}));
         BOOST_CHECK(setValue == nullptr);
 	}

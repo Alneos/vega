@@ -303,13 +303,14 @@ public:
     virtual bool hasNodeGroups() const noexcept override final;
 };
 
-class VonMisesStressOutput: public Output, public CellContainer {
+class VonMisesStressOutput: public Output { //, public CellContainer {
 private:
     std::shared_ptr<Reference<NamedValue>> collection;
+    std::shared_ptr<CellContainer> cellContainer;
 public:
     VonMisesStressOutput(Model& model, const std::shared_ptr<ObjectiveSet>, std::shared_ptr<Reference<NamedValue>> collection = nullptr, int original_id = NO_ORIGINAL_ID);
-    virtual std::vector<std::shared_ptr<CellGroup>> getCellGroups() const override final;
-    virtual bool hasCellGroups() const noexcept override final;
+    std::shared_ptr<CellContainer> getCellContainer() const;// override final;
+    void addCellGroup(const std::string& groupName);
 };
 
 class FrequencyOutput: public Output {

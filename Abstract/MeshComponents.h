@@ -487,8 +487,22 @@ public:
      */
     bool hasCellsExcludingGroups() const noexcept;
     bool hasCellsIncludingGroups() const noexcept;
+    virtual bool hasAllCells() const noexcept {
+        return false;
+    }
     virtual std::vector<std::shared_ptr<CellGroup>> getCellGroups() const;
     std::string to_str() const;
+};
+
+class CellContainerAll final: public CellContainer {
+private:
+    friend Mesh;
+    CellContainerAll(const Mesh& mesh) noexcept : CellContainer(mesh) {
+}
+public:
+    bool hasAllCells() const noexcept override {
+        return true;
+    }
 };
 
 class CellGroup final: public Group, private CellContainer {

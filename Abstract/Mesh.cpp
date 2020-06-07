@@ -171,7 +171,7 @@ Mesh::Mesh(LogLevel logLevel, const string& modelName) :
 		logLevel(logLevel), name(modelName), //
 		nodes(NodeStorage(*this, this->logLevel)),
 				cells(CellStorage(*this, this->logLevel)),
-				coordinateSystemStorage(*this, this->logLevel) {
+				coordinateSystemStorage(*this, this->logLevel), allCells{*this} {
 
 	finished = false;
 	for (const auto& cellTypePair : CellType::typeByCode) {

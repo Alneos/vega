@@ -2130,14 +2130,14 @@ void Model::createSetGroups() {
             continue;
         displacementOutput->getNodeGroups(); // LD TODO Lazy creation :..(
     }
-    for (auto output : objectives.filter(Objective::Type::VONMISES_STRESS_OUTPUT)) {
+    /*for (auto output : objectives.filter(Objective::Type::VONMISES_STRESS_OUTPUT)) {
         if (not output->isOriginal())
             continue;
         const auto& vonMisesOutput = static_pointer_cast<const VonMisesStressOutput>(output);
         if (not vonMisesOutput->hasCellGroups())
             continue;
         vonMisesOutput->getCellGroups(); // LD TODO Lazy creation :..(
-    }
+    }*/
 }
 
 void Model::splitElementsByCellOffsets() {

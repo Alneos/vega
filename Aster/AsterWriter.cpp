@@ -215,9 +215,9 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
     if (not displacementOutputs.empty()) {
         comm_file_ofs << retbName << "=POST_RELEVE_T(ACTION=(" << endl;
         for (auto output : displacementOutputs) {
-            const auto& displacementOutput = static_pointer_cast<const NodalDisplacementOutput>(output);
+            const auto& displacementOutput = static_pointer_cast<NodalDisplacementOutput>(output);
             comm_file_ofs << "                _F(INTITULE='DISP0R" << output->bestId() << "',FORMAT_C='REEL',OPERATION='EXTRACTION',RESULTAT=RESU" << analysis->getId() << "," << endl;
-            writeNodeContainer(*displacementOutput);
+            writeNodeContainer(static_pointer_cast<NodeContainer>(displacementOutput));
             if (not frequencyOutputs.empty()) {
                 comm_file_ofs << "LIST_FREQ=";
                 for (auto output2 : frequencyOutputs) {
@@ -230,7 +230,7 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
             }
             comm_file_ofs << "NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
             comm_file_ofs << "                _F(INTITULE='DISP1I" << output->bestId() << "',FORMAT_C='IMAG',OPERATION='EXTRACTION',RESULTAT=RESU" << analysis->getId() << "," << endl;
-            writeNodeContainer(*displacementOutput);
+            writeNodeContainer(static_pointer_cast<NodeContainer>(displacementOutput));
             comm_file_ofs << "NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
             output->markAsWritten();
         }
@@ -304,7 +304,7 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
             if (cellElementSet == nullptr) {
                 handleWritingError("ElementSet which is not a CellContainer should be written using cellPositions, to be implemented here");
             }
-            writeCellContainer(*cellElementSet);
+            writeCellContainer(static_pointer_cast<CellContainer>(cellElementSet));
             comm_file_ofs << ")" << endl;
         }
 
@@ -463,7 +463,7 @@ void AsterWriter::writeAnalyses() {
                 comm_file_ofs << "           RESULTAT=" << resuName << "," << endl;
                 comm_file_ofs << "           MODELE=MODMECA," << endl;
                 comm_file_ofs << "           CRITERES =('SIEQ_ELNO','SIEQ_NOEU')," << endl;
-                writeCellContainer(*vonMisesOutput);
+                writeCellContainer(vonMisesOutput->getCellContainer());
                 comm_file_ofs << ")" << endl;
                 output->markAsWritten();
             }
@@ -614,14 +614,14 @@ void AsterWriter::writeLireMaillage() {
 		for (const auto& constraint : zones) {
 		    const auto& zone = static_pointer_cast<const ZoneContact>(constraint);
 		    const auto& master = static_pointer_cast<const ContactBody>(asterModel->model.find(zone->master));
-		    const auto& masterSurface = static_pointer_cast<const BoundarySurface>(asterModel->model.find(master->boundary));
+		    const auto& masterSurface = static_pointer_cast<BoundarySurface>(asterModel->model.find(master->boundary));
 		    const auto& slave = static_pointer_cast<const ContactBody>(asterModel->model.find(zone->slave));
-		    const auto& slaveSurface = static_pointer_cast<const BoundarySurface>(asterModel->model.find(slave->boundary));
+		    const auto& slaveSurface = static_pointer_cast<BoundarySurface>(asterModel->model.find(slave->boundary));
             comm_file_ofs << "                             _F(";
-            writeCellContainer(*masterSurface);
+            writeCellContainer(static_pointer_cast<CellContainer>(masterSurface));
             comm_file_ofs << ")," << endl;
             comm_file_ofs << "                             _F(";
-            writeCellContainer(*slaveSurface);
+            writeCellContainer(static_pointer_cast<CellContainer>(slaveSurface));
             comm_file_ofs << ")," << endl;
 
 		}
@@ -664,7 +664,7 @@ void AsterWriter::writeAffeModele() {
             if (cellElementSet == nullptr) {
                 handleWritingError("ElementSet which is not a CellContainer should be written using cellPositions, to be implemented here");
             }
-            writeCellContainer(*cellElementSet);
+            writeCellContainer(static_pointer_cast<CellContainer>(cellElementSet));
 			comm_file_ofs << endl;
 			comm_file_ofs << "                             PHENOMENE='" << asterModel->phenomene << "',"
 					<< endl;
@@ -714,7 +714,9 @@ string AsterWriter::writeValue(const shared_ptr<NamedValue>& value) {
 	}
     case Value::Type::SET: {
 		const auto& setValue = static_pointer_cast<SetValueBase>(value);
-		if (not setValue->isintegral() and not setValue->isfloating()) {
+		if (setValue->isAll()) {
+            // nothing to do here
+		} else if (not setValue->isintegral() and not setValue->isfloating()) {
             handleWritingError("non-integral set not yet implemented");
 		} else if (not setValue->empty()) {
             ostringstream list_concept_ss;
@@ -898,7 +900,7 @@ void AsterWriter::writeMaterials() {
             const auto& cells = material->getAssignment();
             if (cells != nullptr and not cells->empty()) {
                 comm_file_ofs << "                          _F(MATER=M" << material->getId() << ",";
-                writeCellContainer(*cells);
+                writeCellContainer(cells);
                 comm_file_ofs << ")," << endl;
             } else {
                 comm_file_ofs << "# WARN Skipping material id " << material->getId() << " because no assignment"
@@ -908,7 +910,7 @@ void AsterWriter::writeMaterials() {
         for (const auto& c : composites) {
             const auto& composite = static_pointer_cast<Composite>(c);
             comm_file_ofs << "                          _F(MATER=MC" << composite ->getId() << ",";
-            writeCellContainer(*composite);
+            writeCellContainer(static_pointer_cast<CellContainer>(composite));
             comm_file_ofs << ")," << endl;
         }
         comm_file_ofs << "                          )," << endl;
@@ -951,7 +953,7 @@ void AsterWriter::writeAffeCaraElem() {
                         syme = "SYME='NON',";
                     }
                     comm_file_ofs << "                             _F(";
-                    writeCellContainer(*discret_0d);
+                    writeCellContainer(static_pointer_cast<CellContainer>(discret_0d));
                     comm_file_ofs << endl;
                     comm_file_ofs << "                                " << syme << "CARA='K_T" << rotationMarker << "_" << diagonalMarker << "N', VALE=(";
                     for (double rigi : discret_0d->asStiffnessVector())
@@ -960,7 +962,7 @@ void AsterWriter::writeAffeCaraElem() {
 
 					if (discret_0d->hasDamping()) {
                         comm_file_ofs << "                             _F(";
-                        writeCellContainer(*discret_0d);
+                        writeCellContainer(static_pointer_cast<CellContainer>(discret_0d));
                         comm_file_ofs << endl;
                         comm_file_ofs << "                                " << syme << "CARA='A_T" << rotationMarker << "_" << diagonalMarker << "N', VALE=(";
                         for (double amor : discret_0d->asDampingVector())
@@ -970,7 +972,7 @@ void AsterWriter::writeAffeCaraElem() {
 
 					if (discret_0d->hasMass()) {
                         comm_file_ofs << "                             _F(";
-                        writeCellContainer(*discret_0d);
+                        writeCellContainer(static_pointer_cast<CellContainer>(discret_0d));
                         comm_file_ofs << endl;
                         comm_file_ofs << "                                " << syme << "CARA='M_T" << rotationMarker << "_" << diagonalMarker << "N', VALE=(";
                         for (double mass : discret_0d->asMassVector())
@@ -1001,7 +1003,7 @@ void AsterWriter::writeAffeCaraElem() {
                         syme = "SYME='NON',";
                     }
                     comm_file_ofs << "                             _F(";
-                    writeCellContainer(*discret_1d);
+                    writeCellContainer(static_pointer_cast<CellContainer>(discret_1d));
                     comm_file_ofs << endl;
                     comm_file_ofs << "                                " << syme << "CARA='K_T" << rotationMarker << "_" << diagonalMarker << "L', VALE=(";
                     for (double rigi : discret_1d->asStiffnessVector())
@@ -1010,7 +1012,7 @@ void AsterWriter::writeAffeCaraElem() {
 
                     if (discret_1d->hasDamping()) {
                         comm_file_ofs << "                             _F(";
-                        writeCellContainer(*discret_1d);
+                        writeCellContainer(static_pointer_cast<CellContainer>(discret_1d));
                         comm_file_ofs << endl;
                         comm_file_ofs << "                                " << syme << "CARA='A_T" << rotationMarker << "_" << diagonalMarker << "L', VALE=(";
                         for (double amor : discret_1d->asDampingVector())
@@ -1020,7 +1022,7 @@ void AsterWriter::writeAffeCaraElem() {
 
                     if (discret_1d->hasMass()) {
                         comm_file_ofs << "                             _F(";
-                        writeCellContainer(*discret_1d);
+                        writeCellContainer(static_pointer_cast<CellContainer>(discret_1d));
                         comm_file_ofs << endl;
                         comm_file_ofs << "                                " << syme << "CARA='M_T" << rotationMarker << "_" << diagonalMarker << "L', VALE=(";
 
@@ -1040,7 +1042,7 @@ void AsterWriter::writeAffeCaraElem() {
 				if (discret->effective()) {
                     const auto& nodalMass = static_pointer_cast<NodalMass>(discret);
 					comm_file_ofs << "                             _F(";
-					writeCellContainer(*nodalMass);
+					writeCellContainer(static_pointer_cast<CellContainer>(nodalMass));
 					comm_file_ofs << endl;
 					if (nodalMass->hasRotations()) {
                         comm_file_ofs << "                                CARA='M_TR_D_N',VALE=("
@@ -1069,11 +1071,11 @@ void AsterWriter::writeAffeCaraElem() {
 		if (not poutres.empty() or (asterModel->model.needsLargeDisplacements() and not barres.empty())) {
 			comm_file_ofs << "                    POUTRE=(" << endl;
 			for (const auto& poutre : poutres) {
-				writeAffeCaraElemPoutre( *poutre);
+				writeAffeCaraElemPoutre(poutre);
 			}
 			if (asterModel->model.needsLargeDisplacements()) {
                 for (const auto& barre : barres) {
-                    writeAffeCaraElemPoutre( *barre);
+                    writeAffeCaraElemPoutre(barre);
                 }
 			}
 			comm_file_ofs << "                            )," << endl;
@@ -1082,7 +1084,7 @@ void AsterWriter::writeAffeCaraElem() {
 		if (not barres.empty() and not asterModel->model.needsLargeDisplacements()) {
 			comm_file_ofs << "                    BARRE=(" << endl;
 			for (const auto& barre : barres) {
-				writeAffeCaraElemPoutre( *barre);
+				writeAffeCaraElemPoutre(barre);
 			}
 			comm_file_ofs << "                            )," << endl;
 		}
@@ -1096,7 +1098,7 @@ void AsterWriter::writeAffeCaraElem() {
                 const auto& shell = static_pointer_cast<Shell>(elementSet);
 				if (shell->effective()) {
 					comm_file_ofs << "                           _F(";
-					writeCellContainer(*shell);
+					writeCellContainer(static_pointer_cast<CellContainer>(shell));
 					comm_file_ofs << endl;
 					comm_file_ofs << "                              EPAIS="
 							<< shell->thickness << "," << endl;
@@ -1117,7 +1119,7 @@ void AsterWriter::writeAffeCaraElem() {
                 const auto& composite = static_pointer_cast<Composite>(c);
 				if (!composite->empty()) {
 					comm_file_ofs << "                           _F(";
-					writeCellContainer(*composite);
+					writeCellContainer(static_pointer_cast<CellContainer>(composite));
 					comm_file_ofs << endl;
 					comm_file_ofs << "                              EPAIS="
 							<< composite->getTotalThickness() << "," << endl;
@@ -1150,7 +1152,7 @@ void AsterWriter::writeAffeCaraElem() {
                 const auto& solid = static_pointer_cast<Continuum>(elementSet);
 				if (solid->effective()) {
 					comm_file_ofs << "                           _F(";
-					writeCellContainer(*solid);
+					writeCellContainer(static_pointer_cast<CellContainer>(solid));
 					comm_file_ofs << endl;
 					comm_file_ofs << "                               ANGL_REP=(0.,0.,0.,),)," << endl;
 				} else {
@@ -1163,7 +1165,7 @@ void AsterWriter::writeAffeCaraElem() {
 			    const auto& skin = static_pointer_cast<Skin>(elementSet);
 				if (!skin->empty()) {
 					comm_file_ofs << "                           _F(";
-					writeCellContainer(*skin);
+					writeCellContainer(static_pointer_cast<CellContainer>(skin));
 					comm_file_ofs << endl;
 					comm_file_ofs << "                               ANGL_REP=(0.,0.,0.,),)," << endl;
 				} else {
@@ -1204,66 +1206,67 @@ void AsterWriter::writeAffeCaraElem() {
 	}
 	comm_file_ofs << "                    );" << endl << endl;
 }
-void AsterWriter::writeAffeCaraElemPoutre( Beam& beam) {
+void AsterWriter::writeAffeCaraElemPoutre(const shared_ptr<Beam>& beam) {
 	comm_file_ofs << "                            _F(";
-	writeCellContainer(beam);
+	writeCellContainer(static_pointer_cast<CellContainer>(beam));
 	comm_file_ofs << endl;
-	switch (beam.type) {
+	switch (beam->type) {
 	case ElementSet::Type::RECTANGULAR_SECTION_BEAM: {
-		auto& rectBeam =
-				static_cast<RectangularSectionBeam&>(beam);
+		const auto& rectBeam =
+				static_pointer_cast<RectangularSectionBeam>(beam);
 		comm_file_ofs << "                               VARI_SECT='CONSTANT'," << endl;
 		comm_file_ofs << "                               SECTION='RECTANGLE'," << endl;
 		comm_file_ofs << "                               CARA=('HY','HZ',)," << endl;
-		comm_file_ofs << "                               VALE=(" << rectBeam.height << "," << rectBeam.width
+		comm_file_ofs << "                               VALE=(" << rectBeam->height << "," << rectBeam->width
 				<< ")," << endl;
-        rectBeam.markAsWritten();
+        rectBeam->markAsWritten();
 		break;
 	}
 	case ElementSet::Type::CIRCULAR_SECTION_BEAM: {
-		auto& circBeam = static_cast<CircularSectionBeam&>(beam);
+		const auto& circBeam = static_pointer_cast<CircularSectionBeam>(beam);
 		comm_file_ofs << "                               SECTION='CERCLE'," << endl;
 		comm_file_ofs << "                               CARA=('R',)," << endl;
-		comm_file_ofs << "                               VALE=(" << circBeam.radius << ")," << endl;
-		circBeam.markAsWritten();
+		comm_file_ofs << "                               VALE=(" << circBeam->radius << ")," << endl;
+		circBeam->markAsWritten();
 		break;
 	}
 	case ElementSet::Type::TUBE_SECTION_BEAM: {
-        auto& tubeBeam = static_cast<TubeSectionBeam&>(beam);
+        const auto& tubeBeam = static_pointer_cast<TubeSectionBeam>(beam);
 		comm_file_ofs << "                               SECTION='CERCLE'," << endl;
 		comm_file_ofs << "                               CARA=('R','EP')," << endl;
-		comm_file_ofs << "                               VALE=(" << tubeBeam.radius << ","<< tubeBeam.thickness << ")," << endl;
-		tubeBeam.markAsWritten();
+		comm_file_ofs << "                               VALE=(" << tubeBeam->radius << ","<< tubeBeam->thickness << ")," << endl;
+		tubeBeam->markAsWritten();
 		break;
 	}
 	default:
 		comm_file_ofs << "                               SECTION='GENERALE'," << endl;
-		if (not beam.isTruss() or asterModel->model.needsLargeDisplacements()) {
+		if (not beam->isTruss() or asterModel->model.needsLargeDisplacements()) {
 		    comm_file_ofs << "                               CARA=('A','IY','IZ','JX','AY','AZ',)," << endl;
 		} else {
 		    comm_file_ofs << "                               CARA=('A',)," << endl;
 		}
 
 		comm_file_ofs << "                               VALE=(";
-        if (not beam.isTruss() or asterModel->model.needsLargeDisplacements()) {
-            comm_file_ofs << max(std::numeric_limits<double>::epsilon(), beam.getAreaCrossSection()) << ","
-				<< max(std::numeric_limits<double>::epsilon(), beam.getMomentOfInertiaY()) << "," << max(std::numeric_limits<double>::epsilon(), beam.getMomentOfInertiaZ())
-				<< "," << max(std::numeric_limits<double>::epsilon(), beam.getTorsionalConstant()) << ",";
-            if (! is_zero(beam.getShearAreaFactorY()))
-                comm_file_ofs << beam.getShearAreaFactorY();
+        if (not beam->isTruss() or asterModel->model.needsLargeDisplacements()) {
+            comm_file_ofs << max(std::numeric_limits<double>::epsilon(), beam->getAreaCrossSection()) << ","
+				<< max(std::numeric_limits<double>::epsilon(), beam->getMomentOfInertiaY())
+				<< "," << max(std::numeric_limits<double>::epsilon(), beam->getMomentOfInertiaZ())
+				<< "," << max(std::numeric_limits<double>::epsilon(), beam->getTorsionalConstant()) << ",";
+            if (! is_zero(beam->getShearAreaFactorY()))
+                comm_file_ofs << beam->getShearAreaFactorY();
             else
                 comm_file_ofs << 0.0;
             comm_file_ofs << ",";
-            if (! is_zero(beam.getShearAreaFactorZ()))
-                comm_file_ofs << beam.getShearAreaFactorZ();
+            if (! is_zero(beam->getShearAreaFactorZ()))
+                comm_file_ofs << beam->getShearAreaFactorZ();
             else
                 comm_file_ofs << 0.0;
 		} else {
-            comm_file_ofs << max(std::numeric_limits<double>::epsilon(), beam.getAreaCrossSection()) << ",";
+            comm_file_ofs << max(std::numeric_limits<double>::epsilon(), beam->getAreaCrossSection()) << ",";
 		}
 
 		comm_file_ofs << ")," << endl;
-		beam.markAsWritten();
+		beam->markAsWritten();
 	}
 	comm_file_ofs << "                               )," << endl;
 }
@@ -1527,7 +1530,7 @@ void AsterWriter::writeSPC( const ConstraintSet& cset) {
 	if (not spcs.empty()) {
 		comm_file_ofs << "                   DDL_IMPO=(" << endl;
 		for (const auto& constraint : spcs) {
-			const auto& spc = dynamic_pointer_cast<SinglePointConstraint>(constraint);
+			const auto& spc = static_pointer_cast<SinglePointConstraint>(constraint);
 			//FIXME: filter spcs with type function.
 			if (spc->hasReferences()) {
 				cerr << "SPC references not supported " << *spc << endl;
@@ -1536,7 +1539,7 @@ void AsterWriter::writeSPC( const ConstraintSet& cset) {
 						<< endl;
 			} else {
 				comm_file_ofs << "                             _F(";
-				writeNodeContainer(*spc);
+				writeNodeContainer(static_pointer_cast<NodeContainer>(spc));
 				//parameter 0 ignored
 				for (const DOF dof : spc->getDOFSForNode(0)) {
 					if (dof == DOF::DX)
@@ -1569,7 +1572,7 @@ void AsterWriter::writeSPCD( const LoadSet& lset) {
 		for (const auto& loading : spcds) {
 			const auto& spcd = static_pointer_cast<ImposedDisplacement>(loading);
             comm_file_ofs << "                             _F(";
-            writeNodeContainer(*spcd);
+            writeNodeContainer(static_pointer_cast<NodeContainer>(spcd));
             for (const DOF dof : spcd->getDOFSForNode(0)) { // parameter 0 ignored
                 if (dof == DOF::DX)
                     comm_file_ofs << "DX";
@@ -1871,7 +1874,7 @@ void AsterWriter::writePression(const LoadSet& loadSet) {
 			const auto& normalPressionFace = static_pointer_cast<NormalPressionFace>(pressionFace);
 			//  U4.44.01 $6.6 PRES_REP "La pression est positive suivant le sens contraire de la normale à l’élément."
 			comm_file_ofs << "                         _F(PRES= " << -normalPressionFace->intensity << ",";
-			writeCellContainer(*normalPressionFace);
+			writeCellContainer(static_pointer_cast<CellContainer>(normalPressionFace));
 			comm_file_ofs << "                         )," << endl;
 			pressionFace->markAsWritten();
 		}
@@ -1889,7 +1892,7 @@ void AsterWriter::writeForceCoque(const LoadSet& loadSet) {
 			// "La pression appliquée est positive suivant le sens contraire de la normale à l’élément
 			// (définie par l’orientation de chaque maille)
 			comm_file_ofs << "                        _F(PRES=" << -normalPressionFace->intensity << ",";
-			writeCellContainer(*normalPressionFace);
+			writeCellContainer(static_pointer_cast<CellContainer>(normalPressionFace));
 			comm_file_ofs << "                         )," << endl;
 			normalPressionFace->markAsWritten();
 		}
@@ -1937,7 +1940,7 @@ void AsterWriter::writeForceLine(const LoadSet& loadset) {
                 handleWritingError("DOF not yet handled");
             }
             comm_file_ofs << "=" << asternameByValue[forceLine->force] << ",";
-            writeCellContainer(*forceLine);
+            writeCellContainer(static_pointer_cast<CellContainer>(forceLine));
             comm_file_ofs << "          )," << endl;
             forceLine->markAsWritten();
 		}
@@ -1959,7 +1962,7 @@ void AsterWriter::writeForceSurface(const LoadSet& loadSet) {
 			VectorialValue force = forceSurface->getForce();
 			VectorialValue moment = forceSurface->getMoment();
 			comm_file_ofs << "                       _F(";
-			writeCellContainer(*forceSurface);
+			writeCellContainer(static_pointer_cast<CellContainer>(forceSurface));
 			if (!is_equal(force.x(), 0))
 				comm_file_ofs << "FX=" << force.x() << ",";
 			if (!is_equal(force.y(),0))
@@ -1979,11 +1982,11 @@ void AsterWriter::writeForceSurface(const LoadSet& loadSet) {
 	}
 }
 
-void AsterWriter::writeNodeContainer(const NodeContainer& nodeContainer) {
+void AsterWriter::writeNodeContainer(const shared_ptr<NodeContainer>& nodeContainer) {
     int cnode = 0;
-    if (nodeContainer.hasNodeGroups()) {
+    if (nodeContainer->hasNodeGroups()) {
       comm_file_ofs << "GROUP_NO=(";
-      for (const auto& nodeGroup : nodeContainer.getNodeGroups()) {
+      for (const auto& nodeGroup : nodeContainer->getNodeGroups()) {
         if (nodeGroup->empty())
             continue;
         cnode++;
@@ -1994,9 +1997,9 @@ void AsterWriter::writeNodeContainer(const NodeContainer& nodeContainer) {
       }
       comm_file_ofs << "),";
     }
-    if (nodeContainer.hasNodesExcludingGroups()) {
+    if (nodeContainer->hasNodesExcludingGroups()) {
       comm_file_ofs << "NOEUD=(";
-      for (int nodePosition : nodeContainer.getNodePositionsExcludingGroups()) {
+      for (int nodePosition : nodeContainer->getNodePositionsExcludingGroups()) {
         cnode++;
         comm_file_ofs << "'" << Node::MedName(nodePosition) << "',";
         if (cnode % 6 == 0) {
@@ -2005,43 +2008,47 @@ void AsterWriter::writeNodeContainer(const NodeContainer& nodeContainer) {
       }
       comm_file_ofs << "),";
     }
-    writeCellContainer(nodeContainer);
+    writeCellContainer(static_pointer_cast<CellContainer>(nodeContainer));
 }
 
-void AsterWriter::writeCellContainer(const CellContainer& cellContainer) {
+void AsterWriter::writeCellContainer(const shared_ptr<CellContainer>& cellContainer) {
     int celem = 0;
-    if (cellContainer.hasCellGroups()) {
-      comm_file_ofs << "GROUP_MA=(";
-      for (const auto& cellGroup : cellContainer.getCellGroups()) {
-        if (cellGroup->empty())
-            continue; // empty cell groups are useless and will probably never be created in mesh, causing errors.
-        celem++;
-        comm_file_ofs << "'" << cellGroup->getName() << "',";
-        if (celem % 6 == 0) {
-          comm_file_ofs << endl << "                             ";
+    if (cellContainer->hasAllCells()) {
+        comm_file_ofs << "TOUT='OUI',";
+    } else {
+        if (cellContainer->hasCellGroups()) {
+          comm_file_ofs << "GROUP_MA=(";
+          for (const auto& cellGroup : cellContainer->getCellGroups()) {
+            if (cellGroup->empty())
+                continue; // empty cell groups are useless and will probably never be created in mesh, causing errors.
+            celem++;
+            comm_file_ofs << "'" << cellGroup->getName() << "',";
+            if (celem % 6 == 0) {
+              comm_file_ofs << endl << "                             ";
+            }
+          }
+          comm_file_ofs << "),";
         }
-      }
-      comm_file_ofs << "),";
-    }
-    if (cellContainer.hasCellsExcludingGroups()) {
-        // Creating single cell groups to avoid using MAILLE
-      comm_file_ofs << "MAILLE=(";
-      //comm_file_ofs << "GROUP_MA=(";
-      for (int cellPosition : cellContainer.getCellPositionsExcludingGroups()) {
-        celem++;
-//        const string& groupName = Cell::MedName(cellPosition);
-//        auto entry = singleGroupCellPositions.find(cellPosition);
-//        if (entry == end(singleGroupCellPositions)) {
-//            auto singleCellGroup = asterModel->model.mesh.createCellGroup(groupName);
-//            singleCellGroup->addCellPosition(cellPosition);
-//            singleGroupCellPositions.insert(cellPosition);
-//        }
-        comm_file_ofs << "'" << Cell::MedName(cellPosition) << "',";
-        if (celem % 6 == 0) {
-          comm_file_ofs << endl << "                             ";
+        if (cellContainer->hasCellsExcludingGroups()) {
+            // Creating single cell groups to avoid using MAILLE
+          comm_file_ofs << "MAILLE=(";
+          //comm_file_ofs << "GROUP_MA=(";
+          for (int cellPosition : cellContainer->getCellPositionsExcludingGroups()) {
+            celem++;
+    //        const string& groupName = Cell::MedName(cellPosition);
+    //        auto entry = singleGroupCellPositions.find(cellPosition);
+    //        if (entry == end(singleGroupCellPositions)) {
+    //            auto singleCellGroup = asterModel->model.mesh.createCellGroup(groupName);
+    //            singleCellGroup->addCellPosition(cellPosition);
+    //            singleGroupCellPositions.insert(cellPosition);
+    //        }
+            comm_file_ofs << "'" << Cell::MedName(cellPosition) << "',";
+            if (celem % 6 == 0) {
+              comm_file_ofs << endl << "                             ";
+            }
+          }
+          comm_file_ofs << "),";
         }
-      }
-      comm_file_ofs << "),";
     }
 }
 
@@ -2364,7 +2371,7 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
                     if (cellElementSet == nullptr) {
                         handleWritingError("Writing of ElementSet which is not a CellContainer is not yet implemented");
                     }
-                    writeCellContainer(*cellElementSet);
+                    writeCellContainer(static_pointer_cast<CellContainer>(cellElementSet));
                     const auto& hyelas = material->findNature(
                             Nature::NatureType::NATURE_HYPERELASTIC);
                     const auto& binature = material->findNature(

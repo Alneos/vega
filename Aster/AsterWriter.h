@@ -45,7 +45,7 @@ class AsterWriter final : public Writer {
 	void writeValues();
 	void writeMaterials();
 	void writeAffeCaraElem();
-	void writeAffeCaraElemPoutre(Beam&);
+	void writeAffeCaraElemPoutre(const std::shared_ptr<Beam>&);
 	void writeAffeCharMeca();
 	void writeDefiContact();
 	void writeSPC(const ConstraintSet&);
@@ -61,8 +61,8 @@ class AsterWriter final : public Writer {
 	void writeForceCoque(const LoadSet&);
 	void writeForceLine(const LoadSet&);
 	void writeForceSurface(const LoadSet&);
-	void writeNodeContainer(const NodeContainer& nodeContainer);
-	void writeCellContainer(const CellContainer& cellContainer);
+	void writeNodeContainer(const std::shared_ptr<NodeContainer>& nodeContainer);
+	void writeCellContainer(const std::shared_ptr<CellContainer>& cellContainer);
 	double writeAnalysis(const std::shared_ptr<Analysis>& analysis, double debut);
 	void writeAssemblage(const std::shared_ptr<Analysis>& analysis, bool canBeReused);
 	void writeCalcFreq(const std::shared_ptr<LinearModal>& analysis);

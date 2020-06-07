@@ -307,33 +307,44 @@ bool NodalDisplacementOutput::hasNodeGroups() const noexcept {
 }
 
 VonMisesStressOutput::VonMisesStressOutput(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, shared_ptr<Reference<NamedValue>> collection, int original_id) :
-        Output(model, objectiveset, Objective::Type::VONMISES_STRESS_OUTPUT, original_id), CellContainer(model.mesh), collection(collection) {
+        Output(model, objectiveset, Objective::Type::VONMISES_STRESS_OUTPUT, original_id), /*CellContainer(model.mesh),*/ collection(collection) {
+    cellContainer = make_shared<CellContainer>(model.mesh);
 }
 
-vector<shared_ptr<CellGroup>> VonMisesStressOutput::getCellGroups() const {
-    auto cellGroups = CellContainer::getCellGroups();
+shared_ptr<CellContainer> VonMisesStressOutput::getCellContainer() const {
+    shared_ptr<CellContainer> lazyCellContainer = nullptr;
     if (collection != nullptr) {
-        const auto& setValue = dynamic_pointer_cast<SetValue<int>>(model.find(*collection));
-        if (setValue == nullptr)
+        // LD TODO : move this part at finish() ?
+        const auto& setValueBase = dynamic_pointer_cast<SetValueBase>(model.find(*collection));
+        if (setValueBase == nullptr)
             throw logic_error("Cannot find set of von mises output cells");
-        const string& groupName = "SET_" + to_string(setValue->getOriginalId());
-        shared_ptr<CellGroup> cellGroup = nullptr;
-        if (not model.mesh.hasGroup(groupName)) {
-            cellGroup = model.mesh.createCellGroup(groupName, CellGroup::NO_ORIGINAL_ID, "SET");
-            for (const int cellId : setValue->getSet()) {
-                cellGroup->addCellId(cellId);
-            }
-            setValue->markAsWritten();
+        if (setValueBase->isAll()) {
+            lazyCellContainer = make_shared<CellContainer>(model.mesh.allCells);
         } else {
-            cellGroup = model.mesh.createCellGroup(groupName, CellGroup::NO_ORIGINAL_ID, "SET");
+            lazyCellContainer = make_shared<CellContainer>(model.mesh);
+            lazyCellContainer->add(*cellContainer);
+            const auto& setValue = dynamic_pointer_cast<SetValue<int>>(setValueBase);
+            if (setValue == nullptr)
+                throw logic_error("Cannot find set of von mises output cells (ints)");
+            const string& groupName = "SET_" + to_string(setValue->getOriginalId());
+            shared_ptr<CellGroup> cellGroup;
+            if (not model.mesh.hasGroup(groupName)) {
+                cellGroup = model.mesh.createCellGroup(groupName, CellGroup::NO_ORIGINAL_ID, "SET");
+                for (const int cellId : setValue->getSet()) {
+                    cellGroup->addCellId(cellId);
+                }
+                setValue->markAsWritten();
+            }
+            lazyCellContainer->add(*cellGroup);
         }
-        cellGroups.push_back(cellGroup);
+    } else {
+        lazyCellContainer = cellContainer;
     }
-    return cellGroups;
+    return lazyCellContainer;
 }
 
-bool VonMisesStressOutput::hasCellGroups() const noexcept {
-    return collection != nullptr or CellContainer::hasCellGroups();
+void VonMisesStressOutput::addCellGroup(const string& groupName) {
+    cellContainer->addCellGroup(groupName);
 }
 
 FrequencyOutput::FrequencyOutput(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, shared_ptr<Reference<NamedValue>> collection, int original_id) :

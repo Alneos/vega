@@ -300,7 +300,9 @@ void NastranParser::addSet(NastranTokenizer& tok, Model& model) {
     //const list<string>& types = {"TRIA3","TRIA6","TRIAR","QUAD4","QUAD8","QUADR","HEXA","PENTA","TETRA"};
 
     if (boost::starts_with(parts[1],"ALL")) {
-        handleParsingWarning("ALL in SET not yet implemented, ignoring", tok, model);
+        const auto& setValueAll = make_shared<SetValueAll>(model, setid);
+        setValueAll->setInputContext(tok.getInputContext());
+        model.add(setValueAll);
     } else if (boost::starts_with(parts[1],"INCLUDE")
                or boost::starts_with(parts[1],"EXCLUDE")
                or boost::starts_with(parts[1],"ELEMENTS")
@@ -923,6 +925,9 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
             if (id != 0) {
                 Reference<ObjectiveSet> objectiveSetReference(ObjectiveSet::Type::STRESS, id);
                 analysis->add(objectiveSetReference);
+                if (model.configuration.logLevel >= LogLevel::TRACE) {
+                    cout << "Adding output reference" << objectiveSetReference << " to analysis:" << *analysis << endl;
+                }
                 auto objectiveSet = model.find(objectiveSetReference);
                 if (model.find(objectiveSetReference) == nullptr) {
                     objectiveSet = make_shared<ObjectiveSet>(model, ObjectiveSet::Type::STRESS, id);
@@ -934,6 +939,9 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
                     if (option == "VMIS") {
                         stressOutput = make_shared<VonMisesStressOutput>(model, objectiveSet, make_shared<Reference<NamedValue>>(Value::Type::SET, id));
                     }
+                }
+                if (model.configuration.logLevel >= LogLevel::TRACE) {
+                    cout << "Adding output " << *stressOutput << endl;
                 }
                 stressOutput->setInputContext(tok.getInputContext());
                 model.add(stressOutput);

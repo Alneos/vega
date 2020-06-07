@@ -507,7 +507,7 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
             const auto& surfaceSlide =
                     static_pointer_cast<SurfaceSlide>(constraint);
 
-            const auto& slaveBoundary = dynamic_pointer_cast<BoundaryElementFace>(model.find(surfaceSlide->slave));
+            const auto& slaveBoundary = static_pointer_cast<BoundaryElementFace>(model.find(surfaceSlide->slave));
             Line slaveSurf("SURF");
             slaveSurf.add(slaveBoundary->getId());
             slaveSurf.add("ELFACE");
@@ -521,7 +521,7 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
             out << slaveSurf;
             slaveBoundary->markAsWritten();
 
-            const auto& masterBoundary = dynamic_pointer_cast<BoundaryElementFace>(model.find(surfaceSlide->master));
+            const auto& masterBoundary = static_pointer_cast<BoundaryElementFace>(model.find(surfaceSlide->master));
             Line masterSurf("SURF");
             masterSurf.add(masterBoundary->getId());
             masterSurf.add("ELFACE");
@@ -670,7 +670,7 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
         }
 
         for (const auto& loading : loadingSet->getLoadingsByType(Loading::Type::FORCE_LINE)) {
-            const auto& forceLine = dynamic_pointer_cast<ForceLine>(loading);
+            const auto& forceLine = static_pointer_cast<ForceLine>(loading);
             string forceType;
             switch(forceLine->dof.code) {
             case DOF::Code::DX_CODE:
@@ -694,7 +694,7 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
             default:
                 handleWritingError("DOF not yet handled");
             }
-            const auto& functionTable = dynamic_pointer_cast<FunctionTable>(forceLine->force);
+            const auto& functionTable = static_pointer_cast<FunctionTable>(forceLine->force);
             auto it = functionTable->getBeginValuesXY();
             double x1 = it->first;
             double p1 = it->second;
@@ -724,7 +724,7 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
             if (dynamic_pointer_cast<StaticPressure>(loading) != nullptr)
                 continue;
 
-            const auto& nodalForce = dynamic_pointer_cast<NodalForce>(loading);
+            const auto& nodalForce = static_pointer_cast<NodalForce>(loading);
             for (int nodePosition : nodalForce->getNodePositionsIncludingGroups()) {
                 Line force("FORCE");
                 force.add(loadingSet->bestId());
@@ -796,7 +796,7 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 		beam->markAsWritten();
 	}
 	for (const auto& elementSet : model.elementSets.filter(ElementSet::Type::SHELL)) {
-		const auto& shell = dynamic_pointer_cast<Shell>(elementSet);
+		const auto& shell = static_pointer_cast<Shell>(elementSet);
 		Line pshell("PSHELL");
 		pshell.add(shell->bestId());
 		pshell.add(shell->mainMaterial()->bestId());
@@ -821,7 +821,7 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 		continuum->markAsWritten();
 	}
     for (const auto& elementSet: model.elementSets.filter(ElementSet::Type::DISCRETE_0D)) {
-        const auto& discretePoint = dynamic_pointer_cast<const DiscretePoint>(elementSet);
+        const auto& discretePoint = static_pointer_cast<const DiscretePoint>(elementSet);
         if (discretePoint->hasStiffness() or discretePoint->hasDamping()) {
             handleWritingError("discrete not completely written");
         }
@@ -842,7 +842,7 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
         }
 	}
     for (const auto& elementSet: model.elementSets.filter(ElementSet::Type::NODAL_MASS)) {
-        const auto& mass = dynamic_pointer_cast<const NodalMass>(elementSet);
+        const auto& mass = static_pointer_cast<const NodalMass>(elementSet);
         for (int nodePosition: mass->nodePositions()) {
             Line conm2("CONM2");
             conm2.add(mass->bestId());
@@ -854,7 +854,7 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
         }
 	}
     for (const auto& elementSet: model.elementSets.filter(ElementSet::Type::STRUCTURAL_SEGMENT)) {
-        const auto& segment = dynamic_pointer_cast<const StructuralSegment>(elementSet);
+        const auto& segment = static_pointer_cast<const StructuralSegment>(elementSet);
         if (segment->hasMass()) {
             handleWritingError("discrete not completely written");
         }
@@ -911,7 +911,7 @@ string NastranWriter::writeModel(Model& model,
         for (const auto& objective : analysis->getObjectives()) {
             if (objective->type != Objective::Type::NODAL_DISPLACEMENT_OUTPUT)
                 continue;
-            const auto& displacementOutput = dynamic_pointer_cast<const NodalDisplacementOutput>(objective);
+            const auto& displacementOutput = static_pointer_cast<const NodalDisplacementOutput>(objective);
             displacementOutput->getNodeGroups(); // TODO LD Hack to lazy create the group :..(
         }
 	}
@@ -951,16 +951,20 @@ string NastranWriter::writeModel(Model& model,
     }
     const auto& vonMisesOutputs = model.objectives.filter(Objective::Type::VONMISES_STRESS_OUTPUT);
     for (const auto& objective : vonMisesOutputs) {
-        const auto& vonMisesOutput = dynamic_pointer_cast<const VonMisesStressOutput>(objective);
+        const auto& vonMisesOutput = static_pointer_cast<const VonMisesStressOutput>(objective);
         out << "  STRESS(VONMISES) = ";
-        bool firstGroup = true;
-        for (const auto& cellGroup : vonMisesOutput->getCellGroups()) {
-            if (firstGroup) {
-                firstGroup = false;
-            } else {
-                out << ",";
+        if (vonMisesOutput->getCellContainer()->hasAllCells()) {
+            out << "ALL";
+        } else {
+            bool firstGroup = true;
+            for (const auto& cellGroup : vonMisesOutput->getCellContainer()->getCellGroups()) {
+                if (firstGroup) {
+                    firstGroup = false;
+                } else {
+                    out << ",";
+                }
+                out << cellGroup->getId();
             }
-            out << cellGroup->getId();
         }
         out << endl;
         objective->markAsWritten();
@@ -979,7 +983,7 @@ string NastranWriter::writeModel(Model& model,
             switch (objective->type) {
             case Objective::Type::NODAL_DISPLACEMENT_OUTPUT: {
                 out << "  DISP = ";
-                const auto& displacementOutput = dynamic_pointer_cast<const NodalDisplacementOutput>(objective);
+                const auto& displacementOutput = static_pointer_cast<const NodalDisplacementOutput>(objective);
                 bool firstGroup = true;
                 for (const auto& nodeGroup : displacementOutput->getNodeGroups()) {
                     if (firstGroup) {

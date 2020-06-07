@@ -2404,7 +2404,6 @@
 		<Unit filename="testdata/nastran/irt/ssnv129a/readme.txt" />
 		<Unit filename="testdata/nastran/irt/ssnv129a/ssnv129a.bdf" />
 		<Unit filename="testdata/nastran/irt/ssnv129a/ssnv129a.f06" />
-		<Unit filename="testdata/nastran/irt/t01331/__t01331a__.f06" />
 		<Unit filename="testdata/nastran/irt/t01331/readme.txt" />
 		<Unit filename="testdata/nastran/irt/t01331/t01331a.inp" />
 		<Unit filename="testdata/nastran/irt/test4a_rbe2/test4a_rbe2.f06" />

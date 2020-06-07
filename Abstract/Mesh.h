@@ -167,7 +167,7 @@ public:
 	NodeStorage nodes;
 	CellStorage cells;
 	CoordinateSystemStorage coordinateSystemStorage; /**< Container for Coordinate System numerotations. **/
-
+    const CellContainerAll allCells;
     std::shared_ptr<NodeGroup> createNodeGroup(const std::string& name, const int groupId = Group::NO_ORIGINAL_ID, const std::string& comment="");
 	/**
 	 * Find the NodeGroup named "name".
