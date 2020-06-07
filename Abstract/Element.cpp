@@ -81,6 +81,18 @@ void CellElementSet::assignMaterial(const shared_ptr<Material>& material) {
     materialRefs.insert(material->getReference());
 }
 
+void CellElementSet::unassignMaterial(const Reference<Material>& materialRef) {
+    if (model.configuration.logLevel >= LogLevel::TRACE)
+        cout << "Material:" << materialRef << " unassigned from elementSet:" << *this << endl;
+    materialRefs.erase(materialRef);
+}
+
+void CellElementSet::unassignMaterial(const shared_ptr<Material>& material) {
+    if (model.configuration.logLevel >= LogLevel::TRACE)
+        cout << "Material:" << *material << " unassigned from elementSet:" << *this << endl;
+    materialRefs.erase(material->getReference());
+}
+
 set<shared_ptr<Material>> ElementSet::getMaterials() const {
     set<shared_ptr<Material>> materials;
     for (const auto& materialRef : materialRefs) {
@@ -360,22 +372,38 @@ DOFS Shell::getDOFSForNode(const int nodePosition) const {
 	return DOFS::ALL_DOFS;
 }
 
-CompositeLayer::CompositeLayer(int materialId, double thickness, double orientation) :
-		_materialId(materialId), _thickness(thickness), _orientation(orientation) {
+CompositeLayer::CompositeLayer(const Model& model, const Reference<Material>& materialRef, double thickness, double orientation) :
+		model(model), _materialRef(materialRef), _thickness(thickness), _orientation(orientation) {
 }
+
+std::shared_ptr<Material> CompositeLayer::getMaterial() const {
+    const auto& material = model.materials.find(_materialRef);
+    if (material == nullptr) {
+        throw logic_error("Cannot find material: " + to_str(_materialRef) + " for composite layer.");
+    }
+    return material;
+}
+
+void CompositeLayer::setMaterial(const Reference<Material>& materialRef) {
+    _materialRef = materialRef;
+}
+
 
 Composite::Composite(Model& model, int original_id) :
 		CellElementSet(model, ElementSet::Type::COMPOSITE, model.modelType, original_id) {
 }
 
-void Composite::addLayer(int materialId, double thickness, double orientation) {
-    layers.push_back(CompositeLayer(materialId, thickness, orientation));
+void Composite::addLayer(const Reference<Material>& materialRef, double thickness, double orientation) {
+    if (model.configuration.logLevel >= LogLevel::TRACE)
+        cout << "Material:" << materialRef << " assigned to a layer in composite:" << *this << endl;
+
+    layers.push_back(CompositeLayer(model, materialRef, thickness, orientation).getPtr());
 }
 
 double Composite::getTotalThickness() {
     double total = 0.0;
     for(const auto& layer : layers) {
-        total += layer.getThickness();
+        total += layer->getThickness();
     }
     return total;
 }

@@ -189,6 +189,12 @@ public:
      */
     bool splitElementsByCellOffsets = false;
 
+    /**
+     * Workaround for Aster problem : MODELISA8_71
+     * matériau non valide
+     */
+    bool alwaysUseOrthotropicMaterialsInComposites = false;
+
 };
 // TODO: THe Configuration Parameters should be much more generalized. With this,
 // it's a pain in the keyboard to add options!!

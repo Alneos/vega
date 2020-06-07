@@ -127,6 +127,7 @@ BOOST_AUTO_TEST_CASE( test_Elements ) {
 	rectangularSectionBeam->add(*cn1);
 	rectangularSectionBeam->assignMaterial(Reference<Material>(Material::Type::MATERIAL,1));
 	model.add(rectangularSectionBeam);
+    BOOST_CHECK_EQUAL(rectangularSectionBeam->getMaterials().size(), 1);
 	model.getOrCreateMaterial(1)->addNature(make_shared<ElasticNature>(model, 1, 0));
 	cout << "NODES:" << model.mesh.countNodes() << endl;
 	model.finish();
@@ -140,11 +141,11 @@ BOOST_AUTO_TEST_CASE( test_Elements ) {
 	const vector<shared_ptr<ElementSet>> discrets = model.elementSets.filter(ElementSet::Type::DISCRETE_0D);
 	BOOST_CHECK_EQUAL(0, discrets.size());
 	BOOST_CHECK(not model.elementSets.contains(ElementSet::Type::DISCRETE_0D));
-	const auto& assignment = model.getOrCreateMaterial(1)->getAssignment();
+	//const auto& assignment = model.getOrCreateMaterial(1)->getAssignment();
 
-	BOOST_CHECK(assignment->hasCellGroups());
-    BOOST_CHECK(not assignment->getCellGroups().empty());
-	BOOST_CHECK_EQUAL(assignment->getCellGroups()[0]->getName(), "GM1");
+	//BOOST_CHECK(assignment->hasCellGroups());
+    //BOOST_CHECK(not assignment->getCellGroups().empty());
+	//BOOST_CHECK_EQUAL(assignment->getCellGroups()[0]->getName(), "GM1");
 
 }
 

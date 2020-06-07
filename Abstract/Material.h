@@ -55,7 +55,6 @@ public:
     static const std::string name;
     friend std::string to_str(const Nature& nature);
     friend std::ostream &operator<<(std::ostream&, const Nature&);
-    static const double UNAVAILABLE_DOUBLE;
 
     const NatureType type;
     Nature(const Model&, NatureType);
@@ -71,10 +70,10 @@ class ElasticNature: public Nature {
     double tref;
     double ge;
 public:
-    ElasticNature(const Model&, const double e = UNAVAILABLE_DOUBLE, const double nu =
-            UNAVAILABLE_DOUBLE, const double g = UNAVAILABLE_DOUBLE, const double rho =
-            UNAVAILABLE_DOUBLE, const double alpha = UNAVAILABLE_DOUBLE, const double tref =
-            UNAVAILABLE_DOUBLE, const double ge = UNAVAILABLE_DOUBLE);
+    ElasticNature(const Model&, const double e = Globals::UNAVAILABLE_DOUBLE, const double nu =
+            Globals::UNAVAILABLE_DOUBLE, const double g = Globals::UNAVAILABLE_DOUBLE, const double rho =
+            Globals::UNAVAILABLE_DOUBLE, const double alpha = Globals::UNAVAILABLE_DOUBLE, const double tref =
+            Globals::UNAVAILABLE_DOUBLE, const double ge = Globals::UNAVAILABLE_DOUBLE);
     double getE() const;
     double getNu() const;
     double getG() const;
@@ -109,8 +108,8 @@ class OrthotropicNature: public Nature {
 public:
     OrthotropicNature(const Model&, const double e_longitudinal, const double e_transverse,
             const double nu_longitudinal_transverse, const double g_longitudinal_transverse,
-            const double g_transverse_normal = UNAVAILABLE_DOUBLE, const double g_longitudinal_normal = UNAVAILABLE_DOUBLE,
-            const double rho = UNAVAILABLE_DOUBLE);
+            const double g_transverse_normal = Globals::UNAVAILABLE_DOUBLE, const double g_longitudinal_normal = Globals::UNAVAILABLE_DOUBLE,
+            const double rho = Globals::UNAVAILABLE_DOUBLE);
     double getE_longitudinal() const;
     double getE_transverse() const;
     double getNu_longitudinal_transverse() const;
@@ -129,8 +128,8 @@ public:
 
 class BilinearElasticNature: public Nature {
 public:
-    double elastic_limit = UNAVAILABLE_DOUBLE;
-    double secondary_slope = UNAVAILABLE_DOUBLE;
+    double elastic_limit = Globals::UNAVAILABLE_DOUBLE;
+    double secondary_slope = Globals::UNAVAILABLE_DOUBLE;
     bool yield_function_von_mises = true;
     bool hardening_rule_isotropic = true;
     BilinearElasticNature(const Model&, const double elastic_limit, const double secondary_slope);
@@ -163,8 +162,8 @@ private:
     double rigidity;
     double lagrangian;
 public:
-    RigidNature(const Model&, const double rigidity = UNAVAILABLE_DOUBLE,
-            const double lagrangian = UNAVAILABLE_DOUBLE);
+    RigidNature(const Model&, const double rigidity = Globals::UNAVAILABLE_DOUBLE,
+            const double lagrangian = Globals::UNAVAILABLE_DOUBLE);
     double getRigidity() const;
     void setRigidity(double rigidity);
     double getLagrangian() const;
@@ -193,6 +192,7 @@ public:
     Material(Model& model, int material_id = NO_ORIGINAL_ID);
     void addNature(const std::shared_ptr<Nature>& nature);
     std::shared_ptr<Nature> findNature(Nature::NatureType) const;
+    bool hasNature(const Nature::NatureType natureType) const;
     virtual bool validate() const override;
     /**
      * Get all the cells assigned to a specific material. This inspects

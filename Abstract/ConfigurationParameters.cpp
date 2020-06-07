@@ -61,6 +61,7 @@ ModelConfiguration ConfigurationParameters::getModelConfiguration() const {
         configuration.alwaysUseGroupsForCells = true;
         configuration.convertCompletelyRigidsIntoMPCs = true;
         configuration.splitElementsByCellOffsets = true;
+        configuration.alwaysUseOrthotropicMaterialsInComposites = true;
     } else if (this->outputSolver.getSolverName() == SolverName::SYSTUS) {
         configuration.createSkin = true;
         configuration.emulateAdditionalMass = true;

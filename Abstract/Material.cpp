@@ -62,12 +62,14 @@ shared_ptr<Nature> Material::findNature(const Nature::NatureType natureType) con
 	return nature;
 }
 
+bool Material::hasNature(const Nature::NatureType natureType) const {
+    return nature_by_type.find(natureType) != nature_by_type.end();
+}
+
 Nature::Nature(const Model& model, Nature::NatureType type) :
 		model(model), type(type) {
 
 }
-
-const double Nature::UNAVAILABLE_DOUBLE = -DBL_MAX;
 
 const string Nature::name = "NATURE";
 const map<Nature::NatureType, string> Nature::stringByType = {
@@ -102,33 +104,33 @@ ElasticNature::ElasticNature(const Model& model, const double e, const double nu
 		const double rho, const double alpha, const double tref, const double ge) :
 		Nature(model, Nature::NatureType::NATURE_ELASTIC), e(e), nu(nu), g(g), rho(rho), alpha(alpha), tref(tref), ge(ge) {
 
-	if (is_equal(e, UNAVAILABLE_DOUBLE) && is_equal(g, UNAVAILABLE_DOUBLE))
+	if (is_equal(e, Globals::UNAVAILABLE_DOUBLE) && is_equal(g, Globals::UNAVAILABLE_DOUBLE))
 		throw invalid_argument("E and G may not both be blank.");
 }
 
 double ElasticNature::getE() const {
-	if (is_equal(nu, UNAVAILABLE_DOUBLE) && is_equal(e, UNAVAILABLE_DOUBLE))
+	if (is_equal(nu, Globals::UNAVAILABLE_DOUBLE) && is_equal(e, Globals::UNAVAILABLE_DOUBLE))
 		// If NU and E are both blank, then both are set to 0.0.
 		return 0.0;
 	else
-		return (is_equal(e, UNAVAILABLE_DOUBLE)) ? (2 * (1 + nu) * g) : e;
+		return (is_equal(e, Globals::UNAVAILABLE_DOUBLE)) ? (2 * (1 + nu) * g) : e;
 }
 
 double ElasticNature::getNu() const {
-	if ((is_equal(nu, UNAVAILABLE_DOUBLE) && is_equal(g, UNAVAILABLE_DOUBLE))
-			|| (is_equal(nu, UNAVAILABLE_DOUBLE) && is_equal(e, UNAVAILABLE_DOUBLE)))
+	if ((is_equal(nu, Globals::UNAVAILABLE_DOUBLE) && is_equal(g, Globals::UNAVAILABLE_DOUBLE))
+			|| (is_equal(nu, Globals::UNAVAILABLE_DOUBLE) && is_equal(e, Globals::UNAVAILABLE_DOUBLE)))
 		// If NU and E, or NU and G, are both blank, then both are set to 0.0.
 		return 0.0;
 	else
-		return is_equal(nu, UNAVAILABLE_DOUBLE) ? (e / (2 * g) - 1) : nu;
+		return is_equal(nu, Globals::UNAVAILABLE_DOUBLE) ? (e / (2 * g) - 1) : nu;
 }
 
 double ElasticNature::getG() const {
-	if (is_equal(nu, UNAVAILABLE_DOUBLE) && is_equal(g, UNAVAILABLE_DOUBLE))
+	if (is_equal(nu, Globals::UNAVAILABLE_DOUBLE) && is_equal(g, Globals::UNAVAILABLE_DOUBLE))
 		// If NU and G are both blank, then both are set to 0.0.
 		return 0.0;
 	else
-		return (is_equal(g, UNAVAILABLE_DOUBLE)) ? (e / (2 * (1 + nu))) : g;
+		return (is_equal(g, Globals::UNAVAILABLE_DOUBLE)) ? (e / (2 * (1 + nu))) : g;
 }
 
 double ElasticNature::getRho() const {
@@ -137,19 +139,19 @@ double ElasticNature::getRho() const {
 		mass_multiplier = stod(model.getParameter(ModelParameter::MASS_OVER_FORCE_MULTIPLIER));
 		assert(!is_zero(mass_multiplier));
 	}
-	return (is_equal(rho, UNAVAILABLE_DOUBLE)) ? 0 : rho * mass_multiplier;
+	return (is_equal(rho, Globals::UNAVAILABLE_DOUBLE)) ? 0 : rho * mass_multiplier;
 }
 
 double ElasticNature::getRhoAsForceDensity() const {
-	return (is_equal(rho, UNAVAILABLE_DOUBLE)) ? 0 : rho;
+	return (is_equal(rho, Globals::UNAVAILABLE_DOUBLE)) ? 0 : rho;
 }
 
 double ElasticNature::getAlpha() const {
-	return (is_equal(alpha, UNAVAILABLE_DOUBLE)) ? 0 : alpha;
+	return (is_equal(alpha, Globals::UNAVAILABLE_DOUBLE)) ? 0 : alpha;
 }
 
 double ElasticNature::getTref() const {
-	return (is_equal(tref, UNAVAILABLE_DOUBLE)) ? 0 : tref;
+	return (is_equal(tref, Globals::UNAVAILABLE_DOUBLE)) ? 0 : tref;
 }
 
 double ElasticNature::getGE() const {
@@ -195,11 +197,11 @@ double OrthotropicNature::getRho() const {
 		mass_multiplier = stod(model.getParameter(ModelParameter::MASS_OVER_FORCE_MULTIPLIER));
 		assert(!is_zero(mass_multiplier));
 	}
-	return (is_equal(rho, UNAVAILABLE_DOUBLE)) ? 0 : rho * mass_multiplier;
+	return (is_equal(rho, Globals::UNAVAILABLE_DOUBLE)) ? 0 : rho * mass_multiplier;
 }
 
 double OrthotropicNature::getRhoAsForceDensity() const {
-	return (is_equal(rho, UNAVAILABLE_DOUBLE)) ? 0 : rho;
+	return (is_equal(rho, Globals::UNAVAILABLE_DOUBLE)) ? 0 : rho;
 }
 
 BilinearElasticNature::BilinearElasticNature(const Model& model, const double elastic_limit,
@@ -233,7 +235,7 @@ shared_ptr<FunctionTable> NonLinearElasticNature::getStressStrainFunction() cons
 
 RigidNature::RigidNature(const Model& model, const double rigidity, const double lagrangian) :
         Nature(model, Nature::NatureType::NATURE_RIGID), rigidity(rigidity), lagrangian(lagrangian) {
-    if (is_equal(rigidity, Globals::UNAVAILABLE_DOUBLE) && is_equal(lagrangian, Globals::UNAVAILABLE_DOUBLE))
+    if (is_equal(rigidity, Globals::Globals::UNAVAILABLE_DOUBLE) && is_equal(lagrangian, Globals::Globals::UNAVAILABLE_DOUBLE))
         throw invalid_argument("Rigidity and Lagrangian may not both be blank.");
 }
 
@@ -253,7 +255,7 @@ void RigidNature::setLagrangian(double lagrangian) {
     this->lagrangian = lagrangian;
 }
 
-shared_ptr<CellContainer> Material::getAssignment() const {
+/*shared_ptr<CellContainer> Material::getAssignment() const {
     const auto& assignment = this->model.getMaterialAssignment(this->getReference());
     if (model.configuration.logLevel >= LogLevel::TRACE) {
         if (assignment != nullptr) {
@@ -263,21 +265,21 @@ shared_ptr<CellContainer> Material::getAssignment() const {
         }
     }
 	return this->model.getMaterialAssignment(this->getReference());
-}
+}*/
 
-bool Material::hasAssignment() const {
+/*bool Material::hasAssignment() const {
     if (model.configuration.logLevel >= LogLevel::TRACE) {
         cout << "Found assignment to material:" << *this << " = " << this->model.hasMaterialAssignment(this->getReference()) << endl;
     }
 	return this->model.hasMaterialAssignment(this->getReference());
-}
+}*/
 
-void Material::assignMaterial(const CellContainer& cellsToAssign) {
+/*void Material::assignMaterial(const CellContainer& cellsToAssign) {
     if (model.configuration.logLevel >= LogLevel::TRACE) {
         cout << "Assigning:" << cellsToAssign.to_str() << " to material:" << *this << endl;
     }
 	this->model.assignMaterial(this->getReference(), cellsToAssign);
-}
+}*/
 
 }
 /* namespace vega */

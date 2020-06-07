@@ -9,6 +9,7 @@
  */
 
 #include "Model.h"
+#include "Utility.h"
 
 #include <iostream>
 #include <string>
@@ -22,6 +23,8 @@ namespace vega {
 constexpr int LoadSet::COMMON_SET_ID; // required for C++11
 constexpr int ConstraintSet::COMMON_SET_ID; // required for C++11
 constexpr int ObjectiveSet::COMMON_SET_ID; // required for C++11
+constexpr int Globals::UNAVAILABLE_INT; // For C++11
+constexpr double Globals::UNAVAILABLE_DOUBLE; // required for C++11
 
 Model::Model(string name, string inputSolverVersion, SolverName inputSolver,
         const ModelConfiguration configuration, const vega::ConfigurationParameters::TranslationMode translationMode) :
@@ -738,16 +741,16 @@ shared_ptr<Material> Model::getOrCreateMaterial(int material_id, bool createIfNo
     return result;
 }
 
-shared_ptr<CellContainer> Model::getMaterialAssignment(const Reference<Material>& materialRef) const {
+/*shared_ptr<CellContainer> Model::getMaterialAssignment(const Reference<Material>& materialRef) const {
     const auto& it = material_assignment_by_materialRef.find(materialRef);
     if (it != material_assignment_by_materialRef.end()) {
         return it->second;
     } else {
         return nullptr;
     }
-}
+}*/
 
-bool Model::hasMaterialAssignment(const Reference<Material>& materialRef) const {
+/*bool Model::hasMaterialAssignment(const Reference<Material>& materialRef) const {
 
     const auto& it = material_assignment_by_materialRef.find(materialRef);
     if (it != material_assignment_by_materialRef.end()) {
@@ -755,9 +758,9 @@ bool Model::hasMaterialAssignment(const Reference<Material>& materialRef) const 
     } else {
         return false;
     }
-}
+}*/
 
-void Model::assignMaterial(const Reference<Material>& materialRef, const CellContainer& materialAssign) {
+/*void Model::assignMaterial(const Reference<Material>& materialRef, const CellContainer& materialAssign) {
     if (configuration.logLevel >= LogLevel::TRACE)
         cout << "Previous material assignments:" << material_assignment_by_materialRef << endl;
     const auto& it = material_assignment_by_materialRef.find(materialRef);
@@ -772,7 +775,7 @@ void Model::assignMaterial(const Reference<Material>& materialRef, const CellCon
     }
     if (configuration.logLevel >= LogLevel::TRACE)
         cout << "Current material assignments:" << material_assignment_by_materialRef << endl;
-}
+}*/
 
 shared_ptr<Material> Model::getVirtualMaterial() {
     if (not virtualMaterial) {
@@ -999,7 +1002,7 @@ void Model::generateBeamsToDisplayMasterSlaveConstraint() {
     }
 }
 
-void Model::generateMaterialAssignments() {
+/*void Model::generateMaterialAssignments() {
     if (configuration.partitionModel) {
         if (not this->material_assignment_by_materialRef.empty()) {
             cerr << "generateMaterialAssignments with PartitionModel is not "
@@ -1021,12 +1024,13 @@ void Model::generateMaterialAssignments() {
                 if (element->effective()) {
                     if (configuration.logLevel >= LogLevel::TRACE)
                         cout << "Generating assignment for material:" << *material << " to elementSet:" << *cellElementSet << endl;
-                    assignMaterial(material->getReference(), *cellElementSet);
+                    //assignMaterial(material->getReference(), *cellElementSet);
+                    cellElementSet->assignMaterial(material);
                 }
             }
         }
     }
-}
+}*/
 
 void Model::removeIneffectives() {
     // remove ineffective loadings from the model
@@ -1127,6 +1131,14 @@ void Model::replaceCombinedLoadSets() {
             }
             double coefficient = kv.second;
             for (const auto& loading : otherloadSet->getLoadings()) {
+                if (is_equal(coefficient, 1.0)) {
+                    if (configuration.logLevel >= LogLevel::DEBUG) {
+                        cout << "Ignoring scaling coefficient:" << coefficient << " for loading" << *loading << endl;
+                    }
+                    this->addLoadingIntoLoadSet(*loading, *loadSet);
+                    continue;
+                }
+
                 const shared_ptr<Loading>& newLoading = loading->clone();
                 newLoading->resetId();
                 newLoading->scale(coefficient);
@@ -1892,7 +1904,7 @@ void Model::makeCellsFromRBE(){
                     // Creating an elementset, a CellGroup and a dummy rigid material
                     nbParts++;
                     const auto& materialRBE3 = make_shared<Material>(*this);
-                    materialRBE3->addNature(make_shared<RigidNature>(*this, Nature::UNAVAILABLE_DOUBLE, sCoef));
+                    materialRBE3->addNature(make_shared<RigidNature>(*this, Globals::UNAVAILABLE_DOUBLE, sCoef));
                     this->add(materialRBE3);
 
                     const auto& group = mesh.createCellGroup("RBE3_"+to_string(nbParts)+"_"+to_string(constraint->bestId()), CellGroup::NO_ORIGINAL_ID, "RBE3");
@@ -2197,6 +2209,39 @@ void Model::splitElementsByCellOffsets() {
     }
 }
 
+void Model::replaceIsotropicMaterialsInComposites() {
+    map<Reference<Material>, shared_ptr<Material>> replacedMaterials;
+    for (const auto& elementSet : elementSets.filter(ElementSet::Type::COMPOSITE)) {
+        const auto& composite = static_pointer_cast<Composite>(elementSet);
+        for (auto& layer : composite->getLayers()) {
+            const auto& material = layer->getMaterial();
+            const auto& replacedMatIt = replacedMaterials.find(material->getReference());
+            if (replacedMatIt != replacedMaterials.end()) {
+                layer->setMaterial(replacedMatIt->second);
+                composite->assignMaterial(replacedMatIt->second);
+                continue;
+            }
+            if (not material->hasNature(Nature::NatureType::NATURE_ORTHOTROPIC)) {
+                const auto& elasticNature = static_pointer_cast<ElasticNature>(material->findNature(Nature::NatureType::NATURE_ELASTIC));
+                const auto& orthoMaterial = make_shared<Material>(*this);
+                orthoMaterial->addNature(make_shared<OrthotropicNature>(*this,
+                                                                   elasticNature->getE(),
+                                                                   elasticNature->getE(),
+                                                                   elasticNature->getNu(),
+                                                                   elasticNature->getG(),
+                                                                   elasticNature->getG(),
+                                                                   elasticNature->getG(),
+                                                                   elasticNature->getRho()));
+                this->add(orthoMaterial);
+                replacedMaterials[orthoMaterial->getReference()] = orthoMaterial;
+                layer->setMaterial(orthoMaterial);
+                composite->unassignMaterial(material);
+                composite->assignMaterial(orthoMaterial);
+            }
+        }
+    }
+}
+
 void Model::finish() {
     if (finished) {
         return;
@@ -2319,8 +2364,12 @@ void Model::finish() {
         //splitElementsByCellOffsets();
     }
 
+    if (this->configuration.alwaysUseOrthotropicMaterialsInComposites){
+        replaceIsotropicMaterialsInComposites();
+    }
+
     assignElementsToCells();
-    generateMaterialAssignments();
+    //generateMaterialAssignments();
 
     if (this->configuration.changeParametricForceLineToAbsolute) {
         changeParametricForceLineToAbsolute();

@@ -131,6 +131,8 @@ public:
     }
     void assignMaterial(const Reference<Material>& materialRef);
     void assignMaterial(const std::shared_ptr<Material>& material);
+    void unassignMaterial(const Reference<Material>& materialRef);
+    void unassignMaterial(const std::shared_ptr<Material>& material);
 };
 
 class RecoveryPoint {
@@ -313,14 +315,17 @@ public:
 class Composite;
 class CompositeLayer {
     friend Composite;
-    int _materialId;
+    const Model& model;
+    Reference<Material> _materialRef;
     double _thickness;
     double _orientation;
-	CompositeLayer(int materialId, double thickness, double orientation = 0);
-public:
-	inline int getMaterialId() const noexcept {
-	    return _materialId;
+	CompositeLayer(const Model&, const Reference<Material>&, double thickness, double orientation = 0);
+	std::shared_ptr<CompositeLayer> getPtr() const {
+	    return std::make_shared<CompositeLayer>(*this);
 	}
+public:
+    std::shared_ptr<Material> getMaterial() const;
+    void setMaterial(const Reference<Material>&);
 	inline double getThickness() const noexcept {
 	    return _thickness;
 	}
@@ -330,17 +335,17 @@ public:
 };
 
 class Composite: public CellElementSet {
-    std::vector<CompositeLayer> layers;
+    std::vector<std::shared_ptr<CompositeLayer>> layers;
 public:
     double offset = 0.0;
 	Composite(Model&, int original_id = NO_ORIGINAL_ID);
 	std::unique_ptr<ElementSet> clone() const override {
 		return std::make_unique<Composite>(*this);
 	}
-	void addLayer(int materialId, double thickness, double orientation = 0);
+	void addLayer(const Reference<Material>& materialRef, double thickness, double orientation = 0);
 	double getTotalThickness();
 	bool containsNonzeroOffsetCell() const;
-	inline const std::vector<CompositeLayer>& getLayers() const {
+	inline std::vector<std::shared_ptr<CompositeLayer>> getLayers() const {
 	    return layers;
 	}
 	bool isComposite() const override final {

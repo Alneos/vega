@@ -33,9 +33,6 @@
 
 namespace vega {
 
-constexpr int Globals::UNAVAILABLE_INT; // For C++11
-constexpr double Globals::UNAVAILABLE_DOUBLE; // For C++11
-
 namespace nastran {
 
 using namespace std;
@@ -2507,14 +2504,14 @@ void NastranParser::parsePCOMP(NastranTokenizer& tok, Model& model) {
     double t1 = tok.nextDouble();
     double theta1 = tok.nextDouble(true, 0.0);
     tok.skip(1); // SOUT1
-    composite->addLayer(mid1, t1, theta1);
+    composite->addLayer(Reference<Material>(Material::Type::MATERIAL,mid1), t1, theta1);
     while(not tok.isNextEmpty(4) and not tok.isEmptyUntilNextKeyword()) {
         int midn = tok.nextInt(true, mid1);
         composite->assignMaterial(Reference<Material>(Material::Type::MATERIAL,midn));
         double tn = tok.nextDouble(true, t1);
         double thetan = tok.nextDouble(true, theta1);
         tok.skip(1); // SOUTn
-        composite->addLayer(midn, tn, thetan);
+        composite->addLayer(Reference<Material>(Material::Type::MATERIAL,midn), tn, thetan);
     }
     if (is_equal(z0, Globals::UNAVAILABLE_DOUBLE)) {
         composite->offset = composite->getTotalThickness() / 2.0; // default -1/2 element thickness

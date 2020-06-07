@@ -864,6 +864,7 @@ void AsterWriter::writeMaterials() {
                 comm_file_ofs << "                         G_LN=" << orthoNature->getG_longitudinal_normal() << "," << endl;
             }
 			comm_file_ofs << "                         NU_LT=" << orthoNature->getNu_longitudinal_transverse() << "," << endl;
+			comm_file_ofs << "                         RHO=" << orthoNature->getRho() << "," << endl;
 			comm_file_ofs << "                         )," << endl;
 		}
 		const auto& binature = material->findNature(Nature::NatureType::NATURE_BILINEAR_ELASTIC);
@@ -886,7 +887,7 @@ void AsterWriter::writeMaterials() {
         comm_file_ofs << "MC" << composite->getId() << "=DEFI_COMPOSITE(" << endl;
         comm_file_ofs << "                 COUCHE=(" << endl;
         for (const auto& layer : composite->getLayers()) {
-            comm_file_ofs << "                     _F(EPAIS=" << layer.getThickness() << ",  MATER=M" << layer.getMaterialId() << ", ORIENTATION=" << layer.getOrientation() << ")," << endl;
+            comm_file_ofs << "                     _F(EPAIS=" << layer->getThickness() << ",  MATER=M" << layer->getMaterial()->getId() << ", ORIENTATION=" << layer->getOrientation() << ")," << endl;
         }
         comm_file_ofs << "                         )," << endl;
         comm_file_ofs << "                 );" << endl << endl;
@@ -896,15 +897,17 @@ void AsterWriter::writeMaterials() {
     if (not asterModel->model.materials.empty()) {
         comm_file_ofs << "CHMAT=AFFE_MATERIAU(MAILLAGE=" << mail_name << "," << endl;
         comm_file_ofs << "                    AFFE=(" << endl;
-        for (const auto& material : asterModel->model.materials) {
-            const auto& cells = material->getAssignment();
-            if (cells != nullptr and not cells->empty()) {
+        //for (const auto& material : asterModel->model.materials) {
+        //    const auto& cells = material->getAssignment();
+        for (const auto& elementSet : asterModel->model.elementSets) {
+            const auto& cells = dynamic_pointer_cast<CellElementSet>(elementSet);
+            if (cells == nullptr or cells->empty()) {
+                continue;
+            }
+            for (const auto& material : cells->getMaterials()) {
                 comm_file_ofs << "                          _F(MATER=M" << material->getId() << ",";
                 writeCellContainer(cells);
                 comm_file_ofs << ")," << endl;
-            } else {
-                comm_file_ofs << "# WARN Skipping material id " << material->getId() << " because no assignment"
-                    << endl;
             }
         }
         for (const auto& c : composites) {
