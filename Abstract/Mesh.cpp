@@ -195,7 +195,7 @@ pos_t Mesh::addNode(const int id, const double x, const double y, const double z
 	auto positionIterator = nodes.nodepositionById.find(assignId);
 	if (positionIterator == nodes.nodepositionById.end()) {
 		nodePosition = static_cast<pos_t>(nodes.nodeDatas.size());
-		NodeData nodeData(id, DOFS::NO_DOFS, x, y, z, cpPos, cdPos, nodePart);
+		NodeData nodeData(assignId, DOFS::NO_DOFS, x, y, z, cpPos, cdPos, nodePart);
 		nodes.nodeDatas.push_back(nodeData);
 		nodes.nodepositionById[id] = nodePosition;
 	} else {
