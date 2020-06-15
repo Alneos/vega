@@ -84,12 +84,14 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "CTRIA3", &NastranParser::parseCTRIA3 },
                 { "CTRIA6", &NastranParser::parseCTRIA6 },
                 { "CTRIAR", &NastranParser::parseCTRIAR },
+                { "CVISC", &NastranParser::parseCVISC },
                 { "DAREA", &NastranParser::parseDAREA },
                 { "DELAY", &NastranParser::parseDELAY },
                 { "DLOAD", &NastranParser::parseDLOAD },
                 { "DMIG", &NastranParser::parseDMIG },
                 { "DPHASE", &NastranParser::parseDPHASE },
                 { "EIGB", &NastranParser::parseEIGB },
+                { "EIGC", &NastranParser::parseEIGC },
                 { "EIGR", &NastranParser::parseEIGR },
                 { "EIGRL", &NastranParser::parseEIGRL },
                 { "FORCE", &NastranParser::parseFORCE },
@@ -131,6 +133,7 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "PSHELL", &NastranParser::parsePSHELL },
                 { "PIHEX", &NastranParser::parsePSHELL },
                 { "PSOLID", &NastranParser::parsePSOLID },
+                { "PVISC", &NastranParser::parsePVISC },
                 { "RBAR", &NastranParser::parseRBAR },
                 { "RBAR1", &NastranParser::parseRBAR1 },
                 { "RBE2", &NastranParser::parseRBE2 },
@@ -1173,8 +1176,8 @@ void NastranParser::parseCONM1(NastranTokenizer& tok, Model& model) {
         handleParsingWarning("coordinate system CID=-1 not supported and dismissed.", tok, model);
         ci = 0;
     }
-    int cpos = ci == 0 ? CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID : model.mesh.findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, ci));
-    int cellPosition = model.mesh.addCell(eid, CellType::POINT1, { g }, false, cpos);
+    pos_t cpos = ci == 0 ? CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID : model.mesh.findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, ci));
+    const auto cellPosition = model.mesh.addCell(eid, CellType::POINT1, { g }, false, cpos);
     auto mnodale = model.mesh.createCellGroup("CONM1_" + to_string(eid), CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
     mnodale->addCellPosition(cellPosition);
 
@@ -1225,8 +1228,8 @@ void NastranParser::parseCONM2(NastranTokenizer& tok, Model& model) {
 
     const auto& nodalMass = make_shared<NodalMass>(model, mass, i11, i22, i33, -i21, -i31, -i32, x1, x2, x3, eid);
 
-    int cpos = ci == 0 ? CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID : model.mesh.findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, ci));
-    int cellPosition = model.mesh.addCell(eid, CellType::POINT1, { g }, false, cpos);
+    const pos_t cpos = ci == 0 ? CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID : model.mesh.findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, ci));
+    const auto cellPosition = model.mesh.addCell(eid, CellType::POINT1, { g }, false, cpos);
     auto mnodale = model.mesh.createCellGroup("CONM2_" + to_string(eid), CellGroup::NO_ORIGINAL_ID, "NODAL MASS");
     mnodale->addCellPosition(cellPosition);
     nodalMass->add(*mnodale);
@@ -1480,16 +1483,42 @@ void NastranParser::parseEIGC(NastranTokenizer& tok, Model& model) {
     int sid = tok.nextInt();
     const auto& objectiveSet = model.getOrCreateObjectiveSet(sid, ObjectiveSet::Type::CMETHOD);
 
-    FrequencySearch::NormType norm; UNUSEDV(norm);
-    string normString = tok.nextString(true, "MASS");
-    if (normString == "MASS")
-        norm = FrequencySearch::NormType::MASS;
-    else if (normString == "MAX")
-        norm = FrequencySearch::NormType::MAX;
+    ComplexFrequencySearch::ModalSolver method;
+    string methodString = tok.nextString(true, "ARNO");
+    if (methodString == "ARNO")
+        method = ComplexFrequencySearch::ModalSolver::ARNO;
+    else if (methodString == "HESS")
+        method = ComplexFrequencySearch::ModalSolver::HESS;
+    else if (methodString == "CLAN")
+        method = ComplexFrequencySearch::ModalSolver::CLAN;
     else {
-        handleParsingWarning("Only MASS and MAX normalizing method (NORM) supported. Default (MASS) assumed.", tok, model);
-        norm = FrequencySearch::NormType::MAX;
+        handleParsingWarning("Only ARNO, HESS CLAN search method (METHOD) supported. Default (ARNO) assumed.", tok, model);
+        method = ComplexFrequencySearch::ModalSolver::ARNO;
     }
+
+    ComplexFrequencySearch::NormType norm;
+    string normString = tok.nextString(true, "MAX");
+    if (normString == "MAX")
+        norm = ComplexFrequencySearch::NormType::MAX;
+    else {
+        handleParsingError("Only MAX normalizing method (NORM) supported.", tok, model);
+    }
+    int g = tok.nextInt(true); // Grid point identification number. Required for NORM = POINT
+    UNUSEDV(g);
+    int c = tok.nextInt(true); // Component number of global coordinate.. Required for NORM = POINT
+    UNUSEDV(c);
+    double ctol = tok.nextDouble(true, 1e-6); // Eigenvalue convergence tolerance.
+    UNUSEDV(ctol);
+    int nd = tok.nextInt();
+
+    //bandRange.setParaX(Function::ParaName::FREQ);
+    const auto& frequencyTarget = make_shared<ComplexFrequencySearch>(model,
+                                                                      objectiveSet,
+                                                                      nd,
+                                                                      norm,
+                                                                      method);
+    frequencyTarget->setInputContext(tok.getInputContext());
+    model.add(frequencyTarget);
 }
 
 void NastranParser::parseEIGB(NastranTokenizer& tok, Model& model) {
@@ -2549,6 +2578,48 @@ void NastranParser::parsePDAMP(NastranTokenizer& tok, Model& model) {
             }
         }
         nbProperties++;
+    }
+}
+
+void NastranParser::parsePVISC(NastranTokenizer& tok, Model& model) {
+    const int pid1 = tok.nextInt();
+    const double ce1 = tok.nextDouble(true, 0.0);
+    const double cr1 = tok.nextDouble(true, 0.0);
+    const auto& cellGroup = getOrCreateCellGroup(pid1, model, "PVISC_" + to_string(pid1));
+    const auto& damper = make_shared<StructuralSegment>(model, MatrixType::DIAGONAL, pid1);
+    if (not is_zero(ce1)) {
+        damper->addDamping(DOF::DX, DOF::DX, ce1);
+        damper->addDamping(DOF::DY, DOF::DY, ce1);
+        damper->addDamping(DOF::DZ, DOF::DZ, ce1);
+    }
+    if (not is_zero(cr1)) {
+        damper->addDamping(DOF::RX, DOF::RX, cr1);
+        damper->addDamping(DOF::RY, DOF::RY, cr1);
+        damper->addDamping(DOF::RZ, DOF::RZ, cr1);
+    }
+    damper->add(*cellGroup);
+    damper->setInputContext(tok.getInputContext());
+    model.add(damper);
+    if (not tok.isEmptyUntilNextKeyword()) {
+        tok.skip(1);
+        const int pid2 = tok.nextInt();
+        const double ce2 = tok.nextDouble(true, 0.0);
+        const double cr2 = tok.nextDouble(true, 0.0);
+        const auto& cellGroup2 = getOrCreateCellGroup(pid2, model, "PVISC_" + to_string(pid2));
+        const auto& damper2 = make_shared<StructuralSegment>(model, MatrixType::DIAGONAL, pid2);
+        if (not is_zero(ce2)) {
+            damper2->addDamping(DOF::DX, DOF::DX, ce2);
+            damper2->addDamping(DOF::DY, DOF::DY, ce2);
+            damper2->addDamping(DOF::DZ, DOF::DZ, ce2);
+        }
+        if (not is_zero(cr2)) {
+            damper2->addDamping(DOF::RX, DOF::RX, cr2);
+            damper2->addDamping(DOF::RY, DOF::RY, cr2);
+            damper2->addDamping(DOF::RZ, DOF::RZ, cr2);
+        }
+        damper2->add(*cellGroup);
+        damper2->setInputContext(tok.getInputContext());
+        model.add(damper2);
     }
 }
 

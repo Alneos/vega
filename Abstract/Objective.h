@@ -118,8 +118,8 @@ protected:
     Assertion(Model&, const std::shared_ptr<ObjectiveSet>, Type, double tolerance, int original_id = NO_ORIGINAL_ID);
 public:
     const double tolerance;
-    virtual DOFS getDOFSForNode(const int nodePosition) const = 0;
-    virtual std::set<int> nodePositions() const = 0;
+    virtual DOFS getDOFSForNode(const pos_t nodePosition) const = 0;
+    virtual std::set<pos_t> nodePositions() const = 0;
     bool isAssertion() const noexcept override {
         return true;
     }
@@ -130,11 +130,11 @@ protected:
     NodalAssertion(Model&, const std::shared_ptr<ObjectiveSet>, Type, double tolerance, int nodeId, DOF dof,
             int original_id = NO_ORIGINAL_ID);
 public:
-    const int nodePosition;
+    const pos_t nodePosition;
     const int nodeId;
     const DOF dof;
-    DOFS getDOFSForNode(const int nodePosition) const override final;
-    std::set<int> nodePositions() const override final;
+    DOFS getDOFSForNode(const pos_t nodePosition) const override final;
+    std::set<pos_t> nodePositions() const override final;
 };
 
 class NodalDisplacementAssertion: public NodalAssertion {
@@ -165,23 +165,23 @@ public:
     const double generalizedStiffness;
     FrequencyAssertion(Model&, const std::shared_ptr<ObjectiveSet>, int number, double cycles, double eigenValue, double generalizedMass, double generalizedStiffness, double tolerance, int original_id =
             NO_ORIGINAL_ID);
-    DOFS getDOFSForNode(const int nodePosition) const override final;
-    std::set<int> nodePositions() const override final;
+    DOFS getDOFSForNode(const pos_t nodePosition) const override final;
+    std::set<pos_t> nodePositions() const override final;
     friend std::ostream& operator<<(std::ostream&, const FrequencyAssertion&);
 };
 
 class NodalCellVonMisesAssertion: public Assertion {
 
 public:
-    const int nodePosition;
+    const pos_t nodePosition;
     const int nodeId;
-    const int cellPosition;
+    const pos_t cellPosition;
     const int cellId;
     const double value;
     NodalCellVonMisesAssertion(Model&, const std::shared_ptr<ObjectiveSet>, double tolerance, int cellId, int nodeId, double value, int original_id =
             NO_ORIGINAL_ID);
-    DOFS getDOFSForNode(const int nodePosition) const override final;
-    std::set<int> nodePositions() const override final;
+    DOFS getDOFSForNode(const pos_t nodePosition) const override final;
+    std::set<pos_t> nodePositions() const override final;
     friend std::ostream& operator<<(std::ostream&, const NodalCellVonMisesAssertion&);
 };
 
@@ -205,23 +205,40 @@ public:
         MASS,
         MAX
     };
-    FrequencySearch(Model&, const std::shared_ptr<ObjectiveSet>, const FrequencyType frequencyType, const NamedValue&, const NormType norm = NormType::MASS, int original_id = NO_ORIGINAL_ID);
+    FrequencySearch(Model&,
+                    const std::shared_ptr<ObjectiveSet>,
+                    const FrequencyType,
+                    const NamedValue&,
+                    const NormType norm = NormType::MASS,
+                    int original_id = NO_ORIGINAL_ID);
     const FrequencyType frequencyType;
     const NormType norm;  /**< Method for normalizing eigenvectors: MASS or MAX **/
     std::shared_ptr<NamedValue> getValue() const;
     FunctionPlaceHolder getValueRangePlaceHolder() const;
 };
 
-class ComplexFrequencyMethod: public AnalysisParameter {
+class ComplexFrequencySearch: public AnalysisParameter {
 public:
 
     enum class NormType {
         MASS,
         MAX
     };
-    ComplexFrequencyMethod(Model&, const std::shared_ptr<ObjectiveSet>, const std::shared_ptr<ObjectiveSet>, const NormType norm = NormType::MASS, int original_id = NO_ORIGINAL_ID);
+
+    enum class ModalSolver {
+        ARNO,
+        HESS,
+        CLAN
+    };
+    ComplexFrequencySearch(Model&,
+                           const std::shared_ptr<ObjectiveSet>,
+                           int numRoots,
+                           const NormType norm = NormType::MAX,
+                           const ModalSolver method = ModalSolver::ARNO,
+                           int original_id = NO_ORIGINAL_ID);
     const NormType norm;  /**< Method for normalizing eigenvectors: MASS or MAX **/
-    const std::shared_ptr<ObjectiveSet> complexMethodSet;
+    const ModalSolver method; /**< Method of complex eigenvalue extraction: ARNO, HESS, CLAN **/
+    const int numRoots;
 };
 
 class FrequencyExcit: public AnalysisParameter {

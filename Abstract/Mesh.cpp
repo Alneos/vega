@@ -42,7 +42,7 @@ namespace fs = boost::filesystem;
 
 const double NodeStorage::RESERVED_POSITION = -DBL_MAX;
 
-NodeData::NodeData(int id, const DOFS& dofs, double x, double y, double z, int cpPos, int cdPos, int nodePart) :
+NodeData::NodeData(int id, const DOFS& dofs, double x, double y, double z, pos_t cpPos, pos_t cdPos, int nodePart) :
     id(id), dofs(dofs), x(x), y(y), z(z), cpPos(cpPos), cdPos(cdPos), nodePart(nodePart) {
 }
 
@@ -124,7 +124,7 @@ bool NodeStorage::validate() const {
 	return validNodes;
 }
 
-CellData::CellData(int id, const CellType& type, bool isvirtual, int elementId, size_t cellTypePosition) :
+CellData::CellData(int id, const CellType& type, bool isvirtual, int elementId, pos_t cellTypePosition) :
 		id(id), typeCode(type.code), isvirtual(isvirtual), elementId(
 				elementId), cellTypePosition(cellTypePosition) {
 }
@@ -175,23 +175,26 @@ Mesh::Mesh(LogLevel logLevel, const string& modelName) :
 
 	finished = false;
 	for (const auto& cellTypePair : CellType::typeByCode) {
-		cellPositionsByType[*(cellTypePair.second)] = vector<int>();
+		cellPositionsByType[*(cellTypePair.second)] = {};
 	}
 }
 
-int Mesh::addNode(int id, double x, double y, double z, int cpPos, int cdPos, int nodePart) noexcept {
-	int nodePosition;
+pos_t Mesh::addNode(const int id, const double x, const double y, const double z, const pos_t cpPos, const pos_t cdPos, const int nodePart) noexcept {
+	pos_t nodePosition;
 
 	// In auto mode, we assign the first free node, starting from the biggest possible number
+	int assignId;
 	if (id == Node::AUTO_ID){
-		id = Node::auto_node_id--;
-		while (findNodePosition(id)!= Node::UNAVAILABLE_NODE){
-			id = Node::auto_node_id--;
+		assignId = Node::auto_node_id--;
+		while (findNodePosition(id) != Node::UNAVAILABLE_NODE){
+			assignId = Node::auto_node_id--;
 		}
+	} else {
+        assignId = id;
 	}
-	auto positionIterator = nodes.nodepositionById.find(id);
+	auto positionIterator = nodes.nodepositionById.find(assignId);
 	if (positionIterator == nodes.nodepositionById.end()) {
-		nodePosition = static_cast<int>(nodes.nodeDatas.size());
+		nodePosition = static_cast<pos_t>(nodes.nodeDatas.size());
 		NodeData nodeData(id, DOFS::NO_DOFS, x, y, z, cpPos, cdPos, nodePart);
 		nodes.nodeDatas.push_back(nodeData);
 		nodes.nodepositionById[id] = nodePosition;
@@ -212,7 +215,7 @@ size_t Mesh::countNodes() const noexcept {
 	return nodes.nodeDatas.size();
 }
 
-Node Mesh::findNode(const int nodePosition) const {
+Node Mesh::findNode(const pos_t nodePosition) const {
 	if (nodePosition == Node::UNAVAILABLE_NODE) {
 		throw invalid_argument(
 				"Node position " + to_string(nodePosition) + " not found.");
@@ -224,7 +227,7 @@ Node Mesh::findNode(const int nodePosition) const {
           nodeData.x, nodeData.y, nodeData.z, nodeData.cpPos, nodeData.cdPos, nodeData.nodePart);
 	} else {
       shared_ptr<CoordinateSystem> coordSystem = this->getCoordinateSystemByPosition(nodeData.cpPos);
-      if (!coordSystem) {
+      if (coordSystem == nullptr) {
           ostringstream oss;
           oss << "ERROR: Coordinate System of position " << nodeData.cpPos << " for Node "<<nodeData.id<<" not found.";
           // We should throw an error... but only in "strict mode".
@@ -241,7 +244,7 @@ Node Mesh::findNode(const int nodePosition) const {
 	}
 }
 
-int Mesh::findOrReserveNode(int nodeId, int cellPartId) noexcept {
+pos_t Mesh::findOrReserveNode(int nodeId, int cellPartId) noexcept {
 
     int mainNodePart = 0;
     if (cellPartId != Globals::UNAVAILABLE_INT) {
@@ -255,7 +258,7 @@ int Mesh::findOrReserveNode(int nodeId, int cellPartId) noexcept {
         }
     }
 
-	int nodePosition = findNodePosition(nodeId);
+	auto nodePosition = findNodePosition(nodeId);
 	if (nodePosition == Node::UNAVAILABLE_NODE) {
 
         nodePosition = addNode(nodeId, NodeStorage::RESERVED_POSITION, NodeStorage::RESERVED_POSITION,
@@ -300,8 +303,8 @@ int Mesh::findOrReserveNode(int nodeId, int cellPartId) noexcept {
 
 }
 
-set<int> Mesh::findOrReserveNodes(const set<int>& nodeIds) noexcept {
-	set<int> nodePositions;
+set<pos_t> Mesh::findOrReserveNodes(const set<int>& nodeIds) noexcept {
+	set<pos_t> nodePositions;
 
 	for (int nodeId : nodeIds) {
 		nodePositions.insert(this->findOrReserveNode(nodeId));
@@ -309,15 +312,15 @@ set<int> Mesh::findOrReserveNodes(const set<int>& nodeIds) noexcept {
 	return nodePositions;
 }
 
-int Mesh::findNodeId(const int nodePosition) const noexcept {
+int Mesh::findNodeId(const pos_t nodePosition) const noexcept {
 	return nodePosition == Node::UNAVAILABLE_NODE ? Node::UNAVAILABLE_NODE : nodes.nodeDatas[nodePosition].id;
 }
 
-int Mesh::findNodePartId(const int nodePosition) const noexcept {
+int Mesh::findNodePartId(const pos_t nodePosition) const noexcept {
 	return nodePosition == Node::UNAVAILABLE_NODE ? Node::UNAVAILABLE_NODE : nodes.nodeDatas[nodePosition].nodePart;
 }
 
-int Mesh::findNodePosition(const int nodeId) const noexcept {
+pos_t Mesh::findNodePosition(const int nodeId) const noexcept {
 	auto positionIterator = this->nodes.nodepositionById.find(nodeId);
 	if (positionIterator == this->nodes.nodepositionById.end()) {
 		return Node::UNAVAILABLE_NODE;
@@ -325,15 +328,15 @@ int Mesh::findNodePosition(const int nodeId) const noexcept {
 	return positionIterator->second;
 }
 
-void Mesh::allowDOFS(int nodePosition, const DOFS& allowed) noexcept {
+void Mesh::allowDOFS(const pos_t nodePosition, const DOFS& allowed) noexcept {
 	nodes.nodeDatas[nodePosition].dofs = static_cast<char>(nodes.nodeDatas[nodePosition].dofs
 			| allowed);
 }
 
-int Mesh::addCell(int id, const CellType& cellType, const std::vector<int>& nodeIds,
-		bool virtualCell, const int cpos, int elementId, double offset) {
+pos_t Mesh::addCell(const int id, const CellType& cellType, const std::vector<int>& nodeIds,
+		bool virtualCell, const pos_t cpos, int elementId, double offset) {
 	int cellId;
-	const int cellPosition = static_cast<int>(cells.cellDatas.size());
+	const pos_t cellPosition = static_cast<pos_t>(cells.cellDatas.size());
 
 	// In "auto" mode, we choose the first available Id, starting from the maximum authorized number
 	if (id == Cell::AUTO_ID) {
@@ -375,12 +378,12 @@ int Mesh::addCell(int id, const CellType& cellType, const std::vector<int>& node
 	}
 
 	cells.cellpositionById[cellId] = cellPosition;
-	const size_t cellTypePosition = cellPositionsByType.find(cellType)->second.size();
+	const auto cellTypePosition = static_cast<pos_t>(cellPositionsByType.find(cellType)->second.size());
 	cellPositionsByType.find(cellType)->second.push_back(cellPosition);
 	CellData cellData(cellId, cellType, virtualCell, elementId, cellTypePosition);
 
 	if (cells.nodepositionsByCelltype.find(cellType) == cells.nodepositionsByCelltype.end()) {
-		cells.nodepositionsByCelltype[cellType] = make_shared<deque<int>>(deque<int>());
+		cells.nodepositionsByCelltype[cellType] = make_shared<deque<pos_t>>(deque<pos_t>());
 	}
 	const auto& nodePositionsPtr = cells.nodepositionsByCelltype[cellType];
 	for (const auto& nodeId : nodeIds) {
@@ -404,6 +407,9 @@ int Mesh::addCell(int id, const CellType& cellType, const std::vector<int>& node
         if (cells.additional2DdataByCelltype.find(cellType) == cells.additional2DdataByCelltype.end())
             cells.additional2DdataByCelltype[cellType] = {};
         cells.additional2DdataByCelltype[cellType].push_back(DimensionData2D{offset});
+        if (not is_zero(offset)) {
+            this->withNonZeroOffsets = true;
+        }
         break;
     }
     case SpaceDimension::Code::DIMENSION3D_CODE: {
@@ -426,9 +432,9 @@ int Mesh::addCell(int id, const CellType& cellType, const std::vector<int>& node
 	return cellPosition;
 }
 
-int Mesh::updateCell(int id, const CellType &cellType, const std::vector<int> &nodeIds,
+pos_t Mesh::updateCell(int id, const CellType &cellType, const std::vector<int> &nodeIds,
         bool virtualCell, const int cpos, int elementId) {
-    int oldCellPosition = findCellPosition(id);
+    const auto oldCellPosition = findCellPosition(id);
     if (id == Cell::AUTO_ID) {
         throw invalid_argument("Can't update a cell with AUTO_ID.");
     }
@@ -462,15 +468,15 @@ int Mesh::updateCell(int id, const CellType &cellType, const std::vector<int> &n
     // We don't update the old data, which is too complicated
     // We build another CellData, with an other cellPosition, and hope
     // for the best
-    const int cellPosition = static_cast<int>(cells.cellDatas.size());
+    const pos_t cellPosition = static_cast<pos_t>(cells.cellDatas.size());
     cells.cellpositionById[id] = cellPosition;
 
-    const int cellTypePosition = static_cast<int>(cellPositionsByType.find(cellType)->second.size());
+    const pos_t cellTypePosition = static_cast<pos_t>(cellPositionsByType.find(cellType)->second.size());
     cellPositionsByType.find(cellType)->second.push_back(cellPosition);
     CellData cellData(id, cellType, virtualCell, elementId, cellTypePosition);
 
     if (cells.nodepositionsByCelltype.find(cellType) == cells.nodepositionsByCelltype.end()) {
-        cells.nodepositionsByCelltype[cellType] = make_shared<deque<int>>(deque<int>());
+        cells.nodepositionsByCelltype[cellType] = make_shared<deque<pos_t>>(deque<pos_t>());
     }
     const auto& nodePositionsPtr = cells.nodepositionsByCelltype[cellType];
 	for (const auto& nodeId : nodeIds) {
@@ -495,7 +501,7 @@ int Mesh::updateCell(int id, const CellType &cellType, const std::vector<int> &n
 }
 
 
-Cell Mesh::findCell(int cellPosition) const {
+Cell Mesh::findCell(const pos_t cellPosition) const {
 	if (cellPosition == Cell::UNAVAILABLE_CELL) {
 		throw logic_error("Unavailable cell requested.");
 	}
@@ -506,8 +512,8 @@ Cell Mesh::findCell(int cellPosition) const {
 	nodeIds.resize(numNodes);
 	auto it = cells.nodepositionsByCelltype.find(*cellType);
 	const auto& globalNodePositions = *(it->second);
-	const size_t start = cellData.cellTypePosition * numNodes;
-	vector<int> nodePositions(globalNodePositions.begin() + start,
+	const auto start = cellData.cellTypePosition * numNodes;
+	vector<pos_t> nodePositions(globalNodePositions.begin() + start,
 			globalNodePositions.begin() + start + numNodes);
 	for (unsigned int i = 0; i < numNodes; i++) {
 		const NodeData &nodeData = nodes.nodeDatas[nodePositions[i]];
@@ -546,7 +552,7 @@ Cell Mesh::findCell(int cellPosition) const {
 	return Cell(cellData.id, *cellType, nodeIds, cellPosition, nodePositions, false, cellData.csPos, cellData.elementId, cellData.cellTypePosition, ocs, offset);
 }
 
-int Mesh::generateSkinCell(const vector<int>& faceIds, const SpaceDimension& dimension) {
+pos_t Mesh::generateSkinCell(const vector<int>& faceIds, const SpaceDimension& dimension) {
     CellType* cellTypeFound = nullptr;
     for (const auto& typeAndCodePair : CellType::typeByCode) {
         CellType * typeToTest = typeAndCodePair.second;
@@ -568,7 +574,7 @@ pair<Cell, int> Mesh::volcellAndFaceNum_from_skincell(const Cell& skinCell) cons
     for (const auto& cellEntry : this->cellPositionsByType) {
         if (cellEntry.first.dimension != SpaceDimension::DIMENSION_3D)
             continue;
-        for (const int cellPosition : cellEntry.second) {
+        for (const pos_t cellPosition : cellEntry.second) {
             const Cell& volCell = this->findCell(cellPosition);
             for (const auto& faceEntry : volCell.nodeIdsByFaceNum()) {
                 const vector<int>& faceNodeIds = faceEntry.second;
@@ -583,7 +589,7 @@ pair<Cell, int> Mesh::volcellAndFaceNum_from_skincell(const Cell& skinCell) cons
     throw logic_error("Cannot find volume cell corresponding to surface cell id : " + to_string(skinCell.id));
 }
 
-shared_ptr<CellGroup> Mesh::getOrCreateCellGroupForCS(int cspos){
+shared_ptr<CellGroup> Mesh::getOrCreateCellGroupForCS(pos_t cspos){
 	shared_ptr<CellGroup> result;
 	auto cellGroupNameIter = cellGroupNameByCspos.find(cspos);
 	if (cellGroupNameIter != cellGroupNameByCspos.end()) {
@@ -614,18 +620,18 @@ shared_ptr<CoordinateSystem> Mesh::findCoordinateSystem(const Reference<Coordina
   return coordinateSystemStorage.find(csref);
 }
 
-int Mesh::findOrReserveCoordinateSystem(const Reference<CoordinateSystem> csref){
+pos_t Mesh::findOrReserveCoordinateSystem(const Reference<CoordinateSystem> csref){
 	if (csref == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM)
 		return CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
-	int cpos = coordinateSystemStorage.findPosition(csref);
+	auto cpos = coordinateSystemStorage.findPosition(csref);
 	if (cpos == CoordinateSystemStorage::UNAVAILABLE_POSITION)
 		cpos = coordinateSystemStorage.reserve(csref);
 	return cpos;
 }
 
-int Mesh::addOrFindOrientation(const OrientationCoordinateSystem & ocs){
+pos_t Mesh::addOrFindOrientation(const OrientationCoordinateSystem & ocs){
 
-	int posOrientation = findOrientation(ocs);
+	auto posOrientation = findOrientation(ocs);
 	if (posOrientation == 0){
 		this->add(ocs);
 		posOrientation = coordinateSystemStorage.findPosition(ocs);
@@ -633,8 +639,8 @@ int Mesh::addOrFindOrientation(const OrientationCoordinateSystem & ocs){
 	return posOrientation;
 }
 
-int Mesh::findOrientation(const OrientationCoordinateSystem & ocs) const{
-	int posOrientation=0;
+pos_t Mesh::findOrientation(const OrientationCoordinateSystem & ocs) const{
+	pos_t posOrientation=0;
 	for (const auto& coordinateSystemEntry : this->coordinateSystemStorage.coordinateSystemByRef) {
         const auto& coordinateSystem = coordinateSystemEntry.second;
 		if (coordinateSystem->type==CoordinateSystem::Type::RELATIVE){
@@ -648,7 +654,7 @@ int Mesh::findOrientation(const OrientationCoordinateSystem & ocs) const{
 	return posOrientation;
 }
 
-shared_ptr<vega::CoordinateSystem> Mesh::getCoordinateSystemByPosition(const int pos) const{
+shared_ptr<vega::CoordinateSystem> Mesh::getCoordinateSystemByPosition(const pos_t pos) const{
 	return coordinateSystemStorage.findByPosition(pos);
 }
 
@@ -832,8 +838,8 @@ size_t Mesh::countCells(const CellType& type) const noexcept {
 	//	//FIXME polylines not handled
 	//	return 0;
 	//}
-	const vector<int>& positions = cellPositionsByType.find(type)->second;
-	return static_cast<int>(positions.size());
+	const auto& positions = cellPositionsByType.find(type)->second;
+	return positions.size();
 }
 
 bool Mesh::hasCell(int cellId) const noexcept {
@@ -842,7 +848,7 @@ bool Mesh::hasCell(int cellId) const noexcept {
 	return positionIterator != cells.cellpositionById.end();
 }
 
-int Mesh::findCellPosition(int cellId) const noexcept {
+pos_t Mesh::findCellPosition(int cellId) const noexcept {
 	auto it = this->cells.cellpositionById.find(cellId);
 	if (it == this->cells.cellpositionById.end()) {
 		return Cell::UNAVAILABLE_CELL;

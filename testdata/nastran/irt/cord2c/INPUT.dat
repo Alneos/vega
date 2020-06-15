@@ -8,15 +8,26 @@ SUBCASE    520001
   LABEL= LC520001-101-Global_LDC#1
   SPC =   410001
   LOAD =   520001
-  METHOD = 5555
   ANALYSIS = STATICS
   DISP(PLOT) = ALL
   FORCE(PLOT) = ALL
   STRESS(PLOT) = ALL
+
+SUBCASE    5520002
+  LABEL= LC5520002-105-Global_LDC#2_S105
+  SPC =   410001
+  METHOD(STRUCTURE) =       5555
+  STATSUB(BUCKLING) =        520002
+  ANALYSIS = BUCK
+  DISP(PLOT) = ALL
 $$------------------------------------------------------------------------------$
 $$                      Bulk Data Cards                                         $
 $$------------------------------------------------------------------------------$
 BEGIN BULK
+$$permet de sortir le fichier .op2                                                          
+PARAM   POST    -1
+$$permet de sortir la matrice de masse et d’inertie du modèle                                                                
+PARAM   GRDPNT  0        
 $------1$------2$------3$------4$------5$------6$------7$------8$------9
 EIGRL      5555 0.0001                10
 $

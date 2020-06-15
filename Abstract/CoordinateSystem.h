@@ -237,16 +237,16 @@ class SphericalCoordinateSystem: public CoordinateSystem {
 class CoordinateSystemStorage final {
     friend Mesh;
     friend CoordinateSystem;
-    static int cs_next_position;          /**< Static token for the next CS Position. */
+    static pos_t cs_next_position;          /**< Static token for the next CS Position. */
     //static constexpr int UNAVAILABLE_ID = -INT_MAX;
-    static constexpr int UNAVAILABLE_POSITION = -INT_MAX;
+    static constexpr pos_t UNAVAILABLE_POSITION = Globals::UNAVAILABLE_POS;
     const LogLevel logLevel;
-    std::map<int, Reference<CoordinateSystem>> refByPosition;  /**< A map < Position, Original Id > to keep track of coordinate System. */
+    std::map<pos_t, Reference<CoordinateSystem>> refByPosition;  /**< A map < Position, Original Id > to keep track of coordinate System. */
 
     /**
      * Reserve a CS position given a user id (input model id).
      */
-    int reserve(const Reference<CoordinateSystem>);
+    pos_t reserve(const Reference<CoordinateSystem>);
     const Mesh& mesh;
     CoordinateSystemStorage(const Mesh&, LogLevel logLevel);
 public:
@@ -255,15 +255,15 @@ public:
     /** Find the Position related to the input user id.
      *  Return UNAVAILABLE_POSITION if nothing is found.
      */
-    int findPosition(const Reference<CoordinateSystem>) const;
+    pos_t findPosition(const Reference<CoordinateSystem>) const;
 
     /** Update the maps with the data (id, original_id)
      *  of this CS.
      *  Return the corresponding Position.
      */
-    int add(const CoordinateSystem& coordinateSystem);
+    pos_t add(const CoordinateSystem& coordinateSystem);
     std::shared_ptr<CoordinateSystem> find(Reference<CoordinateSystem> csref) const;
-    std::shared_ptr<CoordinateSystem> findByPosition(int cspos) const;
+    std::shared_ptr<CoordinateSystem> findByPosition(pos_t cspos) const;
 };
 
 

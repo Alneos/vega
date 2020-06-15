@@ -50,7 +50,7 @@ class ModelConfiguration;
 class Analysis: public Identifiable<Analysis> {
 private:
     friend std::ostream &operator<<(std::ostream &out, const Analysis& analysis);    //output
-    std::map<int, char> boundaryDOFSByNodePosition;
+    std::map<pos_t, char> boundaryDOFSByNodePosition;
     const std::string label;         /**< User defined label for this instance of Analysis. **/
 public:
     enum class Type {
@@ -140,10 +140,10 @@ public:
      */
     bool hasSPC() const noexcept;
 
-    void removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition, const DOFS dofs);
-    void addBoundaryDOFS(int nodePosition, const DOFS dofs);
-    DOFS findBoundaryDOFS(int nodePosition) const;
-    std::set<int> boundaryNodePositions() const;
+    void removeSPCNodeDofs(SinglePointConstraint& spc, pos_t nodePosition, const DOFS dofs);
+    void addBoundaryDOFS(pos_t nodePosition, const DOFS dofs);
+    DOFS findBoundaryDOFS(const pos_t nodePosition) const;
+    std::set<pos_t> boundaryNodePositions() const;
     void copyInto(Analysis& other) const;
 
     virtual bool isStatic() const noexcept {
@@ -239,6 +239,7 @@ class LinearModalComplex: public LinearModal {
     Reference<ObjectiveSet> complexMethodRef;
 public:
     LinearModalComplex(Model&, const Reference<ObjectiveSet>&, const Reference<ObjectiveSet>&, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
+    std::shared_ptr<ComplexFrequencySearch> getComplexFrequencySearch() const noexcept;
 };
 
 /**

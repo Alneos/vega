@@ -105,7 +105,7 @@ void BoundaryElementFace::createSkin() {
         const auto& faceIds = cell0.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
         if (not faceIds.empty()) {
             //addedSkin = true;
-            const int cellPosition = model.mesh.generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
+            const pos_t cellPosition = model.mesh.generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
             //mappl->addCellPosition(cell.position);
             surfGrp->addCellPosition(cellPosition);
             surfaceCellGroup = surfGrp;

@@ -58,13 +58,13 @@ protected:
 private:
     class GrdSet {
     public:
-        GrdSet(const int cp = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
-                const int cd = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
+        GrdSet(const pos_t cp = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
+                const pos_t cd = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
                 const int ps = 0, const int seid = 0) :
                     cp(cp), cd(cd), ps(ps), seid(seid) {
         }
-        int cp;
-        int cd;
+        pos_t cp;
+        pos_t cd;
         int ps;
         int seid;
     };
@@ -347,6 +347,12 @@ private:
     void parseCTRIA3(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
     void parseCTRIA6(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
     void parseCTRIAR(NastranTokenizer& tok, Model& model);//in NastranParser_geometry.cpp
+
+    /**
+     * Parse the keyword CVISC (page 1349 of MDN Nastran 2006 Quick Reference Guide.)
+     * Full support.
+     */
+    void parseCVISC(NastranTokenizer& tok, Model& model);
 
     /**
      * Parse the keyword DAREA (page 1377 of MDN Nastran 2006 Quick Reference Guide.)
@@ -703,6 +709,11 @@ private:
     void parsePSOLID(NastranTokenizer& tok, Model& model);
 
     /**
+     * Parse the PVISC keyword (page 2278 of MDN Nastran 2006 Quick Reference Guide.)
+     */
+    void parsePVISC(NastranTokenizer& tok, Model& model);
+
+    /**
      * Parse the RBAR keyword (page 2312 of MDN Nastran 2006 Quick Reference Guide.)
      * CMA, CMB and the thermal expansion (ALPHA) are not supported.
      */
@@ -852,7 +863,7 @@ private:
      * We then parse either vectorr V or a point P3 (v=P1P3) which defines Oy and Oz.
      * See, for example, the help on the CBAR keyword (page 1154 of MDN Nastran 2006 Quick Reference Guide.)
      */
-    int parseOrientation(int point1, int point2, NastranTokenizer& tok,
+    pos_t parseOrientation(int point1, int point2, NastranTokenizer& tok,
             Model& model);
 
     /**

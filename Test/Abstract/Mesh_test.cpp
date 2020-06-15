@@ -16,8 +16,8 @@ using namespace vega;
 
 BOOST_AUTO_TEST_CASE( test_node_distance ) {
     Mesh mesh(LogLevel::INFO, "test_node_distance");
-    int nodepos1 = mesh.addNode(1, 0.0, 0.0, 0.0);
-    int nodepos2 = mesh.addNode(2, 10.0, 0.0, 0.0);
+    const auto nodepos1 = mesh.addNode(1, 0.0, 0.0, 0.0);
+    const auto nodepos2 = mesh.addNode(2, 10.0, 0.0, 0.0);
     const Node& node1 = mesh.findNode(nodepos1);
     const Node& node2 = mesh.findNode(nodepos2);
     BOOST_CHECK_EQUAL(node1.distance(node2), 10);
@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE( test_mesh_stats ) {
 BOOST_AUTO_TEST_CASE( test_faceIds )
 {
     Mesh mesh(LogLevel::INFO, "test");
-    int cellPosition = mesh.addCell(1, CellType::HEXA8, { 101, 102, 103, 104, 105, 106, 107, 108 });
+    const auto cellPosition = mesh.addCell(1, CellType::HEXA8, { 101, 102, 103, 104, 105, 106, 107, 108 });
     const Cell&& hexa = mesh.findCell(cellPosition);
     vector<int> face1NodeIds = hexa.faceids_from_two_nodes(101, 104);
     vector<int> expectedFace1NodeIds = { 101, 102, 103, 104 };
@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE( test_faceIds )
 BOOST_AUTO_TEST_CASE( test_faceIds_pload4 )
 {
     Mesh mesh(LogLevel::INFO, "pload4");
-    int cellPosition = mesh.addCell(1, CellType::HEXA8, { 101, 105, 106, 102, 103, 107, 108, 104 });
+    const auto cellPosition = mesh.addCell(1, CellType::HEXA8, { 101, 105, 106, 102, 103, 107, 108, 104 });
     const Cell&& hexa = mesh.findCell(cellPosition);
     vector<int> face1NodeIds = hexa.faceids_from_two_nodes(105, 108);
     vector<int> expectedFace1NodeIds = { 105, 107, 108, 106 };
@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE( test_NodeGroup )
     BOOST_ASSERT_MSG(testGroup != nullptr, "Group found by name");
     BOOST_CHECK_EQUAL(testGroup->nodePositions().size(), static_cast<size_t>(4));
     const auto& nodeIds1 = testGroup->getNodeIds();
-    for (int originalId : nodeIds)
+    for (const int originalId : nodeIds)
     {
         string message = "Node id " + to_string(originalId) + " not found";
         BOOST_CHECK_MESSAGE(nodeIds1.find(originalId) != nodeIds1.end(), message.c_str());

@@ -42,9 +42,12 @@
 
 namespace vega {
 
+using pos_t = unsigned int;
+
 class Globals {
 public:
 	static constexpr int UNAVAILABLE_INT = INT_MIN;
+	static constexpr int UNAVAILABLE_POS = INT_MAX;
 	static constexpr unsigned char UNAVAILABLE_UCHAR = UCHAR_MAX;
 	static constexpr double UNAVAILABLE_DOUBLE = -DBL_MAX;
 	static constexpr double DOUBLE_COMPARE_TOLERANCE = std::numeric_limits<double>::epsilon() * 5;

@@ -248,7 +248,7 @@ void NastranWriter::writeCells(const Model& model, ofstream& out) const
 		if (elementSet->isMatrixElement()) {
 			continue;
 		}
-		for (const int cellPosition : elementSet->cellPositions()) {
+		for (const pos_t cellPosition : elementSet->cellPositions()) {
             const Cell& cell = model.mesh.findCell(cellPosition);
 			string keyword;
 			if (elementSet->isBeam()) {
@@ -400,7 +400,7 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
 		const auto& spcs = constraintSet->getConstraintsByType(Constraint::Type::SPC);
         for (const auto& constraint : spcs) {
             const auto& spc = static_pointer_cast<SinglePointConstraint>(constraint);
-            for (int nodePosition : spc->nodePositions()) {
+            for (const auto nodePosition : spc->nodePositions()) {
                 const int nodeId = model.mesh.findNodeId(nodePosition);
                 out
                         << Line("SPC1").add(constraintSet->bestId()).add(
@@ -416,7 +416,7 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
             const int masterId = model.mesh.findNodeId(rigid->getMaster());
             rbe2.add(masterId);
             rbe2.add(DOFS::ALL_DOFS);
-            for (int slavePosition : rigid->getSlaves()) {
+            for (const auto slavePosition : rigid->getSlaves()) {
                 const int slaveId = model.mesh.findNodeId(slavePosition);
                 rbe2.add(slaveId);
             }
@@ -431,10 +431,10 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
             if (not quasiRigid->hasMaster() and quasiRigid->getSlaves().size() == 2) {
                 Line rbar("RBAR");
                 rbar.add(quasiRigid->bestId());
-                for (int slavePosition : quasiRigid->getSlaves()) {
+                for (const auto slavePosition : quasiRigid->getSlaves()) {
                     rbar.add(model.mesh.findNodeId(slavePosition));
                 }
-                for (int slavePosition : quasiRigid->getSlaves()) {
+                for (const auto slavePosition : quasiRigid->getSlaves()) {
                     rbar.add(quasiRigid->getDOFSForNode(slavePosition));
                 }
                 out << rbar;
@@ -444,7 +444,7 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
                 const int masterId = model.mesh.findNodeId(quasiRigid->getMaster());
                 rbe2.add(masterId);
                 rbe2.add(quasiRigid->getDOFS());
-                for (int slavePosition : quasiRigid->getSlaves()) {
+                for (const auto slavePosition : quasiRigid->getSlaves()) {
                     const int slaveId = model.mesh.findNodeId(slavePosition);
                     rbe2.add(slaveId);
                 }
@@ -463,7 +463,7 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
             const int masterPosition = model.mesh.findNodeId(rbe3Constraint->getMaster());
             rbe3.add(model.mesh.findNodeId(masterPosition));
             rbe3.add(rbe3Constraint->getDOFSForNode(masterPosition));
-            for (int slavePosition : rbe3Constraint->getSlaves()) {
+            for (const auto slavePosition : rbe3Constraint->getSlaves()) {
                 rbe3.add(rbe3Constraint->getCoefForNode(slavePosition));
                 rbe3.add(rbe3Constraint->getDOFSForNode(slavePosition));
                 rbe3.add(model.mesh.findNodeId(slavePosition));
@@ -480,7 +480,7 @@ void NastranWriter::writeConstraints(const Model& model, ofstream& out) const
             Line mpc("MPC");
             mpc.add(constraintSet->getId());
             int fieldNum = 2;
-			for (int nodePosition : lmpc->nodePositions()) {
+			for (const auto nodePosition : lmpc->nodePositions()) {
 			    DOFCoefs dofcoef = lmpc->getDoFCoefsForNode(nodePosition);
 				for (dof_int i = 0; i < 6; i++) {
 					if (!is_zero(dofcoef[i])) {
@@ -574,7 +574,7 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
                 handleWritingError("Need to implement writing other ForceSurface subclasses");
             }
             const auto& cellPositions = forceSurface->getCellPositionsIncludingGroups();
-            for (const int cellPosition: cellPositions) {
+            for (const pos_t cellPosition: cellPositions) {
                 const Cell& cell = model.mesh.findCell(cellPosition);
                 Line pload4("PLOAD4");
                 pload4.add(loadingSet->bestId());
@@ -590,7 +590,7 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
                 const int nodeId1 = model.mesh.findNodeId(forceSurface->nodePosition1);
                 pload4.add(nodeId1);
                 int nodeId2 = Globals::UNAVAILABLE_INT;
-                if (forceSurface->nodePosition2 != Globals::UNAVAILABLE_INT) {
+                if (forceSurface->nodePosition2 != Globals::UNAVAILABLE_POS) {
                     nodeId2 = model.mesh.findNodeId(forceSurface->nodePosition2);
                     pload4.add(nodeId2);
                 } else {
@@ -641,7 +641,7 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
                 const int nodeId1 = model.mesh.findNodeId(normalPressionFace->nodePosition1);
                 pload4.add(nodeId1);
                 int nodeId2 = Globals::UNAVAILABLE_INT;
-                if (normalPressionFace->nodePosition2 != Globals::UNAVAILABLE_INT) {
+                if (normalPressionFace->nodePosition2 != Globals::UNAVAILABLE_POS) {
                     nodeId2 = model.mesh.findNodeId(normalPressionFace->nodePosition2);
                     pload4.add(nodeId2);
                 } else {
@@ -725,7 +725,7 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
                 continue;
 
             const auto& nodalForce = static_pointer_cast<NodalForce>(loading);
-            for (int nodePosition : nodalForce->getNodePositionsIncludingGroups()) {
+            for (const auto nodePosition : nodalForce->getNodePositionsIncludingGroups()) {
                 Line force("FORCE");
                 force.add(loadingSet->bestId());
                 force.add(model.mesh.findNodeId(nodePosition));
@@ -754,7 +754,7 @@ void NastranWriter::writeLoadings(const Model& model, ofstream& out) const
             pload.add(model.mesh.findNodeId(staticPressure->node_position1));
             pload.add(model.mesh.findNodeId(staticPressure->node_position2));
             pload.add(model.mesh.findNodeId(staticPressure->node_position3));
-            if (staticPressure->node_position4 != Globals::UNAVAILABLE_INT) {
+            if (staticPressure->node_position4 != Globals::UNAVAILABLE_POS) {
                 pload.add(model.mesh.findNodeId(staticPressure->node_position4));
             }
             out << pload;
@@ -825,7 +825,7 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
         if (discretePoint->hasStiffness() or discretePoint->hasDamping()) {
             handleWritingError("discrete not completely written");
         }
-        for (int nodePosition: discretePoint->nodePositions()) {
+        for (const auto nodePosition: discretePoint->nodePositions()) {
             Line conm1("CONM1");
             conm1.add(discretePoint->bestId());
             conm1.add(model.mesh.findNodeId(nodePosition));
@@ -843,7 +843,7 @@ void NastranWriter::writeElements(const Model& model, ofstream& out) const
 	}
     for (const auto& elementSet: model.elementSets.filter(ElementSet::Type::NODAL_MASS)) {
         const auto& mass = static_pointer_cast<const NodalMass>(elementSet);
-        for (int nodePosition: mass->nodePositions()) {
+        for (const auto nodePosition: mass->nodePositions()) {
             Line conm2("CONM2");
             conm2.add(mass->bestId());
             conm2.add(model.mesh.findNodeId(nodePosition));
@@ -919,7 +919,7 @@ string NastranWriter::writeModel(Model& model,
         out << "SET " << nodeGroup->getId() << " = ";
         bool firstNode = true;
         int nodeCount = 1;
-        for(int nodeId : nodeGroup->getNodeIds()) {
+        for(const int nodeId : nodeGroup->getNodeIds()) {
             if (firstNode) {
                 firstNode = false;
             } else {

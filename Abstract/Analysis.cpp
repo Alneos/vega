@@ -426,7 +426,7 @@ bool Analysis::validate() const {
 }
 
 
-void Analysis::removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition,  const DOFS dofsToRemove) {
+void Analysis::removeSPCNodeDofs(SinglePointConstraint& spc, const pos_t nodePosition,  const DOFS dofsToRemove) {
     const DOFS& remainingDofs = spc.getDOFSForNode(nodePosition) - dofsToRemove;
     set<shared_ptr<ConstraintSet>, ptrLess<ConstraintSet>> affectedConstraintSets =
             model.getConstraintSetsByConstraint(
@@ -478,11 +478,11 @@ void Analysis::removeSPCNodeDofs(SinglePointConstraint& spc, int nodePosition,  
     spc.removeNodePosition(nodePosition);
 }
 
-void Analysis::addBoundaryDOFS(int nodePosition, const DOFS dofs) {
+void Analysis::addBoundaryDOFS(const pos_t nodePosition, const DOFS dofs) {
     boundaryDOFSByNodePosition[nodePosition] = DOFS(boundaryDOFSByNodePosition[nodePosition]) + dofs;
 }
 
-DOFS Analysis::findBoundaryDOFS(int nodePosition) const {
+DOFS Analysis::findBoundaryDOFS(const pos_t nodePosition) const {
     const auto& entry = boundaryDOFSByNodePosition.find(nodePosition);
     if (entry == boundaryDOFSByNodePosition.end()) {
         return DOFS::NO_DOFS;
@@ -491,8 +491,8 @@ DOFS Analysis::findBoundaryDOFS(int nodePosition) const {
     }
 }
 
-set<int> Analysis::boundaryNodePositions() const {
-    set<int> result;
+set<pos_t> Analysis::boundaryNodePositions() const {
+    set<pos_t> result;
     for (const auto& entry : boundaryDOFSByNodePosition) {
         result.insert(entry.first);
     }
@@ -547,16 +547,16 @@ void Analysis::createGraph(ostream& dot_ofs) {
         v.name = to_str(*constraintSet);
         set<int> nodeParts;
         for(const auto& constraint : constraintSet->getConstraints()) {
-            for(int nodePosition : constraint->nodePositions()) {
+            for(auto nodePosition : constraint->nodePositions()) {
                 nodeParts.insert(model.mesh.findNodePartId(nodePosition));
             }
         }
         set<int> cellParts;
-        for(int nodePart : nodeParts) {
+        for(const auto nodePart : nodeParts) {
             const auto& cellParts2 = model.mesh.nodes.cellPartsByNodePart[nodePart];
             cellParts.insert(cellParts2.begin(), cellParts2.end());
         }
-        for(int cellPartId : cellParts) {
+        for(const auto cellPartId : cellParts) {
             vertex_descriptor vepos = vertexPosByElementId[cellPartId];
             boost::add_edge(vcpos, vepos, g);
         }
@@ -568,16 +568,16 @@ void Analysis::createGraph(ostream& dot_ofs) {
         v.name = to_str(*loadSet);
         set<int> nodeParts;
         for(const auto& loading : loadSet->getLoadings()) {
-            for(int nodePosition : loading->nodePositions()) {
+            for(const auto nodePosition : loading->nodePositions()) {
                 nodeParts.insert(model.mesh.findNodePartId(nodePosition));
             }
         }
         set<int> cellParts;
-        for(int nodePart : nodeParts) {
+        for(const auto nodePart : nodeParts) {
             const auto& cellParts2 = model.mesh.nodes.cellPartsByNodePart[nodePart];
             cellParts.insert(cellParts2.begin(), cellParts2.end());
         }
-        for(int cellPartId : cellParts) {
+        for(const auto cellPartId : cellParts) {
             vertex_descriptor vepos = vertexPosByElementId[cellPartId];
             boost::add_edge(vlpos, vepos, g);
         }

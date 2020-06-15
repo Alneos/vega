@@ -43,7 +43,7 @@ NodeGroup2Families::NodeGroup2Families(int nnodes, const vector<shared_ptr<NodeG
 		this->nodes.resize(nnodes, 0);
 		for (const auto& nodeGroup : nodeGroups) {
 			newFamilyByOldfamily.clear();
-			for (int nodePosition : nodeGroup->nodePositions()) {
+			for (const auto nodePosition : nodeGroup->nodePositions()) {
 				int oldFamilyId = nodes[nodePosition];
 				auto newFamilyPair = newFamilyByOldfamily.find(oldFamilyId);
 				int newFamilyId;
@@ -246,18 +246,18 @@ void MedWriter::writeMED(const Model& model, const string& medFileName) {
 	for (const auto& kv : model.mesh.cellPositionsByType) {
 		CellType type = kv.first;
 		med_int code = static_cast<med_int>(type.code);
-		vector<med_int> cellPositions = kv.second;
+		const auto& cellPositions = kv.second;
 		med_int numCells = static_cast<med_int>(cellPositions.size());
 		if (type.numNodes == 0 || numCells == 0) {
 			continue;
 		}
 		vector<med_int> connectivity;
 		connectivity.reserve(numCells * type.numNodes);
-		for (med_int cellPosition : cellPositions) {
-			const Cell&& cell = model.mesh.findCell(cellPosition);
-			for (med_int nodePosition : cell.nodePositions) {
+		for (const auto cellPosition : cellPositions) {
+			const auto&& cell = model.mesh.findCell(cellPosition);
+ 			for (const auto nodePosition : cell.nodePositions) {
 				// med nodes starts at node number 1.
-				connectivity.push_back(nodePosition + 1);
+				connectivity.push_back(static_cast<med_int>(nodePosition) + 1);
 			}
 		}
 		int result = MEDmeshElementConnectivityWr(fid, meshname, MED_NO_DT,
@@ -289,8 +289,8 @@ void MedWriter::writeMED(const Model& model, const string& medFileName) {
 
         vector<med_int> cellnums;
         cellnums.reserve(numCells);
-        for (int cellPosition : cellPositions) {
-            cellnums.push_back(cellPosition+1);
+        for (const auto cellPosition : cellPositions) {
+            cellnums.push_back(static_cast<med_int>(cellPosition)+1);
         }
         MEDmeshEntityNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_CELL, code, numCells, cellnums.data());
         cellnums.clear();

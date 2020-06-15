@@ -24,6 +24,7 @@ constexpr int LoadSet::COMMON_SET_ID; // required for C++11
 constexpr int ConstraintSet::COMMON_SET_ID; // required for C++11
 constexpr int ObjectiveSet::COMMON_SET_ID; // required for C++11
 constexpr int Globals::UNAVAILABLE_INT; // For C++11
+constexpr int Globals::UNAVAILABLE_POS; // For C++11
 constexpr double Globals::UNAVAILABLE_DOUBLE; // required for C++11
 
 Model::Model(string name, string inputSolverVersion, SolverName inputSolver,
@@ -571,15 +572,15 @@ vector<shared_ptr<LoadSet>> Model::getActiveLoadSets() const {
 
 vector<shared_ptr<ConstraintSet>> Model::getCommonConstraintSets() const {
     vector<shared_ptr<ConstraintSet>> result;
-    map<shared_ptr<ConstraintSet>, size_t> map;
+    map<shared_ptr<ConstraintSet>, size_t> analyseCountByConstraintSet;
     for (const auto& analyse : analyses) {
         for (const auto& constraintSet : analyse->getConstraintSets()) {
-            map[constraintSet] += 1;
+            analyseCountByConstraintSet[constraintSet] += 1;
         }
     }
     for (const auto& constraintSet : constraintSets) {
-        auto it = map.find(constraintSet);
-        if (it != map.end() && it->second == analyses.size())
+        auto it = analyseCountByConstraintSet.find(constraintSet);
+        if (it != analyseCountByConstraintSet.end() && it->second == analyses.size())
             result.push_back(constraintSet);
     }
     return result;
@@ -679,7 +680,7 @@ void Model::generateDiscrets() {
                 vector<int> cellNodes;
                 cellNodes.push_back(node.id);
                 mesh.allowDOFS(node.position, DOFS::ALL_DOFS);
-                int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::POINT1, cellNodes,
+                const auto cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::POINT1, cellNodes,
                         true);
                 virtualDiscretTRGroup->addCellPosition(cellPosition);
             } else {
@@ -698,7 +699,7 @@ void Model::generateDiscrets() {
                     }
                     this->add(virtualDiscretT);
                 }
-                int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::POINT1, { node.id },
+                const auto cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::POINT1, { node.id },
                         true);
                 virtualDiscretTGroup->addCellPosition(cellPosition);
                 mesh.allowDOFS(node.position, DOFS::TRANSLATIONS);
@@ -925,9 +926,9 @@ void Model::emulateAdditionalMass() {
             const auto& cellContainer = dynamic_pointer_cast<CellContainer>(elementSet);
             cellContainer->add(*newCellGroup);
             newElementSets.push_back(newElementSet);
-            for (const int cellPosition : elementSet->cellPositions()) {
+            for (const auto cellPosition : elementSet->cellPositions()) {
                 const Cell& cell = mesh.findCell(cellPosition);
-                int newCellPosition = mesh.addCell(Cell::AUTO_ID, cell.type, cell.nodeIds, cell.isvirtual,
+                const auto newCellPosition = mesh.addCell(Cell::AUTO_ID, cell.type, cell.nodeIds, cell.isvirtual,
                         cell.cspos, cell.elementId);
                 newCellGroup->addCellPosition(newCellPosition);
             }
@@ -963,9 +964,9 @@ void Model::generateBeamsToDisplayMasterSlaveConstraint() {
                 vector<int> nodes = { 0, 0 };
                 nodes[0] = mesh.findNodeId(rigid->getMaster());
                 mesh.allowDOFS(rigid->getMaster(), DOFS::ALL_DOFS);
-                for (int slaveNode : rigid->getSlaves()) {
+                for (const auto slaveNode : rigid->getSlaves()) {
                     nodes[1] = mesh.findNodeId(slaveNode);
-                    int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
+                    const auto cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
                     virtualGroupRigid->addCellPosition(cellPosition);
                     mesh.allowDOFS(slaveNode, DOFS::ALL_DOFS);
                 }
@@ -987,9 +988,9 @@ void Model::generateBeamsToDisplayMasterSlaveConstraint() {
                 vector<int> nodes = { 0, 0 };
                 nodes[0] = mesh.findNodeId(rbe3->getMaster());
                 mesh.allowDOFS(rbe3->getMaster(), DOFS::ALL_DOFS);
-                for (int slaveNode : rbe3->getSlaves()) {
+                for (const auto slaveNode : rbe3->getSlaves()) {
                     nodes[1] = mesh.findNodeId(slaveNode);
-                    int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
+                    const auto cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, nodes, true);
                     mesh.allowDOFS(slaveNode, DOFS::ALL_DOFS);
                     virtualGroupRBE3->addCellPosition(cellPosition);
                 }
@@ -1001,36 +1002,6 @@ void Model::generateBeamsToDisplayMasterSlaveConstraint() {
         }
     }
 }
-
-/*void Model::generateMaterialAssignments() {
-    if (configuration.partitionModel) {
-        if (not this->material_assignment_by_materialRef.empty()) {
-            cerr << "generateMaterialAssignments with PartitionModel is not "
-                    << " yet implemented. " << endl
-                    << "This method should partition the elementSets"
-                    << " and assign materials to elementSets. Useful if output=Nastran" << endl;
-        }
-    } else {
-        //generate or update material assignments from elementSets
-        for (const auto& element : elementSets) {
-            const auto& cellElementSet = dynamic_pointer_cast<CellElementSet>(element);
-            if (cellElementSet == nullptr) {
-                throw logic_error("Assigning an ElementSet which is not a CellContainer to a Material not yet implemeted");
-            }
-            if (cellElementSet->empty()) {
-                throw logic_error("Assigning an ElementSet to an empty CellContainer?");
-            }
-            for (const auto& material : element->getMaterials()) {
-                if (element->effective()) {
-                    if (configuration.logLevel >= LogLevel::TRACE)
-                        cout << "Generating assignment for material:" << *material << " to elementSet:" << *cellElementSet << endl;
-                    //assignMaterial(material->getReference(), *cellElementSet);
-                    cellElementSet->assignMaterial(material);
-                }
-            }
-        }
-    }
-}*/
 
 void Model::removeIneffectives() {
     // remove ineffective loadings from the model
@@ -1095,7 +1066,7 @@ void Model::removeIneffectives() {
         this->elementSets.erase(elementSet->getReference());
     }
 
-    for (const int& unusedNodePosition : mesh.nodes.reservedButUnusedNodePositions) {
+    for (const auto unusedNodePosition : mesh.nodes.reservedButUnusedNodePositions) {
         for (auto& nodeGroup : mesh.getNodeGroups()) {
             if (nodeGroup->containsNodePosition(unusedNodePosition)) {
                 nodeGroup->removeNodeByPosition(unusedNodePosition);
@@ -1161,7 +1132,7 @@ void Model::removeAssertionsMissingDOFS()
     vector<shared_ptr<Objective> > objectivesToRemove;
     for (const auto& analysis : analyses) {
         for(const auto& assertion : analysis->getAssertions()) {
-            for(int nodePosition: assertion->nodePositions()) {
+            for(const auto nodePosition: assertion->nodePositions()) {
                 const DOFS& assertionDOFS = assertion->getDOFSForNode(nodePosition);
                 if (not assertionDOFS.empty()) {
                     const Node& node = mesh.findNode(nodePosition);
@@ -1197,15 +1168,15 @@ void Model::replaceDirectMatrices()
 {
     vector<shared_ptr<ElementSet> > elementSetsToRemove;
     int matrix_count = 0;
-    map<int, DOFS> addedDofsByNode;
-    map<int, DOFS> requiredDofsByNode;
-    map<int, DOFS> ownedDofsByNode;
+    map<pos_t, DOFS> addedDofsByNode;
+    map<pos_t, DOFS> requiredDofsByNode;
+    map<pos_t, DOFS> ownedDofsByNode;
     for (const auto& elementSetM : elementSets) {
         if (!elementSetM->isMatrixElement()) {
             continue;
         }
         const auto& matrix = static_pointer_cast<MatrixElement>(elementSetM);
-        for (int nodePosition : matrix->nodePositions()) {
+        for (const auto nodePosition : matrix->nodePositions()) {
             requiredDofsByNode[nodePosition] = DOFS();
             const int nodeId = mesh.findNodeId(nodePosition);
             DOFS owned;
@@ -1213,7 +1184,7 @@ void Model::replaceDirectMatrices()
                 if (not elementSetI->effective()) {
                     continue;
                 }
-                for (const int cellPosition : elementSetI->cellPositions()) {
+                for (const auto cellPosition : elementSetI->cellPositions()) {
                     const Cell& cell = mesh.findCell(cellPosition);
                     for (int cellNodeId : cell.nodeIds) {
                         if (cellNodeId == nodeId) {
@@ -1235,7 +1206,7 @@ void Model::replaceDirectMatrices()
                     continue; // will be handled by a segment cell with another node
                 }
                 // single node
-                int nodePosition = pair.first;
+                const auto nodePosition = pair.first;
                 const int nodeId = mesh.findNodeId(nodePosition);
                 DOFS requiredDofs = requiredDofsByNode.find(nodePosition)->second;
                 const auto& submatrix = matrix->findSubmatrix(nodePosition, nodePosition);
@@ -1271,7 +1242,7 @@ void Model::replaceDirectMatrices()
                 const auto& matrixGroup = mesh.createCellGroup(
                         "MTN" + to_string(matrix_count), Group::NO_ORIGINAL_ID, oss.str());
                 discrete->add(*matrixGroup);
-                int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, { nodeId }, true);
+                const auto cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, { nodeId }, true);
                 matrixGroup->addCellPosition(cellPosition);
                 if (discrete->hasRotations()) {
                     addedDofsByNode[nodePosition] = DOFS::ALL_DOFS;
@@ -1287,8 +1258,8 @@ void Model::replaceDirectMatrices()
                 this->add(discrete);
             } else {
                 // node couple
-                int rowNodePosition = pair.first;
-                int colNodePosition = pair.second;
+                const auto rowNodePosition = pair.first;
+                const auto colNodePosition = pair.second;
                 const int rowNodeId = mesh.findNodeId(rowNodePosition);
                 const int colNodeId = mesh.findNodeId(colNodePosition);
                 DOFS requiredRowDofs = requiredDofsByNode.find(rowNodePosition)->second;
@@ -1300,7 +1271,7 @@ void Model::replaceDirectMatrices()
                 const auto& matrixGroup = mesh.createCellGroup(
                         "MTL" + to_string(matrix_count), Group::NO_ORIGINAL_ID, oss.str());
                 matrix_count++;
-                int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, { rowNodeId,
+                const auto cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, { rowNodeId,
                         colNodeId }, true);
                 matrixGroup->addCellPosition(cellPosition);
                 if (configuration.addVirtualMaterial) {
@@ -1320,8 +1291,8 @@ void Model::replaceDirectMatrices()
                 }
                 for (int row_index = 0; row_index < 2; ++row_index) {
                     for (int col_index = 0; col_index < 2; ++col_index) {
-                        int rowNodePosition2;
-                        int colNodePosition2;
+                        pos_t rowNodePosition2;
+                        pos_t colNodePosition2;
                         if (row_index == 0) {
                             rowNodePosition2 = rowNodePosition;
                         } else {
@@ -1372,7 +1343,7 @@ void Model::replaceDirectMatrices()
         elementSetsToRemove.push_back(elementSetM);
     }
     for (const auto& kv : addedDofsByNode) {
-        int nodePosition = kv.first;
+        const auto nodePosition = kv.first;
         const DOFS& added = kv.second;
         DOFS required;
         auto it = requiredDofsByNode.find(nodePosition);
@@ -1391,7 +1362,7 @@ void Model::replaceDirectMatrices()
         }
 
         for (const auto loading : loadings) {
-            for (int nodePosition2 : loading->nodePositions()) {
+            for (const auto nodePosition2 : loading->nodePositions()) {
                 required += loading->getDOFSForNode(nodePosition2);
             }
         }
@@ -1454,7 +1425,7 @@ void Model::removeRedundantSpcs() {
             }
             for (const auto& constraint : spcs) {
                 const auto& spc = static_pointer_cast<SinglePointConstraint>(constraint);
-                for (int nodePosition : spc->nodePositions()) {
+                for (const auto nodePosition : spc->nodePositions()) {
                     DOFS dofsToRemove;
                     DOFS blockedDofs = spc->getDOFSForNode(nodePosition);
                     for (const DOF dof : blockedDofs) {
@@ -1490,7 +1461,7 @@ void Model::removeRedundantSpcs() {
 
 void Model::removeConstrainedImposed() {
     for (const auto& analysis : this->analyses) {
-        unordered_map<int, DOFS> imposedDofsByNodeId;
+        unordered_map<pos_t, DOFS> imposedDofsByNodePosition;
         for (const auto& loadSet : analysis->getLoadSets()) {
             const auto& loads = loadSet->getLoadingsByType(Loading::Type::IMPOSED_DISPLACEMENT);
             if (loads.empty()) {
@@ -1498,8 +1469,8 @@ void Model::removeConstrainedImposed() {
             }
             for (const auto& load : loads) {
                 const auto& impo = static_pointer_cast<ImposedDisplacement>(load);
-                for (int nodePosition : impo->nodePositions()) {
-                    imposedDofsByNodeId[nodePosition] = impo->getDOFSForNode(nodePosition);
+                for (const auto nodePosition : impo->nodePositions()) {
+                    imposedDofsByNodePosition[nodePosition] = impo->getDOFSForNode(nodePosition);
                 }
             }
         }
@@ -1510,8 +1481,8 @@ void Model::removeConstrainedImposed() {
             }
             for (const auto& constraint : spcs) {
                 const auto& spc = static_pointer_cast<SinglePointConstraint>(constraint);
-                for (int nodePosition : spc->nodePositions()) {
-                    DOFS imposedDofs = imposedDofsByNodeId[nodePosition];
+                for (const auto nodePosition : spc->nodePositions()) {
+                    DOFS imposedDofs = imposedDofsByNodePosition[nodePosition];
                     DOFS blockedDofs = spc->getDOFSForNode(nodePosition);
                     DOFS dofsToRemove = imposedDofs.intersection(blockedDofs);
                     if (not dofsToRemove.empty()) {
@@ -1555,8 +1526,8 @@ void Model::splitDirectMatrices(const unsigned int sizeMax){
 
         // It's too big, we have work to do
         esToErase.push_back(elementSetM);
-        map<int, int> nodeIdOfElement;
-        for (const auto& v : matrix->nodePositions()){
+        map<pos_t, int> nodeIdOfElement;
+        for (const auto v : matrix->nodePositions()){
             nodeIdOfElement[v] = mesh.findNodeId(v);
         }
 
@@ -1566,7 +1537,7 @@ void Model::splitDirectMatrices(const unsigned int sizeMax){
         dummyMatrix->clear();
 
 
-        map<int,int> stackOfNodesByNodes;
+        map<pos_t,int> stackOfNodesByNodes;
         map<pair<int, int>, shared_ptr<ElementSet>>  esToAddByStackNumber;
 
         // Splitting the matrices, pairs of nodes by pairs of node (I,J).
@@ -1680,12 +1651,12 @@ void Model::makeCellsFromDirectMatrices() {
         // Create a Cell and add it to the Cell Group
         CellType cellType = CellType::polyType(static_cast<unsigned int>(matrix->nodePositions().size()));
         vector<int> vNodeIds;
-        for (int nodePosition : matrix->nodePositions()){
+        for (const auto nodePosition : matrix->nodePositions()){
             const int nodeId = mesh.findNodeId(nodePosition);
             vNodeIds.push_back(nodeId);
         }
 
-        int cellPosition = mesh.addCell(Cell::AUTO_ID, cellType, vNodeIds, true);
+        const auto cellPosition = mesh.addCell(Cell::AUTO_ID, cellType, vNodeIds, true);
         matrixGroup->addCellPosition(cellPosition);
 
         if (configuration.logLevel >= LogLevel::DEBUG){
@@ -1703,7 +1674,7 @@ void Model::makeCellsFromLMPC() {
         for (const auto& constraintSet : analysis->getConstraintSets()) {
 
             // Group lmpcs by nodePositions
-            map<set<int>, vector<shared_ptr<LinearMultiplePointConstraint>>> lmpcsByNodepositions;
+            map<set<pos_t>, vector<shared_ptr<LinearMultiplePointConstraint>>> lmpcsByNodepositions;
             for (const auto& constraint : constraintSet->getConstraintsByType(Constraint::Type::LMPC)) {
                 const auto& lmpc = static_pointer_cast<LinearMultiplePointConstraint>(constraint);
                 const auto& nodePositions = lmpc->nodePositions();
@@ -1725,7 +1696,7 @@ void Model::makeCellsFromLMPC() {
                 for (const auto& lmpc : lmpcs) {
                     // We sort the Coeffs in order to fuse various LMPC into the same ElementSet/CellGroup
                     vector<DOFCoefs> sortedCoefs;
-                    for (int nodePosition : sortedNodePositions){
+                    for (const auto nodePosition : sortedNodePositions){
                         sortedCoefs.push_back(lmpc->getDoFCoefsForNode(nodePosition));
                     }
                     cellDofCoefs.push_back(sortedCoefs);
@@ -1735,10 +1706,10 @@ void Model::makeCellsFromLMPC() {
                     const auto& cellDofCoefsSlice = vector<vector<DOFCoefs>>(cellDofCoefs.begin() + i, cellDofCoefs.begin() + min(i + Lmpc::LMPCCELL_DOFNUM, cellDofCoefs.size()));
 
                     vector<int> sortedNodeIds;
-                    for (int nodePosition : sortedNodePositions ) {
+                    for (const auto nodePosition : sortedNodePositions ) {
                         sortedNodeIds.push_back(mesh.findNodeId(nodePosition));
                     }
-                    int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::polyType(static_cast<unsigned int>(sortedNodeIds.size())), sortedNodeIds, true);
+                    const auto cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::polyType(static_cast<unsigned int>(sortedNodeIds.size())), sortedNodeIds, true);
 
                     const auto& it = elmpcByDOFCoefs.find(cellDofCoefsSlice);
                     shared_ptr<Lmpc> elementsetLMPC = nullptr;
@@ -1808,9 +1779,9 @@ void Model::makeCellsFromRBE(){
 
             // Creating cells and adding them to the CellGroup
             const int masterId = mesh.findNodeId(rbe2->getMaster());
-            for (int position : rbe2->getSlaves()){
+            for (const auto position : rbe2->getSlaves()){
                 const int slaveId = mesh.findNodeId(position);
-                int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, {masterId, slaveId}, true);
+                const auto cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, {masterId, slaveId}, true);
                 //group->addCellPosition(cellPosition);
                 elementsetRbe2->addCellPosition(cellPosition);
             }
@@ -1850,11 +1821,11 @@ void Model::makeCellsFromRBE(){
 
             //const auto& group = mesh.createCellGroup("RBAR_"+to_string(constraint->bestId()), CellGroup::NO_ORIGINAL_ID, "RBAR");
 
-            for (int position : rbar->getSlaves()) {
+            for (const auto position : rbar->getSlaves()) {
                 const int slaveId = mesh.findNodeId(position);
                 if (not rbar->hasMaster() and slaveId == masterId)
                     continue;
-                int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, {masterId, slaveId}, true);
+                const auto cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, {masterId, slaveId}, true);
                 //group->addCellPosition(cellPosition);
                 elementsetRBAR->addCellPosition(cellPosition);
             }
@@ -1882,10 +1853,10 @@ void Model::makeCellsFromRBE(){
             int nbParts=0;
             map<DOFS, map<double, shared_ptr<CellGroup>>> groupByCoefByDOFS;
 
-            for (int position : rbe3->getSlaves()){
+            for (const auto position : rbe3->getSlaves()){
 
                 const int slaveId = mesh.findNodeId(position);
-                int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, {masterId, slaveId}, true);
+                const auto cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, {masterId, slaveId}, true);
 
                 /* We build a material for each value of "Slave DOFS" and "Slave Coeff" */
                 const DOFS& sDOFS = rbe3->getDOFSForNode(position);
@@ -1899,7 +1870,7 @@ void Model::makeCellsFromRBE(){
                         groupRBE3 = it2->second;
                 }
 
-                if (groupRBE3==nullptr){
+                if (groupRBE3 == nullptr){
 
                     // Creating an elementset, a CellGroup and a dummy rigid material
                     nbParts++;
@@ -1971,7 +1942,7 @@ void Model::splitElementsByDOFS(){
                 const auto& scalarSpring = make_shared<ScalarSpring>(*this, Identifiable<ElementSet>::NO_ORIGINAL_ID, stiffness, damping);
                 const auto& cellGroup = this->mesh.createCellGroup(ss->name+"_"+to_string(i), Group::NO_ORIGINAL_ID);
                 scalarSpring->add(*cellGroup);
-                for (const int cellPosition : it.second){
+                for (const auto cellPosition : it.second){
                     scalarSpring->addSpring(cellPosition, it.first.first, it.first.second);
                     cellGroup->addCellPosition(cellPosition);
                 }
@@ -2003,7 +1974,7 @@ void Model::makeBoundarySegments() {
             for(unsigned int i = 0; i < masterNodeIds.size() - 1;++i) {
                 int nodeId1 = *it;
                 int nodeId2 = *(++it);
-                int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, {nodeId1, nodeId2}, true);
+                const auto cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, {nodeId1, nodeId2}, true);
                 masterCellGroup->addCellPosition(cellPosition);
             }
             slide->masterCellGroup = masterCellGroup;
@@ -2014,7 +1985,7 @@ void Model::makeBoundarySegments() {
             for(unsigned int i = 0; i < slaveNodeIds.size() - 1;++i) {
                 int nodeId1 = *it2;
                 int nodeId2 = *(++it2);
-                int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, {nodeId1, nodeId2}, true);
+                const auto cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, {nodeId1, nodeId2}, true);
                 slaveCellGroup->addCellPosition(cellPosition);
             }
             slide->slaveCellGroup = slaveCellGroup;
@@ -2053,7 +2024,7 @@ void Model::changeParametricForceLineToAbsolute() {
             continue;
         if (forceLine->getCellPositionsIncludingGroups().size() != 1)
             throw logic_error("Conversion of more than one cell per ForceLine not yet implemented (but should be doable)");
-        const int cellPosition = *(forceLine->getCellPositionsIncludingGroups().begin());
+        const auto cellPosition = *(forceLine->getCellPositionsIncludingGroups().begin());
         const Cell& cell = mesh.findCell(cellPosition);
         const Node& node1 = mesh.findNode(cell.nodePositions[0]);
         const Node& node2 = mesh.findNode(cell.nodePositions[1]);
@@ -2100,9 +2071,9 @@ void Model::convert0DDiscretsInto1D() {
         }
 
         const auto& discret0D1DCellGroup = mesh.createCellGroup("DIS0D1D_"+to_string(discretePoint->bestId()), Group::NO_ORIGINAL_ID, "created by convert0DDiscretsInto1D() for a 0D discret element");
-        for (int nodePosition: discretePoint->nodePositions()) {
+        for (const auto nodePosition: discretePoint->nodePositions()) {
             const int nodeId = this->mesh.findNodeId(nodePosition);
-            int cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, {nodeId, nodeId}, true);
+            const auto cellPosition = mesh.addCell(Cell::AUTO_ID, CellType::SEG2, {nodeId, nodeId}, true);
             discret0D1DCellGroup->addCellPosition(cellPosition);
 
         }
@@ -2134,7 +2105,7 @@ void Model::createSetGroups() {
             constraintSetGroup->addNodePositions(constraint->nodePositions());
         }
     }
-    for (auto output : objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT)) {
+    for (const auto& output : objectives.filter(Objective::Type::NODAL_DISPLACEMENT_OUTPUT)) {
         if (not output->isOriginal())
             continue;
         const auto& displacementOutput = static_pointer_cast<const NodalDisplacementOutput>(output);
@@ -2253,7 +2224,7 @@ void Model::finish() {
     }
 
     for (const auto& elementSet : elementSets) {
-        for (int nodePosition : elementSet->nodePositions()) {
+        for (const auto nodePosition : elementSet->nodePositions()) {
             mesh.allowDOFS(nodePosition,elementSet->getDOFSForNode(nodePosition));
         }
     }
@@ -2268,7 +2239,7 @@ void Model::finish() {
 
     for (const auto& analysis : analyses) {
         for (const auto& boundaryCondition : analysis->getBoundaryConditions()) {
-            for(int nodePosition: boundaryCondition->nodePositions()) {
+            for(const auto nodePosition: boundaryCondition->nodePositions()) {
                 analysis->addBoundaryDOFS(nodePosition,
                         boundaryCondition->getDOFSForNode(nodePosition));
             }
@@ -2360,8 +2331,8 @@ void Model::finish() {
         assignVirtualMaterial();
     }
 
-    if (this->configuration.splitElementsByCellOffsets){
-        //splitElementsByCellOffsets();
+    if (this->configuration.splitElementsByCellOffsets and mesh.hasNonZeroOffset()){
+        splitElementsByCellOffsets();
     }
 
     if (this->configuration.alwaysUseOrthotropicMaterialsInComposites){
@@ -2543,7 +2514,7 @@ void Model::assignVirtualMaterial() {
 
 void Model::assignElementsToCells() {
     for (const auto& element : elementSets) {
-        for (int cellPosition : element->cellPositions()) {
+        for (const auto cellPosition : element->cellPositions()) {
             mesh.assignElementId(cellPosition, element->getId());
         }
     }

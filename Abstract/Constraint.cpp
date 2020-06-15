@@ -144,7 +144,7 @@ NodeConstraint::NodeConstraint(Model& model, Constraint::Type type, int original
 		Constraint(model, type, original_id), NodeContainer(model.mesh) {
 }
 
-set<int> NodeConstraint::nodePositions() const {
+set<pos_t> NodeConstraint::nodePositions() const {
 	return getNodePositionsIncludingGroups();
 }
 
@@ -157,15 +157,15 @@ const int MasterSlaveConstraint::UNAVAILABLE_MASTER = INT_MIN;
 MasterSlaveConstraint::MasterSlaveConstraint(Model& model, Type type, const DOFS& dofs,
         int masterId, int original_id, const set<int>& slaveIds) :
         NodeConstraint(model, type, original_id), dofs(dofs),
-        masterPosition{masterId == UNAVAILABLE_MASTER ? UNAVAILABLE_MASTER : model.mesh.findOrReserveNode(masterId)} {
-    if (masterPosition != UNAVAILABLE_MASTER) {
+        masterPosition{masterId == UNAVAILABLE_MASTER ? Globals::UNAVAILABLE_POS : model.mesh.findOrReserveNode(masterId)} {
+    if (masterPosition != Globals::UNAVAILABLE_POS) {
         addNodePosition(masterPosition);
     }
     addNodeIds(slaveIds);
 }
 
-int MasterSlaveConstraint::getMaster() const {
-    if (this->masterPosition != MasterSlaveConstraint::UNAVAILABLE_MASTER) {
+pos_t MasterSlaveConstraint::getMaster() const {
+    if (this->masterPosition != Globals::UNAVAILABLE_POS) {
         return this->masterPosition;
     } else {
         throw logic_error("getMaster: automatic resolution of master id not implemented");
@@ -173,7 +173,7 @@ int MasterSlaveConstraint::getMaster() const {
 }
 
 bool MasterSlaveConstraint::hasMaster() const noexcept {
-    return this->masterPosition != MasterSlaveConstraint::UNAVAILABLE_MASTER;
+    return this->masterPosition != Globals::UNAVAILABLE_POS;
 }
 
 /** Getter for dofs data. **/
@@ -185,14 +185,13 @@ void MasterSlaveConstraint::addSlave(int slaveId) {
     addNodeId(slaveId);
 }
 
-void MasterSlaveConstraint::removeNodePosition(int nodePosition) {
-    UNUSEDV(nodePosition);
+void MasterSlaveConstraint::removeNodePosition(const pos_t) {
     throw logic_error("removeNodePosition for MasterSlaveConstraint not implemented");
 }
 
-set<int> MasterSlaveConstraint::getSlaves() const {
-    if (this->masterPosition != MasterSlaveConstraint::UNAVAILABLE_MASTER) {
-        std::set<int> result = getNodePositionsIncludingGroups();
+set<pos_t> MasterSlaveConstraint::getSlaves() const {
+    if (this->masterPosition != Globals::UNAVAILABLE_POS) {
+        std::set<pos_t> result = getNodePositionsIncludingGroups();
         result.erase(result.find(this->masterPosition));
         return result;
     } else {
@@ -217,7 +216,7 @@ void QuasiRigidConstraint::emulateWithMPCs() {
     const Node& master = model.mesh.findNode(getMaster());
     const DOFS& masterCalcDofs = calcMasterDOFS();
     set<shared_ptr<LinearMultiplePointConstraint>, ptrLess<Constraint>> lmpcs;
-    for (int slavePosition : getSlaves()) {
+    for (const auto slavePosition : getSlaves()) {
 
         const Node& slave = model.mesh.findNode(slavePosition);
 
@@ -312,7 +311,7 @@ DOFS QuasiRigidConstraint::calcMasterDOFS() const {
     DOFS masterUsableDOFS{master.dofs};
     if (this->addRotations) {
         masterUsableDOFS += DOFS::TRANSLATIONS;
-        for (int slavePosition : getSlaves()) {
+        for (const auto slavePosition : getSlaves()) {
             const Node& slave = model.mesh.findNode(slavePosition);
             masterUsableDOFS += slave.dofs;
             VectorialValue distMaster{master.x - slave.x, master.y - slave.y, master.z - slave.z};
@@ -329,7 +328,7 @@ DOFS QuasiRigidConstraint::calcMasterDOFS() const {
     return masterUsableDOFS; // Slaves aligned on some axes
 }
 
-DOFS QuasiRigidConstraint::getDOFSForNode(int nodePosition) const {
+DOFS QuasiRigidConstraint::getDOFSForNode(const pos_t nodePosition) const {
     if (nodePosition == masterPosition) {
         return calcMasterDOFS(); // Slaves aligned on some axes
     }
@@ -349,7 +348,7 @@ RigidConstraint::RigidConstraint(Model& model, int masterId, int constraintGroup
         MasterSlaveConstraint(model, Constraint::Type::RIGID, DOFS::ALL_DOFS, masterId, constraintGroup, slaveIds) {
 }
 
-DOFS RigidConstraint::getDOFSForNode(int nodePosition) const {
+DOFS RigidConstraint::getDOFSForNode(const pos_t nodePosition) const {
     const auto& nodes = nodePositions();
     if (nodes.find(nodePosition) != nodes.end()) {
         return model.mesh.findNode(nodePosition).dofs;
@@ -367,13 +366,13 @@ void RBE3::addSlave(int slaveId) {
 }
 
 void RBE3::addRBE3Slave(int slaveId, DOFS slaveDOFS, double slaveCoef) {
-    int nodePosition = model.mesh.findOrReserveNode(slaveId);
+    const auto nodePosition = model.mesh.findOrReserveNode(slaveId);
     addNodePosition(nodePosition);
     slaveDofsByPosition[nodePosition] = slaveDOFS;
     slaveCoefByPosition[nodePosition] = slaveCoef;
 }
 
-double RBE3::getCoefForNode(int nodePosition) const {
+double RBE3::getCoefForNode(const pos_t nodePosition) const {
     double result = 0;
     if (nodePosition == masterPosition)
         result = 1;
@@ -385,7 +384,7 @@ double RBE3::getCoefForNode(int nodePosition) const {
     return result;
 }
 
-DOFS RBE3::getDOFSForNode(int nodePosition) const {
+DOFS RBE3::getDOFSForNode(const pos_t nodePosition) const {
     DOFS result = DOFS::ALL_DOFS;
     if (nodePosition == masterPosition) {
         result = dofs;
@@ -435,7 +434,7 @@ void SinglePointConstraint::setDOFS(const DOFS& dofs, const ValueOrReference& va
     }
 }
 
-DOFS SinglePointConstraint::getDOFSForNode(int nodePosition) const {
+DOFS SinglePointConstraint::getDOFSForNode(const pos_t nodePosition) const {
     UNUSEDV(nodePosition);
     DOFS requiredDofs;
     for (char i = 0; i < 6; i++) {
@@ -491,7 +490,7 @@ shared_ptr<Value> SinglePointConstraint::getReferenceForDOF(const DOF& dof) cons
 
 void SinglePointConstraint::emulateLocalDisplacementConstraint() {
     set<shared_ptr<LinearMultiplePointConstraint>, ptrLess<Constraint>> lmpcs;
-    for (int nodePosition : this->nodePositions()) {
+    for (const auto nodePosition : this->nodePositions()) {
         const Node& node = model.mesh.findNode(nodePosition);
         if (node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
             const auto& coordSystem = model.mesh.getCoordinateSystemByPosition(node.displacementCS);
@@ -542,7 +541,7 @@ LinearMultiplePointConstraint::LinearMultiplePointConstraint(Model& model, doubl
 
 void LinearMultiplePointConstraint::addParticipation(int nodeId, double dx, double dy, double dz,
         double rx, double ry, double rz) {
-    int nodePosition = model.mesh.findOrReserveNode(nodeId);
+    const auto nodePosition = model.mesh.findOrReserveNode(nodeId);
     auto it = dofCoefsByNodePosition.find(nodePosition);
     if (it == dofCoefsByNodePosition.end())
         dofCoefsByNodePosition[nodePosition] = DOFCoefs(dx, dy, dz, rx, ry, rz);
@@ -550,15 +549,15 @@ void LinearMultiplePointConstraint::addParticipation(int nodeId, double dx, doub
         dofCoefsByNodePosition[nodePosition] += DOFCoefs(dx, dy, dz, rx, ry, rz);
 }
 
-set<int> LinearMultiplePointConstraint::nodePositions() const {
-    set<int> result;
+set<pos_t> LinearMultiplePointConstraint::nodePositions() const {
+    set<pos_t> result;
     for (const auto& it : dofCoefsByNodePosition) {
         result.insert(it.first);
     }
     return result;
 }
 
-DOFS LinearMultiplePointConstraint::getDOFSForNode(int nodePosition) const {
+DOFS LinearMultiplePointConstraint::getDOFSForNode(const pos_t nodePosition) const {
     DOFS dofs(DOFS::NO_DOFS);
     auto it = dofCoefsByNodePosition.find(nodePosition);
     if (it != dofCoefsByNodePosition.end()) {
@@ -579,7 +578,7 @@ DOFS LinearMultiplePointConstraint::getDOFSForNode(int nodePosition) const {
     return dofs;
 }
 
-void LinearMultiplePointConstraint::removeNodePosition(int nodePosition) {
+void LinearMultiplePointConstraint::removeNodePosition(const pos_t nodePosition) {
     dofCoefsByNodePosition.erase(nodePosition);
 }
 
@@ -587,8 +586,7 @@ bool LinearMultiplePointConstraint::ineffective() const  {
     return dofCoefsByNodePosition.empty();
 }
 
-DOFCoefs LinearMultiplePointConstraint::getDoFCoefsForNode(
-        int nodePosition) const {
+DOFCoefs LinearMultiplePointConstraint::getDoFCoefsForNode(const pos_t nodePosition) const {
     DOFCoefs dofCoefs(0, 0, 0, 0, 0, 0);
     auto it = dofCoefsByNodePosition.find(nodePosition);
     if (it != dofCoefsByNodePosition.end())
@@ -609,8 +607,8 @@ GapTwoNodes::GapTwoNodes(Model& model, int original_id) :
 }
 
 void GapTwoNodes::addGapNodes(int constrainedNodeId, int directionNodeId) {
-    int constrainedNodePosition = model.mesh.findOrReserveNode(constrainedNodeId);
-    int directionNodePosition = model.mesh.findOrReserveNode(directionNodeId);
+    const auto constrainedNodePosition = model.mesh.findOrReserveNode(constrainedNodeId);
+    const auto directionNodePosition = model.mesh.findOrReserveNode(directionNodeId);
     directionNodePositionByconstrainedNodePosition[constrainedNodePosition] = directionNodePosition;
 }
 
@@ -628,15 +626,15 @@ vector<shared_ptr<Gap::GapParticipation>> GapTwoNodes::getGaps() const {
     return result;
 }
 
-set<int> GapTwoNodes::nodePositions() const {
-    set<int> result;
+set<pos_t> GapTwoNodes::nodePositions() const {
+    set<pos_t> result;
     for (const auto& it : directionNodePositionByconstrainedNodePosition) {
         result.insert(it.first);
     }
     return result;
 }
 
-void GapTwoNodes::removeNodePosition(int nodePosition) {
+void GapTwoNodes::removeNodePosition(const pos_t nodePosition) {
     directionNodePositionByconstrainedNodePosition.erase(nodePosition);
 }
 
@@ -644,7 +642,7 @@ bool GapTwoNodes::ineffective() const {
     return directionNodePositionByconstrainedNodePosition.empty();
 }
 
-DOFS GapTwoNodes::getDOFSForNode(int nodePosition) const {
+DOFS GapTwoNodes::getDOFSForNode(const pos_t nodePosition) const {
     const auto& it = directionNodePositionByconstrainedNodePosition.find(nodePosition);
     DOFS dofs(DOFS::NO_DOFS);
     if (it != directionNodePositionByconstrainedNodePosition.end()) {
@@ -668,7 +666,7 @@ GapNodeDirection::GapNodeDirection(Model& model, int original_id) :
 
 void GapNodeDirection::addGapNodeDirection(int constrainedNodeId, double directionX,
         double directionY, double directionZ) {
-    int constrainedNodePosition = model.mesh.findOrReserveNode(constrainedNodeId);
+    const auto constrainedNodePosition = model.mesh.findOrReserveNode(constrainedNodeId);
     directionBynodePosition[constrainedNodePosition] = VectorialValue(directionX, directionY,
             directionZ);
 }
@@ -677,22 +675,22 @@ vector<shared_ptr<Gap::GapParticipation>> GapNodeDirection::getGaps() const {
     vector<shared_ptr<Gap::GapParticipation>> result;
     result.reserve(directionBynodePosition.size());
     for (const auto& it : directionBynodePosition) {
-        const int constrainedNodePosition = it.first;
+        const auto constrainedNodePosition = it.first;
         const auto& gp = make_shared<GapParticipation>(constrainedNodePosition, it.second.normalized());
         result.push_back(gp);
     }
     return result;
 }
 
-set<int> GapNodeDirection::nodePositions() const {
-    set<int> result;
+set<pos_t> GapNodeDirection::nodePositions() const {
+    set<pos_t> result;
     for (const auto& it : directionBynodePosition) {
         result.insert(it.first);
     }
     return result;
 }
 
-void GapNodeDirection::removeNodePosition(int nodePosition) {
+void GapNodeDirection::removeNodePosition(const pos_t nodePosition) {
     directionBynodePosition.erase(nodePosition);
 }
 
@@ -700,7 +698,7 @@ bool GapNodeDirection::ineffective() const {
     return directionBynodePosition.empty();
 }
 
-DOFS GapNodeDirection::getDOFSForNode(int nodePosition) const {
+DOFS GapNodeDirection::getDOFSForNode(const pos_t nodePosition) const {
     auto it = directionBynodePosition.find(nodePosition);
     DOFS dofs(DOFS::NO_DOFS);
     if (it != directionBynodePosition.end()) {
@@ -737,8 +735,8 @@ double SlideContact::getFriction() const {
     }
 }
 
-set<int> SlideContact::nodePositions() const {
-    set<int> result;
+set<pos_t> SlideContact::nodePositions() const {
+    set<pos_t> result;
     const auto& masterLine = dynamic_pointer_cast<BoundaryNodeLine>(model.find(master));
     if (masterLine == nullptr) {
         throw logic_error("Cannot find master node list");
@@ -756,7 +754,7 @@ set<int> SlideContact::nodePositions() const {
     return result;
 }
 
-void SlideContact::removeNodePosition(int nodePosition) {
+void SlideContact::removeNodePosition(const pos_t nodePosition) {
     UNUSEDV(nodePosition);
     throw logic_error("Not yet implemented");
 }
@@ -767,7 +765,7 @@ bool SlideContact::ineffective() const {
     return masterLine->nodeids.empty() or slaveLine->nodeids.empty();
 }
 
-DOFS SlideContact::getDOFSForNode(int nodePosition) const {
+DOFS SlideContact::getDOFSForNode(const pos_t nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::TRANSLATIONS;
 }
@@ -776,8 +774,8 @@ SurfaceContact::SurfaceContact(Model& model, Reference<Target> master, Reference
     Contact(model, Constraint::Type::SURFACE_CONTACT, original_id), master(master), slave(slave) {
 }
 
-set<int> SurfaceContact::nodePositions() const {
-    set<int> result;
+set<pos_t> SurfaceContact::nodePositions() const {
+    set<pos_t> result;
     const auto& masterSurface = dynamic_pointer_cast<BoundaryNodeSurface>(model.find(master));
     if (masterSurface== nullptr) {
         throw logic_error("Cannot find master node list");
@@ -795,7 +793,7 @@ set<int> SurfaceContact::nodePositions() const {
     return result;
 }
 
-void SurfaceContact::removeNodePosition(int nodePosition) {
+void SurfaceContact::removeNodePosition(const pos_t nodePosition) {
     UNUSEDV(nodePosition);
     throw logic_error("Not yet implemented");
 }
@@ -806,7 +804,7 @@ bool SurfaceContact::ineffective() const {
     return masterSurface->nodeids.empty() or slaveSurface->nodeids.empty();
 }
 
-DOFS SurfaceContact::getDOFSForNode(int nodePosition) const {
+DOFS SurfaceContact::getDOFSForNode(const pos_t nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::TRANSLATIONS;
 }
@@ -831,7 +829,7 @@ void SurfaceContact::makeBoundarySurfaces() {
             connectivity.push_back(nodeId4);
             cellType = CellType::QUAD4;
         }
-        int cellPosition = model.mesh.addCell(Cell::AUTO_ID, cellType, connectivity, true);
+        const auto cellPosition = model.mesh.addCell(Cell::AUTO_ID, cellType, connectivity, true);
         slaveCellGroup->addCellPosition(cellPosition);
     }
     this->slaveCellGroup = slaveCellGroup;
@@ -852,7 +850,7 @@ void SurfaceContact::makeBoundarySurfaces() {
             connectivity.push_back(nodeId4);
             cellType = CellType::QUAD4;
         }
-        int cellPosition = model.mesh.addCell(Cell::AUTO_ID, cellType, connectivity, true);
+        const auto cellPosition = model.mesh.addCell(Cell::AUTO_ID, cellType, connectivity, true);
         masterCellGroup->addCellPosition(cellPosition);
     }
     this->masterCellGroup = masterCellGroup;
@@ -863,8 +861,8 @@ ZoneContact::ZoneContact(Model& model, Reference<Target> master, Reference<Targe
 }
 
 
-set<int> ZoneContact::nodePositions() const {
-    set<int> result;
+set<pos_t> ZoneContact::nodePositions() const {
+    set<pos_t> result;
     const auto& masterBody = dynamic_pointer_cast<ContactBody>(model.find(master));
     if (masterBody == nullptr) {
         throw logic_error("Cannot find master body in zone contact");
@@ -888,7 +886,7 @@ set<int> ZoneContact::nodePositions() const {
     return result;
 }
 
-void ZoneContact::removeNodePosition(int nodePosition) {
+void ZoneContact::removeNodePosition(const pos_t nodePosition) {
     UNUSEDV(nodePosition);
     throw logic_error("Not yet implemented");
 }
@@ -913,7 +911,7 @@ bool ZoneContact::ineffective() const {
     return masterBoundary->empty() or slaveBoundary->empty();
 }
 
-DOFS ZoneContact::getDOFSForNode(int nodePosition) const {
+DOFS ZoneContact::getDOFSForNode(const pos_t nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::TRANSLATIONS;
 }
@@ -922,8 +920,8 @@ SurfaceSlide::SurfaceSlide(Model& model, Reference<Target> master, Reference<Tar
     Constraint(model, Constraint::Type::SURFACE_SLIDE_CONTACT, original_id), master(master), slave(slave) {
 }
 
-set<int> SurfaceSlide::nodePositions() const {
-    set<int> result;
+set<pos_t> SurfaceSlide::nodePositions() const {
+    set<pos_t> result;
     const auto& masterBoundary = dynamic_pointer_cast<BoundaryElementFace>(model.find(master));
     if (masterBoundary == nullptr) {
         throw logic_error("Cannot find master body boundary in surface slide");
@@ -946,7 +944,7 @@ set<int> SurfaceSlide::nodePositions() const {
     return result;
 }
 
-void SurfaceSlide::removeNodePosition(int nodePosition) {
+void SurfaceSlide::removeNodePosition(const pos_t nodePosition) {
     UNUSEDV(nodePosition);
     throw logic_error("Not yet implemented");
 }
@@ -963,7 +961,7 @@ bool SurfaceSlide::ineffective() const {
     return masterBoundary->faceInfos.empty() or slaveBoundary->faceInfos.empty();
 }
 
-DOFS SurfaceSlide::getDOFSForNode(int nodePosition) const {
+DOFS SurfaceSlide::getDOFSForNode(const pos_t nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::TRANSLATIONS;
 }
@@ -992,7 +990,7 @@ void SurfaceSlide::makeCellsFromSurfaceSlide() {
         if (not faceIds.empty()) {
             node_polygon masterFace;
             for (const int faceId : faceIds) {
-                int nodePosition = model.mesh.findNodePosition(faceId);
+                const auto nodePosition = model.mesh.findNodePosition(faceId);
                 const Node& node = model.mesh.findNode(nodePosition);
                 const node_point np{node.x, node.y, node.z};
                 masterFace.outer().push_back(np);
@@ -1011,7 +1009,7 @@ void SurfaceSlide::makeCellsFromSurfaceSlide() {
         const Cell& slaveCell = model.mesh.findCell(model.mesh.findCellPosition(faceInfo.cellId));
         const auto& faceIds = slaveCell.faceids_from_two_nodes(faceInfo.nodeid1, faceInfo.nodeid2);
         for (const int faceId : faceIds) {
-            int nodePosition = model.mesh.findNodePosition(faceId);
+            const auto nodePosition = model.mesh.findNodePosition(faceId);
             const Node& node = model.mesh.findNode(nodePosition);
             vector<value> result_n;
             rtree.query(bgi::nearest(node_point{node.x, node.y, node.z}, 1), std::back_inserter(result_n));
@@ -1022,12 +1020,12 @@ void SurfaceSlide::makeCellsFromSurfaceSlide() {
             size_t num_master_points = bg::num_points(masterFace);
             switch(num_master_points) {
             case 3: {
-                int cellPosition = model.mesh.addCell(Cell::AUTO_ID, CellType::TETRA4, contactNodeIds , true);
+                const auto cellPosition = model.mesh.addCell(Cell::AUTO_ID, CellType::TETRA4, contactNodeIds , true);
                 group->addCellPosition(cellPosition);
                 break;
             }
             case 4: {
-                int cellPosition = model.mesh.addCell(Cell::AUTO_ID, CellType::PYRA5, contactNodeIds , true);
+                const auto cellPosition = model.mesh.addCell(Cell::AUTO_ID, CellType::PYRA5, contactNodeIds , true);
                 group->addCellPosition(cellPosition);
                 break;
             }

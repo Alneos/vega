@@ -419,19 +419,19 @@ unique_ptr<CoordinateSystem> OrientationCoordinateSystem::clone() const {
 /**
  * Coordinate System Container class
  */
-int CoordinateSystemStorage::cs_next_position= CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID + 1;
+pos_t CoordinateSystemStorage::cs_next_position= CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID + 1;
 
 CoordinateSystemStorage::CoordinateSystemStorage(const Mesh& mesh, LogLevel logLevel) :
         logLevel(logLevel),
         mesh(mesh) {
 }
 
-int CoordinateSystemStorage::findPosition(const Reference<CoordinateSystem> csref) const {
+pos_t CoordinateSystemStorage::findPosition(const Reference<CoordinateSystem> csref) const {
     if (csref == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM) {
         return CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
     }
 
-    int cpos = UNAVAILABLE_POSITION;
+    auto cpos = UNAVAILABLE_POSITION;
     for (const auto& it : refByPosition){
         if (it.second == csref){
             cpos = it.first;
@@ -441,9 +441,9 @@ int CoordinateSystemStorage::findPosition(const Reference<CoordinateSystem> csre
     return cpos;
 }
 
-int CoordinateSystemStorage::add(const CoordinateSystem& coordinateSystem){
+pos_t CoordinateSystemStorage::add(const CoordinateSystem& coordinateSystem){
     int uid = coordinateSystem.getOriginalId();
-    int cpos = UNAVAILABLE_POSITION;
+    auto cpos = UNAVAILABLE_POSITION;
 
     if (cpos == UNAVAILABLE_POSITION){
         cpos = cs_next_position;
@@ -451,8 +451,8 @@ int CoordinateSystemStorage::add(const CoordinateSystem& coordinateSystem){
     }
 
     // We check some errors
-    const auto it2= refByPosition.find(cpos);
-    if ((it2!=refByPosition.end()) && (it2->second.original_id!=uid)){
+    const auto it2 = refByPosition.find(cpos);
+    if ((it2 != refByPosition.end()) && (it2->second.original_id != uid)){
         throw logic_error("Mismatch in coordinate system in position:"+to_string(cpos)+" has conflicting ids: "+ to_str(coordinateSystem) + " "+ to_str(it2->second));
     }
 
@@ -462,18 +462,18 @@ int CoordinateSystemStorage::add(const CoordinateSystem& coordinateSystem){
     coordinateSystemByRef[csref] = coordinateSystem.clone();
 
     if (this->logLevel >= LogLevel::TRACE) {
-        cout << "Add coordinate system id:" << uid << " (user id: "<<uid<<") in position:" << cpos << endl;
+        cout << "Add coordinate system id:" << uid << " (user id: " << uid << ") in position:" << cpos << endl;
     }
     return cpos;
 }
 
-shared_ptr<CoordinateSystem> CoordinateSystemStorage::findByPosition(int cpos) const {
+shared_ptr<CoordinateSystem> CoordinateSystemStorage::findByPosition(const pos_t cpos) const {
 
     if (cpos == CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
         throw logic_error("Should not ask for the global coordinate system");
     }
 
-    const auto it2= refByPosition.find(cpos);
+    const auto it2 = refByPosition.find(cpos);
     if (it2 == refByPosition.end()){
         throw logic_error("Mismatch in coordinate system: Position " + to_string(cpos) + " not found");
     }
@@ -497,13 +497,13 @@ shared_ptr<CoordinateSystem> CoordinateSystemStorage::find(Reference<CoordinateS
     return it->second;
 }
 
-int CoordinateSystemStorage::reserve(const Reference<CoordinateSystem> csref) {
+pos_t CoordinateSystemStorage::reserve(const Reference<CoordinateSystem> csref) {
 
     if (csref==CoordinateSystem::GLOBAL_COORDINATE_SYSTEM){
         throw logic_error("We don't reserve a position for the GLOBAL Coordinate System "+to_str(CoordinateSystem::GLOBAL_COORDINATE_SYSTEM));
     }
 
-    int cpos= cs_next_position;
+    const auto cpos = cs_next_position;
     cs_next_position++;
 
     refByPosition.insert({cpos, csref});

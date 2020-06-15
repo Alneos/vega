@@ -128,11 +128,11 @@ NodalAssertion::NodalAssertion(Model& model, const std::shared_ptr<ObjectiveSet>
         Assertion(model, objectiveset, type, tolerance, original_id), nodePosition(model.mesh.findOrReserveNode(nodeId)), nodeId(nodeId), dof(dof) {
 }
 
-DOFS NodalAssertion::getDOFSForNode(const int nodePosition) const {
+DOFS NodalAssertion::getDOFSForNode(const pos_t nodePosition) const {
     UNUSEDV(nodePosition);
     return dof;
 }
-set<int> NodalAssertion::nodePositions() const {
+set<pos_t> NodalAssertion::nodePositions() const {
     return {nodePosition};
 }
 
@@ -167,11 +167,11 @@ FrequencyAssertion::FrequencyAssertion(Model& model, const std::shared_ptr<Objec
         Assertion(model, objectiveset, Objective::Type::FREQUENCY_ASSERTION, tolerance, original_id), number(number), cycles(cycles), eigenValue(eigenValue), generalizedMass(generalizedMass), generalizedStiffness(generalizedStiffness) {
 }
 
-DOFS FrequencyAssertion::getDOFSForNode(const int nodePosition) const {
+DOFS FrequencyAssertion::getDOFSForNode(const pos_t nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::NO_DOFS;
 }
-set<int> FrequencyAssertion::nodePositions() const {
+set<pos_t> FrequencyAssertion::nodePositions() const {
     return {};
 }
 
@@ -187,11 +187,10 @@ NodalCellVonMisesAssertion::NodalCellVonMisesAssertion(Model& model,
         nodePosition(model.mesh.findOrReserveNode(nodeId)), nodeId(nodeId), cellPosition(model.mesh.findCellPosition(cellId)), cellId(cellId), value(value) {
 }
 
-DOFS NodalCellVonMisesAssertion::getDOFSForNode(const int nodePosition) const {
-    UNUSEDV(nodePosition);
+DOFS NodalCellVonMisesAssertion::getDOFSForNode(const pos_t) const {
     return DOFS::NO_DOFS;
 }
-set<int> NodalCellVonMisesAssertion::nodePositions() const {
+set<pos_t> NodalCellVonMisesAssertion::nodePositions() const {
     return {nodePosition};
 }
 
@@ -205,8 +204,16 @@ AnalysisParameter::AnalysisParameter(Model& model, const std::shared_ptr<Objecti
         Objective(model, objectiveset, type, original_id) {
 }
 
-FrequencySearch::FrequencySearch(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, const FrequencyType frequencyType, const NamedValue& namedValue, NormType norm, int original_id) :
-        AnalysisParameter(model, objectiveset, Objective::Type::FREQUENCY_SEARCH, original_id), namedValue(namedValue), frequencyType(frequencyType), norm(norm) {
+FrequencySearch::FrequencySearch(Model& model,
+                                 const std::shared_ptr<ObjectiveSet> objectiveset,
+                                 const FrequencyType frequencyType,
+                                 const NamedValue& namedValue,
+                                 const NormType norm,
+                                 int original_id) :
+        AnalysisParameter(model, objectiveset, Objective::Type::FREQUENCY_SEARCH, original_id),
+        namedValue(namedValue),
+        frequencyType(frequencyType),
+        norm(norm) {
 }
 
 shared_ptr<NamedValue> FrequencySearch::getValue() const {
@@ -217,8 +224,16 @@ FunctionPlaceHolder FrequencySearch::getValueRangePlaceHolder() const {
     return FunctionPlaceHolder(model, namedValue.type, namedValue.original_id, Function::ParaName::FREQ);
 }
 
-ComplexFrequencyMethod::ComplexFrequencyMethod(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, const std::shared_ptr<ObjectiveSet> complexMethodSet, NormType norm, int original_id) :
-        AnalysisParameter(model, objectiveset, Objective::Type::COMPLEX_FREQUENCY_METHOD, original_id), norm(norm), complexMethodSet(complexMethodSet) {
+ComplexFrequencySearch::ComplexFrequencySearch(Model& model,
+                                               const std::shared_ptr<ObjectiveSet> objectiveset,
+                                               int numRoots,
+                                               NormType norm,
+                                               const ModalSolver method,
+                                               int original_id) :
+        AnalysisParameter(model, objectiveset, Objective::Type::COMPLEX_FREQUENCY_METHOD, original_id),
+        norm(norm),
+        method(method),
+        numRoots(numRoots) {
 }
 
 FrequencyExcit::FrequencyExcit(Model& model, const std::shared_ptr<ObjectiveSet> objectiveset, const FrequencyType frequencyType, const NamedValue& namedValue, NormType norm, int original_id) :
@@ -293,7 +308,7 @@ vector<shared_ptr<NodeGroup>> NodalDisplacementOutput::getNodeGroups() const {
         const string& groupName = "DISP_" + to_string(this->getId());
         auto nodeGroup = model.mesh.findOrCreateNodeGroup(groupName, NodeGroup::NO_ORIGINAL_ID, "DISP");
         for (const auto& cellGroup : cellGroups) {
-            for (const int nodePosition : cellGroup->nodePositions()) {
+            for (const pos_t nodePosition : cellGroup->nodePositions()) {
                 nodeGroup->addNodeByPosition(nodePosition);
             }
         }

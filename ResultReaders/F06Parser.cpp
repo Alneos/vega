@@ -83,7 +83,7 @@ int F06Parser::readDisplacementSection(int currentSubCase, Model& model,
 
 				const Node& node = model.mesh.findNode(model.mesh.findNodePosition(nodeId));
 				if (node.displacementCS != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {
-					shared_ptr<CoordinateSystem> coordSystem = model.mesh.getCoordinateSystemByPosition(node.displacementCS);
+					const auto& coordSystem = model.mesh.getCoordinateSystemByPosition(node.displacementCS);
 					coordSystem->updateLocalBase(VectorialValue(node.x, node.y, node.z));
 					translation = coordSystem->vectorToGlobal(translation);
 					rotation = coordSystem->vectorToGlobal(rotation);
@@ -337,10 +337,10 @@ int F06Parser::readStressesForSolidsSection(int currentSubCase, Model& model,
                                     nodeId, vonMises));
                     if (configuration.outputSolver.getSolverName() == SolverName::CODE_ASTER) {
                         // Workaround to avoid MAILLE in COMM file
-                        int cellPosition = model.mesh.findCellPosition(cellId);
+                        const auto cellPosition = model.mesh.findCellPosition(cellId);
                         const string& groupName = Cell::MedName(cellPosition);
                         if (not model.mesh.hasGroup(groupName)) {
-                            shared_ptr<CellGroup> cellGrp = model.mesh.createCellGroup(groupName, Group::NO_ORIGINAL_ID, "Single cell group over vmis elno assertion");
+                            const auto& cellGrp = model.mesh.createCellGroup(groupName, Group::NO_ORIGINAL_ID, "Single cell group over vmis elno assertion");
                             cellGrp->addCellPosition(cellPosition);
                         }
                     }

@@ -132,7 +132,7 @@ NodeLoading::NodeLoading(Model& model, const std::shared_ptr<LoadSet> loadset, L
 		Loading(model, loadset, type, original_id, csref), NodeContainer(model.mesh) {
 }
 
-set<int> NodeLoading::nodePositions() const {
+set<pos_t> NodeLoading::nodePositions() const {
 	return NodeContainer::getNodePositionsIncludingGroups();
 }
 
@@ -146,11 +146,11 @@ Gravity::Gravity(Model& model, const std::shared_ptr<LoadSet> loadset, double sc
 				scalingFactor), gravityVector(gravityVector) {
 }
 
-DOFS Gravity::getDOFSForNode(const int nodePosition) const {
+DOFS Gravity::getDOFSForNode(const pos_t nodePosition) const {
 	UNUSEDV(nodePosition);
 	return DOFS::NO_DOFS;
 }
-set<int> Gravity::nodePositions() const {
+set<pos_t> Gravity::nodePositions() const {
 	return {};
 }
 
@@ -183,12 +183,12 @@ Rotation::Rotation(Model& model, const std::shared_ptr<LoadSet> loadset, const i
 		VolumicLoading(model, loadset, Loading::Type::ROTATION, original_id) {
 }
 
-DOFS Rotation::getDOFSForNode(const int nodePosition) const {
+DOFS Rotation::getDOFSForNode(const pos_t nodePosition) const {
 	UNUSEDV(nodePosition);
 	return DOFS::NO_DOFS;
 }
 
-set<int> Rotation::nodePositions() const {
+set<pos_t> Rotation::nodePositions() const {
 	return {};
 }
 
@@ -253,7 +253,7 @@ ImposedDisplacement::ImposedDisplacement(Model& model, const std::shared_ptr<Loa
     NodeLoading(model, loadset, Loading::Type::IMPOSED_DISPLACEMENT, original_id, csref), displacements(dofs, value) {
 }
 
-DOFS ImposedDisplacement::getDOFSForNode(int nodePosition) const {
+DOFS ImposedDisplacement::getDOFSForNode(const pos_t nodePosition) const {
     UNUSEDV(nodePosition);
     return displacements.getDOFS();
 }
@@ -287,7 +287,7 @@ NodalForce::NodalForce(Model& model, const std::shared_ptr<LoadSet> loadset, dou
 		NodeLoading(model, loadset, Loading::Type::NODAL_FORCE, original_id, csref), force(fx, fy, fz), moment(mx, my, mz) {
 }
 
-VectorialValue NodalForce::localToGlobal(int nodePosition, const VectorialValue& vectorialValue) const {
+VectorialValue NodalForce::localToGlobal(const pos_t nodePosition, const VectorialValue& vectorialValue) const {
 	if (!hasCoordinateSystem())
 		return vectorialValue;
 	const auto& coordSystem = model.mesh.findCoordinateSystem(csref);
@@ -302,21 +302,21 @@ VectorialValue NodalForce::localToGlobal(int nodePosition, const VectorialValue&
 	return coordSystem->vectorToGlobal(vectorialValue);
 }
 
-VectorialValue NodalForce::getForceInGlobalCS(int nodePosition) const {
+VectorialValue NodalForce::getForceInGlobalCS(const pos_t nodePosition) const {
     const auto& posSet = nodePositions();
 	if (posSet.find(nodePosition) == posSet.end())
         throw logic_error("Requested node has not been assigned to this loading");
 	return localToGlobal(nodePosition, force);
 }
 
-VectorialValue NodalForce::getMomentInGlobalCS(int nodePosition) const {
+VectorialValue NodalForce::getMomentInGlobalCS(const pos_t nodePosition) const {
     const auto& posSet = nodePositions();
 	if (posSet.find(nodePosition) == posSet.end())
         throw logic_error("Requested node has not been assigned to this loading");
 	return localToGlobal(nodePosition, moment);
 }
 
-DOFS NodalForce::getDOFSForNode(const int nodePosition) const {
+DOFS NodalForce::getDOFSForNode(const pos_t nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
 	const auto& posSet = nodePositions();
 	if (posSet.find(nodePosition) != posSet.end()) {
@@ -358,7 +358,7 @@ NodalForceTwoNodes::NodalForceTwoNodes(Model& model, const std::shared_ptr<LoadS
 				model.mesh.findOrReserveNode(node2_id)), magnitude(magnitude) {
 }
 
-VectorialValue NodalForceTwoNodes::getForceInGlobalCS(int nodePosition) const {
+VectorialValue NodalForceTwoNodes::getForceInGlobalCS(const pos_t nodePosition) const {
 	const Node& node1 = model.mesh.findNode(node_position1);
 	const Node& node2 = model.mesh.findNode(node_position2);
 	const auto& direction = (VectorialValue(node2.x, node2.y, node2.z)
@@ -387,7 +387,7 @@ NodalForceFourNodes::NodalForceFourNodes(Model& model, const std::shared_ptr<Loa
                 node_position4(model.mesh.findOrReserveNode(node4_id)), magnitude(magnitude) {
 }
 
-VectorialValue NodalForceFourNodes::getForceInGlobalCS(int nodePosition) const {
+VectorialValue NodalForceFourNodes::getForceInGlobalCS(const pos_t nodePosition) const {
     const Node& node1 = model.mesh.findNode(node_position1);
     const Node& node2 = model.mesh.findNode(node_position2);
     const Node& node3 = model.mesh.findNode(node_position3);
@@ -416,7 +416,7 @@ StaticPressure::StaticPressure(Model& model, const std::shared_ptr<LoadSet> load
                 node_position1(model.mesh.findOrReserveNode(node1_id)),
                 node_position2(model.mesh.findOrReserveNode(node2_id)),
                 node_position3(model.mesh.findOrReserveNode(node3_id)),
-                node_position4(node4_id == Globals::UNAVAILABLE_INT ? Globals::UNAVAILABLE_INT : model.mesh.findOrReserveNode(node4_id)),
+                node_position4(node4_id == Globals::UNAVAILABLE_INT ? Globals::UNAVAILABLE_POS : model.mesh.findOrReserveNode(node4_id)),
                 magnitude(magnitude) {
     addNodePosition(node_position1);
     addNodePosition(node_position2);
@@ -426,7 +426,7 @@ StaticPressure::StaticPressure(Model& model, const std::shared_ptr<LoadSet> load
     }
 }
 
-VectorialValue StaticPressure::getForceInGlobalCS(int nodePosition) const {
+VectorialValue StaticPressure::getForceInGlobalCS(const pos_t nodePosition) const {
     const auto& posSet = nodePositions();
 	if (posSet.find(nodePosition) == posSet.end()) {
 	    return VectorialValue();
@@ -437,7 +437,7 @@ VectorialValue StaticPressure::getForceInGlobalCS(int nodePosition) const {
     const Node& node3 = model.mesh.findNode(node_position3);
     const VectorialValue& v12 = VectorialValue(node2.x, node2.y, node2.z) - VectorialValue(node1.x, node1.y, node1.z);
     const VectorialValue& v13 = VectorialValue(node3.x, node3.y, node3.z) - VectorialValue(node1.x, node1.y, node1.z);
-    if (node_position4 != Globals::UNAVAILABLE_INT) {
+    if (node_position4 != Globals::UNAVAILABLE_POS) {
         /*
         In the case of a quadrilateral surface, the grid points G1, G2, G3, and G4 should form a consecutive sequence around the perimeter. The right-hand rule is applied to find the assumed direction of the pressure. Four concentrated loads are applied to the grid points in approximately the same manner as for a triangular surface. The following specific procedures are adopted to accommodate irregular and/or warped surfaces:
         The surface is divided into two sets of overlapping triangular surfaces. Each triangular surface is bounded by two of the sides and one of the diagonals of the quadrilateral.
@@ -513,7 +513,7 @@ CellLoading::CellLoading(Model& model, const std::shared_ptr<LoadSet> loadset, L
 		Loading(model, loadset, type, original_id, csref), CellContainer(model.mesh) {
 }
 
-set<int> CellLoading::nodePositions() const {
+set<pos_t> CellLoading::nodePositions() const {
 	return CellContainer::getNodePositionsIncludingGroups();
 }
 
@@ -566,7 +566,7 @@ bool CellLoading::appliedToGeometry() {
 void CellLoading::createSkin() {
     const auto& faceIds = this->getApplicationFaceNodeIds();
     if (not faceIds.empty()) {
-        const int cellPosition = model.mesh.generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
+        const pos_t cellPosition = model.mesh.generateSkinCell(faceIds, SpaceDimension::DIMENSION_2D);
 
         // LD : try to solve https://github.com/Alneos/vega/issues/25 but it should be done only for loadings that can be grouped together (i.e. same pressure values, same directions etc)
         this->clear(); //< To remove the volumic cell and then add the skin at its place
@@ -603,7 +603,7 @@ VectorialValue ForceSurface::getMoment() const {
 	return moment;
 }
 
-DOFS ForceSurface::getDOFSForNode(const int nodePosition) const {
+DOFS ForceSurface::getDOFSForNode(const pos_t nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
 	const auto& nodes = nodePositions();
 	if (nodes.find(nodePosition) != nodes.end()) {
@@ -650,7 +650,7 @@ ForceSurfaceTwoNodes::ForceSurfaceTwoNodes(Model& model, const std::shared_ptr<L
 ForceSurfaceTwoNodes::ForceSurfaceTwoNodes(Model& model, const std::shared_ptr<LoadSet> loadset, int nodeId1,
 		const VectorialValue& force, const VectorialValue& moment, const int original_id) :
 		ForceSurface(model, loadset, force, moment, original_id), nodePosition1(
-				model.mesh.findOrReserveNode(nodeId1)), nodePosition2(Globals::UNAVAILABLE_INT) {
+				model.mesh.findOrReserveNode(nodeId1)), nodePosition2(Globals::UNAVAILABLE_POS) {
 }
 
 vector<int> ForceSurfaceTwoNodes::getApplicationFaceNodeIds() const {
@@ -663,7 +663,7 @@ vector<int> ForceSurfaceTwoNodes::getApplicationFaceNodeIds() const {
 	}
 	const int nodeId1 = model.mesh.findNodeId(nodePosition1);
 	int nodeId2 = Globals::UNAVAILABLE_INT;
-	if (nodePosition2 != Globals::UNAVAILABLE_INT) {
+	if (nodePosition2 != Globals::UNAVAILABLE_POS) {
         nodeId2 = model.mesh.findNodeId(nodePosition2);
 	}
 	return cells.begin()->faceids_from_two_nodes(nodeId1, nodeId2);
@@ -679,7 +679,7 @@ ForceLine::ForceLine(Model& model, const std::shared_ptr<LoadSet> loadset, const
 
 }
 
-DOFS ForceLine::getDOFSForNode(const int nodePosition) const {
+DOFS ForceLine::getDOFSForNode(const pos_t nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
 	const auto& nodes = nodePositions();
 	if (nodes.find(nodePosition) != nodes.end()) {
@@ -710,7 +710,7 @@ NormalPressionFace::NormalPressionFace(Model& model, const std::shared_ptr<LoadS
 				CoordinateSystem::GLOBAL_COORDINATE_SYSTEM), intensity(intensity) {
 }
 
-DOFS NormalPressionFace::getDOFSForNode(const int nodePosition) const {
+DOFS NormalPressionFace::getDOFSForNode(const pos_t nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
 	const auto& nodes = nodePositions();
 	if (nodes.find(nodePosition) != nodes.end()) {
@@ -741,7 +741,7 @@ NormalPressionShell::NormalPressionShell(Model& model, const std::shared_ptr<Loa
 				CoordinateSystem::GLOBAL_COORDINATE_SYSTEM), intensity(intensity) {
 }
 
-DOFS NormalPressionShell::getDOFSForNode(const int nodePosition) const {
+DOFS NormalPressionShell::getDOFSForNode(const pos_t nodePosition) const {
 	DOFS dofs(DOFS::NO_DOFS);
 	const auto& nodes = nodePositions();
 	if (nodes.find(nodePosition) != nodes.end()) {
@@ -777,7 +777,7 @@ NormalPressionFaceTwoNodes::NormalPressionFaceTwoNodes(Model& model, const std::
 NormalPressionFaceTwoNodes::NormalPressionFaceTwoNodes(Model& model, const std::shared_ptr<LoadSet> loadset, int nodeId1,
 		double intensity, const int original_id) :
 		NormalPressionFace(model, loadset, intensity, original_id), nodePosition1(
-				model.mesh.findOrReserveNode(nodeId1)), nodePosition2(Globals::UNAVAILABLE_INT) {
+				model.mesh.findOrReserveNode(nodeId1)), nodePosition2(Globals::UNAVAILABLE_POS) {
 }
 
 vector<int> NormalPressionFaceTwoNodes::getApplicationFaceNodeIds() const {
@@ -787,7 +787,7 @@ vector<int> NormalPressionFaceTwoNodes::getApplicationFaceNodeIds() const {
 	}
 	const int nodeId1 = model.mesh.findNodeId(nodePosition1);
     int nodeId2 = Globals::UNAVAILABLE_INT;
-	if (nodePosition2 != Globals::UNAVAILABLE_INT) {
+	if (nodePosition2 != Globals::UNAVAILABLE_POS) {
         nodeId2 = model.mesh.findNodeId(nodePosition2);
 	}
 	const vector<int>& faceIds = cells.begin()->faceids_from_two_nodes(nodeId1, nodeId2);
@@ -836,11 +836,11 @@ shared_ptr<FunctionPlaceHolder> DynamicExcitation::getFunctionTablePPlaceHolder(
     return make_unique<FunctionPlaceHolder>(model, functionTableP.type, functionTableP.original_id, Function::ParaName::FREQ);
 }
 
-set<int> DynamicExcitation::nodePositions() const {
+set<pos_t> DynamicExcitation::nodePositions() const {
     return {};
 }
 
-DOFS DynamicExcitation::getDOFSForNode(const int nodePosition) const {
+DOFS DynamicExcitation::getDOFSForNode(const pos_t nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::NO_DOFS;
 }
@@ -870,7 +870,7 @@ unique_ptr<Loading> InitialTemperature::clone() const {
 	return make_unique<InitialTemperature>(*this);
 }
 
-DOFS InitialTemperature::getDOFSForNode(const int nodePosition) const {
+DOFS InitialTemperature::getDOFSForNode(const pos_t nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::NO_DOFS;
 }

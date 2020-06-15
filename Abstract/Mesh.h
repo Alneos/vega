@@ -29,14 +29,14 @@ class Mesh;
 
 class NodeData final {
 public:
-    NodeData(int id, const DOFS& dofs, double x, double y, double z, int cpPos, int cdPos, int nodePart);
+    NodeData(int id, const DOFS& dofs, double x, double y, double z, pos_t cpPos, pos_t cdPos, int nodePart);
 	const int id;
 	char dofs;
 	double x;
 	double y;
 	double z;
-	int cpPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID; /**< Vega Position Number of the CS used for location (x,y,z) **/;
-	int cdPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID; /**< Vega Position Number of the CS used for displacements, forces, constraints **/;
+	pos_t cpPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID; /**< Vega Position Number of the CS used for location (x,y,z) **/;
+	pos_t cdPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID; /**< Vega Position Number of the CS used for displacements, forces, constraints **/;
 	int nodePart = 0; /**< Node grouping by element part */
 };
 
@@ -46,8 +46,8 @@ private:
 	friend NodeGroup;
 	const LogLevel logLevel;
 	std::vector<NodeData> nodeDatas;
-	using mapid_iterator = std::map<int, int>::const_iterator;
-	std::map<int, int> nodepositionById;
+	using mapid_iterator = std::map<int, pos_t>::const_iterator;
+	std::map<int, pos_t> nodepositionById;
 	static const double RESERVED_POSITION;
 	static int lastNodePart;
 public:
@@ -55,7 +55,7 @@ public:
 	std::map<int, int> mainNodePartByCellPart;
 	std::map<int, std::set<int>> cellPartsByNodePart;
 	std::map<std::set<int>, int> interfaceNodePartByCellParts;
-	std::set<int> reservedButUnusedNodePositions;
+	std::set<pos_t> reservedButUnusedNodePositions;
 
     class NodeIterator final: public std::iterator<std::input_iterator_tag, const Node> {
         friend NodeStorage;
@@ -92,13 +92,13 @@ public:
 
 class CellData final {
 public:
-	CellData(int id, const CellType& type, bool isvirtual, int elementId, size_t cellTypePosition);
+	CellData(int id, const CellType& type, bool isvirtual, int elementId, pos_t cellTypePosition);
 	const int id;
 	const CellType::Code typeCode;
 	const bool isvirtual;
-	int csPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID; /**< Vega Position Number for the CS **/
+	pos_t csPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID; /**< Vega Position Number for the CS **/
 	int elementId;
-	const size_t cellTypePosition;
+	const pos_t cellTypePosition;
 };
 
 class CellStorage final {
@@ -113,12 +113,12 @@ private:
 	std::map<CellType, std::vector<DimensionData1D>> additional1DdataByCelltype;
 	std::map<CellType, std::vector<DimensionData2D>> additional2DdataByCelltype;
 	std::map<CellType, std::vector<DimensionData3D>> additional3DdataByCelltype;
-	std::map<int, int> cellpositionById;
-	std::map<CellType, std::shared_ptr<std::deque<int>>> nodepositionsByCelltype;
+	std::map<int, pos_t> cellpositionById;
+	std::map<CellType, std::shared_ptr<std::deque<pos_t>>> nodepositionsByCelltype;
 	/*
 	 * Reserve a cell position given an id
 	 */
-	int reserveCellPosition(int nodeId);
+	pos_t reserveCellPosition(int nodeId);
 public:
 	Mesh& mesh;
 	CellStorage(Mesh& mesh, LogLevel logLevel);
@@ -147,6 +147,7 @@ private:
 	const LogLevel logLevel;
 	const std::string name;
 	bool finished = false;
+	bool withNonZeroOffsets = false;
 
 	std::map<std::string, std::shared_ptr<Group>> groupByName;
 
@@ -156,12 +157,12 @@ private:
 	 */
 	std::map<int, std::shared_ptr<Group>> groupById;
 
-	std::shared_ptr<CellGroup> getOrCreateCellGroupForCS(const int cspos);
+	std::shared_ptr<CellGroup> getOrCreateCellGroupForCS(const pos_t cspos);
 
 	std::unique_ptr<MeshStatistics> stats = nullptr;
 public:
-	std::map<CellType, std::vector<int>> cellPositionsByType;
-	std::map<int, std::string> cellGroupNameByCspos; /**< mapping position->group name **/
+	std::map<CellType, std::vector<pos_t>> cellPositionsByType;
+	std::map<pos_t, std::string> cellGroupNameByCspos; /**< mapping position->group name **/
 	std::map<int, std::string> cellGroupNameByMaterialOrientationTimes100;
 	Mesh(LogLevel logLevel, const std::string& name);
 	NodeStorage nodes;
@@ -194,58 +195,58 @@ public:
      * Find or Reserve a Coordinate System in the model by Input Id.
      * Return the VEGA Id (position) of the Coordinate System.
      */
-    int findOrReserveCoordinateSystem(const Reference<CoordinateSystem>);
+    pos_t findOrReserveCoordinateSystem(const Reference<CoordinateSystem>);
     void add(const CoordinateSystem& coordinateSystem);
 	std::shared_ptr<CoordinateSystem> findCoordinateSystem(const Reference<CoordinateSystem> csref) const;
     /**
      * Add or Find an Orientation Coordinate System in the model.
      * Return the Position of the Orientation Coordinate System.
      */
-    int addOrFindOrientation(const OrientationCoordinateSystem & ocs);
+    pos_t addOrFindOrientation(const OrientationCoordinateSystem & ocs);
     /**
      * Find an Orientation Coordinate System in the model, by checking its axis.
      * Return 0 if nothing has been found.
      */
-    int findOrientation(const OrientationCoordinateSystem & ocs) const;
+    pos_t findOrientation(const OrientationCoordinateSystem & ocs) const;
     /**
      * Get a Coordinate System in the model from its VEGA Position.
      * Return nullptr if nothing has been found.
      */
-    std::shared_ptr<vega::CoordinateSystem> getCoordinateSystemByPosition(const int pos) const;
-	int addNode(const int id, const double x, const double y, const double z = 0,
-	        const int cpPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
-	        const int cdPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
+    std::shared_ptr<vega::CoordinateSystem> getCoordinateSystemByPosition(const pos_t pos) const;
+	pos_t addNode(const int id, const double x, const double y, const double z = 0,
+	        const pos_t cpPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
+	        const pos_t cdPos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
 	        const int nodePartId = 0) noexcept;
     std::string getName() const noexcept;
 	size_t countNodes() const noexcept;
-	void allowDOFS(const int nodePosition, const DOFS& allowed) noexcept;
+	void allowDOFS(const pos_t nodePosition, const DOFS& allowed) noexcept;
 	/**
 	 * Find a node from its Vega position.
 	 * throws invalid_argument if node not found
 	 */
-	Node findNode(const int nodePosition) const;
+	Node findNode(const pos_t nodePosition) const;
 
   /**
 	 * given an internal node position returns the Id from the model
 	 * @return Node::UNAVAILABLE_NODE if not found
 	 */
-	int findNodeId(const int nodePosition) const noexcept;
+	int findNodeId(const pos_t nodePosition) const noexcept;
 
 	/**
 	 * given an Id from the model returns an internal node position
 	 * use together with findNode.
 	 * @return Node::UNAVAILABLE_NODE if not found
 	 */
-	int findNodePosition(const int nodeId) const noexcept;
+	pos_t findNodePosition(const int nodeId) const noexcept;
 
     /**
 	 * given an internal node position returns the nodepartId
 	 * @return Node::UNAVAILABLE_NODE if not found
 	 */
-	int findNodePartId(const int nodePosition) const noexcept;
-	int findOrReserveNode(const int nodeId, const int cellPartId = Globals::UNAVAILABLE_INT) noexcept;
+	int findNodePartId(const pos_t nodePosition) const noexcept;
+	pos_t findOrReserveNode(const int nodeId, const int cellPartId = Globals::UNAVAILABLE_INT) noexcept;
 	//returns a set of nodePositions
-	std::set<int> findOrReserveNodes(const std::set<int>& nodeIds) noexcept;
+	std::set<pos_t> findOrReserveNodes(const std::set<int>& nodeIds) noexcept;
 
 	size_t countCells() const noexcept;
 	size_t countCells(const CellType &type) const noexcept;
@@ -253,11 +254,11 @@ public:
 	 *  The vector nodesIds regroups the nodes use to build the cell. Nodes Ids are expressed as "input node number"
 	 *  and will be added to the model if not already defined.
 	 **/
-    int addCell(int id,
+    pos_t addCell(const int id,
                 const CellType &type,
                 const std::vector<int> &nodesIds,
                 bool virtualCell = false,
-                const int cpos=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
+                const pos_t cpos=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
                 int elementId = Cell::UNAVAILABLE_CELL,
                 double offset = 0.0);
 
@@ -268,14 +269,17 @@ public:
 	 *  TODO: The previous CellData is NOT erased, has it complexify a LOT the update. Instead
 	 *  an other CellData is created, and "branched over".
 	 **/
-    int updateCell(int id, const CellType &type, const std::vector<int> &nodesIds,
+    pos_t updateCell(int id, const CellType &type, const std::vector<int> &nodesIds,
             bool virtualCell = false, const int cpos=CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int elementId = Cell::UNAVAILABLE_CELL);
-    int findCellPosition(int cellId) const noexcept;
-    inline int findCellId(int cellPosition) const noexcept {
+    pos_t findCellPosition(int cellId) const noexcept;
+    inline int findCellId(pos_t cellPosition) const noexcept {
         return cells.cellDatas[cellPosition].id;
     };
-	Cell findCell(int cellPosition) const;
-	int generateSkinCell(const std::vector<int>& faceIds, const SpaceDimension& dimension);
+	Cell findCell(pos_t cellPosition) const;
+	bool hasNonZeroOffset() const noexcept {
+        return withNonZeroOffsets;
+	}
+	pos_t generateSkinCell(const std::vector<int>& faceIds, const SpaceDimension& dimension);
     std::pair<Cell, int> volcellAndFaceNum_from_skincell(const Cell& skinCell) const;
 	bool hasCell(int cellId) const noexcept;
 
@@ -283,7 +287,7 @@ public:
 	 * Assign an elementId (an integer) to a group of cells.
 	 * Cells must have been previously defined.
 	 */
-	inline void assignElementId(int cellPosition, int elementId) noexcept {
+	inline void assignElementId(const pos_t cellPosition, const int elementId) noexcept {
 	    cells.cellDatas[cellPosition].elementId = elementId;
     }
 

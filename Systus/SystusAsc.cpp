@@ -70,9 +70,9 @@ void SystusTable::add(const double value){
 void SystusTable::fill(std::shared_ptr<MatrixElement> me, int nbDOFS){
 
     //Numbering the node internally to the element
-    map<int, int> positionToSytusNumber;
+    map<pos_t, int> positionToSytusNumber;
     int iSystus= 1;
-    for (const int pos : me->nodePositions()){
+    for (const auto pos : me->nodePositions()){
         positionToSytusNumber[pos]=iSystus;
         iSystus++;
     }
@@ -80,8 +80,8 @@ void SystusTable::fill(std::shared_ptr<MatrixElement> me, int nbDOFS){
     // Building the table
     for (const auto np : me->nodePairs()){
         int pairCode = positionToSytusNumber[np.first]*1000 + positionToSytusNumber[np.second]*100;
-        shared_ptr<const DOFMatrix> dM = me->findSubmatrix(np.first, np.second);
-        for (const auto dof: dM->componentByDofs){
+        const auto& dM = me->findSubmatrix(np.first, np.second);
+        for (const auto& dof: dM->componentByDofs){
             int dofi=DOFToInt(dof.first.first);
             if (dofi> nbDOFS)
                 throw logic_error("Invalid degree of freedom ("+to_string(dofi)+") for Systus Table.");

@@ -57,14 +57,14 @@ const unordered_map<CellType::Code, vector<int>, EnumClassHash> NastranParser::n
 
 void NastranParser::parseGRDSET(NastranTokenizer& tok, Model& model) {
     tok.skip(1);
-    grdSet.cp = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-    if (grdSet.cp != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
-        grdSet.cp = model.mesh.findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, grdSet.cp));
+    int cp = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+    if (cp != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
+        grdSet.cp = model.mesh.findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, cp));
         }
     tok.skip(3);
-    grdSet.cd = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
-    if (grdSet.cd != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
-        grdSet.cd = model.mesh.findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, grdSet.cd));
+    int cd = tok.nextInt(true, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID);
+    if (cd != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
+        grdSet.cd = model.mesh.findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, cd));
         }
     grdSet.ps = tok.nextInt(true, 0);
     grdSet.seid = tok.nextInt(true, 0);
@@ -73,8 +73,8 @@ void NastranParser::parseGRDSET(NastranTokenizer& tok, Model& model) {
 
 void NastranParser::parseGRID(NastranTokenizer& tok, Model& model) {
     int id = tok.nextInt();
-    int cp = tok.nextInt(true, grdSet.cp);
-    int cpos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
+    int cp = tok.nextInt(true, static_cast<int>(grdSet.cp));
+    pos_t cpos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
     string scp;
     if (cp != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
         cpos = model.mesh.findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, cp));
@@ -86,8 +86,8 @@ void NastranParser::parseGRID(NastranTokenizer& tok, Model& model) {
     double x3 = tok.nextDouble(true, 0.0);
 
     /* Coordinate System for Displacement */
-    int cd = tok.nextInt(true, grdSet.cd);
-    int cdos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
+    int cd = tok.nextInt(true, static_cast<int>(grdSet.cd));
+    pos_t cdos = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID;
     string scd="";
     if (cd != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID){
         cdos = model.mesh.findOrReserveCoordinateSystem(Reference<CoordinateSystem>(CoordinateSystem::Type::ABSOLUTE, cd));
@@ -131,7 +131,7 @@ shared_ptr<CellGroup> NastranParser::getOrCreateCellGroup(int group_id, Model& m
     return cellGroup;
 }
 
-int NastranParser::parseOrientation(int point1, int point2, NastranTokenizer& tok,
+pos_t NastranParser::parseOrientation(int point1, int point2, NastranTokenizer& tok,
         Model& model) {
 
     const auto& line = tok.currentDataLine();
@@ -152,7 +152,7 @@ int NastranParser::parseOrientation(int point1, int point2, NastranTokenizer& to
         }
         ocs = make_shared<OrientationCoordinateSystem>(model.mesh, point1, point2, VectorialValue(x1,x2,x3));
     }
-    const int idOCS = model.mesh.addOrFindOrientation(*ocs);
+    const auto idOCS = model.mesh.addOrFindOrientation(*ocs);
     return idOCS;
 }
 
@@ -161,7 +161,7 @@ void NastranParser::parseCBAR(NastranTokenizer& tok, Model& model) {
     int property_id = tok.nextInt();
     int point1 = tok.nextInt();
     int point2 = tok.nextInt();
-    int cpos = parseOrientation(point1, point2, tok, model);
+    const auto cpos = parseOrientation(point1, point2, tok, model);
     string offt = tok.nextString(true);
     if (!offt.empty() && offt != "GGG") {
         handleParsingWarning("OFFT " + offt + " not supported and taken as GGG.", tok, model);
@@ -193,7 +193,7 @@ void NastranParser::parseCBEAM(NastranTokenizer& tok, Model& model) {
     int property_id = tok.nextInt();
     int point1 = tok.nextInt();
     int point2 = tok.nextInt();
-    int cpos = parseOrientation(point1, point2, tok, model);
+    const auto cpos = parseOrientation(point1, point2, tok, model);
     string offt = tok.nextString(true);
     if (!offt.empty() && offt != "GGG") {
         handleParsingWarning("OFFT " + offt + " not supported and taken as GGG.", tok, model);
@@ -238,7 +238,7 @@ void NastranParser::parseCBUSH(NastranTokenizer& tok, Model& model) {
     bool forbidOrientation = (gb == Globals::UNAVAILABLE_INT);
 
     // Local element coordinate system
-    int cpos = 0;
+    pos_t cpos = 0;
     if (!tok.isEmptyUntilNextKeyword()) {
         vector<string> line = tok.currentDataLine();
         if ( (line.size()>8) && !(line[8].empty())){
@@ -302,13 +302,13 @@ void NastranParser::parseCDAMP1(NastranTokenizer& tok, Model& model) {
         c2= c1;
         const auto& spc = make_shared<SinglePointConstraint>(model, DOFS::ALL_DOFS, 0.0);
         //shared_ptr<NodeGroup> spcNodeGroup = model.mesh.findOrCreateNodeGroup("CELAS1_" + to_string(eid) + "_GND",NodeGroup::NO_ORIGINAL_ID,"CELAS1 GROUND");
-        int nodePosition = model.mesh.addNode(Node::AUTO_ID, 0.0, 0.0, 0.0);
+        const auto nodePosition = model.mesh.addNode(Node::AUTO_ID, 0.0, 0.0, 0.0);
         g2 = model.mesh.findNodeId(nodePosition);
         spc->addNodeId(g2);
         model.add(spc);
     }
 
-    int cellPosition= model.mesh.addCell(eid, CellType::SEG2, {g1, g2}, false, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, pid);
+    const auto cellPosition= model.mesh.addCell(eid, CellType::SEG2, {g1, g2}, false, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, pid);
     const auto& cellGroup = getOrCreateCellGroup(pid, model, "CDAMP1");
     cellGroup->addCellPosition(cellPosition);
 
@@ -345,12 +345,12 @@ void NastranParser::parseCELAS1(NastranTokenizer& tok, Model& model) {
         c2= c1;
         const auto& spc = make_shared<SinglePointConstraint>(model, DOFS::ALL_DOFS, 0.0);
         //shared_ptr<NodeGroup> spcNodeGroup = model.mesh.findOrCreateNodeGroup("CELAS1_" + to_string(eid) + "_GND",NodeGroup::NO_ORIGINAL_ID,"CELAS1 GROUND");
-        int nodePosition = model.mesh.addNode(Node::AUTO_ID, 0.0, 0.0, 0.0);
+        const auto nodePosition = model.mesh.addNode(Node::AUTO_ID, 0.0, 0.0, 0.0);
         g2 = model.mesh.findNodeId(nodePosition);
         spc->addNodeId(g2);
         model.add(spc);
     }
-    int cellPosition= model.mesh.addCell(eid, cellType, {g1, g2}, false, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, pid);
+    const auto cellPosition= model.mesh.addCell(eid, cellType, {g1, g2}, false, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, pid);
     const auto& cellGroup = getOrCreateCellGroup(pid, model, "CELAS1");
     cellGroup->addCellPosition(cellPosition);
 
@@ -361,7 +361,7 @@ void NastranParser::parseCELAS1(NastranTokenizer& tok, Model& model) {
         scalarSpring->add(*cellGroup);
         scalarSpring->addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
         model.add(scalarSpring);
-    }else{
+    } else {
         if (elementSet->type == ElementSet::Type::SCALAR_SPRING){
             const auto& springElementSet = dynamic_pointer_cast<ScalarSpring>(elementSet);
             springElementSet->addSpring(cellPosition, DOF::findByPosition(c1), DOF::findByPosition(c2));
@@ -391,7 +391,7 @@ void NastranParser::parseCELAS2(NastranTokenizer& tok, Model& model) {
 
     // Create a Cell and a cellgroup
     const auto& springGroup = model.mesh.createCellGroup("CELAS2_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS2");
-    int cellPosition= model.mesh.addCell(eid, CellType::SEG2, {g1, g2});
+    const auto cellPosition= model.mesh.addCell(eid, CellType::SEG2, {g1, g2});
     springGroup->addCellPosition(cellPosition);
 
     // Create ElementSet
@@ -411,7 +411,7 @@ void NastranParser::parseCELAS4(NastranTokenizer& tok, Model& model) {
 
     // Create a Cell and a cellgroup
     const auto& springGroup = model.mesh.createCellGroup("CELAS4_" + to_string(eid), Group::NO_ORIGINAL_ID, "CELAS4");
-    int cellPosition= model.mesh.addCell(eid, CellType::SEG2, {s1, s2});
+    const auto cellPosition = model.mesh.addCell(eid, CellType::SEG2, {s1, s2});
     springGroup->addCellPosition(cellPosition);
 
     // Create ElementSet
@@ -547,6 +547,18 @@ void NastranParser::parseCTRIAR(NastranTokenizer& tok, Model& model) {
     parseShellElem(tok, model, CellType::TRI3);
 }
 
+void NastranParser::parseCVISC(NastranTokenizer& tok, Model& model) {
+    // Defines a scalar mass element without reference to a property entry.
+    int eid = tok.nextInt();
+    int pid = tok.nextInt();
+    int g1 = tok.nextInt();
+    int g2 = tok.nextInt();
+
+    const auto cellPosition = model.mesh.addCell(eid, CellType::SEG2, {g1, g2}, false, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, pid);
+    const auto& cellGroup = getOrCreateCellGroup(pid, model, "PVISC_" + to_string(pid));
+    cellGroup->addCellPosition(cellPosition);
+}
+
 void NastranParser::parseShellElem(NastranTokenizer& tok, Model& model,
         CellType cellType) {
     int cell_id = tok.nextInt();
@@ -629,10 +641,10 @@ void NastranParser::parseShellElem(NastranTokenizer& tok, Model& model,
             handleParsingWarning("THETA/MCID parameter ignored.", tok, model);
         //}
     }
-    if (tflag!=0){
+    if (tflag != 0) {
         handleParsingWarning("non-null TFLAG ("+ to_string(tflag)+") parameter ignored.", tok, model);
     }
-    if (isThereT){
+    if (isThereT) {
         handleParsingWarning("membrane thickness is ignored.", tok, model);
     }
     model.mesh.addCell(cell_id, cellType, nodeIds, false, CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, property_id, zoffs);
@@ -656,7 +668,7 @@ void NastranParser::parseSPOINT(NastranTokenizer& tok, Model& model) {
     const auto& spc = make_shared<SinglePointConstraint>(model, DOFS::ALL_DOFS-DOF::DX, 0.0);
     const auto& spcNodeGroup = model.mesh.findOrCreateNodeGroup("SPC_SPOINT",NodeGroup::NO_ORIGINAL_ID,"SPOINT");
 
-    int nodePosition = model.mesh.addNode(id1, x1, x2, x3);
+    auto nodePosition = model.mesh.addNode(id1, x1, x2, x3);
     model.mesh.allowDOFS(nodePosition, DOF::DX);
     spcNodeGroup->addNodeId(id1);
     spc->addNodeId(id1);

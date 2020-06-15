@@ -107,15 +107,15 @@ private:
     std::map<int, int> rotationNodeIdByTranslationNodeId; /**< nodeId, nodeId > :  map between the reference node and the reference rotation for 190X elements in 3D mode.**/
     std::map<int, std::map<int, int>> localLoadingIdByLoadsetIdByAnalysisId;
     std::map<int, systus_ascid_t> loadingVectorIdByLocalLoading;
-    std::map<int, std::map<int, std::vector<systus_ascid_t>>> loadingVectorsIdByLocalLoadingByNodePosition;
+    std::map<pos_t, std::map<int, std::vector<systus_ascid_t>>> loadingVectorsIdByLocalLoadingByNodePosition;
     std::map<int, std::map<int, std::vector<systus_ascid_t>>> loadingVectorsIdByLocalLoadingByCellId;
-    std::map<int, std::map<int, std::vector<systus_ascid_t>>> constraintVectorsIdByLocalLoadingByNodePosition;
-    std::map<int, systus_ascid_t> localVectorIdByNodePosition;  /**< nodePosition, vectorId> for all Coordinate Systems Vectors. **/
-    std::map<int, int> loadingListIdByNodePosition;
+    std::map<pos_t, std::map<int, std::vector<systus_ascid_t>>> constraintVectorsIdByLocalLoadingByNodePosition;
+    std::map<pos_t, systus_ascid_t> localVectorIdByNodePosition;  /**< nodePosition, vectorId> for all Coordinate Systems Vectors. **/
+    std::map<pos_t, int> loadingListIdByNodePosition;
     std::map<int, int> loadingListIdByCellId;
     std::map<int, std::string> localLoadingListName;
-    std::map<int, int> constraintListIdByNodePosition;
-    std::map<int, char> constraintByNodePosition;
+    std::map<pos_t, int> constraintListIdByNodePosition;
+    std::map<pos_t, char> constraintByNodePosition;
     std::vector< std::vector<int> > systusSubcases;   /**< Ids of loadcases composing the subcase **/
     std::vector<SystusTable> tables;
     SystusMatrices dampingMatrices;         /**< All needed damping matrices (element X9XX type 0). **/
@@ -383,7 +383,7 @@ private:
      *  Write the Euler Angles corresponding to an element with local referentiel cpos.
      *  Depending of the type of element, some angles may be dismissed.
      **/
-    void writeElementLocalReferentiel(const SystusModel& systusModel, const int dim, const int celltype, const std::vector<int> nodes, const int cpos, std::ostream& out);
+    void writeElementLocalReferentiel(const SystusModel& systusModel, const int dim, const int celltype, const std::vector<int> nodes, const pos_t cpos, std::ostream& out);
     void writeElements(const SystusModel&, const int idSubcase, std::ostream&);
     /**
      * Write the Cells and Nodes groups in ASC format.

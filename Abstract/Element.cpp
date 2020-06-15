@@ -140,7 +140,7 @@ Continuum::Continuum(Model& model, const ModelType& modelType, int original_id) 
 
 }
 
-DOFS Continuum::getDOFSForNode(const int nodePosition) const {
+DOFS Continuum::getDOFSForNode(const pos_t nodePosition) const {
 	UNUSEDV(nodePosition);
 	return DOFS::TRANSLATIONS;
 }
@@ -150,7 +150,7 @@ Skin::Skin(Model& model, const ModelType& modelType, int original_id) :
 
 }
 
-DOFS Skin::getDOFSForNode(const int nodePosition) const {
+DOFS Skin::getDOFSForNode(const pos_t nodePosition) const {
 	UNUSEDV(nodePosition);
 	return DOFS::TRANSLATIONS;
 }
@@ -161,7 +161,7 @@ Beam::Beam(Model& model, Type type, const ModelType& modelType, BeamModel beamMo
 				additional_mass) {
 }
 
-DOFS Beam::getDOFSForNode(const int nodePosition) const {
+DOFS Beam::getDOFSForNode(const pos_t nodePosition) const {
 	UNUSEDV(nodePosition);
 	if (this->isTruss()) {
 	    return DOFS::TRANSLATIONS;
@@ -367,7 +367,7 @@ bool Shell::containsNonzeroOffsetCell() const {
     return false;
 }
 
-DOFS Shell::getDOFSForNode(const int nodePosition) const {
+DOFS Shell::getDOFSForNode(const pos_t nodePosition) const {
 	UNUSEDV(nodePosition);
 	return DOFS::ALL_DOFS;
 }
@@ -415,7 +415,7 @@ bool Composite::containsNonzeroOffsetCell() const {
     return false;
 }
 
-DOFS Composite::getDOFSForNode(const int nodePosition) const {
+DOFS Composite::getDOFSForNode(const pos_t nodePosition) const {
 	UNUSEDV(nodePosition);
 	return DOFS::ALL_DOFS;
 }
@@ -426,7 +426,7 @@ Discrete::Discrete(Model& model, ElementSet::Type type, MatrixType matrixType, i
 
 const double Discrete::NOT_BOUNDED = -DBL_MAX;
 
-DOFS Discrete::getDOFSForNode(const int nodePosition) const {
+DOFS Discrete::getDOFSForNode(const pos_t nodePosition) const {
 	UNUSEDV(nodePosition);
 	// LD : meaning here is that the node has a variable for the dof, not that it has stiffness
 	// over it
@@ -926,7 +926,7 @@ bool NodalMass::hasRotations() const {
 	return (not is_zero(ixx) or not is_zero(iyy) or not is_zero(izz) or not is_zero(ixy) or not is_zero(iyz) or not is_zero(ixz));
 }
 
-DOFS NodalMass::getDOFSForNode(const int nodePosition) const {
+DOFS NodalMass::getDOFSForNode(const pos_t nodePosition) const {
 	UNUSEDV(nodePosition);
 	DOFS dofs;
 	if (hasTranslations()) {
@@ -1027,15 +1027,15 @@ MatrixElement::MatrixElement(Model& model, Type elementType, MatrixType matrixTy
 }
 
 void MatrixElement::addComponent(const int nodeid1, const DOF dof1, const int nodeid2, const DOF dof2, const double value) {
-	int nodePosition1 = model.mesh.findOrReserveNode(nodeid1);
-	int nodePosition2 = model.mesh.findOrReserveNode(nodeid2);
+	pos_t nodePosition1 = model.mesh.findOrReserveNode(nodeid1);
+	pos_t nodePosition2 = model.mesh.findOrReserveNode(nodeid2);
 	DOF myDof1 = dof1;
 	DOF myDof2 = dof2;
 
 	if (nodePosition1 > nodePosition2) {
-		int swap = nodePosition2;
+		const auto swapPos = nodePosition2;
 		nodePosition2 = nodePosition1;
-		nodePosition1 = swap;
+		nodePosition1 = swapPos;
 		myDof1 = dof2;
 		myDof2 = dof1;
 	}
@@ -1063,7 +1063,7 @@ void MatrixElement::clear() noexcept {
 }
 
 
-shared_ptr<const DOFMatrix> MatrixElement::findSubmatrix(const int nodePosition1, const int nodePosition2) const {
+shared_ptr<const DOFMatrix> MatrixElement::findSubmatrix(const pos_t nodePosition1, const pos_t nodePosition2) const {
 	shared_ptr<DOFMatrix> result = make_shared<DOFMatrix>(matrixType);
 	auto it = submatrixByNodes.find({nodePosition1, nodePosition2});
 	if (it != submatrixByNodes.end()) {
@@ -1073,8 +1073,8 @@ shared_ptr<const DOFMatrix> MatrixElement::findSubmatrix(const int nodePosition1
 	return result;
 }
 
-set<int> MatrixElement::nodePositions() const {
-	set<int> result;
+set<pos_t> MatrixElement::nodePositions() const {
+	set<pos_t> result;
 	for (const auto& kv : submatrixByNodes) {
 		result.insert(kv.first.first);
 		result.insert(kv.first.second);
@@ -1082,7 +1082,7 @@ set<int> MatrixElement::nodePositions() const {
 	return result;
 }
 
-DOFS MatrixElement::getDOFSForNode(const int nodePosition) const {
+DOFS MatrixElement::getDOFSForNode(const pos_t nodePosition) const {
 	DOFS dofs;
 	for (const auto& kv : submatrixByNodes) {
 		if (kv.first.first == nodePosition or kv.first.second) {
@@ -1097,16 +1097,16 @@ DOFS MatrixElement::getDOFSForNode(const int nodePosition) const {
 	return dofs;
 }
 
-set<pair<int, int>> MatrixElement::nodePairs() const {
-	set<pair<int, int>> result;
+set<pair<pos_t, pos_t>> MatrixElement::nodePairs() const {
+	set<pair<pos_t, pos_t>> result;
 	for (const auto& kv : submatrixByNodes) {
 		result.insert({kv.first.first, kv.first.second});
 	}
 	return result;
 }
 
-std::set<std::pair<int, int>> MatrixElement::findInPairs(int nodePosition) const {
-	set<pair<int, int>> result;
+std::set<std::pair<pos_t, pos_t>> MatrixElement::findInPairs(const pos_t nodePosition) const {
+	set<pair<pos_t, pos_t>> result;
 	for (const auto& kv : submatrixByNodes) {
 		if (kv.first.first != nodePosition and kv.first.second != nodePosition) {
 			continue;
@@ -1151,7 +1151,7 @@ RigidSet::RigidSet(Model& model, Type type, int master_id, int original_id) :
 }
 
 
-DOFS RigidSet::getDOFSForNode(const int nodePosition) const {
+DOFS RigidSet::getDOFSForNode(const pos_t nodePosition) const {
     UNUSEDV(nodePosition);
     return DOFS::ALL_DOFS;
 }
@@ -1227,7 +1227,7 @@ double ScalarSpring::getMass() const {
     return this->mass;
 }
 
-std::map<std::pair<DOF, DOF>, vector<int>> ScalarSpring::getCellPositionByDOFS() const{
+std::map<std::pair<DOF, DOF>, vector<pos_t>> ScalarSpring::getCellPositionByDOFS() const{
     return this->cellpositionByDOFS;
 }
 
@@ -1259,8 +1259,8 @@ unique_ptr<ElementSet> ScalarSpring::clone() const {
     return make_unique<ScalarSpring>(*this);
 }
 
-void ScalarSpring::addSpring(int cellPosition, DOF dofNodeA, DOF dofNodeB){
-    this->cellpositionByDOFS[std::pair<DOF, DOF>(dofNodeA, dofNodeB)].push_back(cellPosition);
+void ScalarSpring::addSpring(pos_t cellPosition, DOF dofNodeA, DOF dofNodeB){
+    this->cellpositionByDOFS[{dofNodeA, dofNodeB}].push_back(cellPosition);
 }
 
 std::vector<std::pair<DOF, DOF>> ScalarSpring::getDOFSSpring() const {
@@ -1271,8 +1271,8 @@ std::vector<std::pair<DOF, DOF>> ScalarSpring::getDOFSSpring() const {
     return vDOF;
 }
 
-int ScalarSpring::getNbDOFSSpring() const{
-    return static_cast<int>(this->cellpositionByDOFS.size());
+size_t ScalarSpring::getNbDOFSSpring() const{
+    return this->cellpositionByDOFS.size();
 }
 
 bool ScalarSpring::hasTranslations() const {

@@ -265,7 +265,7 @@ public:
     inline std::string getComment() const noexcept {
         return this->comment;
     }
-    virtual std::set<int> nodePositions() const noexcept = 0;
+    virtual std::set<pos_t> nodePositions() const noexcept = 0;
     virtual bool empty() const noexcept = 0;
     virtual ~Group() = default;
     Group(const Group& that) = delete;
@@ -276,12 +276,12 @@ private:
     friend std::ostream &operator<<(std::ostream &out, const Node& node) noexcept;    //output
     friend Mesh;
     static int auto_node_id;
-    Node(int id, double lx, double ly, double lz, int position, DOFS dofs,
-            double gx, double gy, double gz, int positionCS = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
-            int displacementCS = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int nodePartId = 0) noexcept;
+    Node(int id, double lx, double ly, double lz, pos_t position, DOFS dofs,
+            double gx, double gy, double gz, pos_t positionCS = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID,
+            pos_t displacementCS = CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID, int nodePartId = 0) noexcept;
 public:
     static const int AUTO_ID = INT_MIN;
-    static const int UNAVAILABLE_NODE = INT_MIN;
+    static const int UNAVAILABLE_NODE = Globals::UNAVAILABLE_POS;
 
     /** Usually, the original id of the node, from the input mesh.
      *  Can also be an automatic generated id.
@@ -292,7 +292,7 @@ public:
     /** Position, or VEGA id, of the node in the model.
      *  Unique by mesh.
      **/
-    const int position;
+    const pos_t position;
     const double lx; /**< X coordinate of the Node in the Local Coordinate System positionCS **/
     const double ly; /**< Y coordinate of the Node in the Local Coordinate System positionCS **/
     const double lz; /**< Z coordinate of the Node in the Local Coordinate System positionCS **/
@@ -301,9 +301,9 @@ public:
     double x; /**< X coordinate of the Node in the Global Coordinate System **/
     double y; /**< Y coordinate of the Node in the Global Coordinate System **/
     double z; /**< Z coordinate of the Node in the Global Coordinate System **/
-    const int positionCS;     /**< Vega Position of the CS used to compute the position of node. **/
-    const int displacementCS; /**< Vega Position of the CS used to compute displacement, loadings, etc. **/
-    inline static std::string MedName(const int nodePosition) noexcept {
+    const pos_t positionCS;     /**< Vega Position of the CS used to compute the position of node. **/
+    const pos_t displacementCS; /**< Vega Position of the CS used to compute displacement, loadings, etc. **/
+    inline static std::string MedName(const pos_t nodePosition) noexcept {
 //        if (nodePosition == Node::UNAVAILABLE_NODE) {
 //          throw std::logic_error("Node position " + std::to_string(nodePosition) + " not found.");
 //        }
@@ -330,7 +330,7 @@ class Cell final {
 private:
     friend std::ostream &operator<<(std::ostream &out, const Cell & cell) noexcept;    //output
     friend Mesh;
-    int findNodeIdPosition(int node_id2) const;
+    pos_t findNodeIdPosition(int node_id2) const;
     /**
      * Every face is identified by the nodes that belongs to that face
      */
@@ -341,22 +341,22 @@ private:
     static const std::unordered_map<CellType::Code, std::vector<int>, EnumClassHash > CORNERNODEIDS_BY_CELLTYPE;
     static std::unordered_map<CellType::Code, std::vector<std::vector<int>>, EnumClassHash > init_faceByCelltype() noexcept;
     static int auto_cell_id;
-    Cell(int id, const CellType &type, const std::vector<int> &nodeIds, int position, const std::vector<int> &nodePositions, bool isvirtual,
-            int cspos, int elementId, size_t cellTypePosition, std::shared_ptr<OrientationCoordinateSystem> orientation = nullptr,
-            double offset = 0.0) noexcept;
+    Cell(int id, const CellType &type, const std::vector<int> &nodeIds, const pos_t position, const std::vector<pos_t>& nodePositions, const bool isvirtual,
+            const pos_t cspos, const int elementId, const pos_t cellTypePosition, const std::shared_ptr<OrientationCoordinateSystem> orientation = nullptr,
+            const double offset = 0.0) noexcept;
 public:
     static const int AUTO_ID = INT_MIN;
-    static const int UNAVAILABLE_CELL = INT_MIN;
+    static const pos_t UNAVAILABLE_CELL = Globals::UNAVAILABLE_POS;
     int id;
-    int position;
+    pos_t position;
     bool hasOrientation;
     CellType type;
     std::vector<int> nodeIds;
-    std::vector<int> nodePositions;
+    std::vector<pos_t> nodePositions;
     bool isvirtual;
     int elementId;
-    size_t cellTypePosition;
-    int cspos; /**< Id of local Coordinate System **/
+    pos_t cellTypePosition;
+    pos_t cspos; /**< Id of local Coordinate System **/
     std::shared_ptr<OrientationCoordinateSystem> orientation;
     double offset;
     std::map<int, std::vector<int>> nodeIdsByFaceNum() const;
@@ -388,7 +388,7 @@ public:
     /**
      * Returns the name used in med file for this cell
      */
-    inline static const std::string MedName(const int position) noexcept {
+    inline static const std::string MedName(const pos_t position) noexcept {
         return "M" + std::to_string(position + 1);
     }
 
@@ -406,11 +406,11 @@ public:
 class CellIterator final: public std::iterator<std::input_iterator_tag, const Cell> {
     friend CellStorage;
     const CellStorage* cellStorage;
-    size_t endPosition;
+    pos_t endPosition;
     CellType cellType;
-    size_t position;
+    pos_t position;
     bool equal(CellIterator const& other) const noexcept;
-    void increment(size_t i);
+    void increment(pos_t i);
     Cell dereference() const;
     friend Mesh;
     CellIterator(const CellStorage* cellStorage, const CellType &cellType, bool begin) noexcept;
@@ -437,7 +437,7 @@ class CellGroup;
  */
 class CellContainer {
 private:
-    std::set<int> cellPositions;
+    std::set<pos_t> cellPositions;
     std::set<std::string> cellGroupNames;
     const Mesh& mesh;
 public:
@@ -447,33 +447,33 @@ public:
     /**
      * Adds a cellId to the current set
      */
-    void addCellPosition(int cellPosition) noexcept;
+    void addCellPosition(pos_t cellPosition) noexcept;
     void addCellId(int cellId) noexcept;
     // These methods should be templated but this class is based on incomplete types (Mesh) so cannot move the function implementation inside header :..(
     void addCellIds(const std::vector<int>&) noexcept;
     void addCellIds(const std::set<int>&)  noexcept;
     void addCellIds(const std::list<int>&) noexcept;
-    void addCellPositions(const std::vector<int>&) noexcept;
-    void addCellPositions(const std::set<int>&) noexcept;
-    void addCellPositions(const std::list<int>&) noexcept;
+    void addCellPositions(const std::vector<pos_t>&) noexcept;
+    void addCellPositions(const std::set<pos_t>&) noexcept;
+    void addCellPositions(const std::list<pos_t>&) noexcept;
     void addCellGroup(const std::string& groupName);
     void add(const Cell& cell) noexcept;
     //virtual void add(const Group& group);
     virtual void add(const CellGroup&) noexcept;
     void add(const CellContainer&) noexcept;
-    bool containsCellPosition(int cellPosition) const noexcept;
+    bool containsCellPosition(pos_t cellPosition) const noexcept;
     std::set<Cell> getCellsIncludingGroups() const noexcept;
     std::set<Cell> getCellsExcludingGroups() const noexcept;
-    void removeCellPositionExcludingGroups(int cellPosition) noexcept;
+    void removeCellPositionExcludingGroups(pos_t cellPosition) noexcept;
     void removeAllCellsExcludingGroups() noexcept;
 
     std::set<int> getCellIdsIncludingGroups() const noexcept;
     std::set<int> getCellIdsExcludingGroups() const noexcept;
-    std::set<int> getCellPositionsIncludingGroups() const noexcept;
-    std::set<int> getCellPositionsExcludingGroups() const noexcept;
+    std::set<pos_t> getCellPositionsIncludingGroups() const noexcept;
+    std::set<pos_t> getCellPositionsExcludingGroups() const noexcept;
 
-    virtual std::set<int> getNodePositionsExcludingGroups() const noexcept;
-    virtual std::set<int> getNodePositionsIncludingGroups() const noexcept;
+    virtual std::set<pos_t> getNodePositionsExcludingGroups() const noexcept;
+    virtual std::set<pos_t> getNodePositionsIncludingGroups() const noexcept;
 
     /**
      * True if the container contains some cellGroup
@@ -515,11 +515,11 @@ public:
     using CellContainer::addCellIds;
     using CellContainer::addCellPositions;
     using CellContainer::containsCellPosition;
-    void removeCellPosition(int cellPosition) noexcept;
+    void removeCellPosition(pos_t cellPosition) noexcept;
     std::set<Cell> getCells();
-    std::set<int> cellPositions() noexcept;
+    std::set<pos_t> cellPositions() noexcept;
     std::set<int> cellIds() noexcept;
-    std::set<int> nodePositions() const noexcept override;
+    std::set<pos_t> nodePositions() const noexcept override;
     bool empty() const noexcept override {
         return CellContainer::empty();
     }
@@ -535,7 +535,7 @@ class NodeGroup;
 class NodeContainer : public CellContainer {
 private:
     Mesh& mesh; // because CellContainer mesh needs to be const
-    std::set<int> nodePositions;
+    std::set<pos_t> nodePositions;
     std::set<std::string> nodeGroupNames;
 public:
     NodeContainer(Mesh& mesh) noexcept;
@@ -550,19 +550,19 @@ public:
     void addNodeIds(const std::set<int>&) noexcept;
     void addNodeIds(const std::vector<int>&) noexcept;
     void addNodeIds(const std::list<int>&) noexcept;
-    void addNodePositions(const std::set<int>&) noexcept;
-    void addNodePositions(const std::vector<int>&) noexcept;
-    void addNodePositions(const std::list<int>&) noexcept;
-    void addNodePosition(int) noexcept;
+    void addNodePositions(const std::set<pos_t>&) noexcept;
+    void addNodePositions(const std::vector<pos_t>&) noexcept;
+    void addNodePositions(const std::list<pos_t>&) noexcept;
+    void addNodePosition(pos_t) noexcept;
     //void addNodeGroup(const std::string& groupName);
     void add(const Node&) noexcept;
     void addNodeGroup(const std::string& groupName);
     virtual void add(const NodeGroup& nodeGroup) noexcept final;
     void add(const NodeContainer& nodeContainer) noexcept;
-    bool containsNodePositionExcludingGroups(int nodePosition) const;
-    void removeNodePositionExcludingGroups(int nodePosition) noexcept;
-    virtual std::set<int> getNodePositionsExcludingGroups() const noexcept override final;
-    virtual std::set<int> getNodePositionsIncludingGroups() const noexcept override final;
+    bool containsNodePositionExcludingGroups(pos_t nodePosition) const;
+    void removeNodePositionExcludingGroups(pos_t nodePosition) noexcept;
+    virtual std::set<pos_t> getNodePositionsExcludingGroups() const noexcept override final;
+    virtual std::set<pos_t> getNodePositionsIncludingGroups() const noexcept override final;
     virtual std::set<int> getNodeIdsIncludingGroups() const noexcept final;
     virtual std::set<int> getNodeIdsExcludingGroups() const noexcept final;
     virtual std::set<Node> getNodesExcludingGroups() const final;
@@ -588,10 +588,10 @@ public:
     using NodeContainer::addNodePosition;
     using NodeContainer::addNodePositions;
     void addNode(const Node& node) noexcept;
-    void addNodeByPosition(int nodePosition) noexcept;
-    void removeNodeByPosition(int nodePosition) noexcept;
-    bool containsNodePosition(int nodePosition) const noexcept;
-    std::set<int> nodePositions() const noexcept override;
+    void addNodeByPosition(pos_t nodePosition) noexcept;
+    void removeNodeByPosition(pos_t nodePosition) noexcept;
+    bool containsNodePosition(pos_t nodePosition) const noexcept;
+    std::set<pos_t> nodePositions() const noexcept override;
     std::set<int> getNodeIds() const noexcept;
     std::set<Node> getNodes() const;
     bool empty() const noexcept override {

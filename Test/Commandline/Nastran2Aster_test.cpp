@@ -80,7 +80,8 @@ BOOST_AUTO_TEST_CASE( sdld27a ) {
 }
 
 //BOOST_AUTO_TEST_CASE( sdld27a_pvisc ) {
-//	CommandLineUtils::nastranStudy2Aster("/irt/sdld27a_pvisc/sdld27a_pvisc.bdf", RUN_ASTER, true, 0.00001);
+//    // LD TODO test this, implement complex mode search parameters (EIGC in AsterWriter)
+//	CommandLineUtils::nastranStudy2Aster("/irt/sdld27a_pvisc/sdld27a_pvisc.bdf", false, true, 0.00001);
 //}
 
 BOOST_AUTO_TEST_CASE( ssll11a ) {
@@ -311,6 +312,7 @@ BOOST_AUTO_TEST_CASE( rbe2_y ) {
 
 BOOST_AUTO_TEST_CASE( rbe2_yz ) {
     // invalid pointer in Aster ??
+    // Matrice singulière : Degré de liberté physique associé au noeud N3 et à la composante DRZ.
 	CommandLineUtils::nastranStudy2Aster("/irt/rbe2_yz/rbe2_yz.nas", false, true, 0.00001);
 }
 
@@ -353,6 +355,7 @@ BOOST_AUTO_TEST_CASE( allpload) {
 BOOST_AUTO_TEST_CASE( grav_coord) {
 	CommandLineUtils::nastranStudy2Aster("/irt/grav-coord/grav-coord.nas", RUN_ASTER, true, 0.00001);
 }
+
 
 //BOOST_AUTO_TEST_CASE(cord2c) {
 //    // issues with mesh parsing, COR2C vectors seems aligned ?

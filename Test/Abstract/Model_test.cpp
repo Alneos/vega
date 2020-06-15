@@ -170,7 +170,7 @@ unique_ptr<Model> createModelWith1HEXA8() {
 	for (int i = 0; i < 8; i ++) {
 		model->mesh.addNode(nodeIds[i], coords[i*3], coords[i*3 + 1], coords[i*3 + 2]);
 	}
-	int cellPosition = model->mesh.addCell(1, CellType::HEXA8, nodeIds);
+	const auto cellPosition = model->mesh.addCell(1, CellType::HEXA8, nodeIds);
 	const Cell& hexa = model->mesh.findCell(cellPosition);
 	BOOST_CHECK_EQUAL_COLLECTIONS(hexa.nodeIds.begin(), hexa.nodeIds.end(), nodeIds.begin(),
 			nodeIds.end());
@@ -537,7 +537,7 @@ BOOST_AUTO_TEST_CASE(test_spc_dof_remove) {
 	const auto& analysis2 = make_shared<LinearMecaStat>(*model);
 	model->add(analysis2);
 	BOOST_CHECK_EQUAL(model->commonConstraintSet->getConstraints().size(), 1);
-	int nodePosition = model->mesh.findNodePosition(50);
+	const auto nodePosition = model->mesh.findNodePosition(50);
 	BOOST_CHECK_EQUAL(spc->nodePositions().size(), 1);
 	BOOST_CHECK_EQUAL(spc->getDOFSForNode(nodePosition), DOFS::ALL_DOFS);
 	BOOST_CHECK_EQUAL(model->getConstraintSetsByConstraint(spc->getReference()).size(), 1);

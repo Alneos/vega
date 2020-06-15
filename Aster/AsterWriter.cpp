@@ -605,7 +605,7 @@ void AsterWriter::writeLireMaillage() {
         comm_file_ofs << mail_name << "=MODI_MAILLAGE(reuse="<< mail_name << ",";
         comm_file_ofs << "MAILLAGE=" << mail_name << "," << endl;
         // TODO LD should find a better solution
-        int firstNodePosition = *((*zones.begin())->nodePositions().begin());
+        const auto firstNodePosition = *((*zones.begin())->nodePositions().begin());
         if (asterModel->model.mesh.findNode(firstNodePosition).dofs == DOFS::ALL_DOFS) {
             comm_file_ofs << "         ORIE_PEAU_2D=(" << endl;
         } else {
@@ -1617,8 +1617,8 @@ void AsterWriter::writeLIAISON_SOLIDE( const ConstraintSet& cset) {
 		comm_file_ofs << "                   LIAISON_SOLIDE=(" << endl;
 		for (const auto& constraintPtr : constraints) {
 			comm_file_ofs << "                                   _F(NOEUD=(";
-			for (int node : constraintPtr->nodePositions()) {
-				comm_file_ofs << "'" << Node::MedName(node) << "',";
+			for (const auto nodePosition : constraintPtr->nodePositions()) {
+				comm_file_ofs << "'" << Node::MedName(nodePosition) << "',";
 			}
 			comm_file_ofs << ")," << endl;
 			comm_file_ofs << "                                      )," << endl;
@@ -1659,12 +1659,12 @@ void AsterWriter::writeRBE3( const ConstraintSet& cset) {
 		comm_file_ofs << "                   LIAISON_RBE3=(" << endl;
 		for (const auto& constraint : constraints) {
 			const auto& rbe3 = static_pointer_cast<RBE3>(constraint);
-			int masterNode = rbe3->getMaster();
+			const auto masterNodePosition = rbe3->getMaster();
 			comm_file_ofs << "                                 _F(NOEUD_MAIT='"
-					<< Node::MedName(masterNode) << "',"
+					<< Node::MedName(masterNodePosition) << "',"
 					<< endl;
 			comm_file_ofs << "                                    DDL_MAIT=(";
-			DOFS dofs = rbe3->getDOFSForNode(masterNode);
+			DOFS dofs = rbe3->getDOFSForNode(masterNodePosition);
 			if (dofs.contains(DOF::DX))
 				comm_file_ofs << "'DX',";
 			if (dofs.contains(DOF::DY))
@@ -1678,15 +1678,15 @@ void AsterWriter::writeRBE3( const ConstraintSet& cset) {
 			if (dofs.contains(DOF::RZ))
 				comm_file_ofs << "'DRZ',";
 			comm_file_ofs << ")," << endl;
-			set<int> slaveNodes = rbe3->getSlaves();
+			const auto& slaveNodes = rbe3->getSlaves();
 
 			comm_file_ofs << "                                    NOEUD_ESCL=(";
-			for (int slaveNode : slaveNodes) {
+			for (const auto slaveNode : slaveNodes) {
 				comm_file_ofs << "'" << Node::MedName(slaveNode) << "',";
 			}
 			comm_file_ofs << ")," << endl;
 			comm_file_ofs << "                                    DDL_ESCL=(";
-			for (int slaveNode : slaveNodes) {
+			for (const auto slaveNode : slaveNodes) {
 				DOFS slaveDofs = rbe3->getDOFSForNode(slaveNode);
 				int size = 0;
 				comm_file_ofs << "'";
@@ -1722,7 +1722,7 @@ void AsterWriter::writeRBE3( const ConstraintSet& cset) {
 			}
 			comm_file_ofs << ")," << endl;
 			comm_file_ofs << "                                    COEF_ESCL=(";
-			for (int slaveNode : slaveNodes) {
+			for (const auto slaveNode : slaveNodes) {
 				comm_file_ofs << rbe3->getCoefForNode(slaveNode) << ",";
 			}
 			comm_file_ofs << ")," << endl;
@@ -1742,7 +1742,7 @@ void AsterWriter::writeLMPC( const ConstraintSet& cset) {
 			const auto& lmpc = static_pointer_cast<LinearMultiplePointConstraint>(constraint);
 			comm_file_ofs << "                                _F(NOEUD=(";
 			const auto& nodePositions = lmpc->nodePositions();
-			for (int nodePosition : nodePositions) {
+			for (const auto nodePosition : nodePositions) {
 				string nodeName = Node::MedName(nodePosition);
 				DOFS dofs = lmpc->getDOFSForNode(nodePosition);
 				for (int i = 0; i < dofs.size(); i++) {
@@ -1751,7 +1751,7 @@ void AsterWriter::writeLMPC( const ConstraintSet& cset) {
 			}
 			comm_file_ofs << ")," << endl;
 			comm_file_ofs << "                                   DDL=(";
-			for (int nodePosition : nodePositions) {
+			for (const auto nodePosition : nodePositions) {
 				DOFS dofs = lmpc->getDOFSForNode(nodePosition);
 				if (dofs.contains(DOF::DX))
 					comm_file_ofs << "'DX', ";
@@ -1768,7 +1768,7 @@ void AsterWriter::writeLMPC( const ConstraintSet& cset) {
 			}
 			comm_file_ofs << ")," << endl;
 			comm_file_ofs << "                                   COEF_MULT=(";
-			for (int nodePosition : nodePositions) {
+			for (const auto nodePosition : nodePositions) {
 			    DOFCoefs dofcoef = lmpc->getDoFCoefsForNode(nodePosition);
 				for (dof_int i = 0; i < 6; i++) {
 					if (!is_zero(dofcoef[i]))
@@ -1826,10 +1826,10 @@ void AsterWriter::writeNodalForce( const LoadSet& loadSet) {
 
 	const auto& nodalForces = loadSet.getLoadingsByType(Loading::Type::NODAL_FORCE);
 	if (not nodalForces.empty()) {
-        map<int, pair<VectorialValue, VectorialValue>> forceAndMomentByPosition;
+        map<pos_t, pair<VectorialValue, VectorialValue>> forceAndMomentByPosition;
 		for (const auto& loading : nodalForces) {
 			const auto& nodal_force = static_pointer_cast<NodalForce>(loading);
-			for(const int nodePosition : nodal_force->nodePositions()) {
+			for(const auto nodePosition : nodal_force->nodePositions()) {
                 VectorialValue force = nodal_force->getForceInGlobalCS(nodePosition);
                 VectorialValue moment = nodal_force->getMomentInGlobalCS(nodePosition);
 
@@ -1845,7 +1845,7 @@ void AsterWriter::writeNodalForce( const LoadSet& loadSet) {
 
 		comm_file_ofs << "                      FORCE_NODALE=(" << endl;
 		for (const auto& forceAndMomentEntry : forceAndMomentByPosition) {
-            int nodePosition = forceAndMomentEntry.first;
+            const auto nodePosition = forceAndMomentEntry.first;
             VectorialValue force = forceAndMomentEntry.second.first;
             VectorialValue moment = forceAndMomentEntry.second.second;
             comm_file_ofs << "                                    _F(NOEUD='"
@@ -2002,7 +2002,7 @@ void AsterWriter::writeNodeContainer(const shared_ptr<NodeContainer>& nodeContai
     }
     if (nodeContainer->hasNodesExcludingGroups()) {
       comm_file_ofs << "NOEUD=(";
-      for (int nodePosition : nodeContainer->getNodePositionsExcludingGroups()) {
+      for (const auto nodePosition : nodeContainer->getNodePositionsExcludingGroups()) {
         cnode++;
         comm_file_ofs << "'" << Node::MedName(nodePosition) << "',";
         if (cnode % 6 == 0) {
@@ -2036,7 +2036,7 @@ void AsterWriter::writeCellContainer(const shared_ptr<CellContainer>& cellContai
             // Creating single cell groups to avoid using MAILLE
           comm_file_ofs << "MAILLE=(";
           //comm_file_ofs << "GROUP_MA=(";
-          for (int cellPosition : cellContainer->getCellPositionsExcludingGroups()) {
+          for (const auto cellPosition : cellContainer->getCellPositionsExcludingGroups()) {
             celem++;
     //        const string& groupName = Cell::MedName(cellPosition);
     //        auto entry = singleGroupCellPositions.find(cellPosition);
@@ -2591,7 +2591,7 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
 						for (const auto& loading2 : nodalForces) {
 							const auto& nodal_force = dynamic_pointer_cast<NodalForce>(
 									loading2);
-                            for(const int nodePosition : nodal_force->nodePositions()) {
+                            for(const pos_t nodePosition : nodal_force->nodePositions()) {
                                 const auto& force = nodal_force->getForceInGlobalCS(nodePosition);
                                 const auto& moment = nodal_force->getMomentInGlobalCS(nodePosition);
                                 comm_file_ofs << "                                    _F(NOEUD='"
