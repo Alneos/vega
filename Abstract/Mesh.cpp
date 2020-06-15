@@ -186,7 +186,7 @@ pos_t Mesh::addNode(const int id, const double x, const double y, const double z
 	int assignId;
 	if (id == Node::AUTO_ID){
 		assignId = Node::auto_node_id--;
-		while (findNodePosition(id) != Node::UNAVAILABLE_NODE){
+		while (findNodePosition(assignId) != Node::UNAVAILABLE_NODE){
 			assignId = Node::auto_node_id--;
 		}
 	} else {
