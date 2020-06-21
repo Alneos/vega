@@ -232,7 +232,7 @@ public:
 class DimensionData3D final {};
 
 /*
-// Need c++17 to avoid these repetions
+// Need c++17 to avoid these repetitions
 template <class CellTypeEnumClass, CellTypeEnumClass cellTypeEnum>
 class CellTypeData : public DimensionData<decltype(CellType::findByCode(cellTypeEnum).spacedimension.code), CellType::findByCode(cellTypeEnum).spacedimension.code> {
 };*/

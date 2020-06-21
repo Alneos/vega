@@ -900,6 +900,9 @@ void AsterWriter::writeMaterials() {
         //for (const auto& material : asterModel->model.materials) {
         //    const auto& cells = material->getAssignment();
         for (const auto& elementSet : asterModel->model.elementSets) {
+            if (elementSet->isComposite()) {
+                continue;
+            }
             const auto& cells = dynamic_pointer_cast<CellElementSet>(elementSet);
             if (cells == nullptr or cells->empty()) {
                 continue;

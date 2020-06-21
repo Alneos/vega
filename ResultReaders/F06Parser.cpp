@@ -401,6 +401,10 @@ int F06Parser::addFrequencyAssertionsToModel(int currentSubCase, Model& model,
 	shared_ptr<Analysis> analysis;
 	if (currentSubCase != NO_SUBCASE) {
 		analysis = model.analyses.find(currentSubCase);
+		if (analysis == nullptr) {
+            cout << "Cannot find analysis:" << currentSubCase << " in model, assertion are incoherents." << endl;
+            return nextSubcase;
+		}
 		analysis->add(Reference<ObjectiveSet>{ObjectiveSet::Type::ASSERTION, currentSubCase});
 		if (analysis == nullptr and model.configuration.logLevel >= LogLevel::INFO) {
 			cout << "Could not find subcase : " << currentSubCase << " in model." << endl;

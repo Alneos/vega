@@ -2149,6 +2149,7 @@ void Model::splitElementsByCellOffsets() {
             }
         }
     }
+    cellPositionsByRoundedOffset.clear();
 
     for (const auto& elementSet : elementSets.filter(ElementSet::Type::COMPOSITE)) {
         const auto& composite = static_pointer_cast<Composite>(elementSet);
@@ -2160,7 +2161,7 @@ void Model::splitElementsByCellOffsets() {
             const auto& it = cellPositionsByRoundedOffset.find(offsetRounded);
             if (it == cellPositionsByRoundedOffset.end()) {
                 const shared_ptr<ElementSet>& clonedElement = composite->clone();
-                const auto& clonedComposite = dynamic_pointer_cast<Composite>(clonedElement);
+                const auto& clonedComposite = static_pointer_cast<Composite>(clonedElement);
                 clonedComposite->clear();
                 clonedComposite->offset = composite->offset + cell.offset;
                 clonedComposite->add(cell);
@@ -2204,7 +2205,7 @@ void Model::replaceIsotropicMaterialsInComposites() {
                                                                    elasticNature->getG(),
                                                                    elasticNature->getRho()));
                 this->add(orthoMaterial);
-                replacedMaterials[orthoMaterial->getReference()] = orthoMaterial;
+                replacedMaterials[material->getReference()] = orthoMaterial;
                 layer->setMaterial(orthoMaterial);
                 composite->unassignMaterial(material);
                 composite->assignMaterial(orthoMaterial);
