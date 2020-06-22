@@ -362,15 +362,15 @@ void NastranParser::parseExecutiveSection(NastranTokenizer& tok, Model& model,
                 }
                 trim(line);
                 /*
-             The matrices are additive if multiple matrices are referenced on the B2GG
-             command.
-             The formats of the name list:
-             a. Names without factor.
-             Names separated by comma or blank.
-             b. Names with factors.
-             Each entry in the list consists of a factor followed by a star followed by a
-             name. The entries are separated by comma or blank. The factors are real
-             numbers. Each name must be with a factor including 1.0.
+                 The matrices are additive if multiple matrices are referenced on the B2GG
+                 command.
+                 The formats of the name list:
+                 a. Names without factor.
+                 Names separated by comma or blank.
+                 b. Names with factors.
+                 Each entry in the list consists of a factor followed by a star followed by a
+                 name. The entries are separated by comma or blank. The factors are real
+                 numbers. Each name must be with a factor including 1.0.
                  */
                 if (line.find_first_of(", *") != std::string::npos) {
                     handleParsingError("complex names not yet implemented", tok, model);
@@ -712,19 +712,28 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
 
     } else if (analysis_type == NastranAnalysis::BUCKL and previous != nullptr) {
 
-        map<string, string>::iterator it;
         int frequency_search_sid = 0;
-        for (it = context.begin(); it != context.end(); it++) {
-            if (it->first.find("METHOD") != string::npos) {
-                frequency_search_sid = stoi(it->second);
-                break;
+        int statsub_buckling = 0;
+        for (const auto& paramEntry : context) {
+            if (paramEntry.first.find("METHOD") != string::npos) {
+                frequency_search_sid = stoi(paramEntry.second);
+            }
+            if (paramEntry.first.find("STATSUB") != string::npos and
+                paramEntry.first.find("BUCKLING") != string::npos) {
+                statsub_buckling = stoi(paramEntry.second);
             }
         }
-        if (it == context.end())
+        if (frequency_search_sid == 0)
             handleParsingError("METHOD not found for linear buckling analysis", tok, model);
 
         analysis = make_shared<LinearBuckling>(model, Reference<ObjectiveSet>{ObjectiveSet::Type::METHOD, frequency_search_sid}, labelAnalysis, analysis_id);
-
+        if (statsub_buckling != 0) {
+            const auto& statsubAnalysis = model.analyses.find(statsub_buckling);
+            if (statsubAnalysis == nullptr) {
+                handleParsingError("STATSUB(BUCKLING) referencing a previously unseen analysis???", tok, model);
+            }
+            static_pointer_cast<LinearBuckling>(analysis)->setStaticSubAnalysis(statsubAnalysis->getReference());
+        }
     } else if (analysis_type == NastranAnalysis::MCEIG) {
 
         map<string, string>::iterator it;

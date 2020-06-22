@@ -647,6 +647,18 @@ LinearBuckling::LinearBuckling(Model& model, const Reference<ObjectiveSet>& freq
         LinearModal(model, frequencySearchRef, original_label, original_id, Type::LINEAR_BUCKLING) {
 }
 
+void LinearBuckling::setStaticSubAnalysis(const Reference<Analysis>& statsub) {
+    staticSubAnalysisRef = std::make_shared<Reference<Analysis>>(statsub);
+}
+
+shared_ptr<Analysis> LinearBuckling::getStaticSubAnalysis() const noexcept {
+    if (staticSubAnalysisRef != nullptr) {
+        return model.find(*staticSubAnalysisRef);
+    } else {
+        return previousAnalysis;
+    }
+}
+
 LinearModalComplex::LinearModalComplex(Model& model, const Reference<ObjectiveSet>& frequencySearchRef,
         const Reference<ObjectiveSet>& complexMethodRef,
         const string original_label, const int original_id) :

@@ -228,11 +228,15 @@ public:
 };
 
 class LinearBuckling: public LinearModal {
+protected:
+    std::shared_ptr<Reference<Analysis>> staticSubAnalysisRef = nullptr;
 public:
     LinearBuckling(Model&, const Reference<ObjectiveSet>&, const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     bool isBuckling() const noexcept override {
         return true;
     }
+    void setStaticSubAnalysis(const Reference<Analysis>&);
+    std::shared_ptr<Analysis> getStaticSubAnalysis() const noexcept;
 };
 
 class LinearModalComplex: public LinearModal {

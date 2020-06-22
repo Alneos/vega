@@ -17,7 +17,7 @@ SUBCASE    520002
   LABEL= LC5520002-105-Global_LDC#2_S105
   SPC =   410001
   METHOD(STRUCTURE) =       5555
-  STATSUB(BUCKLING) =        520002
+  STATSUB(BUCKLING) =        520001
   ANALYSIS = BUCK
   DISP(PLOT) = ALL
 $$------------------------------------------------------------------------------$

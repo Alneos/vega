@@ -511,7 +511,7 @@ void AsterWriter::writeAnalyses() {
                 usedInNext = true;
                 break;
             }
-            if (otherAnalysis->type == Analysis::Type::LINEAR_BUCKLING and otherAnalysis->previousAnalysis == analysis) {
+            if (otherAnalysis->type == Analysis::Type::LINEAR_BUCKLING and static_pointer_cast<LinearBuckling>(otherAnalysis)->getStaticSubAnalysis() == analysis) {
                 usedInNext = true;
                 break;
             }
@@ -2866,7 +2866,7 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
 
         comm_file_ofs << "FSIG" << linearBuckling->getId() << " = CREA_CHAMP(OPERATION='EXTR'," << endl;
         comm_file_ofs << "            TYPE_CHAM='ELGA_SIEF_R'," << endl;
-        comm_file_ofs << "            RESULTAT=RESU" << linearBuckling->previousAnalysis->getId() << "," << endl;
+        comm_file_ofs << "            RESULTAT=RESU" << linearBuckling->getStaticSubAnalysis()->getId() << "," << endl;
         //comm_file_ofs << "            NUME_ORDRE=1," << endl;
         comm_file_ofs << "            NOM_CHAM='SIEF_ELGA',)" << endl << endl;
 
