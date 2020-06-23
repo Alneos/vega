@@ -953,6 +953,7 @@ private:
         "SOL", //
         "SPC", // Selects a single-point constraint set to be applied.
         "SPCFORCES", // IGNORED: Requests the form and type of single-point force of constraint vector output.
+        "STATSUB", // Selects static analysis or preload for buckling
         "STRAIN", // IGNORED: Requests the form and type of strain output.
         "STRESS", // Requests the form and type of element stress output.
         "STRFIELD", // IGNORED: Requests the computation of grid point stresses for graphical postprocessing and mesh stress discontinuities.

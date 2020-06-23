@@ -72,6 +72,10 @@ inline bool is_equal(double x, double y, double tolerance = Globals::DOUBLE_COMP
 	return std::abs(x - y) <= tolerance * std::max(1.0, std::max(std::abs(x), std::abs(y)));
 }
 
+inline bool is_defined(double x, double tolerance = Globals::DOUBLE_COMPARE_TOLERANCE) noexcept {
+	return not is_equal(x, Globals::UNAVAILABLE_DOUBLE);
+}
+
 namespace ublas = boost::numeric::ublas;
 
 /**

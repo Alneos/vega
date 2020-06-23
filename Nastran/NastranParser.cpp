@@ -719,7 +719,7 @@ void NastranParser::addAnalysis(NastranTokenizer& tok, Model& model, map<string,
                 frequency_search_sid = stoi(paramEntry.second);
             }
             if (paramEntry.first.find("STATSUB") != string::npos and
-                paramEntry.first.find("BUCKLING") != string::npos) {
+                paramEntry.first.find("PRELOAD" /* BUCKLING is default in SOL 105 */) == string::npos) {
                 statsub_buckling = stoi(paramEntry.second);
             }
         }
@@ -1936,8 +1936,17 @@ void NastranParser::parseMAT8(NastranTokenizer& tok, Model& model) {
     double g1Z = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
     double g2Z = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
     double rho = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    double a1 = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    double a2 = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    double a3 = Globals::UNAVAILABLE_DOUBLE; // pas de dilatation thermique normal pour MAT8?
+    double tref = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    double xt = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    double xc = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    double yt = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    double yc = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    double s = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
     shared_ptr<Material> material = model.getOrCreateMaterial(material_id);
-    material->addNature(make_shared<OrthotropicNature>(model, e1, e2, nu12, g12, g2Z, g1Z, rho));
+    material->addNature(make_shared<OrthotropicNature>(model, e1, e2, nu12, g12, g2Z, g1Z, rho, a1, a2, a3, tref, xt, xc, yt, yc, s));
 }
 
 void NastranParser::parseMATHP(NastranTokenizer& tok, Model& model) {

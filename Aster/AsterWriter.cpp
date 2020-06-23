@@ -857,14 +857,38 @@ void AsterWriter::writeMaterials() {
 			comm_file_ofs << "                         E_L=" << orthoNature->getE_longitudinal() << "," << endl;
             comm_file_ofs << "                         E_T=" << orthoNature->getE_transverse() << "," << endl;
             comm_file_ofs << "                         G_LT=" << orthoNature->getG_longitudinal_transverse() << "," << endl;
-            if (!is_equal(orthoNature->getG_transverse_normal(),Globals::UNAVAILABLE_DOUBLE)){
+            if (is_defined(orthoNature->getG_transverse_normal())){
                 comm_file_ofs << "                         G_TN=" << orthoNature->getG_transverse_normal() << "," << endl;
             }
-            if (!is_equal(orthoNature->getG_longitudinal_normal(),Globals::UNAVAILABLE_DOUBLE)){
+            if (is_defined(orthoNature->getG_longitudinal_normal())) {
                 comm_file_ofs << "                         G_LN=" << orthoNature->getG_longitudinal_normal() << "," << endl;
             }
 			comm_file_ofs << "                         NU_LT=" << orthoNature->getNu_longitudinal_transverse() << "," << endl;
 			comm_file_ofs << "                         RHO=" << orthoNature->getRho() << "," << endl;
+			if (is_defined(orthoNature->getXc())) {
+			    comm_file_ofs << "                         XC=" << orthoNature->getXc() << "," << endl;
+			}
+			if (is_defined(orthoNature->getXt())) {
+			    comm_file_ofs << "                         XT=" << orthoNature->getXt() << "," << endl;
+			}
+			if (is_defined(orthoNature->getYc())) {
+			    comm_file_ofs << "                         YC=" << orthoNature->getYc() << "," << endl;
+			}
+			if (is_defined(orthoNature->getSlt())) {
+			    comm_file_ofs << "                         S_LT=" << orthoNature->getSlt() << "," << endl;
+			}
+			if (is_defined(orthoNature->getAlphaL())) {
+			    comm_file_ofs << "                         ALPHA_L=" << orthoNature->getAlphaL() << "," << endl;
+			}
+			if (is_defined(orthoNature->getAlphaT())) {
+			    comm_file_ofs << "                         ALPHA_T=" << orthoNature->getAlphaT() << "," << endl;
+			}
+			if (is_defined(orthoNature->getAlphaN())) {
+			    comm_file_ofs << "                         ALPHA_N=" << orthoNature->getAlphaN() << "," << endl;
+			}
+			if (is_defined(orthoNature->getTempDefAlpha())) {
+			    comm_file_ofs << "                         TEMP_DEF_ALPHA=" << orthoNature->getTempDefAlpha() << "," << endl;
+			}
 			comm_file_ofs << "                         )," << endl;
 		}
 		const auto& binature = material->findNature(Nature::NatureType::NATURE_BILINEAR_ELASTIC);

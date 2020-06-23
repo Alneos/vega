@@ -356,10 +356,13 @@ BOOST_AUTO_TEST_CASE( grav_coord) {
 	CommandLineUtils::nastranStudy2Aster("/irt/grav-coord/grav-coord.nas", RUN_ASTER, true, 0.00001);
 }
 
-
 //BOOST_AUTO_TEST_CASE(cord2c) {
-//    // issues with mesh parsing, COR2C vectors seems aligned ?
+//  non corresponding results
 //	CommandLineUtils::nastranStudy2Aster("/irt/cord2c/INPUT.dat", false, true, 0.00001);
+//}
+
+//BOOST_AUTO_TEST_CASE(sol105_cyl_tsai) {
+//	CommandLineUtils::nastranStudy2Aster("/irt/sol105_cyl_tsai/sol105_cyl_tsai.bdf", false, true, 0.00001);
 //}
 
 } /* namespace test */

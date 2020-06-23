@@ -158,13 +158,42 @@ double ElasticNature::getGE() const {
     return ge;
 }
 
-OrthotropicNature::OrthotropicNature(const Model& model, const double e_longitudinal, const double e_transverse,
-                                     const double nu_longitudinal_transverse, const double g_longitudinal_transverse,
-                                     const double g_transverse_normal, const double g_longitudinal_normal, const double rho) :
-		Nature(model, Nature::NatureType::NATURE_ORTHOTROPIC), _e_longitudinal(e_longitudinal), _e_transverse(e_transverse),
+OrthotropicNature::OrthotropicNature(const Model& model,
+                                     const double e_longitudinal,
+                                     const double e_transverse,
+                                     const double nu_longitudinal_transverse,
+                                     const double g_longitudinal_transverse,
+                                     const double g_transverse_normal,
+                                     const double g_longitudinal_normal,
+                                     const double rho,
+                                     const double alpha_l,
+                                     const double alpha_t,
+                                     const double alpha_n,
+                                     const double temp_def_alpha,
+                                     const double xt,
+                                     const double xc,
+                                     const double yt,
+                                     const double yc,
+                                     const double s_lt
+                                     ) :
+		Nature(model, Nature::NatureType::NATURE_ORTHOTROPIC),
+		_e_longitudinal(e_longitudinal),
+		_e_transverse(e_transverse),
 		_nu_longitudinal_transverse(nu_longitudinal_transverse),
-		_g_longitudinal_transverse(g_longitudinal_transverse), _g_transverse_normal(g_transverse_normal),
-		_g_longitudinal_normal(g_longitudinal_normal), rho(rho) {
+		_g_longitudinal_transverse(g_longitudinal_transverse),
+		_g_transverse_normal(g_transverse_normal),
+		_g_longitudinal_normal(g_longitudinal_normal),
+		rho(rho),
+		alpha_l(alpha_l),
+		alpha_t(alpha_t),
+		alpha_n(alpha_n),
+		temp_def_alpha(temp_def_alpha),
+		xt(xt),
+		xc(xc),
+		yt(yt),
+		yc(yc),
+		s_lt(s_lt)
+		 {
 }
 
 double OrthotropicNature::getE_longitudinal() const {
@@ -203,6 +232,43 @@ double OrthotropicNature::getRho() const {
 double OrthotropicNature::getRhoAsForceDensity() const {
 	return (is_equal(rho, Globals::UNAVAILABLE_DOUBLE)) ? 0 : rho;
 }
+
+double OrthotropicNature::getXt() const {
+	return xt;
+}
+
+double OrthotropicNature::getXc() const {
+	return xc;
+}
+
+double OrthotropicNature::getYt() const {
+	return yt;
+}
+
+double OrthotropicNature::getYc() const {
+	return yc;
+}
+
+double OrthotropicNature::getSlt() const {
+	return s_lt;
+}
+
+double OrthotropicNature::getAlphaL() const {
+	return alpha_l;
+}
+
+double OrthotropicNature::getAlphaT() const {
+	return alpha_t;
+}
+
+double OrthotropicNature::getAlphaN() const {
+	return alpha_n;
+}
+
+double OrthotropicNature::getTempDefAlpha() const {
+	return temp_def_alpha;
+}
+
 
 BilinearElasticNature::BilinearElasticNature(const Model& model, const double elastic_limit,
 		const double secondary_slope) :

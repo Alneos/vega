@@ -105,11 +105,34 @@ class OrthotropicNature: public Nature {
     double _g_transverse_normal;
     double _g_longitudinal_normal;
     double rho;
+    double alpha_l;
+    double alpha_t;
+    double alpha_n;
+    double temp_def_alpha;
+    double xt;
+    double xc;
+    double yt;
+    double yc;
+    double s_lt;
 public:
-    OrthotropicNature(const Model&, const double e_longitudinal, const double e_transverse,
-            const double nu_longitudinal_transverse, const double g_longitudinal_transverse,
-            const double g_transverse_normal = Globals::UNAVAILABLE_DOUBLE, const double g_longitudinal_normal = Globals::UNAVAILABLE_DOUBLE,
-            const double rho = Globals::UNAVAILABLE_DOUBLE);
+    OrthotropicNature(const Model&,
+                      const double e_longitudinal,
+                      const double e_transverse,
+                      const double nu_longitudinal_transverse,
+                      const double g_longitudinal_transverse,
+                      const double g_transverse_normal = Globals::UNAVAILABLE_DOUBLE,
+                      const double g_longitudinal_normal = Globals::UNAVAILABLE_DOUBLE,
+                      const double rho = Globals::UNAVAILABLE_DOUBLE,
+                      const double alpha_l = Globals::UNAVAILABLE_DOUBLE,
+                      const double alpha_t = Globals::UNAVAILABLE_DOUBLE,
+                      const double alpha_n = Globals::UNAVAILABLE_DOUBLE,
+                      const double temp_def_alpha = Globals::UNAVAILABLE_DOUBLE,
+                      const double xt = Globals::UNAVAILABLE_DOUBLE,
+                      const double xc = Globals::UNAVAILABLE_DOUBLE,
+                      const double yt = Globals::UNAVAILABLE_DOUBLE,
+                      const double yc = Globals::UNAVAILABLE_DOUBLE,
+                      const double s_lt = Globals::UNAVAILABLE_DOUBLE
+                      );
     double getE_longitudinal() const;
     double getE_transverse() const;
     double getNu_longitudinal_transverse() const;
@@ -124,6 +147,16 @@ public:
      * Get mass density as equivalent force density (in N.m^{-3})
      */
     double getRhoAsForceDensity() const;
+    double getXc() const;
+    double getXt() const;
+    double getYt() const;
+    double getYc() const;
+    double getSlt() const;
+    double getAlphaL() const;
+    double getAlphaT() const;
+    double getAlphaN() const;
+    double getTempDefAlpha() const;
+
 };
 
 class BilinearElasticNature: public Nature {
