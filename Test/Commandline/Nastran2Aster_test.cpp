@@ -361,9 +361,9 @@ BOOST_AUTO_TEST_CASE( grav_coord) {
 //	CommandLineUtils::nastranStudy2Aster("/irt/cord2c/INPUT.dat", false, true, 0.00001);
 //}
 
-//BOOST_AUTO_TEST_CASE(sol105_cyl_tsai) {
-//	CommandLineUtils::nastranStudy2Aster("/irt/sol105_cyl_tsai/sol105_cyl_tsai.bdf", false, true, 0.00001);
-//}
+BOOST_AUTO_TEST_CASE(cyl_sol105) {
+	CommandLineUtils::nastranStudy2Aster("/cnes/cyl_sol105/cyl_sol105.bdf", RUN_ASTER, true, 0.00001);
+}
 
 } /* namespace test */
 } /* namespace vega */

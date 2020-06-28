@@ -337,7 +337,29 @@ public:
 class Composite: public CellElementSet {
     std::vector<std::shared_ptr<CompositeLayer>> layers;
 public:
+	enum class PlyFailureTheory {
+	    NONE,
+		HILL,
+		HOFFMAN,
+		TSAI_WU,
+		MAXIMUM_STRESS,
+		MAXIMUM_STRAIN,
+		NASA_LARC,
+		PUCK_PCP,
+		MULTICONTINUUM
+	};
+	enum class LaminateOption {
+	    SYM,
+		HCS,
+		FCS,
+		ACS,
+		SME,
+		SMC
+	};
     double offset = 0.0;
+    double allowableInterlaminarShearStress = Globals::UNAVAILABLE_DOUBLE;
+    PlyFailureTheory plyFailureTheory = PlyFailureTheory::NONE;
+    LaminateOption laminateOption = LaminateOption::SYM;
 	Composite(Model&, int original_id = NO_ORIGINAL_ID);
 	std::unique_ptr<ElementSet> clone() const override {
 		return std::make_unique<Composite>(*this);

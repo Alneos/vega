@@ -2540,12 +2540,60 @@ void NastranParser::parsePBUSH(NastranTokenizer& tok, Model& model) {
 void NastranParser::parsePCOMP(NastranTokenizer& tok, Model& model) {
     int pid = tok.nextInt();
     double z0 = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
-    if (tok.isNextEmpty(6)) {
-        tok.skip(6);
+    double nsm = tok.nextDouble(true, 0.0);
+    if (not is_zero(nsm)) {
+        handleParsingError("NSM field not yet handled for PCOMP", tok, model);
+    }
+    double sb = tok.nextDouble(true, Globals::UNAVAILABLE_DOUBLE);
+    const string& ft = tok.nextString(true, "");
+    Composite::PlyFailureTheory plyFailureTheory;
+    if (ft == "") {
+        plyFailureTheory = Composite::PlyFailureTheory::NONE;
+    } else if (ft == "HILL") {
+        plyFailureTheory = Composite::PlyFailureTheory::HILL;
+    } else if (ft == "HOFF") {
+        plyFailureTheory = Composite::PlyFailureTheory::HOFFMAN;
+    } else if (ft == "TSAI") {
+        plyFailureTheory = Composite::PlyFailureTheory::TSAI_WU;
+    } else if (ft == "STRESS") {
+        plyFailureTheory = Composite::PlyFailureTheory::MAXIMUM_STRESS;
+    } else if (ft == "STRAIN" or ft == "STRN") {
+        plyFailureTheory = Composite::PlyFailureTheory::MAXIMUM_STRAIN;
+    } else if (ft == "LARC02") {
+        plyFailureTheory = Composite::PlyFailureTheory::NASA_LARC;
+    } else if (ft == "PUCK") {
+        plyFailureTheory = Composite::PlyFailureTheory::PUCK_PCP;
+    } else if (ft == "MCT") {
+        plyFailureTheory = Composite::PlyFailureTheory::MULTICONTINUUM;
+    } else {
+        handleParsingError("PCOMP FT value: " + ft + " not yet handled", tok, model);
+    }
+    if (tok.isNextEmpty(2)) {
+        tok.skip(2);
     } else {
         handleParsingError("PCOMP fields not yet handled", tok, model);
     }
+    const string& lam = tok.nextString(true, "SYM");
+    Composite::LaminateOption laminateOption;
+    if (lam == "SYM") {
+        laminateOption = Composite::LaminateOption::SYM;
+    } else if (ft == "HCS") {
+        laminateOption = Composite::LaminateOption::HCS;
+    } else if (ft == "FCS") {
+        laminateOption = Composite::LaminateOption::FCS;
+    } else if (ft == "ACS") {
+        laminateOption = Composite::LaminateOption::ACS;
+    } else if (ft == "SME") {
+        laminateOption = Composite::LaminateOption::SME;
+    } else if (ft == "SMC") {
+        laminateOption = Composite::LaminateOption::SMC;
+    } else {
+        handleParsingError("PCOMP LAM value: " + lam + " not yet handled", tok, model);
+    }
     const auto& composite = make_shared<Composite>(model, pid);
+    composite->allowableInterlaminarShearStress = sb;
+    composite->plyFailureTheory = plyFailureTheory;
+    composite->laminateOption = laminateOption;
     int mid1 = tok.nextInt();
     composite->assignMaterial(Reference<Material>(Material::Type::MATERIAL,mid1));
     double t1 = tok.nextDouble();

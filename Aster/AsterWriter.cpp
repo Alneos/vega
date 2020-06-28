@@ -469,6 +469,108 @@ void AsterWriter::writeAnalyses() {
             }
 		}
 
+		int layerNumber = 1;
+        for (const auto& c : asterModel->model.elementSets.filter(ElementSet::Type::COMPOSITE)) {
+            const auto& composite = static_pointer_cast<Composite>(c);
+            for (const auto& layer : composite->getLayers()) {
+                const auto& material = layer->getMaterial();
+                const auto& onature = material->findNature(Nature::NatureType::NATURE_ORTHOTROPIC);
+                if (not onature) {
+                    comm_file_ofs << "# Ignoring composite layer because it does not have orthotropic nature" << endl;
+                    continue;
+                }
+                const auto& orthoNature = static_pointer_cast<const OrthotropicNature>(onature);
+
+                    /*comm_file_ofs << "                 ELAS_ORTH=_F(" << endl;
+                    comm_file_ofs << "                         E_L=" << orthoNature->getE_longitudinal() << "," << endl;
+                    comm_file_ofs << "                         E_T=" << orthoNature->getE_transverse() << "," << endl;
+                    comm_file_ofs << "                         G_LT=" << orthoNature->getG_longitudinal_transverse() << "," << endl;
+                    if (is_defined(orthoNature->getG_transverse_normal())){
+                        comm_file_ofs << "                         G_TN=" << orthoNature->getG_transverse_normal() << "," << endl;
+                    }
+                    if (is_defined(orthoNature->getG_longitudinal_normal())) {
+                        comm_file_ofs << "                         G_LN=" << orthoNature->getG_longitudinal_normal() << "," << endl;
+                    }
+                    comm_file_ofs << "                         NU_LT=" << orthoNature->getNu_longitudinal_transverse() << "," << endl;
+                    comm_file_ofs << "                         RHO=" << orthoNature->getRho() << "," << endl;
+                    if (is_defined(orthoNature->getXc())) {
+                        comm_file_ofs << "                         XC=" << orthoNature->getXc() << "," << endl;
+                    }
+                    if (is_defined(orthoNature->getXt())) {
+                        comm_file_ofs << "                         XT=" << orthoNature->getXt() << "," << endl;
+                    }
+                    if (is_defined(orthoNature->getYc())) {
+                        comm_file_ofs << "                         YC=" << orthoNature->getYc() << "," << endl;
+                    }
+                    if (is_defined(orthoNature->getSlt())) {
+                        comm_file_ofs << "                         S_LT=" << orthoNature->getSlt() << "," << endl;
+                    }
+                    if (is_defined(orthoNature->getAlphaL())) {
+                        comm_file_ofs << "                         ALPHA_L=" << orthoNature->getAlphaL() << "," << endl;
+                    }
+                    if (is_defined(orthoNature->getAlphaT())) {
+                        comm_file_ofs << "                         ALPHA_T=" << orthoNature->getAlphaT() << "," << endl;
+                    }
+                    if (is_defined(orthoNature->getAlphaN())) {
+                        comm_file_ofs << "                         ALPHA_N=" << orthoNature->getAlphaN() << "," << endl;
+                    }
+                    if (is_defined(orthoNature->getTempDefAlpha())) {
+                        comm_file_ofs << "                         TEMP_DEF_ALPHA=" << orthoNature->getTempDefAlpha() << "," << endl;
+                    }
+                    comm_file_ofs << "                         )," << endl;*/
+
+                switch (composite->plyFailureTheory) {
+                    case Composite::PlyFailureTheory::NONE: {
+                        continue;
+                    }
+                    case Composite::PlyFailureTheory::TSAI_WU: {
+                        string layerStressesName =  "LAY" + to_string(layerNumber);
+                        comm_file_ofs << layerStressesName << "=POST_CHAMP(RESULTAT=" << resuName << "," << endl;
+                        comm_file_ofs << "               EXTR_COQUE=_F(NOM_CHAM='SIGM_ELNO',NUME_COUCHE=1,NIVE_COUCHE='MOY',),)" << endl << endl;
+                        destroyableConcepts.push_back(layerStressesName);
+
+                        string layerLocalStressesName = layerStressesName + "R";
+                        comm_file_ofs << layerLocalStressesName << "=MODI_REPERE(RESULTAT=" << layerStressesName << "," << endl;
+                        comm_file_ofs << "                                  MODI_CHAM=_F(TYPE_CHAM='TENS_3D'," << endl;
+                        comm_file_ofs << "                                  NOM_CHAM='SIGM_ELNO'," << endl;
+                        comm_file_ofs << "                                  NOM_CMP=('SIXX','SIYY','SIZZ','SIXY','SIXZ','SIYZ',),)," << endl;
+                        comm_file_ofs << "                                  REPERE='COQUE'," << endl;
+                        comm_file_ofs << "                                  AFFE=_F(ANGL_REP=(0.0," << layer->getOrientation() << ",),";
+                        writeCellContainer(composite);
+                        comm_file_ofs << ")," << endl;
+                        comm_file_ofs << "                                  )" << endl << endl;
+                        destroyableConcepts.push_back(layerLocalStressesName);
+
+                        string layerTsaiFormula = "TSAI" + to_string(layerNumber);
+                        comm_file_ofs << layerTsaiFormula << " = FORMULE(VALE='(SIXX/" << orthoNature->getXt() << ")**2" <<
+                                    "+(SIYY/" << orthoNature->getYt() << ")**2" <<
+                                    "+(SIXY/" << orthoNature->getSlt() << ")**2" <<
+                                    "-(SIXX*SIYY/" << orthoNature->getXt() << "**2)',NOM_PARA=('SIXX','SIYY','SIXY',),)" << endl << endl;
+
+                        destroyableConcepts.push_back(layerTsaiFormula);
+
+                        string layerField = layerStressesName + "P";
+                        comm_file_ofs << layerField << "=CALC_CHAMP(RESULTAT=" << layerLocalStressesName << ",";
+                        writeCellContainer(composite);
+                        comm_file_ofs << endl;
+                        comm_file_ofs << "                    CHAM_UTIL=_F(NOM_CHAM='SIGM_ELNO'," << endl;
+                        comm_file_ofs << "FORMULE=" << layerTsaiFormula << ",NUME_CHAM_RESU="<< layerNumber << ",),)" << endl << endl;
+                        destroyableConcepts.push_back(layerField);
+
+                        // TODO CREA_RESU
+
+                        layerNumber++;
+                        break;
+                    }
+                    default: {
+                        handleWritingError("Composite ply failure type not (yet) implemented");
+                    }
+                }
+
+            }
+
+        }
+
 		const auto& assertions = analysis->getAssertions();
 		if (not assertions.empty()) {
 			comm_file_ofs << "TEST_RESU(RESU = (" << endl;
@@ -1121,8 +1223,10 @@ void AsterWriter::writeAffeCaraElem() {
 		const auto& shells = asterModel->model.elementSets.filter(ElementSet::Type::SHELL);
 		const auto& composites = asterModel->model.elementSets.filter(ElementSet::Type::COMPOSITE);
 		comm_file_ofs << "                    # writing " << shells.size()+composites.size() << " shells (ou composites)" << endl;
+        if (not composites.empty()) {
+            calc_sigm = true; // disabling for now in shells (see VSLX0004-19)
+        }
 		if (not (shells.empty() and composites.empty())) {
-			// calc_sigm = true; // disabling for now (see VSLX0004-19)
 			comm_file_ofs << "                    COQUE=(" << endl;
 			for (const auto& elementSet : shells) {
                 const auto& shell = static_pointer_cast<Shell>(elementSet);
@@ -2108,7 +2212,7 @@ void AsterWriter::writeAssemblage(const std::shared_ptr<Analysis>& analysis, boo
         oss << "                   )," << endl;
     }
 
-    comm_file_ofs << "NUMDDL" << analysis->getId() << "=NUME_DDL(" << oss.str() << ")" << endl << endl;
+    comm_file_ofs << "NDDL" << analysis->getId() << "=NUME_DDL(" << oss.str() << ")" << endl << endl;
 
     if (not asterModel->model.materials.empty()) {
         oss << "           CHAM_MATER=CHMAT," << endl;
@@ -2117,9 +2221,9 @@ void AsterWriter::writeAssemblage(const std::shared_ptr<Analysis>& analysis, boo
     const auto& commonparams = oss.str();
 
     comm_file_ofs << "RIEL" << analysis->getId() << "=CALC_MATR_ELEM(OPTION='RIGI_MECA'," << commonparams << ")" << endl << endl;
-    comm_file_ofs << "RIGI" << analysis->getId() << "=ASSE_MATRICE(MATR_ELEM=RIEL" << analysis->getId() << ",NUME_DDL=NUMDDL" << analysis->getId() << ")" << endl << endl;
+    comm_file_ofs << "RIGI" << analysis->getId() << "=ASSE_MATRICE(MATR_ELEM=RIEL" << analysis->getId() << ",NUME_DDL=NDDL" << analysis->getId() << ")" << endl << endl;
     if (not canBeReused) {
-        destroyableConcepts.push_back("NUMDDL" + to_string(analysis->getId()));
+        destroyableConcepts.push_back("NDDL" + to_string(analysis->getId()));
         destroyableConcepts.push_back("RIEL" + to_string(analysis->getId()));
         destroyableConcepts.push_back("RIGI" + to_string(analysis->getId()));
     }
@@ -2132,19 +2236,19 @@ void AsterWriter::writeAssemblage(const std::shared_ptr<Analysis>& analysis, boo
         }
         comm_file_ofs << "           CARA_ELEM=CAEL," << endl;
         comm_file_ofs << "SIEF_ELGA=FSIG" << analysis->getId() << ")" << endl << endl;
-        comm_file_ofs << "RIGE" << analysis->getId() << "=ASSE_MATRICE(MATR_ELEM=RGEL" << analysis->getId() << ",NUME_DDL=NUMDDL" << analysis->getId() << ")" << endl << endl;
+        comm_file_ofs << "RIGE" << analysis->getId() << "=ASSE_MATRICE(MATR_ELEM=RGEL" << analysis->getId() << ",NUME_DDL=NDDL" << analysis->getId() << ")" << endl << endl;
         if (not canBeReused) {
             destroyableConcepts.push_back("RGEL" + to_string(analysis->getId()));
             destroyableConcepts.push_back("RIGE" + to_string(analysis->getId()));
         }
     } else {
         comm_file_ofs << "MAEL" << analysis->getId() << "=CALC_MATR_ELEM(OPTION='MASS_MECA'," << commonparams << ")" << endl << endl;
-        comm_file_ofs << "MASS" << analysis->getId() << "=ASSE_MATRICE(MATR_ELEM=MAEL" << analysis->getId() << ",NUME_DDL=NUMDDL" << analysis->getId() << ")" << endl << endl;
+        comm_file_ofs << "MASS" << analysis->getId() << "=ASSE_MATRICE(MATR_ELEM=MAEL" << analysis->getId() << ",NUME_DDL=NDDL" << analysis->getId() << ")" << endl << endl;
         comm_file_ofs << "AMEL" << analysis->getId() << "=CALC_MATR_ELEM(OPTION='AMOR_MECA'," << commonparams << endl;
         comm_file_ofs << "     RIGI_MECA=RIEL" << analysis->getId() << "," << endl;
         comm_file_ofs << "     MASS_MECA=MAEL" << analysis->getId() << ",)" << endl << endl;
         comm_file_ofs << "AMOR" << analysis->getId() << "=ASSE_MATRICE(MATR_ELEM=AMEL" << analysis->getId() << "," << endl;
-        comm_file_ofs << "     NUME_DDL=NUMDDL" << analysis->getId() << ")" << endl << endl;
+        comm_file_ofs << "     NUME_DDL=NDDL" << analysis->getId() << ")" << endl << endl;
         if (not canBeReused) {
             destroyableConcepts.push_back("MAEL" + to_string(analysis->getId()));
             destroyableConcepts.push_back("MASS" + to_string(analysis->getId()));
@@ -2473,7 +2577,7 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
                     comm_file_ofs << ")" << endl << endl;
                     destroyableConcepts.push_back(vename);
                     const string& fxname = "FX" + to_string(analysis->getId()) + "_" + to_string(dynamicExcitation->getId());
-                    comm_file_ofs << fxname << " = ASSE_VECTEUR(VECT_ELEM = " << vename << ", NUME_DDL=NUMDDL" << analysis->getId() << ")" << endl << endl;
+                    comm_file_ofs << fxname << " = ASSE_VECTEUR(VECT_ELEM = " << vename << ", NUME_DDL=NDDL" << analysis->getId() << ")" << endl << endl;
                     destroyableConcepts.push_back(fxname);
                     dynamicExcitation->markAsWritten();
                     loadSet->markAsWritten();
@@ -2654,7 +2758,7 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
 			comm_file_ofs << "                               _F(MODE_INTF=MOSTA"
 					<< linearDynaModalFreq->getId() << ",)," << endl;
 			comm_file_ofs << "                               )," << endl;
-			comm_file_ofs << "                        NUME_REF=NUMDDL" << modalAnalysis->getId() << ","
+			comm_file_ofs << "                        NUME_REF=NDDL" << modalAnalysis->getId() << ","
 					<< endl;
 			comm_file_ofs << "                        MATRICE=RIGI" << modalAnalysis->getId() << ","
 					<< endl;
@@ -2685,7 +2789,7 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
                     comm_file_ofs << ")" << endl << endl;
                     destroyableConcepts.push_back(vename);
                     const string& fxname = "FX" + to_string(analysis->getId()) + "_" + to_string(dynamicExcitation->getId());
-                    comm_file_ofs << fxname << " = ASSE_VECTEUR(VECT_ELEM = " << vename << ", NUME_DDL=NUMDDL" << modalAnalysis->getId() << ")" << endl << endl;
+                    comm_file_ofs << fxname << " = ASSE_VECTEUR(VECT_ELEM = " << vename << ", NUME_DDL=NDDL" << modalAnalysis->getId() << ")" << endl << endl;
                     destroyableConcepts.push_back(fxname);
                     dynamicExcitation->markAsWritten();
                     loadSet->markAsWritten();
