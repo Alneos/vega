@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
 
         ConfigurationParameters configuration = ConfigurationParameters(inputFname.string(), SolverName::NASTRAN,
             solverVersion, "minirbs", outputPath.string(), LogLevel::DEBUG, translationMode, testFname.string(),
-            0.02, false, false, "", "", "lagrangian", 0.0, 0.0, "auto", "systus", {}, "table", 9, "direct",
+            0.02, false, false, "", "", false, "lagrangian", 0.0, 0.0, "auto", "systus", {}, "table", 9, "direct",
             "modern");
         optistruct::OptistructParser parser;
         unique_ptr<Model> model = parser.parse(configuration);

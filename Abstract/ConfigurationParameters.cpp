@@ -22,7 +22,7 @@ namespace vega {
 ConfigurationParameters::ConfigurationParameters(string inputFile, Solver outputSolver,
         string solverVersion, string outputFile, string outputPath, LogLevel logLevel,
         TranslationMode translationMode, fs::path resultFile, double tolerance, bool runSolver, bool createGraph,
-        string solverServer, string solverCommand,
+        string solverServer, string solverCommand, bool convertCompletelyRigidsIntoMPCs,
         string systusRBE2TranslationMode, double systusRBEStiffness, double systusRBECoefficient,
         string systusOptionAnalysis, string systusOutputProduct, vector<vector<int> > systusSubcases,
         string systusOutputMatrix, int systusSizeMatrix, string systusDynamicMethod, string nastranOutputDialect) :
@@ -30,6 +30,7 @@ ConfigurationParameters::ConfigurationParameters(string inputFile, Solver output
                 outputFile), outputPath(outputPath), logLevel(logLevel), translationMode(
                 translationMode), resultFile(resultFile), testTolerance(tolerance), runSolver(
                 runSolver), createGraph(createGraph), solverServer(solverServer), solverCommand(solverCommand),
+                convertCompletelyRigidsIntoMPCs(convertCompletelyRigidsIntoMPCs),
                 systusRBE2TranslationMode(systusRBE2TranslationMode), systusRBEStiffness(systusRBEStiffness),
                 systusRBECoefficient(systusRBECoefficient), systusOptionAnalysis(systusOptionAnalysis),
                 systusOutputProduct(systusOutputProduct), systusSubcases(systusSubcases),
@@ -42,6 +43,7 @@ ConfigurationParameters::ConfigurationParameters(string inputFile, Solver output
 ModelConfiguration ConfigurationParameters::getModelConfiguration() const {
     ModelConfiguration configuration;
     configuration.logLevel = this->logLevel;
+    configuration.convertCompletelyRigidsIntoMPCs = convertCompletelyRigidsIntoMPCs;
     if (this->outputSolver.getSolverName() == SolverName::CODE_ASTER) {
         configuration.virtualDiscrets = true;
         configuration.createSkin = true;
@@ -59,7 +61,6 @@ ModelConfiguration ConfigurationParameters::getModelConfiguration() const {
         configuration.replaceRigidSegments = true;
         configuration.changeParametricForceLineToAbsolute = true;
         configuration.alwaysUseGroupsForCells = true;
-        configuration.convertCompletelyRigidsIntoMPCs = true;
         configuration.splitElementsByCellOffsets = true;
         configuration.alwaysUseOrthotropicMaterialsInComposites = true;
     } else if (this->outputSolver.getSolverName() == SolverName::SYSTUS) {

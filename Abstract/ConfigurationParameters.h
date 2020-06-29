@@ -210,7 +210,7 @@ public:
             "", std::string outputFile = "vega", std::string outputPath = ".", LogLevel logLevel =
             LogLevel::INFO, TranslationMode translationMode = TranslationMode::BEST_EFFORT, fs::path resultFile = "",
             double testTolerance = 0.02, bool runSolver = false, bool createGraph = false, std::string solverServer = "",
-            std::string solverCommand = "",
+            std::string solverCommand = "", bool convertCompletelyRigidsIntoMPCs = false,
             std::string systusRBE2TranslationMode = "lagrangian", double systusRBEStiffness= 0.0,
             double systusRBECoefficient= 0.0,
             std::string systusOptionAnalysis="auto", std::string systusOutputProduct="systus",
@@ -232,6 +232,7 @@ public:
     const bool createGraph;
     const std::string solverServer;
     const std::string solverCommand;
+    bool convertCompletelyRigidsIntoMPCs;
     const std::string systusRBE2TranslationMode;
     const double systusRBEStiffness;
     const double systusRBECoefficient;

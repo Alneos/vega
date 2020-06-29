@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE( test_3d_cantilever ) {
 
             ConfigurationParameters configuration = ConfigurationParameters(inputFname.string(), nastranSolver,
                 solverVersion, "test_3d_cantilever_" + cellType.description, outputPath.string(), LogLevel::DEBUG, translationMode, testFname.string(),
-                0.02, false, false, "", "", "lagrangian", 0.0, 0.0, "auto", "systus", {}, "table", 9, "direct",
+                0.02, false, false, "", "", false, "lagrangian", 0.0, 0.0, "auto", "systus", {}, "table", 9, "direct",
                 "modern");
             nastran::NastranParser parser;
             unique_ptr<Model> model = parser.parse(configuration);

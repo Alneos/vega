@@ -354,12 +354,13 @@ public:
 		FCS,
 		ACS,
 		SME,
-		SMC
+		SMC,
+		FULL
 	};
     double offset = 0.0;
     double allowableInterlaminarShearStress = Globals::UNAVAILABLE_DOUBLE;
     PlyFailureTheory plyFailureTheory = PlyFailureTheory::NONE;
-    LaminateOption laminateOption = LaminateOption::SYM;
+    LaminateOption laminateOption = LaminateOption::FULL;
 	Composite(Model&, int original_id = NO_ORIGINAL_ID);
 	std::unique_ptr<ElementSet> clone() const override {
 		return std::make_unique<Composite>(*this);
@@ -370,6 +371,7 @@ public:
 	inline std::vector<std::shared_ptr<CompositeLayer>> getLayers() const {
 	    return layers;
 	}
+	std::vector<std::shared_ptr<CompositeLayer>> getFullLayers() const;
 	bool isComposite() const override final {
 		return true;
 	}

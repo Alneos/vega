@@ -2573,9 +2573,11 @@ void NastranParser::parsePCOMP(NastranTokenizer& tok, Model& model) {
     } else {
         handleParsingError("PCOMP fields not yet handled", tok, model);
     }
-    const string& lam = tok.nextString(true, "SYM");
+    const string& lam = tok.nextString(true, "");
     Composite::LaminateOption laminateOption;
-    if (lam == "SYM") {
+    if (lam == "") {
+        laminateOption = Composite::LaminateOption::FULL;
+    } else if (lam == "SYM") {
         laminateOption = Composite::LaminateOption::SYM;
     } else if (ft == "HCS") {
         laminateOption = Composite::LaminateOption::HCS;

@@ -2233,7 +2233,6 @@
 		<Unit filename="testdata/nastran/caw/prob30c/prob30c.f06" />
 		<Unit filename="testdata/nastran/cnes/cyl_sol105/Cas_test_cylindre_reference.pdf" />
 		<Unit filename="testdata/nastran/cnes/cyl_sol105/cyl_sol105.bdf" />
-		<Unit filename="testdata/nastran/cnes/cyl_sol105/cyl_sol105.f06" />
 		<Unit filename="testdata/nastran/cnes/cyl_sol105/readme.txt" />
 		<Unit filename="testdata/nastran/irt/2dof108/2dof108.bdf" />
 		<Unit filename="testdata/nastran/irt/2dof108/__2dof108.f06__" />

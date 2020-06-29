@@ -196,7 +196,6 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
         createGraph = true;
     }
 
-
     // Choice of output solver, and options related to it
     #if ENABLE_ASTER
     Solver solver(SolverName::CODE_ASTER);
@@ -206,6 +205,20 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
     if (vm.count("output-format")) {
         string outputSolver = vm["output-format"].as<string>();
         solver = Solver::fromString(outputSolver);
+    }
+
+    bool convertCompletelyRigidsIntoMPCs;
+    switch (solver.getSolverName()) {
+    case SolverName::CODE_ASTER: {
+        convertCompletelyRigidsIntoMPCs = true;
+        break;
+    }
+    default: {
+        convertCompletelyRigidsIntoMPCs = false;
+    }
+    }
+    if (vm.count("convertCompletelyRigidsIntoMPCs") >= 1 ) {
+        convertCompletelyRigidsIntoMPCs = vm["convertCompletelyRigidsIntoMPCs"].as<bool>();
     }
 
     bool runSolver = false;
@@ -393,11 +406,14 @@ ConfigurationParameters VegaCommandLine::readCommandLineParameters(const po::var
               cout << systusSubcases[i][j] << ' ';
            cout << endl;
         }
+        if (convertCompletelyRigidsIntoMPCs) {
+            cout << "\t convertCompletelyRigidsIntoMPCs: " << convertCompletelyRigidsIntoMPCs << endl;
+        }
     }
 
     ConfigurationParameters configuration = ConfigurationParameters(inputFile.string(), solver,
             solverVersion, modelName, outputDir, logLevel, translationMode, testFnamePath,
-            tolerance, runSolver, createGraph, solverServer, solverCommand,
+            tolerance, runSolver, createGraph, solverServer, solverCommand, convertCompletelyRigidsIntoMPCs,
             systusRBE2TranslationMode, systusRBEStiffness, systusRBECoefficient, systusOptionAnalysis, systusOutputProduct,
             systusSubcases, systusOutputMatrix, systusSizeMatrix, systusDynamicMethod, nastranOutputDialect);
     return configuration;
@@ -485,6 +501,7 @@ VegaCommandLine::ExitCode VegaCommandLine::process(int ac, const char* av[]) {
                 " otherwise it is translated only the mesh.") //
         ("strict,s", "Stops translation at the first "
                 "unrecognized keyword or parameter.")//
+        ("convertCompletelyRigidsIntoMPCs", po::value<bool>(), "Always convert rigid constraints into MPCs") //
         ("graph,g", "Creates a graph of the study") //
         ("verbosity", po::value<string>(), "Verbosity of VEGA. From low to high: ERROR, WARN, INFO, DEBUG, TRACE"); //
 

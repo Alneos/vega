@@ -402,10 +402,33 @@ void Composite::addLayer(const Reference<Material>& materialRef, double thicknes
 
 double Composite::getTotalThickness() {
     double total = 0.0;
-    for(const auto& layer : layers) {
+    for(const auto& layer : getFullLayers()) {
         total += layer->getThickness();
     }
     return total;
+}
+
+vector<shared_ptr<CompositeLayer>> Composite::getFullLayers() const {
+
+    vector<shared_ptr<CompositeLayer>> fullLayers;
+
+    switch (laminateOption) {
+    case Composite::LaminateOption::FULL: {
+        fullLayers = getLayers();
+        break;
+    }
+    case Composite::LaminateOption::SYM: {
+        const auto& layers = getLayers();
+        fullLayers.insert(fullLayers.end(), layers.begin(), layers.end());
+        fullLayers.insert(fullLayers.end(), layers.rbegin(), layers.rend());
+        break;
+    }
+    default: {
+        throw logic_error("Laminate option not yet handled for composite.");
+    }
+    }
+
+    return fullLayers;
 }
 
 bool Composite::containsNonzeroOffsetCell() const {
