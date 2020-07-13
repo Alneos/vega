@@ -42,7 +42,9 @@ enum class ModelParameter {
     ELEMENT_QUALITY_CHECK,
     STRUCTURAL_DAMPING,
     FREQUENCY_OF_INTEREST_RADIANS,
-    SHELL_NORMAL_STIFFNESS_FACTOR /**< see Nastran K6ROT, Aster COEF_RIGI_DRZ http://eric.cabrol.free.fr/CalculEF/params_Nastran.html */
+    SHELL_NORMAL_STIFFNESS_FACTOR, /**< see Nastran K6ROT, Aster COEF_RIGI_DRZ http://eric.cabrol.free.fr/CalculEF/params_Nastran.html */
+    GLOBAL_RAYLEIGH_MASS_FACTOR,
+    GLOBAL_RAYLEIGH_STIFFNESS_FACTOR
 };
 
 class Model final {

@@ -99,6 +99,13 @@ struct EnumClassHash
     }
 };
 
+template <typename T>
+std::string to_string_with_precision(const std::complex<T> a_value) {
+    std::ostringstream out;
+    out.precision(std::numeric_limits<T>::digits10);
+    out << std::fixed << '(' << a_value.real() << ',' << a_value.imag() << ')';
+    return out.str();
+}
 
 /**
  * https://stackoverflow.com/questions/16605967/set-precision-of-stdto-string-when-converting-floating-point-values
@@ -109,6 +116,14 @@ std::string to_string_with_precision(const T a_value) {
     out.precision(std::numeric_limits<T>::digits10);
     out << std::fixed << a_value;
     return out.str();
+}
+
+template <typename T>
+T from_string(const std::string& s) {
+    std::istringstream is(s);
+    T c;
+    is >> c;
+    return c;
 }
 
 } /* namespace vega */

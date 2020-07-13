@@ -365,5 +365,10 @@ BOOST_AUTO_TEST_CASE(cyl_sol105) {
 	CommandLineUtils::nastranStudy2Aster("/cnes/cyl_sol105/cyl_sol105.bdf", RUN_ASTER, true, 0.00001);
 }
 
+BOOST_AUTO_TEST_CASE(sdlv302a) {
+	CommandLineUtils::nastranStudy2Aster("/irt/sdlv302a/sdlv302a.bdf", RUN_ASTER, true, 0.05);
+}
+
+
 } /* namespace test */
 } /* namespace vega */

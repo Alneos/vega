@@ -106,6 +106,9 @@ CellGroup2Families::CellGroup2Families(
 	for (const auto& cellGroup : cellGroups) {
 		newFamilyByOldfamily.clear();
 		for (const auto& cellPosition : cellGroup->cellPositions()) {
+            if (cellPosition == Cell::UNAVAILABLE_CELL) {
+                continue; // ignoring unexisting cells in group definitions
+            }
 			const Cell&& cell = mesh.findCell(cellPosition);
 			shared_ptr<vector<int>> currentCellFamilies = cellFamiliesByType[cell.type.code];
 			int oldFamilyId = currentCellFamilies->at(cell.cellTypePosition);

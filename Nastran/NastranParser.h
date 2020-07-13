@@ -181,6 +181,18 @@ private:
     static const std::unordered_map<CellType::Code, std::vector<int>, EnumClassHash> nastran2medNodeConnectByCellType;
 
     /**
+     * PARAM ALPHA1
+     * Rayleigh damping, mass matrix factor
+     */
+    void parseParamALPHA1(NastranTokenizer& tok, Model& model);
+
+    /**
+     * PARAM ALPHA2
+     * Rayleigh damping, stiffness matrix factor
+     */
+    void parseParamALPHA2(NastranTokenizer& tok, Model& model);
+
+    /**
      * PARAM AUTOSPC
      */
     void parseParamAUTOSPC(NastranTokenizer& tok, Model& model);

@@ -675,6 +675,9 @@ LinearDynaModalFreq::LinearDynaModalFreq(Model& model, const Reference<Objective
 
 shared_ptr<ModalDamping> LinearDynaModalFreq::getModalDamping() const {
     const auto& objectiveSet = model.find(modal_damping_reference);
+    if (objectiveSet == nullptr) {
+        return nullptr;
+    }
     const auto& objectives = objectiveSet->getObjectivesByType(Objective::Type::MODAL_DAMPING);
     return static_pointer_cast<ModalDamping>(*objectives.begin());
 }

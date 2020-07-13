@@ -27,6 +27,7 @@
 
 #include "NastranParser.h"
 #include <boost/algorithm/string.hpp>
+#include <complex>
 
 using namespace std;
 
@@ -36,6 +37,8 @@ namespace nastran {
 
 const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARSEPARAM_FUNCTION_BY_KEYWORD =
         {
+                { "ALPHA1", &NastranParser::parseParamALPHA1 },
+                { "ALPHA2", &NastranParser::parseParamALPHA2 },
                 { "AUTOSPC", &NastranParser::parseParamAUTOSPC },
                 { "CHECKEL", &NastranParser::parseParamCHECKEL },
                 { "G", &NastranParser::parseParamG },
@@ -51,6 +54,27 @@ const unordered_map<string, NastranParser::parseElementFPtr> NastranParser::PARS
                 { "W3", &NastranParser::parseParamW3 },
                 { "WTMASS", &NastranParser::parseParamWTMASS },
         };
+
+void NastranParser::parseParamALPHA1(NastranTokenizer& tok, Model& model) {
+
+    double real = tok.nextDouble(true, 0.0);
+    double imag = tok.nextDouble(true, 0.0);
+    std::ostringstream out;
+    out.precision(std::numeric_limits<double>::digits10);
+    out << std::fixed << '(' << real << ',' << imag << ')';
+    model.setParameter(ModelParameter::GLOBAL_RAYLEIGH_MASS_FACTOR, out.str());
+}
+
+void NastranParser::parseParamALPHA2(NastranTokenizer& tok, Model& model) {
+
+    double real = tok.nextDouble(true, 0.0);
+    double imag = tok.nextDouble(true, 0.0);
+    complex<double> alpha2{real, imag};
+    std::ostringstream out;
+    out.precision(std::numeric_limits<double>::digits10);
+    out << std::fixed << '(' << real << ',' << imag << ')';
+    model.setParameter(ModelParameter::GLOBAL_RAYLEIGH_STIFFNESS_FACTOR, out.str());
+}
 
 void NastranParser::parseParamAUTOSPC(NastranTokenizer& tok, Model& model) {
 

@@ -906,6 +906,26 @@ void AsterWriter::writeMaterials() {
 			if (not is_equal(elasticNature->getGE(), Globals::UNAVAILABLE_DOUBLE)) {
                 comm_file_ofs << "                         AMOR_HYST=" << elasticNature->getGE() << "," << endl;
 			}
+            if (asterModel->model.contains(ModelParameter::GLOBAL_RAYLEIGH_STIFFNESS_FACTOR)) {
+                const auto& alpha = from_string<complex<double>>(asterModel->model.getParameter(ModelParameter::GLOBAL_RAYLEIGH_STIFFNESS_FACTOR));
+                if (not is_zero(alpha.imag())) {
+                    handleWritingError("Cannot (yet) handle a complex rayleigh alpha value.");
+                }
+                if (not is_zero(alpha.real())) {
+                    comm_file_ofs << "                         AMOR_ALPHA=" << alpha.real() << "," << endl;
+                }
+            }
+
+            if (asterModel->model.contains(ModelParameter::GLOBAL_RAYLEIGH_MASS_FACTOR)) {
+                const auto& beta = from_string<complex<double>>(asterModel->model.getParameter(ModelParameter::GLOBAL_RAYLEIGH_MASS_FACTOR));
+                if (not is_zero(beta.imag())) {
+                    handleWritingError("Cannot (yet) handle a complex rayleigh beta value.");
+                }
+                if (not is_zero(beta.real())) {
+                    comm_file_ofs << "                         AMOR_BETA=" << beta.real() << "," << endl;
+                }
+            }
+
 			comm_file_ofs << "                         )," << endl;
 		}
 		const auto& hynature = material->findNature(Nature::NatureType::NATURE_HYPERELASTIC);
@@ -3027,6 +3047,7 @@ void AsterWriter::writeNodalComplexDisplacementAssertion(const shared_ptr<NodalC
     comm_file_ofs << "                     FREQ = " << nda->frequency << "," << endl;
     comm_file_ofs << "                     VALE_CALC_C = " << nda->value.real() << "+" << nda->value.imag()
             << "j," << endl;
+    comm_file_ofs << "                     VALE_ABS = 'OUI'," << endl;
     comm_file_ofs << "                     TOLE_MACHINE = (" << (relativeComparison ? nda->tolerance : 1e-5) << "," << 1e-5 << ")," << endl;
 }
 
