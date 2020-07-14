@@ -196,7 +196,7 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
     }
     case (Analysis::Type::LINEAR_DYNA_MODAL_FREQ): {
         if (reusableAnalysis == nullptr) {
-            comm_file_ofs << "                _F(RESULTAT=MODES" << analysis->getId()
+            comm_file_ofs << "                _F(RESULTAT=MO" << analysis->getId()
                     << ", NOM_CHAM = 'DEPL',)," << endl;
         }
         comm_file_ofs << "                _F(RESULTAT=RESU" << analysis->getId()
@@ -256,7 +256,7 @@ void AsterWriter::writeImprResultats(const shared_ptr<Analysis>& analysis) {
         }
         case (Analysis::Type::LINEAR_DYNA_MODAL_FREQ): {
             if (reusableAnalysis == nullptr) {
-                comm_file_ofs << "                _F(RESULTAT=MODES" << analysis->getId()
+                comm_file_ofs << "                _F(RESULTAT=MO" << analysis->getId()
                     << ",TOUT='OUI',NOM_CHAM='DEPL',TOUT_CMP='OUI')," << endl;
             }
             break;
@@ -721,6 +721,25 @@ void AsterWriter::writeLireMaillage() {
 		comm_file_ofs << "                             )," << endl;
 		comm_file_ofs << "                   )" << endl << endl;
 	}
+
+/*	for (const auto& loadSet : asterModel->model.loadSets) {
+        const auto& pressions = loadSet->getLoadingsByType(Loading::Type::NORMAL_PRESSION_FACE);
+        if (pressions.empty()) {
+            continue;
+        }
+        comm_file_ofs << mail_name << "=MODI_MAILLAGE(reuse="<< mail_name << ",";
+        comm_file_ofs << "MAILLAGE=" << mail_name << "," << endl;
+        comm_file_ofs << "         ORIE_PEAU_3D=(" << endl;
+		for (const auto& pressionFace : pressions) {
+		    const auto& normalPressionFace = static_pointer_cast<NormalPressionFace>(pressionFace);
+            comm_file_ofs << "                             _F(";
+            writeCellContainer(static_pointer_cast<CellContainer>(normalPressionFace));
+            comm_file_ofs << ")," << endl;
+		}
+		comm_file_ofs << "                             )," << endl;
+		comm_file_ofs << "                   )" << endl << endl;
+	}*/
+
 }
 
 void AsterWriter::writeAffeModele() {
@@ -2628,7 +2647,7 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
             if (analysis->type == Analysis::Type::LINEAR_MODAL)
                 modalResuName = "RESU" + to_string(modalAnalysis->getId());
             else {
-                modalResuName = "MODES" + to_string(modalAnalysis->getId());
+                modalResuName = "MO" + to_string(modalAnalysis->getId());
                 if (not canBeReused) {
                     destroyableConcepts.push_back(modalResuName);
                 }
@@ -2672,7 +2691,7 @@ double AsterWriter::writeAnalysis(const shared_ptr<Analysis>& analysis, double d
             if (reusableAnalysis->type == Analysis::Type::LINEAR_MODAL)
                 modalResuName = "RESU" + to_string(reusableAnalysis->getId());
             else
-                modalResuName = "MODES" + to_string(reusableAnalysis->getId());
+                modalResuName = "MOD" + to_string(reusableAnalysis->getId());
 		    comm_file_ofs << "# Reusing previous results: " << modalResuName << " for analysis " << *analysis << endl;
             handleWritingWarning("Reusing previous results: " + modalResuName + " for analysis " + to_str(*analysis));
 		}
@@ -3047,7 +3066,7 @@ void AsterWriter::writeNodalComplexDisplacementAssertion(const shared_ptr<NodalC
     comm_file_ofs << "                     FREQ = " << nda->frequency << "," << endl;
     comm_file_ofs << "                     VALE_CALC_C = " << nda->value.real() << "+" << nda->value.imag()
             << "j," << endl;
-    comm_file_ofs << "                     VALE_ABS = 'OUI'," << endl;
+    //comm_file_ofs << "                     VALE_ABS = 'OUI'," << endl;
     comm_file_ofs << "                     TOLE_MACHINE = (" << (relativeComparison ? nda->tolerance : 1e-5) << "," << 1e-5 << ")," << endl;
 }
 
@@ -3083,9 +3102,9 @@ void AsterWriter::writeFrequencyAssertion(const shared_ptr<Analysis>& analysis, 
     string resuName;
     const auto& reusableAnalysis = asterModel->model.reusableAnalysisFor(analysis);
     if (reusableAnalysis == nullptr) {
-        resuName = ((analysis->type == Analysis::Type::LINEAR_MODAL or analysis->type == Analysis::Type::LINEAR_BUCKLING) ? "RESU" : "UMODES") + to_string(analysis->getId());
+        resuName = ((analysis->type == Analysis::Type::LINEAR_MODAL or analysis->type == Analysis::Type::LINEAR_BUCKLING) ? "RESU" : "UMO") + to_string(analysis->getId());
     } else {
-        resuName = ((reusableAnalysis->type == Analysis::Type::LINEAR_MODAL or reusableAnalysis->type == Analysis::Type::LINEAR_BUCKLING) ? "RESU" : "UMODES") + to_string(reusableAnalysis->getId());
+        resuName = ((reusableAnalysis->type == Analysis::Type::LINEAR_MODAL or reusableAnalysis->type == Analysis::Type::LINEAR_BUCKLING) ? "RESU" : "UMO") + to_string(reusableAnalysis->getId());
     }
 
 	string critere = (!is_zero(frequencyAssertion->cycles) ? "'RELATIF'," : "'ABSOLU',");

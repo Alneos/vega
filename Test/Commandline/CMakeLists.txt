@@ -19,6 +19,22 @@ if(ENABLE_ASTER)
     )
 
     add_test(NAME Nastran2Aster_test COMMAND Nastran2Aster_test)
+
+    add_executable(
+     Nastran2AsterLong_test
+     Nastran2AsterLong_test.cpp
+    )
+
+    SET_TARGET_PROPERTIES(Nastran2AsterLong_test PROPERTIES LINK_SEARCH_START_STATIC ${STATIC_LINKING})
+    SET_TARGET_PROPERTIES(Nastran2AsterLong_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINKING})
+
+    target_link_libraries(
+     Nastran2AsterLong_test
+     command_line_test_utils
+     commandline
+    )
+
+    add_test(NAME Nastran2AsterLong_test COMMAND Nastran2AsterLong_test)    
 endif(ENABLE_ASTER)
 
 if(ENABLE_SYSTUS)

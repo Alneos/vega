@@ -297,8 +297,6 @@ void NastranParser::addSet(NastranTokenizer& tok, Model& model) {
     set<int> values;
     trim(parts[1]);boost::to_upper(parts[1]);
 
-    //const list<string>& types = {"TRIA3","TRIA6","TRIAR","QUAD4","QUAD8","QUADR","HEXA","PENTA","TETRA"};
-
     if (boost::starts_with(parts[1],"ALL")) {
         const auto& setValueAll = make_shared<SetValueAll>(model, setid);
         setValueAll->setInputContext(tok.getInputContext());

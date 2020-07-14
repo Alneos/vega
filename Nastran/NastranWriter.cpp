@@ -385,8 +385,20 @@ void NastranWriter::writeMaterials(const Model& model, ofstream& out) const
 			mat1.add(elasticNature.getG());
 			mat1.add(elasticNature.getNu());
 			mat1.add(elasticNature.getRho());
-			if (!is_zero(elasticNature.getGE())){
-			    cerr <<"Warning in Material: no support for GE material properties yet.";
+			if (not is_equal(elasticNature.getAlpha(), Globals::UNAVAILABLE_DOUBLE)) {
+                mat1.add(elasticNature.getAlpha());
+			} else {
+			    mat1.add();
+			}
+			if (not is_equal(elasticNature.getTref(), Globals::UNAVAILABLE_DOUBLE)) {
+                mat1.add(elasticNature.getTref());
+			} else {
+			    mat1.add();
+			}
+			if (not is_equal(elasticNature.getGE(), Globals::UNAVAILABLE_DOUBLE)) {
+                mat1.add(elasticNature.getGE());
+			} else {
+			    mat1.add();
 			}
 		}
 		out << mat1;

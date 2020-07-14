@@ -46,11 +46,6 @@ BOOST_AUTO_TEST_CASE( fixedcircularplate ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/fixed_circular_plate/fixed_circular_plate.dat", RUN_ASTER, true, 0.2);
 }
 
-BOOST_AUTO_TEST_CASE( t01331a ) {
-    // Results NOOK, still missing THETA CTRIA3 orientation (should become a ANGL_VRIL)
-	CommandLineUtils::nastranStudy2Aster("/irt/t01331/t01331a.inp", false, true, 0.00001);
-}
-
 BOOST_AUTO_TEST_CASE( cbush ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/cbush/cbush.inp", RUN_ASTER, true, 0.00001);
 }
@@ -90,14 +85,6 @@ BOOST_AUTO_TEST_CASE( ssll11a ) {
 
 BOOST_AUTO_TEST_CASE( ssll11c ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/ssll11c/ssll11c.nas", RUN_ASTER, true, 0.000001);
-}
-
-BOOST_AUTO_TEST_CASE( ssnv129a ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/ssnv129a/ssnv129a.bdf", RUN_ASTER, true, 0.01);
-}
-
-BOOST_AUTO_TEST_CASE( ssnv104i ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/ssnv104i/ssnv104i.bdf", RUN_ASTER, true, 0.04);
 }
 
 BOOST_AUTO_TEST_CASE( appd ) {
@@ -203,10 +190,6 @@ BOOST_AUTO_TEST_CASE( nas103prob9 ) {
 
 BOOST_AUTO_TEST_CASE( nas120probF ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/nas120probF/nas120probF.nas", RUN_ASTER, true, 0.000001);
-}
-
-BOOST_AUTO_TEST_CASE( test_2dof108 ) {
-	CommandLineUtils::nastranStudy2Aster("/irt/2dof108/2dof108.bdf", RUN_ASTER, true, 0.05);
 }
 
 BOOST_AUTO_TEST_CASE( rbe3 ) {
@@ -360,14 +343,6 @@ BOOST_AUTO_TEST_CASE( grav_coord) {
 //  non corresponding results
 //	CommandLineUtils::nastranStudy2Aster("/irt/cord2c/INPUT.dat", false, true, 0.00001);
 //}
-
-BOOST_AUTO_TEST_CASE(cyl_sol105) {
-	CommandLineUtils::nastranStudy2Aster("/cnes/cyl_sol105/cyl_sol105.bdf", RUN_ASTER, true, 0.00001);
-}
-
-BOOST_AUTO_TEST_CASE(sdlv302a) {
-	CommandLineUtils::nastranStudy2Aster("/irt/sdlv302a/sdlv302a.bdf", RUN_ASTER, true, 0.05);
-}
 
 
 } /* namespace test */

@@ -59,10 +59,8 @@ void NastranParser::parseParamALPHA1(NastranTokenizer& tok, Model& model) {
 
     double real = tok.nextDouble(true, 0.0);
     double imag = tok.nextDouble(true, 0.0);
-    std::ostringstream out;
-    out.precision(std::numeric_limits<double>::digits10);
-    out << std::fixed << '(' << real << ',' << imag << ')';
-    model.setParameter(ModelParameter::GLOBAL_RAYLEIGH_MASS_FACTOR, out.str());
+    complex<double> alpha1{real, imag};
+    model.setParameter(ModelParameter::GLOBAL_RAYLEIGH_MASS_FACTOR, to_string_with_precision(alpha1));
 }
 
 void NastranParser::parseParamALPHA2(NastranTokenizer& tok, Model& model) {
@@ -70,10 +68,7 @@ void NastranParser::parseParamALPHA2(NastranTokenizer& tok, Model& model) {
     double real = tok.nextDouble(true, 0.0);
     double imag = tok.nextDouble(true, 0.0);
     complex<double> alpha2{real, imag};
-    std::ostringstream out;
-    out.precision(std::numeric_limits<double>::digits10);
-    out << std::fixed << '(' << real << ',' << imag << ')';
-    model.setParameter(ModelParameter::GLOBAL_RAYLEIGH_STIFFNESS_FACTOR, out.str());
+    model.setParameter(ModelParameter::GLOBAL_RAYLEIGH_STIFFNESS_FACTOR, to_string_with_precision(alpha2));
 }
 
 void NastranParser::parseParamAUTOSPC(NastranTokenizer& tok, Model& model) {

@@ -2032,6 +2032,7 @@
 		<Unit filename="Test/Commandline/CommandLineUtils.cpp" />
 		<Unit filename="Test/Commandline/CommandLineUtils.h" />
 		<Unit filename="Test/Commandline/IRTMiniRBS_test.cpp" />
+		<Unit filename="Test/Commandline/Nastran2AsterLong_test.cpp" />
 		<Unit filename="Test/Commandline/Nastran2Aster_test.cpp" />
 		<Unit filename="Test/Commandline/Nastran2Nastran_test.cpp" />
 		<Unit filename="Test/Commandline/Nastran2Systus_test.cpp" />
@@ -2425,6 +2426,9 @@
 		<Unit filename="testdata/nastran/irt/sdld27a/sdld27a.f06" />
 		<Unit filename="testdata/nastran/irt/sdld27a_pvisc/sdld27a_pvisc.bdf" />
 		<Unit filename="testdata/nastran/irt/sdld27a_pvisc/sdld27a_pvisc.f06" />
+		<Unit filename="testdata/nastran/irt/sdlv302a/readme.txt" />
+		<Unit filename="testdata/nastran/irt/sdlv302a/sdlv302a.bdf" />
+		<Unit filename="testdata/nastran/irt/sdlv302a/sdlv302a.f06" />
 		<Unit filename="testdata/nastran/irt/sine_test/readme.txt" />
 		<Unit filename="testdata/nastran/irt/sine_test/sine_test.f06" />
 		<Unit filename="testdata/nastran/irt/sine_test/sine_test.nas" />
