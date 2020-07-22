@@ -22,15 +22,16 @@
  *      Author: devel
  */
 
-#if defined VDEBUG && defined __GNUC__ && !defined(_WIN32)
-#include <valgrind/memcheck.h>
-#endif
 #include "Analysis.h"
 #include "Model.h"
 #include "BoundaryCondition.h"
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
+
+#if VALGRIND_FOUND && defined VDEBUG && defined __GNUC__ && !defined(_WIN32)
+#include <valgrind/memcheck.h>
+#endif
 
 namespace vega {
 

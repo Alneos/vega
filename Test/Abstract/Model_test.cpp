@@ -16,7 +16,7 @@
 #include <new>
 #include <string>
 #include <vector>
-#if defined VDEBUG && defined __GNUC__  && !defined(_WIN32)
+#if VALGRIND_FOUND && defined VDEBUG && defined __GNUC__  && !defined(_WIN32)
 #include <valgrind/memcheck.h>
 #endif
 

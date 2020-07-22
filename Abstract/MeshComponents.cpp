@@ -16,7 +16,7 @@
 #include <boost/geometry.hpp>
 #include <boost/geometry/algorithms/distance.hpp>
 #include <boost/geometry/algorithms/comparable_distance.hpp>
-#if defined VDEBUG && defined __GNUC__  && !defined(_WIN32)
+#if VALGRIND_FOUND && defined VDEBUG && defined __GNUC__  && !defined(_WIN32)
 #include <valgrind/memcheck.h>
 #endif
 
@@ -27,7 +27,7 @@ unordered_map<SpaceDimension::Code, SpaceDimension*, EnumClassHash> SpaceDimensi
 
 SpaceDimension::SpaceDimension(Code code, int medcouplingRelativeMeshDimension) noexcept :
 		code(code), relativeMeshDimension(medcouplingRelativeMeshDimension) {
-#if defined VDEBUG && defined __GNUC__  && !defined(_WIN32)
+#if VALGRIND_FOUND && defined VDEBUG && defined __GNUC__  && !defined(_WIN32)
 	VALGRIND_CHECK_VALUE_IS_DEFINED(code);
 	VALGRIND_CHECK_VALUE_IS_DEFINED(*this);
 	VALGRIND_CHECK_VALUE_IS_DEFINED(SpaceDimension::dimensionByCode);

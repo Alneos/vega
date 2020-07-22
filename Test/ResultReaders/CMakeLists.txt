@@ -6,6 +6,7 @@ SET_TARGET_PROPERTIES(CSVResultReader_test PROPERTIES LINK_SEARCH_END_STATIC ${S
 target_link_libraries(
  CSVResultReader_test
  resultReaders
+ ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
 add_test(NAME CSVResultReader_test COMMAND CSVResultReader_test)
@@ -23,6 +24,7 @@ SET_TARGET_PROPERTIES(F06Parser_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_
 target_link_libraries(
  F06Parser_test
  resultReaders
+ ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
 add_test(NAME F06Parser_test COMMAND F06Parser_test)

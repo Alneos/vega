@@ -15,7 +15,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 #include <iostream>
-#if defined VDEBUG && defined __GNUC_ && !defined(_WIN32)
+#if VALGRIND_FOUND && defined VDEBUG && defined __GNUC_ && !defined(_WIN32)
 #include <valgrind/memcheck.h>
 #endif
 

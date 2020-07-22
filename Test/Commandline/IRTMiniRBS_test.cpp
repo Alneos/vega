@@ -34,7 +34,7 @@
 #include <iostream>
 //#include <thread>         // std::this_thread::sleep_for
 //#include <chrono>         // std::chrono::seconds
-#if defined VDEBUG && defined __GNUC_ && !defined(_WIN32)
+#if VALGRIND_FOUND && defined VDEBUG && defined __GNUC_ && !defined(_WIN32)
 #include <valgrind/memcheck.h>
 #endif
 

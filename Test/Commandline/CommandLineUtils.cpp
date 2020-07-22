@@ -17,7 +17,7 @@
 #include "build_properties.h"
 //dirty hack to circumvent a boost test dynamic link bug
 #include <boost/test/unit_test.hpp>
-#if defined(__unix__) && defined(VDEBUG) && defined __GNUC__  && !defined(_WIN32)
+#if VALGRIND_FOUND && defined(__unix__) && defined(VDEBUG) && defined __GNUC__  && !defined(_WIN32)
 #include <valgrind/memcheck.h>
 #endif
 #include <boost/filesystem.hpp>
@@ -110,7 +110,7 @@ void CommandLineUtils::run(string inputFname, SolverName inputSolver, SolverName
 
     argv1.push_back("-g"); // Create graph
 
-#if defined __unix__ && defined VDEBUG
+#if VALGRIND_FOUND && defined __unix__ && defined VDEBUG
     //disable running Aster if running under Valgrind on Linux
     runSolver = runSolver && (RUNNING_ON_VALGRIND == 0);
 #endif

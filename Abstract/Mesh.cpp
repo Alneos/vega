@@ -10,7 +10,7 @@
 
 #include "Mesh.h"
 
-#if defined VDEBUG && defined __GNUC__  && !defined(_WIN32)
+#if VALGRIND_FOUND && defined VDEBUG && defined __GNUC__  && !defined(_WIN32)
 #include <valgrind/memcheck.h>
 #endif
 #include <boost/filesystem/operations.hpp>

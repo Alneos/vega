@@ -26,7 +26,8 @@
 #include "ConfigurationParameters.h"
 #include <boost/filesystem.hpp>
 #include <stdio.h>
-#if defined VDEBUG && defined __GNUC__ && !defined(_WIN32)
+
+#if VALGRIND_FOUND && defined VDEBUG && defined __GNUC__ && !defined(_WIN32)
 #include <execinfo.h>
 #endif
 

@@ -14,7 +14,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
 #include <iostream>
-#if defined VDEBUG && defined __GNUC_ && !defined(_WIN32)
+#if VALGRIND_FOUND && defined VDEBUG && defined __GNUC_ && !defined(_WIN32)
 #include <valgrind/memcheck.h>
 #endif
 
@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE( test_model_read ) {
 				ConfigurationParameters{testLocation, SolverName::CODE_ASTER, "", ""});
 		size_t num_materials = model->materials.size();
 		BOOST_CHECK_EQUAL(1, num_materials);
-#if defined VDEBUG && defined __GNUC_
+#if VALGRIND_FOUND && defined VDEBUG && defined __GNUC_
 		VALGRIND_CHECK_VALUE_IS_DEFINED(model);
 #endif
 		//expected 1 material elastic

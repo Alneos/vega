@@ -392,6 +392,8 @@ IF (ENABLE_CODECOVERAGE)
   ENDIF()
 ENDIF()
 
+find_package(Valgrind)
+
 #necessary to find build_properties.h
 include_directories(${CMAKE_BINARY_DIR})
 
@@ -500,6 +502,12 @@ if(DOXYGEN_FOUND)
 else(DOXYGEN_FOUND)
   message(STATUS "Doxygen: not found or disabled.")
 endif(DOXYGEN_FOUND)
+if(VALGRIND_FOUND)
+  message(STATUS "Valgrind: " ${Valgrind_EXECUTABLE})
+  message(STATUS "Valgrind include dir: " ${Valgrind_INCLUDE_DIR})
+else(VALGRIND_FOUND)
+  message(STATUS "Valgrind: not found or disabled.")
+endif(VALGRIND_FOUND)
 if(${STATIC_LINKING})
     message(STATUS "Static linking.")
 else(${STATIC_LINKING})
