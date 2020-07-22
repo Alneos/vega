@@ -16,7 +16,7 @@ if(ENABLE_ASTER)
      Nastran2Aster_test
      command_line_test_utils
      commandline
-     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+     boost_unit_test_framework
     )
 
     add_test(NAME Nastran2Aster_test COMMAND Nastran2Aster_test)
@@ -33,7 +33,7 @@ if(ENABLE_ASTER)
      Nastran2AsterLong_test
      command_line_test_utils
      commandline
-     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+     boost_unit_test_framework
     )
 
     add_test(NAME Nastran2AsterLong_test COMMAND Nastran2AsterLong_test)
@@ -52,7 +52,7 @@ target_link_libraries(
  Nastran2Systus_test
  command_line_test_utils
  commandline
- ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+ boost_unit_test_framework
 )
 
 add_test(NAME Nastran2Systus_test COMMAND Nastran2Systus_test)
@@ -70,7 +70,7 @@ target_link_libraries(
  Nastran2Nastran_test
  command_line_test_utils
  commandline
- ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+ boost_unit_test_framework
 )
 
 add_test(NAME Nastran2Nastran_test COMMAND Nastran2Nastran_test)
@@ -87,7 +87,7 @@ target_link_libraries(
  Optistruct2Nastran_test
  command_line_test_utils
  commandline
- ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+ boost_unit_test_framework
 )
 
 add_test(NAME Optistruct2Nastran_test COMMAND Optistruct2Nastran_test)
@@ -105,7 +105,7 @@ if(ENABLE_ASTER)
      Optistruct2Aster_test
      command_line_test_utils
      commandline
-     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+     boost_unit_test_framework
     )
 
     add_test(NAME Optistruct2Aster_test COMMAND Optistruct2Aster_test)
@@ -124,7 +124,7 @@ if(ENABLE_SYSTUS)
      Optistruct2Systus_test
      command_line_test_utils
      commandline
-     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+     boost_unit_test_framework
     )
 
     add_test(NAME Optistruct2Systus_test COMMAND Optistruct2Systus_test)
@@ -143,7 +143,7 @@ target_link_libraries(
  nastran
  command_line_test_utils
  commandline
- ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+ boost_unit_test_framework
 )
 
 add_test(NAME NastranCoverage COMMAND NastranCoverage_test)
@@ -161,7 +161,7 @@ target_link_libraries(
  nastran
  command_line_test_utils
  commandline
- ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+ boost_unit_test_framework
 )
 
 #add_test(NAME IRTMiniRBS COMMAND IRTMiniRBS_test)

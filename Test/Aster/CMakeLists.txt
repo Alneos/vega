@@ -11,7 +11,7 @@ target_link_libraries(
  MedWriter_test
  aster
  nastran
- ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+ boost_unit_test_framework
 )
 
 add_test(NAME MedWriter COMMAND MedWriter_test)

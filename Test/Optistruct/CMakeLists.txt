@@ -10,6 +10,7 @@ target_link_libraries(
  OptistructParser_test
  optistruct
  nastran
+ boost_unit_test_framework
 )
 
 add_test(NAME OptistructParser COMMAND OptistructParser_test)

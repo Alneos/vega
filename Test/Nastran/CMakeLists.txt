@@ -9,7 +9,7 @@ SET_TARGET_PROPERTIES(NastranParser_test PROPERTIES LINK_SEARCH_END_STATIC ${STA
 target_link_libraries(
  NastranParser_test
  nastran
- ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+ boost_unit_test_framework
 )
 
 add_test(NAME NastranParser COMMAND NastranParser_test)
@@ -25,7 +25,7 @@ SET_TARGET_PROPERTIES(NastranTokenizer_test PROPERTIES LINK_SEARCH_END_STATIC ${
 target_link_libraries(
  NastranTokenizer_test
  nastran
- ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+ boost_unit_test_framework
 )
 
 add_test(NAME NastranTokenizer COMMAND NastranTokenizer_test)
@@ -41,7 +41,7 @@ SET_TARGET_PROPERTIES(NastranWriter_test PROPERTIES LINK_SEARCH_END_STATIC ${STA
 target_link_libraries(
  NastranWriter_test
  nastran
- ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+ boost_unit_test_framework
 )
 
 add_test(NAME NastranWriter COMMAND NastranWriter_test)

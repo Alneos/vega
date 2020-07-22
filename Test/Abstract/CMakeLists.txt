@@ -11,7 +11,7 @@ SET_TARGET_PROPERTIES(Dof_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINKIN
 target_link_libraries(
  Dof_test
  abstract
- ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+ boost_unit_test_framework
 )
 
 #----- Coordinate System test
@@ -26,7 +26,7 @@ SET_TARGET_PROPERTIES(CoordinateSystem_test PROPERTIES LINK_SEARCH_END_STATIC ${
 target_link_libraries(
  CoordinateSystem_test
  abstract
- ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+ boost_unit_test_framework
 )
 
 add_executable(
@@ -40,7 +40,7 @@ SET_TARGET_PROPERTIES(Mesh_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINKI
 target_link_libraries(
  Mesh_test
  abstract
- ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+ boost_unit_test_framework
 )
 
 
@@ -55,7 +55,7 @@ SET_TARGET_PROPERTIES(Model_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINK
 target_link_libraries(
  Model_test
  abstract
- ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+ boost_unit_test_framework
 )
 
 add_executable(
@@ -69,7 +69,7 @@ SET_TARGET_PROPERTIES(Utility_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LI
 target_link_libraries(
  Utility_test
  abstract
- ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+ boost_unit_test_framework
 )
 add_test(NAME Utility_test COMMAND Utility_test)
 
@@ -84,7 +84,7 @@ SET_TARGET_PROPERTIES(Value_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINK
 target_link_libraries(
  Value_test
  abstract
- ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+ boost_unit_test_framework
 )
 
 add_executable(
@@ -93,13 +93,14 @@ add_executable(
 )
 
 SET_TARGET_PROPERTIES(Element_test PROPERTIES LINK_SEARCH_START_STATIC ${STATIC_LINKING})
-SET_TARGET_PROPERTIES(Element_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINKING})
 
 target_link_libraries(
  Element_test
  abstract
- ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+ boost_unit_test_framework
 )
+
+SET_TARGET_PROPERTIES(Element_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINKING})
 
 add_test(NAME Dof_test COMMAND Dof_test)
 add_test(NAME CoordinateSystem_test  COMMAND CoordinateSystem_test)
