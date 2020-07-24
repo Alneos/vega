@@ -1672,7 +1672,7 @@ void SystusWriter::fillConstraintsNodes(const SystusModel& systusModel, const in
     // Work
     for (const auto& constraintSet : analysis->getConstraintSets()) {
         for (auto& constraint : constraintSet->getConstraintsByType(Constraint::Type::SPC)) {
-            const auto& spc = static_pointer_cast<SinglePointConstraint>(constraint);
+            //const auto& spc = static_pointer_cast<SinglePointConstraint>(constraint);
             for (const auto nodePosition : constraint->nodePositions()) {
 
                 // We compute the Degree Of Freedom of the node (see ASC Manual)

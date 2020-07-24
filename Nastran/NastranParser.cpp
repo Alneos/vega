@@ -2683,7 +2683,7 @@ void NastranParser::parsePVISC(NastranTokenizer& tok, Model& model) {
             damper2->addDamping(DOF::RY, DOF::RY, cr2);
             damper2->addDamping(DOF::RZ, DOF::RZ, cr2);
         }
-        damper2->add(*cellGroup);
+        damper2->add(*cellGroup2);
         damper2->setInputContext(tok.getInputContext());
         model.add(damper2);
     }
