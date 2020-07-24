@@ -268,6 +268,7 @@ public:
 //            const std::string original_label = "", const int original_id = NO_ORIGINAL_ID);
     const bool residual_vector;
     std::shared_ptr<ModalDamping> getModalDamping() const;
+    bool hasModalDamping() const;
     std::shared_ptr<FrequencyExcit> getExcitationFrequencies() const;
     bool canReuse(const std::shared_ptr<Analysis>&) const noexcept override;
     bool validate() const override;

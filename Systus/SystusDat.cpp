@@ -208,7 +208,9 @@ void SystusWriter::writeDynaDirectAnalysis(ostream& out, const shared_ptr<Analys
     switch (linearDynaFreq->type) {
     case Analysis::Type::LINEAR_DYNA_MODAL_FREQ: {
         const auto& linearDynaModalFreq = static_pointer_cast<LinearDynaModalFreq>(linearDynaFreq);
-        writeModalDamping(out, linearDynaModalFreq->getModalDamping());
+        if (linearDynaModalFreq->hasModalDamping()) {
+            writeModalDamping(out, linearDynaModalFreq->getModalDamping());
+        }
         writeFrequencyExcit(out, linearDynaModalFreq->getExcitationFrequencies());
         break;
     }
@@ -264,7 +266,9 @@ int SystusWriter::writeDynaModalAnalysis(ostream& out, const SystusModel& systus
         out <<"FUNCTION "<< tableByLoadcase[1] <<endl;
         cout <<"FUNCTION "<< tableByLoadcase[0] <<endl;
     }
-    writeModalDamping(out, linearDynaModalFreq->getModalDamping());
+    if (linearDynaModalFreq->hasModalDamping()) {
+        writeModalDamping(out, linearDynaModalFreq->getModalDamping());
+    }
     writeFrequencyExcit(out, linearDynaModalFreq->getExcitationFrequencies());
     out << "TRANSFER STATIONARY" << endl;
     out << "DISPLACEMENT 1 TO " << nbNodes << " INTERNAL" << endl;

@@ -683,6 +683,10 @@ shared_ptr<ModalDamping> LinearDynaModalFreq::getModalDamping() const {
     return static_pointer_cast<ModalDamping>(*objectives.begin());
 }
 
+bool LinearDynaModalFreq::hasModalDamping() const {
+    return getModalDamping() != nullptr;
+}
+
 shared_ptr<FrequencyExcit> LinearDynaModalFreq::getExcitationFrequencies() const {
     const auto& objectiveSet = model.find(frequencyExcitationRef);
     const auto& objectives = objectiveSet->getObjectivesByType(Objective::Type::FREQUENCY_EXCIT);

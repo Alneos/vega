@@ -244,5 +244,10 @@ BOOST_AUTO_TEST_CASE( sdld21b ) {
 	CommandLineUtils::nastranStudy2Systus("/irt/sdld21b/sdld21b.bdf", RUN_SYSTUS, true, 0.00001);
 }
 
+//BOOST_AUTO_TEST_CASE(sdlv302a) {
+// Missing writing for ALPHA1, ALPHA2, pressure dynamic excitation
+//	CommandLineUtils::nastranStudy2Systus("/irt/sdlv302a/sdlv302a.bdf", RUN_SYSTUS, true, 0.05);
+//}
+
 } /* namespace test */
 } /* namespace vega */
