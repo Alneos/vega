@@ -93,6 +93,8 @@ nightly_systus:
     - export PATH=$PATH:/opt/TOP/ESI/sysworld/v2018.0/GB/
     - mkdir -p /srv/data/$OUTDIR; mkdir -p /srv/data/$OUTDIR/aster; mkdir -p /srv/data/$OUTDIR/systus
   script:
+    - /srv/data/vegapp --run-solver --solver-version=2018 -s -o /srv/data/$OUTDIR/systus /srv/data/input/v03_K9Kgen6_simplif/v03_K9Kgen6_simplif_analysis_mass_sansHFREQ_sansRESVEC.fem optistruct systus 2>&1 | tee /srv/data/$OUTDIR/systus/v03_K9Kgen6_simplif_vegapp.log
+    - /srv/data/vegapp --run-solver -s -o /srv/data/$OUTDIR/aster /srv/data/input/v03_K9Kgen6_simplif/v03_K9Kgen6_simplif_analysis_mass_sansHFREQ_sansRESVEC.fem optistruct aster 2>&1 | tee /srv/data/$OUTDIR/aster/v03_K9Kgen6_simplif_vegapp.log
     - /srv/data/vegapp --run-solver --solver-version=2018 -s -o /srv/data/$OUTDIR/systus /srv/data/input/AirbusUseCase/TOP_CAS_AIRBUS_11032019.fem optistruct systus 2>&1 | tee /srv/data/$OUTDIR/systus/TOP_CAS_AIRBUS_11032019_vegapp.log
     - /srv/data/vegapp --run-solver --solver-version=2018 -s -o /srv/data/$OUTDIR/systus -t /srv/data/input_mod/v02_K9Kgen6_simplif/sc1_normmass/v02_K9Kgen6_simplif_sc1_normmass.f06 /srv/data/input_mod/v02_K9Kgen6_simplif/sc1_normmass/v02_K9Kgen6_simplif_sc1_normmass.fem optistruct systus 2>&1 | tee /srv/data/$OUTDIR/systus/v02_K9Kgen6_simplif_sc1_normmass_vegapp.log
     - /srv/data/vegapp --run-solver --solver-version=2018 -s -o /srv/data/$OUTDIR/systus -t /srv/data/input/v02_K9Kgen6_simplif/refres/v02_K9Kgen6_simplif.f06 -x 5.0 /srv/data/input/v02_K9Kgen6_simplif/original/v02_K9Kgen6_simplif.fem optistruct systus 2>&1 | tee /srv/data/$OUTDIR/systus/v02_K9Kgen6_simplif_vegapp.log
