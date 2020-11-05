@@ -489,26 +489,53 @@ void AsterWriter::writeAnalyses() {
                     case Composite::PlyFailureTheory::TSAI_WU: {
                         string layerStressesName =  "C" + to_string(compositeNumber) + "L" + to_string(layerNumber);
                         comm_file_ofs << layerStressesName << "=POST_CHAMP(RESULTAT=" << resuName << "," << endl;
-                        comm_file_ofs << "               EXTR_COQUE=_F(NOM_CHAM='SIGM_ELNO',NUME_COUCHE=1,NIVE_COUCHE='MOY',),)" << endl << endl;
+                        writeCellContainer(composite);
+                        comm_file_ofs << endl;
+                        comm_file_ofs << "               EXTR_COQUE=_F(NOM_CHAM='SIGM_ELNO',NUME_COUCHE="+to_string(layerNumber)+",NIVE_COUCHE='MOY',),)" << endl << endl;
                         destroyableConcepts.push_back(layerStressesName);
 
-                        string layerLocalStressesName = layerStressesName + "L";
-                        comm_file_ofs << layerLocalStressesName << "=MODI_REPERE(RESULTAT=" << layerStressesName << "," << endl;
-                        comm_file_ofs << "                                  MODI_CHAM=_F(TYPE_CHAM='TENS_3D'," << endl;
-                        comm_file_ofs << "                                  NOM_CHAM='SIGM_ELNO'," << endl;
-                        comm_file_ofs << "                                  NOM_CMP=('SIXX','SIYY','SIZZ','SIXY','SIXZ','SIYZ',),)," << endl;
-                        comm_file_ofs << "                                  REPERE='COQUE'," << endl;
-                        comm_file_ofs << "                                  AFFE=_F(ANGL_REP=(0.0," << layer->getOrientation() << ",),";
+                        string layerLocalFormulaxx = "locxx" + to_string(layerNumber);
+                        comm_file_ofs << layerLocalFormulaxx << " = FORMULE(VALE='(SIXX*cos(-" << layer->getOrientation()*M_PI/180 << ")**2" <<
+								"+ SIYY*sin(-" << layer->getOrientation()*M_PI/180 << ")**2 " <<
+								"- SIXY*2*cos(-" << layer->getOrientation()*M_PI/180 << ")*sin(-" << layer->getOrientation()*M_PI/180 << ") )', NOM_PARA=('SIXX','SIYY','SIXY',),)" << endl << endl;
+
+                        destroyableConcepts.push_back(layerLocalFormulaxx);
+
+                        string layerLocalFormulayy = "locyy" + to_string(layerNumber);
+                        comm_file_ofs << layerLocalFormulayy << " = FORMULE(VALE='(SIXX*sin(-" << layer->getOrientation()*M_PI/180 << ")**2" <<
+								"+ SIYY*cos(-" << layer->getOrientation()*M_PI/180 << ")**2 " <<
+								"+ SIXY*2*cos(-" << layer->getOrientation()*M_PI/180 << ")*sin(-" << layer->getOrientation()*M_PI/180 << ") )', NOM_PARA=('SIXX','SIYY','SIXY',),)" << endl << endl;
+
+                        destroyableConcepts.push_back(layerLocalFormulayy);
+
+                        string layerLocalFormulaxy = "locxy" + to_string(layerNumber);
+                        comm_file_ofs << layerLocalFormulaxy << " = FORMULE(VALE='(SIXX*sin(-" << layer->getOrientation()*M_PI/180 << ")*cos(-" << layer->getOrientation()*M_PI/180 << ") " <<
+								"-SIYY*sin(-" << layer->getOrientation()*M_PI/180 << ")*cos(-" << layer->getOrientation()*M_PI/180 << ") " <<
+								"+ SIXY*(cos(-" << layer->getOrientation()*M_PI/180 << ")**2-sin(-" << layer->getOrientation()*M_PI/180 << ")**2) )', NOM_PARA=('SIXX','SIYY','SIXY',),)" << endl << endl;
+
+                        destroyableConcepts.push_back(layerLocalFormulaxy);
+
+                        string layerLocalStressesName = "r" + to_string(analysis->getId()) + layerStressesName;
+                        comm_file_ofs << layerLocalStressesName << "=CALC_CHAMP(RESULTAT=" << layerStressesName << ",";
                         writeCellContainer(composite);
-                        comm_file_ofs << ")," << endl;
-                        comm_file_ofs << "                                  )" << endl << endl;
+                        comm_file_ofs << endl;
+                        comm_file_ofs << "                    CHAM_UTIL=_F(NOM_CHAM='SIGM_ELNO'," << endl;
+                        comm_file_ofs << "FORMULE=(" << layerLocalFormulaxx << "," << layerLocalFormulayy << "," << layerLocalFormulaxy << "),NUME_CHAM_RESU=1,),)" << endl << endl;
                         destroyableConcepts.push_back(layerLocalStressesName);
 
+
+                        comm_file_ofs << "IMPR_RESU(FORMAT='MED',UNITE=80," << endl;
+                        comm_file_ofs << "          RESU=(" << endl;
+                        comm_file_ofs << "                _F(RESULTAT=" << layerLocalStressesName << ", NOM_CHAM='UT01_ELNO', NOM_CHAM_MED='" + layerLocalStressesName << "'),";
+                        comm_file_ofs << "               )," << endl;
+                        comm_file_ofs << "         )" << endl << endl;
+
                         string layerTsaiFormula = "TSAI" + to_string(layerNumber);
-                        comm_file_ofs << layerTsaiFormula << " = FORMULE(VALE='(SIXX/" << orthoNature->getXt() << ")**2" <<
-                                    "+(SIYY/" << orthoNature->getYt() << ")**2" <<
-                                    "+(SIXY/" << orthoNature->getSlt() << ")**2" <<
-                                    "-(SIXX*SIYY/" << orthoNature->getXt() << "**2)',NOM_PARA=('SIXX','SIYY','SIXY',),)" << endl << endl;
+                        comm_file_ofs << layerTsaiFormula << " = FORMULE(VALE='X1*(1/" << orthoNature->getXt() << "-1/" << orthoNature->getXc() << ")" <<
+                                    "+X2*(1/" << orthoNature->getYt() << "-1/" << orthoNature->getYc() << ")" <<
+                                    "+X1**2/(" << orthoNature->getXt() << "*" << orthoNature->getXc() << ")" <<
+                                    "+X2**2/(" << orthoNature->getYt() << "*" << orthoNature->getYc() << ")" <<
+                                    "+(X3/" << orthoNature->getSlt() << ")**2',NOM_PARA=('X1','X2','X3',),)" << endl << endl;
 
                         destroyableConcepts.push_back(layerTsaiFormula);
 
@@ -516,7 +543,7 @@ void AsterWriter::writeAnalyses() {
                         comm_file_ofs << layerResu << "=CALC_CHAMP(RESULTAT=" << layerLocalStressesName << ",";
                         writeCellContainer(composite);
                         comm_file_ofs << endl;
-                        comm_file_ofs << "                    CHAM_UTIL=_F(NOM_CHAM='SIGM_ELNO'," << endl;
+                        comm_file_ofs << "                    CHAM_UTIL=_F(NOM_CHAM='UT01_ELNO'," << endl;
                         comm_file_ofs << "FORMULE=" << layerTsaiFormula << ",NUME_CHAM_RESU=1,),)" << endl << endl;
                         destroyableConcepts.push_back(layerResu);
 
@@ -1247,7 +1274,7 @@ void AsterWriter::writeAffeCaraElem() {
                                 << shell->offset << "," << endl;
                         comm_file_ofs << "                              INER_ROTA='OUI'," << endl;
                     }
-					comm_file_ofs << "                              VECTEUR=(0.9,0.1,0.2))," << endl;
+					comm_file_ofs << "                              VECTEUR=(0,0,1))," << endl;
 				} else {
 					comm_file_ofs
 							<< "                           # WARN Finite Element : COQUE ignored because its GROUP_MA is empty."
@@ -1270,7 +1297,7 @@ void AsterWriter::writeAffeCaraElem() {
                     }
 					comm_file_ofs << "                              COQUE_NCOU="
 							<< composite->getFullLayers().size() << "," << endl;
-					comm_file_ofs << "                              VECTEUR=(1.0,0.0,0.0))," << endl;
+					comm_file_ofs << "                              VECTEUR=(0,0,1))," << endl;
 				} else {
 					comm_file_ofs
 							<< "                           # WARN Finite Element : COMPOSITE ignored because its GROUP_MA is empty."
