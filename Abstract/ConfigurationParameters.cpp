@@ -83,6 +83,7 @@ ModelConfiguration ConfigurationParameters::getModelConfiguration() const {
     } else if (this->outputSolver.getSolverName() == SolverName::NASTRAN) {
         // default should be always false
         configuration.autoDetectAnalysis = true;
+        configuration.replaceCombinedLoadSets = true; // tentative workaround for problem in LOAD BULK detection
     } else {
         throw logic_error(" solver not yet implemented");
     }

@@ -170,6 +170,11 @@ if(COMPILER_SUPPORTS_OVERLOADED_VIRTUAL)
   add_compile_options(-Woverloaded-virtual)
 endif()
 
+CHECK_CXX_COMPILER_FLAG(-Wa,-mbig-obj COMPILER_SUPPORTS_BIG_OBJ)
+if(COMPILER_SUPPORTS_BIG_OBJ)
+  add_compile_options(-Wa,-mbig-obj)
+endif()
+
 #CHECK_CXX_COMPILER_FLAG(-fsanitize=null COMPILER_SUPPORTS_SANITIZE_NULL)
 #if(COMPILER_SUPPORTS_SANITIZE_NULL)
 #  add_compile_options(-fsanitize=null)

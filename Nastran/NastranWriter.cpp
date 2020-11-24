@@ -343,7 +343,11 @@ void NastranWriter::writeCells(const Model& model, ofstream& out) const
             }
 
             Line cellLine{keyword};
-            cellLine.add(cell.id).add(elementSet->bestId()).add(nasConnect);
+            if (isCosmic() && (cell.type.code == CellType::Code::TETRA4_CODE || cell.type.code == CellType::Code::TETRA10_CODE)) {
+                cellLine.add(cell.id).add(elementSet->mainMaterial()->bestId()).add(nasConnect);
+            } else {
+                cellLine.add(cell.id).add(elementSet->bestId()).add(nasConnect);
+            }
 
             if (elementSet->isBeam() and cell.hasOrientation) {
                 vector<double> x1x2x3;
