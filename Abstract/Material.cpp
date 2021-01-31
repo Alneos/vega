@@ -201,7 +201,7 @@ double OrthotropicNature::getE_longitudinal() const {
 }
 
 double OrthotropicNature::getE_transverse() const {
-	return _e_longitudinal;
+	return _e_transverse;
 }
 
 double OrthotropicNature::getNu_longitudinal_transverse() const {
