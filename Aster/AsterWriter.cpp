@@ -1274,7 +1274,7 @@ void AsterWriter::writeAffeCaraElem() {
                                 << shell->offset << "," << endl;
                         comm_file_ofs << "                              INER_ROTA='OUI'," << endl;
                     }
-					comm_file_ofs << "                              VECTEUR=(0,0,1))," << endl;
+					comm_file_ofs << "                              VECTEUR=(0.9,0.1,0.2))," << endl;
 				} else {
 					comm_file_ofs
 							<< "                           # WARN Finite Element : COQUE ignored because its GROUP_MA is empty."

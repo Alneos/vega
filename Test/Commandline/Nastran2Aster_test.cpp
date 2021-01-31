@@ -151,6 +151,11 @@ BOOST_AUTO_TEST_CASE( nas102prob6 ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/nas102prob6/nas102prob6.nas", RUN_ASTER, true, 0.03);
 }
 
+//BOOST_AUTO_TEST_CASE( nas102prob12 ) {
+// TODO : SOL 107 SEDCEIG Direct complex eigenvalues
+//	CommandLineUtils::nastranStudy2Aster("/irt/nas102prob12/prob12.nas", RUN_ASTER, true, 0.006);
+//}
+
 BOOST_AUTO_TEST_CASE( nas102prob14a ) {
 	CommandLineUtils::nastranStudy2Aster("/irt/nas102prob14a/nas102prob14a.nas", RUN_ASTER, true, 0.006);
 }
