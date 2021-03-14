@@ -197,7 +197,7 @@ pos_t Mesh::addNode(const int id, const double x, const double y, const double z
 		nodePosition = static_cast<pos_t>(nodes.nodeDatas.size());
 		NodeData nodeData(assignId, DOFS::NO_DOFS, x, y, z, cpPos, cdPos, nodePart);
 		nodes.nodeDatas.push_back(nodeData);
-		nodes.nodepositionById[id] = nodePosition;
+		nodes.nodepositionById[assignId] = nodePosition;
 	} else {
 		nodePosition = positionIterator->second;
 		NodeData& nodeData = nodes.nodeDatas[nodePosition];
@@ -480,6 +480,8 @@ pos_t Mesh::updateCell(int id, const CellType &cellType, const std::vector<int> 
     }
     const auto& nodePositionsPtr = cells.nodepositionsByCelltype[cellType];
 	for (const auto& nodeId : nodeIds) {
+        cout << "updateCell nodeId:" << nodeId << endl;
+        cout << "updateCell nodePos:" << findOrReserveNode(nodeId) << endl;
 		nodePositionsPtr->push_back(findOrReserveNode(nodeId));
 	}
     if (cpos != CoordinateSystem::GLOBAL_COORDINATE_SYSTEM_ID) {

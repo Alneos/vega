@@ -14,6 +14,17 @@
 using namespace std;
 using namespace vega;
 
+BOOST_AUTO_TEST_CASE( test_node_auto ) {
+    Mesh mesh(LogLevel::INFO, "test_node_autp");
+    const auto nodepos1 = mesh.addNode(1, 0.0, 0.0, 0.0);
+    BOOST_CHECK_EQUAL(mesh.findNodeId(nodepos1), 1);
+    BOOST_CHECK_EQUAL(mesh.findNodePosition(1), nodepos1);
+    const auto nodeposauto = mesh.addNode(Node::AUTO_ID, 0.0, 10.0, 0.0);
+    const auto nodeidauto = mesh.findNodeId(nodeposauto);
+    BOOST_CHECK(nodeidauto != 1);
+    BOOST_CHECK_EQUAL(mesh.findNodePosition(nodeidauto), nodeposauto);
+}
+
 BOOST_AUTO_TEST_CASE( test_node_distance ) {
     Mesh mesh(LogLevel::INFO, "test_node_distance");
     const auto nodepos1 = mesh.addNode(1, 0.0, 0.0, 0.0);
