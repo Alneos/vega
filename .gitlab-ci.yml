@@ -18,7 +18,7 @@ shbuilding:
   script:
     - mkdir build
     - cd build
-    - /opt/cmake-3.12.3-Linux-x86_64/bin/cmake -DCMAKE_BUILD_TYPE=SDebug -DBOOST_ROOT:PATHNAME=/opt/boost-1.65.1 -DRUN_SYSTUS=ON -DCMAKE_C_COMPILER=/opt/gcc-5.5.0/bin/gcc -DCMAKE_CXX_COMPILER=/opt/gcc-5.5.0/bin/g++ -DHDF5_LIBRARIES=/opt/aster/public/hdf5-1.8.14/lib/libhdf5.a -DHDF5_INCLUDE_DIRS=/opt/aster/public/hdf5-1.8.14/include -DMEDFILE_C_LIBRARIES=/opt/aster/public/med-3.3.1/lib/libmedC.a -DMEDFILE_INCLUDE_DIRS=/opt/aster/public/med-3.3.1/include  ..
+    - cmake -DCMAKE_BUILD_TYPE=SDebug -DBOOST_ROOT:PATHNAME=/opt/boost-1.65.1 -DRUN_SYSTUS=ON -DCMAKE_C_COMPILER=/opt/gcc-5.5.0/bin/gcc -DCMAKE_CXX_COMPILER=/opt/gcc-5.5.0/bin/g++ -DHDF5_LIBRARIES=/opt/aster/public/hdf5-1.8.14/lib/libhdf5.a -DHDF5_INCLUDE_DIRS=/opt/aster/public/hdf5-1.8.14/include -DMEDFILE_C_LIBRARIES=/opt/aster/public/med-3.3.1/lib/libmedC.a -DMEDFILE_INCLUDE_DIRS=/opt/aster/public/med-3.3.1/include  ..
     - make -j
     - LC_ALL="en_US.UTF-8" ctest -VV .
     - cp ./bin/vegapp /srv/data
