@@ -35,18 +35,18 @@ using namespace std;
 // Declaration to avoid Wmissing-declarations error
 void createFamilies(med_idt fid, const char meshname[], const std::vector<Family>& families);
 
-NodeGroup2Families::NodeGroup2Families(int nnodes, const vector<shared_ptr<NodeGroup>> nodeGroups) {
+NodeGroup2Families::NodeGroup2Families(med_int nnodes, const vector<shared_ptr<NodeGroup>> nodeGroups) {
 	int currentFamilyId = 0;
-	unordered_map<int, int> newFamilyByOldfamily;
-	unordered_map<int, Family> familyByFamilyId;
+	unordered_map<med_int, med_int> newFamilyByOldfamily;
+	unordered_map<med_int, Family> familyByFamilyId;
 	if (nnodes > 0 && nodeGroups.size() > 0) {
 		this->nodes.resize(nnodes, 0);
 		for (const auto& nodeGroup : nodeGroups) {
 			newFamilyByOldfamily.clear();
 			for (const auto nodePosition : nodeGroup->nodePositions()) {
-				int oldFamilyId = nodes[nodePosition];
+				med_int oldFamilyId = nodes[nodePosition];
 				auto newFamilyPair = newFamilyByOldfamily.find(oldFamilyId);
-				int newFamilyId;
+				med_int newFamilyId;
 				if (newFamilyPair == newFamilyByOldfamily.end()) {
 					//family not found, create one
 					currentFamilyId++;
@@ -87,18 +87,19 @@ vector<Family> NodeGroup2Families::getFamilies() const {
 	return this->families;
 }
 
-vector<int> NodeGroup2Families::getFamilyOnNodes() const {
-	return this->nodes;
+vector<med_int> NodeGroup2Families::getFamilyOnNodes() const {
+	vector<med_int> famlong(begin(this->nodes), end(this->nodes));
+	return famlong;
 }
 
 CellGroup2Families::CellGroup2Families(
 		const Mesh& mesh, unordered_map<CellType::Code, size_t, EnumClassHash> cellCountByType,
 		const vector<shared_ptr<CellGroup>>& cellGroups) : mesh(mesh) {
-	int currentFamilyId = 0;
-	unordered_map<int, int> newFamilyByOldfamily;
-	unordered_map<int, Family> familyByFamilyId;
+	med_int currentFamilyId = 0;
+	unordered_map<med_int, med_int> newFamilyByOldfamily;
+	unordered_map<med_int, Family> familyByFamilyId;
 	for (const auto& cellCountByTypePair : cellCountByType) {
-		shared_ptr<vector<int>> cells = make_shared<vector<int>>();
+		shared_ptr<vector<med_int>> cells = make_shared<vector<med_int>>();
 		cells->resize(cellCountByTypePair.second, 0);
 		cellFamiliesByType[cellCountByTypePair.first] = cells;
 	}
@@ -110,10 +111,10 @@ CellGroup2Families::CellGroup2Families(
                 continue; // ignoring unexisting cells in group definitions
             }
 			const Cell&& cell = mesh.findCell(cellPosition);
-			shared_ptr<vector<int>> currentCellFamilies = cellFamiliesByType[cell.type.code];
-			int oldFamilyId = currentCellFamilies->at(cell.cellTypePosition);
+			shared_ptr<vector<med_int>> currentCellFamilies = cellFamiliesByType[cell.type.code];
+			med_int oldFamilyId = currentCellFamilies->at(cell.cellTypePosition);
 			auto newFamilyPair = newFamilyByOldfamily.find(oldFamilyId);
-			int newFamilyId;
+			med_int newFamilyId;
 			if (newFamilyPair == newFamilyByOldfamily.end()) {
 				//family not found, create one
 				currentFamilyId--;
@@ -142,12 +143,12 @@ CellGroup2Families::CellGroup2Families(
 		}
 	}
 
-	set<int> familiesInUse;
+	set<med_int> familiesInUse;
 	for (const auto& cellFamilyAndTypePair : cellFamiliesByType) {
 		familiesInUse.insert(cellFamilyAndTypePair.second->begin(),
 				cellFamilyAndTypePair.second->end());
 	}
-	for (int fam_id : familiesInUse) {
+	for (med_int fam_id : familiesInUse) {
 		if (fam_id != 0) {
 			families.push_back(familyByFamilyId[fam_id]);
 		}
@@ -158,7 +159,7 @@ vector<Family> CellGroup2Families::getFamilies() const {
 	return this->families;
 }
 
-unordered_map<CellType::Code, shared_ptr<vector<int>>, EnumClassHash> CellGroup2Families::getFamilyOnCells() const {
+unordered_map<CellType::Code, shared_ptr<vector<med_int>>, EnumClassHash> CellGroup2Families::getFamilyOnCells() const {
 	return this->cellFamiliesByType;
 }
 
@@ -248,7 +249,7 @@ void MedWriter::writeMED(const Model& model, const string& medFileName) {
 
 	for (const auto& kv : model.mesh.cellPositionsByType) {
 		CellType type = kv.first;
-		med_int code = static_cast<med_int>(type.code);
+		med_geometry_type code = static_cast<med_geometry_type>(type.code);
 		const auto& cellPositions = kv.second;
 		med_int numCells = static_cast<med_int>(cellPositions.size());
 		if (type.numNodes == 0 || numCells == 0) {
@@ -333,7 +334,7 @@ void MedWriter::writeMED(const Model& model, const string& medFileName) {
 		CellGroup2Families cellGroup2Family = CellGroup2Families(model.mesh, cellCountByType, cellGroups);
 		createFamilies(fid, meshname, cellGroup2Family.getFamilies());
 		for (const auto& cellCodeFamilyVectorPair : cellGroup2Family.getFamilyOnCells()) {
-			int ncells = static_cast<int>(cellCodeFamilyVectorPair.second->size());
+			med_int ncells = static_cast<med_int>(cellCodeFamilyVectorPair.second->size());
 			if (MEDmeshEntityFamilyNumberWr(fid, meshname, MED_NO_DT, MED_NO_IT, MED_CELL,
 					static_cast<int>(cellCodeFamilyVectorPair.first), ncells, cellCodeFamilyVectorPair.second->data())
 					< 0) {

@@ -6,6 +6,8 @@ add_executable(
 SET_TARGET_PROPERTIES(MedWriter_test PROPERTIES LINK_SEARCH_START_STATIC ${STATIC_LINKING})
 SET_TARGET_PROPERTIES(MedWriter_test PROPERTIES LINK_SEARCH_END_STATIC ${STATIC_LINKING})
 
+target_include_directories(MedWriter_test SYSTEM PRIVATE ${MEDFILE_INCLUDE_DIRS})
+target_include_directories(MedWriter_test SYSTEM PRIVATE ${HDF5_INCLUDE_DIRS})
 
 target_link_libraries(
  MedWriter_test

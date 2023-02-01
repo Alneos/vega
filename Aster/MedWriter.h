@@ -27,6 +27,7 @@
 
 #include "../Abstract/ConfigurationParameters.h"
 #include "../Abstract/Mesh.h"
+#include <med.h>
 
 namespace vega {
 
@@ -36,28 +37,28 @@ struct Family final {
 public:
     std::vector<std::shared_ptr<Group>> groups;
     std::string name = "";
-    int num = Globals::UNAVAILABLE_INT;
+    med_int num = Globals::UNAVAILABLE_INT;
 };
 
 class NodeGroup2Families {
     std::vector<Family> families;
-    std::vector<int> nodes;
+    std::vector<med_int> nodes;
 public:
-    NodeGroup2Families(int nnodes, const std::vector<std::shared_ptr<NodeGroup>> nodeGroups);
+    NodeGroup2Families(med_int nnodes, const std::vector<std::shared_ptr<NodeGroup>> nodeGroups);
     std::vector<Family> getFamilies() const;
-    std::vector<int> getFamilyOnNodes() const;
+    std::vector<med_int> getFamilyOnNodes() const;
 };
 
 class CellGroup2Families final {
 private:
     std::vector<Family> families;
-    std::unordered_map<CellType::Code, std::shared_ptr<std::vector<int>>, EnumClassHash> cellFamiliesByType;
+    std::unordered_map<CellType::Code, std::shared_ptr<std::vector<med_int>>, EnumClassHash> cellFamiliesByType;
     const Mesh& mesh;
 public:
     CellGroup2Families(const Mesh& mesh, std::unordered_map<CellType::Code, size_t, EnumClassHash> cellCountByType,
             const std::vector<std::shared_ptr<CellGroup>>& cellGroups);
     std::vector<Family> getFamilies() const;
-    std::unordered_map<CellType::Code, std::shared_ptr<std::vector<int>>, EnumClassHash> getFamilyOnCells() const;
+    std::unordered_map<CellType::Code, std::shared_ptr<std::vector<med_int>>, EnumClassHash> getFamilyOnCells() const;
 };
 
 
